@@ -544,6 +544,17 @@ def main():
     row = ((ou['data'] or {}).get('ucty') or [None])[0] or {}
     ok('K8 /owner/ucty nese ver, dev a kontakt', row.get('ver') == 'v299' and row.get('dev') == 'Android 14' and row.get('contact') == 'jan@firma.cz', row)
 
+    # ---- L) grafy vlastnika (13. 9. 2026) ---------------------------------------
+    base_rules()
+    rule('/SELECT day, n FROM stats WHERE day>=/', 'function(){ return { all: [{ day: "2026-09-12", n: 40 }, { day: "2026-09-13", n: 55 }] }; }')
+    rule('/COUNT\(DISTINCT uid\) AS n FROM usage WHERE ts>=\? GROUP BY day/', 'function(){ return { all: [{ day: "2026-09-13", n: 3 }] }; }')
+    rule('/SELECT ver, COUNT\(\*\) AS n FROM accounts GROUP BY ver/', 'function(){ return { all: [{ ver: "v302", n: 4 }, { ver: null, n: 2 }] }; }')
+    rule('/SELECT k, COUNT\(\*\) AS n FROM usage WHERE ts>=/', 'function(){ return { all: [{ k: "openMeasureModal", n: 12 }] }; }')
+    rule('/SELECT COUNT\(\*\) AS n FROM accounts$/', 'function(){ return { first: { n: 6 } }; }')
+    gr = call('GET', '/owner/grafy', headers=OWN)
+    ok('L1 GET /owner/grafy vraci denni rady, verze a nastroje', gr['status'] == 200 and gr['data'].get('dotazy') and gr['data']['dotazy'][1]['n'] == 55 and gr['data']['lide'][0]['n'] == 3 and gr['data']['verze'][0]['ver'] == 'v302' and gr['data']['nastroje'][0]['k'] == 'openMeasureModal', gr)
+    ok('L2 /owner/grafy bez klice 401/403', call('GET', '/owner/grafy')['status'] in (401, 403))
+
     return vypis()
 
 

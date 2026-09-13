@@ -81,6 +81,30 @@
                 M + ' .agpp-body{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;',
                 '  font-size:calc(13.5px * var(--ag-font-scale,1));line-height:1.45;}',
                 // karty vedle sebe až od 520 px; na telefonu pod sebou (dva sloupce po 170 px lámou každou položku na tři řádky)
+                // ZJEDNODUŠENÝ VIZUÁLNÍ PŘEHLED nahoře (13. 9. 2026, uživatel: „strašně dlouhej seznam…
+                // dal bych tam zjednodušenou verzi, která bude více vizuální"): dvě karty a v Pro pět
+                // ikonových dlaždic (stejné skupiny jako karta Verze Pro); podrobná tabulka je sbalená.
+                M + ' .agpp-vz{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:12px;}',
+                M + ' .agpp-v{padding:13px 14px;border-radius:14px;border:1px solid var(--glass-border,rgba(255,255,255,.12));background:rgba(255,255,255,.04);}',
+                M + ' .agpp-v.pro{border-color:rgba(230,189,118,.55);background:linear-gradient(160deg,rgba(240,207,133,.16),rgba(216,165,74,.05));}',
+                M + ' .agpp-v > b{display:block;font:800 calc(20px * var(--ag-font-scale,1))/1.15 var(--font-display,system-ui);}',
+                M + ' .agpp-v.pro > b{color:#e6bd76;}',
+                M + ' .agpp-v > i{display:block;font:600 calc(12px * var(--ag-font-scale,1))/1.3 var(--font-mono,ui-monospace,monospace);color:var(--text-muted,#9aa1ac);margin:2px 0 8px;letter-spacing:.04em;text-transform:uppercase;}',
+                M + ' .agpp-v > p{margin:0;font:500 calc(13.5px * var(--ag-font-scale,1))/1.5 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);}',
+                M + ' .agpp-sk{display:grid;grid-template-columns:1fr;gap:7px;margin-top:4px;}',
+                M + ' .agpp-s{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:11px;background:rgba(0,0,0,.18);border:1px solid rgba(230,189,118,.22);}',
+                M + ' .agpp-s .ic{flex:none;width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(230,189,118,.16);color:#e6bd76;}',
+                M + ' .agpp-s .ic svg{width:20px;height:20px;}',
+                M + ' .agpp-s b{display:block;font:700 calc(14px * var(--ag-font-scale,1))/1.2 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);}',
+                M + ' .agpp-s small{display:block;font:500 calc(12px * var(--ag-font-scale,1))/1.35 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);margin-top:2px;}',
+                M + ' details.agpp-det{margin:14px 0 0;border-top:1px solid var(--glass-border,rgba(255,255,255,.12));padding-top:10px;}',
+                M + ' details.agpp-det summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;min-height:44px;font:700 calc(14px * var(--ag-font-scale,1)) var(--font-ui,system-ui);color:var(--accent,#2f9e74);}',
+                M + ' details.agpp-det summary::-webkit-details-marker{display:none;}',
+                M + ' details.agpp-det summary::before{content:"";width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);margin-left:4px;transition:transform .15s;}',
+                M + ' details.agpp-det[open] summary::before{transform:rotate(45deg);}',
+                'body.light-mode ' + M + ' .agpp-v{background:rgba(0,0,0,.03);}',
+                'body.light-mode ' + M + ' .agpp-v.pro > b, body.light-mode ' + M + ' .agpp-s .ic{color:#8a5f14;}',
+                'body.light-mode ' + M + ' .agpp-s{background:rgba(255,255,255,.55);}',
                 M + ' .agpp-karty{display:grid;grid-template-columns:1fr;gap:9px;margin-bottom:12px;}',
                 '@media (min-width:520px){' + M + ' .agpp-karty{grid-template-columns:1fr 1fr;}}',
                 M + ' .agpp-karta{padding:11px 12px;border-radius:12px;border:1px solid var(--glass-border,rgba(255,255,255,.12));background:rgba(255,255,255,.04);}',
@@ -200,8 +224,35 @@
             '<td class="z">' + (r.pro ? '<span>—</span>' : '<b>✓</b>') + '</td><td class="p"><b>✓</b></td></tr>';
     }
 
+    var SK = [
+        { i: 'doc', t: 'Protokoly a papíry', p: 'vytyčení, kvalita bodu, deník, zápis dne' },
+        { i: 'cube', t: 'Objemy a vrstvy', p: 'kubatury, DMT, kontrola pokládky' },
+        { i: 'target', t: 'Přesné určení bodu', p: 'rajón, protínání, resekce, volné stanovisko, Helmert' },
+        { i: 'map', t: 'Katastr a podklady', p: 'parcely do mapy i do AR, dělení, vlastní podklad, sbalení zakázky' },
+        { i: 'firm', t: 'Firma a lidé', p: 'účty, docházka, vysílačka, kniha jízd, přenosy, ročenka' }
+    ];
+    var IK = {
+        doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>',
+        cube: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 8 4.5v11L12 22l-8-4.5v-11z"/><path d="M12 22V12M4 6.5l8 5.5 8-5.5"/></svg>',
+        target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>',
+        map: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>',
+        firm: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>'
+    };
+    function vizual(d) {
+        var h = '<div class="agpp-vz">';
+        h += '<div class="agpp-v zk"><b>Základ</b><i>zdarma · ' + d.zaklad + ' nástrojů</i>' +
+            '<p>Všechno, co potřebuješ v terénu každý den: změřit vzdálenost a plochu, přesná GPS, vytyčit podle seznamu, zápisník, bodové pole a katastr tam, kde stojíš, počasí, kompas, přenosy.</p></div>';
+        h += '<div class="agpp-v pro"><b>Pro</b><i>navíc ' + d.pro + ' nástrojů v pěti oblastech</i><div class="agpp-sk">';
+        for (var i = 0; i < SK.length; i++) {
+            h += '<div class="agpp-s"><span class="ic">' + IK[SK[i].i] + '</span><span><b>' + esc(SK[i].t) + '</b><small>' + esc(SK[i].p) + '</small></span></div>';
+        }
+        h += '</div></div></div>';
+        return h;
+    }
     function obsah() {
         var d = data(), h = '', i, j;
+        h += vizual(d);
+        h += '<details class="agpp-det"><summary>Podrobné srovnání — každý nástroj zvlášť (' + d.radku + ')</summary>';
         // karty nahoře
         var baseVl = [];
         var vse = d.base.concat(d.volne);   // napřed ty s příznakem base, pak zbytek volných
@@ -226,6 +277,7 @@
             }
         }
         h += '</tbody></table>';
+        h += '</details>';
         return h;
     }
 

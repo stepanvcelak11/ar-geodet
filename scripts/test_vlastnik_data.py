@@ -102,6 +102,13 @@ class Server:
         elif path == '/owner/firms/f1/data':
             data = DATA
         # ---- vlastnik plus (12. 9. 2026) ----
+        elif path == '/owner/errors':
+            data = {'dni': 14, 'total': 33, 'rows': [{'sig': 'map.on', 'msg': 'TypeError: map.on is not a function', 'src': 'js/grafika.js', 'line': 1318, 'n': 33, 'firms': 2, 'last': NOW - 1000, 'ver': 'v301'}], 'verze': [{'ver': 'v301', 'n': 33, 'sigs': 1, 'firms': 2}]}
+        elif path == '/owner/grafy':
+            data = {'od': '2026-08-14', 'do': '2026-09-13', 'dotazy': [{'day': '2026-09-12', 'n': 40}, {'day': '2026-09-13', 'n': 55}],
+                    'lide': [{'day': '2026-09-13', 'n': 3}], 'akce': [{'day': '2026-09-13', 'n': 21}], 'ucty': [{'day': '2026-09-10', 'n': 1}],
+                    'body': [{'day': '2026-09-13', 'n': 40}], 'chyby': [{'day': '2026-09-11', 'n': 3}],
+                    'verze': [{'ver': 'v302', 'n': 4}, {'ver': None, 'n': 2}], 'nastroje': [{'k': 'openMeasureModal', 'n': 12}, {'k': 'zapisnik', 'n': 5}], 'uctyCelkem': 6}
         elif path == '/owner/prehled':
             if 'lite=1' in req.url:
                 data = {'zadosti': 2, 'zpravy': 1, 'serverTime': NOW}
@@ -121,7 +128,9 @@ class Server:
         elif path == '/owner/objednavky':
             data = {'objednavky': [], 'pohyby': [], 'fio': {'nastaveno': False}, 'prodej': {'zapnuto': False, 'produkty': [], 'iban': ''}}
         elif path == '/feedback' and req.method == 'GET':
-            data = {'messages': [{'id': 7, 'ts': NOW, 'kind': 'pro', 'txt': 'Chci Pro.', 'contact': 'jan@example.cz', 'meta': json.dumps({'ucet': 'K7QM3XP2', 'zadost': 'pro'}), 'who': 'Jan Novák · K7QM3XP2', 'done': 0}], 'open': 1}
+            data = {'messages': [{'id': 7, 'ts': NOW, 'kind': 'pro', 'txt': 'Chci Pro.', 'contact': 'jan@example.cz', 'meta': json.dumps({'ucet': 'K7QM3XP2', 'zadost': 'pro'}), 'who': 'Jan Novák · K7QM3XP2', 'done': 0},
+                                 {'id': 1, 'ts': NOW - 3600e3, 'kind': 'chyba', 'txt': 'Po otevření karty bodu se mi zasekla mapa.', 'contact': 'jan@firma.cz', 'who': 'Jan Novák · Geo s.r.o.', 'meta': '{"v":301,"ua":"iPhone","co":{"okno":"karta bodu","bodu":12,"gps":"±3 m"}}', 'done': 0},
+                                 {'id': 2, 'ts': NOW - 7200e3, 'kind': 'hodnoceni', 'txt': '4/5 ★★★★ — karta bodu super, chybí DXF', 'contact': None, 'who': 'Petra Malá', 'meta': '{"hvezd":4}', 'done': 0}], 'open': 3}
         elif path == '/owner/ucty/acc1/pohled':
             data = {'ucet': {'id': 'acc1', 'code': 'K7QM3XP2', 'name': 'Jan Novák', 'tarif': 'zaklad', 'tarif_do': None, 'disabled': 0, 'created': NOW - 20 * 864e5, 'last_login': NOW - 3600e3, 'note': 'volat v pátek', 'tarifPlati': False},
                     'clenstvi': [{'firm_id': 'f1', 'nazev': 'Geo s.r.o.', 'kod': 'ABCDEF', 'role': 'admin', 'vlastni': False, 'archiv': False, 'blokovan': False, 'lastLogin': NOW, 'frozen': 0, 'perms': {}}],
@@ -362,6 +371,12 @@ async def beh3(br, url):
        await page.evaluate("() => document.getElementById('agv-body').textContent.slice(0, 300)"))
     await page.evaluate("() => AGVlastnik.jdi('denik')")
     ok('F4 Denik vlastnika vypise akce lidsky (Zapnuto Pro — K7QM3XP2 Jan Novak, 14 dni)', await pockej(page, "() => /Zapnuto Pro/.test(document.getElementById('agv-body').textContent) && /14 dní/.test(document.getElementById('agv-body').textContent) && /Vzkaz/.test(document.getElementById('agv-body').textContent)"))
+    await page.evaluate("() => AGVlastnik.jdi('grafy')")
+    ok('F4b Grafy: 6 sloupcovych grafu + verze + nastroje (13. 9. 2026)', await pockej(page, "() => { var b=document.getElementById('agv-body'); return b && b.querySelectorAll('.agvp-g svg').length === 6 && b.querySelectorAll('.agvp-g svg rect').length >= 6*31 && /v302/.test(b.textContent) && /openMeasureModal/.test(b.textContent) && /max 55/.test(b.textContent); }"),
+       await page.evaluate("() => ({ svg: document.querySelectorAll('#agv-body .agvp-g svg').length, rect: document.querySelectorAll('#agv-body .agvp-g svg rect').length, t: (document.getElementById('agv-body')||{}).textContent.slice(0,120) })"))
+    await page.evaluate("() => AGVlastnik.jdi('hlaseni')")
+    ok('F4c Hlaseni pro vyvoj: zprava, hodnoceni, chyba z terenu i verze v jednom textu (13. 9. 2026)', await pockej(page, "() => { var p=document.getElementById('agvp-hl-pre'); var t=p ? p.textContent : ''; return /Nevyřízené zprávy od lidí \(2\)/.test(t) && /Jan Novák/.test(t) && /okno karta bodu/.test(t) && /Hodnocení .*\(1\)/.test(t) && /33× TypeError: map.on/.test(t) && /v302: 4/.test(t) && !!document.getElementById('agvp-hl-copy'); }"),
+       await page.evaluate("() => ((document.getElementById('agvp-hl-pre')||{}).textContent||'').slice(0,400)"))
     await page.evaluate("() => AGVlastnik.jdi('kalendar')")
     ok('F5 Kalendar: Petra Mala do 7 dni, tlacitka + mesic / + rok', await pockej(page, "() => /Do 7 dní/.test(document.getElementById('agv-body').textContent) && /Petra Malá/.test(document.getElementById('agv-body').textContent) && !!document.querySelector('#agv-body [data-pro=acc2][data-dni=\"365\"]')"))
     await page.evaluate("() => document.querySelector('#agv-body [data-pro=acc2][data-dni=\"365\"]').click()")

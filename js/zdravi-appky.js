@@ -122,9 +122,9 @@
             var gSt = 'bad', gTx;
             if (geoPerm === 'denied') gTx = t('Poloha je zakázaná — povol ji telefonu v nastavení prohlížeče / systému.');
             else if (!lat) { gSt = geoPerm === 'prompt' ? 'warn' : 'bad'; gTx = geoPerm === 'prompt' ? t('Appka se na polohu ještě nezeptala (dovolení přijde po startu).') : t('Zatím žádná poloha — vyjdi pod volné nebe a chvíli počkej.'); }
-            else if (fixS != null && fixS > 15) { gSt = 'warn'; gTx = t('Poslední poloha je stará') + ' ' + fixS + ' s' + (acc ? ' · ±' + Number(acc).toFixed(1) + ' m' : ''); }
+            else if (fixS != null && fixS > 15) { gSt = 'warn'; gTx = t('Poslední poloha je stará ' + fixS + ' s') + (acc ? ' · ±' + Number(acc).toFixed(1) + ' m' : ''); }
             else if (acc && acc > 20) { gSt = 'warn'; gTx = t('Slabý fix') + ' ±' + Number(acc).toFixed(0) + ' m · ' + t('zkus volné nebe'); }
-            else { gSt = 'ok'; gTx = (acc ? '±' + Number(acc).toFixed(1) + ' m' : t('fix bez udané přesnosti')) + (fixS != null ? ' · ' + t('před') + ' ' + fixS + ' s' : ''); }
+            else { gSt = 'ok'; gTx = (acc ? '±' + Number(acc).toFixed(1) + ' m' : t('fix bez udané přesnosti')) + (fixS != null ? ' · ' + t('před ' + fixS + ' s') : ''); }
             rows.push({ k: 'gps', st: gSt, b: 'GPS', s: gTx });
 
             // 3) kompas
@@ -144,7 +144,7 @@
             var pers = window._agPersisted;
             var uSt = pers === false ? 'warn' : 'ok';
             var uTx = (pers === true ? t('trvalé — data se nesmažou samy') : pers === false ? t('NE trvalé — prohlížeč smí data při nedostatku místa smazat (iOS i po ~7 dnech nečinnosti); dělej zálohy') : t('trvalost neznámá'))
-                + (sto && sto.quota ? ' · ' + mb(sto.usage) + ' ' + t('z') + ' ' + mb(sto.quota) : '');
+                + (sto && sto.quota ? ' · ' + t(mb(sto.usage) + ' z ' + mb(sto.quota)) : '');
             if (sto && sto.quota && sto.usage / sto.quota > 0.85) uSt = 'bad';
             rows.push({ k: 'uloziste', st: uSt, b: t('Úložiště'), s: uTx });
 
@@ -161,7 +161,7 @@
             var posl = errs.slice(-3).reverse();
             var pocet = 0; try { pocet = errs.reduce(function (a, e) { return a + (e.n || 1); }, 0); } catch (e) { pocet = errs.length; }
             rows.push({ k: 'chyby', st: posl.length ? (pocet > 10 ? 'bad' : 'warn') : 'ok', b: t('Chyby appky'),
-                s: posl.length ? (pocet + ' ' + t('záznamů; poslední') + ': ' + posl.map(function (e) { return String(e.msg || e.sig || '?').slice(0, 70); }).join(' | ')) : t('protokol chyb je prázdný') });
+                s: posl.length ? (t(pocet + ' záznamů; poslední') + ': ' + posl.map(function (e) { return String(e.msg || e.sig || '?').slice(0, 70); }).join(' | ')) : t('protokol chyb je prázdný') });
 
             return rows;
         });

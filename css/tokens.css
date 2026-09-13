@@ -144,8 +144,11 @@
     --z-dialog: 2000000;    /* starší alias pro potvrzovací dialogy (drží se --z-critical) */
     --z-critical: 2000000;  /* kritické potvrzovací dialogy (musí přebít vše) */
 
-    /* Neprůhledné pozadí celoobrazovkových modálů (jádro i moduly — držet stejné) */
-    --modal-bg: rgba(14, 18, 24, 0.97);
+    /* Neprůhledné pozadí celoobrazovkových modálů (jádro i moduly — držet stejné).
+       13. 9. 2026: BEZ alfy. S 0,97 prosvítaly přes okno HUD popisky doku a čísla bodů
+       z mapy (Historie aktualizací, Zpravodaj…) — vypadalo to jako překreslená obrazovka.
+       Okna jsou od 9/2026 přes celou obrazovku, průhlednost nemá co ukázat. */
+    --modal-bg: rgb(14, 18, 24);
 
     /* ---- ALIASY pro jména, která moduly používaly, aniž by existovala ----------
        Několik modulů psalo var(--bg-input, …), var(--border, …), var(--warn, …)…
@@ -212,7 +215,7 @@ body.light-mode {
     --accent-blue: #1d4ed8;
     --warning: #8a5a00;
     --danger: #c0322a;
-    --modal-bg: rgba(247, 248, 250, 0.98);
+    --modal-bg: rgb(247, 248, 250);
     --shadow-1: 0 1px 3px rgba(15, 23, 42, 0.12);
     --shadow-2: 0 10px 30px rgba(15, 23, 42, 0.16);
     --shadow-pop: 0 14px 40px rgba(15, 23, 42, 0.20);

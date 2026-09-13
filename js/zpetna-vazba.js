@@ -461,6 +461,18 @@
             contact: (m.querySelector('#ag-fb-contact').value || '').trim() || null,
             who: who()
         };
+        // Kontakt z formuláře se pamatuje (telefon + účet na serveru): v Základu není
+        // „Kde pracuju" vidět, takže je tohle jediné místo, kde si ho člověk zadá (13. 9. 2026).
+        try {
+            if (rec.contact) {
+                var stary = localStorage.getItem('agUcetKontakt_v1') || '';
+                localStorage.setItem('agUcetKontakt_v1', rec.contact);
+                var U = window.AGUcty;
+                if (stary !== rec.contact && U && typeof U.cloudFetch === 'function' && U.hasToken && U.hasToken()) {
+                    U.cloudFetch('/account/contact', { method: 'POST', body: { contact: rec.contact } }).catch(function () { });
+                }
+            }
+        } catch (e) { swallow(e, 'send:kontakt'); }
         if (m.querySelector('#ag-fb-meta').checked) rec.meta = meta();
         if (m.querySelector('#ag-fb-ctx').checked) { rec.meta = rec.meta || {}; rec.meta.co = ctx(); }
         fit(rec);

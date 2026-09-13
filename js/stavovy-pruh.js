@@ -257,7 +257,7 @@
             '.ag-sp-alert{font-weight:700;}',
             '.ag-sp-alert.yellow{color:var(--warning,#fbbf24);}',
             '.ag-sp-alert.red{color:var(--danger,#fb7185);}',
-            '.ag-sp-msg{font-weight:600;opacity:0.85;max-width:46vw;overflow:hidden;text-overflow:ellipsis;}',
+            '.ag-sp-msg{font-weight:600;opacity:0.85;flex:1 1 auto;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
             // SLOUČENÝ PRUH: text upozornění z centra + počítadlo, když jich visí víc.
             // Text se musí umět zkrátit, jinak by dlouhá hláška vytlačila čísla
             // (přesnost a azimut) mimo pilulku — a ta jsou tu to hlavní.
@@ -550,7 +550,7 @@
     // hlavní; čísla si člověk přečte po klepnutí. Pořadí obětí: azimut, pak přesnost.
     function fitHead(headEl) {
         try {
-            var al = headEl.querySelector('.ag-sp-alert');
+            var al = headEl.querySelector('.ag-sp-alert') || headEl.querySelector('.ag-sp-msg');   // i kratkodoba hlaska (Stahuji data)
             if (!al) return;
             var kusy = ['.ag-sp-az', '.ag-sp-acc'];
             for (var i = 0; i < kusy.length; i++) {

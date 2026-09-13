@@ -64,6 +64,9 @@
         p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
         return p.join(',');
     }
+    // zkratky měsíců: první tři písmena dala „čer" pro červen i červenec (13. 9. 2026) → čvn / čvc
+    function mesicZkr(m) { return ['led', 'úno', 'bře', 'dub', 'kvě', 'čvn', 'čvc', 'srp', 'zář', 'říj', 'lis', 'pro'][(+m || 1) - 1] || ''; }
+    function dnuTxt(n) { n = +n || 0; return n + ' ' + (n === 1 ? 'den' : (n >= 2 && n <= 4 ? 'dny' : 'dnů')); }
     function mesicJmeno(m) {
         return ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec',
             'srpen', 'září', 'říjen', 'listopad', 'prosinec'][m] || '';
@@ -371,7 +374,7 @@
         h += '<div class="agroc-grid">' +
             velkeCislo(cislo(km, km < 100 ? 1 : 0) + '<span>km</span>', 'nachozeno', s.dist ? null : 'zatím nic nezměřeno') +
             velkeCislo(cislo(d.body.length), d.body.length === 1 ? 'změřený bod' : 'změřených bodů', d.bodyBezData ? (d.bodyBezData + ' bez data') : null) +
-            velkeCislo(cislo(d.dnuSBody), 'dnů v terénu', s.dni && s.dni !== d.dnuSBody ? ('appka běžela ' + s.dni + ' dnů') : null) +
+            velkeCislo(cislo(d.dnuSBody), 'dnů v terénu', s.dni && s.dni !== d.dnuSBody ? ('appka běžela ' + dnuTxt(s.dni)) : null) +
             velkeCislo(cislo(s.up) + '<span>m</span>', 'nastoupáno', vystupu >= 0.5 ? ('jako ' + cislo(vystupu, 1) + '× na Sněžku') : null) +
             '</div>';
 
@@ -399,9 +402,9 @@
         d.mesice.forEach(function (m) {
             var v = m.data ? m.data.dist : 0;
             var vyskaP = maxKm > 0 ? Math.max(2, Math.round(v / maxKm * 100)) : 2;
-            h += '<div class="agroc-mes-i' + (m.data ? '' : ' prazdny') + '" title="' + esc(mesicJmeno(m.m)) + (m.data ? ': ' + cislo(v / 1000, 1) + ' km, ' + (m.data.dni || 0) + ' dnů' : ': nic') + '">' +
+            h += '<div class="agroc-mes-i' + (m.data ? '' : ' prazdny') + '" title="' + esc(mesicJmeno(m.m)) + (m.data ? ': ' + cislo(v / 1000, 1) + ' km, ' + dnuTxt(m.data.dni || 0) : ': nic') + '">' +
                 '<div class="agroc-mes-b" style="height:' + vyskaP + '%"></div>' +
-                '<div class="agroc-mes-l">' + esc(mesicJmeno(m.m).slice(0, 3)) + '</div>' +
+                '<div class="agroc-mes-l">' + esc(mesicZkr(m.m)) + '</div>' +
                 '</div>';
         });
         h += '</div>';

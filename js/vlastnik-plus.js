@@ -52,6 +52,21 @@
         var st = document.createElement('style'); st.id = 'ag-vp-style';
         st.textContent = [
             '.agvp-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 14px;}',
+            // grafy (13. 9. 2026): sloupce po dnech ve zlaté konzole; osa = tenká linka, popisek max vlevo nahoře
+            '.agvp-g{margin:0 0 14px;padding:10px 12px 8px;border-radius:12px;border:1px solid rgba(230,189,118,.22);background:rgba(0,0,0,.16);}',
+            '.agvp-g b{display:block;font:700 13px/1.2 var(--font-ui,system-ui);color:var(--text-color,#e6e8eb);}',
+            '.agvp-g small{display:block;font:500 11px/1.3 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);margin:2px 0 6px;}',
+            '.agvp-g svg{display:block;width:100%;height:auto;}',
+            '.agvp-g .os{font:500 9.5px var(--font-mono,ui-monospace,monospace);fill:var(--text-muted,#9aa1ac);}',
+            '.agvp-hb{display:flex;align-items:center;gap:8px;margin:4px 0;font:500 12px/1.3 var(--font-ui,system-ui);}',
+            '.agvp-hb .l{flex:0 0 118px;color:var(--text-color,#e6e8eb);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+            '.agvp-hb .b{flex:1;height:10px;border-radius:5px;background:rgba(230,189,118,.14);overflow:hidden;}',
+            '.agvp-hb .b i{display:block;height:100%;background:#e6bd76;border-radius:5px;}',
+            '.agvp-hb .n{flex:0 0 40px;text-align:right;font-family:var(--font-mono,ui-monospace,monospace);color:var(--text-muted,#9aa1ac);}',
+            // hlášení pro vývoj (13. 9. 2026): jeden text ke zkopírování
+            '.agvp-pre{white-space:pre-wrap;word-break:break-word;font:500 11.5px/1.45 var(--font-mono,ui-monospace,monospace);color:var(--text-color,#e6e8eb);background:rgba(0,0,0,.22);border:1px solid rgba(230,189,118,.22);border-radius:12px;padding:10px 12px;max-height:46vh;overflow:auto;margin:0 0 10px;}',
+            '.agvp-btns{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px;}',
+            '.agvp-btns .btn{flex:1;min-width:120px;margin:0;}',
             '.agvp-t{padding:10px 8px;border-radius:12px;background:var(--glass-bg,rgba(255,255,255,.05));border:1px solid var(--glass-border,rgba(255,255,255,.12));text-align:center;cursor:pointer;}',
             '.agvp-t b{display:block;font:700 calc(20px * var(--ag-font-scale,1))/1.1 var(--font-mono,ui-monospace,monospace);color:var(--text-color,#e6e8eb);}',
             '.agvp-t small{display:block;margin-top:3px;font:600 10.5px/1.2 var(--font-ui,system-ui);letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
@@ -436,8 +451,162 @@
         });
     }
 
+    // ---- GRAFY: 30 dní po dnech + verze + nástroje ------------------------------------------
+    var _grafy = null;
+    function dnyOsa(od, doD) {
+        var out = [], a = new Date(od + 'T00:00:00Z'), b = new Date(doD + 'T00:00:00Z');
+        for (var t = a.getTime(); t <= b.getTime(); t += 864e5) out.push(new Date(t).toISOString().slice(0, 10));
+        return out;
+    }
+    function sloupce(dny, rada, barva) {
+        var m = {}; (rada || []).forEach(function (r) { if (r && r.day) m[String(r.day).slice(0, 10)] = +r.n || 0; });
+        var vals = dny.map(function (d) { return m[d] || 0; });
+        var max = Math.max(1, Math.max.apply(null, vals));
+        var W = 300, H = 72, top = 12, bot = 14, bw = W / dny.length;
+        var h = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="sloupce po dnech">';
+        h += '<line x1="0" y1="' + (H - bot) + '" x2="' + W + '" y2="' + (H - bot) + '" stroke="rgba(230,189,118,.3)" stroke-width="1"/>';
+        vals.forEach(function (v, i) {
+            var hh = Math.round((H - top - bot) * v / max);
+            h += '<rect x="' + (i * bw + 1).toFixed(1) + '" y="' + (H - bot - hh) + '" width="' + (bw - 2).toFixed(1) + '" height="' + hh + '" rx="1.5" fill="' + barva + '" opacity="' + (v ? 1 : .25) + '">' +
+                '<title>' + dny[i].slice(8, 10) + '. ' + dny[i].slice(5, 7) + '. — ' + v + '</title></rect>';
+        });
+        h += '<text class="os" x="1" y="9">max ' + max + '</text>';
+        h += '<text class="os" x="1" y="' + (H - 3) + '">' + dny[0].slice(8, 10) + '. ' + dny[0].slice(5, 7) + '.</text>';
+        h += '<text class="os" x="' + W + '" y="' + (H - 3) + '" text-anchor="end">' + dny[dny.length - 1].slice(8, 10) + '. ' + dny[dny.length - 1].slice(5, 7) + '.</text>';
+        return h + '</svg>';
+    }
+    function pruhy(rows, klic, popis) {
+        var max = 0; rows.forEach(function (r) { max = Math.max(max, +r.n || 0); });
+        if (!rows.length) return '<div class="agv-p">' + esc(popis) + '</div>';
+        return rows.map(function (r) {
+            var l = r[klic] == null || r[klic] === '' ? '(bez údaje)' : String(r[klic]);
+            return '<div class="agvp-hb"><span class="l" title="' + esc(l) + '">' + esc(l) + '</span><span class="b"><i style="width:' + (max ? Math.round((+r.n || 0) / max * 100) : 0) + '%"></i></span><span class="n">' + (+r.n || 0) + '</span></div>';
+        }).join('');
+    }
+    function viewGrafy(b) {
+        var x = X(); styly();
+        if (!_grafy) {
+            x.cekam(b, 'Počítám grafy…');
+            api('/owner/grafy').then(function (r) {
+                if (!plati('grafy')) return;
+                if (!r.ok || !r.data) { x.sayFail(r, 'grafy'); jdi(''); return; }
+                _grafy = r.data; viewGrafy(b);
+            });
+            return;
+        }
+        var g = _grafy, dny = dnyOsa(g.od, g.do);
+        var sum = function (rada) { return (rada || []).reduce(function (a, r) { return a + (+r.n || 0); }, 0); };
+        var h = [x.hlava('Grafy — posledních 30 dní', 'Jen počty ze serveru: kdo měřil, kolik akcí a bodů přišlo, kolik chyb spadlo. <button type="button" class="agv-b" id="agvp-g-rf">Znovu</button>')];
+        h.push('<div class="agvp-g"><b>Lidé, kteří appku ten den použili</b><small>' + sum(g.lide) + ' člověko-dnů celkem</small>' + sloupce(dny, g.lide, '#e6bd76') + '</div>');
+        h.push('<div class="agvp-g"><b>Akce v appce</b><small>otevřené nástroje, uložené body… ' + sum(g.akce) + ' za 30 dní</small>' + sloupce(dny, g.akce, '#e6bd76') + '</div>');
+        h.push('<div class="agvp-g"><b>Body přijaté na server</b><small>jen ze synchronizace v Pro · ' + sum(g.body) + '</small>' + sloupce(dny, g.body, '#3eb487') + '</div>');
+        h.push('<div class="agvp-g"><b>Nové účty</b><small>' + sum(g.ucty) + ' za 30 dní · celkem ' + (g.uctyCelkem || 0) + '</small>' + sloupce(dny, g.ucty, '#7fb3ff') + '</div>');
+        h.push('<div class="agvp-g"><b>Chyby hlášené appkou</b><small>' + sum(g.chyby) + ' za 30 dní · podrobně v „Chyby od lidí"</small>' + sloupce(dny, g.chyby, '#e0574a') + '</div>');
+        h.push('<div class="agvp-g"><b>Dotazy na server za den</b><small>hrubá zátěž workeru · ' + sum(g.dotazy) + '</small>' + sloupce(dny, g.dotazy, 'rgba(230,189,118,.6)') + '</div>');
+        h.push('<div class="agvp-g"><b>Kdo jede na které verzi</b><small>podle posledního dotazu každého účtu (verze se hlásí od v302)</small>' + pruhy(g.verze || [], 'ver', 'Zatím nikdo verzi nehlásil — přijde s v302.') + '</div>');
+        h.push('<div class="agvp-g"><b>Nejpoužívanější nástroje</b><small>za 30 dní, podle záznamů užívání</small>' + pruhy(g.nastroje || [], 'k', 'Zatím žádné záznamy.') + '</div>');
+        b.innerHTML = h.join('');
+        x.wireZpet(b);
+        var rf = b.querySelector('#agvp-g-rf'); if (rf) rf.addEventListener('click', function () { _grafy = null; viewGrafy(b); });
+    }
+
+    // ---- HLÁŠENÍ PRO VÝVOJ: všechno, co přišlo, v jednom textu -------------------------------
+    // Přání vlastníka (13. 9. 2026): „ať se to všechno samo shrne na jednom místě a já ti to
+    // pak akorát pošlu". Skládá se z nevyřízených zpráv (schránka), hodnocení, chyb z terénu
+    // (/owner/errors, seskupené), verzí u lidí a protokolu chyb TOHOHLE telefonu. Výstup je
+    // prostý text (Markdown), ať jde vložit do chatu s AI i do e-mailu.
+    var _hl = null;
+    function kdy(ts) { try { return new Date(+ts).toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { return String(ts); } }
+    function metaObj(m) { try { return typeof m === 'string' ? JSON.parse(m) : (m || {}); } catch (e) { return {}; } }
+    function verzeAppky() { try { var l = document.querySelector('link[rel="stylesheet"][href*="css/style.css?v="]'); var m = l && (l.getAttribute('href') || '').match(/\?v=(\d+)/); return m ? 'v' + m[1] : '?'; } catch (e) { return '?'; } }
+    function KINDS(k) { return { chyba: 'CHYBA', napad: 'NÁPAD', pochvala: 'POCHVALA', pro: 'ŽÁDOST O PRO', hodnoceni: 'HODNOCENÍ', jine: 'JINÉ' }[k] || String(k || 'jiné').toUpperCase(); }
+    function slozHlaseni(d) {
+        var L = [];
+        L.push('# QTRIG — hlášení pro vývoj');
+        L.push('Sestaveno ' + new Date().toLocaleString('cs-CZ') + ' · appka ' + verzeAppky() + (d.grafy && d.grafy.uctyCelkem != null ? ' · účtů celkem ' + d.grafy.uctyCelkem : ''));
+        L.push('');
+        var msgs = (d.fb && d.fb.messages) || [];
+        var hodn = msgs.filter(function (m) { return m.kind === 'hodnoceni'; });
+        var ost = msgs.filter(function (m) { return m.kind !== 'hodnoceni'; });
+        L.push('## Nevyřízené zprávy od lidí (' + ost.length + ')');
+        if (!ost.length) L.push('(žádné)');
+        ost.forEach(function (m, i) {
+            var mo = metaObj(m.meta);
+            var hl = '' + (i + 1) + '. [' + KINDS(m.kind) + '] ' + (m.who || 'anonym') + ' · ' + kdy(m.ts) + (mo.v ? ' · v' + mo.v : '') + (mo.ua ? ' · ' + String(mo.ua).replace(/^Mozilla\/5\.0 \(/, '').slice(0, 60) : '') + (m.contact ? ' · kontakt: ' + m.contact : '');
+            L.push(hl);
+            L.push('   „' + String(m.txt || '').replace(/\s+/g, ' ').trim() + '"');
+            var co = mo.co || {};
+            var kde = [];
+            if (co.okno) kde.push('okno ' + co.okno);
+            if (co.nastroj) kde.push('nástroj ' + co.nastroj);
+            if (co.bodu != null) kde.push(co.bodu + ' bodů');
+            if (co.gps) kde.push('GPS ' + co.gps);
+            if (co.online != null) kde.push(co.online ? 'online' : 'offline');
+            if (co.chyby && co.chyby.length) kde.push('chyby: ' + co.chyby.slice(0, 3).join(' | '));
+            if (kde.length) L.push('   Přiloženo: ' + kde.join(' · '));
+        });
+        L.push('');
+        L.push('## Hodnocení „Jak ti to sedí?" (' + hodn.length + ')');
+        if (!hodn.length) L.push('(zatím žádné)');
+        hodn.forEach(function (m) { L.push('- ' + (m.who || 'anonym') + ' · ' + kdy(m.ts) + ': ' + String(m.txt || '').replace(/\s+/g, ' ').trim()); });
+        L.push('');
+        var er = d.errors || {};
+        L.push('## Chyby z terénu za ' + (er.dni || 14) + ' dní (' + (er.total || 0) + ' výskytů, ' + ((er.rows || []).length) + ' různých)');
+        if (!(er.rows || []).length) L.push('(žádné)');
+        (er.rows || []).slice(0, 25).forEach(function (r) {
+            L.push('- ' + (r.n || 1) + '× ' + String(r.msg || r.sig || '?').slice(0, 160) + (r.src ? ' — ' + String(r.src).replace(/^.*\//, '') + (r.line ? ':' + r.line : '') : '') + (r.firms ? ' — ' + r.firms + ' fir.' : '') + (r.ver ? ' — ' + r.ver : '') + (r.last ? ' — naposled ' + kdy(r.last) : ''));
+        });
+        if ((er.verze || []).length) L.push('Podle verze: ' + er.verze.map(function (v) { return (v.ver || '?') + ' ' + (v.n || 0) + '×'; }).join(', '));
+        L.push('');
+        if (d.grafy && (d.grafy.verze || []).length) {
+            L.push('## Kdo jede na které verzi');
+            L.push(d.grafy.verze.map(function (v) { return (v.ver || 'neznámá') + ': ' + v.n; }).join(', '));
+            L.push('');
+        }
+        var loc = [];
+        try { loc = (window.agErrLog && agErrLog.list && agErrLog.list()) || []; } catch (e) { loc = []; }
+        L.push('## Chyby na tomhle telefonu (protokol chyb, posledních ' + Math.min(10, loc.length) + ' z ' + loc.length + ')');
+        if (!loc.length) L.push('(protokol je prázdný)');
+        loc.slice(-10).reverse().forEach(function (e) { L.push('- ' + (e.n > 1 ? e.n + '× ' : '') + String(e.msg || e.sig || '?').slice(0, 160) + (e.src ? ' — ' + String(e.src).replace(/^.*\//, '') + (e.line ? ':' + e.line : '') : '') + (e.t ? ' — ' + kdy(e.t) : '')); });
+        return L.join('\n');
+    }
+    function viewHlaseni(b) {
+        var x = X(); styly();
+        if (!_hl) {
+            x.cekam(b, 'Sbírám zprávy, hodnocení a chyby…');
+            Promise.all([api('/feedback?stav=open'), api('/owner/errors?dni=14'), api('/owner/grafy')]).then(function (rs) {
+                if (!plati('hlaseni')) return;
+                if (!rs[0].ok && !rs[1].ok) { x.sayFail(rs[0], 'hlášení'); jdi(''); return; }
+                _hl = { fb: rs[0].ok ? rs[0].data : { messages: [] }, errors: rs[1].ok ? rs[1].data : {}, grafy: rs[2].ok ? rs[2].data : null };
+                _hl.txt = slozHlaseni(_hl);
+                viewHlaseni(b);
+            });
+            return;
+        }
+        var h = [x.hlava('Hlášení pro vývoj', 'Všechno, co přišlo, v jednom textu: nevyřízené zprávy, hodnocení, chyby z terénu (14 dní), verze u lidí a protokol chyb tohohle telefonu. <b>Zkopíruj a pošli autorovi nebo AI</b> — nic víc.')];
+        h.push('<div class="agvp-btns"><button type="button" class="btn" id="agvp-hl-copy">Zkopírovat</button>' +
+            (navigator.share ? '<button type="button" class="btn btn-secondary" id="agvp-hl-share">Sdílet…</button>' : '') +
+            '<button type="button" class="btn btn-secondary" id="agvp-hl-rf">Znovu</button></div>');
+        h.push('<div class="agvp-pre" id="agvp-hl-pre"></div>');
+        b.innerHTML = h.join('');
+        b.querySelector('#agvp-hl-pre').textContent = _hl.txt;
+        x.wireZpet(b);
+        b.querySelector('#agvp-hl-rf').addEventListener('click', function () { _hl = null; viewHlaseni(b); });
+        b.querySelector('#agvp-hl-copy').addEventListener('click', function () {
+            var t = _hl.txt, btn = this;
+            var hotovo = function () { btn.textContent = 'Zkopírováno ✓'; setTimeout(function () { btn.textContent = 'Zkopírovat'; }, 2500); };
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(hotovo, function () { vyber(); });
+            else vyber();
+            function vyber() { try { var r = document.createRange(); r.selectNodeContents(b.querySelector('#agvp-hl-pre')); var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); document.execCommand('copy'); hotovo(); } catch (e) { swallow(e, 'copy'); } }
+        });
+        var sh = b.querySelector('#agvp-hl-share');
+        if (sh) sh.addEventListener('click', function () { try { navigator.share({ title: 'QTRIG — hlášení pro vývoj', text: _hl.txt }); } catch (e) { swallow(e, 'share'); } });
+    }
+
     function view(name, b) {
         if (name === 'prehled') { viewPrehled(b); return true; }
+        if (name === 'hlaseni') { viewHlaseni(b); return true; }
+        if (name === 'grafy') { viewGrafy(b); return true; }
         if (name === 'denik') { viewDenik(b); return true; }
         if (name === 'kalendar') { viewKalendar(b); return true; }
         if (name === 'zaloha') { viewZaloha(b); return true; }

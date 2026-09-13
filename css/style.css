@@ -810,6 +810,10 @@ body.ag-glove .grabber { width: 44px; height: 4px; }
     background: rgba(0, 0, 0, 0.32);
 }
 .modal-content input::placeholder { color: rgba(154, 166, 180, 0.55); }
+/* Světlý motiv: šedá s alfou 0,55 na světlém poli vyšla ~2:1 — „Hledat nástroj…" ani
+   „Např. Mezník 1" nebylo v Nástrojích a v Novém bodu skoro vidět (13. 9. 2026). */
+body.light-mode .modal-content input::placeholder, body.light-mode .modal-content textarea::placeholder,
+body.light-mode .tools-search::placeholder { color: rgba(91, 98, 108, 0.85); }
 
 .modal-content input[type="color"] {
     width: 100%;

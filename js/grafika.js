@@ -812,7 +812,7 @@
                 if (agZHodinek(pt)) typBodu = "Bod z hodinek";
                 const dist = getDistance(userLat, userLng, pt.lat, pt.lng); const item = document.createElement('div'); item.className = 'cluster-list-item';
                 let col = agBarvaBodu(pt);
-                item.innerHTML = `<div><div class="cluster-item-title" style="color: ${col};">#${_escHtml(pt.name)}</div><div class="cluster-item-subtitle">${typBodu}</div></div><div style="font-weight: 600; font-size: calc(14px * var(--ag-font-scale, 1));">${dist.toFixed(1)} m</div>`;
+                item.innerHTML = `<div><div class="cluster-item-title" style="color: ${col};">#${_escHtml(pt.name)}</div><div class="cluster-item-subtitle">${typBodu}</div></div><div style="font-weight: 600; font-size: calc(14px * var(--ag-font-scale, 1));">${dist.toFixed(1).replace('.', ',')} m</div>`;
                 item.addEventListener('click', () => { document.getElementById('cluster-modal').style.display = 'none'; showDetails(pt, dist); }); listDiv.appendChild(item);
             });
             document.getElementById('cluster-modal').style.display = 'flex';
@@ -836,7 +836,7 @@
                 if (agZHodinek(pt)) typBodu = "Bod z hodinek";
                 let col = agBarvaBodu(pt);
                 const item = document.createElement('div'); item.className = 'cluster-list-item';
-                item.innerHTML = `<div><div class="cluster-item-title" style="color:${col};">#${_escHtml(pt.name)}</div><div class="cluster-item-subtitle">${typBodu}</div></div><div style="font-weight:600; font-size:calc(14px * var(--ag-font-scale, 1));">${d.toFixed(1)} m</div>`;
+                item.innerHTML = `<div><div class="cluster-item-title" style="color:${col};">#${_escHtml(pt.name)}</div><div class="cluster-item-subtitle">${typBodu}</div></div><div style="font-weight:600; font-size:calc(14px * var(--ag-font-scale, 1));">${d.toFixed(1).replace('.', ',')} m</div>`;
                 item.addEventListener('click', () => { document.getElementById('nearby-modal').style.display = 'none'; showDetails(pt, d); });
                 listDiv.appendChild(item);
             });
@@ -1317,7 +1317,7 @@
             else { initARMarkers(); drawAllMarkersOnMap(); updateNavGlow(); }
             try { if (window.AGCilNav && AGCilNav.fit) AGCilNav.fit(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:focusPointFromList'); }
             const d = (userLat != null) ? getDistance(userLat, userLng, pt.lat, pt.lng) : null;
-            quickToast('Cíl: ' + pt.name + (d != null ? ' — ' + d.toFixed(1) + ' m' : ''));
+            quickToast('Cíl: ' + pt.name + (d != null ? ' — ' + d.toFixed(1).replace('.', ',') + ' m' : ''));
             agVibe(20);
         }
         window.focusPointFromList = focusPointFromList;
@@ -1552,7 +1552,7 @@
                 const d = getDistance(A.lat, A.lng, B.lat, B.lng);
                 const an = _escHtml(lineEndName(ln.aId, ln.aName)), bn = _escHtml(lineEndName(ln.bId, ln.bName));
                 const item = document.createElement('div'); item.className = 'cp-item';
-                item.innerHTML = `<div class="cp-title" style="color:#fbbf24;">#${an} \u2194 #${bn}</div><div class="cp-coords">Délka: ${d.toFixed(1)} m</div><div class="cp-actions"><button class="cp-btn cp-btn-delete" onclick="deleteLineFromList('${ln.id}')"><svg class="icon"><use href="#i-trash"/></svg></button></div>`;
+                item.innerHTML = `<div class="cp-title" style="color:#fbbf24;">#${an} \u2194 #${bn}</div><div class="cp-coords">Délka: ${d.toFixed(1).replace('.', ',')} m</div><div class="cp-actions"><button class="cp-btn cp-btn-delete" onclick="deleteLineFromList('${ln.id}')"><svg class="icon"><use href="#i-trash"/></svg></button></div>`;
                 box.appendChild(item);
             });
             det.appendChild(box);
@@ -2006,7 +2006,7 @@
             const hlBtn = document.getElementById('highlight-btn'); if (highlightedPointId === pt.id) { hlBtn.innerHTML = '<svg class="icon"><use href="#i-star"/></svg><span>Nezvýraznit</span>'; hlBtn.style.background = "#fff"; } else { hlBtn.innerHTML = '<svg class="icon"><use href="#i-star"/></svg><span>Zvýraznit</span>'; hlBtn.style.background = "#fbbf24"; }
             hideBtnLogic = () => { pt.hidden = true; if(pt.element) { pt.element.style.opacity = '0'; setTimeout(() => { if(pt.element && pt.element.parentNode) pt.element.parentNode.removeChild(pt.element); }, 200); } if (highlightedPointId === pt.id) { highlightedPointId = null; document.getElementById('ar-hud').style.display = 'none'; } updateInfoPanel(); drawAllMarkersOnMap(); };
             let sjtskY = "Neznámé", sjtskX = "Neznámé"; if (pt.type === "custom") { let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); sjtskY = Math.abs(sjtsk[0]).toFixed(2); sjtskX = Math.abs(sjtsk[1]).toFixed(2); } else if (pt.rawData) { const getVal = (keys) => { for (let k in pt.rawData) { if (keys.includes(k.toUpperCase()) && pt.rawData[k] !== "Null" && pt.rawData[k] !== null && String(pt.rawData[k]).trim() !== "") return pt.rawData[k]; } return null; }; let sY = parseFloat(getVal(['Y', 'SOURADNICE_Y'])); let sX = parseFloat(getVal(['X', 'SOURADNICE_X'])); if (!isNaN(sY) && !isNaN(sX)) { if (sY < sX) { sjtskY = sY; sjtskX = sX; } else { sjtskY = sX; sjtskX = sY; } } }
-            let html = ` <div class="geo-data-row"><span class="geo-label">Vzdálenost</span><span class="geo-value" id="sheet-distance-val">${distance.toFixed(1)} m</span></div> <div class="geo-data-row"><span class="geo-label">S-JTSK Y</span><span class="geo-value">${sjtskY}</span></div> <div class="geo-data-row"><span class="geo-label">S-JTSK X</span><span class="geo-value">${sjtskX}</span></div> ${pt.vyska != null ? '<div class="geo-data-row"><span class="geo-label">Výška Bpv</span><span class="geo-value">' + Number(pt.vyska).toFixed(2) + ' m</span></div>' : ''} ${pt.kod ? '<div class="geo-data-row"><span class="geo-label">Kód bodu</span><span class="geo-value">' + _escHtml(pt.kod) + '</span></div>' : ''} <div style="margin-top:15px; padding:12px; background:rgba(251,191,36,0.1); border-left:4px solid #fbbf24; border-radius:8px; font-size:calc(13px * var(--ag-font-scale, 1)); line-height:1.4;"><strong><svg class="icon" style="vertical-align:-0.18em; color:#fbbf24;"><use href="#i-alert"/></svg> Rádius hledání (tvoje GPS: ±<span id="sheet-gps-val">${currentGpsAccuracy.toFixed(1)}</span> m)</strong><br>Bod nehledej na centimetr přesně na AR značce. Může ležet kdekoliv v tomhle kruhu kolem značky.</div> `;
+            let html = ` <div class="geo-data-row"><span class="geo-label">Vzdálenost</span><span class="geo-value" id="sheet-distance-val">${distance.toFixed(1).replace('.', ',')} m</span></div> <div class="geo-data-row"><span class="geo-label">S-JTSK Y</span><span class="geo-value">${sjtskY}</span></div> <div class="geo-data-row"><span class="geo-label">S-JTSK X</span><span class="geo-value">${sjtskX}</span></div> ${pt.vyska != null ? '<div class="geo-data-row"><span class="geo-label">Výška Bpv</span><span class="geo-value">' + Number(pt.vyska).toFixed(2) + ' m</span></div>' : ''} ${pt.kod ? '<div class="geo-data-row"><span class="geo-label">Kód bodu</span><span class="geo-value">' + _escHtml(pt.kod) + '</span></div>' : ''} <div style="margin-top:15px; padding:12px; background:rgba(251,191,36,0.1); border-left:4px solid #fbbf24; border-radius:8px; font-size:calc(13px * var(--ag-font-scale, 1)); line-height:1.4;"><strong><svg class="icon" style="vertical-align:-0.18em; color:#fbbf24;"><use href="#i-alert"/></svg> Rádius hledání (tvoje GPS: ±<span id="sheet-gps-val">${currentGpsAccuracy.toFixed(1)}</span> m)</strong><br>Bod nehledej na centimetr přesně na AR značce. Může ležet kdekoliv v tomhle kruhu kolem značky.</div> `;
             if (pt.type === "custom") { html += `<div style="text-align:center; padding: 25px 0; opacity:0.6; font-style:italic;">Ručně vytvořený bod. Spravuješ ho v seznamu Body.</div>`; } else if (pt.rawData) { const props = pt.rawData; const getVal = (keys) => { for (let k in props) { if (keys.includes(k.toUpperCase()) && props[k] !== "Null" && props[k] !== null && String(props[k]).trim() !== "") return props[k]; } return null; }; const stabilizace = getVal(['STABILIZACE', 'TYP_ZNAK', 'TYP_ZNAKU', 'ZNAK', 'POPIS_ZNAKU']); const vyska = getVal(['VYSKA_NAD_TERENEM', 'VYSKA_ZNAKU', 'UMISTENI']); let nadmRaw = getVal(['VYSKA_BPV','NADMORSKA_VYSKA','VYSKA_BODU','VYSKA_H','H_BPV','VYSKA','H','Z']); let nadmNum = parseFloat(String(nadmRaw).replace(',', '.')); let nadmVyska = (!isNaN(nadmNum) && nadmNum > 50 && nadmNum < 3000) ? nadmNum : null; let geodataLink = null; for (let k in props) { if (typeof props[k] === 'string' && props[k].startsWith('http')) { geodataLink = props[k]; break; } } if (stabilizace || vyska !== null || nadmVyska !== null) { html += `<div class="geo-highlight" style="border-left-color: var(--accent);">`; if (nadmVyska !== null) html += `<div class="geo-data-row" style="border:none; padding: 4px 0;"><span class="geo-label" style="color:var(--text-color);">Nadmořská výška (Bpv):</span><span class="geo-value">${nadmVyska.toFixed(2)} m</span></div>`; if (stabilizace) html += `<div class="geo-data-row" style="border:none; padding: 4px 0;"><span class="geo-label" style="color:var(--text-color);">Stabilizace:</span><span class="geo-value">${_escHtml(stabilizace)}</span></div>`; if (vyska !== null) html += `<div class="geo-data-row" style="border:none; padding: 4px 0;"><span class="geo-label" style="color:var(--text-color);">Výška n. terénem:</span><span class="geo-value">${_escHtml(vyska)} m</span></div>`; html += `</div>`; } if (geodataLink) html += `<a href="${_escHtml(geodataLink)}" target="_blank" class="btn-link"><svg class="icon"><use href="#i-file-text"/></svg> Otevřít nákres (Polohopis)</a>`; html += `<details><summary>Zobrazit všechny úřední záznamy</summary><div style="margin-top:10px;">`; for (let key in pt.rawData) { if (pt.rawData[key] && pt.rawData[key] !== "Null" && key !== "OBJECTID" && key !== "SHAPE") { let cleanKey = key.replace(/_/g, ' '); cleanKey = cleanKey.charAt(0).toUpperCase() + cleanKey.slice(1); html += `<div class="geo-data-row"><span class="geo-label">${_escHtml(cleanKey)}</span><span class="geo-value" style="font-weight:400;">${_escHtml(pt.rawData[key])}</span></div>`; } } html += `</div></details>`; }
             document.getElementById('det-body').innerHTML = html; document.getElementById('bottom-sheet').classList.add('open');
         }
@@ -2307,7 +2307,7 @@
                         const _tf = `translate3d(${_px}px, ${_py}px, 0) translate(-50%, -50%) scale(${scale})`;
                         if (pt._tfLast !== _tf) { pt.element.style.transform = _tf; pt._tfLast = _tf; }
                         if (pt._opLast !== '1') { pt.element.style.opacity = '1'; pt.element.style.pointerEvents = 'auto'; pt._opLast = '1'; }
-                        const _dTxt = `${distance.toFixed(1)} m`;
+                        const _dTxt = `${distance.toFixed(1).replace('.', ',')} m`;
                         if (pt._dLast !== _dTxt) { pt.distElement.innerText = _dTxt; pt._dLast = _dTxt; }
                     }
                 } else if (pt.element && pt._opLast !== '0') {
@@ -2334,7 +2334,7 @@
                 // pozadi a bily text by nesel precist; barvu ridi CSS (#ar-hud-info + cam-light)
                 arHudDist.style.color = ''; arHudInfo.style.borderColor = 'rgba(255,255,255,0.4)';
                 if (Math.abs(diff) <= 35) { arrStraight.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg) rotateZ(${diff}deg)`; } else if (diff < -35 && diff >= -110) { arrLeft.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; } else if (diff > 35 && diff <= 110) { arrRight.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; } else { arrUturn.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; }
-                arHudDist.innerText = `${highlightedPointData.dist.toFixed(1)} m`;
+                arHudDist.innerText = `${highlightedPointData.dist.toFixed(1).replace('.', ',')} m`;
                 arHudName.innerText = `#${highlightedPointData.name}`;
 
             } else { arHud.style.display = 'none'; }
@@ -2469,7 +2469,7 @@
                 });
                 hit.addTo(linesGroup);
                 const d = getDistance(A.lat, A.lng, B.lat, B.lng);
-                const mid = L.divIcon({ className: 'custom-map-marker', html: `<div style="position:relative; width:0; height:0;"><div class="map-label-text line-len-label" style="left:-16px; top:-18px; transform: rotate(${mapRotation}deg);">${d.toFixed(1)} m</div></div>`, iconSize: [0, 0] });
+                const mid = L.divIcon({ className: 'custom-map-marker', html: `<div style="position:relative; width:0; height:0;"><div class="map-label-text line-len-label" style="left:-16px; top:-18px; transform: rotate(${mapRotation}deg);">${d.toFixed(1).replace('.', ',')} m</div></div>`, iconSize: [0, 0] });
                 L.marker([(A.lat + B.lat) / 2, (A.lng + B.lng) / 2], { icon: mid, interactive: false }).addTo(linesGroup);
             });
         }
@@ -2631,7 +2631,7 @@
             const r = polygonAreaPerimeter(areaVertices);
             const av = document.getElementById('area-val'), ap = document.getElementById('area-perim'), ac = document.getElementById('area-count');
             if (av) av.innerText = areaVertices.length >= 3 ? (r.area >= 50000 ? (r.area / 10000).toFixed(3) + ' ha' : r.area.toFixed(1) + ' m\u00b2') : '\u2014';
-            if (ap) ap.innerText = areaVertices.length >= 2 ? r.perim.toFixed(1) + ' m' : '\u2014';
+            if (ap) ap.innerText = areaVertices.length >= 2 ? r.perim.toFixed(1).replace('.', ',') + ' m' : '\u2014';
             if (ac) ac.innerText = areaVertices.length;
         }
 

@@ -163,9 +163,35 @@
             //   celé, prázdný kruh „jen Zpět" nemá smysl. Počet lístků se tím v Základu
             //   mění, layout() to snese (sudý i lichý počet, viz komentář u něj).
             var items = g.items.filter(function (it) { return vidno.call(u, it.k) && !zamceno(it.k, pro); });
-            if (items.length) out.push({ t: SHORT_G[g.t] || g.t, full: g.t, items: items });
+            // všechno spustitelné včetně položek schovaných v rozcestnících — pro rozbalení níž
+            var vse = g.items.filter(function (it) { return u.has(it.k) && !zamceno(it.k, pro); });
+            if (items.length) out.push({ t: SHORT_G[g.t] || g.t, full: g.t, items: items, vse: vse });
         });
+        rozbalRozcestniky(out);
         return out;
+    }
+    // ROZCESTNÍK JEN KDYŽ SE JEHO POLOŽKY NEVEJDOU (13. 9. 2026, přání uživatele: „dej, aby
+    // všude byly ty květy plné, a co přebývá, to sluč"). Kytka má pevný počet lístků n;
+    // když má skupina volné lístky, rozcestník („Počasí a světlo") se nahradí rovnou
+    // svými položkami — jinak by po výběru lístku vyskočilo ještě jedno okno s výběrem.
+    // Rozbaluje se po jednom v pořadí skupiny, dokud se to vejde (n − 1 kvůli „Zpět");
+    // zbytek zůstává sloučený. Rozcestník v Nástrojích (seznam úkonů) se nemění.
+    function rozbalRozcestniky(groups) {
+        var inhub = {};
+        try { (window.AGReg && AGReg.all ? AGReg.all() : []).forEach(function (r) { if (r.inhub) inhub[r.k] = r.inhub; }); } catch (e) { return; }
+        var n = pocetListku(groups);
+        groups.forEach(function (g) {
+            var vse = g.vse || [], items = g.items.slice();
+            for (var i = 0; i < items.length; i++) {
+                var hub = items[i];
+                var deti = vse.filter(function (c) { return inhub[c.k] === hub.k; });
+                if (!deti.length) continue;
+                if (items.length - 1 + deti.length + 1 > n) continue;      // nevejde se → zůstává sloučený
+                items.splice.apply(items, [i, 1].concat(deti));
+                i += deti.length - 1;
+            }
+            g.items = items;
+        });
     }
 
     var st = null, slots = [], segs = [], step = 0, Rret = 0;

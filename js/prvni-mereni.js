@@ -41,27 +41,27 @@
     var _n0 = null;       // počet vlastních bodů při startu průvodce
     var KROKY = [
         {
-            k: 'senzory', t: 'Povol polohu a kompas',
+            k: 'senzory', t: 'Povol polohu a kompas', cil: function () { return document.getElementById('ag-sp'); },
             rada: 'Když se telefon zeptá, povol polohu a pohyb/orientaci. Na iPhonu se kompas probudí až po prvním klepnutí na obrazovku.',
             hotovo: function () { return !!g('userLat') && !window.AGCompassDenied && _orient > 0; }
         },
         {
-            k: 'presnost', t: 'Počkej na přesnost do ±10 m',
+            k: 'presnost', t: 'Počkej na přesnost do ±10 m', cil: function () { return document.getElementById('ag-sp'); },
             rada: 'Stůj chvíli na místě pod volným nebem. Přesnost vidíš v bublině nahoře — jakmile je pod ±10 m, jdeme dál.',
             hotovo: function () { var a = g('currentGpsAccuracy'); return !!(a && a <= 10); }
         },
         {
-            k: 'bod', t: 'Ulož svůj první bod',
+            k: 'bod', t: 'Ulož svůj první bod', cil: function () { return document.querySelector('#dock .dock-primary'); },
             rada: 'Klepni na velké + dole, vyber „Z průměru GPS" a ulož bod. Pojmenuj ho třeba 1.',
             hotovo: function () { var p = g('persistentCustomPoints'); return !!(p && _n0 != null && p.length > _n0); }
         },
         {
-            k: 'karta', t: 'Otevři kartu bodu',
+            k: 'karta', t: 'Otevři kartu bodu', cil: function () { var m = document.querySelectorAll('.leaflet-marker-icon.custom-map-marker'); return m.length ? m[m.length - 1] : document.querySelector('#dock button[onclick*="openManageModal"]'); },
             rada: 'Klepni na svůj bod v mapě (nebo v Bodech dole). Karta ukáže souřadnice, přesnost a náčrt okolí.',
             hotovo: function () { var bs = document.getElementById('bottom-sheet'); return !!(bs && bs.classList.contains('open')); }
         },
         {
-            k: 'doved', t: 'Nech se k bodu dovést',
+            k: 'doved', t: 'Nech se k bodu dovést', cil: function () { return document.querySelector('#ag-kb-acts button[data-a="nav"]'); },
             rada: 'Na kartě klepni na „Doveď mě". Šipka a vzdálenost tě k bodu navedou — tak se vytyčuje.',
             hotovo: function () { return g('highlightedPointId') != null; }
         }
@@ -103,6 +103,19 @@
             '#' + ID + '.pm-mini{top:calc(env(safe-area-inset-top,0px) + 58px);bottom:auto;left:10px;right:10px;max-width:none;padding:8px 12px;pointer-events:none;opacity:.96;}',
             '#' + ID + '.pm-mini .pm-h,#' + ID + '.pm-mini .pm-f,#' + ID + '.pm-mini .pm-i:not(.now){display:none;}',
             '#' + ID + '.pm-mini .pm-i.now{padding:2px 0;background:transparent;}',
+            // KROUŽEK NA CÍLI (13. 9. 2026, uživatel: „ani mi to neukázalo šipkou, kam mám kliknout"):
+            // pulzující obrys kolem prvku, na který má člověk klepnout, + štítek „sem". Nebere doteky.
+            '#ag-pm-ring{position:fixed;z-index:100011;pointer-events:none;border:3px solid var(--accent,#2f9e74);border-radius:16px;box-shadow:0 0 0 4px rgba(47,158,116,.25),0 0 18px rgba(47,158,116,.55);transition:left .25s,top .25s,width .25s,height .25s;display:none;}',
+            '#ag-pm-ring.on{display:block;animation:agPmPulse 1.4s ease-in-out infinite;}',
+            '#ag-pm-ring.kruh{border-radius:50%;}',
+            '#ag-pm-ring .pm-tag{position:absolute;left:50%;transform:translateX(-50%);top:-30px;padding:4px 9px;border-radius:999px;background:var(--accent,#2f9e74);color:#06231a;font:700 12px/1 var(--font-ui,system-ui);white-space:nowrap;}',
+            '#ag-pm-ring .pm-tag::after{content:"";position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);border:5px solid transparent;border-bottom:0;border-top-color:var(--accent,#2f9e74);}',
+            '#ag-pm-ring.dole .pm-tag{top:auto;bottom:-30px;}',
+            '#ag-pm-ring.dole .pm-tag::after{bottom:auto;top:-5px;border-top:0;border-bottom:5px solid var(--accent,#2f9e74);}',
+            '@keyframes agPmPulse{0%,100%{box-shadow:0 0 0 4px rgba(47,158,116,.25),0 0 18px rgba(47,158,116,.55);}50%{box-shadow:0 0 0 9px rgba(47,158,116,.12),0 0 26px rgba(47,158,116,.7);}}',
+            '@media (prefers-reduced-motion: reduce){#ag-pm-ring.on{animation:none;}}',
+            '#' + ID + ' .pm-i.done .pm-n{animation:agPmTick .35s ease-out;}',
+            '@keyframes agPmTick{0%{transform:scale(.6);}60%{transform:scale(1.25);}100%{transform:scale(1);}}',
             '#' + ID + '.pm-done .pm-list{display:none;}',
             '#' + ID + ' .pm-fin{font-size:calc(13.5px * var(--ag-font-scale,1));line-height:1.45;margin:2px 0 4px;}'
         ].join('\n');
@@ -110,6 +123,27 @@
     }
 
     function el() { return document.getElementById(ID); }
+    function ring() {
+        var r = document.getElementById('ag-pm-ring');
+        if (!r) { r = document.createElement('div'); r.id = 'ag-pm-ring'; r.innerHTML = '<span class="pm-tag"></span>'; document.body.appendChild(r); }
+        return r;
+    }
+    function usadKrouzek() {
+        var r = ring();
+        if (!_open || !_st || _st.hotovo) { r.classList.remove('on'); return; }
+        var kr = KROKY[_st.krok], cil = null;
+        try { cil = kr.cil ? kr.cil() : null; } catch (e) { cil = null; }
+        if (!cil) { r.classList.remove('on'); return; }
+        var b = cil.getBoundingClientRect();
+        if (!b.width || !b.height || b.bottom < 0 || b.top > innerHeight) { r.classList.remove('on'); return; }
+        var pad = 6;
+        r.style.left = (b.left - pad) + 'px'; r.style.top = (b.top - pad) + 'px';
+        r.style.width = (b.width + 2 * pad) + 'px'; r.style.height = (b.height + 2 * pad) + 'px';
+        r.classList.toggle('kruh', Math.abs(b.width - b.height) < 6 && b.width < 90);
+        r.classList.toggle('dole', b.top < 60);           // štítek pod prvkem, když je prvek u horního okraje
+        r.querySelector('.pm-tag').textContent = kr.k === 'senzory' || kr.k === 'presnost' ? t('tady') : t('klepni sem');
+        r.classList.add('on');
+    }
     function build() {
         injectStyles();
         var d = el();
@@ -124,7 +158,7 @@
             if (!b) return;
             var a = b.getAttribute('data-a');
             if (a === 'close') close(false);
-            else if (a === 'skip') { oznacHotovo(KROKY[_st.krok].k, true); posun(); }
+            else if (a === 'skip') { _pauza = 0; oznacHotovo(KROKY[_st.krok].k, true); posun(); usadKrouzek(); }
             else if (a === 'fin') close(true);
         });
         return d;
@@ -173,18 +207,36 @@
             var bs = document.getElementById('bottom-sheet');
             if (bs && bs.classList.contains('open')) return true;
             var ms = document.querySelectorAll('.modal-overlay, .ag-dlg-overlay');
-            for (var i = 0; i < ms.length; i++) { var cs = getComputedStyle(ms[i]); if (cs.display !== 'none' && cs.visibility !== 'hidden' && ms[i].id !== 'ag-pm') return true; }
+            // zavřená okna appky často jen parkují mimo obrazovku (display nic neříká) — rozhoduje,
+            // jestli okno opravdu leží přes obraz
+            for (var i = 0; i < ms.length; i++) {
+                var m = ms[i]; if (m.id === 'ag-pm') continue;
+                var cs = getComputedStyle(m);
+                if (cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) < 0.05) continue;
+                var r = m.getBoundingClientRect();
+                if (r.width > innerWidth * 0.5 && r.height > innerHeight * 0.5 && r.left < innerWidth - 4 && r.right > 4 && r.top < innerHeight - 4 && r.bottom > 4) return true;
+            }
         } catch (e) { swallow(e, 'otevrene'); }
         return false;
     }
+    var _pauza = 0;   // krok se právě odškrtl — chvíli ho nechat vidět, než se jde dál
     function tick() {
         if (!_open || !_st) return;
         var d = el(); if (d) d.classList.toggle('pm-mini', !_st.hotovo && jeNecoOtevrene());
+        usadKrouzek();
         if (_st.hotovo) return;
+        if (_pauza) { if (Date.now() < _pauza) return; _pauza = 0; posun(); usadKrouzek(); return; }
         var kr = KROKY[_st.krok];
         var ok = false;
         try { ok = !!kr.hotovo(); } catch (e) { swallow(e, 'hotovo:' + kr.k); }
-        if (ok) { oznacHotovo(kr.k, false); posun(); }
+        if (ok) {
+            // odškrtnout HNED (ať je to vidět) a posunout se až za chvíli — jinak kroky, které
+            // jsou splněné už při startu (poloha, přesnost), přeskočí bez jediného mrknutí
+            oznacHotovo(kr.k, false);
+            var dd = el(), row = dd && dd.querySelectorAll('.pm-i')[_st.krok];
+            if (row) { row.classList.add('done'); row.classList.remove('now'); var nn = row.querySelector('.pm-n'); if (nn) nn.textContent = '✓'; }
+            _pauza = Date.now() + 900;
+        }
     }
 
     function start(auto) {
@@ -200,11 +252,14 @@
         build();
         posun();
         if (!_timer) _timer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(tick, 600);
+        usadKrouzek();
+        try { window.addEventListener('resize', usadKrouzek); window.addEventListener('scroll', usadKrouzek, true); } catch (e) { swallow(e, 'ring:listen'); }
         return true;
     }
     function close(dokonceno) {
         _open = false;
         var d = el(); if (d) d.remove();
+        var r = document.getElementById('ag-pm-ring'); if (r) r.remove();
         if (_st) { if (dokonceno) _st.hotovo = true; _st.zavreno = Date.now(); lsSet(_st); }
         if (_timer) { clearInterval(_timer); _timer = null; }
     }

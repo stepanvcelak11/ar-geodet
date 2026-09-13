@@ -428,7 +428,12 @@
             }
         } catch (e) { swallow(e, 'enter:start'); }
         try { if (typeof window.quickToast === 'function') quickToast('Režim vlastníka zapnut — vidíš úplně všechno.'); } catch (e) { swallow(e, 'enter:toast'); }
-        setTimeout(open, 500);
+        // Konzole se otevře sama jen PŘI PRVNÍM vstupu na tomhle telefonu (ať vlastník ví,
+        // kde je). Do 13. 9. 2026 vyskakovala při každém zapnutí appky — vlastník, který
+        // jde měřit, ji musel pokaždé zavírat. Dál je ve Více, v Nastavení i v Nástrojích.
+        try {
+            if (!localStorage.getItem('agvKonzoleUvod_v1')) { localStorage.setItem('agvKonzoleUvod_v1', '1'); setTimeout(open, 500); }
+        } catch (e) { swallow(e, 'enter:uvod'); }
     }
 
     // Změna klíče za běhu (appka už jede, brána není).
@@ -585,6 +590,16 @@
                 ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>',
                 t: 'Souhrn dne a kdo je v terénu', d: 'Za 24 h: lidé, body, nové účty, žádosti, chyby; kdo teď měří a kde; komu vyprší Pro',
                 lazy: 'js/vlastnik-plus.js', keep: true, run: function () { jdi('prehled'); }
+            },
+            {
+                ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>',
+                t: 'Hlášení pro vývoj — vše na jednom místě', d: 'Zprávy od lidí, hodnocení, chyby z terénu i z tohohle telefonu v jednom textu; zkopíruj a pošli autorovi / AI',
+                lazy: 'js/vlastnik-plus.js', keep: true, run: function () { jdi('hlaseni'); }
+            },
+            {
+                ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15v-4M12 15V7M17 15v-2"/></svg>',
+                t: 'Grafy — 30 dní', d: 'Lidé, akce, body a chyby po dnech; kdo jede na které verzi; nejpoužívanější nástroje',
+                lazy: 'js/vlastnik-plus.js', keep: true, run: function () { jdi('grafy'); }
             },
             {
                 ic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6"/></svg>',

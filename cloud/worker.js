@@ -1860,6 +1860,25 @@ export default {
                     });
                 }
                 // Deník vlastníka (návrh „audit")
+                // GRAFY (13. 9. 2026, přání vlastníka): denní řady za 30 dní + rozložení verzí
+                // a nejpoužívanější nástroje. Jen počty — žádné souřadnice ani jména.
+                if (req.method === 'GET' && path === '/owner/grafy') {
+                    await ensureUctySchema(env);
+                    const ted = Date.now(), ts30 = ted - 30 * 864e5;
+                    const d30 = new Date(ts30).toISOString().slice(0, 10);
+                    const rada = async (sql, ...args) => { try { return (await dbAll(env, sql, ...args)) || []; } catch (e) { return []; } };
+                    const dotazy = await rada('SELECT day, n FROM stats WHERE day>=? ORDER BY day', d30);
+                    const lide = await rada("SELECT date(ts/1000,'unixepoch') AS day, COUNT(DISTINCT uid) AS n FROM usage WHERE ts>=? GROUP BY day ORDER BY day", ts30);
+                    const akce = await rada("SELECT date(ts/1000,'unixepoch') AS day, COUNT(*) AS n FROM usage WHERE ts>=? GROUP BY day ORDER BY day", ts30);
+                    const ucty = await rada("SELECT date(created/1000,'unixepoch') AS day, COUNT(*) AS n FROM accounts WHERE created>=? GROUP BY day ORDER BY day", ts30);
+                    const body = await rada("SELECT date(srv/1000,'unixepoch') AS day, COUNT(*) AS n FROM sync_points WHERE srv>=? AND deleted=0 GROUP BY day ORDER BY day", ts30);
+                    const chyby = await rada("SELECT date(ts/1000,'unixepoch') AS day, SUM(n) AS n FROM errors WHERE ts>=? GROUP BY day ORDER BY day", ts30);
+                    const verze = await rada('SELECT ver, COUNT(*) AS n FROM accounts GROUP BY ver ORDER BY n DESC LIMIT 12');
+                    const nastroje = await rada('SELECT k, COUNT(*) AS n FROM usage WHERE ts>=? AND k IS NOT NULL GROUP BY k ORDER BY n DESC LIMIT 12', ts30);
+                    const uctyCelkem = (await dbFirst(env, 'SELECT COUNT(*) AS n FROM accounts').catch(() => null)) || { n: 0 };
+                    return json({ od: d30, do: new Date(ted).toISOString().slice(0, 10), dotazy, lide, akce, ucty, body, chyby, verze, nastroje, uctyCelkem: uctyCelkem.n || 0 });
+                }
+
                 if (req.method === 'GET' && path === '/owner/log') {
                     const before = parseInt(url.searchParams.get('before'), 10) || 0;
                     let rows = [];

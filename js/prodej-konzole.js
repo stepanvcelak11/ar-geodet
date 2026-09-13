@@ -41,6 +41,10 @@
         '<circle cx="9" cy="8" r="4"/><path d="M2 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2"/><path d="M17 3.5a3 3 0 0 1 0 6"/><path d="M19 13.5a5 5 0 0 1 3 4.5v3"/></svg>';
 
     var _tab = 'lide', _lide = null, _obj = null, _zad = null, _q = '', _open = '', _busy = false;
+    // řazení a filtr Lidí (13. 9. 2026, přání uživatele: „řadit podle vytvoření účtu, podle toho,
+    // kdo appku naposledy používal a jak moc ji používají); pamatuje se v telefonu
+    var _rad = 'aktivita', _jen = '';
+    try { _rad = localStorage.getItem('agPdRad_v1') || 'aktivita'; } catch (e) { }
 
     function swallow(e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'prodej-konzole:' + kde); } catch (x) { } }
     function esc(s) {
@@ -251,11 +255,28 @@
             '<div class="pd-cell' + (blok ? ' warn' : '') + '"><b>' + blok + '</b><span>blokovaných</span></div>' +
             '</div>');
         h.push('<input type="search" id="ag-pd-q" placeholder="Hledat člověka (jméno, kód, prostor)" value="' + esc(_q) + '">');
+        var RAD = [['aktivita', 'Naposledy aktivní'], ['pouziti', 'Nejvíc používají'], ['created', 'Nejnovější účty'], ['jmeno', 'Podle jména']];
+        var JEN = [['', 'Všichni'], ['pro', 'S Pro'], ['blok', 'Blokovaní'], ['spici', 'Bez aktivity 30 d']];
+        h.push('<div class="pd-tools" style="margin:0 0 6px;">' + RAD.map(function (r) {
+            return '<button type="button" class="pd-b' + (_rad === r[0] ? ' on' : '') + '" data-rad="' + r[0] + '">' + r[1] + '</button>';
+        }).join('') + '</div>');
+        h.push('<div class="pd-tools" style="margin:0 0 8px;">' + JEN.map(function (r) {
+            return '<button type="button" class="pd-b' + (_jen === r[0] ? ' on' : '') + '" data-jen="' + r[0] + '">' + r[1] + '</button>';
+        }).join('') + '</div>');
         var q = bezDia(_q);
         var list = ucty.filter(function (u) {
+            if (_jen === 'pro' && !u.tarifPlati) return false;
+            if (_jen === 'blok' && !u.disabled) return false;
+            if (_jen === 'spici' && u.aktivita && Date.now() - u.aktivita < 30 * 864e5) return false;
             if (!q) return true;
             if (bezDia(u.name).indexOf(q) >= 0 || bezDia(u.code).indexOf(q) >= 0) return true;
             return (u.prostory || []).some(function (p) { return bezDia(p.nazev || '').indexOf(q) >= 0 || bezDia(p.kod || '').indexOf(q) >= 0; });
+        });
+        list.sort(function (a, b) {
+            if (_rad === 'pouziti') return (b['akcí30d'] || 0) - (a['akcí30d'] || 0) || (b.aktivita || 0) - (a.aktivita || 0);
+            if (_rad === 'created') return (b.created || 0) - (a.created || 0);
+            if (_rad === 'jmeno') return String(a.name || '').localeCompare(String(b.name || ''), 'cs');
+            return (b.aktivita || 0) - (a.aktivita || 0);
         });
         if (!list.length) h.push('<div class="pd-empty">Nikdo takový tu není.</div>');
         list.forEach(function (u) {
@@ -265,7 +286,7 @@
                 '<span class="pd-dot ' + dot + '"></span>' +
                 '<span class="pd-nm"><b>' + esc(u.name || '?') + '</b>' +
                 '<small>' + esc(u.code) + ' · ' + esc(firmy.length ? firmy.join(', ') : 'jen vlastní prostor') + '</small></span>' +
-                '<span class="pd-cnt">' + esc(tarifText(u)) + '<small>' + esc(den(u.aktivita)) + (u.ver ? ' · ' + esc(u.ver) : '') + '</small></span>' +
+                '<span class="pd-cnt">' + esc(tarifText(u)) + '<small>' + esc(den(u.aktivita)) + ' · ' + (u['akcí30d'] || 0) + ' akcí/30 d' + (u.ver ? ' · ' + esc(u.ver) : '') + '</small></span>' +
                 '</div>');
             if (_open === u.id) h.push(detailLide(u));
         });
@@ -437,6 +458,8 @@
     }
     function wire(b) {
         each(b, '[data-tab]', 'click', function (el) { _tab = el.getAttribute('data-tab'); _open = ''; render(); });
+        each(b, '[data-rad]', 'click', function (el) { _rad = el.getAttribute('data-rad'); try { localStorage.setItem('agPdRad_v1', _rad); } catch (e) { } render(); });
+        each(b, '[data-jen]', 'click', function (el) { _jen = el.getAttribute('data-jen'); render(); });
         var q = b.querySelector('#ag-pd-q');
         if (q) {
             q.addEventListener('input', function () {

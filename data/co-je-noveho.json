@@ -2,6 +2,19 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 303,
+   "datum": "2026-09-13",
+   "nadpis": "Průvodce ukazuje kam klepnout, kytka bez zbytečných rozcestníků, konzole s grafy a hlášením",
+   "body": [
+    "<b>Průvodce prvním měřením</b> teď každý krok viditelně odškrtne a na cíli svítí kroužek „klepni sem“ (tlačítko +, bod v mapě, Doveď mě).",
+    "<b>Kolečko nástrojů:</b> rozcestníky (Počasí a světlo, Signál GNSS…) se rozbalí rovnou do lístků, když se vejdou; sloučené zůstane jen to, co by přeteklo.",
+    "<b>Základ × Pro</b> má nahoře jednoduchý vizuální přehled (pět oblastí Pro), dlouhá tabulka je sbalená.",
+    "<b>Vlastník:</b> konzole se sama otevře jen při prvním vstupu; Lidé mají řazení a filtry (naposledy aktivní, nejvíc používají, nejnovější, S Pro, blokovaní); nové <b>Grafy — 30 dní</b> a <b>Hlášení pro vývoj</b> (zprávy, hodnocení, chyby a verze v jednom textu ke zkopírování).",
+    "<b>Jazyky:</b> všechno nové (průvodce, Funguje mi všechno?, hodnocení, Kde pracuju) a pár starých zbytků je přeloženo do EN/DE/PL.",
+    "Drobnosti: okna už neprosvítají (Historie, Zpravodaj), čitelné nápovědy v polích ve světlém motivu, desetinná čárka u vzdáleností v seznamech bodů, Ročenka „čvn/čvc“ a „1 den“; kontakt z Napsat autorovi se pamatuje k účtu."
+   ]
+  },
+  {
    "v": 302,
    "datum": "2026-09-13",
    "nadpis": "Před betou: průvodce prvním měřením, Funguje mi všechno?, lehčí start",
