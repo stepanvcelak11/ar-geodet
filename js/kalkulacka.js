@@ -27,7 +27,10 @@ function calcSavePoint(name, Y, X) {
 }
 
 // ---------- pomocnici pro formulare ----------
-function _cv(id) { const el = document.getElementById(id); if (!el) return null; return agNum(el.value); }
+// ⚠ OPRAVA 13. 9. 2026: agNum() vrací pro prázdné pole NaN, ne null — takže „v == null"
+// v _req() nikdy neplatilo, prázdné povinné pole neshodilo „Vyplň: …" a do výsledku
+// tekly NaN (viděno: „Kontrola délky na orientaci: měřeno NaN"). Prázdné = null.
+function _cv(id) { const el = document.getElementById(id); if (!el) return null; const v = agNum(el.value); return (typeof v === 'number' && isFinite(v)) ? v : null; }
 function _cs(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
 function _fld(id, label, ph) { return `<label style="margin-top:8px;">${label}</label><input type="text" inputmode="decimal" autocomplete="off" id="${id}" placeholder="${ph || ''}">`; }
 function _ptFld(idp, label) {
@@ -45,6 +48,49 @@ function _row(l, v) { return `<div class="geo-data-row" style="border:none; padd
 function _calcErr(e) { const out = document.getElementById('calc-result'); if (out) out.innerHTML = _resBox(`<span style="color:var(--danger);">${e}</span>`, 'var(--danger)'); }
 function _saveBtnHtml(call) { return `<button class="btn btn-primary" style="margin-top:10px;" onclick="${call}"><svg class="icon"><use href="#i-plus"/></svg> Uložit jako vlastní bod</button>`; }
 function fmtGon(g) { return gonNorm(g).toFixed(4); }
+
+// ---------- „UKAŽ POSTUP" (13. 9. 2026, hodnocení pro studenty) ----------
+// Výsledek sám o sobě studentovi nestačí — potřebuje vidět VZOREC a MEZIVÝSLEDKY,
+// aby si zkontroloval domácí úkol a naučil se, odkud se které číslo bere. Každý
+// výpočet proto vedle výsledku poskládá seznam kroků (_krok) a _postupHtml() je
+// vykreslí pod výsledek jako číslovaný postup. Přepínač si pamatuje agCalcPostup_v1
+// (výchozí ZAPNUTO); vypnutý postup zůstává v DOM sbalený, rozbalí se klepnutím.
+// Čísla v krocích jsou TATÁŽ, která vstoupila do výsledku — nic se nepřepočítává
+// podruhé, takže postup nemůže „lhát" o výsledku.
+const CALC_POSTUP_KEY = 'agCalcPostup_v1';
+function _postupOn() { try { return localStorage.getItem(CALC_POSTUP_KEY) !== '0'; } catch (e) { return true; } }
+function calcPostupToggle(on) {
+    try { localStorage.setItem(CALC_POSTUP_KEY, on ? '1' : '0'); } catch (e) { /* soukromý režim */ }
+    document.querySelectorAll('.calc-postup').forEach(d => { d.open = !!on; });
+}
+function _krok(t, v) { return { t: t, v: v }; }
+function _postupHtml(kroky, pozn) {
+    if (!kroky || !kroky.length) return '';
+    const li = kroky.map(k => '<li><div class="cp-t">' + k.t + '</div>' + (k.v != null ? '<div class="cp-v">' + k.v + '</div>' : '') + '</li>').join('');
+    return '<details class="calc-postup"' + (_postupOn() ? ' open' : '') + '><summary>Postup výpočtu</summary><ol class="cp-list">' + li + '</ol>'
+        + (pozn ? '<p class="cp-pozn">' + pozn + '</p>' : '') + '</details>';
+}
+const _f3 = n => n.toFixed(3), _f2 = n => n.toFixed(2), _sg = n => (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(3);
+// Kroky směrníku a délky ze souřadnic — používá je rajón, orto, protínání i polygon.
+// Kvadrant podle znamének ΔY/ΔX je přesně to, v čem studenti nejčastěji chybují.
+function _kvadrant(dy, dx) {
+    if (dy >= 0 && dx >= 0) return { k: 'I', vz: 'σ = φ' };
+    if (dy >= 0 && dx < 0) return { k: 'II', vz: 'σ = 200 − φ' };
+    if (dy < 0 && dx < 0) return { k: 'III', vz: 'σ = 200 + φ' };
+    return { k: 'IV', vz: 'σ = 400 − φ' };
+}
+function _postupSmernik(A, B, ab) {
+    const dy = B.y - A.y, dx = B.x - A.x;
+    const phi = Math.atan2(Math.abs(dy), Math.abs(dx)) / GON;
+    const q = _kvadrant(dy, dx);
+    const sm = smernik(A.y, A.x, B.y, B.x);
+    return [
+        _krok('Souřadnicové rozdíly ' + ab + ': ΔY = Y<sub>' + ab[1] + '</sub> − Y<sub>' + ab[0] + '</sub>, ΔX = X<sub>' + ab[1] + '</sub> − X<sub>' + ab[0] + '</sub>', 'ΔY = ' + _sg(dy) + ' m · ΔX = ' + _sg(dx) + ' m'),
+        _krok('Ostrý úhel φ = arctg(|ΔY| / |ΔX|)', 'φ = ' + phi.toFixed(4) + ' gon'),
+        _krok('Kvadrant podle znamének (ΔY ' + (dy >= 0 ? '+' : '−') + ', ΔX ' + (dx >= 0 ? '+' : '−') + ') → ' + q.k + '. kvadrant, ' + q.vz, 'σ<sub>' + ab + '</sub> = ' + fmtGon(sm) + ' gon'),
+        _krok('Délka s = √(ΔY² + ΔX²)', 's<sub>' + ab + '</sub> = ' + _f3(Math.hypot(dy, dx)) + ' m')
+    ];
+}
 
 // vyber existujiciho bodu do formulare (Y/X se doplni v S-JTSK)
 let _pickerTarget = null;
@@ -94,6 +140,7 @@ const CALC_TOOLS = [
     { id: 'protdelka', g: 'poloha', name: 'Protínání z délek', desc: 'ze dvou délek' },
     { id: 'volne', g: 'vyrovnani', name: 'Volné stanovisko', desc: 'vyrovnání ze 2+ bodů' },
     { id: 'polygon', g: 'vyrovnani', name: 'Polygonový pořad', desc: 'oboustranně připojený a orientovaný' },
+    { id: 'helmert', g: 'vyrovnani', name: 'Helmertova transformace', desc: 'z místního systému do S-JTSK ze 2+ identických bodů' },
     { id: 'tachy', g: 'vysky', name: 'Tachymetrie', desc: 'polární dávka, volitelně s výškami' },
     { id: 'nivel', g: 'vysky', name: 'Nivelační zápisník', desc: 'výšky z čtení zpět/vpřed' },
     { id: 'sci', g: 'pomucky', name: 'Vědecká kalkulačka', desc: 'běžné výpočty a funkce, ° / gon / rad' },
@@ -105,6 +152,15 @@ function ensureCalcModal() {
     if (document.getElementById('calc-modal')) return;
     const el = document.createElement('div');
     el.className = 'modal-overlay'; el.id = 'calc-modal';
+    if (!document.getElementById('calc-postup-style')) {
+        const st = document.createElement('style'); st.id = 'calc-postup-style';
+        st.textContent = '.calc-postup{margin-top:10px;border:1px dashed var(--glass-border,rgba(255,255,255,.18));border-radius:10px;padding:6px 10px;}'
+            + '.calc-postup summary{cursor:pointer;font-size:calc(13px * var(--ag-font-scale,1));font-weight:700;color:var(--accent);}'
+            + '.cp-list{margin:6px 0 0;padding-left:20px;font-size:calc(12.5px * var(--ag-font-scale,1));}'
+            + '.cp-list li{margin:5px 0;}.cp-t{opacity:.85;}.cp-v{font-family:var(--font-mono,ui-monospace,monospace);font-variant-numeric:tabular-nums;margin-top:1px;}'
+            + '.cp-pozn{font-size:calc(12px * var(--ag-font-scale,1));opacity:.7;margin:8px 0 2px;}';
+        document.head.appendChild(st);
+    }
     el.innerHTML = `<div class="modal-content">
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
             <button id="calc-back" class="btn btn-secondary" style="display:none; margin:0; padding:8px 14px; width:auto; flex:0 0 auto;" onclick="showCalcHome()">‹ Zpět</button>
@@ -121,7 +177,8 @@ function showCalcHome() {
     document.getElementById('calc-title').innerHTML = '<svg class="icon"><use href="#i-calc"/></svg> Geodetická kalkulačka';
     const body = document.getElementById('calc-body');
     const tile = t => `<div class="cluster-list-item" onclick="showCalcTool('${t.id}')"><div><div class="cluster-item-title">${t.name}</div><div class="cluster-item-subtitle">${t.desc}</div></div><div style="opacity:0.5;">›</div></div>`;
-    let html = '<p style="margin:0 0 10px; font-size:calc(12.5px * var(--ag-font-scale, 1)); opacity:0.75;">Výpočty v rovině S-JTSK, úhly v gonech, plně offline. Výsledky lze uložit jako vlastní body.</p>';
+    let html = '<p style="margin:0 0 10px; font-size:calc(12.5px * var(--ag-font-scale, 1)); opacity:0.75;">Výpočty v rovině S-JTSK, úhly v gonech, plně offline. Výsledky lze uložit jako vlastní body.</p>'
+        + '<label class="filter-row" style="margin:0 0 6px;"><input type="checkbox" id="calc-postup-sw"' + (_postupOn() ? ' checked' : '') + ' onchange="calcPostupToggle(this.checked)"> Ukazovat postup výpočtu <small style="opacity:.7;">(vzorce a mezivýsledky pod výsledkem)</small></label>';
     CALC_GROUPS.forEach(gr => {
         const tools = CALC_TOOLS.filter(t => t.g === gr.g);
         if (!tools.length) return;
@@ -150,7 +207,8 @@ function calcSmer() {
         const sm = smernik(A.y, A.x, B.y, B.x), d = vzdalYX(A.y, A.x, B.y, B.x);
         document.getElementById('calc-result').innerHTML = _resBox(
             _row('Směrník σ<sub>AB</sub>', fmtGon(sm) + ' gon') + _row('(ve stupních)', (sm * 0.9).toFixed(4) + ' °')
-            + _row('Vodorovná délka', d.toFixed(3) + ' m') + _row('ΔY / ΔX', (B.y - A.y).toFixed(3) + ' / ' + (B.x - A.x).toFixed(3) + ' m'));
+            + _row('Vodorovná délka', d.toFixed(3) + ' m') + _row('ΔY / ΔX', (B.y - A.y).toFixed(3) + ' / ' + (B.x - A.x).toFixed(3) + ' m'))
+            + _postupHtml(_postupSmernik(A, B, 'AB').concat([_krok('Převod na stupně: 1 gon = 0,9°', (sm * 0.9).toFixed(4) + ' °')]));
     } catch (e) { _calcErr(e); }
 }
 
@@ -184,6 +242,12 @@ function calcRajon() {
         document.getElementById('calc-result').innerHTML = _resBox(
             _row('Orientační posun', fmtGon(oposun) + ' gon') + _row('Směrník na bod', fmtGon(sm) + ' gon')
             + _row('<b>Y</b>', '<b>' + P.y.toFixed(2) + '</b>') + _row('<b>X</b>', '<b>' + P.x.toFixed(2) + '</b>') + ctrl)
+            + _postupHtml(_postupSmernik(ST, OR, 'SO').concat([
+                _krok('Orientační posun o = σ<sub>SO</sub> − čtení na orientaci', 'o = ' + fmtGon(smOr) + ' − ' + ctO.toFixed(4) + ' = ' + fmtGon(oposun) + ' gon'),
+                _krok('Směrník na určovaný bod σ<sub>SP</sub> = o + čtení na bod', 'σ<sub>SP</sub> = ' + fmtGon(oposun) + ' + ' + ct.toFixed(4) + ' = ' + fmtGon(sm) + ' gon'),
+                _krok('Polární výpočet: Y<sub>P</sub> = Y<sub>S</sub> + s · sin σ, X<sub>P</sub> = X<sub>S</sub> + s · cos σ',
+                    'Y<sub>P</sub> = ' + _f2(ST.y) + ' ' + _sg(d * Math.sin(sm * GON)) + ' = ' + _f2(P.y) + '<br>X<sub>P</sub> = ' + _f2(ST.x) + ' ' + _sg(d * Math.cos(sm * GON)) + ' = ' + _f2(P.x))
+            ]), 'Kontrola: změř délku i na orientaci a porovnej s délkou ze souřadnic (pole „Kontrolní délka").')
             + _saveBtnHtml("calcSavePoint(_rajonRes.name, _rajonRes.y, _rajonRes.x); this.innerText='Uloženo ✓'; this.disabled=true;");
     } catch (e) { _calcErr(e); }
 }
@@ -209,6 +273,11 @@ function calcOrto() {
         document.getElementById('calc-result').innerHTML = _resBox(
             _row('Délka přímky AB (ze souřadnic)', vzdalYX(A.y, A.x, B.y, B.x).toFixed(3) + ' m')
             + _row('<b>Y</b>', '<b>' + P.y.toFixed(2) + '</b>') + _row('<b>X</b>', '<b>' + P.x.toFixed(2) + '</b>'))
+            + _postupHtml(_postupSmernik(A, B, 'AB').concat([
+                _krok('Pata kolmice na přímce: staničení s po směrníku σ<sub>AB</sub>', 'Y<sub>1</sub> = ' + _f2(A.y) + ' + ' + _f3(s) + ' · sin σ = ' + _f2(P1.y) + '<br>X<sub>1</sub> = ' + _f2(A.x) + ' + ' + _f3(s) + ' · cos σ = ' + _f2(P1.x)),
+                _krok('Kolmice k: směrník kolmice = σ<sub>AB</sub> + 100 gon (vpravo +, vlevo −)', 'σ<sub>k</sub> = ' + fmtGon(sm + 100) + ' gon, k = ' + _sg(k) + ' m'),
+                _krok('Y<sub>P</sub> = Y<sub>1</sub> + k · sin σ<sub>k</sub>, X<sub>P</sub> = X<sub>1</sub> + k · cos σ<sub>k</sub>', 'Y<sub>P</sub> = ' + _f2(P.y) + ' · X<sub>P</sub> = ' + _f2(P.x))
+            ]))
             + _saveBtnHtml("calcSavePoint(_ortoRes.name, _ortoRes.y, _ortoRes.x); this.innerText='Uloženo ✓'; this.disabled=true;");
     } catch (e) { _calcErr(e); }
 }
@@ -241,6 +310,12 @@ function calcProtUhel() {
         document.getElementById('calc-result').innerHTML = _resBox(
             _row('Směrník A→P', fmtGon(sm1) + ' gon') + _row('Směrník B→P', fmtGon(sm2) + ' gon')
             + _row('<b>Y</b>', '<b>' + P.y.toFixed(2) + '</b>') + _row('<b>X</b>', '<b>' + P.x.toFixed(2) + '</b>') + warn)
+            + _postupHtml(_postupSmernik(A, B, 'AB').concat([
+                _krok('Směrníky záměr: σ<sub>AP</sub> = σ<sub>AB</sub> + α, σ<sub>BP</sub> = σ<sub>AB</sub> + 200 + β', 'σ<sub>AP</sub> = ' + fmtGon(sm1) + ' gon · σ<sub>BP</sub> = ' + fmtGon(sm2) + ' gon'),
+                _krok('Úhel protnutí γ = 200 − α − β (nejlépe 33–167 gon, jinak roste chyba)', 'γ = ' + gamma.toFixed(4) + ' gon'),
+                _krok('Délka z A na P (sinová věta): s<sub>AP</sub> = s<sub>AB</sub> · sin β / sin γ', 's<sub>AP</sub> = ' + _f3(t) + ' m'),
+                _krok('Polární výpočet z A: Y<sub>P</sub> = Y<sub>A</sub> + s<sub>AP</sub> · sin σ<sub>AP</sub>, X<sub>P</sub> = X<sub>A</sub> + s<sub>AP</sub> · cos σ<sub>AP</sub>', 'Y<sub>P</sub> = ' + _f2(P.y) + ' · X<sub>P</sub> = ' + _f2(P.x))
+            ]), 'Kontrola: spočítej P i z B (polárně přes σ<sub>BP</sub>) — musí vyjít totéž.')
             + _saveBtnHtml("calcSavePoint(_puRes.name, _puRes.y, _puRes.x); this.innerText='Uloženo ✓'; this.disabled=true;");
     } catch (e) { _calcErr(e); }
 }
@@ -277,6 +352,11 @@ function calcProtDelka() {
         document.getElementById('calc-result').innerHTML = _resBox(
             _row('Vzdálenost AB', c.toFixed(3) + ' m') + _row('Pata kolmice od A', a.toFixed(3) + ' m') + _row('Kolmice', h.toFixed(3) + ' m')
             + _row('<b>Y</b>', '<b>' + P.y.toFixed(2) + '</b>') + _row('<b>X</b>', '<b>' + P.x.toFixed(2) + '</b>'))
+            + _postupHtml(_postupSmernik(A, B, 'AB').concat([
+                _krok('Pata kolmice od A (kosinová věta): a = (s<sub>A</sub>² − s<sub>B</sub>² + c²) / 2c', 'a = (' + _f3(da) + '² − ' + _f3(db) + '² + ' + _f3(c) + '²) / (2 · ' + _f3(c) + ') = ' + _f3(a) + ' m'),
+                _krok('Výška trojúhelníku h = √(s<sub>A</sub>² − a²)', 'h = ' + _f3(h) + ' m'),
+                _krok('Pata P<sub>0</sub> polárně po σ<sub>AB</sub> o a, pak kolmice h ' + (side === 'R' ? 'vpravo (σ + 100)' : 'vlevo (σ − 100)'), 'Y<sub>P</sub> = ' + _f2(P.y) + ' · X<sub>P</sub> = ' + _f2(P.x))
+            ]))
             + _saveBtnHtml("calcSavePoint(_pdRes.name, _pdRes.y, _pdRes.x); this.innerText='Uloženo ✓'; this.disabled=true;");
     } catch (e) { _calcErr(e); }
 }
@@ -357,13 +437,18 @@ function renderCalc_polygon(body) {
         + `<button class="btn btn-blue" style="margin-top:14px;" onclick="calcPolygon()">Vyrovnat pořad</button><div id="calc-result"></div>`;
     addPgRow();
 }
+// ⚠ OPRAVA 13. 9. 2026: pole řádků se jmenovala 'pg-d'+i / 'pg-w'+i / 'pg-n'+i, takže
+// DRUHÝ mezilehlý bod měl úhel v poli id="pg-w1" — stejné id jako „Vrcholový úhel na
+// počátečním bodě". getElementById vrátí první z nich, takže se pro druhý bod četl
+// počáteční úhel a pořad se 2+ mezilehlými body vycházel s uzávěrem v desítkách gonů.
+// Odhalily to cvičné úlohy (klíč ≠ kalkulačka). Řádky mají teď předponu 'pg-r'.
 function addPgRow() {
     const i = _pgRows++;
     const div = document.createElement('div');
     div.className = 'geo-highlight'; div.style.cssText = 'margin:8px 0; padding:10px;'; div.id = 'pg-row-' + i;
     div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><b style="font-size:calc(13px * var(--ag-font-scale, 1));">Mezilehlý bod ${i + 1}</b><button class="cp-btn cp-btn-delete" onclick="document.getElementById('pg-row-${i}').remove()"><svg class="icon"><use href="#i-trash"/></svg></button></div>
-        <div style="display:flex; gap:8px;"><div style="flex:1;">${_fld('pg-d' + i, 'Délka předchozí strany [m]', '')}</div><div style="flex:1;">${_fld('pg-w' + i, 'Vrcholový úhel [gon]', '')}</div></div>`
-        + _fld('pg-n' + i, 'Název bodu', 'PB' + (i + 1));
+        <div style="display:flex; gap:8px;"><div style="flex:1;">${_fld('pg-rd' + i, 'Délka předchozí strany [m]', '')}</div><div style="flex:1;">${_fld('pg-rw' + i, 'Vrcholový úhel [gon]', '')}</div></div>`
+        + _fld('pg-rn' + i, 'Název bodu', 'PB' + (i + 1));
     document.getElementById('pg-rows').appendChild(div);
 }
 let _pgRes = null;
@@ -375,10 +460,10 @@ function calcPolygon() {
         const mids = [];
         for (let i = 0; i < _pgRows; i++) {
             if (!document.getElementById('pg-row-' + i)) continue;
-            const d = _cv('pg-d' + i), w = _cv('pg-w' + i);
+            const d = _cv('pg-rd' + i), w = _cv('pg-rw' + i);
             if (d == null && w == null) continue;
             if (d == null || w == null) throw 'Mezilehlý bod ' + (i + 1) + ' není kompletní.';
-            mids.push({ d: d, w: w, name: _cs('pg-n' + i) || ('PB' + (i + 1)) });
+            mids.push({ d: d, w: w, name: _cs('pg-rn' + i) || ('PB' + (i + 1)) });
         }
         const angles = [w1].concat(mids.map(m => m.w)).concat([wk]);   // K uhlu
         const lengths = mids.map(m => m.d).concat([dLast]);            // K-1 delek
@@ -389,16 +474,18 @@ function calcPolygon() {
         const smStart = gonNorm(smernik(P1.y, P1.x, O1.y, O1.x) + 200);
         let sm = smStart;
         angles.forEach(w => { sm = gonNorm(sm + w + 200); });
+        const smEndSpoctene = sm;
         const smEndKnown = smernik(PK.y, PK.x, O2.y, O2.x);
         const Ow = gonDiff(smEndKnown, sm);
         const dw = Ow / K;
         // souradnice s opravenymi uhly
         sm = smStart;
         const pts = []; let cy = P1.y, cx = P1.x;
+        const kroky = [];
         for (let i = 0; i < K - 1; i++) {
             sm = gonNorm(sm + angles[i] + dw + 200);
             const p = polarYX(cy, cx, sm, lengths[i]);
-            pts.push({ y: p.y, x: p.x, sm: sm, d: lengths[i] });
+            pts.push({ y: p.y, x: p.x, sm: sm, d: lengths[i], dy: p.y - cy, dx: p.x - cx });
             cy = p.y; cx = p.x;
         }
         const sumD = lengths.reduce((a, b) => a + b, 0);
@@ -411,12 +498,20 @@ function calcPolygon() {
         let rows = _pgRes.map(p => _row('<b>' + _pdEsc(p.name) + '</b>', 'Y ' + p.y.toFixed(2) + ' · X ' + p.x.toFixed(2))).join('');
         const relTxt = op > 0.0005 ? '1 : ' + Math.round(sumD / op) : '—';
         const kontrola = _row('Kontrola dopočtu na koncový bod', 'ΔY ' + (oY * 100).toFixed(1) + ' cm · ΔX ' + (oX * 100).toFixed(1) + ' cm');
+        const sumW = angles.reduce((a, b) => a + b, 0);
+        kroky.push(_krok('Připojovací směrník na počátku σ<sub>P1→O1</sub> (ze souřadnic) a koncový σ<sub>PK→O2</sub>', 'σ<sub>P1→O1</sub> = ' + fmtGon(smStart - 200) + ' gon · σ<sub>PK→O2</sub> = ' + fmtGon(smEndKnown) + ' gon'));
+        kroky.push(_krok('Směrníky postupně: σ<sub>i+1</sub> = σ<sub>i</sub> + ω<sub>i</sub> ± 200 (levostranné úhly), Σω = ' + sumW.toFixed(4) + ' gon přes ' + K + ' vrcholů', 'spočtený koncový směrník = ' + fmtGon(smEndSpoctene) + ' gon'));
+        kroky.push(_krok('Úhlový uzávěr O<sub>ω</sub> = σ<sub>konc. daný</sub> − σ<sub>konc. spočtený</sub>; oprava na každý úhel = O<sub>ω</sub> / K', 'O<sub>ω</sub> = ' + (Ow * 10000).toFixed(0) + ' cc · oprava ' + (dw * 10000).toFixed(1) + ' cc na úhel'));
+        kroky.push(_krok('Souřadnicové rozdíly stran z opravených směrníků: ΔY = s · sin σ, ΔX = s · cos σ',
+            pts.map((p, i) => 'strana ' + (i + 1) + ': σ = ' + fmtGon(p.sm) + ' gon, s = ' + _f3(p.d) + ' m → ΔY ' + _sg(p.dy) + ', ΔX ' + _sg(p.dx)).join('<br>')));
+        kroky.push(_krok('Souřadnicové uzávěry: O<sub>Y</sub> = Y<sub>K daný</sub> − Y<sub>K spočtený</sub>, O<sub>X</sub> obdobně; polohový uzávěr O<sub>p</sub> = √(O<sub>Y</sub>² + O<sub>X</sub>²)', 'O<sub>Y</sub> = ' + (oY * 100).toFixed(1) + ' cm · O<sub>X</sub> = ' + (oX * 100).toFixed(1) + ' cm · O<sub>p</sub> = ' + (op * 100).toFixed(1) + ' cm (1 : ' + (op > 0.0005 ? Math.round(sumD / op) : '∞') + ')'));
+        kroky.push(_krok('Opravy souřadnic úměrně délkám: v<sub>Y,i</sub> = O<sub>Y</sub> · Σs<sub>1..i</sub> / Σs', 'Σs = ' + _f2(sumD) + ' m — opravené souřadnice jsou ve výsledku výš'));
         document.getElementById('calc-result').innerHTML = _resBox(
             _row('Úhlový uzávěr O<sub>ω</sub>', (Ow * 10000).toFixed(0) + ' cc (' + fmtGon(Math.abs(Ow)) + ' gon)')
             + _row('Polohový uzávěr', (op * 100).toFixed(1) + ' cm (relativně ' + relTxt + ')')
             + _row('Délka pořadu Σd', sumD.toFixed(2) + ' m') + kontrola
             + '<hr style="border-color:rgba(255,255,255,0.12); margin:8px 0;">' + (rows || _row('Mezilehlé body', 'žádné'))
-        ) + (_pgRes.length ? `<button class="btn btn-primary" style="margin-top:10px;" onclick="_pgRes.forEach(p => calcSavePoint(p.name, p.y, p.x)); this.innerText='Uloženo ✓ (' + _pgRes.length + ')'; this.disabled=true;"><svg class="icon"><use href="#i-plus"/></svg> Uložit mezilehlé body (${_pgRes.length})</button>` : '');
+        ) + _postupHtml(kroky, 'Mezní odchylky uzávěrů podle třídy přesnosti najdeš v Příručce → Předpisy a odchylky.') + (_pgRes.length ? `<button class="btn btn-primary" style="margin-top:10px;" onclick="_pgRes.forEach(p => calcSavePoint(p.name, p.y, p.x)); this.innerText='Uloženo ✓ (' + _pgRes.length + ')'; this.disabled=true;"><svg class="icon"><use href="#i-plus"/></svg> Uložit mezilehlé body (${_pgRes.length})</button>` : '');
     } catch (e) { _calcErr(e); }
 }
 
@@ -534,7 +629,99 @@ function calcNivel() {
         document.getElementById('calc-result').innerHTML = _resBox(
             _row('Σ zpět − Σ vpřed', dH.toFixed(3) + ' m (převýšení A→B)')
             + (uz != null ? _row('Výškový uzávěr', (uz * 1000).toFixed(1) + ' mm (oprava ' + (opr * 1000).toFixed(2) + ' mm/sestavu)') : _row('Uzávěr', 'nelze — neznámá výška B'))
-            + '<hr style="border-color:rgba(255,255,255,0.12); margin:8px 0;">' + out);
+            + '<hr style="border-color:rgba(255,255,255,0.12); margin:8px 0;">' + out)
+            + _postupHtml([
+                _krok('Převýšení sestavy h<sub>i</sub> = čtení zpět − čtení vpřed; celkem Δh = Σzpět − Σvpřed', 'Σzpět = ' + _f3(sumB) + ' · Σvpřed = ' + _f3(sumF) + ' → Δh = ' + _f3(dH) + ' m'),
+                uz != null ? _krok('Uzávěr O<sub>h</sub> = H<sub>B daná</sub> − (H<sub>A</sub> + Δh); oprava na sestavu = O<sub>h</sub> / n', 'O<sub>h</sub> = ' + (uz * 1000).toFixed(1) + ' mm / ' + n + ' sestav = ' + (opr * 1000).toFixed(2) + ' mm')
+                    : _krok('Bez známé výšky B nejde uzávěr spočítat — pořad je jen „vložený", chyba se nekontroluje', null),
+                _krok('Výšky postupně: H<sub>i</sub> = H<sub>i−1</sub> + h<sub>i</sub> + oprava', 'H<sub>B</sub> = ' + _f3(H) + ' m')
+            ], 'Mezní odchylka TN: Δ = 40·√R mm (R v km) — viz Příručka → Předpisy a odchylky.');
+    } catch (e) { _calcErr(e); }
+}
+
+// ============================================================
+// 9b) HELMERTOVA (PODOBNOSTNI) TRANSFORMACE — 13. 9. 2026
+// Do te doby byla Lokalizace (Helmert) jen TERENNI nastroj (js/localization-helmert.js):
+// identicke body se v nem MERILY mobilem s ±3 m, takze parametry vychazely ze sumu.
+// Hodnoceni pro studenty ten nastroj dalo stranou (hidden) a ulohu prineslo sem,
+// kde se s ni student potka na cviceni: souradnice identickych bodu ZADA (mistni
+// system z totalky, cilovy S-JTSK), appka vyrovna rotaci, meritko a posun metodou
+// nejmensich ctvercu, ukaze opravy na identickych bodech a prevede dalsi body.
+// Matematika je tataz jako u volneho stanoviska (rotace + posun), navic meritko q:
+//   Y = q·(cosθ·y − sinθ·x) + tY,  X = q·(sinθ·y + cosθ·x) + tX,
+// s tezistem obou soustav vpredu, aby posun vysel primo z rozdilu tezist.
+let _hmRows = 0, _hmRes = null;
+function renderCalc_helmert(body) {
+    _hmRows = 0;
+    body.innerHTML = `<p style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:0.75; margin:0 0 4px;">Zadej 2+ identické body: souřadnice v <b>místním</b> systému (y, x) a tytéž body v <b>S-JTSK</b> (Y, X). Vyrovná se rotace, měřítko a posun; se 3+ body vyjdou i opravy.</p>
+        <div id="hm-rows"></div>
+        <button class="btn btn-secondary" style="margin-top:8px;" onclick="addHmRow()"><svg class="icon"><use href="#i-plus"/></svg> Přidat identický bod</button>
+        <label style="margin-top:12px;">Bod k převodu (místní y, x) — nepovinné</label>
+        <div style="display:flex; gap:8px;"><input type="text" inputmode="decimal" autocomplete="off" id="hm-t-y" placeholder="y" style="flex:1;"><input type="text" inputmode="decimal" autocomplete="off" id="hm-t-x" placeholder="x" style="flex:1;"></div>`
+        + _fld('hm-name', 'Název převedeného bodu', 'např. 5001')
+        + `<button class="btn btn-blue" style="margin-top:14px;" onclick="calcHelmert()">Spočítat</button><div id="calc-result"></div>`;
+    addHmRow(); addHmRow();
+}
+function addHmRow() {
+    const i = _hmRows++;
+    const div = document.createElement('div');
+    div.className = 'geo-highlight'; div.style.cssText = 'margin:8px 0; padding:10px;'; div.id = 'hm-row-' + i;
+    div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><b style="font-size:calc(13px * var(--ag-font-scale, 1));">Identický bod ${i + 1}</b><button class="cp-btn cp-btn-delete" onclick="document.getElementById('hm-row-${i}').remove()">✕</button></div>
+        <label style="margin-top:6px;">Místní y, x</label>
+        <div style="display:flex; gap:8px;"><input type="text" inputmode="decimal" autocomplete="off" id="hm-l${i}-y" placeholder="y" style="flex:1;"><input type="text" inputmode="decimal" autocomplete="off" id="hm-l${i}-x" placeholder="x" style="flex:1;"></div>`
+        + _ptFld('hm-g' + i, 'S-JTSK Y, X');
+    document.getElementById('hm-rows').appendChild(div);
+}
+function calcHelmert() {
+    try {
+        const obs = [];
+        for (let i = 0; i < _hmRows; i++) {
+            if (!document.getElementById('hm-row-' + i)) continue;
+            const ly = _cv('hm-l' + i + '-y'), lx = _cv('hm-l' + i + '-x'), gy = _cv('hm-g' + i + '-y'), gx = _cv('hm-g' + i + '-x');
+            if (ly == null && lx == null && gy == null && gx == null) continue;
+            if (ly == null || lx == null || gy == null || gx == null) throw 'Identický bod ' + (i + 1) + ' není kompletní.';
+            obs.push({ ly: ly, lx: lx, gy: Math.abs(gy), gx: Math.abs(gx) });
+        }
+        if (obs.length < 2) throw 'Zadej aspoň 2 identické body.';
+        const n = obs.length;
+        const lcy = obs.reduce((a, o) => a + o.ly, 0) / n, lcx = obs.reduce((a, o) => a + o.lx, 0) / n;
+        const gcy = obs.reduce((a, o) => a + o.gy, 0) / n, gcx = obs.reduce((a, o) => a + o.gx, 0) / n;
+        let sA = 0, sB = 0, sL = 0;
+        obs.forEach(o => { const ly = o.ly - lcy, lx = o.lx - lcx, gy = o.gy - gcy, gx = o.gx - gcx; sA += gy * ly + gx * lx; sB += gx * ly - gy * lx; sL += ly * ly + lx * lx; });
+        if (sL < 1e-9) throw 'Identické body jsou totožné — transformaci nelze určit.';
+        const c = sA / sL, sn = sB / sL;                 // c = q·cosθ, sn = q·sinθ
+        const q = Math.hypot(c, sn), th = Math.atan2(sn, c);
+        const tr = (y, x) => ({ y: c * y - sn * x, x: sn * y + c * x });
+        const rl = tr(lcy, lcx);
+        const T = { y: gcy - rl.y, x: gcx - rl.x };
+        let vv = 0; const resRows = obs.map((o, i) => {
+            const r = tr(o.ly, o.lx); const vy = T.y + r.y - o.gy, vx = T.x + r.x - o.gx; vv += vy * vy + vx * vx;
+            return _row('Bod ' + (i + 1) + ' — oprava', 'v<sub>Y</sub> ' + (vy * 100).toFixed(1) + ' cm · v<sub>X</sub> ' + (vx * 100).toFixed(1) + ' cm');
+        }).join('');
+        const m0 = (2 * n - 4) > 0 ? Math.sqrt(vv / (2 * n - 4)) : null;
+        let out = '', kroky = [
+            _krok('Těžiště obou soustav: y<sub>T</sub>, x<sub>T</sub> (místní) a Y<sub>T</sub>, X<sub>T</sub> (S-JTSK) — průměry souřadnic identických bodů', 'místní (' + _f3(lcy) + ', ' + _f3(lcx) + ') · S-JTSK (' + _f2(gcy) + ', ' + _f2(gcx) + ')'),
+            _krok('Redukce na těžiště: y′ = y − y<sub>T</sub>, x′ = x − x<sub>T</sub>, Y′ = Y − Y<sub>T</sub>, X′ = X − X<sub>T</sub>', 'posun tak vyjde přímo z těžišť a rotace s měřítkem z redukovaných souřadnic'),
+            _krok('Nejmenší čtverce pro a = q·cos θ a b = q·sin θ: a = Σ(Y′y′ + X′x′) / Σ(y′² + x′²), b = Σ(X′y′ − Y′x′) / Σ(y′² + x′²)', 'a = ' + c.toFixed(8) + ' · b = ' + sn.toFixed(8)),
+            _krok('Měřítko q = √(a² + b²), rotace θ = arctg(b / a)', 'q = ' + q.toFixed(7) + ' (' + (((q - 1) * 1e6) >= 0 ? '+' : '') + ((q - 1) * 1e6).toFixed(1) + ' ppm) · θ = ' + fmtGon(th / GON) + ' gon'),
+            _krok('Posun: t<sub>Y</sub> = Y<sub>T</sub> − (a·y<sub>T</sub> − b·x<sub>T</sub>), t<sub>X</sub> = X<sub>T</sub> − (b·y<sub>T</sub> + a·x<sub>T</sub>)', 't<sub>Y</sub> = ' + _f3(T.y) + ' · t<sub>X</sub> = ' + _f3(T.x)),
+            _krok('Opravy na identických bodech v = transformované − dané; m<sub>0</sub> = √(Σv² / (2n − 4))', m0 != null ? 'm<sub>0</sub> = ±' + (m0 * 100).toFixed(1) + ' cm' : '2 body = 4 rovnice pro 4 neznámé, žádná kontrola')
+        ];
+        const ty = _cv('hm-t-y'), tx = _cv('hm-t-x');
+        _hmRes = null;
+        if (ty != null && tx != null) {
+            const r = tr(ty, tx); const P = { y: T.y + r.y, x: T.x + r.x };
+            _hmRes = { name: _cs('hm-name') || 'Transf.', y: P.y, x: P.x };
+            out = _row('<b>Převedený bod Y</b>', '<b>' + P.y.toFixed(2) + '</b>') + _row('<b>Převedený bod X</b>', '<b>' + P.x.toFixed(2) + '</b>');
+            kroky.push(_krok('Převod dalšího bodu: Y = a·y − b·x + t<sub>Y</sub>, X = b·y + a·x + t<sub>X</sub>', 'Y = ' + _f2(P.y) + ' · X = ' + _f2(P.x)));
+        }
+        document.getElementById('calc-result').innerHTML = _resBox(
+            _row('Rotace θ', fmtGon(th / GON) + ' gon') + _row('Měřítko q', q.toFixed(7) + ' (' + (((q - 1) * 1e6) >= 0 ? '+' : '') + ((q - 1) * 1e6).toFixed(1) + ' ppm)')
+            + _row('Posun t<sub>Y</sub> / t<sub>X</sub>', _f3(T.y) + ' / ' + _f3(T.x) + ' m')
+            + (m0 != null ? _row('Stř. chyba transformace m₀', '±' + (m0 * 100).toFixed(1) + ' cm') : _row('Nadbytečná měření', 'žádná (2 body = bez kontroly)'))
+            + resRows + (out ? '<hr style="border-color:rgba(255,255,255,0.12); margin:8px 0;">' + out : ''))
+            + _postupHtml(kroky, 'Měřítko q blízké 1 a malé opravy = identické body sedí. Velká oprava na jednom bodě = špatně určený nebo přehozený bod.')
+            + (_hmRes ? _saveBtnHtml("calcSavePoint(_hmRes.name, _hmRes.y, _hmRes.x); this.innerText='Uloženo ✓'; this.disabled=true;") : '');
     } catch (e) { _calcErr(e); }
 }
 
@@ -791,7 +978,12 @@ function calcRedukce() {
         document.getElementById('calc-result').innerHTML = _resBox(
             _row('Měřítkový faktor m', m.toFixed(7))
             + _row('Délkové zkreslení', (cmkm >= 0 ? '+' : '') + cmkm.toFixed(1) + ' cm/km')
-            + dRow);
+            + dRow)
+            + _postupHtml([
+                _krok('Křovákovo zobrazení je konformní, ale ne délkojevné: na základní kartografické rovnoběžce m = 1, mezi ní a okrajem −10 až +14 cm/km. Měřítko se určuje numericky jako poměr 1 km v rovině k témuž oblouku na Besselově elipsoidu.', 'm = ' + m.toFixed(7)),
+                _krok('Zkreslení v cm/km: (m − 1) · 100 000', (cmkm >= 0 ? '+' : '') + cmkm.toFixed(1) + ' cm/km'),
+                dm != null ? _krok('Délka v rovině S-JTSK: s<sub>JTSK</sub> = s<sub>měřená</sub> · m', _f3(dm) + ' · ' + m.toFixed(7) + ' = ' + _f3(dm * m) + ' m') : _krok('Zadej měřenou délku a dopočte se s<sub>JTSK</sub> = s · m', null)
+            ], 'Pozor na pořadí: nejdřív redukce z nadmořské výšky na elipsoid (−s·H/R), teprve pak zkreslení zobrazení.');
     } catch (e) { _calcErr(e); }
 }
 

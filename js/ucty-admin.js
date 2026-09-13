@@ -642,23 +642,39 @@
     // ------------------------------------------------------------------
     // Průvodce zřízením firmy (když je režim vypnutý): cloud / připojit / lokální
     // ------------------------------------------------------------------
+    // student-start (13. 9. 2026): student nemá firmu, má PARTU (kroužek, cvičení).
+    // Mechanismus je týž — jen slova. SK() vrací slova podle profilu, bez modulu firma.
+    function SK() {
+        try { if (window.AGProfilOsoby && AGProfilOsoby.skupina) return AGProfilOsoby.skupina(); } catch (e) { /* bez modulu */ }
+        return { n: 'firma', N: 'Firma', n2: 'firmu', n3: 'firmy', n4: 'firmě', n6: 'firmě', n7: 'firmou', clen: 'Zaměstnanec', clen2: 'zaměstnanec', spravce: 'admin', spravce2: 'správce firmy', kod: 'kód firmy' };
+    }
     function openWizard() {
         var m = ensureModal();
         m.style.display = 'flex';
         document.getElementById('agfa-nav').innerHTML = '';
         renderFirmBar();          // hostovi tím nahoře přibude tlačítko „Přihlásit se"
         var body = document.getElementById('agfa-body');
+        var k = SK(), stud = (k.n === 'parta');
         body.innerHTML =
-            '<div class="agfa-note"><b>Zaměstnanec</b> se jen přihlásí kódem firmy, který dostal od svého admina — nic nezakládá. ' +
-            'Firmu <b>zakládá a spravuje admin</b> (kdo firmu založí, je jejím adminem: spravuje účty, oprávnění i nastavení).</div>' +
-            '<button class="btn" style="width:100%;margin-top:8px;" id="agfa-w-join">Přihlásit se k firmě (mám kód)</button>' +
-            '<div class="agfa-pg">Jsem správce firmy</div>' +
-            '<button class="btn btn-secondary" style="width:100%;margin-top:4px;" id="agfa-w-cloud">Založit novou firmu v cloudu (více zařízení)</button>' +
-            '<button class="btn btn-secondary" style="width:100%;margin-top:8px;" id="agfa-w-local">Založit jen pro toto zařízení (bez cloudu)</button>' +
-            '<div class="agfa-note">Cloud = stejné účty na všech mobilech firmy, oprávnění i přehledy se propíší všude (server Cloudflare, zdarma). ' +
-            'Lokální = účty žijí jen v tomto telefonu.</div>';
+            (stud
+                ? '<div class="agfa-note"><b>Člen party</b> se jen přihlásí kódem party, který dostal od toho, kdo ji založil — nic nezakládá. ' +
+                  'Partu <b>zakládá a vede zakladatel</b> (učitel, vedoucí kroužku, jeden ze spolužáků): vidí body a zápisníky všech, spravuje účty i nastavení.</div>'
+                : '<div class="agfa-note"><b>Zaměstnanec</b> se jen přihlásí kódem firmy, který dostal od svého admina — nic nezakládá. ' +
+                  'Firmu <b>zakládá a spravuje admin</b> (kdo firmu založí, je jejím adminem: spravuje účty, oprávnění i nastavení).</div>') +
+            '<button class="btn" style="width:100%;margin-top:8px;" id="agfa-w-join">' + (stud ? 'Přihlásit se k partě (mám kód)' : 'Přihlásit se k firmě (mám kód)') + '</button>' +
+            '<div class="agfa-pg">' + (stud ? 'Zakládám partu' : 'Jsem správce firmy') + '</div>' +
+            '<button class="btn btn-secondary" style="width:100%;margin-top:4px;" id="agfa-w-cloud">' + (stud ? 'Založit novou partu v cloudu (více telefonů)' : 'Založit novou firmu v cloudu (více zařízení)') + '</button>' +
+            '<button class="btn btn-secondary" style="width:100%;margin-top:8px;" id="agfa-w-local">' + (stud ? 'Založit jen pro tento telefon (bez cloudu)' : 'Založit jen pro toto zařízení (bez cloudu)') + '</button>' +
+            '<div class="agfa-note">' + (stud
+                ? 'Cloud = stejné účty na všech telefonech party, body a zápisníky se propíší všem (server Cloudflare, zdarma). Lokální = účty žijí jen v tomto telefonu.'
+                : 'Cloud = stejné účty na všech mobilech firmy, oprávnění i přehledy se propíší všude (server Cloudflare, zdarma). Lokální = účty žijí jen v tomto telefonu.') + '</div>';
         body.querySelector('#agfa-w-cloud').onclick = function () {
-            agConfirm({
+            agConfirm(stud ? {
+                title: 'Založit novou partu?',
+                message: 'Staneš se zakladatelem party: uvidíš body a zápisníky všech, spravuješ účty a nastavení.<br><br>' +
+                    'Chceš se jen přidat k partě spolužáků? Dej Zrušit a použij „Přihlásit se k partě (mám kód)".',
+                okText: 'Založit partu'
+            } : {
                 title: 'Založit novou firmu?',
                 message: 'Tohle dělá <b>jen správce</b>. Staneš se adminem nové firmy a budeš spravovat účty, oprávnění a nastavení.<br><br>' +
                     'Jsi zaměstnanec a chceš se jen přihlásit? Dej Zrušit a použij „Přihlásit se k firmě (mám kód)".',
@@ -2219,9 +2235,13 @@
 
     function init() {
         if (!U()) return;   // jádro chybí -> nic neinjektovat
-        if (typeof window.agRegisterFieldTool === 'function') {
-            window.agRegisterFieldTool({ id: 'ucty-firma', label: 'Firma a účty', icon: ICON, onClick: openEntry, order: 90, cat: 'Pomůcky' });
-        }
+        var reg = function () {
+            if (typeof window.agRegisterFieldTool !== 'function') return;
+            window.agRegisterFieldTool({ id: 'ucty-firma', label: (SK().n === 'parta' ? 'Parta a účty' : 'Firma a účty'), icon: ICON, onClick: openEntry, order: 90, cat: 'Pomůcky' });
+        };
+        reg();
+        // student-start: po změně „Kdo jsi" se dlaždice přejmenuje (Firma ↔ Parta a účty)
+        window.addEventListener('ag:profil-osoby', reg);
         syncMenuBtn();
         // BATERIE: jen DOM v bočním menu — přes AG.uiInterval se na pozadí uspí
         (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(syncMenuBtn, 3000);

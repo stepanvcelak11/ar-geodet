@@ -2,6 +2,19 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 307,
+   "datum": "2026-09-13",
+   "nadpis": "Pro studenty: Kdo jsi?, Učit se, Proč ±4 m?, postup výpočtu — a 12 nástrojů stranou",
+   "body": [
+    "<b>Kdo jsi?</b> — Student / Geodet / Firma po prvním vstupu (kdykoli v Nastavení → Profily). Student má v Nástrojích nahoře skupinu <b>Učit se</b> a místo „firmy“ se v účtech říká „parta“.",
+    "<b>Učit se:</b> Trenažér a Odhadni to jsou v Základu; nové <b>Cvičné úlohy</b> (22 zadání s klíčem, jdou předvyplnit do Kalkulačky), <b>Poznávačka bodů</b> (TB, nivelační čep, mezník, hřeb…) a <b>Vzorce</b> v Příručce.",
+    "<b>Proč ±4 m?</b> — rozpočet chyby GPS + kompas na vzdálenost bodu, s elipsou a posuvníky „co kdyby“; v Signálu GNSS a v rozbalené stavové bublině.",
+    "<b>Kalkulačka</b> ukazuje <b>postup výpočtu</b> (vzorce a mezivýsledky, i kvadrant směrníku) a má <b>Helmertovu transformaci</b>. Opraveno: polygonový pořad se 2+ mezilehlými body počítal špatně (kolize id polí) a prázdné pole dávalo NaN místo „Vyplň“.",
+    "<b>Stranou</b> (najdeš je hledáním): Epochy, kubatura obejitím, Lokalizace jako nástroj, dvě ze tří protínání, uvnitř budovy, vrstva pokládky + profil Pokládka, body na sobě, kniha jízd, bezpečnost, checklist (teď tlačítko v Deníku dne).",
+    "Nastavení: barevný odstín, animace a prohnutí lišty jsou v Pokročilé; profil nastavení je sbalený pod profilem práce."
+   ]
+  },
+  {
    "v": 305,
    "datum": "2026-09-13",
    "nadpis": "Doveď mě nahoře v kartě bodu, Grafy na dosah v konzoli, zlaté Pro jen tam, kde má být",

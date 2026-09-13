@@ -425,7 +425,9 @@
                 // živou appkou (js/prvni-mereni.js, odložený modul). Počká se na něj nejdéle 6 s;
                 // když nedorazí (odpojený, výpadek), jede se postaru základní prohlídkou.
                 var cekano = 0;
-                (function pockej() {
+                // student-start (13. 9. 2026): před prvním měřením jedna otázka „Kdo jsi?"
+                // (js/student-start.js). Bez modulu, nebo když už je zodpovězená, jede se rovnou dál.
+                var dal = function () { (function pockej() {
                     if (window.AGPrvniMereni && typeof AGPrvniMereni.autoStart === 'function') {
                         var slo = false;
                         try { slo = !!AGPrvniMereni.autoStart(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tutorial-pro:prvni'); }
@@ -436,7 +438,9 @@
                     if (cekano < 6000) { setTimeout(pockej, 300); return; }
                     autoFirstRun = true;
                     startTour(BASIC);
-                })();
+                })(); };
+                if (window.AGProfilOsoby && !AGProfilOsoby.hotovo()) AGProfilOsoby.open(function () { setTimeout(dal, 300); });
+                else dal();
             }, 700);
         })();
     }

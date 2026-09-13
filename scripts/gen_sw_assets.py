@@ -51,6 +51,7 @@ EXTRA_ASSETS = [
                                    #   v predcache byt MUSI, jinak cizojazycna appka
                                    #   po prvnim spusteni offline spadne zpatky do cestiny)
     './data/navody.json',
+    './data/ulohy.json',           # cte js/cvicne-ulohy.js pres fetch (cvicne ulohy s klicem)
     # STYLOPISY ODLOZENYCH NASTROJU: v index.html uz nejsou (blokovaly by
     #   prvni vykresleni), pripojuje si je modul sam pres AG.cssFile().
     './css/bodove-pole.css',

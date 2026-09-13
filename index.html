@@ -95,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=305">
-    <link rel="stylesheet" href="css/style.css?v=305">
+    <link rel="stylesheet" href="css/tokens.css?v=307">
+    <link rel="stylesheet" href="css/style.css?v=307">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -227,7 +227,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=305">
+    <link rel="stylesheet" href="css/vylepseni.css?v=307">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -656,15 +656,6 @@
                         </span>
                     </div>
                     <select id="v-mode" style="display:none;"><option value="light">Světlý režim</option><option value="dark">Tmavý režim</option></select>
-                    <label>Barevný odstín</label>
-                    <select id="v-theme" class="st-sel" onchange="previewTheme(this.value)">
-                        <option value="smaragd">Smaragd (výchozí)</option>
-                        <option value="aurora">Aurora (tyrkysová–fialová)</option>
-                        <option value="sunset">Západ slunce (jantarová)</option>
-                        <option value="ocean">Oceán (modrá)</option>
-                        <option value="forest">Les (zelená)</option>
-                        <option value="graphite">Grafit (šedá)</option>
-                    </select>
                     <div class="set-h">Displej a čitelnost</div>
                     <!-- Jezdec „Velikost textu a menu" tu jednou BYL a byl odstraněn: měnil jen
                          --menu-scale (transform pár HUD prvků), textu se nedotkl — působil nefunkčně.
@@ -688,19 +679,6 @@
                         <label class="st-sw"><input type="checkbox" id="s-lefthand"><span class="st-sw-face"></span></label></div>
                     <div class="st-row"><span class="st-lab">Vibrace<small>potvrzení uložení bodu a ťuknutí v AR (iPhone vibrace neumí)</small></span>
                         <label class="st-sw"><input type="checkbox" id="s-vibration" checked onchange="toggleVibration()"><span class="st-sw-face"></span></label></div>
-                    <div class="st-row"><span class="st-lab">Animace<small>Android je často vypíná systémově, iPhone ne — tady je srovnáš</small></span>
-                        <!-- min-width 130px NESTAČILO: „Podle systému" potřebuje 140 px i se šipkou,
-                             takže se text v selectu ořezával na „Podle systé…". Šířku proto řídí
-                             obsah (fit-content) a strop je 58 % řádku, ať popisek vlevo nezmizí. -->
-                        <select id="s-anim" style="width:fit-content; min-width:142px; max-width:58%;">
-                            <option value="auto">Podle systému</option>
-                            <option value="on">Vždy zapnuté</option>
-                            <option value="off">Vypnuté</option>
-                        </select></div>
-                    <div class="st-slider">
-                        <div class="st-slider-head"><span class="st-lab">Prohnutí ovládání<small>jak výrazný je oblouček boční lišty</small></span><span class="st-val"><span id="v-dock-arc-val">13</span> px</span></div>
-                        <input type="range" id="v-dock-arc" min="0" max="32" step="2" value="13" oninput="document.getElementById('v-dock-arc-val').innerText = this.value">
-                    </div>
                     <!-- Prvky na obrazovce — přesunuto z menu „Více" (ids tgl-* čte toggleHudElements v grafika.js).
                          SCHOVÁNO 13. 9. 2026: stavová bublina (js/stavovy-pruh.js) tyhle panely slučuje a už se nedá
                          vypnout, takže přepínače neměly na co působit. Vstupy zůstávají v DOM — čtou je profily.js,
@@ -712,8 +690,34 @@
                         <label class="st-sw"><input type="checkbox" id="tgl-compass" checked onchange="toggleHudElements()"><span class="st-sw-face"></span></label></div>
                     <div class="st-row" hidden style="display:none !important;"><span class="st-lab">Průměrování GPS na místě</span>
                         <label class="st-sw"><input type="checkbox" id="tgl-gpsavg" checked onchange="toggleHudElements()"><span class="st-sw-face"></span></label></div>
-                    <details class="adv"><summary><svg class="icon"><use href="#i-sliders"/></svg> Pokročilé — barvy bodů, štítky, šipka, HUD</summary>
+                    <details class="adv"><summary><svg class="icon"><use href="#i-sliders"/></svg> Pokročilé — odstín, barvy bodů, štítky, šipka, HUD</summary>
                         <div class="adv-body">
+                            <!-- 13. 9. 2026 (hodnocení pro studenty): Barevný odstín, Animace a Prohnutí
+                                 ovládání se z hlavní části záložky stěhují sem — Vzhled má mít nahoře jen
+                                 Světlý/Tmavý, Noční, písmo a venkovní režim. Ids i onchange beze změny,
+                                 saveSettings() je čte podle id. -->
+                            <label>Barevný odstín</label>
+                            <select id="v-theme" class="st-sel" onchange="previewTheme(this.value)">
+                                <option value="smaragd">Smaragd (výchozí)</option>
+                                <option value="aurora">Aurora (tyrkysová–fialová)</option>
+                                <option value="sunset">Západ slunce (jantarová)</option>
+                                <option value="ocean">Oceán (modrá)</option>
+                                <option value="forest">Les (zelená)</option>
+                                <option value="graphite">Grafit (šedá)</option>
+                            </select>
+                            <div class="st-row"><span class="st-lab">Animace<small>Android je často vypíná systémově, iPhone ne — tady je srovnáš</small></span>
+                                <!-- min-width 130px NESTAČILO: „Podle systému" potřebuje 140 px i se šipkou,
+                                     takže se text v selectu ořezával na „Podle systé…". Šířku proto řídí
+                                     obsah (fit-content) a strop je 58 % řádku, ať popisek vlevo nezmizí. -->
+                                <select id="s-anim" style="width:fit-content; min-width:142px; max-width:58%;">
+                                    <option value="auto">Podle systému</option>
+                                    <option value="on">Vždy zapnuté</option>
+                                    <option value="off">Vypnuté</option>
+                                </select></div>
+                            <div class="st-slider">
+                                <div class="st-slider-head"><span class="st-lab">Prohnutí ovládání<small>jak výrazný je oblouček boční lišty</small></span><span class="st-val"><span id="v-dock-arc-val">13</span> px</span></div>
+                                <input type="range" id="v-dock-arc" min="0" max="32" step="2" value="13" oninput="document.getElementById('v-dock-arc-val').innerText = this.value">
+                            </div>
                             <div class="st-row" style="border-bottom:none;"><span class="st-lab">Adaptivní sklo dle jasu<small>ztmaví panely na světlé scéně</small></span>
                                 <label class="st-sw"><input type="checkbox" id="v-adaptive-glass" checked><span class="st-sw-face"></span></label></div>
                             <div class="st-slider">
@@ -867,9 +871,8 @@
                      Úvod stojí PŘED prvním nadpisem (.set-h), takže ho nastaveni-poradek
                      bere jako „lead" a nechává nahoře. -->
                 <div id="tab-profily" class="settings-tab">
-                    <p class="st-intro">Appka zná <b>dva</b> profily a každý dělá něco jiného.
-                        <b>Profil nastavení</b> přepne několik voleb naráz (dohled v AR, spánek senzorů, kontrast…).
-                        <b>Profil práce</b> nesahá na nastavení — jen zúží <b>Nástroje</b> na to, co dnes děláš.
+                    <p class="st-intro"><b>Profil práce</b> nesahá na nastavení — jen zúží <b>Nástroje</b> na to, co dnes děláš.
+                        Pod ním je v Pokročilém ještě <b>profil nastavení</b> (přepne několik voleb naráz).
                         Obojí jde kdykoli vypnout a nic se tím neztratí.</p>
                 </div>
             </div>
@@ -1098,6 +1101,17 @@
          radek 'zdravi-appky' v js/tools-registry.js a data/navody.json) — kontrola telefonu
          (verze, GPS, kompas, kamera, uloziste, ucet, chyby) s tlacitkem Poslat autorovi. -->
     <script type="ag/lazy" data-src="js/zdravi-appky.js"></script>
+    <!-- PROC ±4 m? (odpojitelne: smaz tento radek, js/chybovy-rozpocet.js, zaznam v sw.js,
+         radek 'chybovy-rozpocet' v js/tools-registry.js a data/navody.json, tlacitko „Proc ±?"
+         v js/stavovy-pruh.js) — rozpocet chyby GPS + kompas na vzdalenost bodu, s elipsou. -->
+    <script type="ag/lazy" data-src="js/chybovy-rozpocet.js"></script>
+    <!-- UCIT SE (odpojitelne: smaz radky a soubory js/cvicne-ulohy.js + data/ulohy.json,
+         js/poznavacka.js, js/vzorce.js; zaznamy v sw.js, js/tools-registry.js a data/navody.json;
+         'vzorce' z rozcestniku Prirucka v js/tools-hub.js) — cvicne ulohy s klicem, poznavacka
+         stabilizaci, tahak vzorcu. Vsechno v Zakladu, bez zamku. -->
+    <script type="ag/lazy" data-src="js/cvicne-ulohy.js"></script>
+    <script type="ag/lazy" data-src="js/poznavacka.js"></script>
+    <script type="ag/lazy" data-src="js/vzorce.js"></script>
     <!-- PRVNI MERENI (odpojitelne: smaz tento radek, js/prvni-mereni.js, zaznam v sw.js a dve
          mista v js/tutorial-pro.js oznacena „prvni mereni") — pruvodce peti kroky nad zivou
          appkou na prvnim spusteni; kroky se odskrtavaji samy. -->
@@ -1215,6 +1229,10 @@
          nastroje-ukony.js, tools-plus.js, tools-simple.js a offline-sbal.js, takže MUSÍ
          být před nimi. Jen data, žádný DOM — proto ne lazy. -->
     <script defer src="js/tools-registry.js"></script>
+    <!-- KDO JSI? Student / Geodet / Firma (odpojitelne: smaz tento radek a js/student-start.js;
+         hak v js/tutorial-pro.js, js/nastroje-ukony.js a js/ucty-admin.js maji zalozni chovani).
+         Eager, protoze jeho slova („parta" misto „firma") a poradi skupin ctou moduly pri vykresleni. -->
+    <script defer src="js/student-start.js"></script>
     <!-- LICENCE PRO VERZE (odpojitelne: smaz radek, js/licence.js a zaznam v sw.js)
          — odpoved na jedinou otazku: ma tenhle telefon Pro? Klic se overuje
          v telefonu bez serveru (geodet ho odemkne i v lese). MUSI byt pred

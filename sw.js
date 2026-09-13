@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v305';   // Pro zlate jen split + tlacitko Nastroje; Doved me nahore v karte bodu; Grafy hned pod souhrnem konzole; worker v19 (zamek 15 min)
+const SHELL_CACHE = 'argeodet-shell-v307';   // Hodnoceni pro studenty: Kdo jsi (Student/Geodet/Firma), Ucit se (cvicne ulohy, poznavacka, vzorce), Proc +-4 m, postup + Helmert v kalkulacce, Trenazer a Odhadni to v Zakladu, 12 nastroju stranou, parta misto firmy
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=305',
-    './css/style.css?v=305',
-    './css/vylepseni.css?v=305',
+    './css/tokens.css?v=307',
+    './css/style.css?v=307',
+    './css/vylepseni.css?v=307',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -98,6 +98,10 @@ const ASSETS_TO_CACHE = [
     './js/historie-aktualizaci.js',
     './js/zpetna-vazba.js',
     './js/zdravi-appky.js',
+    './js/chybovy-rozpocet.js',
+    './js/cvicne-ulohy.js',
+    './js/poznavacka.js',
+    './js/vzorce.js',
     './js/prvni-mereni.js',
     './js/sprava-appky.js',
     './js/vlastnik.js',
@@ -146,6 +150,7 @@ const ASSETS_TO_CACHE = [
     './js/dmr-terrain.js',
     './js/parcela.js',
     './js/tools-registry.js',
+    './js/student-start.js',
     './js/licence.js',
     './js/field-tools.js',
     './js/lazy-tools.js',
@@ -269,6 +274,7 @@ const ASSETS_TO_CACHE = [
     './data/co-je-noveho.json',
     './data/jazyky.json',
     './data/navody.json',
+    './data/ulohy.json',
     './css/bodove-pole.css',
     './css/dvoji-mereni.css',
     './css/balicek-zakazky.css',

@@ -60,9 +60,10 @@
         // Sekce v panelu nejsou napsané v index.html — vyrobí je makeSec() podle
         // těchhle pravidel, takže když se modul odpojí, jeho nadpis vůbec nevznikne.
         'tab-profily': {
-            order: ['Profil nastavení', 'Profil práce'],
+            order: ['Profil práce', 'Profil nastavení'],
             put: {
-                'ag-prof-bar': { s: 'Profil nastavení', i: 1 },   // js/profily.js
+                'ag-prof-adv': { s: 'Profil nastavení', i: 1 },   // js/profily.js (sbalený obal pruhu)
+                'ag-ss-setrow': { s: 'Profil práce', i: 0 },   // js/student-start.js (Kdo jsi)
                 'ag-rp-setrow': { s: 'Profil práce', i: 1 }    // js/rezim-prace.js
             }
         },

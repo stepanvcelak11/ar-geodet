@@ -87,19 +87,6 @@
             tools: []
         },
         {
-            id: 'pokladka', ic: 'layers', t: 'Pokládka za finišerem', p: 'Pokládka',
-            s: 'Výška a sklon vrstvy roverem',
-            d: 'Celý řetěz za finišerem: vytyč, změř hotovou vrstvu, porovnej s projektem a odevzdej '
-                + 'protokol. Skladba a odsazení „do tabletu“, přesná výška roverem, závada rovnou k bodu.',
-            // ⚠⚠ SHODNÝ SEZNAM MUSÍ BÝT I v js/tools-registry.js (PROFILES, id 'pokladka').
-            // mergeProfiles() níž u vestavěných profilů jen PŘIDÁVÁ — co se vyškrtne jen
-            // tady, registr vrátí zpátky. Do 5. 9. 2026 tu nebyl ANI JEDEN vytyčovací
-            // nástroj, ani „Kontrola vrstvy“, kterou má profil ve vlastním popisu.
-            tools: ['openStakeoutModal', 'stakeout-line', 'vrstvy', 'brutal-gps',
-                'protokol-vytyceni', 'zavady', 'openMeasureModal', 'ref-calibration', 'korekce',
-                'project-import']
-        },
-        {
             id: 'vytycovani', ic: 'target', t: 'Vytyčování', p: 'Vytyčování',
             s: 'Body, přímky, offsety, AR',
             d: 'Body podle seznamu s odškrtáváním, přímka se staničením a kolmým odstupem, offsety '
@@ -120,14 +107,14 @@
             s: 'Nivelace, převýšení, korekce',
             d: 'Výškové práce: nivelační zápisník s uzávěrem, převýšení mezi body, výška objektu '
                 + 'a korekce měření (refrakce, teplota, tlak).',
-            tools: ['zapisnik', 'openMeasureModal', 'vyska-objektu', 'korekce', 'openDmtVolume', 'epochy']
+            tools: ['zapisnik', 'openMeasureModal', 'vyska-objektu', 'korekce', 'openDmtVolume']
         },
         {
             id: 'zemni', ic: 'area', t: 'Zemní práce a kubatury', p: 'Kubatury',
             s: 'Kubatury, vrstevnice, plochy',
             d: 'Před hutněním i po něm: model terénu z bodů, vrstevnice a objem výkopu a násypu, '
                 + 'plochy a obchůzka staveniště se stopou.',
-            tools: ['openDmtVolume', 'startAreaMode', 'track-log', 'brutal-gps', 'vrstvy',
+            tools: ['openDmtVolume', 'startAreaMode', 'track-log', 'brutal-gps', 
                 'openMeasureModal', 'zavady']
         },
         {
@@ -148,10 +135,10 @@
         },
         {
             id: 'kontrola', ic: 'ruler', t: 'Kontrola a monitoring', p: 'Kontrola',
-            s: 'Oměrné, epochy, posuny',
-            d: 'Kontrola vlastního i cizího díla: oměrné míry proti souřadnicím, opakované epochy '
-                + 'bodu a posuny v čase, kubatury pro ověření.',
-            tools: ['openCheckDist', 'epochy', 'zavady', 'openDmtVolume', 'vyska-objektu',
+            s: 'Oměrné, kontrolní míry',
+            d: 'Kontrola vlastního i cizího díla: oměrné míry proti souřadnicím, kontrolní měření '
+                + 'bodu podruhé, kubatury pro ověření.',
+            tools: ['openCheckDist', 'zavady', 'openDmtVolume', 'vyska-objektu',
                 'track-log', 'zapisnik', 'openMeasureModal']
         },
         {
@@ -159,7 +146,7 @@
             s: 'Závady, deník, papíry',
             d: 'Papíry z terénu: závada s fotkou vázaná na konkrétní bod, hlasová poznámka '
                 + 's georazítkem a deník dne pro kancelář.',
-            tools: ['zavady', 'protokol-vytyceni', 'denik-dne', 'hlasovky', 'openCheckDist', 'epochy',
+            tools: ['zavady', 'protokol-vytyceni', 'denik-dne', 'hlasovky', 'openCheckDist',
                 'zapisnik']
         },
         {
@@ -167,8 +154,8 @@
             s: 'Brífink, počasí, přenos dat',
             d: 'Ráno v autě a večer po práci: brífink dne, počasí a nejlepší GNSS okno, natažení '
                 + 'projektu a přenos zakázky mezi telefony.',
-            tools: ['brifink', 'checklist', 'pocasi', 'gnss-forecast', 'project-import',
-                'cadastre-area', 'job-transfer', 'denik-dne', 'kniha-jizd']
+            tools: ['brifink', 'pocasi', 'gnss-forecast', 'project-import',
+                'cadastre-area', 'job-transfer', 'denik-dne']
         }
     ];
     // Ikony beru z <symbol> sady v index.html; kdyby některá chyběla, prostě se nevykreslí.

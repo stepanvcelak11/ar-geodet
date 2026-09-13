@@ -347,6 +347,10 @@
             '  <div class="ag-dd-foot">' +
             '    <button type="button" class="btn btn-primary" id="ag-dd-share">Sdílet</button>' +
             '    <button type="button" class="btn btn-secondary" id="ag-dd-pdf">Uložit PDF</button>' +
+            // „Co s sebou" (js/checklist.js) přestalo být samostatnou dlaždicí (13. 9. 2026,
+            // hodnocení pro studenty: obrazovka, kterou nikdo neotevře dvakrát) a bydlí
+            // tady — na začátku dne se člověk stejně dívá do deníku. Modul je jinak beze změny.
+            '    <button type="button" class="btn btn-secondary" id="ag-dd-checklist">Co s sebou</button>' +
             '    <button type="button" class="btn btn-secondary" id="ag-dd-close">Zavřít</button>' +
             '  </div>' +
             '</div>';
@@ -354,6 +358,10 @@
         m.querySelector('#ag-dd-close').addEventListener('click', function () { m.style.display = 'none'; });
         m.querySelector('#ag-dd-share').addEventListener('click', share);
         m.querySelector('#ag-dd-pdf').addEventListener('click', printPdf);
+        m.querySelector('#ag-dd-checklist').addEventListener('click', function () {
+            if (typeof window.agOpenChecklist === 'function') { window.agOpenChecklist(); return; }
+            if (window.AGLazyTools && AGLazyTools.open) AGLazyTools.open('checklist');
+        });
         var chips = m.querySelectorAll('.ag-dd-chip');
         for (var i = 0; i < chips.length; i++) {
             chips[i].addEventListener('click', function () {

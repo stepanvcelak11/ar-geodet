@@ -655,7 +655,17 @@
             + '<summary>Co profily mění a v čem se liší</summary>'
             + '<div id="ag-prof-body"></div>'
             + '</details>';
-        if (host) host.appendChild(bar); else content.insertBefore(bar, tabs);
+        // 13. 9. 2026 (hodnocení pro studenty): profil nastavení jde STRANOU — vedle
+        // profilu práce byl druhý druh profilu, který nikdo nerozeznal (appka to sama
+        // vysvětlovala odstavcem). Pruh zůstává celý, jen sbalený pod „Pokročilé";
+        // js/nastaveni-poradek.js stěhuje obal #ag-prof-adv, ne samotný pruh.
+        if (host) {
+            var adv = document.createElement('details');
+            adv.className = 'adv'; adv.id = 'ag-prof-adv';
+            adv.innerHTML = '<summary>Pokročilé — profil nastavení (Terén, Přesnost, Ukázka, Vlastní)</summary>';
+            adv.appendChild(bar);
+            host.appendChild(adv);
+        } else content.insertBefore(bar, tabs);
         bar.querySelector('#ag-prof-row').addEventListener('click', function (ev) {
             if (!ev.target.closest) return;
             // „Bez profilu" je od 8.8.2026 VIDITELNÁ dlaždice. Dřív se profil vypínal

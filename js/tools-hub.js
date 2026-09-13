@@ -70,13 +70,13 @@
         {
             id: 'gnss-signal', label: 'Signál<br>GNSS', title: 'Signál GNSS', cat: 'Měření', order: 7,
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/><circle cx="4" cy="20" r="0.5" fill="currentColor"/></svg>',
-            poradi: ['openSatModal', 'sky-obstruction', 'gps-semafor'],
+            poradi: ['openSatModal', 'sky-obstruction', 'gps-semafor', 'chybovy-rozpocet'],
             sub: 'Jak dobré jsou teď (a budou) podmínky pro GPS měření:'
         },
         {
             id: 'prirucka', label: 'Příručka', title: 'Příručka', cat: 'Pomůcky', order: 6,
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
-            poradi: ['predpisy', 'postupy', 'openDictModal'],
+            poradi: ['predpisy', 'postupy', 'openDictModal', 'vzorce'],
             sub: 'Offline tahák do terénu — vše s uvedeným zdrojem:'
         },
         {
@@ -84,12 +84,6 @@
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><path d="M8 2v1.4M8 12.6V14M2 8h1.4M12.6 8H14M3.8 3.8l1 1M11.2 11.2l1 1M12.2 3.8l-1 1M4.8 11.2l-1 1"/><path d="M10.8 20.5h7.4a3 3 0 0 0 .3-6 4.5 4.5 0 0 0-8.5-.8 3.4 3.4 0 0 0 .8 6.8z"/></svg>',
             poradi: ['pocasi', 'slunce', 'gnss-forecast', 'brifink'],
             sub: 'Co dnes udělá obloha — počasí, denní světlo i podmínky pro družice na jednom místě:'
-        },
-        {
-            id: 'auto-bezpeci', label: 'Auto<br>a bezpečí', title: 'Auto a bezpečí', cat: 'Pomůcky', order: 8,
-            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3v-5l2.4-4.9A2 2 0 0 1 7.2 6h9.6a2 2 0 0 1 1.8 1.1L21 12v5h-2"/><path d="M9 17h6"/><path d="M3 12h18"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>',
-            poradi: ['kde-je', 'kniha-jizd', 'bezpecnost', 'checklist'],
-            sub: 'Kolem měření, ne měření samo — auto, kilometry a vlastní kůže:'
         },
         {
             id: 'moje-cisla', label: 'Moje<br>čísla', title: 'Moje čísla', cat: 'Pomůcky', order: 9,
@@ -119,7 +113,7 @@
             // se hodí. Členství je v js/tools-registry.js (`inhub: 'srovnat-sever'`).
             id: 'srovnat-sever', label: 'Srovnat<br>jinak', title: 'Srovnat AR — další způsoby', cat: 'AR a kalibrace', order: 5,
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.2 8.8l-2 4.4-4.4 2 2-4.4z"/><path d="M12 1.8v1.6"/></svg>',
-            poradi: ['ar-calib2', 'orient-point', 'sever-slunce', 'ref-calibration', 'localization-helmert', 'fov-kalib'],
+            poradi: ['ar-calib2', 'orient-point', 'sever-slunce', 'ref-calibration', 'fov-kalib'],
             sub: 'Značky v AR nesedí na realitu. Vyber podle toho, CO je špatně a co máš kolem sebe:'
         }
     ];

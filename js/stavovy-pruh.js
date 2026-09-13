@@ -465,6 +465,10 @@
         if (typeof window.agOpenCalibrate === 'function' || typeof window.openCompassModal === 'function') h += '<button type="button" class="ag-sp-prim" data-act="sever">Srovnat sever</button>';
         if (typeof window.openGpsAvgModal === 'function') h += '<button type="button" data-act="gps">Detail GPS</button>';
         if (window.AGSemafor && AGSemafor.open) h += '<button type="button" data-act="skore">Skóre místa</button>';
+        // „Proč ±?" (js/chybovy-rozpocet.js, 13. 9. 2026): rozpočet chyby GPS + kompas
+        // na vzdálenost bodu. Modul je odložený (ag/lazy), takže se tlačítko ukazuje,
+        // i když funkce ještě není — onAct si ho přes AGLazy.need dotáhne.
+        if (typeof window.agOpenChybovyRozpocet === 'function' || (window.AGLazy && AGLazy.need)) h += '<button type="button" data-act="proc">Proč ±?</button>';
         return h ? '<div class="ag-sp-acts">' + h + '</div>' : '';
     }
     function bodyHtml(g, ar, d, b) {
@@ -593,6 +597,10 @@
             else if (act === 'sever') { if (typeof window.agOpenCalibrate === 'function') window.agOpenCalibrate(); else if (typeof window.openCompassModal === 'function') window.openCompassModal(); }
             else if (act === 'gps') { if (typeof window.openGpsAvgModal === 'function') window.openGpsAvgModal(); }
             else if (act === 'skore') { if (window.AGSemafor && AGSemafor.open) AGSemafor.open(); }
+            else if (act === 'proc') {
+                if (typeof window.agOpenChybovyRozpocet === 'function') window.agOpenChybovyRozpocet();
+                else if (window.AGLazy && AGLazy.need) AGLazy.need('js/chybovy-rozpocet.js', function () { if (typeof window.agOpenChybovyRozpocet === 'function') window.agOpenChybovyRozpocet(); });
+            }
         } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'stavovy-pruh:onAct'); }
     }
 

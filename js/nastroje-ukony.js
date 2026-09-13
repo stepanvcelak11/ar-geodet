@@ -84,6 +84,17 @@
     // Bez registru zůstane seznam prázdný a všechny nástroje spadnou do záchytného
     // „Další nástroje": nic nezmizí, jen se to neroztřídí podle sloves.
     var GROUPS = (window.AGReg && window.AGReg.groups()) || [];
+    // student-start (13. 9. 2026): kdo v „Kdo jsi?" řekl Student, má skupinu „Učit se"
+    // (Trenažér, Odhadni to, Cvičné úlohy, Poznávačka, Vzorce) NAHOŘE; ostatním
+    // zůstává na konci, kam patří pro geodeta v práci. Čte se při každém vykreslení,
+    // takže změna v Nastavení → Profily se projeví hned.
+    function poradiSkupin() {
+        var stud = false, gs = GROUPS;
+        try { stud = !!(window.AGProfilOsoby && AGProfilOsoby.je('student')); } catch (e) { stud = false; }
+        if (!stud) return GROUPS;
+        try { gs = (window.AGReg && AGReg.groups()) || GROUPS; } catch (e) { gs = GROUPS; }   // čerstvé popisky (Parta a účty)
+        return gs.filter(function (g) { return g.t === 'Učit se'; }).concat(gs.filter(function (g) { return g.t !== 'Učit se'; }));
+    }
 
     // ⚠⚠ ROZCESTNÍKY (js/tools-hub.js) — 31. 8. 2026 OBRÁCENO NARUBY.
     // Do té doby platilo: v seznamu sloves jsou rovnou POLOŽKY rozcestníku a sám
@@ -403,7 +414,11 @@
         var pro = '0', own = '0';
         try { pro = (window.AGLic && AGLic.isPro && AGLic.isPro()) ? '1' : '0'; } catch (e) { pro = '0'; }
         try { own = (window.AGVlastnik && AGVlastnik.isOn && AGVlastnik.isOn()) ? '1' : '0'; } catch (e) { own = '0'; }
-        return out.join(',') + '|f:' + favKeys().join(',') + '|p:' + profileKeys().join(',') + '|pro:' + pro + '|own:' + own;
+        // …a „Kdo jsi" (js/student-start.js): student má skupinu „Učit se" nahoře, takže
+        // po změně profilu osoby se seznam musí přestavět taky
+        var kdo = '';
+        try { kdo = (window.AGProfilOsoby && AGProfilOsoby.get()) || ''; } catch (e) { kdo = ''; }
+        return out.join(',') + '|f:' + favKeys().join(',') + '|p:' + profileKeys().join(',') + '|pro:' + pro + '|own:' + own + '|kdo:' + kdo;
     }
     function iconOf(key) {
         var t = findTile(key); if (!t) return '';
@@ -490,7 +505,7 @@
         //   sekce „Ve verzi Pro" na konci — se slovesem v popisku, ať se dá najít.
         //   Zámek samotný (data-agpro, karta po klepnutí) věší dál js/pro-zamky.js.
         var zamcene = [];
-        GROUPS.forEach(function (grp) {
+        poradiSkupin().forEach(function (grp) {
             var live = grp.items.filter(function (it) {
                 return !HIDDEN[it.k] && !vHubu(it.k) && !!findTile(it.k);
             });

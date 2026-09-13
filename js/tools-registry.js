@@ -123,27 +123,15 @@
     if (window.AGReg) return;
 
     // Pořadí sloves = pořadí skupin v seznamu úkonů (js/nastroje-ukony.js).
-    var VERBS = ['Změřit', 'Určit nový bod', 'Vytyčit', 'Zaznamenat', 'Srovnat AR', 'Zjistit podmínky', 'Katastr a podklady', 'Před výjezdem', 'Firma a papíry', 'Příručka a výpočty'];
+    var VERBS = ['Změřit', 'Určit nový bod', 'Vytyčit', 'Zaznamenat', 'Srovnat AR', 'Zjistit podmínky', 'Katastr a podklady', 'Před výjezdem', 'Firma a papíry', 'Příručka a výpočty', 'Učit se'];
 
     // Typy práce pro jednoduchý režim (js/tools-simple.js). Pořadí = pořadí
     // v přepínači; `tools` je pořadí dlaždic v sekci „Pro tuto práci“.
     var PROFILES = [
         { id: 'univerzal', label: 'Univerzální', tools: [] },
         { id: 'vytycovani', label: 'Vytyčování', tools: ['openStakeoutModal', 'stakeout-line', 'protokol-vytyceni', 'offset-point', 'usadit-ar', 'agOpenCalibrate', 'rajon', 'project-import', 'openMeasureModal'] },
-        // ⚠⚠ POKLÁDKA: seznam MUSÍ zůstat shodný s js/rezim-prace.js (MODES, id 'pokladka').
-        // mergeProfiles() tam vestavěným profilům jen PŘIDÁVÁ, takže co se vyškrtne jen
-        // na jednom místě, druhé místo vrátí zpátky. Do 5. 9. 2026 tu byl profil bez
-        // JEDINÉHO vytyčovacího nástroje — ani „Kontrola vrstvy“, kterou má ve vlastním
-        // popisu. Teď je to celý řetěz: vytyč → změř hotovou vrstvu → protokol.
-        // Pryč: 'openCheckDist' a 'track-log' (uživatel je označil za nepoužívané, takže
-        // je moje-aktivita.js stejně schová a v profilu by byly mrtvá místa) a 'kompas'
-        // (je v základní sadě `base: 1`, do profilu ho tahat netřeba).
-        // 11. 9. 2026 ZRUŠENA „Kontrola vrstvy“ (kontrola-vrstvy): uživatel — „mobil
-        // nemá takovou přesnost“. Modul je smazaný, ne schovaný; řetěz je teď
-        // vytyč → vrstvy (skladba) → protokol.
-        { id: 'pokladka', label: 'Pokládka / vrstvy', tools: ['openStakeoutModal', 'stakeout-line', 'vrstvy', 'brutal-gps', 'protokol-vytyceni', 'zavady', 'openMeasureModal', 'ref-calibration', 'korekce', 'project-import'] },
         { id: 'katastr', label: 'Katastr a mapování', tools: ['openKatastr', 'cadastre-vector', 'parcela', 'startAreaMode', 'openTachymetrie', 'project-import', 'openMeasureModal'] },
-        { id: 'kontrola', label: 'Kontrola a monitoring', tools: ['openCheckDist', 'epochy', 'zavady', 'openDmtVolume', 'vyska-objektu', 'track-log', 'zapisnik', 'openMeasureModal'] }
+        { id: 'kontrola', label: 'Kontrola a monitoring', tools: ['openCheckDist', 'zavady', 'openDmtVolume', 'vyska-objektu', 'track-log', 'zapisnik', 'openMeasureModal'] }
     ];
 
     // ---- JEDEN ZÁZNAM NA NÁSTROJ ------------------------------------------------
@@ -163,7 +151,7 @@
           help: { t: 'Výška objektu' } },
         { k: 'korekce', pro: 1, verb: 'Změřit', vl: 'S korekcí na teplotu a tlak', vh: 'pásmo, dálkoměr', keys: 'korekce ppm pasmo teplota tlak vlhkost refrakce zakriveni edm dalkomer atmosfericka oprava pruves',
           help: { t: 'Korekce měření' } },
-        { k: 'obchuzka', pro: 1, w: 1, verb: 'Změřit', vl: 'Kubaturu obejitím výkopu', vh: 'obvod z GNSS + dno, objem hned na místě', keys: 'obchuzka vykop kubatura objem obejiti obvod dno jama',
+        { k: 'obchuzka', pro: 1, hidden: 1, w: 1, verb: 'Změřit', vl: 'Kubaturu obejitím výkopu', vh: 'obvod z GNSS + dno, objem hned na místě', keys: 'obchuzka vykop kubatura objem obejiti obvod dno jama',
           help: { t: 'Obchůzka výkopu' } },
         { k: 'dvoji-mereni', fn: 'openDvojiMereni', pro: 1, cat: 'Měření', verb: 'Změřit', vl: 'Kontrolní měření bodu podruhé', vh: 'jediná poctivá přesnost z mobilu', keys: 'kontrola dvoji mereni podruhe overeni presnost rozdil delta opakovane zmerit znovu multipath',
           help: { t: 'Kontrolní měření' } },
@@ -180,12 +168,12 @@
           help: { t: 'Offset bod' } },
         { k: 'ar-intersection', fn: 'agOpenIntersection', pro: 1, w: 1, inhub: 'bod-vypoctem', cat: 'Měření', verb: 'Určit nový bod', vl: 'Protínáním vpřed', vh: 'jen úhly, délku měřit nemůžu', keys: 'protinani vpred uhly neznamy bod urceni',
           help: { t: 'Protínání vpřed' } },
-        { k: 'foto-protinani', fn: 'agOpenFotoProtinani', pro: 1, w: 1, cat: 'Měření', verb: 'Určit nový bod', vl: 'Ze dvou fotek', vh: 'na cíl, kam se nedá dojít; mířit nemusíš',
+        { k: 'foto-protinani', fn: 'agOpenFotoProtinani', pro: 1, hidden: 1, w: 1, cat: 'Měření', verb: 'Určit nový bod', vl: 'Ze dvou fotek', vh: 'na cíl, kam se nedá dojít; mířit nemusíš',
           keys: 'foto fotka fotky protinani snimek obraz klepnuti cil nedostupny roh strecha komin pres plot druha strana reky',
           help: { t: 'Bod ze dvou fotek' } },
         { k: 'pdr-offset', pro: 1, w: 1, cat: 'Měření', verb: 'Určit nový bod', vl: 'Krokovým offsetem', vh: 'došlápnutý vektor', keys: 'kroky krokovy offset vektor chuze pdr roh budovy dead reckoning',
           help: { t: 'Krokový offset' } },
-        { k: 'ar-resection', pro: 1, w: 1, cat: 'AR a kalibrace', verb: 'Určit nový bod', vl: 'Resekcí ze známých bodů', vh: 'určí i sever', keys: 'resekce protinani zpet stanovisko volne zname body',
+        { k: 'ar-resection', pro: 1, hidden: 1, w: 1, cat: 'AR a kalibrace', verb: 'Určit nový bod', vl: 'Resekcí ze známých bodů', vh: 'určí i sever', keys: 'resekce protinani zpet stanovisko volne zname body',
           help: { t: 'Resekce ze známých bodů' } },
         { k: 'free-station', pro: 1, verb: 'Určit nový bod', vl: 'Volným stanoviskem', vh: 'průvodce krok za krokem', keys: 'volne stanovisko pruvodce resekce prechodne',
           help: { t: 'Volné stanovisko (průvodce)' } },
@@ -200,9 +188,9 @@
         { k: 'stakeout-line', fn: 'agOpenStakeLine', pro: 1, w: 1, cat: 'Vytyčování a náčrt', verb: 'Vytyčit', vl: 'Osu', vh: 'i lomenou, se staničením',
           keys: 'vytyceni primky osa lomena osy linie staniceni kilometraz km koliky po metrech kolmy odstup rovina stanoveni smeru',
           help: { t: 'Vytyčení osy' } },
-        { k: 'vrstvy', pro: 1, cat: 'Vytyčování a náčrt', verb: 'Vytyčit', vl: 'Vrstvu pokládky', vh: 'výška a sklon za finišerem', keys: 'vrstvy pokladka skladba silnice asfalt sklon rez finisher tablet',
+        { k: 'vrstvy', pro: 1, hidden: 1, cat: 'Vytyčování a náčrt', verb: 'Vytyčit', vl: 'Vrstvu pokládky', vh: 'výška a sklon za finišerem', keys: 'vrstvy pokladka skladba silnice asfalt sklon rez finisher tablet',
           help: { t: 'Vrstvy / pokládka' } },
-        { k: 'indoor', pro: 1, verb: 'Vytyčit', vl: 'Dojít k bodu uvnitř budovy', vh: 'bez GPS; navádí, nevytyčuje', keys: 'uvnitr budovy bez gps interier hala navadeni krokovani',
+        { k: 'indoor', pro: 1, hidden: 1, verb: 'Vytyčit', vl: 'Dojít k bodu uvnitř budovy', vh: 'bez GPS; navádí, nevytyčuje', keys: 'uvnitr budovy bez gps interier hala navadeni krokovani',
           help: { t: 'Uvnitř budovy' } },
 
         // ── Zaznamenat ──────────────────────────────────────────────────
@@ -225,7 +213,7 @@
           help: { t: 'Stopa trasy' } },
         { k: 'geo-foto', pro: 1, verb: 'Zaznamenat', vl: 'Fotku s razítkem', vh: 'S-JTSK, výška, čas a azimut ve fotce', keys: 'fotka foto razitko georazitko snimek dokumentace souradnice',
           help: { t: 'Geo-fotka' } },
-        { k: 'epochy', fn: 'agOpenEpochy', pro: 1, w: 1, cat: 'Měření', verb: 'Zaznamenat', vl: 'Epochy — posuny v čase', vh: 'opakované měření bodu', keys: 'epochy monitoring posuny deformace sledovani opakovane',
+        { k: 'epochy', fn: 'agOpenEpochy', pro: 1, hidden: 1, w: 1, cat: 'Měření', verb: 'Zaznamenat', vl: 'Epochy — posuny v čase', vh: 'opakované měření bodu', keys: 'epochy monitoring posuny deformace sledovani opakovane',
           help: { t: 'Epochy / monitoring' } },
         { k: 'kvalita-bodu', fn: 'agOpenKvalitaBodu', pro: 1, verb: 'Zaznamenat', vl: 'Protokol kvality', vh: 'čím byl bod změřen a jak dobře', keys: 'kvalita protokol presnost sigma smerodatna odchylka epochy doklad rozptyl mereni doložit',
           help: { t: 'Protokol kvality' } },
@@ -258,7 +246,7 @@
         { k: 'sever-slunce', inhub: 'srovnat-sever', cat: 'AR a kalibrace', verb: 'Srovnat AR', vl: 'Srovnat sever podle Slunce', vh: 'když kompas lže a není na co orientovat',
           keys: 'slunce sever azimut kompas srovnat stin orientace magnetometr rusi armatura kov bez bodu',
           help: { t: 'Sever podle Slunce' } },
-        { k: 'localization-helmert', fn: 'agOpenLocalize', pro: 1, inhub: 'srovnat-sever', verb: 'Srovnat AR', vl: 'Lokalizace (Helmert)', vh: 'místní systém', keys: 'helmert lokalizace transformace klic mistni system',
+        { k: 'localization-helmert', fn: 'agOpenLocalize', pro: 1, hidden: 1, verb: 'Srovnat AR', vl: 'Lokalizace (Helmert)', vh: 'místní systém', keys: 'helmert lokalizace transformace klic mistni system',
           help: { t: 'Lokalizace (Helmert)' } },
         { k: 'ref-calibration', w: 1, inhub: 'srovnat-sever', verb: 'Srovnat AR', vl: 'Opravit posun GPS podle bodu', vh: 'opravuje POLOHU, ne sever', keys: 'kalibrace referencni bod srovnani ar posun usazeni znamy bod',
           help: { t: 'Posun GPS na známý bod' } },
@@ -281,6 +269,9 @@
           help: { t: 'Počasí a světlo' } },
         { k: 'gps-semafor', inhub: 'gnss-signal', cat: 'Měření', verb: 'Zjistit podmínky', vl: 'Dá se tady měřit?', vh: 'skóre místa, odrazy od fasád', keys: 'semafor skore mista multipath signal kvalita gps fasada odrazy podminky',
           help: { t: 'Skóre místa (GPS)' } },
+        { k: 'chybovy-rozpocet', fn: 'agOpenChybovyRozpocet', cat: 'Měření', inhub: 'gnss-signal', verb: 'Zjistit podmínky', vl: 'Proč ±4 m? — chybový rozpočet', vh: 'co dělá GPS + kompas s bodem v AR',
+          keys: 'proc chyba rozpocet presnost nejistota elipsa sireni chyb hromadeni kompas gps vzdalenost sigma student uceni',
+          help: { t: 'Proč ±4 m?' } },
         { k: 'openSatModal', inhub: 'gnss-signal', verb: 'Zjistit podmínky', vl: 'Družice teď', vh: 'kolik jich vidím a jaká geometrie', keys: 'gnss satelity druzice obloha prekazky signal gps kvalita',
           help: { t: 'GNSS satelity' } },
         { k: 'sky-obstruction', fn: 'openSkyObstruction', pro: 1, inhub: 'gnss-signal', verb: 'Zjistit podmínky', vl: 'Predikci signálu', vh: 'maska překážek', keys: 'predikce signalu obloha prekazky stromy budovy gnss planovani',
@@ -326,16 +317,13 @@
           help: { t: 'Skryté body' } },
 
         // ── Před výjezdem ───────────────────────────────────────────────
-        { k: 'auto-bezpeci', pro: 1, verb: 'Před výjezdem', vl: 'Auto a bezpečí', vh: 'kde co mám, kniha jízd, bezpečnost, co s sebou', hub: 1,
-          keys: 'auto bezpeci kde mam auto baze stativ material kniha jizd cestak kilometry bourka vedro mraz vitr tma sos rizika co s sebou balici seznam checklist rozcestnik',
-          help: { t: 'Auto a bezpečí' } },
         { k: 'brifink', fn: 'agOpenBrifink', pro: 1, inhub: 'pocasi-svetlo', verb: 'Před výjezdem', vl: 'Dnešek v terénu', vh: 'souhrn na ráno', keys: 'brifink dnesek souhrn rano prehled dne pocasi svetlo terminy', net: 1,
           help: { t: 'Dnešek v terénu' } },
-        { k: 'checklist', pro: 1, inhub: 'auto-bezpeci', verb: 'Před výjezdem', vl: 'Co s sebou', keys: 'checklist co s sebou baleni vybaveni seznam rano nezapomen vzit',
+        { k: 'checklist', pro: 1, hidden: 1, verb: 'Před výjezdem', vl: 'Co s sebou', keys: 'checklist co s sebou baleni vybaveni seznam rano nezapomen vzit',
           help: { t: 'Co s sebou' } },
-        { k: 'bezpecnost', fn: 'agOpenBezpecnost', pro: 1, inhub: 'auto-bezpeci', verb: 'Před výjezdem', vl: 'Bezpečnost a rizika', keys: 'bezpecnost bozp riziko vedro pitny rezim bourka blesk vesta soumrak mraz vitr sos poloha pomoc',
+        { k: 'bezpecnost', fn: 'agOpenBezpecnost', pro: 1, hidden: 1, verb: 'Před výjezdem', vl: 'Bezpečnost a rizika', keys: 'bezpecnost bozp riziko vedro pitny rezim bourka blesk vesta soumrak mraz vitr sos poloha pomoc',
           help: { t: 'Bezpečnost' } },
-        { k: 'kde-je', pro: 1, inhub: 'auto-bezpeci', verb: 'Před výjezdem', vl: 'Kde co mám', vh: 'báze, stativ, materiál — i auto', keys: 'auto parkovani kde stoji baze stativ material najit zpatky navigace znacka',
+        { k: 'kde-je', pro: 1, verb: 'Před výjezdem', vl: 'Kde co mám', vh: 'báze, stativ, materiál — i auto', keys: 'auto parkovani kde stoji baze stativ material najit zpatky navigace znacka',
           help: { t: 'Kde co mám' } },
 
         // ── Firma a papíry ──────────────────────────────────────────────
@@ -345,7 +333,7 @@
         // Firma a účty stojí od té doby přímo v seznamu.
         { k: 'ucty-firma', pro: 1, verb: 'Firma a papíry', vl: 'Firma a účty', vh: 'uživatelé, role, přihlašování', keys: 'firma ucty uzivatele role opravneni sprava zamestnanci prihlaseni tym',
           help: { t: 'Firma a účty' } },
-        { k: 'kniha-jizd', pro: 1, inhub: 'auto-bezpeci', verb: 'Firma a papíry', vl: 'Kniha jízd', keys: 'kniha jizd cestak kilometry km naklady cestovni nahrady tachometr vozidlo ucetni',
+        { k: 'kniha-jizd', pro: 1, hidden: 1, verb: 'Firma a papíry', vl: 'Kniha jízd', keys: 'kniha jizd cestak kilometry km naklady cestovni nahrady tachometr vozidlo ucetni',
           help: { t: 'Kniha jízd' } },
         { k: 'moje-cisla', pro: 1, verb: 'Firma a papíry', vl: 'Moje čísla', vh: 'moje aktivita a ročenka', hub: 1,
           keys: 'moje cisla aktivita statistika prehled kroky krokomer kilometry vyskove metry rocenka rok mesic souhrn kde jsem byl odznaky serie bilance rozcestnik',
@@ -354,7 +342,7 @@
           help: { t: 'Moje aktivita' } },
         { k: 'rocenka', pro: 1, inhub: 'moje-cisla', verb: 'Firma a papíry', vl: 'Ročenka', vh: 'rok a měsíc v číslech, mapa kde jsi byl', keys: 'rocenka rok v cislech mesic statistika souhrn roku kde jsem byl mapa roku odznaky serie kolik jsem nachodil vyrocni prehled bilance',
           help: { t: 'Ročenka' } },
-        { k: 'kolize-bodu', fn: 'openKolizeBodu', pro: 1, cat: 'Měření', verb: 'Změřit', vl: 'Body na sobě', vh: 'nezměřil jsi s kolegou týž bod dvakrát?', keys: 'kolize duplicita dvojity bod dva body na sobe stejny bod tyz bod kolega spoluprace sdilena zakazka slouceni bodu prekryv',
+        { k: 'kolize-bodu', fn: 'openKolizeBodu', pro: 1, hidden: 1, cat: 'Měření', verb: 'Změřit', vl: 'Body na sobě', vh: 'nezměřil jsi s kolegou týž bod dvakrát?', keys: 'kolize duplicita dvojity bod dva body na sobe stejny bod tyz bod kolega spoluprace sdilena zakazka slouceni bodu prekryv',
           help: { t: 'Body na sobě' }, w: 1 },
 
         // ── Příručka a výpočty ──────────────────────────────────────────
@@ -365,7 +353,7 @@
           help: { t: 'Předpisy & odchylky' } },
         { k: 'postupy', inhub: 'prirucka', cat: 'Pomůcky', verb: 'Příručka a výpočty', vl: 'Postupy měření', keys: 'postupy navody checklisty pracovni kroky jak na',
           help: { t: 'Postupy měření' } },
-        { k: 'trenazer', pro: 1, cat: 'Pomůcky', verb: 'Příručka a výpočty', vl: 'Terénní trenažér', vh: 'cvičné vytyčení — i doma v pokoji', keys: 'trenazer cviceni cvicna zakazka hra skore naucit se zauceni novacek vytyceni nanecisto zabava doma procvicit test odchylka',
+        { k: 'trenazer', cat: 'Pomůcky', verb: 'Učit se', vl: 'Terénní trenažér', vh: 'cvičné vytyčení — i doma v pokoji', keys: 'trenazer cviceni cvicna zakazka hra skore naucit se zauceni novacek vytyceni nanecisto zabava doma procvicit test odchylka',
           help: { t: 'Terénní trenažér' } },
         { k: 'openDictModal', inhub: 'prirucka', verb: 'Příručka a výpočty', vl: 'Slovník pojmů', keys: 'slovnik pojmy zkratky vyznam terminologie',
           help: { t: 'Slovník' } },
@@ -374,9 +362,19 @@
         { k: 'gesta-zkratky', fn: 'AGGesta.open', pro: 1, cat: 'Pomůcky', verb: 'Příručka a výpočty', vl: 'Gesta (zkratky nástrojů)', vh: 'spustit nástroj jedním tahem prstu',
           keys: 'gesto gesta zkratka zkratky tah prstem swipe rychle spusteni nastroje bez hledani trenazer prirazeni',
           help: { t: 'Gesta (zkratky nástrojů)' } },
-        { k: 'odhadovacka', pro: 1, cat: 'Pomůcky', verb: 'Příručka a výpočty', vl: 'Odhadni to (cvičiště)', vh: 'trénink odhadu vzdálenosti a azimutu',
+        { k: 'odhadovacka', cat: 'Pomůcky', verb: 'Učit se', vl: 'Odhadni to (cvičiště)', vh: 'trénink odhadu vzdálenosti a azimutu',
           keys: 'odhad odhadni cviceni cviciste hra trenink vzdalenost azimut oko krok skore serie zabava',
           help: { t: 'Odhadni to' } },
+        // ---- Učit se (13. 9. 2026, hodnocení pro studenty) — v Základu, bez zámku ----
+        { k: 'cvicne-ulohy', fn: 'agOpenCvicneUlohy', cat: 'Pomůcky', verb: 'Učit se', vl: 'Cvičné úlohy s klíčem', vh: 'rajón, protínání, polygon, nivelace — spočítej a nech si zkontrolovat',
+          keys: 'cvicne ulohy priklady zadani klic vysledek kontrola zapocet zkouska cviceni rajon protinani polygon nivelace student uceni domaci ukol',
+          help: { t: 'Cvičné úlohy' } },
+        { k: 'poznavacka', fn: 'agOpenPoznavacka', cat: 'Pomůcky', verb: 'Učit se', vl: 'Poznávačka bodů', vh: 'TB, nivelační čep, mezník, hřeb… co je co',
+          keys: 'poznavacka kviz stabilizace znacka kamen krizek cep meznik hreb trigonometricky nivelacni bod poznat student uceni',
+          help: { t: 'Poznávačka bodů' } },
+        { k: 'vzorce', fn: 'agOpenVzorce', cat: 'Pomůcky', inhub: 'prirucka', verb: 'Učit se', vl: 'Vzorce', vh: 'směrník, rajón, protínání, nivelace, hromadění chyb…',
+          keys: 'vzorce vzorec tahak smernik rajon protinani polygon uzaver nivelace refrakce redukce delky krovak hromadeni chyb stredni chyba gon student uceni',
+          help: { t: 'Vzorce' } },
         { k: 'sprava-appky', cat: 'Správa aplikace', notile: 1,
           help: { t: 'Správa aplikace' } },
 
@@ -409,6 +407,9 @@
             if (!r.verb || !byVerb[r.verb]) continue;
             var it = { k: r.k, l: r.vl || r.k };
             if (r.vh) it.h = r.vh;
+            // student-start (13. 9. 2026): student má místo firmy „partu" — jediný popisek,
+            // který se podle profilu osoby mění; zbytek registru zůstává statický popis.
+            if (r.k === 'ucty-firma') { try { if (window.AGProfilOsoby && AGProfilOsoby.je('student')) { it.l = 'Parta a účty'; it.h = 'kdo je v partě, kód party'; } } catch (e) { /* bez modulu */ } }
             byVerb[r.verb].items.push(it);
         }
         for (j = 0; j < VERBS.length; j++) { if (byVerb[VERBS[j]].items.length) out.push(byVerb[VERBS[j]]); }
