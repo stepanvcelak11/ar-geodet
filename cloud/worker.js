@@ -1039,7 +1039,8 @@ async function founderId(env, req) {
 // smazání firmy i všeho, co k ní patří (tabulky, které ještě nevznikly, se přeskočí)
 async function dropFirm(env, id) {
     const tabs = ['users', 'usage', 'chat', 'sync_points', 'jobs', 'firm_requests',
-        'stats_firm', 'pos', 'watch_codes', 'watch_seq', 'watch_pending', 'watch_tiles', 'watch_sel'];
+        'stats_firm', 'pos', 'watch_codes', 'watch_seq', 'watch_pending', 'watch_tiles', 'watch_sel',
+        'errors', 'vzkazy'];   // hlášení chyb a vzkazy firmy (13. 9. 2026, smazání účtu)
     for (const t of tabs) {
         try { await env.DB.prepare('DELETE FROM ' + t + ' WHERE firm_id=?').bind(id).run(); } catch (e) {}
     }
@@ -1445,6 +1446,7 @@ export default {
             // Starsi nasazeny worker tuhle polozku nema, takze podle ni pozna appka,
             // ze na serveru bezi stara verze — viz js/hodinky-parovani.js.
             //
+            // v:21 = POST /account/delete (smazani uctu na vlastni zadost — pozadavek Google Play).
             // v:12 = prodej Pro: /objednavky, /owner/objednavky, /owner/blokace, cron s Fio.
             // v:7 = /feedback (schranka na vzkazy, bez tokenu) + /owner/* (konzole vlastnika).
             // v:6 = bezpecnostni zmena z 9bc1401 (brzda prihlaseni
@@ -1456,7 +1458,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 20, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 21, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
 
             // ---------------- BRZDA VYDÁNÍ (12. 9. 2026) ---------------------
             // Vlastník vyvíjí a testuje na svém telefonu, ale lidem venku nesmí
@@ -2902,6 +2904,47 @@ export default {
                     return json({ ok: true, contact: c });
                 }
                 return err(405, 'Jen GET/POST.');
+            }
+
+            // SMAZÁNÍ ÚČTU (13. 9. 2026, Google Play): appka, ve které si člověk zakládá
+            // účet, musí umět ten účet i smazat — z appky i z webu (smazani-uctu.html).
+            // Chce se HESLO ZNOVU: token v telefonu nechaném na stole nesmí stačit.
+            // Co se smaže: vlastní prostor i s body a zakázkami (bez tohohle účtu je
+            // prázdný), členství v cizích firmách (body a zakázky ve firmě zůstávají —
+            // patří firmě, jako při odchodu), události užívání a poloha, vzkazy, účet.
+            // Objednávky zůstávají BEZ vazby na účet: jsou to účetní doklady.
+            // Poslední admin firmy s dalšími lidmi napřed předá správu (jako /spaces/leave).
+            if (req.method === 'POST' && path === '/account/delete') {
+                if (!me.accId || !me.acc) return err(400, 'Účet ještě není založený.');
+                const b = await req.json().catch(() => null) || {};
+                if (b.password == null) return err(400, 'Chybí heslo.');
+                const ip = req.headers.get('CF-Connecting-IP') || '0';
+                if (!await guardHit(env, 'del:' + ip, 10, 15 * 60e3))
+                    return err(429, 'Příliš mnoho pokusů. Zkus to za 15 minut.');
+                const h = await pbkdf2(String(b.password), me.acc.salt, me.acc.iters);
+                if (!timingSafeEq(h, me.acc.pass_hash)) return err(401, 'Nesprávné heslo.');
+                const prostory = await prostoryUctu(env, me.accId);
+                for (const p of prostory) {
+                    if (p.vlastni || p.archiv) continue;
+                    if (p.role === 'admin' && !await lastActiveAdminGuard(env, p.firmId, p.uid))
+                        return err(400, 'Jsi poslední admin firmy „' + (p.nazev || '') + '“ — napřed předej správu někomu jinému, nebo z firmy odejdi.');
+                }
+                const smaz = async (sql, ...args) => { try { await env.DB.prepare(sql).bind(...args).run(); } catch (e) {} };
+                for (const p of prostory) {
+                    const dalsi = p.vlastni ? null : await dbFirst(env,
+                        'SELECT COUNT(*) AS n FROM users WHERE firm_id=? AND id<>? AND (left_ts IS NULL OR left_ts=0)', p.firmId, p.uid);
+                    if (p.vlastni || !dalsi || !dalsi.n) { await dropFirm(env, p.firmId); continue; }
+                    await smaz('DELETE FROM usage WHERE firm_id=? AND uid=?', p.firmId, p.uid);
+                    await smaz('DELETE FROM pos WHERE firm_id=? AND uid=?', p.firmId, p.uid);
+                    await smaz('DELETE FROM errors WHERE firm_id=? AND uname=?', p.firmId, me.acc.name);
+                    await smaz('DELETE FROM users WHERE id=?', p.uid);
+                }
+                await smaz('DELETE FROM vzkazy WHERE acc_id=?', me.accId);
+                await smaz('UPDATE orders SET acc_id=? WHERE acc_id=?', 'smazano', me.accId);
+                await smaz('DELETE FROM accounts WHERE id=?', me.accId);
+                await guardClear(env, 'del:' + ip);
+                try { await ownerLog(env, 'ucet-smazan', me.acc.code, 'na vlastní žádost z appky'); } catch (e) {}
+                return json({ ok: true });
             }
 
             if (req.method === 'POST' && path === '/spaces/join') {

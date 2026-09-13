@@ -14,7 +14,7 @@
 # ⚠ Vsechno musi byt na Promise/microtaskach — py_mini_racer nema smycku udalosti,
 #   takze setTimeout uvnitr workeru by test tise zasekl (OUT zustane null).
 #
-#   A) /health hlasi v:20, prodej:true a stav klice vlastnika (ownerKey)
+#   A) /health hlasi v:21, prodej:true a stav klice vlastnika (ownerKey)
 #   J) brzda vydani: GET /vydano (verejne) null -> POST /owner/vydat 296 -> 296; bez klice 403
 #   B) POST /objednavky bez PRODEJ_IBAN -> 503 (prodej vypnuty), s IBAN -> 8mistny
 #      VS, SPAYD s castkou a VS, cenik se dvema produkty, zkouska 3 dny
@@ -30,6 +30,8 @@
 #   I) /owner/ucty vraci k uctu prostory, aktivitu a objednavky
 #   K) X-AG-Ver/X-AG-Dev -> accounts.ver/dev (1x za hodinu); GET/POST /account/contact;
 #      /owner/ucty nese ver, dev, contact (13. 9. 2026)
+#   O) POST /account/delete: spatne heslo 401, spravne -> vlastni prostor pryc (dropFirm),
+#      clenstvi v cizi firme jen odebrano (body firmy zustavaji), ucet smazan; posledni admin 400
 #
 # Pouziti (z korene repa):  python scripts/test_prodej_worker.py
 # Navratovy kod: 0 = vse OK, 1 = aspon jedna vada.
@@ -225,7 +227,7 @@ def main():
     # ---- A) health -------------------------------------------------------------
     base_rules()
     h = call('GET', '/health')
-    ok('A1 /health v:20', h['data'].get('v') == 20, h['data'].get('v'))
+    ok('A1 /health v:21', h['data'].get('v') == 21, h['data'].get('v'))
     ok('A2 /health prodej:true', h['data'].get('prodej') is True)
     # 12. 9. 2026: /health rika, v jakem stavu je OWNER_KEY ('ok' | 'chybi' | 'kratky') —
     # uzivatel klic „nastavoval nekolikrat" a appka hlasila jen obecnou 503.
@@ -662,6 +664,42 @@ def main():
     n13 = call('POST', '/owner/push/test', headers=OWN)
     fl = json.loads(r.eval('JSON.stringify(FETCH_LOG)'))
     ok('N13 /owner/push/test posle zkusebni push', n13['status'] == 200 and any('web.push.apple.com' in u for u in fl), (n13, fl))
+
+    # ---- O) smazani uctu (13. 9. 2026, pozadavek Google Play) -----------------------
+    # sham crypto.subtle.deriveBits vraci 32 nulovych bajtu -> spravne heslo = hash '00'*32
+    NULA = '00' * 32
+    base_rules(acc={'pass_hash': NULA})
+    o1 = call('POST', '/account/delete', body={'password': 'spatne'}, headers=AUTH)
+    ok('O1 bez hesla 400', call('POST', '/account/delete', body={}, headers=AUTH)['status'] == 400)
+    base_rules(acc={'pass_hash': 'jiny-hash-' + 'f' * 54})
+    o1 = call('POST', '/account/delete', body={'password': 'spatne'}, headers=AUTH)
+    smazano = [l for l in log() if 'sql' in l and l['sql'].startswith('DELETE FROM accounts')]
+    ok('O2 spatne heslo 401 a nic se nemaze', o1['status'] == 401 and not smazano, (o1, smazano))
+    # spravne heslo: vlastni prostor f1 + clenstvi ve firme f2 (dalsi lide zustavaji)
+    base_rules(acc={'pass_hash': NULA})
+    rule(r'/FROM users u JOIN firms f ON f\.id=u\.firm_id WHERE u\.acc_id=\?/', 'function(){ return { all: [ { uid: "u1", firm_id: "f1", role: "admin", own: 1, left_ts: null, disabled: 0, nazev: "x", kod: "AAAAAA", mist: 1, frozen: 0 }, { uid: "u2", firm_id: "f2", role: "zamestnanec", own: 0, left_ts: null, disabled: 0, nazev: "Geo s.r.o.", kod: "BBBBBB", mist: 5, frozen: 0 } ] }; }')
+    rule(r'/SELECT COUNT\(\*\) AS n FROM users WHERE firm_id=\? AND id<>\?/', 'function(a){ return { first: { n: a[0] === "f2" ? 3 : 0 } }; }')
+    o3 = call('POST', '/account/delete', body={'password': 'cokoli'}, headers=AUTH)
+    sqls = [(l['sql'], l['args']) for l in log() if 'sql' in l]
+    firms_del = [a for q, a in sqls if q.startswith('DELETE FROM firms')]
+    users_del = [a for q, a in sqls if q.startswith('DELETE FROM users WHERE id=?')]
+    usage_del = [a for q, a in sqls if q.startswith('DELETE FROM usage WHERE firm_id=? AND uid=?')]
+    sync_f2 = [a for q, a in sqls if q.startswith('DELETE FROM sync_points') and a and a[0] == 'f2']
+    acc_del = [a for q, a in sqls if q.startswith('DELETE FROM accounts WHERE id=?')]
+    ord_an = [a for q, a in sqls if q.startswith('UPDATE orders SET acc_id=?')]
+    ok('O3 spravne heslo: vlastni prostor f1 pryc i s daty (dropFirm), ucet smazan',
+       o3['status'] == 200 and firms_del == [['f1']] and acc_del == [['acc1']], (o3, firms_del, acc_del))
+    ok('O4 cizi firma f2 s dalsimi lidmi: jen clenstvi u2 + jeho usage pryc, body firmy zustavaji',
+       users_del == [['u2']] and usage_del == [['f2', 'u2']] and not sync_f2, (users_del, usage_del, sync_f2))
+    ok('O5 objednavky zustavaji bez vazby na ucet (ucetni doklady), zapis do deniku vlastnika',
+       ord_an == [['smazano', 'acc1']] and any(q.startswith('INSERT INTO owner_log') for q, a in sqls), (ord_an,))
+    # posledni admin firmy s dalsimi lidmi: 400, nic se nemaze
+    base_rules(acc={'pass_hash': NULA})
+    rule(r'/FROM users u JOIN firms f ON f\.id=u\.firm_id WHERE u\.acc_id=\?/', 'function(){ return { all: [ { uid: "u2", firm_id: "f2", role: "admin", own: 0, left_ts: null, disabled: 0, nazev: "Geo s.r.o.", kod: "BBBBBB", mist: 5, frozen: 0 } ] }; }')
+    rule(r'/COUNT\(\*\) AS n FROM users WHERE firm_id=\? AND role=\'admin\' AND disabled=0 AND id<>\?/', 'function(){ return { first: { n: 0 } }; }')
+    o6 = call('POST', '/account/delete', body={'password': 'cokoli'}, headers=AUTH)
+    acc_del = [l for l in log() if 'sql' in l and l['sql'].startswith('DELETE FROM accounts')]
+    ok('O6 posledni admin firmy s lidmi -> 400, ucet zustava', o6['status'] == 400 and not acc_del, (o6, acc_del))
 
     return vypis()
 

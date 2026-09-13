@@ -3,6 +3,9 @@
 Připraveno k okopírování do Play Console → **Grow → Store presence → Main store listing**.
 Limity znaků hlídá `python play/kontrola-textu.py`.
 
+Přepsáno **13. 9. 2026** podle stavu appky v309+ (účet povinný, Základ/Pro, docházka, chat
+a hodinky zrušené, smazání účtu, Pro do konce roku zdarma na žádost).
+
 ---
 
 ## Název aplikace (max 30 znaků)
@@ -24,42 +27,45 @@ QTRIG je terénní pomůcka pro geodety. Zvedneš telefon, namíříš ho před 
 
 VYHLEDÁVÁNÍ BODŮ V TERÉNU
 • Body bodového pole ČÚZK vidíš přímo v obraze kamery, se vzdáleností a směrem
-• Navádění šipkou až k bodu, s upozorněním na blížící se cíl
-• Body si můžeš přidat i vlastní — ručně, ze souboru nebo z předchozí zakázky
+• Karta bodu: vzdálenost, azimut, souřadnice S-JTSK, výška Bpv a rádius, ve kterém bod hledat
+• Navádění šipkou až k bodu, průvodce prvním měřením
 
 MAPA A KATASTR
 • Mapa s katastrálními hranicemi a parcelními čísly
 • Stažení okolí pro práci bez signálu
 • Přepínání podkladů (základní mapa, letecký snímek)
 
+VLASTNÍ BODY A ZAKÁZKY
+• Nový bod z průměru GPS, klepnutím do mapy nebo přečtením souřadnic z fotky
+• Kódy bodů (obruba, šachta, vpusť…) rovnou do CSV a DXF
+• Export a import seznamu souřadnic, body řazené do zakázek s poznámkami
+
 MĚŘENÍ A VYTYČOVÁNÍ
-• Vytyčování bodů a přímek s průběžnou odchylkou
-• Oměrné míry, plochy, protínání, rajón, volné stanovisko
+• Vytyčování bodů, přímek a lomené osy se staničením a průběžnou odchylkou
+• Oměrné míry, plochy, protínání, rajón, volné stanovisko, kalkulačka s postupem výpočtu
 • Metr v kameře a libela pro rychlé kontroly na místě
-• AR resekce — srovnání severu podle známých bodů, když kompas telefonu blbne
+• Srovnání severu podle známých bodů, když kompas telefonu blbne
 
 PŘESNOST NA OČÍCH
 • Stav GPS, počet družic a odhad přesnosti pořád na obrazovce
-• Protokol kvality měření a kontrolní dvojí měření
+• Vysvětlení, proč telefon měří na ±4 m, a kontrolní dvojí měření
 • Poznámka: appka je orientační pomůcka, ne měřicí přístroj — přesnost odpovídá GPS a kompasu v telefonu, ne geodetické aparatuře
-
-ZAKÁZKY A PŘEDÁNÍ DO KANCELÁŘE
-• Body se řadí do zakázek, každý se svými poznámkami a fotkami
-• Export seznamu souřadnic i výkresu DXF
-• Záloha a přenos dat mezi telefony
 
 DO TERÉNU
 • Funguje offline — stažená data zůstanou v telefonu
-• Šetří baterii, čitelná i na ostrém slunci, ovládání jednou rukou i v rukavicích
+• Šetří baterii, čitelná i na ostrém slunci, ovládání jednou rukou
 • Režim levé ruky, gesta jako zkratky na oblíbené nástroje
 
-PRO FIRMY
-• Sdílené zakázky a body pro celý tým
-• Účty s rolemi (co kdo smí měnit)
-• Appku lze používat i bez přihlášení, se základní sadou nástrojů
+PRO STUDENTY
+• Cvičné úlohy, poznávačka bodů a vzorce — appka se přizpůsobí, když řekneš, že jsi student
 
-DATA
-Zdrojem bodů bodového pole a katastrálních podkladů jsou otevřená data ČÚZK (Český úřad zeměměřický a katastrální). Appka nesbírá osobní údaje, poloha se používá jen pro zobrazení a měření a neposílá se nikam dál. Podrobnosti v zásadách ochrany soukromí.
+ZÁKLAD A PRO
+• Základ je zdarma napořád: hledání bodů, mapa, katastr, vlastní body, oměrné, vytyčení podle seznamu, kalkulačka a další
+• Pro přidává osu, rajón, geo-fotku, sdílené zakázky pro firmu a účty s rolemi
+• Do konce roku 2026 je Pro zdarma na žádost přímo z appky
+
+DATA A SOUKROMÍ
+Zdrojem bodů bodového pole a katastrálních podkladů jsou otevřená data ČÚZK (Český úřad zeměměřický a katastrální). K používání je potřeba účet (jméno a heslo, bez e-mailu). Poloha i obraz kamery se zpracovávají jen v telefonu; na server jdou údaje účtu, anonymní záznamy užívání a hlášení chyb. Žádná reklama. Účet jde kdykoli smazat přímo v appce. Podrobnosti v zásadách ochrany soukromí.
 ```
 
 ---
@@ -73,76 +79,83 @@ https://stepanvcelak11.github.io/ar-geodet/soukromi.html
 
 **Kategorie:** Nástroje (Tools) · značky: geodézie, mapy, měření
 
-**Ikona 512×512:** `icon-512.png` (v kořeni repa)
-**Feature graphic 1024×500:** `play/promo/feature.png`
-**Screenshoty telefonu:** `play/promo/play-1…4.png` (1080×1920)
+**Ikona 512×512:** `icon-512.png` (v kořeni repa; ikona Q, od 11. 9. 2026)
+**Feature graphic 1024×500:** `play/snimky/feature.png`
+**Screenshoty telefonu:** `play/snimky/01-ar.png` … `05-novy-bod.png` (1080×1920, v tomhle pořadí)
 
-> Obrázky vyrábí `python scripts/gen_promo.py` z předlohy `play/promo.html`.
-> **Nic se k nim nedodává.** Scéna je APPKA V RÁMU TELEFONU a k němu dvě vyzdvižené
-> karty, které přesahují jeho okraj a nesou další fakt.
+> Obrázky vyrábí `python scripts/gen_play_snimky.py` ze **skutečných snímků běžící appky**
+> (fotky z iPhonu v kořeni repa, `IMG_*.PNG`, ty se do repa neverzují). Skript ustřihne
+> stavový řádek iOS a snímek posadí do rámu 9:16 s nadpisem v písmech appky; logo ve
+> feature graphic je přímo `icon.svg`.
 >
-> ⚠⚠ **ROZHRANÍ NA OBRAZOVKÁCH JE OPSANÉ ZE SKUTEČNÉ APPKY**, ne vymyšlené
-> (nahlášeno 31. 8. 2026: „jen to moc nevypadá podle aplikace designem"): horní
-> stavová pilulka, **svislý dok u pravého okraje** (Body · Nástroje · Nový bod ·
-> Vrstvy · Nastavení), kapkovité značky bodů s tučným číslem, moje poloha jako
-> kroužek se šipkou a celoobrazovková okna se zeleným nadpisem, kulatým ✕,
-> hledacím polem a sekcemi VELKÝMI PÍSMENY. Panel 3 ukazuje okno **Nástroje** i se
-> skutečnými názvy nástrojů, panel 4 okno **Body**. Kdyby se appka překreslila,
-> srovnat i tohle — jinak budou obrázky v obchodě slibovat něco jiného, než co se
-> spustí.
+> ⚠⚠ **Kreslené panely `play/promo/play-1..4.png` (z `play/promo.html`) do obchodu jako
+> screenshoty NEPATŘÍ** — nejsou to snímky obrazovky a Google takový záznam zamítá jako
+> zavádějící. Zůstávají jen jako záloha / inspirace. Totéž starší `play/screenshoty/` a
+> `play/feature-graphic.png` (logo před přejmenováním).
 >
-> Písma jsou firemní (Sora / Inter / JetBrains Mono z `css/fonts.css`), čísla vždy
-> v mono řezu. Pod scénou nadpis a čtyři až pět výhod. Čtyři panely místo osmi a jen pro Android (přání 31. 8. 2026:
-> „udělej jich méně, jen pro Android, a na každou fotku klidně více věcí"), takže
-> každý spojuje celou oblast:
->
-> | # | Panel | Co je na obrázku |
-> |---|---|---|
-> | 1 | V terénu | AR pohled se značkami + karty „128 bodů v okolí" a „sever srovnán" |
-> | 2 | Podklady | mapa s parcelami + karta vrstev + karta „staženo 12 km² offline" |
-> | 3 | Měření a výpočty | terč vytyčení s odchylkou + karty výměry a stavu GPS |
-> | 4 | Po měření | body zakázky + karta formátů exportu + karta týmu |
->
-> ⚠ Čísla ve scénách (souřadnice, výměry, parcelní čísla) jsou UKÁZKOVÁ, ne data.
-> ⚠ Starší `play/feature-graphic.png` a `play/screenshoty/` (z `play/make-play-graphics.py`)
-> zůstávají jako záloha; screenshoty v nich jsou ale z úvodní obrazovky, která už
-> v appce není.
+> Když se appka překreslí, vyfotit znovu (AR pohled jde jen na telefonu — headless nemá
+> kameru) a spustit skript znovu; nadpisy jsou v něm v tabulce `SNIMKY`.
 
 ---
 
 ## App access (přístup pro recenzenta) — POZOR, tady se to nejčastěji zasekne
 
-Appka má přihlašovací obrazovku, takže Google chce vědět, jak se dovnitř dostane.
-Zvol **„All functionality is available without special access"** není správně — appka
-má část funkcí za přihlášením. Správně:
+⚠⚠ Appka **vyžaduje účet hned při startu** (host byl zrušen 6. 9. 2026). Kontrolor Googlu se
+bez přihlašovacích údajů nedostane nikam a vydání se vrátí zamítnuté. Správně:
 
-> **All or some functionality is restricted** → přidej instrukci:
-> „Na úvodní obrazovce lze pokračovat bez přihlášení (režim hosta) — v tomto režimu
-> jsou dostupné vyhledávání bodů, mapa a základní měření. Firemní funkce (sdílené
-> zakázky, správa účtů) vyžadují firemní účet; testovací účet na vyžádání."
+> **All or some functionality is restricted** → přidej přihlašovací údaje:
+>
+> - Uživatelské jméno (kód účtu): `SUQP2D36`
+> - Heslo: `Geodet-Demo-2026`
+> - Instrukce: *Na úvodní obrazovce klepni na „Přihlásit se (mám kód účtu)", zadej kód
+>   účtu a heslo. Účet je v tarifu Základ — přesně to, co dostane běžný uživatel.
+>   Vyhledávání bodů v kameře vyžaduje polohu v ČR (data ČÚZK); mimo ČR appka ukáže mapu
+>   a vlastní body.*
 
-Když budeš chtít, ať vidí i firemní část, založ jim jednorázový účet a vyplň
-přihlašovací jméno a heslo do stejného formuláře.
+Demo účet byl založen 6. 9. 2026 na ostrém serveru (viz paměť projektu). Před odesláním
+k recenzi si **ověř, že se s ním pořád jde přihlásit** (heslo se nedá obnovit — kdyby ne,
+založ v appce nový demo účet a údaje tady přepiš).
 
 ## Data safety (Zabezpečení dat)
 
-- **Sbíráte data?** Ano — **Poloha → Přesná poloha**
-  - Účel: *Funkčnost aplikace* (App functionality)
-  - Sdíleno s třetími stranami: **NE**
-  - Shromažďováno (odesíláno na server): **NE** — poloha zůstává v telefonu
-  - Šifrováno při přenosu: **ANO** (vše přes HTTPS)
-  - Může uživatel požádat o smazání: **ANO** (data lze smazat v appce)
-- **Fotografie/kamera:** kamera se používá jen k živému obrazu, snímky se nikam neodesílají
-- Žádné jméno, e-mail, kontakty, reklamní identifikátory — mimo firemní účet
-  (e-mail + jméno), pokud se uživatel přihlásí
+Musí sedět s `soukromi.html`. Od 13. 9. 2026 appka posílá na server víc než jen polohu
+do dotazů — vyplň takhle:
+
+- **Sbíráte nebo sdílíte uživatelská data?** ANO
+- **Šifrováno při přenosu:** ANO (HTTPS)
+- **Může uživatel požádat o smazání dat:** ANO — **URL pro smazání účtu:**
+  ```
+  https://stepanvcelak11.github.io/ar-geodet/smazani-uctu.html
+  ```
+  (appka umožňuje založit účet → Google vyžaduje i cestu ke smazání, v appce je
+  Nastavení → Více → O aplikaci → Smazat účet)
+
+Typy dat (vše *shromažďováno*, nic *sdíleno s třetími stranami*, účel vždy
+*Funkčnost aplikace* + u záznamů užívání a chyb *Analytika*):
+
+| Skupina | Položka | Povinné? | Poznámka |
+|---|---|---|---|
+| Osobní údaje | Jméno | povinné | jméno, které si člověk zvolí při založení účtu (nemusí být pravé) |
+| Osobní údaje | Jiné info (kontakt) | volitelné | telefon/e-mail, jen když si ho sám vyplní |
+| Aktivita v aplikaci | Interakce v aplikaci | povinné | které nástroje se otevřely, kolik bodů přibylo — bez souřadnic |
+| Aktivita v aplikaci | Jiný obsah vytvořený uživatelem | volitelné | zprávy autorovi, hodnocení; body zakázky jen při zapnuté synchronizaci ve firmě |
+| Informace a výkon aplikace | Protokoly chyb | povinné | text chyby, verze appky, druh telefonu |
+| Zařízení nebo jiné ID | ID zařízení | povinné | anonymní identifikátor odvozený z prohlížeče |
+| Poloha | Přesná poloha | **NE — nesbírá se** | zpracovává se jen v telefonu; do dotazů třetích stran (ČÚZK, mapy, počasí) jde jako parametr, ale server aplikace ji neukládá |
+
+- **Fotografie/kamera:** kamera se používá jen k živému obrazu, snímky se nikam neodesílají → nedeklaruje se
+- **Finanční info:** NE (v appce z Playe se nic nekupuje; Pro je do konce roku 2026 zdarma na žádost)
 
 ## Content rating (Hodnocení obsahu)
 
 Vyplní se dotazníkem IARC: **Nástroj / utilita**, žádné násilí, hazard, drogy,
-uživatelský obsah ani nákupy → vyjde **3+ / Everyone**.
+uživatelský obsah sdílený s cizími lidmi ani nákupy → vyjde **3+ / Everyone**.
 
 ## Target audience (Cílová skupina)
 
 - Věková skupina: **18 a více** (pracovní nástroj)
 - Appka **necílí na děti**
 - Reklamy: **NE**
+- Nákupy v aplikaci: **NE** (viz Finanční info výše; kdyby se od 2027 prodávalo Pro přímo
+  v appce z Playe, muselo by to jít přes Google Play Billing — teď se v TWA nákup schovává,
+  `js/pro-zamky.js` → `jeTwa()`)

@@ -95,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=309">
-    <link rel="stylesheet" href="css/style.css?v=309">
+    <link rel="stylesheet" href="css/tokens.css?v=310">
+    <link rel="stylesheet" href="css/style.css?v=310">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -227,7 +227,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=309">
+    <link rel="stylesheet" href="css/vylepseni.css?v=310">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -950,7 +950,14 @@
                     <p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55; margin:8px 0 0;">Aplikace je <b>orientační pomůcka</b>, nikoli měřicí přístroj. Zobrazená poloha bodů závisí na přesnosti GPS a kompasu telefonu (běžně ±3–7 m, kompas je citlivý na magnetické rušení). Ani dlouhé průměrování, DGPS z druhého mobilu nebo kalibrace na referenční bod z telefonu <b>neudělají RTK rover</b> — pro geometrický plán, vytyčení hranice a další úřední výstupy platí měření ověřeným přístrojem. Body v terénu vždy ověř a nehledej je na centimetr přímo na AR značce. Za rozhodnutí učiněná na základě aplikace nese odpovědnost uživatel.</p>
                 </div>
                 <h4 style="color:var(--accent); margin-top:18px; border-bottom:1px solid var(--glass-border); padding-bottom:5px;">Soukromí</h4>
-                <p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55;">Měření zůstává <b>ve tvém telefonu</b>: poloha (GPS) i obraz z kamery se zpracovávají lokálně, kamerový obraz se nikam neodesílá a body i nastavení jsou uložené v tomto zařízení. Internet se používá pro stažení bodů a mapových podkladů (služby níže) a pro předpověď počasí (souřadnice místa).</p><p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55;">Navíc jen tehdy, když si je sám zapneš:<br>• <b>Firemní režim</b> — přihlášení, docházka, chat a synchronizace bodů běží přes firemní server aplikace; bez přihlášení k firmě se nic neodesílá.<br>• <b>Přepis hlasových poznámek</b> — rozpoznávání řeči v prohlížeči posílá zvuk na server jeho výrobce (Google/Apple). Přepis lze vypnout, pak zůstane jen nahrávka v telefonu.<br>• <b>Zpravodaj a předpovědi GNSS</b> — stahují veřejná data (dráhy družic, geomagnetický index).</p>
+                <!-- Přepsáno 13. 9. 2026 (Google Play): od v287 appka účet VYŽADUJE a na server chodí
+                     i události užívání a hlášení chyb — starý text sliboval „bez přihlášení se nic
+                     neodesílá" a jmenoval docházku a chat, které už neexistují. Musí sedět se
+                     soukromi.html (to je stránka, na kterou ukazuje záznam v obchodě). -->
+                <p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55;">Měření zůstává <b>ve tvém telefonu</b>: poloha (GPS) i obraz z kamery se zpracovávají lokálně, kamerový obraz se nikam neodesílá a body i nastavení jsou uložené v tomto zařízení. Internet se používá pro stažení bodů a mapových podkladů (služby níže) a pro předpověď počasí (souřadnice místa).</p><p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55;">Na server aplikace jde jen to, co je potřeba k účtu: jméno, kód účtu a otisk hesla, a k tomu <b>anonymní záznamy užívání</b> (kdy byl otevřený který nástroj, kolik bodů přibylo — bez souřadnic a bez obsahu bodů) a <b>hlášení chyb</b> (druh telefonu, verze appky, text chyby). Slouží k údržbě appky, nikomu se neprodávají. Když si zapneš <b>synchronizaci bodů ve firmě</b>, body zakázky jdou na server pro ostatní ve firmě. <b>Přepis hlasových poznámek</b> posílá zvuk na server výrobce prohlížeče (Google/Apple) — lze vypnout. Vše podrobně: <a href="soukromi.html" target="_blank" rel="noopener" style="color:var(--accent);">zásady ochrany soukromí</a>.</p>
+                <h4 style="color:var(--accent); margin-top:18px; border-bottom:1px solid var(--glass-border); padding-bottom:5px;">Účet</h4>
+                <p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55;">Účet i všechno, co k němu na serveru patří, můžeš kdykoli smazat — z appky tlačítkem níž (chce heslo), nebo bez appky přes <a href="smazani-uctu.html" target="_blank" rel="noopener" style="color:var(--accent);">stránku smazání účtu</a>. Body a zakázky v telefonu zůstanou.</p>
+                <button class="btn btn-secondary" type="button" style="border-color:var(--danger,#e5534b); color:var(--danger,#e5534b);" onclick="if (window.AGUcty && AGUcty.smazatUcet) AGUcty.smazatUcet();">Smazat účet…</button>
                 <h4 style="color:var(--accent); margin-top:18px; border-bottom:1px solid var(--glass-border); padding-bottom:5px;">Zdroje dat</h4>
                 <p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55;">Bodová pole, ortofoto a katastrální mapa: <b>Podkladová data © ČÚZK</b> — užití se řídí Podmínkami poskytování ČÚZK a Zásadami užívání dat a služeb ZÚ.<br>Mapový podklad: © přispěvatelé <b>OpenStreetMap</b> (licence ODbL).<br>Odkazy na katastr: Mapy.cz, iKatastr.cz, Geoprohlížeč ČÚZK.<br>Počasí: Open-Meteo (modely ECMWF, DWD ICON, Météo-France, NOAA a další), MET Norway, DWD MOSMIX, srážkový radar RainViewer.<br>Dráhy družic: Celestrak (TLE). Geomagnetický index Kp: NOAA SWPC.</p>
             </div>

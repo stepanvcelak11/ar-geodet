@@ -20,7 +20,12 @@
 </head>
 <body>
     <h1>Zásady ochrany soukromí</h1>
-    <p class="muted">Aplikace QTRIG · poslední aktualizace 27. 7. 2026</p>
+    <p class="muted">Aplikace QTRIG · poslední aktualizace 13. 9. 2026</p>
+    <!-- Přepsáno 13. 9. 2026 před vydáním do Google Play: od v287 appka ÚČET VYŽADUJE
+         (host zrušen), na server chodí události užívání a hlášení chyb, docházka, chat
+         a hodinky Garmin už v appce nejsou. Text musí sedět s tím, co appka opravdu dělá
+         (js/ucty.js syncUsage, js/err-log.js, js/zpetna-vazba.js, cloud/worker.js) a s
+         formulářem „Zabezpečení dat" v Play Console — viz play/texty.md. -->
 
     <h2>Provozovatel a vlastník</h2>
     <p>Aplikaci QTRIG vytvořil, vlastní a provozuje <b>Štěpán Včelák</b> jako fyzická osoba.
@@ -28,18 +33,19 @@
     všechna práva vyhrazena.</p>
 
     <h2>Shrnutí</h2>
-    <p><b>QTRIG nemá žádnou analytiku ani reklamy a v základním (osobním) použití nepotřebuje žádný účet.</b>
-    Vaše data (body, zakázky, měření, nastavení, fotky) zůstávají uložená ve vašem zařízení
-    (localStorage / IndexedDB prohlížeče) a samy od sebe nikam neodcházejí.</p>
-    <p>Existují tři výjimky, které <b>zapínáte vy</b> a jsou popsané níže: <a href="#firma">firemní režim</a>
-    (účty a sdílení dat v rámci firmy přes server aplikace), <a href="#hlas">přepis hlasových poznámek</a>
-    a dotazy na <a href="#tretistrany">služby třetích stran</a> (mapy, katastr, počasí).</p>
+    <p><b>QTRIG nemá žádnou reklamu ani sledování třetích stran.</b> Měření — body, zakázky, fotky, nastavení —
+    zůstává uložené ve vašem zařízení (localStorage / IndexedDB prohlížeče) a samo od sebe nikam neodchází.</p>
+    <p>K používání appky je potřeba <b>účet</b> (jméno + heslo, appka vám přidělí osmiznakový kód účtu).
+    Přes server aplikace pak procházejí jen údaje popsané níže: údaje účtu, anonymní záznamy užívání,
+    hlášení chyb a to, co si sami pošlete (zpráva autorovi, synchronizace bodů ve firmě). Účet můžete
+    kdykoli <a href="smazani-uctu.html">smazat</a>.</p>
 
     <h2>Poloha (GPS)</h2>
     <p>Poloha se zpracovává přímo v zařízení — slouží k zobrazení vaší pozice na mapě, k navigaci na body
     a k měření. Souřadnice se odešlou mimo zařízení pouze jako parametr dotazu, když si vyžádáte data od
-    třetích stran (např. stažení bodů bodového pole z ČÚZK nebo mapových dlaždic v okolí). Tyto dotazy slouží
-    jen k vyřízení požadavku a aplikace si z nich nic neukládá mimo vaše zařízení.</p>
+    třetích stran (např. stažení bodů bodového pole z ČÚZK, mapových dlaždic nebo předpovědi počasí pro okolí).
+    Tyto dotazy slouží jen k vyřízení požadavku a aplikace si z nich nic neukládá mimo vaše zařízení.
+    Na server aplikace se poloha neposílá.</p>
 
     <h2>Kamera</h2>
     <p>Obraz kamery slouží výhradně k zobrazení rozšířené reality (AR) a k funkcím jako čtení souřadnic z
@@ -52,19 +58,38 @@
     prohlížeče či systému</b> (Google u Chromu a Androidu, Apple u Safari a iOS) a řídí se jeho zásadami
     soukromí. S vypnutým přepisem zůstává nahrávka jen ve vašem telefonu.</p>
 
-    <h2 id="firma">Firemní režim (volitelný)</h2>
-    <p>Kdo appku používá ve firmě, může zapnout firemní režim. Pak se používá <b>server aplikace</b>
-    (Cloudflare Workers a databáze D1) a přes něj procházejí a ukládají se:</p>
+    <h2 id="ucet">Účet a server aplikace</h2>
+    <p>Server aplikace běží na platformě Cloudflare (Workers a databáze D1). Ukládá se na něm:</p>
     <ul>
-        <li>účty zaměstnanců — jméno, role, ověřovací otisk hesla (hash, nikoli heslo samotné);</li>
-        <li>docházka — čas příchodu a odchodu, stavba, parta a činnost, poloha v okamžiku píchnutí;</li>
-        <li>firemní chat — text zpráv a případně poslané body;</li>
-        <li>volitelná synchronizace bodů zakázky mezi zařízeními firmy;</li>
-        <li>přehled užívání pro administrátora firmy (přihlášení, otevřené nástroje, operace s body).</li>
+        <li><b>účet</b> — jméno, které si zvolíte, kód účtu, ověřovací otisk hesla (hash PBKDF2, nikoli heslo samotné),
+            tarif (Základ / Pro), čas založení a posledního přihlášení, verze appky a druh telefonu (např. „iPhone");</li>
+        <li><b>nepovinný kontakt</b> (telefon nebo e-mail), pokud si ho sami vyplníte, aby vám autor mohl odpovědět na hlášení;</li>
+        <li><b>záznamy užívání</b> — čas přihlášení, který nástroj byl otevřen, kolik bodů přibylo či se změnilo
+            (identifikátor bodu a zakázky, <b>bez souřadnic a bez obsahu bodu</b>) a anonymní identifikátor zařízení
+            odvozený z prohlížeče. Slouží k přehledu, co se v appce používá, a k odhalování chyb; mažou se po 12 měsících;</li>
+        <li><b>hlášení chyb</b> — text chyby, soubor a řádek, verze appky, druh telefonu a vaše jméno v appce;
+            mažou se po 90 dnech;</li>
+        <li><b>zprávy autorovi</b> (hlášení, hodnocení, žádost o Pro), které sami odešlete, včetně textu a kontaktu, pokud ho uvedete;</li>
+        <li><b>objednávky verze Pro</b> — číslo objednávky (variabilní symbol), částka a stav platby; jde o účetní doklady.</li>
     </ul>
-    <p>Tato data vidí administrátor příslušné firmy; provozovatel k nim přistupuje jen kvůli provozu
-    a údržbě služby. Bez přihlášení k firmě se na server neodesílá nic a appka funguje dál. Zařízení jde
-    od firmy kdykoli odpojit (Zapomenuté heslo → nouzové odpojení) — body a zakázky v telefonu zůstanou.</p>
+    <p>Tyto údaje vidí jen provozovatel, kvůli provozu, údržbě a odpovědím na vaše zprávy. Nikomu se neprodávají
+    ani nepředávají a nepoužívají se k reklamě.</p>
+
+    <h2 id="firma">Firmy a sdílení bodů (volitelné)</h2>
+    <p>Kdo appku používá ve firmě, může se připojit k jejímu prostoru pozvacím kódem. Pak se navíc:</p>
+    <ul>
+        <li>vaše členství (jméno, role) ukáže správci firmy;</li>
+        <li>záznamy užívání z firmy vidí i správce firmy (přehled, kdo kdy co měřil);</li>
+        <li>je-li zapnutá <b>synchronizace bodů</b>, body a zakázky firmy se ukládají na server a sdílí mezi zařízeními firmy.</li>
+    </ul>
+    <p>Body a zakázky ve firmě patří firmě — při odchodu z firmy nebo smazání účtu tam zůstávají (s vaším jménem u bodů,
+    které jste změřili). Z firmy jde kdykoli odejít; zařízení jde od firmy odpojit i nouzově (Zapomenuté heslo →
+    nouzové odpojení) — body a zakázky v telefonu zůstanou.</p>
+
+    <h2 id="smazani">Smazání účtu a dat</h2>
+    <p>Účet a všechno, co k němu na serveru patří, smažete přímo v appce (Nastavení → Více → O aplikaci → Smazat účet)
+    nebo žádostí bez appky — postup a přesný výčet toho, co se smaže a co zůstává, je na stránce
+    <a href="smazani-uctu.html">Smazání účtu</a>. Data v telefonu odstraníte smazáním dat aplikace / prohlížeče.</p>
 
     <h2>Senzory (kompas, gyroskop)</h2>
     <p>Údaje o orientaci zařízení se používají jen pro vykreslení AR scény a kompasu. Zařízení neopouštějí.</p>
@@ -81,19 +106,20 @@
         <li><b>RainViewer</b> — snímky srážkového radaru</li>
         <li><b>Google Fonts, unpkg (CDN)</b> — písma a knihovna mapy při prvním načtení</li>
         <li><b>GitHub Pages</b> — hosting aplikace a denního geodetického zpravodaje</li>
-        <li><b>Cloudflare</b> — server firemního režimu (jen když je zapnutý, viz výše)</li>
+        <li><b>Cloudflare</b> — server aplikace (účty, záznamy užívání, hlášení chyb, sdílení bodů ve firmě — viz výše)</li>
     </ul>
-    <p>Po uložení pro offline použití aplikace funguje bez připojení a kromě fronty firemního režimu
-    (odešle se, až bude signál) žádné požadavky neodesílá.</p>
+    <p>Po uložení pro offline použití aplikace funguje bez připojení; záznamy užívání a hlášení chyb se
+    odešlou, až bude signál.</p>
 
     <h2>Zálohy a sdílení</h2>
     <p>Export dat (CSV, DXF, GeoJSON, .argeo…) i sdílení přes QR kód spouštíte vždy ručně vy a data
     putují jen tam, kam je sami pošlete.</p>
 
     <h2>Vaše práva</h2>
-    <p>Data uložená v zařízení odstraníte smazáním dat aplikace/prohlížeče. Používáte-li firemní režim,
-    o výmaz nebo kopii údajů uložených na serveru (účet, docházka, chat) požádejte administrátora své firmy,
-    případně provozovatele na kontaktu níže; vyřídíme je bez zbytečného odkladu.</p>
+    <p>Data uložená v zařízení odstraníte smazáním dat aplikace/prohlížeče. Údaje na serveru smažete smazáním
+    účtu (viz výše). O kopii údajů uložených na serveru, jejich opravu nebo výmaz můžete požádat i provozovatele na
+    kontaktu níže; vyřídíme je bez zbytečného odkladu, nejpozději do 30 dnů. Používáte-li appku ve firmě, o údajích
+    ve firemním prostoru rozhoduje i správce firmy.</p>
 
     <h2>Kontakt</h2>
     <p>Dotazy k soukromí: <a href="https://github.com/stepanvcelak11/ar-geodet/issues">github.com/stepanvcelak11/ar-geodet</a></p>

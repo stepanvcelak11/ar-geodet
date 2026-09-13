@@ -13,6 +13,8 @@
 #   U5  tarif 'pro' z uctu odemyka Pro nastroje (druha cesta vedle klice)
 #   U6  prepinac prostoru se v Zakladu NEUKAZUJE (slovo "firma" solo uzivatel
 #       nema videt), s tarifem Pro ano
+#   U7  smazani uctu (Google Play, 13. 9. 2026): okno z O aplikaci i v Zakladu, spatne
+#       heslo = chyba a ucet zustava, spravne = POST /account/delete, ucet z telefonu pryc, brana
 #
 # Server se tu NEVOLA. /register a /login se podvrhuji pres ctx.route, protoze
 # testujeme klienta - a taky proto, ze zakladat ucty na ostrem serveru kvuli
@@ -228,6 +230,72 @@ async def tarif(browser, tarif_uctu, cekej_pro):
     await ctx.close()
 
 
+async def smazani(browser):
+    """U7: smazani uctu — chce heslo, po uspechu je ucet z telefonu pryc a stoji brana."""
+    ctx = await browser.new_context(locale='cs-CZ', viewport={'width': 390, 'height': 844}, service_workers='block')
+    volani = []
+
+    async def obsluha(route):
+        u = route.request.url
+        if u.endswith('/account/delete'):
+            telo = json.loads(route.request.post_data or '{}')
+            volani.append(telo)
+            if telo.get('password') == 'spravne':
+                await route.fulfill(status=200, content_type='application/json', body='{"ok":true}')
+            else:
+                await route.fulfill(status=401, content_type='application/json', body='{"error":"Nesprávné heslo."}')
+        else:
+            await route.fulfill(status=200, content_type='application/json', body='{"ok":true}')
+    await ctx.route(API + '/**', obsluha)
+    # Cloudovy ucet: stejny stav jako po prihlaseni k serveru (token + firma s cloud:true).
+    await ctx.add_init_script(boot(tarif='zaklad') + """
+      (function () {
+        var f = JSON.parse(localStorage.getItem('agFirma_v1'));
+        f.cloud = true; f.api = %s; f.code = 'ABC123';
+        localStorage.setItem('agFirma_v1', JSON.stringify(f));
+        localStorage.setItem('agFirmaTok_v1', JSON.stringify({ token: 'test.token', userId: 'test-user-1' }));
+      })();
+    """ % json.dumps(API))
+    page = await ctx.new_page()
+    chyby = []
+    page.on('pageerror', lambda e: chyby.append(str(e)[:200]))
+    await nacti(page)
+
+    ma = await page.evaluate("() => !!(window.AGUcty && typeof AGUcty.smazatUcet === 'function')")
+    ok('U7a AGUcty.smazatUcet existuje (vchod z O aplikaci, i v Zakladu)', ma)
+    vchod = await page.evaluate("() => { var b = [].slice.call(document.querySelectorAll('#about-modal button')).find(function (x) { return /Smazat účet/.test(x.textContent); }); return !!b; }")
+    ok('U7b v O aplikaci je tlacitko Smazat ucet', vchod)
+    await page.evaluate("() => AGUcty.smazatUcet()")
+    await page.wait_for_timeout(300)
+    okno = await page.evaluate("() => { var o = document.getElementById('ag-smazani'); return o ? { kod: /TESTACC1/.test(o.textContent), pass: !!o.querySelector('#ags-pass') } : null; }")
+    ok('U7c okno ukazuje kod uctu a chce heslo', okno and okno['kod'] and okno['pass'], okno)
+    # prazdne heslo -> nic se neposila
+    await page.evaluate("() => document.getElementById('ags-go').click()")
+    await page.wait_for_timeout(300)
+    ok('U7d bez hesla se na server nic neposila', not volani and await page.evaluate("() => /heslo/i.test(document.getElementById('ags-err').textContent)"))
+    # spatne heslo -> 401, ucet zustava
+    await page.fill('#ags-pass', 'spatne')
+    await page.evaluate("() => document.getElementById('ags-go').click()")
+    await page.wait_for_timeout(600)
+    ucet_je = await page.evaluate("() => !!localStorage.getItem('agUcet_v1')")
+    err = await page.evaluate("() => document.getElementById('ags-err').textContent")
+    ok('U7e spatne heslo: chyba ze serveru, ucet v telefonu zustava', len(volani) == 1 and ucet_je and 'Nesprávné' in err, (volani, err))
+    # spravne heslo -> smazano, ucet pryc, brana
+    await page.fill('#ags-pass', 'spravne')
+    await page.evaluate("() => document.getElementById('ags-go').click()")
+    await page.wait_for_timeout(900)
+    stav = await page.evaluate("""() => ({
+      ucet: localStorage.getItem('agUcet_v1'), tok: localStorage.getItem('agFirmaTok_v1'),
+      firma: localStorage.getItem('agFirma_v1'), prostory: localStorage.getItem('agProstory_v1'),
+      okno: !!document.getElementById('ag-smazani'), brana: !!document.getElementById('ag-gate'),
+      body: localStorage.getItem('default_arCustomPoints12') !== undefined })""")
+    ok('U7f spravne heslo: POST /account/delete, ucet + token + firma + prostory z telefonu pryc, okno zavrene, stoji brana',
+       len(volani) == 2 and volani[1].get('password') == 'spravne' and not stav['ucet'] and not stav['tok']
+       and not stav['firma'] and not stav['prostory'] and not stav['okno'] and stav['brana'], stav)
+    ok('U7g bez chyby v konzoli', not chyby, chyby[:3])
+    await ctx.close()
+
+
 async def main():
     from playwright.async_api import async_playwright
     srv = server()
@@ -240,6 +308,7 @@ async def main():
             await brana(br)
             await tarif(br, 'zaklad', False)
             await tarif(br, 'pro', True)
+            await smazani(br)
             await br.close()
     finally:
         srv.terminate()

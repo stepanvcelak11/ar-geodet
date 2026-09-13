@@ -2836,6 +2836,61 @@
         setTimeout(function () { try { ov.querySelector('#agr-name').focus(); } catch (e) { } }, 60);
     }
 
+    // ---- smazání účtu ---------------------------------------------------------
+    // Google Play (13. 9. 2026): appka, ve které si člověk zakládá účet, musí umět
+    // ten účet i smazat — z appky a z webu (smazani-uctu.html). Vchod je v
+    // „O aplikaci" (vidí ho Základ i Pro — obrazovka prostorů se v Základu
+    // neukazuje) a na obrazovce prostorů. Server (POST /account/delete) chce
+    // heslo znovu, aby telefon nechaný na stole nesmazal cizí účet jedním klepnutím.
+    function showSmazaniUctu() {
+        injectStyles();
+        var old = document.getElementById('ag-smazani'); if (old) old.remove();
+        var ucet = getUcet() || {};
+        var ov = document.createElement('div');
+        ov.id = 'ag-smazani';
+        ov.className = 'ag-gate-like';
+        ov.innerHTML =
+            '<div class="agl-card">' +
+            '<div class="agl-firm">Smazat účet</div>' +
+            '<div class="agg-note" style="color:var(--danger,#e5534b);">Smaže účet <b>' + esc(ucet.code || '') + '</b> na serveru i s tvým vlastním místem (body a zakázky uložené na serveru). ' +
+            'Ve firmách, kde jsi členem, zůstanou body firmě. <b>Nejde to vrátit zpět.</b></div>' +
+            '<div class="agg-note">Body a zakázky uložené v tomhle telefonu zůstanou — smažeš je smazáním dat aplikace.</div>' +
+            '<div class="agg-box on">' +
+            '  <input type="password" id="ags-pass" placeholder="Heslo k účtu" autocomplete="current-password">' +
+            '  <div class="agl-err" id="ags-err"></div>' +
+            '  <button type="button" class="agl-btn" id="ags-go" style="background:var(--danger,#e5534b);">Opravdu smazat účet</button>' +
+            '</div>' +
+            '<button type="button" class="agl-ghost" id="ags-zpet">Zpět</button>' +
+            '</div>';
+        document.body.appendChild(ov);
+        var err = ov.querySelector('#ags-err');
+        ov.querySelector('#ags-zpet').onclick = function () { ov.remove(); };
+        ov.querySelector('#ags-go').onclick = function () {
+            var pass = ov.querySelector('#ags-pass').value || '';
+            if (!pass) { err.textContent = 'Napiš heslo k účtu.'; return; }
+            if (!getTok()) { err.textContent = 'Účet na serveru tu není — stačí smazat data appky v telefonu.'; return; }
+            err.textContent = 'Mažu…';
+            cloudFetch('/account/delete', { method: 'POST', body: { password: pass } }).then(function (r) {
+                if (!r.ok) { err.textContent = (r.data && r.data.error) || (r.status === 0 ? 'Server není dosažitelný — účet se maže přes internet.' : ('Smazání selhalo (' + r.status + ').')); return; }
+                // Server účet zrušil → pryč i všechno, co ho v telefonu drží (stejný
+                // úklid jako nouzové odpojení + účet, prostory, SSO). Body a zakázky
+                // v telefonu zůstávají — patří člověku, ne účtu.
+                try {
+                    var f = getFirm(); if (f) removeProfile(profileKeyOf(f));
+                    [LS_FIRM, LS_TOK, LS_OFF, LS_SYNC, LS_ACC, LS_SPACES, LS_LAST, LS_TRUST, LS_IDCUR, 'agUcetKontakt_v1'].forEach(function (k) { localStorage.removeItem(k); });
+                } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:smazani'); }
+                bustFirm();
+                setSess(null);
+                ov.remove();
+                try { var ab = document.getElementById('about-modal'); if (ab) ab.style.display = 'none'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:smazani'); }
+                applyPerms();
+                agInfo('Účet je smazaný. Body a zakázky v telefonu zůstaly.');
+                showGate();
+            });
+        };
+        setTimeout(function () { try { ov.querySelector('#ags-pass').focus(); } catch (e) { } }, 60);
+    }
+
     // ---- prostory účtu: přepínač, vstup do firmy, odchod ---------------------
     // ⚠ V ZÁKLADU SE TENHLE VCHOD NEUKAZUJE VŮBEC. Sólo uživatel má jediný
     //   prostor a slovo „firma" se mu podle rozhodnutí uživatele nikde ukázat
@@ -2909,6 +2964,11 @@
             '  <button type="button" class="agl-btn" id="agp-kontakt-ok">Uložit kontakt</button>' +
             '</div>' +
             '<button type="button" class="agl-ghost" id="agp-zpet">Zpět</button>' +
+            // Smazání účtu (13. 9. 2026): Google Play chce u appky s registrací i cestu
+            // ven — z appky a z webu (smazani-uctu.html). Sbalené za jedním nenápadným
+            // odkazem, rozbalí se pole na heslo: server (POST /account/delete) ho chce
+            // znovu, aby telefon nechaný na stole nesmazal cizí účet jedním klepnutím.
+            '<button type="button" class="agl-ghost" id="agp-del-open" style="opacity:.7;">Smazat účet…</button>' +
             // Odchod je popsaný přesně tak, jak se chová — člověk se musí předem
             // dozvědět, že mu prostor zůstane, ale zamrzlý.
             '<div class="agg-note">Když z firmy odejdeš, prostor ti tu zůstane jako archiv jen ke čtení ' +
@@ -2935,6 +2995,7 @@
                 });
             };
         })();
+        ov.querySelector('#agp-del-open').onclick = function () { ov.remove(); showSmazaniUctu(); };
         ov.addEventListener('click', function (e) {
             var b = e.target.closest ? e.target.closest('.agg-prof') : null;
             if (!b || b.disabled) return;
@@ -3294,6 +3355,7 @@
         login: function () { showLogin(false); },
         lock: lock,
         logout: logout,
+        smazatUcet: showSmazaniUctu,   // O aplikaci → Smazat účet (Google Play)
         // brána + host + profily firem
         showGate: showGate,
         // pozvánka z odkazu (?firma=&jmeno=) pro průvodce připojením

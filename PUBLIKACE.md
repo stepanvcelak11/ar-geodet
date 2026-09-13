@@ -13,12 +13,32 @@ Hosting běží na `https://stepanvcelak11.github.io/ar-geodet/` (veřejné repo
 | ✅ | `icon-maskable-192/512.png` | „maskable" varianta — Android si ji ořízne do kruhu, motiv je v bezpečné zóně |
 | ✅ | `apple-touch-icon.png` (180×180) | ikona pro iOS „Přidat na plochu" — **dosud byla SVG, kterou iOS ignoruje**, takže se na ploše ukazoval screenshot; teď bude správné logo |
 | ✅ | `manifest.json` | doplněno `id`, `scope`, `lang`, kategorie a PNG ikony (PWABuilder je vyžaduje) |
-| ✅ | `.well-known/assetlinks.json` | šablona Digital Asset Links — **je v ní placeholder**, otisk doplníš v kroku A6 |
+| ✅ | `.well-known/assetlinks.json` | Digital Asset Links pro balíček `io.github.stepanvcelak11.twa` s otiskem podpisového klíče z PWABuilderu (29. 8. 2026); otisk Play App Signing se **přidá** v kroku A6 |
 | ✅ | `.nojekyll` | bez něj GitHub Pages (Jekyll) **neservíruje složku `.well-known`** → ověření domény by selhalo |
-| ✅ | `soukromi.html` | zásady ochrany soukromí — Play Console vyžaduje veřejnou URL |
+| ✅ | `soukromi.html` | zásady ochrany soukromí — Play Console vyžaduje veřejnou URL (přepsáno 13. 9. 2026: účet povinný, co server ukládá) |
+| ✅ | `smazani-uctu.html` | **povinné od 2024**: appka se zakládáním účtu musí umět účet smazat v appce (O aplikaci → Smazat účet, `POST /account/delete`) a mít veřejnou stránku k žádosti — URL se vyplňuje v Zabezpečení dat |
+| ✅ | `play/snimky/` | feature graphic + 5 screenshotů ze SKUTEČNÉ appky (`scripts/gen_play_snimky.py`), texty v `play/texty.md` |
 
 Po merge na main ověř, že funguje:
-`https://stepanvcelak11.github.io/ar-geodet/.well-known/assetlinks.json` a `…/soukromi.html`.
+`https://stepanvcelak11.github.io/ar-geodet/.well-known/assetlinks.json`, `…/soukromi.html`
+a `…/smazani-uctu.html`.
+
+## Stav k 13. 9. 2026 — co je hotové a co zbývá na tobě
+
+Hotové v repu: viz tabulka výše. Balíček z PWABuilderu z **29. 8. 2026** (`Geodet - Google Play
+package/`, mimo git) je **zastaralý**: jmenuje se „Geodet", má starou ikonu a verzi 1. Musí se
+vyrobit znovu (krok A2) — **se STEJNÝM balíčkem `io.github.stepanvcelak11.twa` a STEJNÝM
+podpisovým klíčem** (`signing.keystore` + hesla v `signing-key-info.txt`), jinak ho Play
+odmítne jako jinou appku / jiný podpis, a s vyšším číslem verze (2).
+
+Zbývá udělat ručně v Play Console (nic z toho appka neudělá sama):
+1. Vygenerovat nový `.aab` (A2), nahrát do interního testu (A5).
+2. Záznam v obchodě: texty z `play/texty.md`, obrázky z `play/snimky/` (A3).
+3. Obsah aplikace: **Přístup k aplikaci** s demo účtem, **Zabezpečení dat** včetně URL pro
+   smazání účtu, hodnocení obsahu, cílová skupina (A4). Bez zelené sekce Console nepustí ani
+   uzavřený test.
+4. Po prvním nahrání: otisk Play App Signing do `assetlinks.json` (A6).
+5. Uzavřený test 12 testerů / 14 dní (A7), texty v `play/pozvanka-testeri.md`.
 
 ---
 
@@ -40,10 +60,14 @@ webu; balíček se znovu nahrává jen při změně názvu/ikony/balíčku.
 1. https://www.pwabuilder.com → vlož `https://stepanvcelak11.github.io/ar-geodet/`.
 2. Zkontroluje manifest/SW (po téhle větvi projde) → **Package for stores → Android**.
 3. Nastavení balíčku:
-   - **Package ID**: `cz.stepanvcelak.argeodet` (musí sedět s `.well-known/assetlinks.json`;
-     když zvolíš jiné, přepiš ho i tam),
-   - **App name**: QTRIG, **verze**: 1.0.0,
-   - **Signing key**: nech „Create new" — PWABuilder vygeneruje podpisový klíč,
+   - **Package ID**: `io.github.stepanvcelak11.twa` — to je ID z balíčku z 29. 8. 2026 a sedí
+     s `.well-known/assetlinks.json`. ⚠ **Neměnit**: po prvním nahrání do Play je ID navždy
+     (a když už byl starý balíček nahraný, jiné ID by Console odmítla jako cizí appku),
+   - **App name**: QTRIG, **Launcher name**: QTRIG, **verze**: 1.1.0, **version code**: 2
+     (starý balíček má 1 — Play chce vždy vyšší),
+   - **Signing key**: **„Use mine"** → nahraj `signing.keystore` ze složky
+     `Geodet - Google Play package/`, alias `my-key-alias`, hesla ze `signing-key-info.txt`.
+     Jen tak zůstane otisk `43:06:F4:…:F8:AE`, který už je v `assetlinks.json`,
    - ⚠️ **Location delegation: ZAPNOUT** (jinak GPS v TWA nedostane nativní permission dialog),
    - Display: standalone/fullscreen dle chuti (standalone doporučuji), barvy se načtou z manifestu.
 4. Stáhne se ZIP: `*.aab` (pro Play), `*.apk` (na vyzkoušení v telefonu — nainstaluj a ověř
@@ -51,15 +75,15 @@ webu; balíček se znovu nahrává jen při změně názvu/ikony/balíčku.
 
 ### A3. Založ appku v Play Console
 1. **Create app** → jazyk čeština, název „QTRIG", App (ne hra), Free.
-2. Vyplň **Store listing**: krátký popis (80 znaků), dlouhý popis, **min. 2 screenshoty**
-   z telefonu (stačí printscreeny appky), **ikona 512×512** (`icon-512.png`),
-   **feature graphic 1024×500** (banner — řekni si, vygeneruji).
+2. Vyplň **Store listing**: texty z `play/texty.md`, **screenshoty** `play/snimky/01…05`
+   (1080×1920), **ikona 512×512** (`icon-512.png`), **feature graphic 1024×500**
+   (`play/snimky/feature.png`).
 3. **Privacy policy URL**: `https://stepanvcelak11.github.io/ar-geodet/soukromi.html`.
 
 ### A4. Dotazníky (App content)
-- **Data safety**: deklaruj *Poloha (přesná) — shromažďována dočasně pro funkčnost appky,
-  nesdílena s třetími stranami, šifrována při přenosu (HTTPS)*. Nic jiného se nesbírá
-  (žádné osobní údaje, kamera zůstává v zařízení). Odpovídá `soukromi.html`.
+- **Data safety**: tabulka položek je v `play/texty.md` (jméno, interakce v aplikaci,
+  protokoly chyb, ID zařízení — vše jen shromažďováno, nic sdíleno, HTTPS; **poloha se
+  nesbírá**, zpracovává se jen v telefonu). Odpovídá `soukromi.html`.
 - **Content rating** (IARC dotazník): utilita, bez násilí/hazardu → rating 3+/Everyone.
 - **Target audience**: 18+ (pracovní nástroj), appka necílí na děti.
 - Reklamy: NE.
@@ -68,11 +92,17 @@ webu; balíček se znovu nahrává jen při změně názvu/ikony/balíčku.
   zrušen, appka má bránu hned při startu (`js/ucty.js`) a bez účtu se dovnitř
   nedostane nikdo — tedy ani kontrolor Googlu. S deklarací „NE" by se na to přišlo
   až při kontrole a vydání by se vrátilo zamítnuté.
-  **Vyplň přihlašovací údaje demo účtu** (kód účtu + heslo; založený 6. 9. 2026 na
-  ostrém serveru, tarif Základ) a jako postup napiš: *na úvodní obrazovce zvol
-  „Přihlásit se (mám kód účtu)", zadej kód účtu a heslo*.
-  ⚠ Tahle jediná položka drží start 14denních hodin — dokud není zelená, Console
-  nepustí vydání ani do uzavřeného testu.
+  **Vyplň přihlašovací údaje demo účtu** (kód účtu + heslo jsou v `play/texty.md`;
+  založený 6. 9. 2026 na ostrém serveru, tarif Základ) a jako postup napiš: *na úvodní
+  obrazovce zvol „Přihlásit se (mám kód účtu)", zadej kód účtu a heslo*.
+- ⚠⚠ **Zabezpečení dat — smazání účtu (13. 9. 2026).** Appka umožňuje založit účet, takže
+  Google vyžaduje (a) možnost smazat účet v appce — je: Nastavení → Více → O aplikaci →
+  Smazat účet — a (b) **URL pro žádost o smazání**:
+  `https://stepanvcelak11.github.io/ar-geodet/smazani-uctu.html`. Přesné položky formuláře
+  (jméno, interakce v aplikaci, protokoly chyb, ID zařízení; poloha se NEsbírá) jsou v
+  `play/texty.md`.
+  ⚠ Dokud není celá sekce Obsah aplikace zelená, Console nepustí vydání ani do
+  uzavřeného testu — a tím ani start 14denních hodin.
 
 ### A5. Nahraj balíček — začni Internal testing
 1. **Testing → Internal testing → Create release** → nahraj `.aab`.
@@ -83,8 +113,9 @@ webu; balíček se znovu nahrává jen při změně názvu/ikony/balíčku.
 ### A6. Digital Asset Links (zmizí adresní řádek Chromu)
 1. Play Console → **Setup (Nastavení) → App integrity → App signing key certificate** →
    zkopíruj **SHA‑256 certificate fingerprint**.
-2. Vlož ho do `.well-known/assetlinks.json` místo placeholderu
-   (`NAHRAD_OTISKEM_SHA256_Z_PLAY_CONSOLE_APP_SIGNING`), push na main.
+2. **Přidej ho** do pole `sha256_cert_fingerprints` v `.well-known/assetlinks.json` jako druhou
+   položku (první — otisk klíče z PWABuilderu — nech, hodí se pro `.apk` nainstalované
+   napřímo), push na main.
 3. Ověření: otevři appku z Playe — nesmí být vidět lišta s URL. Kontrola:
    `https://developers.google.com/digital-asset-links/tools/generator`.
 
@@ -131,4 +162,5 @@ Poznámky:
 - **Otestuj `.apk` z PWABuilderu v terénu** (kamera + GPS v TWA) dřív, než pozveš testery.
 - **Záloha `signing.keystore` + hesel** z PWABuilderu (bez nich nejde vydat update, pokud
   nepoužiješ Play App Signing — používej ho).
-- Feature graphic 1024×500 a texty do Playe — řekni si, připravím.
+- Feature graphic, screenshoty i texty do Playe jsou hotové (`play/snimky/`, `play/texty.md`).
+- **Ověř demo účet** (`play/texty.md`, App access) ještě před odesláním k recenzi — heslo se nedá obnovit.

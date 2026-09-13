@@ -331,7 +331,10 @@
     // až v tom modulu: ten jede v odkládací frontě a dok by prvních pár vteřin
     // vypadal jako Základ. Modul přehledu totéž jen udržuje (idempotentní).
     function znakPro() { try { if (document.body) document.body.classList.toggle('ag-pro', jePro()); } catch (e) { swallow(e, 'znakPro'); } }
-    if (document.body) znakPro(); else document.addEventListener('DOMContentLoaded', znakPro);
-    window.addEventListener('aglic:zmena', znakPro);
+    // (v try: scripts/test_licence.py spouští tenhle soubor v holém V8 bez document)
+    try {
+        if (document.body) znakPro(); else document.addEventListener('DOMContentLoaded', znakPro);
+        window.addEventListener('aglic:zmena', znakPro);
+    } catch (e) { swallow(e, 'znakPro'); }
 
 })();

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QTRIG — Smazání účtu</title>
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <!-- Google Play (13. 9. 2026): appka, ve které si člověk zakládá účet, musí mít
+         veřejnou stránku, jak účet a data smazat i bez appky. Adresa téhle stránky
+         se vyplňuje v Play Console → Zásady → Obsah aplikace → Zabezpečení dat →
+         „Adresa URL pro smazání účtu". Musí sedět s tím, co dělá POST /account/delete
+         v cloud/worker.js a tlačítko Smazat účet v js/ucty.js. -->
+    <style>
+        :root { color-scheme: dark; }
+        body { margin: 0 auto; max-width: 720px; padding: 32px 20px 60px; background: #0f1216; color: #e8edf2;
+               font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif; }
+        h1 { font-size: 26px; margin: 0 0 4px; }
+        h2 { font-size: 18px; margin: 28px 0 8px; color: #4ccd99; }
+        p, li { color: #c7cdd6; }
+        .muted { color: #8b93a1; font-size: 13.5px; }
+        a { color: #4ccd99; }
+        ul, ol { padding-left: 22px; }
+        code { background: rgba(255,255,255,0.08); border-radius: 5px; padding: 1px 6px; font-size: 14px; }
+        .box { border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 14px 16px; margin: 14px 0; }
+        .warn { border-color: rgba(229,83,75,0.5); }
+    </style>
+</head>
+<body>
+    <h1>Smazání účtu QTRIG</h1>
+    <p class="muted">Aplikace QTRIG · provozuje Štěpán Včelák · platí od 13. 9. 2026</p>
+
+    <p>Účet v aplikaci QTRIG můžeš kdykoli smazat sám — přímo v appce, nebo požádat o smazání bez ní.
+    Smazání je okamžité a <b>nevratné</b>.</p>
+
+    <h2>1. Smazání přímo v aplikaci (doporučeno)</h2>
+    <ol>
+        <li>Otevři appku a přihlas se k účtu, který chceš smazat.</li>
+        <li>Klepni na <b>Nastavení</b> (ozubené kolo v pravém sloupci tlačítek) → nahoře <b>Více</b> → <b>O aplikaci</b>.</li>
+        <li>Dole v části <b>Účet</b> klepni na <b>Smazat účet…</b></li>
+        <li>Napiš heslo k účtu a potvrď <b>Opravdu smazat účet</b>.</li>
+    </ol>
+    <p>Kdo má verzi Pro, najde totéž tlačítko i na obrazovce <b>Kde pracuju (prostory)</b>.</p>
+
+    <h2>2. Žádost o smazání bez aplikace</h2>
+    <p>Když appku už nemáš nebo se do ní nemůžeš přihlásit, napiš žádost na
+    <a href="https://github.com/stepanvcelak11/ar-geodet/issues/new?title=Smaz%C3%A1n%C3%AD%20%C3%BA%C4%8Dtu">github.com/stepanvcelak11/ar-geodet/issues</a>
+    (nebo přes „Napsat autorovi" v appce, pokud ji ještě máš). Uveď <b>kód účtu</b> (osm znaků, který ses dozvěděl při
+    založení účtu) a jméno, pod kterým jsi účet zakládal. Kvůli ověření, že účet je opravdu tvůj, se můžeme zeptat
+    na doplňující údaj (např. kdy a na jakém telefonu byl účet založený). Žádost vyřídíme nejpozději do 30 dnů
+    a dáme ti vědět stejnou cestou.</p>
+
+    <h2>Co se smaže</h2>
+    <div class="box warn">
+        <ul>
+            <li><b>Účet</b> — jméno, kód účtu, otisk hesla, nepovinný kontakt, tarif.</li>
+            <li><b>Tvoje vlastní místo (prostor)</b> na serveru včetně bodů a zakázek, které se do něj synchronizovaly.</li>
+            <li><b>Členství ve firmách</b>, do kterých jsi byl pozván, a tvoje záznamy užívání, polohy a hlášení chyb v nich.</li>
+            <li><b>Vzkazy</b> od autora appky pro tvůj účet.</li>
+        </ul>
+    </div>
+
+    <h2>Co zůstává a proč</h2>
+    <div class="box">
+        <ul>
+            <li><b>Body a zakázky v tvém telefonu</b> — ty patří tobě a na serveru nikdy nebyly (pokud jsi nezapnul
+                synchronizaci ve firmě). Smažeš je smazáním dat aplikace v telefonu (Nastavení → Aplikace → QTRIG →
+                Vymazat data, na iPhonu smazáním ikony z plochy).</li>
+            <li><b>Body a zakázky ve firmě</b>, jejímž jsi byl členem — patří firmě, ne jednotlivci (stejně jako
+                při odchodu z firmy). Jméno u nich zůstává jako informace, kdo bod měřil.</li>
+            <li><b>Objednávky a platby</b> verze Pro — účetní doklady, které musí být ze zákona uchovány; vazba na
+                účet se při smazání přeruší.</li>
+            <li><b>Hlášení chyb</b> z firem, kde jsi byl členem, se smažou s tvým jménem; hlášení, u kterých už jméno
+                nešlo dohledat, obsahují jen druh telefonu, verzi appky a text chyby a mažou se automaticky po 90 dnech.</li>
+        </ul>
+    </div>
+
+    <p class="muted">Jsi-li poslední správce firmy, ve které jsou další lidé, appka tě před smazáním požádá, abys
+    správu předal někomu jinému nebo z firmy odešel — jinak by firma zůstala bez správce.</p>
+
+    <p>Podrobnosti o tom, co appka ukládá, najdeš v <a href="soukromi.html">zásadách ochrany soukromí</a>.</p>
+</body>
+</html>

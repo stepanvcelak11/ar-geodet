@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 310,
+   "datum": "2026-09-13",
+   "nadpis": "Smazání účtu a upřesněné soukromí — příprava na Google Play",
+   "body": [
+    "<b>Smazat účet</b> přímo v appce: Nastavení → Více → O aplikaci → Smazat účet. Chce heslo, smaže účet i vlastní místo na serveru; body a zakázky v telefonu zůstanou. Bez appky jde požádat na stránce <i>smazani-uctu.html</i>.",
+    "<b>O aplikaci → Soukromí</b> říká přesně, co jde na server (údaje účtu, anonymní záznamy užívání, hlášení chyb) a co ne (poloha, obraz kamery). Stejně tak přepsané zásady ochrany soukromí.",
+    "Drobnost: odkaz na zásady soukromí a smazání účtu i v angličtině, němčině a polštině."
+   ]
+  },
+  {
    "v": 309,
    "datum": "2026-09-13",
    "nadpis": "Pro je do konce roku zdarma — stačí požádat",
