@@ -3,7 +3,7 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "io.github.stepanvcelak11.twa",
+      "package_name": "cz.stepanvcelak.argeodet",
       "sha256_cert_fingerprints": [
         "43:06:F4:E7:FB:26:42:5E:31:22:D9:E3:B8:5A:24:0A:AC:1D:E2:F7:28:AD:8E:B4:4D:C2:BF:04:87:1E:F8:AE"
       ]

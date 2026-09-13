@@ -13,7 +13,7 @@ Hosting běží na `https://stepanvcelak11.github.io/ar-geodet/` (veřejné repo
 | ✅ | `icon-maskable-192/512.png` | „maskable" varianta — Android si ji ořízne do kruhu, motiv je v bezpečné zóně |
 | ✅ | `apple-touch-icon.png` (180×180) | ikona pro iOS „Přidat na plochu" — **dosud byla SVG, kterou iOS ignoruje**, takže se na ploše ukazoval screenshot; teď bude správné logo |
 | ✅ | `manifest.json` | doplněno `id`, `scope`, `lang`, kategorie a PNG ikony (PWABuilder je vyžaduje) |
-| ✅ | `.well-known/assetlinks.json` | Digital Asset Links pro balíček `io.github.stepanvcelak11.twa` s otiskem podpisového klíče z PWABuilderu (29. 8. 2026); otisk Play App Signing se **přidá** v kroku A6 |
+| ✅ | `.well-known/assetlinks.json` | Digital Asset Links pro balíček `cz.stepanvcelak.argeodet` s otiskem podpisového klíče z PWABuilderu (29. 8. 2026); otisk Play App Signing se **přidá** v kroku A6 |
 | ✅ | `.nojekyll` | bez něj GitHub Pages (Jekyll) **neservíruje složku `.well-known`** → ověření domény by selhalo |
 | ✅ | `soukromi.html` | zásady ochrany soukromí — Play Console vyžaduje veřejnou URL (přepsáno 13. 9. 2026: účet povinný, co server ukládá) |
 | ✅ | `smazani-uctu.html` | **povinné od 2024**: appka se zakládáním účtu musí umět účet smazat v appce (O aplikaci → Smazat účet, `POST /account/delete`) a mít veřejnou stránku k žádosti — URL se vyplňuje v Zabezpečení dat |
@@ -26,10 +26,10 @@ a `…/smazani-uctu.html`.
 ## Stav k 13. 9. 2026 — co je hotové a co zbývá na tobě
 
 Hotové v repu: viz tabulka výše. Balíček z PWABuilderu z **29. 8. 2026** (`Geodet - Google Play
-package/`, mimo git) je **zastaralý**: jmenuje se „Geodet", má starou ikonu a verzi 1. Musí se
-vyrobit znovu (krok A2) — **se STEJNÝM balíčkem `io.github.stepanvcelak11.twa` a STEJNÝM
-podpisovým klíčem** (`signing.keystore` + hesla v `signing-key-info.txt`), jinak ho Play
-odmítne jako jinou appku / jiný podpis, a s vyšším číslem verze (2).
+package/`, mimo git) je **k ničemu**: jmenuje se „Geodet", má starou ikonu a hlavně JINÝ název
+balíčku (`io.github.stepanvcelak11.twa`) — Console chce `cz.stepanvcelak.argeodet`. Musí se
+vyrobit znovu (krok A2) s tímhle ID; podpisový klíč z něj (`signing.keystore` + hesla v
+`signing-key-info.txt`) se dá použít dál („Use mine"), klíč na názvu balíčku nezávisí.
 
 Zbývá udělat ručně v Play Console (nic z toho appka neudělá sama):
 1. Vygenerovat nový `.aab` (A2), nahrát do interního testu (A5).
@@ -60,9 +60,10 @@ webu; balíček se znovu nahrává jen při změně názvu/ikony/balíčku.
 1. https://www.pwabuilder.com → vlož `https://stepanvcelak11.github.io/ar-geodet/`.
 2. Zkontroluje manifest/SW (po téhle větvi projde) → **Package for stores → Android**.
 3. Nastavení balíčku:
-   - **Package ID**: `io.github.stepanvcelak11.twa` — to je ID z balíčku z 29. 8. 2026 a sedí
-     s `.well-known/assetlinks.json`. ⚠ **Neměnit**: po prvním nahrání do Play je ID navždy
-     (a když už byl starý balíček nahraný, jiné ID by Console odmítla jako cizí appku),
+   - **Package ID**: `cz.stepanvcelak.argeodet` — ⚠⚠ přesně tohle, Play Console ho má u appky
+     ZAMČENÉ (13. 9. 2026 odmítla balíček: „musí mít název balíčku cz.stepanvcelak.argeodet").
+     Srpnový balíček z PWABuilderu měl `io.github.stepanvcelak11.twa` a je k ničemu.
+     `.well-known/assetlinks.json` nese tohle ID,
    - **App name**: QTRIG, **Launcher name**: QTRIG, **verze**: 1.1.0, **version code**: 2
      (starý balíček má 1 — Play chce vždy vyšší),
    - **Signing key**: **„Use mine"** → nahraj `signing.keystore` ze složky
