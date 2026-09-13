@@ -72,7 +72,7 @@ async function refreshTLE(silent) {
         try { localStorage.setItem(TLE_CACHE_KEY, JSON.stringify({ t: tleFetchedAt, txt: txt })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'satelity:refreshTLE'); }
         updateSatObs(); renderSatModalStats();
     } catch (e) {
-        if (!silent) agInfo('Dráhy družic (TLE) se nepodařilo stáhnout — jste offline nebo je CelesTrak nedostupný.\nPredikce funguje z dříve stažených dat, pokud existují.');
+        if (!silent) agInfo('Dráhy družic (TLE) se nepodařilo stáhnout — jsi offline nebo je CelesTrak nedostupný.\nPredikce funguje z dříve stažených dat, pokud existují.');
     }
     if (btn) { btn.disabled = false; btn.innerHTML = '<svg class="icon"><use href="#i-download"/></svg> Aktualizovat dráhy (TLE)'; }
     renderSatModalStats();
@@ -208,7 +208,7 @@ function ensureSatModal() {
     el.innerHTML = `
         <div class="modal-content">
             <h3 style="color:var(--accent); margin-top:0; margin-bottom:5px;"><svg class="icon"><use href="#i-satellite"/></svg> GNSS satelity — predikce</h3>
-            <p style="margin:0 0 10px; font-size:calc(12.5px * var(--ag-font-scale, 1)); opacity:0.8;">Namiřte telefon na volný kus oblohy (mezi domy, korunami stromů) a uvidíte, které družice tam jsou — a které tam za chvíli doletí (↗ stoupá, ↘ zapadá).</p>
+            <p style="margin:0 0 10px; font-size:calc(12.5px * var(--ag-font-scale, 1)); opacity:0.8;">Namiř telefon na volný kus oblohy (mezi domy, korunami stromů) a uvidíš, které družice tam jsou — a které tam za chvíli doletí (↗ stoupá, ↘ zapadá).</p>
             <div class="modal-body">
                 <label class="filter-row" style="font-size:calc(14px * var(--ag-font-scale, 1));"><input type="checkbox" id="sat-ar-toggle" onchange="satARenabled = this.checked; if(satARenabled) _ensureSatTimer(); else hideSatAR();"> Zobrazit satelity v AR kameře</label>
                 <label style="margin-top:12px;">Předpověď: <span id="sat-time-val" style="color:var(--accent);">nyní</span></label>
@@ -244,7 +244,7 @@ function renderSatModalStats() {
     const div = document.getElementById('sat-stats'); if (!div) return;
     const m = document.getElementById('sat-modal'); if (!m || m.style.display !== 'flex') return;
     if (userLat == null) { div.innerHTML = '<p style="font-size:calc(13px * var(--ag-font-scale, 1)); opacity:0.7;">Čekám na GPS pozici…</p>'; return; }
-    if (!tleSats.length) { div.innerHTML = '<p style="font-size:calc(13px * var(--ag-font-scale, 1)); opacity:0.7;">Zatím nejsou stažené dráhy družic (TLE) — klepněte na Aktualizovat.</p>'; return; }
+    if (!tleSats.length) { div.innerHTML = '<p style="font-size:calc(13px * var(--ag-font-scale, 1)); opacity:0.7;">Zatím nejsou stažené dráhy družic (TLE) — klepni na Aktualizovat.</p>'; return; }
     const vis = satObs.filter(o => o.el >= SAT_EL_MASK);
     const counts = {}; SAT_SYS.forEach(s => counts[s.key] = 0);
     vis.forEach(o => { if (counts[o.sys] != null) counts[o.sys]++; });

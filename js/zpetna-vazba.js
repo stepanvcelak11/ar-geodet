@@ -364,14 +364,14 @@
             '  <h2 style="margin-top:0;"><span style="display:inline-block;width:22px;height:22px;vertical-align:-4px;color:var(--accent);">' + ICON + '</span> Napsat autorovi</h2>' +
             '  <div class="modal-body">' +
             '    <p style="margin:0 0 14px;color:var(--text-muted,#9aa1ac);font:500 13px/1.5 var(--font-ui,system-ui);">' +
-            '      Co vám nesedí, co chybí, co byste změnili? Čte to autor appky — a podle toho, co sem přijde, se appka mění.</p>' +
+            '      Co ti nesedí, co chybí, co bys změnil? Čte to autor appky — a podle toho, co sem přijde, se appka mění.</p>' +
             '    <label>Čeho se to týká</label>' +
             '    <div class="ag-fb-kinds" id="ag-fb-kinds"></div>' +
-            '    <label for="ag-fb-txt">Vaše zpráva</label>' +
-            '    <textarea id="ag-fb-txt" maxlength="' + MAX + '" placeholder="Co se stalo, kde, a co jste čekali, že se stane…"></textarea>' +
+            '    <label for="ag-fb-txt">Tvoje zpráva</label>' +
+            '    <textarea id="ag-fb-txt" maxlength="' + MAX + '" placeholder="Co se stalo, kde, a co jsi čekal, že se stane…"></textarea>' +
             '    <div class="ag-fb-cnt" id="ag-fb-cnt"></div>' +
             '    <label for="ag-fb-contact">Kontakt (e-mail) — nepovinné</label>' +
-            '    <input type="email" id="ag-fb-contact" maxlength="120" autocomplete="email" placeholder="jen když chcete odpověď">' +
+            '    <input type="email" id="ag-fb-contact" maxlength="120" autocomplete="email" placeholder="jen když chceš odpověď">' +
             '    <label class="ag-fb-chk"><input type="checkbox" id="ag-fb-meta" checked>' +
             '      <span>Přiložit údaje o zařízení<small>verze appky, telefon, prohlížeč — pomůže při hledání chyby</small></span></label>' +
             '    <label class="ag-fb-chk"><input type="checkbox" id="ag-fb-ctx" checked>' +
@@ -659,8 +659,8 @@
         if (a === 'mail') {
             try {
                 window.location.href = 'mailto:' + encodeURIComponent(rec.contact) +
-                    '?subject=' + encodeURIComponent('QTRIG — odpověď na vaši zprávu') +
-                    '&body=' + encodeURIComponent('\n\n---\nVaše zpráva:\n' + rec.txt);
+                    '?subject=' + encodeURIComponent('QTRIG — odpověď na tvoji zprávu') +
+                    '&body=' + encodeURIComponent('\n\n---\nTvoje zpráva:\n' + rec.txt);
             } catch (err) { swallow(err, 'mail'); }
             return;
         }

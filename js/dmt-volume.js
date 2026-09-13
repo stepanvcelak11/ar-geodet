@@ -506,7 +506,7 @@
         overlay.querySelector('#dmt-close2').addEventListener('click', close);
         overlay.querySelector('#dmt-load').addEventListener('click', function () {
             var list = gatherFromProject();
-            if (!list.length) { quickToastSafe('V zakázce nemáte vlastní body s výškou. Vlož seznam Y X Z.'); return; }
+            if (!list.length) { quickToastSafe('V zakázce nemáš vlastní body s výškou. Vlož seznam Y X Z.'); return; }
             if (setPoints(list)) quickToastSafe('Načteno bodů: ' + list.length);
         });
         overlay.querySelector('#dmt-paste').addEventListener('click', function () {

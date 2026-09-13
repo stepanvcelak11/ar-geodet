@@ -87,7 +87,7 @@
     window.exportPointsDXF = function () {
         var pts = (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) ? persistentCustomPoints : [];
         var lines = (typeof pointLines !== 'undefined' && Array.isArray(pointLines)) ? pointLines : [];
-        if (!pts.length && !lines.length) { alertFail('Nemáte co exportovat', 'V zakázce nejsou žádné vlastní body ani spojnice.'); return; }
+        if (!pts.length && !lines.length) { alertFail('Není co exportovat', 'V zakázce nejsou žádné vlastní body ani spojnice.'); return; }
         if (typeof proj4 !== 'function') { alertFail('Export selhal', 'Chybí knihovna proj4 pro převod do S-JTSK.'); return; }
 
         try {

@@ -180,7 +180,10 @@ function buildRuleBased(items, today) {
     if (top < 0) top = 0;
     if (polozky[top]) polozky[top].top = true;
     const ciziCount = polozky.filter((p) => p.zdroj !== 'ČÚZK').length;
-    const uvodnik = 'Vydání ' + today + ' — ' + polozky.length + ' zpráv z geodézie'
+    // datum lidsky (12. 9. 2026), ne ISO — v appce stojí hned pod hlavičkou „Vydání so 12. 9. 2026"
+    const [yy, mm, dd] = String(today).split('-');
+    const dnesCz = (dd && mm && yy) ? (Number(dd) + '. ' + Number(mm) + '. ' + yy) : today;
+    const uvodnik = 'Vydání ' + dnesCz + ' — ' + polozky.length + ' zpráv z geodézie'
         + (ciziCount ? ' (zahraniční zdroje v původním znění).' : '.');
     return { vydani: today, uvodnik, polozky };
 }

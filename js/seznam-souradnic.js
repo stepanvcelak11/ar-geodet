@@ -242,7 +242,7 @@
 
     function doExport() {
         var list = pts();
-        if (!list.length) { msg('Nemáte žádné body.'); return; }
+        if (!list.length) { msg('Nemáš žádné body.'); return; }
         if (conflict(cfg)) { msg('Desetinná čárka nejde kombinovat s čárkou jako oddělovačem — řádek by se rozpadl. Přepni jedno z toho.'); return; }
         var text = buildText(cfg);
         var proj = (typeof activeProjectId !== 'undefined') ? activeProjectId : 'body';
@@ -393,7 +393,7 @@
     // veřejné rozhraní — jméno funkce hlásí výběr formátů v index.html
     // ---------------------------------------------------------------------------
     window.exportPointsSeznam = function () {
-        if (!pts().length) { msg('Nemáte žádné body.'); return; }
+        if (!pts().length) { msg('Nemáš žádné body.'); return; }
         open();
     };
     window.AGSeznam = { open: open, buildText: buildText, encodeCp1250: encodeCp1250 };

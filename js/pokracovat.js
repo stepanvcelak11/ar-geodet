@@ -103,6 +103,7 @@
             level: 'info', order: 40,
             text: 'Naposledy jsi měl otevřené: ' + rec.label
                 + ' (' + (pn ? 'zakázka ' + pn + ' · ' : '') + relAge(rec.ts) + ')',
+            short: 'Pokračovat: ' + rec.label,       // do pilulky (celá věta se tam uřízla)
             action: 'Otevřít',
             onAction: function () { _done = true; AGNotify.clear('pokracovat'); resume(); },
             onDismiss: function () { _dismissed = true; }

@@ -286,7 +286,7 @@
                 if (!t.isConnected) return;
                 if (vzdano) {
                     if (typeof window.quickToast === 'function')
-                        quickToast('Nástroj se ještě stahuje. Zkuste to prosím za chvíli.');
+                        quickToast('Nástroj se ještě stahuje. Zkus to za chvíli.');
                     window.AG && AG.swallow && AG.swallow(
                         new Error('modul dlazdice nedorazil do ' + WAIT_MAX_MS + ' ms'), 'lazy-load:retry');
                     return;

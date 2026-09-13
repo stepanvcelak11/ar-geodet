@@ -111,7 +111,7 @@ function renderStakeoutList() {
     const bar = document.getElementById('stk-progress-bar'); if (bar) bar.style.width = (cands.length ? Math.round(doneCount / cands.length * 100) : 0) + '%';
     const txt = document.getElementById('stk-progress-txt'); if (txt) txt.innerText = doneCount + ' / ' + cands.length;
     if (!cands.length) {
-        listDiv.innerHTML = '<p style="text-align:center; opacity:0.7; font-size:calc(13px * var(--ag-font-scale, 1));">Žádné body k vytyčení.<br>Naimportujte nebo vložte vlastní body, případně vypněte filtr „Jen vlastní body".</p>';
+        listDiv.innerHTML = '<p style="text-align:center; opacity:0.7; font-size:calc(13px * var(--ag-font-scale, 1));">Žádné body k vytyčení.<br>Naimportuj nebo vlož vlastní body, případně vypni filtr „Jen vlastní body".</p>';
         return;
     }
     cands.forEach(({ pt, d }) => {

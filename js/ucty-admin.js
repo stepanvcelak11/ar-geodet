@@ -106,7 +106,7 @@
         var box = body.querySelector('#agfa-uform'); if (!box) return;
         box.innerHTML =
             '<div style="border:1px solid var(--glass-border,rgba(255,255,255,0.15));border-radius:12px;padding:12px;margin-top:10px;">' +
-            '<label class="agfa-lb">Kolik míst potřebujete celkem</label>' +
+            '<label class="agfa-lb">Kolik míst potřebuješ celkem</label>' +
             '<input type="number" inputmode="numeric" id="agfa-rq-n" min="' + (max + 1) + '" max="500" value="' + (max + 5) + '">' +
             '<label class="agfa-lb">Proč — pár slov stačí</label>' +
             '<textarea id="agfa-rq-r" maxlength="600" rows="4" placeholder="Kolik nás je, na čem děláme…"></textarea>' +
@@ -353,8 +353,8 @@
         if (!f) {
             bar.innerHTML =
                 '<span class="agfa-fb-ico">' + (NAV_ICO.firma || '') + '</span>' +
-                '<span class="agfa-fb-txt"><b>Nejsi přihlášen k žádné firmě</b>' +
-                '<span>omezený režim — jen základní měření bodů</span></span>' +
+                '<span class="agfa-fb-txt"><b>Nejsi přihlášen</b>' +
+                '<span>bez účtu se appka neotevře — přihlas se, nebo si na úvodní obrazovce založ účet</span></span>' +
                 '<button type="button" class="agfa-mini" id="agfa-fb-switch">Přihlásit se</button>';
         } else {
             bar.innerHTML =
@@ -599,9 +599,8 @@
             '<div class="agfa-note">Appka se otevře až po přihlášení. Každá firma má <b>kód</b> (např. K7M2PX) — ' +
             'zaměstnanec na svém mobilu zadá kód firmy + své jméno + heslo (účet mu předtím založí admin v sekci Uživatelé). ' +
             'Po prvním přihlášení s internetem funguje přihlášení i <b>offline</b> (heslo se ověří proti otisku uloženému v zařízení). ' +
-            'Kdo nemá účet, může appku zkusit v <b>omezeném režimu</b> — jen základní měření bodů, bez nástrojů a exportu. ' +
-            'Z omezeného režimu vede zpátky <b>pruh dole nad lištou</b> („Omezený režim — Přihlásit se"); ' +
-            'omezený režim se tedy nezavírá napořád, jak to od 31. 8. 2026 chvíli vypadalo.</div>' +
+            'Kdo nemá účet, založí si ho na úvodní obrazovce (jméno, název prostoru, heslo — bez e-mailu) a pracuje ve <b>svém vlastním prostoru</b>; ' +
+            'do firmy se pak připojí pozvacím kódem (Více → Kde pracuju). Bez účtu se appka neotevře.</div>' +
             '<div class="agfa-pg">Role a oprávnění</div>' +
             '<div class="agfa-note"><b>Admin</b> vidí a může vše: spravuje uživatele, oprávnění i firmu a vidí přehled užívání. ' +
             '<b>Vedení</b> a <b>zaměstnanec</b> vidí jen to, co jim admin povolí v sekci Oprávnění (vedení může navíc dostat přehled užívání). ' +
@@ -2173,8 +2172,8 @@
         if (!f) {
             body.innerHTML =
                 '<div class="agfa-pg">Přihlášení k firmě</div>' +
-                '<div class="agfa-note">Teď jedeš v <b>omezeném režimu</b> bez přihlášení — jde jen základní měření bodů. ' +
-                'Nástroje, export, zakázky a firemní přehledy potřebují účet ve firmě.</div>' +
+                '<div class="agfa-note">Nejsi přihlášen. Bez účtu se appka neotevře — účet si založíš na úvodní obrazovce, ' +
+                'nebo se přihlásíš ke firmě, ve které už účet máš.</div>' +
                 '<div class="agfa-note">Kód firmy, jméno a heslo dostaneš od svého admina. Kdo firmu teprve zakládá, ' +
                 'najde průvodce tlačítkem níž.</div>' +
                 '<button class="btn" style="width:100%;margin-top:10px;" id="agfa-fy-gate">Přihlásit se ke své firmě</button>' +

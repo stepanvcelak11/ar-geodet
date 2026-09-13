@@ -102,7 +102,11 @@
         'bottom-sheet': 1, 'map-sheet': 1, 'side-menu': 1,
         // nabídky a dialogy, které se otevřou samy (ne z Nástrojů)
         'ag-bio-ask': 1, 'ag-gz-set': 1, 'ag-gz-pad': 1, 'ag-gz-tr': 1,
-        'agfa-modal': 1, 'trash-modal': 1, 'hidden-pts-modal': 1
+        'agfa-modal': 1, 'trash-modal': 1, 'hidden-pts-modal': 1,
+        // karta Verze Pro (js/pro-zamky.js + pro-karta.js, js/map-tools.js): otevírá ji
+        // klepnutí na ZAMČENOU dlaždici, takže prošla jako „nástroj" a dostala chevron
+        // Sbalit vedle křížku — přitom má být jen křížek (13. 9. 2026)
+        'ag-pro-modal': 1, 'ag-map-pro-modal': 1, 'ag-koupe-modal': 1
     };
 
     var _cur = null;        // právě sbalený nástroj {cfg, modal, disp}

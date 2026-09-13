@@ -2,6 +2,99 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 300,
+   "datum": "2026-09-13",
+   "nadpis": "Prohlídka appky: appka tyká všude, verze v O aplikaci, drobnosti",
+   "body": [
+    "<b>Appka tyká všude</b> — poslední okna, která vykala (Napsat autorovi, sdílení bodů, výpočty, kalibrace kompasu, upozornění na úložiště…), mluví stejně jako zbytek. Překlady EN/DE/PL k tomu sedí.",
+    "<b>O aplikaci ukazuje skutečnou verzi</b> (dřív tam stálo „1.9“ napořád) a <b>Historie aktualizací</b> má doplněné záznamy v286–v299.",
+    "<b>Karta bodu:</b> seznamy „Skupina bodů“ a „Body v okolí“ říkají, že klepnutí otevře kartu (ne navigaci).",
+    "<b>Průvodce Firma a účty</b> už nepopisuje zrušený „omezený režim“; brána vydrží klepnutí na „Další možnosti“ hned po startu.",
+    "<b>Okno DMT</b> má hlavičku a křížek jako ostatní okna; karta Pro už nemá zbytečné „Sbalit“.",
+    "<b>Stavová pilulka:</b> „Pokračovat: …“ se do ní vejde; odmítnutý zámek displeje (pozadí, úsporný režim) se nehlásí jako chyba.",
+    "<b>Základ v přehledu Pro</b> vypisuje všechny volné nástroje; lišta akcí v Tachymetrii naznačuje, že roluje; odkazy u profilů mají větší terč; datum ve Zpravodaji je lidsky."
+   ]
+  },
+  {
+   "v": 299,
+   "datum": "2026-09-12",
+   "nadpis": "Hledání v Nastavení drží rozepsaný text, start lehčí",
+   "body": [
+    "<b>Hledání v Nastavení</b> mazalo první písmena, když jsi začal psát hned po otevření — opraveno.",
+    "<b>Start appky je o 36 kB lehčí</b>: obsah karty bodu se stahuje až při prvním otevření karty.",
+    "<b>Karta bodu ve světlém motivu</b> je čitelná (dřív bílé písmo na bílém)."
+   ]
+  },
+  {
+   "v": 297,
+   "datum": "2026-09-12",
+   "nadpis": "Karta bodu: náčrt nad ortofotem, tažení za proužek",
+   "body": [
+    "<b>Náčrt okolí leží nad ortofotem s hranicemi parcel</b> (podklad z ČÚZK), sousední body do 150 m, oměrné a měřítko.",
+    "<b>Výška se ukazuje i u nivelačních bodů</b> — bodové pole ČÚZK ji má u všech vrstev, appka ji dřív u nivelace přehlížela.",
+    "<b>Kartu bodu potáhneš za proužek</b> nahoru přes celou obrazovku a zpátky dolů.",
+    "<b>Vlastník:</b> nová verze jde ostatním až po „Pustit ostatním“ v konzoli — vydání se dá zabrzdit, když se něco pokazí."
+   ]
+  },
+  {
+   "v": 295,
+   "datum": "2026-09-12",
+   "nadpis": "Karta bodu je přehled, ne navigace",
+   "body": [
+    "<b>Klepnutí na bod</b> (v mapě, v seznamu shluku, v Bodech v okolí) otevře <b>kartu bodu</b> a nenavádí. Navigaci spustíš z karty tlačítkem <b>Doveď mě</b>; k dispozici je i <b>Kontrolní bod</b> a <b>Vytyčeno</b>.",
+    "<b>Karta jako mozaika:</b> Y/X velkým písmem s ikonou druhu, přesnost barevně, stav, výška, vzdálenost ode mě, kdy a odkud změřeno, zakázka, fotky.",
+    "<b>Měřický náčrt okolí:</b> sousední body, oměrné mezi nimi, parcely a značka „ty“, když jsi v záběru."
+   ]
+  },
+  {
+   "v": 291,
+   "datum": "2026-09-12",
+   "nadpis": "Face ID pro vlastníka, přepnutí firmy na přihlášení",
+   "body": [
+    "<b>Vlastník appky se přihlásí Face ID / otiskem</b> místo opisování dlouhého klíče (nabídne se po prvním přihlášení klíčem).",
+    "<b>Přepnout firmu</b> je i na přihlašovací obrazovce — když zařízení zná víc firem nebo prostorů.",
+    "<b>Vlastník:</b> přehled, deník, kalendář, záloha a pohled očima účtu v konzoli; zlatý motiv oken vlastníka."
+   ]
+  },
+  {
+   "v": 290,
+   "datum": "2026-09-12",
+   "nadpis": "Prohlídka appky: čtrnáct oprav toho, co nešlo nebo nesedělo",
+   "body": [
+    "<b>Brána → „Další možnosti“ byla mrtvá obrazovka</b> (přes průvodce ležel startovní překryv) — jde.",
+    "<b>Kolečko „Sbalit“ v Zápisnících</b> dojíždělo přes tlačítko Zavřít; rozcestníky uprostřed obrazovky kolečko nemají.",
+    "<b>Panel Měřit plochu</b> ležel přes svislý dok a prosvítal skrz ostatní okna.",
+    "<b>Hledání v Nástrojích:</b> nadpisy skupin se sesypaly nahoru — při hledání jsou pryč, zůstávají jen dlaždice.",
+    "<b>Okna bodové pole, srovnat sever, balíček zakázky a dvojí měření</b> jsou přes celou obrazovku jako ostatní (dřív skrz ně prosvítal HUD).",
+    "<b>Stavová pilulka</b> má kratší texty a křížek s větším terčem; protokol chyb má tlačítka 2×2.",
+    "<b>Napsat autorovi:</b> pole Kontakt bylo nestylované."
+   ]
+  },
+  {
+   "v": 288,
+   "datum": "2026-09-12",
+   "nadpis": "Pro na žádost, zamčené nástroje až dole, kompas podle senzoru",
+   "body": [
+    "<b>Verze Pro se nekupuje, žádá se:</b> karta Pro přes celou obrazovku, tlačítko <b>Požádat o Pro</b> (jméno, kontakt, zpráva) — vlastník ji zapne. Kdo má klíč, opíše ho tam.",
+    "<b>Zamčené nástroje jsou v Nástrojích až dole</b> v jedné sekci „Ve verzi Pro“; skupiny nahoře jsou jen z toho, co je zdarma.",
+    "<b>Kolečko nástrojů</b> má pro každou skupinu stejný počet lístků (prázdné čárkované), Zpět je přesně dole.",
+    "<b>Přepnout firmu už na úvodní obrazovce</b>, když zařízení zná víc firem.",
+    "<b>Kompas hlásil „mlčí“, i když se mapa točila</b> — hlídání se teď řídí opravdu událostmi ze senzoru."
+   ]
+  },
+  {
+   "v": 286,
+   "datum": "2026-09-11",
+   "nadpis": "Appka se jmenuje QTRIG; Základ zdarma, zbytek v Pro",
+   "body": [
+    "<b>Nové jméno QTRIG a nová ikona</b> (Q jako měřický terč). Adresa, data ani zakázky se nemění.",
+    "<b>Základ zdarma = 21 úkonů do terénu:</b> změřit, plocha, oměrné, přesná GPS, vytyčit podle seznamu, zápisník, závady, koš, kompas, sever, GNSS, počasí, katastr kde stojím, bodové pole, přenosy, změnit zakázku, příručka, kalkulačka. <b>Osa, rajón, geo-fotka, import projektu, brífink a gesta jsou v Pro.</b>",
+    "<b>Vrstvy:</b> zdarma Mapa/Ortofoto a otáčení; katastr, Na mě, Měřit plochu, Uložit offline a Ukázat cíl jsou v Pro.",
+    "<b>Křížky zase zavírají okna</b> (regrese z 8. 9.).",
+    "<b>Vlastník appky se přihlásí jménem VLASTNIK</b> a heslem = klíč; jedna ikona, všechno odemčené."
+   ]
+  },
+  {
    "v": 283,
    "datum": "2026-09-09",
    "nadpis": "Kompas zase jede, Nástroje jsou uklizené, start je svižnější",

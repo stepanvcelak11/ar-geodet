@@ -2699,10 +2699,23 @@
                     errEl.textContent = 'Modul administrace (ucty-admin.js) není načtený.';
                 }
             };
-            if (!window.AGUctyAdmin && window.AGLazy && typeof AGLazy.need === 'function') {
+            if (window.AGUctyAdmin) run();
+            else {
+                // ⚠ 13. 9. 2026: brána se ukáže dřív, než doběhne i js/lazy-load.js — klepnutí
+                //   v první vteřině pak nemělo ani AGLazy a skončilo hláškou „není načtený".
+                //   Teď se na modul čeká (přes AGLazy, jakmile je; nejdéle 12 s).
                 errEl.textContent = 'Načítám…';
-                AGLazy.need('js/ucty-admin.js', function () { errEl.textContent = ''; run(); });
-            } else run();
+                var cekam = 0, pozadano = false;
+                var t = setInterval(function () {
+                    cekam += 200;
+                    if (window.AGUctyAdmin) { clearInterval(t); errEl.textContent = ''; run(); return; }
+                    if (!pozadano && window.AGLazy && typeof AGLazy.need === 'function') {
+                        pozadano = true;
+                        try { AGLazy.need('js/ucty-admin.js', function () {}); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:agg-new'); }
+                    }
+                    if (cekam >= 12000) { clearInterval(t); run(); }
+                }, 200);
+            }
         };
         ov.querySelector('#agg-reg').onclick = function () { showRegister(gateApi); };
 

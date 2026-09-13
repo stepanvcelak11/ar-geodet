@@ -137,7 +137,7 @@
     // ---- ① data z registru -------------------------------------------------------
     // Vrací { skupiny:[{t, radky:[{r, deti:[r]}]}], zaklad, pro, hubu, radku, base:[r] }.
     function data() {
-        var out = { skupiny: [], zaklad: 0, pro: 0, hubu: 0, radku: 0, base: [] };
+        var out = { skupiny: [], zaklad: 0, pro: 0, hubu: 0, radku: 0, base: [], volne: [] };
         if (!window.AGReg) return out;
         var all = AGReg.all(), verbs = AGReg.verbs(), i, r;
         var byVerb = {}, poradi = verbs.concat([DALSI]), radek = {};
@@ -165,7 +165,9 @@
             out.radku++;
             if (r.hub) { out.hubu++; continue; }
             if (r.pro) out.pro++; else out.zaklad++;
-            if (r.base) out.base.push(r);
+            // do karty „Základ" jdou VŠECHNY volné nástroje (do 13. 9. 2026 jen ty s
+            // příznakem base — karta pak hlásila „26 nástrojů" a vypsala 8)
+            if (r.base) out.base.push(r); else if (!r.pro) out.volne.push(r);
         }
         return out;
     }
@@ -202,7 +204,8 @@
         var d = data(), h = '', i, j;
         // karty nahoře
         var baseVl = [];
-        for (i = 0; i < d.base.length; i++) baseVl.push(d.base[i].vl || d.base[i].k);
+        var vse = d.base.concat(d.volne);   // napřed ty s příznakem base, pak zbytek volných
+        for (i = 0; i < vse.length; i++) baseVl.push(vse[i].vl || vse[i].k);
         h += '<div class="agpp-karty">' +
             '<div class="agpp-karta zk"><b>Základ</b><i>zdarma · ' + d.zaklad + ' nástrojů</i><ul>' + seznam(baseVl, 6) + '</ul></div>' +
             '<div class="agpp-karta pro"><b>Pro</b><i>navíc ' + d.pro + ' nástrojů</i><ul>';

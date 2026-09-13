@@ -99,7 +99,7 @@
         const skipped = arr.length - added;
         const withDoc = arr.filter(o => o.doc).length;
         const photos = arr.reduce((n, o) => n + (o.doc && o.doc.photos ? o.doc.photos.length : 0), 0);
-        let msg = `Přidáno ${added} bodů` + (skipped ? `, ${skipped} přeskočeno (už je máte)` : '');
+        let msg = `Přidáno ${added} bodů` + (skipped ? `, ${skipped} přeskočeno (už je máš)` : '');
         if (added && withDoc) msg += ` — včetně poznámek` + (photos ? ` a ${photos} fotek` : '');
         if (typeof quickToast === 'function') quickToast(msg + '.'); else agInfo(msg + '.');
         return added;
@@ -158,13 +158,13 @@
         m.className = 'modal-overlay'; m.id = 'qr-share-modal';
         m.innerHTML = `<div class="modal-content" style="max-width:420px;">
             <h3 style="color:var(--accent); margin-top:0;">Sdílet body</h3>
-            <div style="font-size:calc(13px * var(--ag-font-scale, 1)); color:var(--text-muted); margin-bottom:10px;">Kolega naskenuje QR kód a vaše vybrané body se mu přidají. <b>Fotky se do QR nevejdou</b> — na ty použijte soubor níže.</div>
+            <div style="font-size:calc(13px * var(--ag-font-scale, 1)); color:var(--text-muted); margin-bottom:10px;">Kolega naskenuje QR kód a tvoje vybrané body se mu přidají. <b>Fotky se do QR nevejdou</b> — na ty použij soubor níže.</div>
             <div id="qr-share-list" class="modal-body" style="max-height:30vh; text-align:left;"></div>
             <label class="filter-row" style="margin-top:8px;"><input type="checkbox" id="qr-share-notes" checked> Přenést i poznámky u bodů</label>
             <button class="btn btn-primary" id="qr-share-gen" style="margin-top:10px;">Vytvořit QR z vybraných</button>
             <div id="qr-share-out" style="text-align:center; margin-top:12px;"></div>
             <div style="border-top:1px solid var(--glass-border); margin-top:14px; padding-top:12px;">
-                <div style="font-size:calc(13px * var(--ag-font-scale, 1)); color:var(--text-muted); margin-bottom:8px;">Kompletní předání <b>včetně fotek a výšek</b> — soubor pošlete kolegovi (Messenger, e-mail, WhatsApp…) a on ho načte tlačítkem „Načíst ze souboru".</div>
+                <div style="font-size:calc(13px * var(--ag-font-scale, 1)); color:var(--text-muted); margin-bottom:8px;">Kompletní předání <b>včetně fotek a výšek</b> — soubor pošli kolegovi (Messenger, e-mail, WhatsApp…) a on ho načte tlačítkem „Načíst ze souboru".</div>
                 <button class="btn btn-secondary" id="qr-share-file" style="margin:0;">Soubor s fotkami a poznámkami</button>
                 <div id="qr-share-fout" style="font-size:calc(12px * var(--ag-font-scale, 1)); color:var(--text-muted); margin-top:8px;"></div>
             </div>
@@ -186,7 +186,7 @@
     function escHtml(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
     window.openShareQR = function () {
-        if (typeof persistentCustomPoints === 'undefined' || !persistentCustomPoints.length) { agInfo('Nemáte žádné vlastní body ke sdílení.'); return; }
+        if (typeof persistentCustomPoints === 'undefined' || !persistentCustomPoints.length) { agInfo('Nemáš žádné vlastní body ke sdílení.'); return; }
         ensureLib('js/lib/qrcode.min.js').catch(function () {});   // predehrat, nez uzivatel klikne na "Vytvorit"
         buildShareModal();
         const list = document.getElementById('qr-share-list');
@@ -200,7 +200,7 @@
     function generateFromSelection() {
         const sel = selectedPoints();
         const out = document.getElementById('qr-share-out');
-        if (!sel.length) { out.innerHTML = '<span style="color:var(--warning);">Vyberte alespoň jeden bod.</span>'; return; }
+        if (!sel.length) { out.innerHTML = '<span style="color:var(--warning);">Vyber aspoň jeden bod.</span>'; return; }
         if (typeof qrcode === 'undefined') {
             out.innerHTML = '<span style="color:var(--text-muted);">Načítám knihovnu QR…</span>';
             ensureLib('js/lib/qrcode.min.js').then(generateFromSelection)
@@ -229,10 +229,10 @@
                 if (notes) sub += `, ${notes}× poznámka`;
                 sub += ' — ukažte kolegovi k naskenování';
                 let warn = '';
-                if (photosLeft) warn = `<div style="font-size:calc(12px * var(--ag-font-scale, 1)); color:var(--warning); margin-top:6px;">${photosLeft} fotek se přes QR nepřenese — pošlete soubor níže.</div>`;
+                if (photosLeft) warn = `<div style="font-size:calc(12px * var(--ag-font-scale, 1)); color:var(--warning); margin-top:6px;">${photosLeft} fotek se přes QR nepřenese — pošli soubor níže.</div>`;
                 out.innerHTML = `<img src="${url}" alt="QR" style="width:100%; max-width:300px; image-rendering:pixelated; background:#fff; border-radius:8px;"><div style="font-size:calc(12px * var(--ag-font-scale, 1)); color:var(--text-muted); margin-top:6px;">${escHtml(sub)}</div>${warn}`;
             } catch (e) {
-                out.innerHTML = `<span style="color:var(--danger);">Do jednoho QR kódu se to nevejde (${sel.length} bodů${notes ? ' s poznámkami' : ''}). Vyberte méně bodů, vypněte poznámky, nebo pošlete soubor.</span>`;
+                out.innerHTML = `<span style="color:var(--danger);">Do jednoho QR kódu se to nevejde (${sel.length} bodů${notes ? ' s poznámkami' : ''}). Vyber méně bodů, vypni poznámky, nebo pošli soubor.</span>`;
             }
         }).catch(function () { out.innerHTML = '<span style="color:var(--danger);">Body se nepodařilo připravit.</span>'; });
     }
@@ -241,7 +241,7 @@
     function sharePackage() {
         const sel = selectedPoints();
         const out = document.getElementById('qr-share-fout');
-        if (!sel.length) { out.innerHTML = '<span style="color:var(--warning);">Vyberte alespoň jeden bod.</span>'; return; }
+        if (!sel.length) { out.innerHTML = '<span style="color:var(--warning);">Vyber aspoň jeden bod.</span>'; return; }
         out.textContent = 'Balím body, poznámky a fotky…';
         loadDocs(sel).then(docs => {
             const pkg = buildPkg(sel, docs);

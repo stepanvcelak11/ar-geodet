@@ -192,9 +192,11 @@
             '#ag-prof-row button:active{transform:scale(0.97);}',
             '#ag-prof-note{margin:6px 2px 0;font:500 11.5px/1.45 var(--font-ui,system-ui),sans-serif;color:var(--text-muted,#9aa1ac);}',
             '#ag-prof-note b{color:var(--text-color,#eceef2);}',
-            '#ag-prof-note button[data-del]{display:inline-block;margin-left:2px;background:none;border:none;padding:0;',
+            // odkazy v poznámce: písmo zůstává malé, ale terč má aspoň 30 px na výšku
+            // (do 13. 9. 2026 měl 17 px — nejmenší klepací prvek v Nastavení)
+            '#ag-prof-note button[data-del]{display:inline-block;background:none;border:none;padding:7px 2px;margin:-7px 0 -7px 2px;',
             '  cursor:pointer;color:var(--danger,#ef4444);font:600 11.5px/1.45 var(--font-ui,system-ui),sans-serif;text-decoration:underline;}',
-            '#ag-prof-note button[data-snap]{display:inline-block;background:none;border:none;padding:0;cursor:pointer;',
+            '#ag-prof-note button[data-snap]{display:inline-block;background:none;border:none;padding:7px 2px;margin:-7px 0;cursor:pointer;',
             '  color:var(--accent,#2f9e74);font:600 11.5px/1.45 var(--font-ui,system-ui),sans-serif;text-decoration:underline;}',
 
             // ---- PRŮVODCE vlastním profilem ----

@@ -175,7 +175,7 @@
             + '<input type="text" id="ag-ep-new-name" placeholder="např. 501 — římsa mostu"></label>'
             + '<button class="btn" data-act="add-item">Založit sledovaný bod</button>'
             + '<label class="ag-ep-fld" style="margin-top:10px;"><span>…nebo sledovat existující vlastní bod</span>'
-            + '<select id="ag-ep-from-pt"><option value="">— vyberte vlastní bod —</option>' + customPointOptions() + '</select></label>'
+            + '<select id="ag-ep-from-pt"><option value="">— vyber vlastní bod —</option>' + customPointOptions() + '</select></label>'
             + '<div class="ag-ep-mini">Nový sledovaný bod se po uložení 1. epochy přidá i do vlastních bodů; poloha propojeného bodu se pak drží na poslední epoše.</div></div>';
         return h;
     }
@@ -243,7 +243,7 @@
             + '<label class="btn btn-secondary ag-ep-sm" style="margin:0;"><svg class="icon" style="width:15px;height:15px;margin-right:5px;"><use href="#i-camera"/></svg>OCR z fotky<input type="file" id="ag-ep-ocr" accept="image/*" style="display:none;"></label>'
             + '<button class="btn btn-secondary ag-ep-sm" data-act="gps">GPS mobilu</button>'
             + '</div>'
-            + '<label class="ag-ep-fld" style="margin-top:8px;"><span>…nebo převzít souřadnice z bodu v appce</span><select id="ag-ep-pt"><option value="">— vyberte bod —</option>' + pointOptions() + '</select></label>'
+            + '<label class="ag-ep-fld" style="margin-top:8px;"><span>…nebo převzít souřadnice z bodu v appce</span><select id="ag-ep-pt"><option value="">— vyber bod —</option>' + pointOptions() + '</select></label>'
             + '<div class="ag-ep-mini" style="margin-top:2px;">OCR / GPS / bod jen předvyplní pole — před uložením zkontroluj.</div>'
             + '</div>';
 

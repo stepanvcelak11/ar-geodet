@@ -95,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=299">
-    <link rel="stylesheet" href="css/style.css?v=299">
+    <link rel="stylesheet" href="css/tokens.css?v=300">
+    <link rel="stylesheet" href="css/style.css?v=300">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -227,7 +227,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=299">
+    <link rel="stylesheet" href="css/vylepseni.css?v=300">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
          render-blokující: prohlížeč nevykreslí ani pixel, dokud nedorazí VŠECHNY.
          Jedenáct z nich (69 kB) přitom patřilo oknům, která se při startu vůbec
@@ -576,7 +576,7 @@
     <div class="modal-overlay" id="cluster-modal">
         <div class="modal-content">
             <h3 style="color: var(--accent); margin-top:0; margin-bottom: 5px;">Skupina bodů</h3>
-            <p style="margin-top: 0; font-size: calc(13px * var(--ag-font-scale, 1)); opacity: 0.8;">Vyberte bod pro zobrazení v AR a detailech:</p>
+            <p style="margin-top: 0; font-size: calc(13px * var(--ag-font-scale, 1)); opacity: 0.8;">Vyber bod — otevře se jeho karta:</p>
             <div class="modal-body" id="cluster-list" style="margin-top: 10px;"></div>
             <button class="btn btn-secondary" style="margin-top: 15px;" onclick="document.getElementById('cluster-modal').style.display='none'">Zrušit výběr</button>
         </div>
@@ -585,7 +585,7 @@
     <div class="modal-overlay" id="nearby-modal">
         <div class="modal-content">
             <h3 style="color: var(--accent); margin-top:0; margin-bottom: 5px;">Body v okolí</h3>
-            <p style="margin-top: 0; font-size: calc(13px * var(--ag-font-scale, 1)); opacity: 0.8;">Seřazeno podle vzdálenosti · klepni pro navigaci:</p>
+            <p style="margin-top: 0; font-size: calc(13px * var(--ag-font-scale, 1)); opacity: 0.8;">Seřazeno podle vzdálenosti · klepnutím otevřeš kartu bodu:</p>
             <div class="modal-body" id="nearby-list" style="margin-top: 10px;"></div>
             <button class="btn btn-secondary" style="margin-top: 15px;" onclick="document.getElementById('nearby-modal').style.display='none'">Zavřít</button>
         </div>
@@ -686,7 +686,7 @@
                         <label class="st-sw"><input type="checkbox" id="s-lefthand"><span class="st-sw-face"></span></label></div>
                     <div class="st-row"><span class="st-lab">Vibrace<small>potvrzení uložení bodu a ťuknutí v AR (iPhone vibrace neumí)</small></span>
                         <label class="st-sw"><input type="checkbox" id="s-vibration" checked onchange="toggleVibration()"><span class="st-sw-face"></span></label></div>
-                    <div class="st-row"><span class="st-lab">Animace<small>Android je často vypíná systémově, iPhone ne — tady je srovnáte</small></span>
+                    <div class="st-row"><span class="st-lab">Animace<small>Android je často vypíná systémově, iPhone ne — tady je srovnáš</small></span>
                         <!-- min-width 130px NESTAČILO: „Podle systému" potřebuje 140 px i se šipkou,
                              takže se text v selectu ořezával na „Podle systé…". Šířku proto řídí
                              obsah (fit-content) a strop je 58 % řádku, ať popisek vlevo nezmizí. -->
@@ -785,7 +785,7 @@
                                 <input type="range" id="s-heading-smooth" min="0" max="95" step="5" value="75" oninput="document.getElementById('s-heading-smooth-val').innerText = this.value">
                             </div>
                             <div class="st-slider">
-                                <div class="st-slider-head"><span class="st-lab">Zorný úhel kamery – šířka<small>nevíte kolik? <a href="#" onclick="event.preventDefault(); document.getElementById(&quot;settings-modal&quot;).style.display=&quot;none&quot;; window.agOpenFovKalibrace &amp;&amp; window.agOpenFovKalibrace();">změřit průvodcem</a></small></span><span class="st-val"><span id="s-fovh-val">90</span> °</span></div>
+                                <div class="st-slider-head"><span class="st-lab">Zorný úhel kamery – šířka<small>nevíš kolik? <a href="#" onclick="event.preventDefault(); document.getElementById(&quot;settings-modal&quot;).style.display=&quot;none&quot;; window.agOpenFovKalibrace &amp;&amp; window.agOpenFovKalibrace();">změřit průvodcem</a></small></span><span class="st-val"><span id="s-fovh-val">90</span> °</span></div>
                                 <input type="range" id="s-fovh" min="40" max="120" step="2" value="90" oninput="document.getElementById('s-fovh-val').innerText = this.value">
                             </div>
                             <div class="st-slider">
@@ -939,10 +939,10 @@
                 </div>
                 <div class="geo-highlight" style="border-left-color:#fbbf24;">
                     <strong><svg class="icon" style="vertical-align:-0.18em; color:#fbbf24;"><use href="#i-alert"/></svg> Upozornění</strong>
-                    <p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55; margin:8px 0 0;">Aplikace je <b>orientační pomůcka</b>, nikoli měřicí přístroj. Zobrazená poloha bodů závisí na přesnosti GPS a kompasu telefonu (běžně ±3–7 m, kompas je citlivý na magnetické rušení). Ani dlouhé průměrování, DGPS z druhého mobilu nebo kalibrace na referenční bod z telefonu <b>neudělají RTK rover</b> — pro geometrický plán, vytyčení hranice a další úřední výstupy platí měření ověřeným přístrojem. Body v terénu vždy ověřte a nehledejte je na centimetr přímo na AR značce. Za rozhodnutí učiněná na základě aplikace nese odpovědnost uživatel.</p>
+                    <p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55; margin:8px 0 0;">Aplikace je <b>orientační pomůcka</b>, nikoli měřicí přístroj. Zobrazená poloha bodů závisí na přesnosti GPS a kompasu telefonu (běžně ±3–7 m, kompas je citlivý na magnetické rušení). Ani dlouhé průměrování, DGPS z druhého mobilu nebo kalibrace na referenční bod z telefonu <b>neudělají RTK rover</b> — pro geometrický plán, vytyčení hranice a další úřední výstupy platí měření ověřeným přístrojem. Body v terénu vždy ověř a nehledej je na centimetr přímo na AR značce. Za rozhodnutí učiněná na základě aplikace nese odpovědnost uživatel.</p>
                 </div>
                 <h4 style="color:var(--accent); margin-top:18px; border-bottom:1px solid var(--glass-border); padding-bottom:5px;">Soukromí</h4>
-                <p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55;">Měření zůstává <b>ve vašem telefonu</b>: poloha (GPS) i obraz z kamery se zpracovávají lokálně, kamerový obraz se nikam neodesílá a body i nastavení jsou uložené v tomto zařízení. Internet se používá pro stažení bodů a mapových podkladů (služby níže) a pro předpověď počasí (souřadnice místa).</p><p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55;">Navíc jen tehdy, když si je sami zapnete:<br>• <b>Firemní režim</b> — přihlášení, docházka, chat a synchronizace bodů běží přes firemní server aplikace; bez přihlášení k firmě se nic neodesílá.<br>• <b>Přepis hlasových poznámek</b> — rozpoznávání řeči v prohlížeči posílá zvuk na server jeho výrobce (Google/Apple). Přepis lze vypnout, pak zůstane jen nahrávka v telefonu.<br>• <b>Zpravodaj a předpovědi GNSS</b> — stahují veřejná data (dráhy družic, geomagnetický index).</p>
+                <p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55;">Měření zůstává <b>ve tvém telefonu</b>: poloha (GPS) i obraz z kamery se zpracovávají lokálně, kamerový obraz se nikam neodesílá a body i nastavení jsou uložené v tomto zařízení. Internet se používá pro stažení bodů a mapových podkladů (služby níže) a pro předpověď počasí (souřadnice místa).</p><p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55;">Navíc jen tehdy, když si je sám zapneš:<br>• <b>Firemní režim</b> — přihlášení, docházka, chat a synchronizace bodů běží přes firemní server aplikace; bez přihlášení k firmě se nic neodesílá.<br>• <b>Přepis hlasových poznámek</b> — rozpoznávání řeči v prohlížeči posílá zvuk na server jeho výrobce (Google/Apple). Přepis lze vypnout, pak zůstane jen nahrávka v telefonu.<br>• <b>Zpravodaj a předpovědi GNSS</b> — stahují veřejná data (dráhy družic, geomagnetický index).</p>
                 <h4 style="color:var(--accent); margin-top:18px; border-bottom:1px solid var(--glass-border); padding-bottom:5px;">Zdroje dat</h4>
                 <p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.55;">Bodová pole, ortofoto a katastrální mapa: <b>Podkladová data © ČÚZK</b> — užití se řídí Podmínkami poskytování ČÚZK a Zásadami užívání dat a služeb ZÚ.<br>Mapový podklad: © přispěvatelé <b>OpenStreetMap</b> (licence ODbL).<br>Odkazy na katastr: Mapy.cz, iKatastr.cz, Geoprohlížeč ČÚZK.<br>Počasí: Open-Meteo (modely ECMWF, DWD ICON, Météo-France, NOAA a další), MET Norway, DWD MOSMIX, srážkový radar RainViewer.<br>Dráhy družic: Celestrak (TLE). Geomagnetický index Kp: NOAA SWPC.</p>
             </div>
@@ -952,9 +952,9 @@
     <div class="modal-overlay" id="compass-calib-modal">
         <div class="modal-content" style="text-align:center;">
             <div style="font-size: calc(54px * var(--ag-font-scale, 1)); line-height:1; margin:6px 0 10px; color:var(--accent);">∞</div>
-            <h3 style="color:var(--accent); margin:0 0 10px;">Zkalibrujte kompas</h3>
-            <p style="font-size: calc(14px * var(--ag-font-scale, 1)); line-height:1.55; opacity:0.9;">Než začnete navigovat, několikrát otočte telefonem ve vzduchu do tvaru <b>ležaté osmičky</b> (∞) a nakloňte ho přitom do všech směrů.</p>
-            <p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.5; opacity:0.75;">Ukazatel níže se plní, jak telefonem hýbete. Bez kalibrace může směr ukazovat chybně; zopakujte ji, když se u azimutu objeví ⚠ nebo jste poblíž kovu či elektrického vedení.</p>
+            <h3 style="color:var(--accent); margin:0 0 10px;">Zkalibruj kompas</h3>
+            <p style="font-size: calc(14px * var(--ag-font-scale, 1)); line-height:1.55; opacity:0.9;">Než začneš navigovat, několikrát otoč telefonem ve vzduchu do tvaru <b>ležaté osmičky</b> (∞) a nakloň ho přitom do všech směrů.</p>
+            <p style="font-size: calc(13px * var(--ag-font-scale, 1)); line-height:1.5; opacity:0.75;">Ukazatel níže se plní, jak telefonem hýbeš. Bez kalibrace může směr ukazovat chybně; zopakuj ji, když se u azimutu objeví ⚠ nebo jsi poblíž kovu či elektrického vedení.</p>
             <div id="calib-progress-wrap"><div id="calib-progress"></div></div>
             <div id="calib-progress-txt">0 %</div>
             <button class="btn btn-secondary" style="margin-top:14px;" onclick="dismissCompassCalib()">Přeskočit</button>

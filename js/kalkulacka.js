@@ -36,10 +36,10 @@ function _ptFld(idp, label) {
 }
 function _getPt(idp, label) {
     const y = _cv(idp + '-y'), x = _cv(idp + '-x');
-    if (y == null || x == null) throw 'Vyplňte souřadnice: ' + label;
+    if (y == null || x == null) throw 'Vyplň souřadnice: ' + label;
     return { y: Math.abs(y), x: Math.abs(x) };
 }
-function _req(id, label) { const v = _cv(id); if (v == null) throw 'Vyplňte: ' + label; return v; }
+function _req(id, label) { const v = _cv(id); if (v == null) throw 'Vyplň: ' + label; return v; }
 function _resBox(html, col) { return `<div class="geo-highlight" style="border-left-color:${col || 'var(--accent)'}; margin-top:14px;">${html}</div>`; }
 function _row(l, v) { return `<div class="geo-data-row" style="border:none; padding:3px 0;"><span class="geo-label">${l}</span><span class="geo-value">${v}</span></div>`; }
 function _calcErr(e) { const out = document.getElementById('calc-result'); if (out) out.innerHTML = _resBox(`<span style="color:var(--danger);">${e}</span>`, 'var(--danger)'); }
@@ -61,7 +61,7 @@ function openCalcPicker(idp) {
     let pts = arPoints.filter(p => !p.hidden);
     if (userLat != null) pts = pts.map(p => ({ p: p, d: getDistance(userLat, userLng, p.lat, p.lng) })).sort((a, b) => a.d - b.d).map(o => o.p);
     pts = pts.slice(0, 80);
-    if (!pts.length) list.innerHTML = '<p style="text-align:center; opacity:0.7;">Žádné body. Stáhněte okolí nebo vložte vlastní.</p>';
+    if (!pts.length) list.innerHTML = '<p style="text-align:center; opacity:0.7;">Žádné body. Stáhni okolí nebo vlož vlastní.</p>';
     pts.forEach(p => {
         // S-JTSK z GeoCore (jediný autoritativní převod, hlídá pořadí os) — tahle
         // čísla se geodetovi rovnou vypisují do dlaždice a dosazují do formuláře.
@@ -234,7 +234,7 @@ function calcProtUhel() {
         if (Math.abs(den) < 1e-9) throw 'Záměry jsou rovnoběžné — bod nelze protnout.';
         const t = ((B.y - A.y) * Math.cos(sm2 * GON) - (B.x - A.x) * Math.sin(sm2 * GON)) / den;
         const P = polarYX(A.y, A.x, sm1, t);
-        if (t < 0) throw 'Záměry se protínají za zády stanoviska A — zkontrolujte úhly.';
+        if (t < 0) throw 'Záměry se protínají za zády stanoviska A — zkontroluj úhly.';
         _puRes = { name: _cs('pu-name') || 'Protínání', y: P.y, x: P.x };
         const gamma = Math.abs(gonDiff(sm1, sm2));
         const warn = (gamma < 33 || gamma > 367 || (gamma > 167 && gamma < 233)) ? `<div style="color:#fbbf24; font-size:calc(12px * var(--ag-font-scale, 1)); padding-top:4px;">⚠ Úhel protnutí ${fmtGon(gamma)} gon je nepříznivý (ideál kolem 100 gon) — výsledek bude málo přesný.</div>` : '';
@@ -313,7 +313,7 @@ function calcVolne() {
             if (y == null || x == null || psi == null || d == null) throw 'Záměra ' + (i + 1) + ' není kompletní.';
             obs.push({ gy: Math.abs(y), gx: Math.abs(x), ly: d * Math.sin(psi * GON), lx: d * Math.cos(psi * GON), psi: psi, d: d });
         }
-        if (obs.length < 2) throw 'Zadejte alespoň 2 kompletní záměry.';
+        if (obs.length < 2) throw 'Zadej aspoň 2 kompletní záměry.';
         const n = obs.length;
         const lcy = obs.reduce((a, o) => a + o.ly, 0) / n, lcx = obs.reduce((a, o) => a + o.lx, 0) / n;
         const gcy = obs.reduce((a, o) => a + o.gy, 0) / n, gcx = obs.reduce((a, o) => a + o.gx, 0) / n;
@@ -479,7 +479,7 @@ function calcTachy() {
             _tcRes.push({ name: name, y: P.y, x: P.x, z: Z });
             rows += _row('<b>' + name + '</b>', 'Y ' + P.y.toFixed(2) + ' · X ' + P.x.toFixed(2) + (Z != null ? ' · Z ' + Z.toFixed(2) : ''));
         }
-        if (!_tcRes.length) throw 'Zadejte alespoň jeden bod.';
+        if (!_tcRes.length) throw 'Zadej aspoň jeden bod.';
         document.getElementById('calc-result').innerHTML = _resBox(_row('Orientační posun', fmtGon(oposun) + ' gon')
             + (mRed !== 1 ? _row('Redukce do S-JTSK', 'm = ' + mRed.toFixed(7) + ' (' + (((mRed - 1) * 100000) >= 0 ? '+' : '') + ((mRed - 1) * 100000).toFixed(1) + ' cm/km)') : '')
             + rows)
@@ -519,7 +519,7 @@ function calcNivel() {
             if (b == null || f == null) throw 'Sestava ' + (i + 1) + ' není kompletní.';
             rows.push({ b: b, f: f });
         }
-        if (!rows.length) throw 'Zadejte alespoň jednu sestavu.';
+        if (!rows.length) throw 'Zadej aspoň jednu sestavu.';
         const n = rows.length;
         const sumB = rows.reduce((a, r) => a + r.b, 0), sumF = rows.reduce((a, r) => a + r.f, 0);
         const dH = sumB - sumF;
@@ -738,7 +738,7 @@ function calcPrevod() {
     try {
         const s = document.getElementById('pv-src').value;
         const a = _cv('pv-a'), b = _cv('pv-b');
-        if (a == null || b == null) throw 'Vyplňte obě souřadnice.';
+        if (a == null || b == null) throw 'Vyplň obě souřadnice.';
         proj4.defs('UTM33N', '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs');
         let lat, lng;
         if (s === 'sjtsk') { const c = sjtskToLatLng(Math.abs(a), Math.abs(b)); lat = c.lat; lng = c.lng; }
@@ -1060,7 +1060,7 @@ function decoratePointItem(item, pt, preloadedDoc) {
 // export bodu (JSON) vc. foto-dokumentace
 (function () {
     window.exportPoints = async function () {
-        if (typeof persistentCustomPoints === 'undefined' || persistentCustomPoints.length === 0) return agInfo('Nemáte žádné body.');
+        if (typeof persistentCustomPoints === 'undefined' || persistentCustomPoints.length === 0) return agInfo('Nemáš žádné body.');
         const out = [];
         for (const pt of persistentCustomPoints) {
             const o = Object.assign({}, pt);

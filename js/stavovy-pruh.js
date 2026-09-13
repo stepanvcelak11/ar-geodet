@@ -419,7 +419,8 @@
             // dřív vedla jediná cesta přes detail → kartu upozornění (tři ťuknutí).
             // O paměť odkliknutí se stará modul hlášky (gps-warn se ozve zas až při
             // výrazném zhoršení) — tady se jen volá AGNotify.dismiss(id).
-            parts.push('<span class="ag-sp-alert ' + noteCls(note.level) + '">' + esc(note.text) + '</span>'
+            // note.short = kratší podoba pro pilulku (modul ji dá, když je věta dlouhá)
+            parts.push('<span class="ag-sp-alert ' + noteCls(note.level) + '">' + esc(note.short || note.text) + '</span>'
                 + (note.count > 1 ? '<span class="ag-sp-ncount">' + note.count + '</span>' : '')
                 + (note.id ? '<button type="button" class="ag-sp-x" data-note="' + esc(note.id)
                     + '" aria-label="Rozumím, skrýt upozornění">×</button>' : ''));

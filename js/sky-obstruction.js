@@ -134,7 +134,7 @@
             return;
         }
         if (!hasTle()) {
-            body.innerHTML = '<p class="sky-note sky-warn">Nejsou stažené dráhy družic (TLE). Otevřete „GNSS satelity (AR)" a klepněte na Aktualizovat dráhy — pak se sem vraťte.</p>';
+            body.innerHTML = '<p class="sky-note sky-warn">Nejsou stažené dráhy družic (TLE). Otevři „GNSS satelity (AR)" a klepni na Aktualizovat dráhy — pak se sem vrať.</p>';
             return;
         }
 
@@ -169,7 +169,7 @@
             + '<input type="range" id="sky-obs-mask" min="0" max="45" step="1" value="' + mask + '">'
             + '<span class="sky-mask-val" id="sky-obs-mask-val">' + mask + '°</span>'
             + '</div>'
-            + '<div class="sky-hint">Posuňte podle toho, jak vysoko kolem vás zaclání domy, stromy nebo svah. Volné nebe ≈ 5–10°, mezi domy/v lese i 25°+.</div>'
+            + '<div class="sky-hint">Posuň podle toho, jak vysoko kolem tebe zaclání domy, stromy nebo svah. Volné nebe ≈ 5–10°, mezi domy/v lese i 25°+.</div>'
             + '</div>';
 
         // hodnocení
@@ -191,7 +191,7 @@
                 + ' <span class="sky-pdop-note">(počítáno nad 10° — vlastní horizont nemusí sedět)</span></div>';
         }
 
-        html += '<p class="sky-note">Orientační pomůcka. Telefonní GNSS má systematickou chybu ~5–15 m a maska je odhad — skutečné zaclonění (zeď, mokré listí) může být horší. Pro nejlepší fix hledejte volný výhled na jih.</p>';
+        html += '<p class="sky-note">Orientační pomůcka. Telefonní GNSS má systematickou chybu ~5–15 m a maska je odhad — skutečné zaclonění (zeď, mokré listí) může být horší. Pro nejlepší fix hledej volný výhled na jih.</p>';
 
         body.innerHTML = html;
 
@@ -219,7 +219,7 @@
         el.innerHTML =
             '<div class="modal-content">' +
             '  <h3 style="color:var(--accent); margin-top:0; margin-bottom:5px;"><svg class="icon"><use href="#i-satellite"/></svg> Predikce signálu (skyplot)</h3>' +
-            '  <p style="margin:0 0 10px; font-size:calc(12.5px * var(--ag-font-scale, 1)); opacity:0.8;">Kde jsou družice nad vámi a kolik jich zbude, když si nastavíte, jak vysoko kolem vás zaclání okolí.</p>' +
+            '  <p style="margin:0 0 10px; font-size:calc(12.5px * var(--ag-font-scale, 1)); opacity:0.8;">Kde jsou družice nad tebou a kolik jich zbude, když si nastavíš, jak vysoko kolem tebe zaclání okolí.</p>' +
             '  <div class="modal-body" id="sky-obs-body"></div>' +
             '  <button class="btn btn-secondary" style="margin-top:15px;" id="sky-obs-close">Zavřít</button>' +
             '</div>';

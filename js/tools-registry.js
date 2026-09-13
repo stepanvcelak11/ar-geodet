@@ -364,7 +364,7 @@
           help: { t: 'Moje aktivita' } },
         { k: 'rocenka', pro: 1, inhub: 'moje-cisla', verb: 'Firma a papíry', vl: 'Ročenka', vh: 'rok a měsíc v číslech, mapa kde jsi byl', keys: 'rocenka rok v cislech mesic statistika souhrn roku kde jsem byl mapa roku odznaky serie kolik jsem nachodil vyrocni prehled bilance',
           help: { t: 'Ročenka' } },
-        { k: 'kolize-bodu', fn: 'openKolizeBodu', pro: 1, cat: 'Měření', verb: 'Změřit', vl: 'Body na sobě', vh: 'nezměřili jste s kolegou týž bod dvakrát?', keys: 'kolize duplicita dvojity bod dva body na sobe stejny bod tyz bod kolega spoluprace sdilena zakazka slouceni bodu prekryv',
+        { k: 'kolize-bodu', fn: 'openKolizeBodu', pro: 1, cat: 'Měření', verb: 'Změřit', vl: 'Body na sobě', vh: 'nezměřil jsi s kolegou týž bod dvakrát?', keys: 'kolize duplicita dvojity bod dva body na sobe stejny bod tyz bod kolega spoluprace sdilena zakazka slouceni bodu prekryv',
           help: { t: 'Body na sobě' }, w: 1 },
 
         // ── Příručka a výpočty ──────────────────────────────────────────

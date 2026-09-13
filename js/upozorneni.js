@@ -522,10 +522,11 @@
         if (prev && prev.text === opt.text && prev.level === lvl) {
             prev.onAction = opt.onAction; prev.onDismiss = opt.onDismiss;
             if (opt.action) prev.action = opt.action;
+            prev.short = opt.short || null;
             return;                                   // beze změny — nepřekresluj
         }
         _notes[id] = {
-            id: id, level: lvl, text: opt.text, order: opt.order || 0,
+            id: id, level: lvl, text: opt.text, short: opt.short || null, order: opt.order || 0,
             action: opt.action || null,
             onAction: opt.onAction, onDismiss: opt.onDismiss,
             seq: prev ? prev.seq : (++_seq)
@@ -573,6 +574,10 @@
             return {
                 id: w.id,
                 text: headText(list, w),
+                // volitelná KRÁTKÁ podoba pro stavovou pilulku (vedle přesnosti a azimutu
+                // tam zbývá ~135 px; „Naposledy jsi měl otevřené: Protokol chyb (před 2 min)"
+                // se tam uřízlo na „Naposledy jsi měl ot…")
+                short: (!_expanded && w.short) ? w.short : null,
                 level: (LVL[w.level] != null ? w.level : 'info'),
                 count: list.length
             };
