@@ -180,7 +180,7 @@
         injectStyles();
         m = document.createElement('div');
         m.className = 'modal-overlay';
-        m.id = 'ag-su-modal';
+        m.id = 'ag-su-modal'; m.setAttribute('data-ag-needs', 'gps kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         m.innerHTML =
             '<div class="modal-content">' +
             '  <h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Slunce a světlo</h3>' +

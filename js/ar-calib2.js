@@ -103,7 +103,7 @@
         injectStyle();
         var m = document.getElementById('agc2-modal');
         if (m) return m;
-        m = document.createElement('div'); m.id = 'agc2-modal';
+        m = document.createElement('div'); m.id = 'agc2-modal'; m.setAttribute('data-ag-needs', 'gps kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         m.innerHTML =
             '<div id="agc2-card">'
             + '<h3>Srovnat AR na 2 body</h3>'
@@ -175,7 +175,7 @@
     // ---- zaměřovací overlay (krok 1 a 2) ---------------------------------------
     function ensureAim() {
         if (document.getElementById('agc2-aim')) return;
-        var a = document.createElement('div'); a.id = 'agc2-aim';
+        var a = document.createElement('div'); a.id = 'agc2-aim'; a.setAttribute('data-ag-needs', 'kamera kompas gps'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         a.innerHTML =
             '<div class="agc2-top" id="agc2-aim-txt"></div>'
             + '<div id="agc2-cross"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="34" fill="none" stroke="#34d399" stroke-width="2"/>'

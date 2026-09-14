@@ -182,7 +182,7 @@
     function ensureModal() {
         if (document.getElementById(DLG_ID)) return;
         var el = document.createElement('div');
-        el.className = 'modal-overlay'; el.id = DLG_ID;
+        el.className = 'modal-overlay'; el.id = DLG_ID; el.setAttribute('data-ag-needs', 'gps kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         el.innerHTML = '<div class="modal-content">'
             + '<h3 style="color:var(--accent); margin-top:0; margin-bottom:5px;">' + ICON + ' Krokový offset (PDR)</h3>'
             + '<div class="modal-body" id="ag-pdr-body"></div>'

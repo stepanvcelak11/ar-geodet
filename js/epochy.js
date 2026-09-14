@@ -580,7 +580,7 @@
         if (document.getElementById(MODAL_ID)) return;
         injectStyles();
         var ov = document.createElement('div');
-        ov.className = 'modal-overlay'; ov.id = MODAL_ID; ov.style.zIndex = '100001'; ov.style.display = 'none';
+        ov.className = 'modal-overlay'; ov.id = MODAL_ID; ov.style.zIndex = '100001'; ov.style.display = 'none'; ov.setAttribute('data-ag-needs', 'gps'); /* js/power-save.js: GPS neuspávat, dokud je okno vidět */
         ov.innerHTML = '<div class="modal-content"><div class="modal-body" id="ag-ep-body"></div></div>';
         document.body.appendChild(ov);
     }

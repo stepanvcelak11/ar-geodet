@@ -692,6 +692,27 @@
                 if (!v || !v.id) return;
                 AGNotify.set('ag-vzkaz-' + v.id, {
                     text: 'Vzkaz od autora appky' + (v.komu === 'firma' ? ' (celé firmě)' : '') + ': ' + v.txt, level: 'info', order: -6,
+                    // ODPOVĚDĚT (14. 9. 2026, na přání vlastníka): odpověď jde stejnou cestou jako
+                    // „Napsat autorovi" (POST /feedback, kind 'odpoved', s kódem účtu v meta),
+                    // takže ji vlastník vidí ve schránce Zprávy a může zase odpovědět do appky.
+                    // Po odeslání se vzkaz odbaví jako přečtený.
+                    action: { label: 'Odpovědět', fn: function () {
+                        var dotaz = (typeof window.agGet === 'function') ? window.agGet : null;
+                        if (!dotaz) return;
+                        dotaz('Vzkaz: „' + String(v.txt).slice(0, 200) + '“', { title: 'Odpovědět autorovi appky', placeholder: 'Tvoje odpověď…', okText: 'Odeslat' }).then(function (txt) {
+                            txt = (txt == null) ? '' : String(txt).trim();
+                            if (!txt) return;
+                            var go = function () {
+                                if (!window.AGZpetna || !AGZpetna.poslat) { try { agInfo('Odeslání není k dispozici — použij Nastavení → Více → Napsat autorovi.'); } catch (e) { /* bez dialogu */ } return; }
+                                AGZpetna.poslat({ kind: 'odpoved', txt: txt, meta: { vzkaz: v.id, na: String(v.txt).slice(0, 160) } }).then(function (n) {
+                                    // dismiss() zavolá onDismiss níže = přečteno na serveru + pryč z místní kopie
+                                    try { AGNotify.dismiss('ag-vzkaz-' + v.id); } catch (e) { swallow(e, 'odp-dismiss'); }
+                                    try { (window.AG && AG.toast ? AG.toast : quickToast)(n ? 'Odpověď odeslána autorovi.' : 'Odpověď se odešle, až bude signál.'); } catch (e) { /* bez toastu */ }
+                                });
+                            };
+                            if (window.AGZpetna) go(); else if (window.AGLazy) AGLazy.need('js/zpetna-vazba.js', go); else go();
+                        });
+                    } },
                     onDismiss: function () {
                         try { AGUcty.cloudFetch('/vzkaz/precteno', { method: 'POST', body: { id: v.id } }); } catch (e) { swallow(e, 'precteno'); }
                         try { f.vzkazy = (f.vzkazy || []).filter(function (x) { return x.id !== v.id; }); localStorage.setItem('agFirma_v1', JSON.stringify(f)); } catch (e) { swallow(e, 'vzkaz-ls'); }

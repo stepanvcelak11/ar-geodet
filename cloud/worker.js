@@ -1446,6 +1446,7 @@ export default {
             // Starsi nasazeny worker tuhle polozku nema, takze podle ni pozna appka,
             // ze na serveru bezi stara verze — viz js/hodinky-parovani.js.
             //
+            // v:22 = /feedback prijima kind 'odpoved' (odpoved cloveka na vzkaz od vlastnika).
             // v:21 = POST /account/delete (smazani uctu na vlastni zadost — pozadavek Google Play).
             // v:12 = prodej Pro: /objednavky, /owner/objednavky, /owner/blokace, cron s Fio.
             // v:7 = /feedback (schranka na vzkazy, bez tokenu) + /owner/* (konzole vlastnika).
@@ -1458,7 +1459,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 21, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 22, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
 
             // ---------------- BRZDA VYDÁNÍ (12. 9. 2026) ---------------------
             // Vlastník vyvíjí a testuje na svém telefonu, ale lidem venku nesmí
@@ -1568,7 +1569,9 @@ export default {
                 // nemusí hledat, komu Pro zapnout.
                 // 'hodnoceni' = otázka Jak ti to sedí? třetí den používání (13. 9. 2026): 1–5 hvězd
                 // v `hvezd`, ukládá se do meta (schéma feedbacku se nemění).
-                const kind = ['chyba', 'napad', 'pochvala', 'jine', 'pro', 'hodnoceni'].indexOf(String(b.kind || '')) >= 0 ? String(b.kind) : 'jine';
+                // 'odpoved' = odpověď člověka na vzkaz od vlastníka (14. 9. 2026): meta.vzkaz = id vzkazu,
+                // meta.na = začátek textu vzkazu, meta.ucet = kód účtu (vlastník může zase odpovědět do appky).
+                const kind = ['chyba', 'napad', 'pochvala', 'jine', 'pro', 'hodnoceni', 'odpoved'].indexOf(String(b.kind || '')) >= 0 ? String(b.kind) : 'jine';
                 const contact = b.contact ? String(b.contact).trim().slice(0, 120) : null;
                 // meta = dobrovolné údaje o zařízení (verze appky, telefon, prohlížeč).
                 // Ukládá se jako řetězec, ne rozparsované — ať se schéma nemusí měnit
@@ -1580,7 +1583,7 @@ export default {
                     .bind(Date.now(), kind, txt, contact, meta, who).run();
                 // notifikace vlastníkovi (13. 9. 2026): žádost o Pro zvlášť, ostatní jako zpráva
                 try {
-                    const nadpis = kind === 'pro' ? 'Žádost o Pro' : (kind === 'hodnoceni' ? 'Nové hodnocení' : 'Nová zpráva');
+                    const nadpis = kind === 'pro' ? 'Žádost o Pro' : (kind === 'hodnoceni' ? 'Nové hodnocení' : (kind === 'odpoved' ? 'Odpověď na vzkaz' : 'Nová zpráva'));
                     const p = pushVsem(env, kind === 'pro' ? 'zadosti' : 'zpravy', { t: nadpis + (who ? ' — ' + who : ''), b: txt.slice(0, 120), go: kind === 'pro' ? 'zadosti' : 'zpravy' });
                     if (ctx && ctx.waitUntil) ctx.waitUntil(p); else await p;
                 } catch (e) {}

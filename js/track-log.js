@@ -82,6 +82,9 @@
 
     function setRecording(on) {
         _recording = on;
+        // GPS nesmí za záznamu usnout (js/power-save.js ji uspává pod kalkulačkou, Nastavením…
+        // — ve stopě by byla díra, a to i s appkou na pozadí)
+        try { if (window.AGPower) { if (on) AGPower.hold('gps', 'track-log'); else AGPower.release('gps', 'track-log'); } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'track-log:hold'); }
         if (on && !_poll) _poll = setInterval(sample, POLL_MS);
         if (!on && _poll) { clearInterval(_poll); _poll = null; }
         if (on) sample();

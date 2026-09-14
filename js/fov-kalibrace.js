@@ -149,7 +149,7 @@
     function ensureAim() {
         if (byId('agfov-aim')) return;
         var a = document.createElement('div');
-        a.id = 'agfov-aim';
+        a.id = 'agfov-aim'; a.setAttribute('data-ag-needs', 'kamera kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         a.innerHTML =
             '<div id="agfov-bar"><span id="agfov-txt"></span></div>'
             + '<div id="agfov-guide-a" class="agfov-guide"><span></span></div>'
@@ -272,7 +272,7 @@
         if (byId('agfov-modal')) return;
         injectStyles();
         var el = document.createElement('div');
-        el.className = 'modal-overlay'; el.id = 'agfov-modal'; el.style.zIndex = '100001';
+        el.className = 'modal-overlay'; el.id = 'agfov-modal'; el.setAttribute('data-ag-needs', 'kamera kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */ el.style.zIndex = '100001';
         el.innerHTML = '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Zorný úhel kamery (FOV)</h3>'
             + '<div id="agfov-body"></div>'

@@ -96,7 +96,7 @@
     function build() {
         if (overlay) return overlay;
         overlay = document.createElement('div');
-        overlay.id = 'omr-overlay';
+        overlay.id = 'omr-overlay'; overlay.setAttribute('data-ag-needs', 'gps'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         overlay.className = 'omr-overlay';
         overlay.innerHTML =
             '<div class="omr-sheet">' +

@@ -194,7 +194,7 @@
     function buildSunModal() {
         sunModal = document.createElement('div');
         sunModal.className = 'modal-overlay';
-        sunModal.id = 'sun-check-modal';
+        sunModal.id = 'sun-check-modal'; sunModal.setAttribute('data-ag-needs', 'kompas gps'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         sunModal.innerHTML =
             '<div class="modal-content">'
             + '<h3 style="color:var(--accent); margin-top:0;">Kontrola kompasu podle Slunce</h3>'

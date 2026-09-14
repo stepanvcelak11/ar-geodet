@@ -128,6 +128,10 @@
     // neidentifikuje a checkbox jde odškrtnout.
     function meta() {
         var o = {};
+        // KÓD ÚČTU (14. 9. 2026): bez něj vlastník ve schránce nemá tlačítko „Odpovědět do
+        // appky" (js/zpetna-vazba.js ucetZMeta) — dosud ho posílala jen žádost o Pro.
+        // Kód účtu není osobní údaj (náhodných 8 znaků), jméno jde zvlášť v `who`.
+        try { var _u = window.AGUcty && AGUcty.ucet && AGUcty.ucet(); if (_u && _u.code) o.ucet = String(_u.code); } catch (e) { swallow(e, 'meta:ucet'); }
         try {
             var l = document.querySelector('link[rel="stylesheet"][href*="css/style.css?v="]');
             var m = l && (l.getAttribute('href') || '').match(/\?v=(\d+)/);
@@ -631,12 +635,14 @@
                 // formuláři jako volba není — jen štítek pro čtení. Vyřizuje se
                 // v konzoli Lidé a prodej → Žádosti (js/prodej-konzole.js).
                 if (r.kind === 'pro') kindL = 'Žádost o Pro';
+                if (r.kind === 'odpoved') kindL = 'Odpověď na vzkaz';
                 if (r.kind === 'hodnoceni') kindL = 'Hodnocení';
                 return '<div class="ag-fb-msg' + (r.done ? ' done' : '') + '" data-id="' + r.id + '">' +
                     '<div class="ag-fb-h"><span class="ag-fb-tag ' + esc(r.kind || 'jine') + '">' + esc(kindL) + '</span>' +
                     '<span>' + esc(d.toLocaleString('cs-CZ')) + '</span>' +
                     (r.who ? '<span>· ' + esc(r.who) + '</span>' : '') +
                     (r.contact ? '<span>· ' + esc(r.contact) + '</span>' : '') + '</div>' +
+                    (r.kind === 'odpoved' ? '<div class="ag-fb-meta" style="color:var(--accent,#2f9e74);">↩ odpověď na tvůj vzkaz</div>' : '') +
                     '<div class="ag-fb-t">' + esc(r.txt) + '</div>' +
                     (r.meta ? '<div class="ag-fb-meta">' + esc(metaLidsky(r.meta)) + '</div>' : '') +
                     '<div class="ag-fb-acts">' +
@@ -990,5 +996,13 @@
     else init();
 
     window.agOpenZpetnaVazba = open;
-    window.AGZpetna = { open: open, close: close, inbox: openInbox, queued: function () { return queue().length; } };
+    // poslat(rec): zpráva mimo formulář — odpověď na vzkaz od vlastníka (js/sprava-appky.js).
+    // Jde do fronty jako každá jiná (offline se doručí příště), meta = zařízení + kód účtu.
+    function poslat(rec) {
+        if (!rec || !rec.txt) return Promise.resolve(0);
+        var r = { kind: rec.kind || 'jine', txt: String(rec.txt).slice(0, MAX), contact: rec.contact || null, who: who(), meta: Object.assign(meta(), rec.meta || {}) };
+        fit(r); enqueue(r);
+        return flush();
+    }
+    window.AGZpetna = { open: open, close: close, inbox: openInbox, queued: function () { return queue().length; }, poslat: poslat };
 })();

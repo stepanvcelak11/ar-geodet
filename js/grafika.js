@@ -341,7 +341,9 @@
             // kamerou ~10 (#info, #compass-debug, #menu-toggle-btn, #gps-avg, 5x .dock-btn,
             // #ar-hud-info). Viz pravidlo `body.cam-live:not(.ag-cam-glass)` v css/style.css.
             try { document.body.classList.toggle('cam-live', viewMode !== 'map'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:applyViewMode'); }
-            const camCont = document.getElementById('camera-container'); const mapCont = document.getElementById('map-container'); const resizer = document.getElementById('resizer'); if (viewMode === 'both') { camCont.style.display = 'block'; applySplit(splitStored(), false); mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'flex'; startCameraAndCompass(); } else if (viewMode === 'map') { camCont.style.display = 'none'; mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'none'; stopCameraStream(); startCompass(); } else if (viewMode === 'ar') { camCont.style.display = 'block'; camCont.style.flex = '1'; mapCont.style.display = 'none'; resizer.style.display = 'none'; startCameraAndCompass(); } setTimeout(() => { map.invalidateSize(); }, 300); }
+            const camCont = document.getElementById('camera-container'); const mapCont = document.getElementById('map-container'); const resizer = document.getElementById('resizer'); if (viewMode === 'both') { camCont.style.display = 'block'; applySplit(splitStored(), false); mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'flex'; startCameraAndCompass(); } else if (viewMode === 'map') { camCont.style.display = 'none'; mapCont.style.display = 'block'; mapCont.style.flex = '1'; resizer.style.display = 'none'; stopCameraStream(); startCompass(); } else if (viewMode === 'ar') { camCont.style.display = 'block'; camCont.style.flex = '1'; mapCont.style.display = 'none'; resizer.style.display = 'none'; startCameraAndCompass(); } setTimeout(() => { map.invalidateSize(); }, 300);
+            // AR značky se v režimu Pouze mapa nestaví (initARMarkers) — při návratu ke kameře je dostavět
+            if (viewMode !== 'map' && appStarted) { try { initARMarkers(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:applyViewMode:ar'); } } }
 
         let compassStarted = false;
         // BATERIE: přišla použitelná ABSOLUTNÍ událost kompasu? Nastavuje handleOrientation.
@@ -1240,6 +1242,7 @@
         //     zahodi.
         let _mngRafId = 0;
         let _mngRenderToken = 0;
+        let _mngBuildRest = null;   // dostaví zbytek řádků (hledání, hromadný výběr)
         const _MNG_CHUNK = 60;
         function renderManageList() {
             if (_mngSuspendRedraw) return;
@@ -1278,7 +1281,7 @@
             const si = bar.querySelector('#mng-search'); si.value = _mngQuery;
             // hledani jen SKRYVA radky, seznam se neprekresluje — jinak by kazde pismeno
             // znovu postavilo DOM, prislo o fokus a na mobilu poskakovala klavesnice
-            si.addEventListener('input', () => { _mngQuery = si.value; _mngApplyFilter(); });
+            si.addEventListener('input', () => { _mngQuery = si.value; if (_mngQuery.trim() && _mngBuildRest) _mngBuildRest(); _mngApplyFilter(); });
 
             // RAZENI JAKO CHIPY, ne rozbalovatko. Rozbalovatko schovavalo, podle ceho
             // je seznam serazeny, za jeden dotyk navic — a prave to je v terenu ta
@@ -1389,22 +1392,46 @@
             listDiv.appendChild(anchor);
             renderHiddenPointsRow(listDiv); renderLinesList(listDiv);
 
+            // ⚠⚠ ZBYTEK ŘÁDKŮ AŽ V NEČINNOSTI A PŘI ROLOVÁNÍ (14. 9. 2026). Dávky po 60
+            //   řádcích šly dřív rAF za rAF hned za sebou — u 404 bodů to bylo 12 dlouhých
+            //   úloh a 1,1–1,3 s trhání (CPU 4×), i když člověk viděl prvních dvacet řádků.
+            //   Teď: první dávka hned (modal není prázdný), dál se staví po pár řádcích jen
+            //   v nečinnosti prohlížeče (requestIdleCallback s kontrolou zbývajícího času)
+            //   a HNED, když člověk doroluje k „dalších N bodů…" (IntersectionObserver).
+            //   Hledání (mng-search) si nejdřív dostaví všechno — filtr skrývá jen
+            //   postavené řádky a bod z konce seznamu by jinak „nešel najít".
             const myToken = ++_mngRenderToken;
             let i = 0;
-            const step = () => {
-                if (myToken !== _mngRenderToken) return;          // mezitím se překreslilo znovu
-                if (!anchor.parentNode) return;                    // seznam mezitím zmizel
+            const more = document.createElement('div'); more.className = 'mng-more'; more.setAttribute('role', 'status');
+            const build = (n, deadline) => {
+                if (myToken !== _mngRenderToken) return false;     // mezitím se překreslilo znovu
+                if (!anchor.parentNode) return false;              // seznam mezitím zmizel
                 const frag = document.createDocumentFragment();
-                const end = Math.min(i + _MNG_CHUNK, pts.length);
-                for (; i < end; i++) frag.appendChild(buildRow(pts[i]));
+                const end = (n == null) ? pts.length : Math.min(i + n, pts.length);
+                for (; i < end; i++) {
+                    frag.appendChild(buildRow(pts[i]));
+                    if (deadline && deadline.timeRemaining && deadline.timeRemaining() < 3) { i++; break; }
+                }
                 listDiv.insertBefore(frag, anchor);
-                const more = i < pts.length;
-                // Během dokreslování filtrujeme jen když se opravdu hledá; na konci vždy,
-                // aby aktivní hledání platilo i po překreslení (mazání, řazení, výběr).
-                if (!more || _mngQuery.trim()) _mngApplyFilter();
-                if (more) requestAnimationFrame(step);
+                const zbyva = pts.length - i;
+                if (zbyva > 0) { more.textContent = 'dalších ' + zbyva + ' bodů…'; if (!more.parentNode) listDiv.insertBefore(more, anchor); }
+                else if (more.parentNode) more.remove();
+                if (!zbyva || _mngQuery.trim()) _mngApplyFilter();
+                return zbyva > 0;
             };
-            step();   // první dávka synchronně — modal se nikdy neukáže prázdný
+            _mngBuildRest = () => { if (myToken === _mngRenderToken && i < pts.length) build(null); };
+            if (!build(30)) return;   // první dávka synchronně (30 řádků = 3 obrazovky, ~120 ms při CPU 4×) — modal se nikdy neukáže prázdný
+            const idle = (fn) => (typeof window.requestIdleCallback === 'function') ? window.requestIdleCallback(fn, { timeout: 1500 }) : setTimeout(() => fn({ timeRemaining: () => 8 }), 80);
+            const vNecinnosti = (dl) => { if (build(20, dl)) idle(vNecinnosti); };
+            idle(vNecinnosti);
+            try {
+                // kořen = skutečný rolovací předek (jinak by „je vidět" platilo pořád a dostavělo se vše naráz)
+                let root = listDiv.parentElement;
+                while (root && root !== document.body) { const ov = getComputedStyle(root).overflowY; if (ov === 'auto' || ov === 'scroll') break; root = root.parentElement; }
+                if (root === document.body) root = null;
+                const io = new IntersectionObserver((ents) => { if (ents.some(e => e.isIntersecting)) { if (!build(_MNG_CHUNK)) io.disconnect(); } }, { root: root, rootMargin: '300px' });
+                io.observe(more);
+            } catch (e) { /* bez IntersectionObserver dostaví nečinnost */ }
         }
         // Zamereni bodu ze seznamu: zavrit seznam, uklidit vse, co by bod schovalo,
         // a nastavit ho jako zvyrazneny cil (mapa + ukazatel na hrane displeje).
@@ -1853,12 +1880,22 @@
         }
         let _arInitRetryAt = 0;   // skrceni dohanenu chybejicich AR elementu (viz renderAR)
         function initARMarkers() {
+            // ⚠⚠ JEN BODY V DOSAHU A JEN KDYŽ BĚŽÍ KAMERA (14. 9. 2026). Změřeno: 816 AR
+            //   značek v DOM, ačkoli v dosahu 100 m bylo 16 — body načtené před prvním
+            //   GPS fixem nemají `currentDist`, a `undefined > arRadius` je false, takže
+            //   prošly jako „v dosahu". A v režimu Pouze mapa se stavěly značky, které
+            //   nikdo nevidí. Bez vzdálenosti se teď dopočítá; bez polohy se nestaví nic
+            //   (renderAR si chybějící prvek vyžádá sám — `_arMissingEl`, 1×/s).
+            const _mapOnly = (typeof viewMode !== 'undefined' && viewMode === 'map');
+            const _havePos = (userLat != null && userLng != null);
             arPoints.forEach((pt) => {
               try {
                 if (!pt || pt.lat == null || pt.lng == null) return;   // rozbity zaznam preskocit
                 if (typeof pt.cat !== 'string' || !pt.cat) pt.cat = 'CUSTOM';
                 let matchesSearch = true; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) { matchesSearch = false; }
-                let outOfReach = (pt.currentDist > arRadius); let isSelectedForDetail = (pt.id === activePointIdForModal);
+                let _d = pt.currentDist;
+                if ((_d == null || !isFinite(_d)) && _havePos) { _d = getDistance(userLat, userLng, pt.lat, pt.lng); pt.currentDist = _d; }
+                let outOfReach = _mapOnly || (_d == null) || (_d > arRadius); let isSelectedForDetail = (pt.id === activePointIdForModal);
                 // vybraný vzdálený bod (js/ag-dosah.js) musí DOM element dostat, jinak
                 // by ho renderAR neměl co zobrazit — viz `_keepFar` v renderAR
                 let keepFarInit = (pt.id === highlightedPointId || isSelectedForDetail || !!(window.AGDosah && window.AGDosah.vzdy(pt.id)));
@@ -2168,6 +2205,22 @@
         let _haveAbsoluteHeading = false;
         // STABILITA: watchdog render smycky - casy posledniho vykresleni a posledni platne udalosti
         let _lastRenderTs = 0, _lastGoodEvent = null, _lastAbsoluteTs = 0;
+        // Srovnání popisků mapy do vodorovna po ustálení otáčení (viz komentář v renderAR).
+        // Krok pod 1° od naposled srovnaného úhlu časovač neresetuje — třes ruky by jinak
+        // srovnání odkládal donekonečna; drift se dorovná, jakmile přeroste 1°.
+        let _lblTimer = null, _lblApplied = null;
+        function _lblApply() {
+            _lblTimer = null;
+            const els = window._mapLabelEls; if (!els) return;
+            const hdg = mapRotation; _lblApplied = hdg;
+            const tf = `rotate(${hdg}deg)`;
+            els.forEach(el => { el.style.transform = tf; });
+        }
+        function _lblSettle(hdg) {
+            if (_lblApplied != null && Math.abs(((hdg - _lblApplied + 540) % 360) - 180) < 1) return;
+            if (_lblTimer) clearTimeout(_lblTimer);
+            _lblTimer = setTimeout(_lblApply, 200);
+        }
         function renderAR(event) {
             if (!userLat || !userLng) return;
             // #1 AGPose: origin AR = zakotvené stanovisko (resekce) když platné, jinak syrová GPS.
@@ -2264,8 +2317,16 @@
                 if (_rotD >= ((window.AGLite && AGLite.lite) ? 0.8 : 0.15) || _mrLat !== userLat || _mrLng !== userLng || window._labelsDirty) {
                     mapWrapper.style.transformOrigin = (function(){ const p = map.latLngToContainerPoint([userLat, userLng]); return p.x + 'px ' + p.y + 'px'; })(); mapWrapper.style.transform = `translate(-50%, -50%) rotate(${-_mapHdg}deg)`; mapRotation = _mapHdg;
                     _mrLat = userLat; _mrLng = userLng;
-                    if (window._labelsDirty) { window._mapLabelEls = document.querySelectorAll('.map-label-text'); window._labelsDirty = false; }
-                    if (window._mapLabelEls) window._mapLabelEls.forEach(el => { el.style.transform = `rotate(${_mapHdg}deg)`; });
+                    if (window._labelsDirty) { window._mapLabelEls = document.querySelectorAll('.map-label-text'); window._labelsDirty = false; _lblApplied = null; }
+                    // ⚠⚠ POPISKY SE SROVNAJÍ AŽ PO USTÁLENÍ (14. 9. 2026). Dřív tady stálo
+                    //   `_mapLabelEls.forEach(el => el.style.transform = rotate(hdg))` — s každým
+                    //   snímkem kompasu přepis transformu na KAŽDÉM popisku. ZMĚŘENO (CPU 4×,
+                    //   485 značek): 79 % hlavního vlákna, 4 727 ms dlouhých úloh za 6 s — a
+                    //   samotné otočení vrstvy mapy stálo 72 ms. Nepomohl will-change, CSS
+                    //   proměnná ani ořez na výřez: cena je v tom, že se změní cokoli UVNITŘ
+                    //   otočené vrstvy. Proto se popisky otáčejí s mapou a do vodorovna se
+                    //   srovnají jedním zápisem ~0,2 s po posledním větším kroku (≥ 1°) — 0 ms.
+                    _lblSettle(_mapHdg);
                 }
             }
             // sipka smeru uzivatele je taky jen v mape (Leaflet divIcon) — v AR ji nikdo nevidi

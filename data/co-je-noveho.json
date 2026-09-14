@@ -2,6 +2,18 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 316,
+   "datum": "2026-09-14",
+   "nadpis": "Mapa se otáčí bez trhání, kamera pod nástroji nezhasíná, odpověď na vzkaz",
+   "body": [
+    "<b>Otáčení mapy:</b> popisky bodů se do vodorovna srovnají až chvilku po tom, co se přestaneš točit — dřív se přepisovaly s každým snímkem kompasu a na slabším telefonu to sebralo 79 % výkonu (změřeno); teď 0. Při otáčení jsou popisky na zlomek vteřiny šikmo.",
+    "<b>AR značky</b> se staví jen pro body v dosahu a jen když běží kamera (dřív se stavěly pro všechny body zakázky, i v režimu Pouze mapa): o pětinu méně prvků na obrazovce, rychlejší start.",
+    "<b>Okno Body</b> u velké zakázky: prvních 30 řádků hned, zbytek se dostaví v klidu a při rolování („dalších N bodů…“); hledání najde i bod z konce seznamu.",
+    "<b>Nástroje a senzory:</b> u měření výšky objektu zhasla kamera (úspora baterie ji uspala pod nastavovacím oknem). Nástroje si teď samy říkají, co potřebují — kamera, kompas nebo GPS se pod nimi neuspí (výška objektu, AR metr, foto s razítkem, protínání z fotky, rajón, resekce, vytyčování, epochy, satelity, kalibrace…). Záznam stopy drží GPS i pod kalkulačkou nebo Nastavením.",
+    "<b>Vzkaz od autora</b> má tlačítko <b>Odpovědět</b> — odpověď přijde autorovi do schránky a může ti zase odpovědět do appky. Každá zpráva autorovi teď nese kód účtu, takže odpověď do appky funguje u všech zpráv, ne jen u žádostí o Pro."
+   ]
+  },
+  {
    "v": 315,
    "datum": "2026-09-14",
    "nadpis": "Plynulejší appka: menší dosah bodů a režim pro slabší telefon",

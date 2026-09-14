@@ -162,7 +162,7 @@
         const widthCh = WIDTHS.map(x => `<button class="ts-chip" data-w="${x.w}" onclick="tachySetWidth(${x.w})"><span class="pv" style="border-top-width:${Math.round(x.w)}px"></span>${x.name}</button>`).join('');
         const dashCh = DASHES.map(x => `<button class="ts-chip" data-d="${x.d.join(',')}" onclick="tachySetDash('${x.d.join(',')}')">${x.name}</button>`).join('');
         const m = document.createElement('div');
-        m.id = 'tachy-modal';
+        m.id = 'tachy-modal'; m.setAttribute('data-ag-needs', 'gps'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         m.innerHTML = `
             <div id="tachy-top">
                 <span class="tt-title"><svg class="icon"><use href="#i-grid"/></svg> Náčrt / Tachymetrie</span>

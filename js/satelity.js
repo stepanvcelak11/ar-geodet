@@ -204,7 +204,7 @@ function renderSatellitesAR() {
 function ensureSatModal() {
     if (document.getElementById('sat-modal')) return;
     const el = document.createElement('div');
-    el.className = 'modal-overlay'; el.id = 'sat-modal';
+    el.className = 'modal-overlay'; el.id = 'sat-modal'; el.setAttribute('data-ag-needs', 'gps kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
     el.innerHTML = `
         <div class="modal-content">
             <h3 style="color:var(--accent); margin-top:0; margin-bottom:5px;"><svg class="icon"><use href="#i-satellite"/></svg> GNSS satelity — predikce</h3>

@@ -320,7 +320,7 @@
         var st = document.createElement('style'); st.id = 'agsl-css'; st.textContent = CSS;
         document.head.appendChild(st);
         var el = document.createElement('div');
-        el.className = 'modal-overlay'; el.id = 'agsl-modal'; el.style.zIndex = '100001';
+        el.className = 'modal-overlay'; el.id = 'agsl-modal'; el.setAttribute('data-ag-needs', 'gps kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */ el.style.zIndex = '100001';
         el.innerHTML =
             '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Vytyčení osy + staničení</h3>'

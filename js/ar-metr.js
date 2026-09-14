@@ -708,7 +708,7 @@
         var m = byId('ag-mtr-modal');
         if (!m) {
             m = document.createElement('div');
-            m.className = 'modal-overlay'; m.id = 'ag-mtr-modal';
+            m.className = 'modal-overlay'; m.id = 'ag-mtr-modal'; m.setAttribute('data-ag-needs', 'kamera kompas gps'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
             m.innerHTML = '<div class="modal-content">'
                 + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Naměřené hodnoty</h3>'
                 + '<div id="ag-mtr-loglist" class="ag-mtr-log"></div>'
@@ -820,7 +820,7 @@
         if (ov) return ov;
         injectStyles();
         ov = document.createElement('div');
-        ov.id = 'ag-mtr';
+        ov.id = 'ag-mtr'; ov.setAttribute('data-ag-needs', 'kamera kompas gps'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         ov.innerHTML =
             '<video id="ag-mtr-vid" playsinline muted autoplay></video>'
             + '<canvas id="ag-mtr-cv"></canvas>'

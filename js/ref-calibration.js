@@ -233,7 +233,7 @@
         if (_ov && document.body.contains(_ov)) return _ov;
         _ov = document.createElement('div');
         _ov.className = 'modal-overlay agref-overlay';
-        _ov.id = 'agref-modal';
+        _ov.id = 'agref-modal'; _ov.setAttribute('data-ag-needs', 'gps'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         _ov.innerHTML =
             '<div class="modal-content agref-content" role="dialog" aria-modal="true">' +
             '  <h3 class="agref-title"><svg class="icon"><use href="#i-crosshair"/></svg> Posun GPS na známý bod</h3>' +

@@ -223,7 +223,7 @@
         injectStyles();
         m = document.createElement('div');
         m.className = 'modal-overlay';
-        m.id = 'ag-kj-modal';
+        m.id = 'ag-kj-modal'; m.setAttribute('data-ag-needs', 'gps kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         var btns = PRESETS.map(function (p) {
             return '<button type="button" data-lbl="' + esc(p.label) + '"><b>' + p.emoji + '</b>' + esc(p.label) + '</button>';
         }).join('') + '<button type="button" data-lbl="__custom"><b>➕</b>Vlastní</button>';

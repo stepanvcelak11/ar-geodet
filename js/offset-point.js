@@ -110,7 +110,7 @@
     function ensureModal() {
         if (document.getElementById('agof-modal')) return;
         var el = document.createElement('div');
-        el.className = 'modal-overlay'; el.id = 'agof-modal'; el.style.zIndex = '100001';
+        el.className = 'modal-overlay'; el.id = 'agof-modal'; el.setAttribute('data-ag-needs', 'gps kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */ el.style.zIndex = '100001';
         el.innerHTML =
             '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON.replace('width="20"', '') + ' Offset bod (nepřístupný bod)</h3>'

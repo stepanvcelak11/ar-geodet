@@ -203,7 +203,7 @@
     function ensureModal() {
         if (document.getElementById('agrx-modal')) return;
         var el = document.createElement('div');
-        el.className = 'modal-overlay'; el.id = 'agrx-modal'; el.style.zIndex = '100001';
+        el.className = 'modal-overlay'; el.id = 'agrx-modal'; el.setAttribute('data-ag-needs', 'gps kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */ el.style.zIndex = '100001';
         el.innerHTML =
             '<div class="modal-content">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Resekce — poloha a sever ze známých bodů</h3>'
@@ -277,7 +277,7 @@
     function ensureAim() {
         if (document.getElementById('agrx-aim')) return;
         var a = document.createElement('div');
-        a.id = 'agrx-aim';
+        a.id = 'agrx-aim'; a.setAttribute('data-ag-needs', 'kamera kompas gps'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         a.innerHTML =
             '<div id="agrx-aim-bar"><span id="agrx-aim-txt"></span></div>'
             + '<div id="agrx-cross"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="#34d399" stroke-width="2"/>'

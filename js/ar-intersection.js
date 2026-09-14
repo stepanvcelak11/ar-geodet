@@ -180,7 +180,7 @@
     function ensureModal() {
         if (document.getElementById('agix-modal')) return;
         var el = document.createElement('div');
-        el.className = 'modal-overlay'; el.id = 'agix-modal'; el.style.zIndex = '100001';
+        el.className = 'modal-overlay'; el.id = 'agix-modal'; el.setAttribute('data-ag-needs', 'gps kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */ el.style.zIndex = '100001';
         el.innerHTML =
             '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Protínání vpřed — neznámý bod</h3>'
@@ -271,7 +271,7 @@
     function ensureAim() {
         if (document.getElementById('agix-aim')) return;
         var a = document.createElement('div');
-        a.id = 'agix-aim';
+        a.id = 'agix-aim'; a.setAttribute('data-ag-needs', 'kamera kompas gps'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         a.innerHTML =
             '<div id="agix-aim-bar"><span id="agix-aim-txt"></span></div>'
             + '<div id="agix-cross"><svg viewBox="0 0 100 100">'

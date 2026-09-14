@@ -99,7 +99,7 @@
     function ensureAim() {
         if (document.getElementById('agvo-aim')) return;
         var a = document.createElement('div');
-        a.id = 'agvo-aim';
+        a.id = 'agvo-aim'; a.setAttribute('data-ag-needs', 'kamera kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         a.innerHTML =
             '<div id="agvo-readout"><div id="agvo-step"></div><div id="agvo-v">—</div><div id="agvo-sub"></div></div>'
             + '<div id="agvo-cross"><svg viewBox="0 0 100 100">'
@@ -218,7 +218,7 @@
     function ensureModal() {
         if (document.getElementById('agvo-modal')) return;
         var el = document.createElement('div');
-        el.className = 'modal-overlay'; el.id = 'agvo-modal'; el.style.zIndex = '100001';
+        el.className = 'modal-overlay'; el.id = 'agvo-modal'; el.setAttribute('data-ag-needs', 'kamera kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */ el.style.zIndex = '100001';
         el.innerHTML =
             '<div class="modal-content">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Výška objektu</h3>'

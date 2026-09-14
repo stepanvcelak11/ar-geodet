@@ -115,7 +115,7 @@
     function build() {
         modal = document.createElement('div');
         modal.className = 'modal-overlay';
-        modal.id = 'sever-slunce-modal';
+        modal.id = 'sever-slunce-modal'; modal.setAttribute('data-ag-needs', 'gps kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         modal.innerHTML =
             '<div class="modal-content">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Sever podle Slunce</h3>'

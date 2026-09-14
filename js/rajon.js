@@ -125,7 +125,7 @@
     function ensureModal() {
         if (document.getElementById('agrj-modal')) return;
         var el = document.createElement('div');
-        el.className = 'modal-overlay'; el.id = 'agrj-modal'; el.style.zIndex = '100001';
+        el.className = 'modal-overlay'; el.id = 'agrj-modal'; el.setAttribute('data-ag-needs', 'gps kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */ el.style.zIndex = '100001';
         el.innerHTML =
             '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Rajón — nový bod ze směru a délky</h3>'
@@ -198,7 +198,7 @@
     function ensureAim() {
         if (document.getElementById('agrj-aim')) return;
         var a = document.createElement('div');
-        a.id = 'agrj-aim';
+        a.id = 'agrj-aim'; a.setAttribute('data-ag-needs', 'kamera kompas gps'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         a.innerHTML =
             '<div id="agrj-aim-bar"><span id="agrj-aim-txt"></span></div>'
             + '<div id="agrj-cross"><svg viewBox="0 0 100 100">'

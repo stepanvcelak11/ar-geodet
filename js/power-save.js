@@ -276,6 +276,47 @@
     // Tachymetrie překryje kameru, ale může chtít živou polohu → vypneme jen kameru.
     function cameraOnlyToolOpen() { return shownById('tachy-modal'); }
 
+    // =====================================================================
+    // POTŘEBY NÁSTROJŮ (14. 9. 2026): „při měření výšky objektu zhasla kamera —
+    // a jak mám pak změřit objekt?" Nástroj má nastavovací okno (výška telefonu,
+    // vzdálenost), které kameru ZAKRYJE → hit-test výše ji po 2,5 s uspal, a při
+    // „Spustit zaměřování" se probouzela až dalším tikem (a na iPhonu ne vždy).
+    // Obecně: hlídat výčtem, který nástroj co potřebuje, nejde (viz komentář u
+    // cameraCoveredProbe), tak si to říká NÁSTROJ SÁM:
+    //   • atributem na kořeni svého okna/překryvu: data-ag-needs="kamera kompas gps"
+    //     — dokud je prvek vidět, jmenované senzory se neuspí (kamera ani pod
+    //     zakrývajícím oknem — nástroj ji za chvíli potřebuje živou);
+    //   • za běhu: AGPower.hold('gps', 'track-log') / AGPower.release('gps', 'track-log')
+    //     pro věci bez okna (záznam stopy, kniha jízd) — jinak jim otevřená
+    //     kalkulačka uspala GPS a ve stopě byla díra.
+    // Přepnutí na pozadí kameru i kompas uspí vždycky (nikdo je nevidí); GPS s
+    // držením jede i na pozadí, dokud ji prohlížeč nezastaví sám.
+    var NEED_KEYS = { kamera: 'kamera', camera: 'kamera', kompas: 'kompas', compass: 'kompas', gps: 'gps' };
+    var _holds = { kamera: {}, kompas: {}, gps: {} };
+    function visibleEl(el) {
+        if (!el || collapsedAway(el)) return false;
+        if (el.style && el.style.display === 'none') return false;
+        return !!(el.offsetWidth || el.offsetHeight || (el.getClientRects && el.getClientRects().length));
+    }
+    function needs() {
+        var n = { kamera: false, kompas: false, gps: false }, k;
+        for (k in _holds) { for (var h in _holds[k]) { if (_holds[k].hasOwnProperty(h)) { n[k] = true; break; } } }
+        try {
+            var els = document.querySelectorAll('[data-ag-needs]');
+            for (var i = 0; i < els.length; i++) {
+                if (!visibleEl(els[i])) continue;
+                var parts = String(els[i].getAttribute('data-ag-needs') || '').toLowerCase().split(/[\s,]+/);
+                for (var j = 0; j < parts.length; j++) { var key = NEED_KEYS[parts[j]]; if (key) n[key] = true; }
+            }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'power-save:needs'); }
+        return n;
+    }
+    window.AGPower = {
+        hold: function (sensor, key) { var k = NEED_KEYS[String(sensor || '').toLowerCase()]; if (k) { _holds[k][String(key || 'x')] = 1; tick(); } },
+        release: function (sensor, key) { var k = NEED_KEYS[String(sensor || '').toLowerCase()]; if (k) delete _holds[k][String(key || 'x')]; },
+        needs: needs
+    };
+
     // KAMERA POD PANELEM: appka má ~40 modálů a jejich ruční výčet se vždycky rozešel se
     // skutečností — kamera pak běžela na plný výkon pod neprůhledným panelem (počasí,
     // kubatury, brutální GPS…). Místo výčtu se ptáme obrazovky: leží ve čtyřech bodech
@@ -384,18 +425,20 @@
             var heavy = heavyOpen();
             var camOnly = cameraOnlyToolOpen();
             var mapMode = (typeof viewMode !== 'undefined' && viewMode === 'map');
+            var need = needs();   // co si právě drží nástroje (data-ag-needs / AGPower.hold)
 
             // hit-test kamery jen občas (každý druhý tick = ~2 s). cameraCoveredProbe() dělá
             // 4× elementFromPoint, což je vynucený synchronní layout — a uspání kamery má i tak
-            // 2,5s prodlevu, takže častěji to nemá co zlepšit.
-            if (hidden || mapMode) { _camCovered = false; }
-            else if ((_camProbe++ % 2) === 0) { _camCovered = cameraCoveredProbe(); }
+            // 2,5s prodlevu, takže častěji to nemá co zlepšit. Když už kamera SPÍ, ptáme se
+            // každý tik, ať se po zavření okna probudí do vteřiny, ne do dvou.
+            if (hidden || mapMode || need.kamera) { _camCovered = false; }
+            else if (st.cam.resting || (_camProbe++ % 2) === 0) { _camCovered = cameraCoveredProbe(); }
 
-            manage(st.cam, hidden || heavy || camOnly || mapMode || _camCovered,
+            manage(st.cam, hidden || (!need.kamera && (heavy || camOnly || mapMode || _camCovered)),
                 hidden ? CAM_DELAY_HIDDEN : CAM_DELAY_TOOL, now, pauseCamera, resumeCamera, cameraLive);
-            manage(st.compass, hidden || heavy,
+            manage(st.compass, hidden || (!need.kompas && heavy),
                 hidden ? COMPASS_DELAY_HIDDEN : COMPASS_DELAY_TOOL, now, pauseOrientation, resumeOrientation);
-            manage(st.gps, hidden || (heavy && cfg.gpsInTools),
+            manage(st.gps, !need.gps && (hidden || (heavy && cfg.gpsInTools)),
                 hidden ? GPS_DELAY_HIDDEN : GPS_DELAY_TOOL, now, pauseGPS, resumeGPS);
 
             if (!hidden) manageScreen(now);

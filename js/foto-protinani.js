@@ -267,7 +267,7 @@
     function build() {
         modal = document.createElement('div');
         modal.className = 'modal-overlay';
-        modal.id = 'fotop-modal';
+        modal.id = 'fotop-modal'; modal.setAttribute('data-ag-needs', 'kamera gps kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         modal.innerHTML =
             '<div class="modal-content">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Bod ze dvou fotek</h3>'

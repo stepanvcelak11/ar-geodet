@@ -174,7 +174,7 @@
         if (m) return m;
         injectStyles();
         m = document.createElement('div');
-        m.className = 'modal-overlay'; m.id = ID;
+        m.className = 'modal-overlay'; m.id = ID; m.setAttribute('data-ag-needs', 'gps kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         m.innerHTML =
             '<div class="modal-content">' +
             '  <h2 style="margin-top:0;"><span style="display:inline-block;width:22px;height:22px;vertical-align:-4px;color:var(--accent);">' + ICON + '</span> ' + t('Funguje mi všechno?') + '</h2>' +

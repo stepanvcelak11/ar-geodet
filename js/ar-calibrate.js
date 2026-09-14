@@ -95,7 +95,7 @@
             ? '<button class="btn btn-secondary" id="agcal-more" style="margin-top:10px;">Více možností (resekce / nastavení)</button>'
             : '';
         var el = document.createElement('div');
-        el.className = 'modal-overlay'; el.id = 'agcal-modal'; el.style.zIndex = '100040';
+        el.className = 'modal-overlay'; el.id = 'agcal-modal'; el.setAttribute('data-ag-needs', 'gps kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */ el.style.zIndex = '100040';
         el.innerHTML =
             '<div class="modal-content agcal-card">'
             + '<h3 class="agcal-h3">' + FAB_ICON + ' Srovnat sever podle bodu</h3>'
@@ -190,7 +190,7 @@
     function ensureAim() {
         if (document.getElementById('agcal-aim')) return;
         var a = document.createElement('div');
-        a.id = 'agcal-aim';
+        a.id = 'agcal-aim'; a.setAttribute('data-ag-needs', 'kamera kompas gps'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         a.innerHTML =
             '<div id="agcal-aim-bar"><span id="agcal-aim-txt"></span></div>'
             + '<div id="agcal-cross"><svg viewBox="0 0 100 100">'

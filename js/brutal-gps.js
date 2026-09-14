@@ -260,7 +260,7 @@
     function build() {
         if (_ui) return _ui;
         var el = document.createElement('div');
-        el.id = 'ag-bgps-overlay';
+        el.id = 'ag-bgps-overlay'; el.setAttribute('data-ag-needs', 'gps kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         el.innerHTML =
             '<div class="bgps-top"><h2>' + ICON + ' Přesná GPS</h2><button class="bgps-x" type="button" aria-label="Zavřít" id="bgps-close">×</button></div>'
             + '<p class="bgps-sub">Statické vysoce přesné měření jen z mobilu. Polož telefon <b>na plocho, displejem nahoru</b>, mimo tělo a kov, na měřený bod — a nech ležet. Čím déle, tím líp.</p>'

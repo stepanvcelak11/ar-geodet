@@ -62,7 +62,7 @@ loadStakeout();
 function ensureStakeoutModal() {
     if (document.getElementById('stakeout-modal')) return;
     const el = document.createElement('div');
-    el.className = 'modal-overlay'; el.id = 'stakeout-modal';
+    el.className = 'modal-overlay'; el.id = 'stakeout-modal'; el.setAttribute('data-ag-needs', 'gps kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
     el.innerHTML = `
         <div class="modal-content">
             <h3 style="color:var(--accent); margin-top:0; margin-bottom:5px;"><svg class="icon"><use href="#i-check"/></svg> Vytyčovací checklist</h3>
@@ -155,7 +155,7 @@ function openStakeRecord(pt) {
     let el = document.getElementById('stake-detail-modal');
     if (!el) {
         el = document.createElement('div');
-        el.className = 'modal-overlay'; el.id = 'stake-detail-modal'; el.style.zIndex = '100002';
+        el.className = 'modal-overlay'; el.id = 'stake-detail-modal'; el.setAttribute('data-ag-needs', 'gps kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */ el.style.zIndex = '100002';
         el.innerHTML = `<div class="modal-content">
             <h3 style="color:#34d399; margin-top:0; margin-bottom:5px;"><svg class="icon"><use href="#i-check"/></svg> <span id="stkd-title">Bod</span></h3>
             <div id="stkd-sub" style="font-size:calc(13px * var(--ag-font-scale, 1)); opacity:0.75; margin-bottom:8px;"></div>
