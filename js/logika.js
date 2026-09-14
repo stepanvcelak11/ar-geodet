@@ -280,7 +280,10 @@ if ('serviceWorker' in navigator) {
         // BATERIE: vychozi zobrazeni je Mapa (kamera uspana), ne „Dělené" — to drzelo zivou
         // kameru i mapu naraz. Posledni pouzity rezim prepise loadProjectSettings z localStorage.
         let appStarted = false, viewMode = 'map', searchQuery = '', cameraStarted = false, currentVideoStream = null;
-        let mapRadius = 1000, arRadius = 150;
+        // DOSAH BODŮ (14. 9. 2026): 300 m v mapě (dřív 1000) a 100 m v AR (dřív 150).
+        // Kilometrový okruh z ČÚZK = stovky značek a slabší telefon se sekal; kdo chce
+        // vidět dál, posune táhla v Nastavení (Data / AR & přesnost).
+        let mapRadius = 300, arRadius = 100;
         let userLat = null, userLng = null, userAlt = null, userMarker = null, lastFetchLat = null, lastFetchLng = null, lastCenterLat = null, lastCenterLng = null;
         let _lastAutoFetchTs = 0;   // kdy naposled dosahlo automatickeho (pri chuzi) stahovani z CUZK
         let currentHeading = 0, currentGpsAccuracy = 0, accuracyCircle = null, magneticDeclination = 0;
@@ -461,8 +464,17 @@ if ('serviceWorker' in navigator) {
 
         function loadProjectSettings() {
             let f = getStoredData('arFilters12'); try { filters = f ? JSON.parse(f) : null; } catch (e) { filters = null; } if (!filters || typeof filters !== 'object') filters = { tb: true, zhb: true, pbpp: true, nivel: true, custom: true };
-            let m = getStoredData('arRadiusMap'); if(m) mapRadius = parseInt(m); else mapRadius = 1000;
-            let a = getStoredData('arRadiusAR'); if(a) arRadius = parseInt(a); else arRadius = 150;
+            let m = getStoredData('arRadiusMap'); if(m) mapRadius = parseInt(m); else mapRadius = 300;
+            let a = getStoredData('arRadiusAR'); if(a) arRadius = parseInt(a); else arRadius = 100;
+            // JEDNORÁZOVÝ PŘECHOD NA MENŠÍ DOSAH (14. 9. 2026): každé uložení Nastavení
+            // zapisuje obě táhla, takže skoro každý má uložených 1000/150 — přesně staré
+            // výchozí hodnoty, které si nikdo nevolil. Ty se jednou srovnají na nové
+            // výchozí; kdo si dosah nastavil na cokoli jiného, tomu se nesahá.
+            if (!getStoredData('arDosah315')) {
+                if (mapRadius === 1000) { mapRadius = 300; setStoredData('arRadiusMap', 300); }
+                if (arRadius === 150) { arRadius = 100; setStoredData('arRadiusAR', 100); }
+                setStoredData('arDosah315', '1');
+            }
             let vs = getStoredData('arVisSettings12'); if(vs) { try { var _vs = JSON.parse(vs); if (_vs && typeof _vs === 'object') visSettings = Object.assign(visSettings, _vs); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:loadProjectSettings'); } }
             let ho = getStoredData('arHeadingOffset'); userHeadingOffset = ho ? (parseFloat(ho) || 0) : 0;
 
@@ -1563,6 +1575,8 @@ if ('serviceWorker' in navigator) {
                         //   „nefungoval", i když by řezem prošel.
                         var _dsh = window.AGDosah;
                         arPoints.forEach(p => { p.currentDist = getDistance(_oc[0], _oc[1], p.lat, p.lng); p.currentBearing = (p.currentDist <= _brgLim || (_dsh && _dsh.vzdy(p.id))) ? getBearing(_oc[0], _oc[1], p.lat, p.lng) : null; }); arPoints.sort((a, b) => a.currentDist - b.currentDist); _lastCalcLat = userLat; _lastCalcLng = userLng; _lastCalcCount = arPoints.length; }
+                    // dosah bodů v mapě je od uživatele — po kusu chůze mapu dokreslit (grafika.js)
+                    if (typeof _mapDosahCheck === 'function') { try { _mapDosahCheck(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:mapDosah'); } }
                     if (activePointIdForModal) { const activePt = arPoints.find(p => p.id === activePointIdForModal); if (activePt) { const newDist = getDistance(userLat, userLng, activePt.lat, activePt.lng); const distEl = document.getElementById('sheet-distance-val'); if (distEl) distEl.innerText = `${newDist.toFixed(1).replace('.', ',')} m`; const gpsEl = document.getElementById('sheet-gps-val'); if (gpsEl) gpsEl.innerText = currentGpsAccuracy.toFixed(1); } }
                     if (lastCenterLat === null) { map.setView([userLat, userLng], 19, { animate: false }); lastCenterLat = userLat; lastCenterLng = userLng; } else if (!window._mapHold && getDistance(lastCenterLat, lastCenterLng, userLat, userLng) > 1.5) { map.setView([userLat, userLng], map.getZoom(), { animate: false }); lastCenterLat = userLat; lastCenterLng = userLng; }
                     // BATERIE/RADIO: dotazovat CUZK po kazdych 25 m chuze bylo silne redundantni —

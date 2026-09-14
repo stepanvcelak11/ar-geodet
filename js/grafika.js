@@ -488,7 +488,7 @@
         // `ideal` (ne `exact`) = kdyz kamera takovy rezim nema, vybere nejblizsi a NEselze.
         // Kdyby nekdo chtel puvodni chovani, staci CAM_VIDEO vyprazdnit na {}.
         const CAM_VIDEO = { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 24, max: 30 } };
-        function startCameraAndCompass(forceRestart = false) { startCompass(); if (cameraStarted && !forceRestart) return; cameraStarted = true; if (currentVideoStream) { currentVideoStream.getTracks().forEach(track => track.stop()); } const camId = document.getElementById('s-camera-select') ? document.getElementById('s-camera-select').value : null; const videoConstraints = Object.assign({}, CAM_VIDEO, camId ? { deviceId: { exact: camId } } : { facingMode: "environment" }); navigator.mediaDevices.getUserMedia({ video: videoConstraints }).then(stream => { currentVideoStream = stream; const videoElement = document.getElementById('camera-feed'); videoElement.srcObject = stream; videoElement.style.display = "block"; }).catch(err => { handleCameraError(err); }); }
+        function startCameraAndCompass(forceRestart = false) { startCompass(); if (cameraStarted && !forceRestart) return; cameraStarted = true; if (currentVideoStream) { currentVideoStream.getTracks().forEach(track => track.stop()); } const camId = document.getElementById('s-camera-select') ? document.getElementById('s-camera-select').value : null; const videoConstraints = Object.assign({}, (window.AGLite && AGLite.lite && AGLite.camVideo) ? AGLite.camVideo : CAM_VIDEO, camId ? { deviceId: { exact: camId } } : { facingMode: "environment" }); /* SLABŠÍ TELEFON: 480p @ 15–20 fps */ navigator.mediaDevices.getUserMedia({ video: videoConstraints }).then(stream => { currentVideoStream = stream; const videoElement = document.getElementById('camera-feed'); videoElement.srcObject = stream; videoElement.style.display = "block"; }).catch(err => { handleCameraError(err); }); }
         // Kamera selhala (typicky omylem zamítnuté oprávnění): místo surového alertu s technickou
         // hláškou řekni co dělat a přepni do Mapy, ať se dá pracovat dál (AR bez kamery = černá obrazovka).
         function handleCameraError(err) {
@@ -767,8 +767,30 @@
             if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(fn, { timeout: 250 });
             else setTimeout(fn, 16);
         }
+        // ===== DOSAH BODŮ V MAPĚ (14. 9. 2026) ======================================
+        // Úřední body (ČÚZK) se v mapě kreslí jen do `mapRadius` od uživatele — totéž
+        // táhlo, které řídí stahování („Dosah bodů v mapě" v Nastavení → Data). Body
+        // z dřívějších stažení se totiž v zakázce hromadí (arOfflinePoints12) a po
+        // pár dnech chůze jich byly stovky i kilometry daleko; každá značka je DOM
+        // uzel a s KAŽDÝM otočením mapy dostává popisek nový transform. Na slabším
+        // telefonu se tím appka sekala. Vlastní body zakázky (CUSTOM) se kreslí VŽDY
+        // — zakázka může být dlouhá a geodet je chce vidět celé; ořez na výřez mapy
+        // výše pro ně stačí. Navigovaný a otevřený bod projdou taky.
+        function _mimoDosahMapy(pt) {
+            if (pt.cat === 'CUSTOM' || userLat == null) return false;
+            if (pt.id === highlightedPointId || pt.id === activePointIdForModal) return false;
+            if (window.AGDosah && window.AGDosah.vzdy(pt.id)) return false;
+            // currentDist plní GPS smyčka (logika.js) až s dalším fixem po načtení bodů —
+            // body načtené mezi dvěma fixy ho ještě nemají, tak se dopočítá tady
+            let d = pt.currentDist;
+            if (d == null || !isFinite(d)) d = getDistance(userLat, userLng, pt.lat, pt.lng);
+            return d > mapRadius;
+        }
+        // Odkud se naposled kreslilo (pro dokreslení po chůzi — viz _mapDosahCheck).
+        let _mapDrawLat = null, _mapDrawLng = null;
         function _drawOneMarker(pt) {
                 if (_mapDrawnBounds && !_mapDrawnBounds.contains([pt.lat, pt.lng])) return;
+                if (_mimoDosahMapy(pt)) return;
                 if (pt.hidden) return; if (pt.cat === 'TB' && !filters.tb) return; if (pt.cat === 'ZHB' && !filters.zhb) return; if (pt.cat === 'PBPP' && !filters.pbpp) return; if (pt.cat === 'NIVEL' && !filters.nivel) return; if (pt.cat === 'CUSTOM' && !filters.custom) return; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return;
                 let col = agBarvaBodu(pt);
                 const stakedBadge = (window.isStaked && isStaked(pt.id)) ? `<div style="position:absolute; top:-7px; right:-7px; width:13px; height:13px; border-radius:50%; background:#10b981; border:1.5px solid #fff; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>` : '';
@@ -782,6 +804,7 @@
             const gen = ++_drawGen;
             markersGroup.clearLayers();
             _mapDrawnBounds = _mapPadBounds(_MAP_DRAW_PAD);
+            _mapDrawLat = userLat; _mapDrawLng = userLng;
             // Poradi podle vzdalenosti od stredu mapy: co ma geodet pod nohama,
             // je na obrazovce driv nez bod na druhem konci zakazky.
             let seznam = arPoints;
@@ -798,7 +821,7 @@
             let i = 0;
             (function davka() {
                 if (gen !== _drawGen) return;          // mezitim prisla novejsi kresba
-                const konec = Math.min(i + _DRAW_CHUNK, seznam.length);
+                const konec = Math.min(i + ((window.AGLite && AGLite.lite) ? 80 : _DRAW_CHUNK), seznam.length);   // SLABŠÍ TELEFON: menší dávky
                 for (; i < konec; i++) _drawOneMarker(seznam[i]);
                 if (i < seznam.length) _drawIdle(davka);
             })();
@@ -817,6 +840,18 @@
             drawAllMarkersOnMap();
         }
         map.on('moveend zoomend', () => { clearTimeout(_mapCullTimer); _mapCullTimer = setTimeout(_mapCullCheck, 200); });
+        // Dosah v mapě je vázaný na polohu UŽIVATELE, ne na výřez: kdo ujde kus cesty,
+        // má vidět úřední body, které mu mezitím přišly do dosahu (a nemusí vidět ty,
+        // co za ním zůstaly). Volá to GPS smyčka v logika.js po každém fixu; překreslí
+        // se až po ujití osminy dosahu (nejméně 20 m), ne po každém kroku.
+        function _mapDosahCheck() {
+            if (!appStarted || userLat == null) return;
+            // první kresba bývá ještě bez polohy (vzdálenosti neznámé → kreslí se vše):
+            // s prvním fixem se překreslí podle dosahu
+            if (_mapDrawLat == null) { drawAllMarkersOnMap(); return; }
+            const krok = Math.max(20, (mapRadius || 300) / 8);
+            if (getDistance(_mapDrawLat, _mapDrawLng, userLat, userLng) > krok) drawAllMarkersOnMap();
+        }
 
         function getMapClickLatLng(e) {
             const oe = e.originalEvent || {};
@@ -2124,7 +2159,8 @@
             // propusteny snimek kresli z NEJCERSTVEJSI udalosti. Kdyby udalosti prestaly
             // chodit uplne, dorovna to watchdog nize (250 ms).
             const _nowFr = performance.now();
-            if (_nowFr - _lastArFrameTs < AR_MIN_FRAME_MS) return;
+            // SLABŠÍ TELEFON (js/slabsi-telefon.js): 20 snímků/s místo 30
+            if (_nowFr - _lastArFrameTs < ((window.AGLite && AGLite.lite) ? 50 : AR_MIN_FRAME_MS)) return;
             _lastArFrameTs = _nowFr;
             _orientPending = true;
             requestAnimationFrame(() => { _orientPending = false; renderAR(_lastOrientEvent); });
@@ -2224,7 +2260,8 @@
                 // smer). Bez toho modulu se pouzije zivy heading = puvodni chovani.
                 const _mapHdg = (window.AGMapRot && window.AGMapRot.mapHeading) ? window.AGMapRot.mapHeading(heading) : heading;
                 const _rotD = Math.abs(((_mapHdg - mapRotation + 540) % 360) - 180);
-                if (_rotD >= 0.15 || _mrLat !== userLat || _mrLng !== userLng || window._labelsDirty) {
+                // SLABŠÍ TELEFON: otočit mapu (a přepsat transform všem popiskům) až po 0,8°
+                if (_rotD >= ((window.AGLite && AGLite.lite) ? 0.8 : 0.15) || _mrLat !== userLat || _mrLng !== userLng || window._labelsDirty) {
                     mapWrapper.style.transformOrigin = (function(){ const p = map.latLngToContainerPoint([userLat, userLng]); return p.x + 'px ' + p.y + 'px'; })(); mapWrapper.style.transform = `translate(-50%, -50%) rotate(${-_mapHdg}deg)`; mapRotation = _mapHdg;
                     _mrLat = userLat; _mrLng = userLng;
                     if (window._labelsDirty) { window._mapLabelEls = document.querySelectorAll('.map-label-text'); window._labelsDirty = false; }
@@ -2269,6 +2306,7 @@
             let _arMissingEl = false;   // narazili jsme na bod bez DOM elementu?
 
             let maxPts = visSettings.maxARPoints || 100; let vOffset = visSettings.arVerticalOffset || 0;
+            if (window.AGLite && AGLite.lite && maxPts > 40) maxPts = 40;   // SLABŠÍ TELEFON: strop značek
             const _sqLC = searchQuery ? searchQuery.toLowerCase() : '';
             // DECLUTTER AR štítků: co by se překrývalo, sbalí se pod nejbližší bod (+N, tap = seznam bodů).
             const _placed = []; const _ovW = arOverlay.clientWidth || 1, _ovH = arOverlay.clientHeight || 1;

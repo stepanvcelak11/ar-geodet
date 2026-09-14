@@ -129,6 +129,33 @@ webu; balíček se znovu nahrává jen při změně názvu/ikony/balíčku.
 4. Po 14 dnech se v Console odemkne **Apply for production access** — krátký dotazník
    (co ses z testu dozvěděl).
 
+#### ⚠ „Nevidím žádné testery" (hlášeno 14. 9. 2026) — kde se to láme
+Tester se v Console **objeví jen tehdy, když prošel touto cestou, a to v tomhle pořadí**:
+1. Jeho Google účet (e‑mail) je v seznamu testerů (*Testování → Uzavřené testování → Alpha →
+   Testeři*) — nebo je v Google skupině, kterou tam máš přidanou.
+2. Vydání ve stopě Alpha má stav **„K dispozici pro testery"** (ne „Koncept", ne „Čeká na
+   kontrolu"). Dokud kontrola neproběhla, opt‑in odkaz hlásí „aplikace není dostupná".
+3. Tester otevřel **opt‑in odkaz** `https://play.google.com/apps/testing/cz.stepanvcelak.argeodet`
+   (v Console: *Testeři → Zkopírovat odkaz*) **na telefonu s Androidem, přihlášený tím účtem,
+   který je v seznamu** — a klepl na „Stát se testerem".
+4. Teprve pak nainstaloval appku **z Google Play** (odkaz na téže stránce). Ve stopě Alpha
+   se pak ukáže v *Testeři → Přihlášení testeři*; počítadlo se **aktualizuje se zpožděním,
+   běžně den, někdy dva**.
+
+Co se do testu NEPOČÍTÁ, i když to vypadá stejně:
+- **Instalace přes QR kód / odkaz z appky** („Sdílet aplikaci") — to je PWA z prohlížeče, ne
+  z Play. Google o ní neví. Přesně proto se tenhle tester po instalaci nikdy nezeptal „chceš
+  se stát testerem" — ta otázka se ukáže jen na opt‑in stránce z bodu 3. (Od v315 tlačítko
+  vidí jen vlastník appky.)
+- Instalace `.apk`/`.aab` ze souboru nebo z pracovní plochy PWABuilderu.
+- Tester s jiným Google účtem v telefonu, než jaký je v seznamu (typicky pracovní vs. soukromý).
+- Ty sám na svém telefonu se počítáš jen tehdy, když jsi taky prošel opt‑in odkazem a
+  nainstaloval z Play (vývojářský účet automaticky testerem není).
+
+Rychlá kontrola bez čekání: na telefonu testera otevři Google Play → profil → *Správa aplikací
+a zařízení* → QTRIG; u appky z uzavřeného testu je nahoře pruh **„Jsi beta tester"**. Když tam
+není, instalace nebyla z Play.
+
 ### A8. Produkce
 **Production → Create release** → stejný `.aab` → review Googlu (obvykle dny) → appka je v Playi. 🎉
 

@@ -3217,3 +3217,39 @@ body.ag-glove #settings-modal .modal-content .btn { margin-top: 10px; }
     min-width: var(--tap-min, 44px); min-height: var(--tap-min, 44px);
     transform: translate(-50%, -50%); background: none; pointer-events: auto;
 }
+
+/* ===== SLABŠÍ TELEFON (js/slabsi-telefon.js) ====================================
+   Třídu .ag-lite na <html> dává js/slabsi-telefon.js (ručně, nebo automaticky
+   podle ≤ 3 GB paměti / změřených dlouhých snímků). Cíl: co nejmíň práce pro
+   GPU a hlavní vlákno, beze změny rozložení.
+   • sklo (backdrop-filter) pryč VŠUDE — nad kamerou, nad mapou, v modálech i
+     v menu (js/power-save.js ho vypíná jen nad kamerou); --glass-bg má alfu
+     0,80–0,92, takže panely zůstanou čitelné, jen pod nimi není rozostřeno;
+   • rozostření a měkké stíny (filter: blur / drop-shadow) pryč — každé je
+     samostatný průchod přes vrstvu;
+   • animace a přechody pryč (totéž co html.ag-anim-off výše);
+   • stín textu pryč.
+   Odstranění: smaž tenhle blok spolu s js/slabsi-telefon.js. */
+html.ag-lite *, html.ag-lite *::before, html.ag-lite *::after {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    text-shadow: none !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+}
+/* filter pryč — ale NE z dlaždic mapy (invert dělá tmavou mapu v tmavém motivu;
+   bez něj by na slabém telefonu v noci svítila bílá mapa) ani z obrazu kamery
+   (noční motiv ho ztlumuje). */
+html.ag-lite *:not(.leaflet-tile):not(#camera-feed) {
+    filter: none !important;
+}
+/* Panely bez skla: plná podkladová barva místo poloprůhledné, ať text nesplývá
+   s kamerou ani s mapou (bez rozostření by průhlednost jen škodila čitelnosti). */
+html.ag-lite .glass-panel,
+html.ag-lite .modal-content,
+html.ag-lite #side-menu,
+html.ag-lite #bottom-sheet,
+html.ag-lite .dock-btn:not(.dock-primary) {
+    background-color: var(--bg-elev, #171b20) !important;
+}

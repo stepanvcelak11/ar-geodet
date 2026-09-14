@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v314';   // Vrstvy: dlazdice Ukazat cil -> Ukazat me i cil (+ napoveda)
+const SHELL_CACHE = 'argeodet-shell-v315';   // Dosah bodu 300/100 m, rezim Slabsi telefon, Sdilet aplikaci jen vlastnik
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=314',
-    './css/style.css?v=314',
-    './css/vylepseni.css?v=314',
+    './css/tokens.css?v=315',
+    './css/style.css?v=315',
+    './css/vylepseni.css?v=315',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -85,6 +85,7 @@ const ASSETS_TO_CACHE = [
     './js/vstupy.js',
     './js/lib/leaflet-1.9.4.js',
     './js/power-save.js',
+    './js/slabsi-telefon.js',
     './js/idle-timers.js',
     './js/logika.js',
     './js/grafika.js',

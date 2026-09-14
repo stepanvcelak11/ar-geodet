@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 315,
+   "datum": "2026-09-14",
+   "nadpis": "Plynulejší appka: menší dosah bodů a režim pro slabší telefon",
+   "body": [
+    "<b>Dosah bodů je menší:</b> úřední body (ČÚZK) se stahují a v mapě ukazují do <b>300 m</b> od tebe (dřív 1 km) a v AR kameře do <b>100 m</b> (dřív 150). Méně značek = plynulejší mapa i kamera. Obojí si nastavíš táhlem: Nastavení → Data → „Dosah bodů v mapě“ a Nastavení → AR & přesnost → „Viditelnost bodů v AR kameře“. Vlastní body zakázky se v mapě kreslí vždy. Kdo měl uložené staré výchozí 1000/150 m, dostal nové; vlastní nastavený dosah se nemění.",
+    "<b>Slabší telefon</b> (Nastavení → AR & přesnost): úsporné zobrazení bez skla, stínů a animací, kamera 480p, kompas 20× za sekundu, nejvýš 40 značek v AR. Zapne se samo na telefonu s málo pamětí nebo když appka naměří, že nestíhá; jde přepnout ručně na Zapnuto / Vypnuto. Měření a data jsou stejné.",
+    "<b>Sdílet aplikaci (QR)</b> v panelu Více vidí už jen vlastník appky. Appka se má stahovat z Google Play (testeři přes pozvánku), ne z QR jako webová stránka."
+   ]
+  },
+  {
    "v": 314,
    "datum": "2026-09-13",
    "nadpis": "Kytička nástrojů čitelnější a návrat do konzole vlastníka",

@@ -1248,8 +1248,16 @@
     }
     wrapRegister();
 
+    // „Sdílet aplikaci (QR)" v panelu Více vidí jen VLASTNÍK (14. 9. 2026). Přes QR
+    // se appka rozdávala jako PWA z prohlížeče a Google Play o takových lidech nic
+    // neví — testeři uzavřeného testu se počítají jen z instalací z Play. Tlačítko
+    // má v index.html `hidden`; tady se jen odkryje, když je telefon v režimu vlastníka.
+    function sdiletAppJenVlastnik() {
+        try { var b = document.getElementById('menu-sdilet-app'); if (b) b.hidden = !isOwner(); } catch (e) { /* bez menu */ }
+    }
+
     // mřížku Nástrojů překreslují field-tools/tools-plus → periodicky srovnat
-    function tick() { wrapRegister(); if (getFirm() || isOwner()) { applyPerms(); applyProjPerms(); prostoryMenu(); } gateCheck(); }
+    function tick() { wrapRegister(); if (getFirm() || isOwner()) { applyPerms(); applyProjPerms(); prostoryMenu(); } sdiletAppJenVlastnik(); gateCheck(); }
 
     // ------------------------------------------------------------------
     // Přihlašovací / zamykací obrazovka
