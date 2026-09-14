@@ -122,9 +122,18 @@ async def beh(url):
         await page.evaluate(KOMPAS, 700)
         b = await page.evaluate("""() => ({ tf: document.querySelector('.map-label-text').style.transform, rot: Math.round(mapRotation) })""")
         ok('A1 během otáčení se transform popisků NEPŘEPISUJE', a == b['tf'], (a, b))
-        await page.wait_for_timeout(500)
-        c = await page.evaluate("""() => { const tf = document.querySelector('.map-label-text').style.transform; const m = tf.match(/rotate\\(([-\\d.]+)deg\\)/); return { tf: tf, deg: m ? +m[1] : null, rot: mapRotation }; }""")
-        ok('A2 po ustálení (0,5 s) se popisky srovnaly na aktuální natočení', c['deg'] is not None and abs(((c['deg'] - c['rot'] + 540) % 360) - 180) < 1.5, c)
+        await page.wait_for_timeout(700)
+        # srovnávají se jen popisky VE VÝŘEZU (ostatní až když se do něj dostanou)
+        c = await page.evaluate(r"""() => { const b = map.getBounds(); let el = null, mimo = null; markersGroup.eachLayer(l => { const e = l.getElement && l.getElement(); const t = e && e.querySelector('.map-label-text'); if (!t) return; if (b.contains(l.getLatLng())) { if (!el) el = t; } else if (!mimo) mimo = t; });
+            const deg = (t) => { const m = (t ? t.style.transform : '').match(/rotate\(([-\d.]+)deg\)/); return m ? +m[1] : null; };
+            return { deg: deg(el), degMimo: deg(mimo), rot: mapRotation }; }""")
+        ok('A2 po ustálení (0,7 s) se popisky ve výřezu srovnaly na aktuální natočení', c['deg'] is not None and abs(((c['deg'] - c['rot'] + 540) % 360) - 180) < 2.5, c)
+        ok('A2b popisky mimo výřez se nesrovnávají (ušetřený zásek)', c['degMimo'] is None or abs(((c['degMimo'] - c['rot'] + 540) % 360) - 180) >= 2.5 or c['degMimo'] == c['deg'], c)
+        # dotyk: s prstem na displeji se mapa nepřekresluje (klepnutí by se ztratilo)
+        d0 = await page.evaluate("""() => { document.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })); const gen0 = _drawGen; drawAllMarkersOnMap(); const odlozeno = (_drawGen === gen0); document.dispatchEvent(new PointerEvent('pointerup', { bubbles: true })); return { odlozeno: odlozeno, dotyk: AG.dotyk() }; }""")
+        await page.wait_for_timeout(400)
+        d1 = await page.evaluate("() => ({ dotyk: AG.dotyk(), znacky: markersGroup.getLayers().length })")
+        ok('A4 s prstem na displeji se překreslení mapy odloží a po zvednutí doběhne', d0['odlozeno'] and d0['dotyk'] and not d1['dotyk'] and d1['znacky'] > 50, (d0, d1))
         src = io.open(os.path.join(ROOT, 'js', 'grafika.js'), encoding='utf-8').read()
         ok('A3 renderAR už nepřepisuje transform popisků každý snímek', "window._mapLabelEls.forEach(el => { el.style.transform = `rotate(${_mapHdg}deg)`; });" not in src and '_lblSettle(_mapHdg)' in src)
 
@@ -167,8 +176,7 @@ async def beh(url):
         ok('D6 záznam stopy drží GPS přes AGPower.hold', "AGPower.hold('gps', 'track-log')" in tl)
 
         # ---- C: okno Body po dávkách -------------------------------------------------
-        dlg = await page.evaluate("() => { const d = document.querySelector('.ag-dlg-overlay.open'); const t = d ? d.textContent.replace(/[ 
-	]+/g, ' ').slice(0, 120) : ''; document.querySelectorAll('.ag-dlg-overlay').forEach(o => o.remove()); return t; }")
+        dlg = await page.evaluate("() => { const d = document.querySelector('.ag-dlg-overlay.open'); const t = d ? d.textContent.split(/\\s+/).join(' ').slice(0, 120) : ''; document.querySelectorAll('.ag-dlg-overlay').forEach(o => o.remove()); return t; }")
         if dlg: print('    (dialog zavřen: %s)' % dlg)
         await page.evaluate("() => { document.querySelectorAll('.modal-overlay').forEach(m => { if (m.id !== 'manage-modal') m.style.display = 'none'; }); }")
         await page.tap('#dock button:has-text("Body")')

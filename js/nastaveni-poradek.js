@@ -68,10 +68,11 @@
             }
         },
         'tab-ar': {
-            order: ['Body v AR kameře', 'Kompas a stabilita směru'],
+            order: ['Dosah bodů', 'Body v AR kameře', 'Kompas a stabilita směru'],   // Dosah bodů = první sekce (14. 9. 2026)
             put: {
                 'ag-arfusion-row': { s: 'Kompas a stabilita směru', i: -2 },  // nad tlačítko Kompas
                 'agvt-settings-row': { s: 'Kompas a stabilita směru', i: -1 },
+                'agl-card': { s: 'Kompas a stabilita směru', i: 8 },   // slabší telefon (js/slabsi-telefon.js, vlastní nadpis)
                 'agp-card': { s: 'Kompas a stabilita směru', i: 9 }    // úspora baterie (vlastní nadpis)
             }
         },
@@ -390,9 +391,10 @@
     function arrange() {
         if (_busy) return;
         if (!settingsVisible() && !warmingUp()) { _dirty = true; return; }
-        if (typingInSettings()) {
+        // s prstem na displeji nepřeskládávat — přesun prvku pod prstem sebere klepnutí (AG.dotyk)
+        if (typingInSettings() || (window.AG && AG.dotyk && AG.dotyk())) {
             _dirty = true;
-            if (!_timer) _timer = setTimeout(function () { _timer = null; arrange(); }, 900);
+            if (!_timer) _timer = setTimeout(function () { _timer = null; arrange(); }, typingInSettings() ? 900 : 200);
             return;
         }
         _dirty = false;

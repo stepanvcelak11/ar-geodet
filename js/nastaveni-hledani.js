@@ -47,8 +47,8 @@
     // Vybráno podle toho, co geodet mění v terénu, ne podle toho, co existuje.
     var KEEP = {
         'tab-vzhled': ['seg-mode', 'v-theme', 's-outdoor'],
-        'tab-ar': ['s-ar-radius-slider', 's-max-ar-slider', 'agl-rezim'],   // agl-rezim = Slabší telefon (js/slabsi-telefon.js)
-        'tab-data': ['s-project-select', 'f-tb', 's-map-radius-slider'],
+        'tab-ar': ['s-ar-radius-slider', 's-map-radius-slider', 's-max-ar-slider', 'agl-rezim'],   // dosah AR + mapa pohromadě; agl-rezim = Slabší telefon
+        'tab-data': ['s-project-select', 'f-tb'],
         'tab-udrzba': null           // null = nekrátit (jsou tam jen 4 tlačítka)
     };
     // Tlačítka, která v krátkém pohledu zůstávají (poznají se podle textu onclicku)

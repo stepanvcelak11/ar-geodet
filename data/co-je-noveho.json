@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 317,
+   "datum": "2026-09-14",
+   "nadpis": "Nastavení začíná dosahem bodů, mapa se otáčí hladce, klepnutí se neztrácí",
+   "body": [
+    "<b>Nastavení:</b> záložka <b>AR & přesnost</b> je první a otevře se jako výchozí; hned nahoře je sekce <b>Dosah bodů</b> s oběma táhly — viditelnost v AR kameře a dosah bodů v mapě (to bylo dosud schované v záložce Data).",
+    "<b>Otáčení mapy</b> už neškube: popisky bodů se po ustálení srovnávají jen ty, které jsou na obrazovce (ostatní až když se do ní dostanou), a mapa se při chůzi překresluje jen tehdy, když se opravdu změní, které body jsou v dosahu.",
+    "<b>Klepnutí se neztrácí:</b> dokud máš prst na displeji, appka nepřestavuje to, na co klepeš — seznam bodů, značky v mapě ani Nastavení se nepřekreslí pod prstem (to byl důvod, proč občas bylo potřeba klepnout dvakrát)."
+   ]
+  },
+  {
    "v": 316,
    "datum": "2026-09-14",
    "nadpis": "Mapa se otáčí bez trhání, kamera pod nástroji nezhasíná, odpověď na vzkaz",

@@ -1977,6 +1977,8 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
     mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent);
 }
 .settings-tiles::-webkit-scrollbar { display: none; }
+/* AR & přesnost první (14. 9. 2026) — jen vizuálně, DOM pořadí záložek se nemění */
+.settings-tiles #tabbtn-ar { order: -1; }
 .settings-tiles .tab-btn {
     flex: 0 0 auto;
     min-width: 0;

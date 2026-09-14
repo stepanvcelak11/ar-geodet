@@ -95,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=316">
-    <link rel="stylesheet" href="css/style.css?v=316">
+    <link rel="stylesheet" href="css/tokens.css?v=317">
+    <link rel="stylesheet" href="css/style.css?v=317">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -227,7 +227,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=316">
+    <link rel="stylesheet" href="css/vylepseni.css?v=317">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -628,8 +628,10 @@
                  které je position:sticky, takže už na cílové pozici JE a nic se nepohne.
                  Bez toho zůstane Nastavení po přepnutí nascrollované doprostřed obsahu. -->
             <div class="tab-buttons settings-tiles">
-                <div class="tab-btn active" onclick="switchTab('tab-vzhled', this); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-sliders"/></svg><span class="tb-tx"><b>Vzhled</b><small>Motiv, text, prvky HUD</small></span></div>
-                <div class="tab-btn" onclick="switchTab('tab-ar', this); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-crosshair"/></svg><span class="tb-tx"><b>AR &amp; přesnost</b><small>Body v AR, kompas, senzory</small></span></div>
+                <div class="tab-btn" onclick="switchTab('tab-vzhled', this); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-sliders"/></svg><span class="tb-tx"><b>Vzhled</b><small>Motiv, text, prvky HUD</small></span></div>
+                <!-- AR & přesnost je PRVNÍ a výchozí (14. 9. 2026): dosah bodů se mění nejčastěji. Pořadí
+                     jen přes CSS `order` (#tabbtn-ar), DOM pořadí 0–4 zůstává pro js/app-search.js a js/ucty.js. -->
+                <div class="tab-btn active" id="tabbtn-ar" onclick="switchTab('tab-ar', this); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-crosshair"/></svg><span class="tb-tx"><b>AR &amp; přesnost</b><small>Body v AR, kompas, senzory</small></span></div>
                 <div class="tab-btn" onclick="switchTab('tab-data', this); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-folder"/></svg><span class="tb-tx"><b>Data</b><small>Zakázka, body ČÚZK, offline</small></span></div>
                 <!-- Kompas z dlaždic ODEBRÁN na přání (duplikoval panel Azimut na hlavní obrazovce;
                      kalibrace zůstává klepnutím na Azimut a tlačítkem v AR & přesnost) -->
@@ -653,7 +655,7 @@
                 <button type="button" class="ag-strip-btn" id="ag-set-vice" onclick="document.getElementById('settings-modal').style.display='none'; toggleMenu();"><svg class="icon"><use href="#i-menu"/></svg><span>Více <small>návod, offline, o aplikaci</small></span></button>
             </div>
             <div class="modal-body">
-                <div id="tab-vzhled" class="settings-tab active">
+                <div id="tab-vzhled" class="settings-tab">
                     <!-- REORGANIZACE 7/2026: položky seskupené do sekcí (.set-h). Ids beze změny;
                          kotvy injektujících modulů: #s-lefthand (rukavice z vylepseni.js) zůstává. -->
                     <div class="set-h">Motiv a barvy</div>
@@ -776,18 +778,28 @@
                         </div>
                     </details>
                 </div>
-                <div id="tab-ar" class="settings-tab">
+                <div id="tab-ar" class="settings-tab active">
                     <!-- „Rozvržení" (radia s-view) odstraněno — zobrazení přepíná kroužek vpravo dole (view-cycle.js) -->
                     <!-- REORGANIZACE 7/2026: sekce .set-h. Kotvy injekcí: ar-fusion.js vkládá PŘED
                          tlačítko openCompassModal, ar-visual-track.js za fúzi, power-save.js na konec tabu. -->
-                    <div class="set-h">Body v AR kameře</div>
-                    <!-- DOSAH BODŮ (14. 9. 2026): výchozí 100 m (dřív 150). Čím dál vidíš, tím víc
-                         značek se počítá s každým snímkem kompasu — na slabším telefonu se appka
-                         sekala. Kdo chce vidět dál, posune táhlo; dosah v mapě je v záložce Data. -->
+                    <!-- DOSAH BODŮ — PRVNÍ SEKCE PRVNÍ ZÁLOŽKY (14. 9. 2026, na přání: „AR a přesnost
+                         bych dal jako první, protože si tam můžu nastavit okruh dohledu bodů" +
+                         „posuvník pro dosah v mapě jsem v Nastavení nenašel"). Obě táhla dosahu
+                         jsou tady pohromadě; táhlo mapy sem přišlo ze záložky Data. Ids beze změny
+                         (čte je saveSettings v grafika.js). Výchozí: AR 100 m (dřív 150), mapa 300 m
+                         (dřív 1000) — čím dál vidíš, tím víc značek se počítá; na slabším telefonu se
+                         appka sekala. Dosah v mapě řídí i stahování z ČÚZK (grafika.js _drawOneMarker,
+                         logika.js initFetch); vlastní body zakázky se v mapě kreslí vždy. -->
+                    <div class="set-h">Dosah bodů</div>
                     <div class="st-slider">
                         <div class="st-slider-head"><span class="st-lab">Viditelnost bodů v AR kameře<small>jak daleko vidíš body v kameře — menší dosah = plynulejší appka</small></span><span class="st-val"><span id="s-ar-radius-val">100</span> m</span></div>
                         <input type="range" id="s-ar-radius-slider" min="50" max="5000" step="50" value="100" oninput="document.getElementById('s-ar-radius-val').innerText = this.value">
                     </div>
+                    <div class="st-slider">
+                        <div class="st-slider-head"><span class="st-lab">Dosah bodů v mapě<small>jak daleko od tebe se úřední body stahují a ukazují v mapě — menší dosah = méně načítání, plynulejší mapa</small></span><span class="st-val"><span id="s-map-radius-val">300</span> m</span></div>
+                        <input type="range" id="s-map-radius-slider" min="50" max="5000" step="50" value="300" oninput="document.getElementById('s-map-radius-val').innerText = this.value">
+                    </div>
+                    <div class="set-h">Body v AR kameře</div>
                     <div class="st-slider">
                         <div class="st-slider-head"><span class="st-lab">Max. bodů v AR (výkon)</span><span class="st-val"><span id="s-max-ar-val">60</span></span></div>
                         <input type="range" id="s-max-ar-slider" min="10" max="200" step="10" value="60" oninput="document.getElementById('s-max-ar-val').innerText = this.value">
@@ -836,15 +848,6 @@
                         <label class="st-chip"><input type="checkbox" id="f-pbpp" checked onchange="updateFilters()"><span class="st-chip-face"><svg class="cat-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#3b82f6"/></svg>Podrobné</span></label>
                         <label class="st-chip"><input type="checkbox" id="f-nivel" checked onchange="updateFilters()"><span class="st-chip-face"><svg class="cat-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="#ef4444" stroke-width="4"/><circle cx="12" cy="12" r="3" fill="#ef4444"/></svg>Výškové</span></label>
                         <label class="st-chip"><input type="checkbox" id="f-custom" checked onchange="updateFilters()"><span class="st-chip-face"><svg class="cat-ic" viewBox="0 0 24 24"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7Z" fill="#34d399"/></svg>Vlastní</span></label>
-                    </div>
-                    <!-- DOSAH BODŮ V MAPĚ (14. 9. 2026): jedno táhlo řídí, jak daleko od tebe se
-                         úřední body STAHUJÍ z ČÚZK i jak daleko se v mapě KRESLÍ (grafika.js
-                         _drawOneMarker). Výchozí 300 m (dřív 1000): kilometrový okruh v obci
-                         = stovky značek, a každá se s otočením mapy přepisuje. Vlastní body
-                         zakázky se v mapě kreslí vždy (zakázka může být dlouhá). -->
-                    <div class="st-slider">
-                        <div class="st-slider-head"><span class="st-lab">Dosah bodů v mapě<small>jak daleko od tebe se úřední body stahují a ukazují v mapě — menší dosah = méně načítání, plynulejší mapa</small></span><span class="st-val"><span id="s-map-radius-val">300</span> m</span></div>
-                        <input type="range" id="s-map-radius-slider" min="50" max="5000" step="50" value="300" oninput="document.getElementById('s-map-radius-val').innerText = this.value">
                     </div>
                     <label>Hledat konkrétní bod (plný název)<small style="display:block; font-weight:400; color:var(--text-muted);">filtr zobrazení — po dohledání ho zase smaž</small></label>
                     <input type="text" id="s-search-name" placeholder="Např. 567 nebo celá značka">

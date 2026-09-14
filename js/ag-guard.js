@@ -129,6 +129,22 @@
         setTimeout(spust, zaloha || 4000);
     };
 
+    // ================================================================
+    //  2c) AG.dotyk() — JE PRÁVĚ PRST NA DISPLEJI?
+    // ================================================================
+    // ⚠ PROČ (14. 9. 2026): „občas musím klepnout vícekrát, na první to nereaguje".
+    // Klepnutí = pointerdown → pointerup → click na TÉMŽE prvku. Když mezi tím
+    // něco prvek vymění (překreslení seznamu bodů, přeskládání Nastavení, nové
+    // značky v mapě po kusu chůze), click nemá kam dopadnout a prostě se ztratí.
+    // Tikače a pozorovatelé, kteří přestavují DOM, se proto ptají AG.dotyk() a
+    // s prstem na displeji přestavbu o chvíli odloží. Po pointerup ještě 60 ms
+    // (click chodí až po něm).
+    var _prstDole = false, _dotykDo = 0;
+    AG.on(document, 'pointerdown', function () { _prstDole = true; }, true);
+    AG.on(document, 'pointerup', function () { _prstDole = false; _dotykDo = Date.now() + 60; }, true);
+    AG.on(document, 'pointercancel', function () { _prstDole = false; _dotykDo = Date.now() + 60; }, true);
+    AG.dotyk = function () { return _prstDole || Date.now() < _dotykDo; };
+
     // Sada posluchačů. Typické použití v modálu:
     //     var s = AG.scope();
     //     s.on(window, 'resize', prekresli);

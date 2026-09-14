@@ -801,8 +801,12 @@
                 L.marker([pt.lat, pt.lng], { icon: icon }).addTo(markersGroup);
         }
 
+        let _drawOdlozeno = null;
         function drawAllMarkersOnMap() {
             if (_mngSuspendRedraw) return;   // hromadna davka prekresli mapu az na konci
+            // S PRSTEM NA DISPLEJI NEPŘEKRESLOVAT (14. 9. 2026): klepnutí na značku, kterou
+            // mezitím překreslení vyměnilo za novou, se ztratí („musím klepnout vícekrát").
+            if (window.AG && AG.dotyk && AG.dotyk()) { clearTimeout(_drawOdlozeno); _drawOdlozeno = setTimeout(drawAllMarkersOnMap, 120); return; }
             const gen = ++_drawGen;
             markersGroup.clearLayers();
             _mapDrawnBounds = _mapPadBounds(_MAP_DRAW_PAD);
@@ -846,14 +850,29 @@
         // má vidět úřední body, které mu mezitím přišly do dosahu (a nemusí vidět ty,
         // co za ním zůstaly). Volá to GPS smyčka v logika.js po každém fixu; překreslí
         // se až po ujití osminy dosahu (nejméně 20 m), ne po každém kroku.
+        // Překreslí se jen když se tím opravdu něco změní: spočítá se, kolik úředních bodů
+        // je teď v dosahu, a když je to totéž co při poslední kresbě, mapa se nechá být.
+        // (Každé překreslení = nová sada značek, tedy zásek a ztracené klepnutí.)
+        let _mapDosahPocet = -1;
+        function _mapDosahPocitej() {
+            let n = 0;
+            for (let i = 0; i < arPoints.length; i++) { const p = arPoints[i]; if (p.cat !== 'CUSTOM' && !p.hidden && !_mimoDosahMapy(p)) n++; }
+            return n;
+        }
         function _mapDosahCheck() {
             if (!appStarted || userLat == null) return;
             // první kresba bývá ještě bez polohy (vzdálenosti neznámé → kreslí se vše):
             // s prvním fixem se překreslí podle dosahu
-            if (_mapDrawLat == null) { drawAllMarkersOnMap(); return; }
+            if (_mapDrawLat == null) { _mapDosahPocet = _mapDosahPocitej(); drawAllMarkersOnMap(); return; }
             const krok = Math.max(20, (mapRadius || 300) / 8);
-            if (getDistance(_mapDrawLat, _mapDrawLng, userLat, userLng) > krok) drawAllMarkersOnMap();
+            if (getDistance(_mapDrawLat, _mapDrawLng, userLat, userLng) <= krok) return;
+            const n = _mapDosahPocitej();
+            if (n === _mapDosahPocet) { _mapDrawLat = userLat; _mapDrawLng = userLng; return; }
+            _mapDosahPocet = n;
+            drawAllMarkersOnMap();
         }
+        // popisky, které přišly do výřezu posunem mapy, srovnat (viz _lblApply)
+        map.on('moveend', () => { if (_lblApplied != null && !_lblTimer) { _lblTimer = setTimeout(() => _lblApply(true), 150); } });
 
         function getMapClickLatLng(e) {
             const oe = e.originalEvent || {};
@@ -1248,7 +1267,11 @@
             if (_mngSuspendRedraw) return;
             if (!_mngVisible()) return;   // panel neni videt — stavet ho je prace do neviditelna
             if (_mngRafId) return;                       // uz je naplanovano na tento snimek
-            _mngRafId = requestAnimationFrame(() => { _mngRafId = 0; _renderManageListNow(); });
+            _mngRafId = requestAnimationFrame(() => {
+                // s prstem na displeji se seznam nepřestavuje — klepnutí by dopadlo do prázdna (AG.dotyk)
+                if (window.AG && AG.dotyk && AG.dotyk()) { _mngRafId = 0; setTimeout(renderManageList, 120); return; }
+                _mngRafId = 0; _renderManageListNow();
+            });
         }
         function _renderManageListNow() {
             const listDiv = document.getElementById('manage-list');
@@ -2209,17 +2232,37 @@
         // Krok pod 1° od naposled srovnaného úhlu časovač neresetuje — třes ruky by jinak
         // srovnání odkládal donekonečna; drift se dorovná, jakmile přeroste 1°.
         let _lblTimer = null, _lblApplied = null;
-        function _lblApply() {
+        // ⚠ SROVNÁVAJÍ SE JEN POPISKY VE VÝŘEZU (14. 9. 2026, hlášení „mapa se při otáčení
+        //   zasekává jako po hrubém povrchu"). Srovnání VŠECH 485 popisků = jeden 100ms
+        //   zásek (CPU 4×) pokaždé, když se směr na chvíli ustálí — při chůzi s telefonem
+        //   v ruce každých pár vteřin. Popisky mimo obrazovku nikdo nevidí: srovnají se,
+        //   až se do výřezu dostanou (posun mapy → 'moveend' níž), nebo je překreslí
+        //   drawAllMarkersOnMap s aktuálním natočením. Ve výřezu bývá ~1/5 značek.
+        function _lblViditelne() {
+            const out = []; let b = null;
+            try { b = map.getBounds().pad(0.15); } catch (e) { b = null; }
+            try {
+                markersGroup.eachLayer(l => {
+                    if (!l.getLatLng) return;
+                    if (b && !b.contains(l.getLatLng())) return;
+                    const el = l.getElement && l.getElement(); if (!el) return;
+                    const t = el.querySelector('.map-label-text'); if (t) out.push(t);
+                });
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:_lblViditelne'); }
+            return out;
+        }
+        function _lblApply(jenDorovnat) {
             _lblTimer = null;
-            const els = window._mapLabelEls; if (!els) return;
-            const hdg = mapRotation; _lblApplied = hdg;
+            // jenDorovnat (po posunu mapy): srovnat nově viditelné na NAPOSLED srovnaný úhel,
+            // ne na živý — jinak by se při chůzi (setView každý fix) přepisovaly popisky každou vteřinu
+            const hdg = (jenDorovnat && _lblApplied != null) ? _lblApplied : mapRotation; _lblApplied = hdg;
             const tf = `rotate(${hdg}deg)`;
-            els.forEach(el => { el.style.transform = tf; });
+            _lblViditelne().forEach(el => { if (el.style.transform !== tf) el.style.transform = tf; });
         }
         function _lblSettle(hdg) {
-            if (_lblApplied != null && Math.abs(((hdg - _lblApplied + 540) % 360) - 180) < 1) return;
+            if (_lblApplied != null && Math.abs(((hdg - _lblApplied + 540) % 360) - 180) < 2) return;
             if (_lblTimer) clearTimeout(_lblTimer);
-            _lblTimer = setTimeout(_lblApply, 200);
+            _lblTimer = setTimeout(_lblApply, 300);
         }
         function renderAR(event) {
             if (!userLat || !userLng) return;
