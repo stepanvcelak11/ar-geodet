@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-09-13",
-  "uvodnik": "Vydání 13. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-09-14",
+  "uvodnik": "Vydání 14. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,18 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "3DT Brings the Whole Survey Workflow In-House",
+      "perex": "Three announcements at INTERGEO 2026 — global shutter imagery, native trajectory processing (and more) and LiDAR integrated colourisation — take the survey from acquisition to deliverable inside a sin…",
+      "telo": "Three announcements at INTERGEO 2026 — global shutter imagery, native trajectory processing (and more) and LiDAR integrated colourisation — take the survey from acquisition to deliverable inside a single platform Brescia, Italy — 14 September 2026 – 3DT will present three developments for its Scanfly mobile mapping systems at INTERGEO 2026: a new global shutter camera, trajectory processing (and more) integrated into SmartProcessing Lidar, and a compact 64-channel LiDAR head capable of producing natively coloured point clouds. SCANFLYv3_PRO With these three, 3DT moves further towards its own vision: one system that carries the survey from the field to the finished deliverable, and an operato",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/14/3dt-brings-the-whole-survey-workflow-in-house/?utm_source=rss&utm_medium=rss&utm_campaign=3dt-brings-the-whole-survey-workflow-in-house",
+      "datum": "2026-09-14"
     },
     {
       "rubrika": "Technologie",
@@ -84,18 +96,6 @@
       "proc": "",
       "zdroj": "xyHt",
       "odkaz": "https://www.xyht.com/aerialuas/intergeo-2026-a-field-guide-by-role/",
-      "datum": "2026-09-08"
-    },
-    {
-      "rubrika": "Přístroje",
-      "top": false,
-      "nadpis": "xyHt Magazine July / August 2026",
-      "perex": "Read the July/August xyHt digital edition.",
-      "telo": "Read the July/August xyHt digital edition. Table of Contents A Field Guide by Role INTERGEO returns to Munich September 15–17 — what’s worth a surveyor’s, a GIS manager’s, or a BIM lead’s floor time, organized by role. Inside Concordia Topcon’s PNT proving ground near Modena, where trust in precision gets built, tested, and re-tested in the field, year after year. Bringing Precision to the Ground A roughly $700 RTK receiver won’t replace a survey rover — it changes who gets to carry centimeter-level positioning around. The Unity Thesis Trimble’s case that GIS context, survey-grade position, and asset management are three views of the same problem. One Platform, Every Direction More than 15,0",
-      "body": [],
-      "proc": "",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/magazine/xyht-magazine-july-august-2026/",
       "datum": "2026-09-08"
     }
   ]
