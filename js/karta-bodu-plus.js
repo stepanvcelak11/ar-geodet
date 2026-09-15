@@ -2,8 +2,15 @@
 // Karta je PŘEHLED O BODU, ne navigace (na tu je mapa / AR / split — 12. 9. 2026):
 //   • mozaika dat: Y/X velké + ikona druhu, přesnost barevně, stav vytyčení, výška,
 //     „ode mě" (jen vzdálenost), kdo/kdy/odkud
-//   • náčrt okolí nad ortofotem+KN: sousední body zakázky, oměrné v S-JTSK, parcely
-//     z vektorového katastru, tlačítko Polohopis ČÚZK; pod ním dlaždice oměrných
+//   • náčrt: u ÚŘEDNÍHO bodu OFICIÁLNÍ MÍSTOPISNÝ NÁČRT ČÚZK (15. 9. 2026, přání: „stáhnout
+//     oficiální polohopis, vzít z něj čistě ten náčrt a hodit ho tam místo toho, co jsi
+//     vytvářel ty — jsou tam míry k okolním věcem; odkaz na celý náčrt nechat") — obrázek
+//     z geodetických údajů bodu, adresy zjišťuje worker (/cuzk/nacrt, cloud/worker.js),
+//     obrázek jde rovnou od ČÚZK a service worker ho drží offline (TILE_CACHE).
+//     U TB/ZhB je to celý list A4 → ukazuje se výřez pravého horního rohu (náčrt),
+//     klepnutím celý list. Vlastní body, body bez odkazu a stav bez sítě dostanou
+//     dál náčrt z appky: sousední body zakázky, oměrné v S-JTSK, parcely z vektorového
+//     katastru nad ortofotem+KN; pod tím dlaždice oměrných
 //   • odchylka ΔY/ΔX jen když stojíš na bodě (< 3 m) s průměrovanou polohou
 //   • akce NAHOŘE (Doveď mě · Kontrolní bod · Vytyčeno) — do 13. 9. 2026 byly až pod
 //     náčrtem a uživatel k „Doveď mě" musel rolovat („dej navádění někam nahoru");
@@ -136,6 +143,25 @@
             '  background:rgba(11,15,21,.85);border:1px solid rgba(255,255,255,.2);color:#fff;font:700 11.5px/1 var(--font-ui,system-ui);text-decoration:none;}',
             '.ag-kb-polo .icon{width:14px;height:14px;}',
             '.ag-kb-sk .lg{z-index:500;left:6px;top:6px;padding:4px 8px;border-radius:8px;background:rgba(11,15,21,.72);color:#e6e8eb;}',
+            // oficiální náčrt ČÚZK: černá kresba na bílé — bílý podklad i v tmavém motivu
+            '.ag-kb-of{position:relative;background:#fff;min-height:120px;cursor:zoom-in;}',
+            '.ag-kb-of img{display:block;width:100%;height:auto;max-height:300px;object-fit:contain;background:#fff;}',
+            '.ag-kb-of.dva{display:grid;grid-template-columns:3fr 2fr;gap:0;}',
+            '.ag-kb-of.dva img{max-height:240px;border-left:1px solid #ddd;}.ag-kb-of.dva img:first-child{border-left:0;}',
+            // celý list geodetických údajů (TB/ZhB): náčrt je v pravém horním rohu listu A4
+            // (x 64–100 %, y 10–35 %) → výřez přes procenta šířky, celý list po klepnutí
+            '.ag-kb-of.list{overflow:hidden;aspect-ratio:1/1;}',
+            '.ag-kb-of.list img{position:absolute;width:278%;max-width:none;max-height:none;height:auto;left:-178%;top:-38%;}',
+            '.ag-kb-of.list.cely{aspect-ratio:auto;max-height:70vh;overflow:auto;cursor:zoom-out;}',
+            '.ag-kb-of.list.cely img{position:static;width:100%;}',
+            '.ag-kb-of.cely.dva{grid-template-columns:1fr;}.ag-kb-of.cely.dva img{border-left:0;border-top:1px solid #ddd;}.ag-kb-of.cely.dva img:first-child{border-top:0;}',
+            '.ag-kb-of .wait{padding:26px 10px;text-align:center;font:500 12px/1.4 var(--font-ui,system-ui);color:#556;}',
+            // patička pod náčrtem: popisek + odkaz na celé údaje (ne přes kresbu — čísla oměrných musí zůstat vidět)
+            '.ag-kb-of-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px 6px 10px;background:#f3f4f6;color:#334;font:600 10.5px/1.3 var(--font-ui,system-ui);}',
+            '.ag-kb-of-foot a{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:999px;background:#0f151d;color:#fff;font:700 11px/1 var(--font-ui,system-ui);text-decoration:none;white-space:nowrap;}',
+            '.ag-kb-of-foot a .icon{width:13px;height:13px;}',
+            '.ag-kb-of .rozbal{position:absolute;right:8px;top:8px;z-index:2;padding:6px 9px;border-radius:999px;border:1px solid rgba(0,0,0,.2);background:rgba(255,255,255,.9);color:#223;font:700 10.5px/1 var(--font-ui,system-ui);cursor:pointer;}',
+            '.ag-kb-app{display:block;width:100%;margin:0 0 8px;padding:8px 10px;border-radius:10px;border:1px dashed var(--glass-border,rgba(255,255,255,.2));background:transparent;color:var(--text-muted,#9aa1ac);font:600 11.5px/1.3 var(--font-ui,system-ui);cursor:pointer;text-align:center;}',
             // proužek karty = úchyt: větší plocha na prst, bez změny vzhledu
             '#bottom-sheet .sheet-handle{position:relative;}',
             '#bottom-sheet .sheet-handle::before{content:"";position:absolute;left:-60px;right:-60px;top:-14px;bottom:-14px;}',
@@ -380,12 +406,130 @@
     function nacrt(pt, body) {
         var old = document.getElementById('ag-kb-sk'); if (old) old.remove();
         var oldO = document.getElementById('ag-kb-om'); if (oldO) oldO.remove();
+        var oldA = document.getElementById('ag-kb-app'); if (oldA) oldA.remove();
         if (_mapa) { try { _mapa.remove(); } catch (e) { } _mapa = null; }
         var sb = sousede(pt);
+        _nacrtSeq++;
+        // ÚŘEDNÍ BOD S ODKAZEM NA GEODETICKÉ ÚDAJE → oficiální místopisný náčrt ČÚZK
+        // (viz hlavička). Když ho nelze sehnat (bez sítě a bez zásoby, ČÚZK bez obrázku),
+        // spadne to na náčrt z appky níž.
+        var link = polohopisUrl(pt);
+        if (link && !_appNacrt[link]) { nacrtCuzk(pt, body, sb, link); return; }
         // Leaflet je v index.html natvrdo (defer), takže tu vždycky je; kdyby ne, náčrt se
         // prostě nekreslí (mozaika a oměrné zůstávají). SVG záloha byla, ale stála 6 kB startu.
         if (!(window.L && typeof L.map === 'function')) return;
         nacrtMapa(pt, body, sb);
+    }
+
+    // ---- oficiální náčrt ČÚZK ----------------------------------------------------------
+    var _nacrtSeq = 0;             // překreslení karty jiným bodem zahodí odpověď, která ještě letí
+    var _appNacrt = {};            // odkaz → 1: uživatel si u tohoto bodu přepnul na náčrt z appky
+    var NACRT_LS = 'agNacrtCuzk_v1';   // { odkaz: { img:[{url,role}], page, ts } } — bez sítě se bere odsud
+    var NACRT_TTL = 90 * 864e5;
+    function nacrtCacheGet(link) {
+        try {
+            var all = JSON.parse(localStorage.getItem(NACRT_LS) || '{}'), r = all[link];
+            if (r && r.ts && Date.now() - r.ts < NACRT_TTL && Array.isArray(r.img)) return r;
+        } catch (e) { }
+        return null;
+    }
+    function nacrtCachePut(link, r) {
+        try {
+            var all = JSON.parse(localStorage.getItem(NACRT_LS) || '{}');
+            all[link] = { img: r.img, page: r.page || '', ts: Date.now() };
+            var keys = Object.keys(all);
+            if (keys.length > 400) { keys.sort(function (a, b) { return (all[a].ts || 0) - (all[b].ts || 0); }); keys.slice(0, keys.length - 300).forEach(function (k) { delete all[k]; }); }
+            localStorage.setItem(NACRT_LS, JSON.stringify(all));
+        } catch (e) { }
+    }
+    function apiBase() {
+        var b = '';
+        try { if (window.AGUcty) b = (typeof AGUcty.apiUrl === 'function' ? AGUcty.apiUrl() : '') || AGUcty.DEFAULT_API || ''; } catch (e) { b = ''; }
+        return b || 'https://ar-geodet-api.ar-geodet.workers.dev';
+    }
+    // adresy obrázků: zásoba v telefonu, jinak worker (ČÚZK stránku prohlížeč sám číst nesmí — CORS)
+    function nacrtZdroj(link) {
+        var c = nacrtCacheGet(link);
+        if (c) return Promise.resolve(c);
+        if (navigator.onLine === false) return Promise.reject(new Error('offline'));
+        var u = apiBase() + '/cuzk/nacrt?u=' + encodeURIComponent(link);
+        var f = (typeof fetchWithTimeout === 'function') ? fetchWithTimeout(u, 15000) : fetch(u);
+        return f.then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+            .then(function (j) {
+                if (!j || !j.ok || !Array.isArray(j.img) || !j.img.length) throw new Error('bez obrázku');
+                nacrtCachePut(link, j);
+                return j;
+            });
+    }
+    function nacrtCuzk(pt, body, sb, link) {
+        var seq = _nacrtSeq;
+        var sk = document.createElement('div'); sk.id = 'ag-kb-sk'; sk.className = 'ag-kb-sk';
+        sk.innerHTML = '<div class="ag-kb-of" id="ag-kb-of"><div class="wait">Načítám oficiální náčrt ČÚZK…</div></div>'
+            + '<div class="ag-kb-of-foot"><span>Místopisný náčrt © ČÚZK · klepnutím zvětšíš</span>'
+            + '<a href="' + esc(link) + '" target="_blank" rel="noopener"><svg class="icon"><use href="#i-file-text"/></svg> Celé geodetické údaje</a></div>';
+        var bento = document.getElementById('ag-kb-bento');
+        (bento || body.firstChild).insertAdjacentElement('afterend', sk);
+        if (sb.length) {
+            var om = document.createElement('div'); om.id = 'ag-kb-om'; om.className = 'ag-kb-om';
+            om.innerHTML = omerneHtml(sb);
+            sk.insertAdjacentElement('afterend', om);
+        }
+        var stary = body.querySelector(':scope > a.btn-link'); if (stary) stary.style.display = 'none';
+        nacrtZdroj(link).then(function (j) {
+            if (seq !== _nacrtSeq || !document.body.contains(sk)) return;
+            var of = sk.querySelector('#ag-kb-of'); if (!of) return;
+            var imgs = j.img, hl = null, det = null, list = null;
+            for (var i = 0; i < imgs.length; i++) {
+                if (!hl && imgs[i].role === 'nacrt') hl = imgs[i];
+                else if (!det && imgs[i].role === 'detail') det = imgs[i];
+                else if (!list && imgs[i].role === 'list') list = imgs[i];
+            }
+            if (!hl && !list) { hl = imgs[0]; }
+            var h = '';
+            if (hl) {
+                h += '<img src="' + esc(hl.url) + '" alt="Místopisný náčrt ČÚZK" referrerpolicy="no-referrer" loading="lazy">';
+                if (det) { h += '<img src="' + esc(det.url) + '" alt="Detail stabilizace" referrerpolicy="no-referrer" loading="lazy">'; of.classList.add('dva'); }
+            } else {
+                h += '<img src="' + esc(list.url) + '" alt="Geodetické údaje ČÚZK" referrerpolicy="no-referrer" loading="lazy">'
+                    + '<button type="button" class="rozbal" data-act="list">Celý list</button>';
+                of.classList.add('list');
+            }
+            of.innerHTML = h;
+            // obrázek nedorazil (ČÚZK bez signálu a nic v zásobě) → náčrt z appky
+            var im = of.querySelector('img');
+            im.addEventListener('error', function () { if (seq === _nacrtSeq && document.body.contains(sk)) { nacrtSpadni(pt, body, sb, 'Náčrt ČÚZK se nenačetl (bez signálu?)'); } });
+            of.addEventListener('click', function (e) {
+                var b = e.target.closest ? e.target.closest('button[data-act]') : null;
+                if (of.classList.contains('list')) {
+                    var cely = !of.classList.contains('cely');
+                    of.classList.toggle('cely', cely);
+                    var bt = of.querySelector('.rozbal'); if (bt) bt.textContent = cely ? 'Jen náčrt' : 'Celý list';
+                    return;
+                }
+                if (b) return;
+                of.classList.toggle('cely');    // obyčejný náčrt: klepnutí zvětší (bez stropu výšky)
+                var im2 = of.querySelector('img'); if (im2) im2.style.maxHeight = of.classList.contains('cely') ? 'none' : '';
+            });
+            // přepínač na náčrt z appky (sousední body a oměrné) — na přání zůstává oficiální jako výchozí
+            if (window.L && typeof L.map === 'function') {
+                var app = document.createElement('button'); app.type = 'button'; app.id = 'ag-kb-app'; app.className = 'ag-kb-app';
+                app.textContent = 'Ukázat náčrt z appky (sousední body a oměrné)';
+                app.addEventListener('click', function () { _appNacrt[link] = 1; nacrt(pt, body); });
+                (document.getElementById('ag-kb-om') || sk).insertAdjacentElement('afterend', app);
+            }
+        }).catch(function (e) {
+            if (seq !== _nacrtSeq || !document.body.contains(sk)) return;
+            window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:nacrtCuzk');
+            nacrtSpadni(pt, body, sb, (e && e.message === 'offline') ? 'Náčrt ČÚZK až se signálem' : 'ČÚZK teď náčrt nedal');
+        });
+    }
+    function nacrtSpadni(pt, body, sb, proc) {
+        var sk = document.getElementById('ag-kb-sk'); if (sk) sk.remove();
+        var om = document.getElementById('ag-kb-om'); if (om) om.remove();
+        if (!(window.L && typeof L.map === 'function')) return;
+        nacrtMapa(pt, body, sb);
+        var lg = document.querySelector('#ag-kb-sk .lg');
+        if (lg && proc) lg.insertAdjacentHTML('beforeend', ' &nbsp;· ' + esc(proc));
     }
     // náčrt nad ortofotem ČÚZK + KN; statická mapa (karta se posouvá), sever nahoře; offline = TILE_CACHE
     function nacrtMapa(pt, body, sb) {
@@ -393,7 +537,7 @@
         var link = polohopisUrl(pt);
         sk.innerHTML = '<div id="ag-kb-mapa" style="height:220px;"></div>'
             + '<div class="lg"><i style="background:#3fbc8c"></i>tento bod' + (sb.length ? ' &nbsp;<i style="background:#e6e8eb"></i>sousední body &nbsp;<i style="background:#fbbf24;border-radius:0;height:2px"></i>oměrné' : '') + '</div>'
-            + (link ? '<a class="ag-kb-polo" href="' + esc(link) + '" target="_blank" rel="noopener"><svg class="icon"><use href="#i-file-text"/></svg> Polohopis (nákres ČÚZK)</a>' : '')
+            + (link ? '<a class="ag-kb-polo" href="' + esc(link) + '" target="_blank" rel="noopener"><svg class="icon"><use href="#i-file-text"/></svg> Celé geodetické údaje ČÚZK</a>' : '')
             + ((!sb.length) ? '<div class="pz">Zatím jen tenhle bod. Přidej další body zakázky a náčrt se doplní sám.</div>' : '');
         var bento = document.getElementById('ag-kb-bento');
         (bento || body.firstChild).insertAdjacentElement('afterend', sk);
@@ -401,6 +545,12 @@
             var om = document.createElement('div'); om.id = 'ag-kb-om'; om.className = 'ag-kb-om';
             om.innerHTML = omerneHtml(sb);
             sk.insertAdjacentElement('afterend', om);
+        }
+        if (link && _appNacrt[link]) {
+            var zpet = document.createElement('button'); zpet.type = 'button'; zpet.id = 'ag-kb-app'; zpet.className = 'ag-kb-app';
+            zpet.textContent = 'Zpět na oficiální náčrt ČÚZK';
+            zpet.addEventListener('click', function () { delete _appNacrt[link]; nacrt(pt, body); });
+            (document.getElementById('ag-kb-om') || sk).insertAdjacentElement('afterend', zpet);
         }
         if (link) { var stary = body.querySelector(':scope > a.btn-link'); if (stary) stary.style.display = 'none'; }
         var el = sk.querySelector('#ag-kb-mapa');

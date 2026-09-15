@@ -491,7 +491,7 @@
         _ov.innerHTML =
             '<div class="modal-content ago-content" role="dialog" aria-modal="true" aria-labelledby="ago-title">' +
             '  <h3 class="ago-title" id="ago-title">Stáhnout okres, kraj nebo celou ČR</h3>' +
-            '  <div class="ago-note">Jako v Pokémon Go: <b>všechny úřední body</b> oblasti a přehledová mapa leží v telefonu. Při chůzi se pak nic nenačítá ze sítě — body kolem tebe naskočí hned a bez signálu.</div>' +
+            '  <div class="ago-note">Offline: <b>všechny úřední body</b> oblasti a přehledová mapa leží v telefonu. Při chůzi se pak nic nenačítá ze sítě — body kolem tebe naskočí hned a bez signálu.</div>' +
             '  <div class="modal-body ago-body">' +
             '    <div id="ago-kde" class="ago-kde"></div>' +
             '    <div class="ago-lbl">Co stáhnout</div>' +

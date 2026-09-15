@@ -428,8 +428,8 @@
         body.innerHTML = howTo()
             + '<p class="aku-p">Dva telefony, žádný další hardware. Ten na <b>známém bodě</b> odpovídá, ten druhý měří. Přesnost ±2–5 cm do ~40 m.</p>'
             + '<div class="aku-btns col">'
-            + '<button class="btn btn-primary" id="ag-aku-go-a">🎯 Měřím (tento telefon)</button>'
-            + '<button class="btn btn-secondary" id="ag-aku-go-b">📍 Stojím na známém bodě</button>'
+            + '<button class="btn btn-primary" id="ag-aku-go-a"><svg class="icon"><use href="#i-crosshair"/></svg> Měřím (tento telefon)</button>'
+            + '<button class="btn btn-secondary" id="ag-aku-go-b"><svg class="icon"><use href="#i-map-pin"/></svg> Stojím na známém bodě</button>'
             + '</div>'
             + '<div class="aku-card" style="margin-top:12px;">'
             + '<div class="aku-row"><label>Teplota vzduchu</label><input id="ag-aku-t" type="text" inputmode="decimal" value="' + fmt(tp != null ? tp : s.teplota, 0) + '"><span style="opacity:.7">°C' + (tp != null ? ' · z Počasí' : '') + '</span></div>'
@@ -438,8 +438,8 @@
             + '<div class="aku-row"><label>Oprava nuly</label><span>' + fmt(offset()) + ' m' + (lsGet(LS_OFF, null) == null ? ' (výchozí, nekalibrováno)' : ' (kalibrováno)') + '</span></div>'
             + '</div>'
             + '<div class="aku-btns">'
-            + '<button class="btn btn-secondary" id="ag-aku-delky">📏 Délky ke známým bodům (' + delky().length + ')</button>'
-            + '<button class="btn btn-secondary" id="ag-aku-kal">⚙ Kalibrace nuly (2,00 m)</button>'
+            + '<button class="btn btn-secondary" id="ag-aku-delky"><svg class="icon"><use href="#i-ruler"/></svg> Délky ke známým bodům (' + delky().length + ')</button>'
+            + '<button class="btn btn-secondary" id="ag-aku-kal"><svg class="icon"><use href="#i-sliders"/></svg> Kalibrace nuly (2,00 m)</button>'
             + '</div>';
         function saveSet() {
             var t = parseFloat(String(byId('ag-aku-t').value).replace(',', '.'));
@@ -468,7 +468,7 @@
         body.innerHTML = '<div class="aku-card green"><span class="aku-pulse"></span><b>Poslouchám a odpovídám.</b> Polož telefon spodní hranou na známý bod a nech ho být. Druhý telefon měří.</div>'
             + '<div class="aku-big" id="ag-aku-bn">0</div><div class="aku-sub" id="ag-aku-bsub">odpovědí</div>'
             + '<p class="aku-p" style="margin-top:12px;">Zvuk: ' + (_au ? _au.band + ' · ' + _au.fs + ' Hz' : '') + '. Nezakrývej spodní hranu telefonu (mikrofon i reproduktor).</p>'
-            + '<button class="btn" id="ag-aku-bstop">⏹ Přestat odpovídat</button>';
+            + '<button class="btn" id="ag-aku-bstop"><svg class="icon"><use href="#i-stop"/></svg> Přestat odpovídat</button>';
         byId('ag-aku-bstop').addEventListener('click', function () { stopAll(); _view = 'home'; render(); });
         renderLive();
     }
@@ -480,8 +480,8 @@
             + '<div class="aku-big" id="ag-aku-d">–</div><div class="aku-sub" id="ag-aku-dsub">klepni Změřit</div>'
             + '<ul class="aku-list" id="ag-aku-rounds-list"></ul>'
             + '<div class="aku-btns">'
-            + '<button class="btn btn-primary" id="ag-aku-measure">🔊 Změřit (' + s.kola + '×)</button>'
-            + (_calMode ? '<button class="btn btn-secondary" id="ag-aku-cal-save" disabled>✓ Uložit opravu nuly</button>' : '<button class="btn btn-secondary" id="ag-aku-save" disabled>✓ Uložit délku ke známému bodu</button>')
+            + '<button class="btn btn-primary" id="ag-aku-measure"><svg class="icon"><use href="#i-sound"/></svg> Změřit (' + s.kola + '×)</button>'
+            + (_calMode ? '<button class="btn btn-secondary" id="ag-aku-cal-save" disabled><svg class="icon"><use href="#i-check"/></svg> Uložit opravu nuly</button>' : '<button class="btn btn-secondary" id="ag-aku-save" disabled>✓ Uložit délku ke známému bodu</button>')
             + '</div>'
             + '<button class="btn btn-secondary" id="ag-aku-astop" style="margin-top:8px;">← Zpět (vypnout mikrofon)</button>';
         byId('ag-aku-astop').addEventListener('click', function () { stopAll(); _view = 'home'; render(); });
@@ -530,7 +530,7 @@
         body.innerHTML = '<p class="aku-p"><b>' + fmt(sm.d) + ' m</b> (±' + Math.round(sm.u * 100) + ' cm). Na kterém <b>známém bodě</b> stojí druhý telefon?</p>'
             + (kn.length ? '<div class="aku-row"><label>Známý bod</label><select id="ag-aku-kp">' + opts + '</select></div>' : '<p class="aku-p" style="color:var(--warning,#fbbf24)">V zakázce nejsou žádné body — délka se uloží jen s popisem.</p>')
             + '<div class="aku-row"><label>Poznámka</label><input id="ag-aku-note" type="text" placeholder="např. roh garáže, měřený bod 12"></div>'
-            + '<div class="aku-btns"><button class="btn btn-primary" id="ag-aku-len-ok">✓ Uložit délku</button><button class="btn btn-secondary" id="ag-aku-len-back">← Zpět</button></div>';
+            + '<div class="aku-btns"><button class="btn btn-primary" id="ag-aku-len-ok"><svg class="icon"><use href="#i-check"/></svg> Uložit délku</button><button class="btn btn-secondary" id="ag-aku-len-back">← Zpět</button></div>';
         byId('ag-aku-len-back').addEventListener('click', function () { render(); });
         byId('ag-aku-len-ok').addEventListener('click', function () {
             var sel = byId('ag-aku-kp'), p = null;
@@ -547,7 +547,7 @@
                 var when = new Date(r.t); var hh = ('0' + when.getHours()).slice(-2) + ':' + ('0' + when.getMinutes()).slice(-2);
                 return '<li><label style="display:flex;gap:8px;align-items:center;flex:1;cursor:pointer;"><input type="checkbox" class="ag-aku-ck" data-i="' + i + '"' + (r.pt ? '' : ' disabled') + '><span><b>' + fmt(r.d) + ' m</b> → ' + (r.pt ? esc(r.pt.name) : '<i>bez bodu</i>') + (r.note ? ' · ' + esc(r.note) : '') + '<br><span style="opacity:.6;font-size:.9em">' + when.getDate() + '. ' + (when.getMonth() + 1) + '. ' + hh + ' · ±' + Math.round((r.u || 0) * 100) + ' cm · ' + r.n + ' kol</span></span></label><button class="btn btn-secondary ag-aku-del" data-i="' + i + '" style="padding:4px 8px;margin:0;width:auto;">✕</button></li>';
             }).join('') + '</ul>' : '<p class="aku-p"><i>Zatím žádná.</i></p>')
-            + '<div class="aku-btns"><button class="btn btn-primary" id="ag-aku-prot" disabled>📐 Bod ze dvou délek</button><button class="btn btn-secondary" id="ag-aku-back">← Zpět</button></div>'
+            + '<div class="aku-btns"><button class="btn btn-primary" id="ag-aku-prot" disabled><svg class="icon"><use href="#i-line"/></svg> Bod ze dvou délek</button><button class="btn btn-secondary" id="ag-aku-back">← Zpět</button></div>'
             + '<div id="ag-aku-prot-out"></div>';
         byId('ag-aku-back').addEventListener('click', function () { _view = 'home'; render(); });
         var cks = Array.prototype.slice.call(body.querySelectorAll('.ag-aku-ck'));

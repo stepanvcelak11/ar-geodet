@@ -2,6 +2,18 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 329,
+   "datum": "2026-09-15",
+   "nadpis": "Klepnutí do parcely, oficiální náčrt ČÚZK v kartě bodu, nástroje zpátky na očích",
+   "body": [
+    "<b>Parcela na klepnutí:</b> zapni v mapě vrstvu Katastrální mapa a klepni dovnitř parcely — karta z RÚIAN ukáže číslo, k.ú., obec, výměru, druh pozemku, způsob využití a případnou budovu (č.p., podlaží, zastavěná plocha); obrys se zvýrazní. Vlastníka a LV žádná bezplatná služba nedá — tlačítko <b>Vlastník a LV</b> otevře rovnou tuhle parcelu v Nahlížení do KN.",
+    "<b>Karta úředního bodu:</b> místo náčrtu z appky je teď <b>oficiální místopisný náčrt ČÚZK</b> z geodetických údajů bodu (oměrné k rohům domů, plotům…), u TB/ZhB výřez z listu s přepnutím na celý list; odkaz na celé geodetické údaje zůstal. Náčrt z appky (sousední body, oměrné) je na jedno klepnutí pod ním. Vlastní body ho mají dál. Jednou zobrazený náčrt funguje i bez signálu.",
+    "<b>Nástroje:</b> Oměrné, Stopa trasy a Dnešek v terénu se už nové instalaci neschovávají; řádky rozcestníků (Srovnat jinak, Podklady a katastr, Signál GNSS, Příručka…) vypisují všechny své položky, takže i nový nástroj v nich jde najít bez hledání.",
+    "<b>Stavová bublina:</b> upozornění s čísly už neposkakuje zleva doprava (azimut se po uříznutí kvůli hlášce 5× za vteřinu vracel a zase mizel).",
+    "Lovci bodů a Stáhnout oblast bez přirovnání k mobilní hře; tlačítka nových nástrojů (Akustický dálkoměr, Kalibrace chůzí po hraně, DGPS) mají ikony appky místo emoji."
+   ]
+  },
+  {
    "v": 327,
    "datum": "2026-09-15",
    "nadpis": "Uvolnit místo v telefonu",
@@ -67,7 +79,7 @@
    "datum": "2026-09-15",
    "nadpis": "Okres, kraj nebo celá ČR v telefonu — body bez načítání; úřední body správně roztříděné",
    "body": [
-    "<b>Stáhnout oblast</b> (Nástroje → Podklady a katastr): jako v Pokémon Go si stáhneš <b>všechny úřední body</b> celého okresu, kraje nebo republiky (~635 000 bodů) a k nim přehledovou mapu. Při chůzi se pak body neberou ze sítě, ale z telefonu — naskočí hned (12 ms místo sekund) a fungují bez signálu. Stahování jde přerušit a dokončit později; balíčky jdou aktualizovat a mazat.",
+    "<b>Stáhnout oblast</b> (Nástroje → Podklady a katastr): stáhneš si <b>všechny úřední body</b> celého okresu, kraje nebo republiky (~635 000 bodů) a k nim přehledovou mapu. Při chůzi se pak body neberou ze sítě, ale z telefonu — naskočí hned (12 ms místo sekund) a fungují bez signálu. Stahování jde přerušit a dokončit později; balíčky jdou aktualizovat a mazat.",
     "<b>Oprava třídění úředních bodů:</b> appka se ptala ČÚZK na vrstvy, které služba dávno přečíslovala — trigonometrický bod se ukazoval jako „zhušťovací“, zhušťovací jako „podrobný“ a <b>zrušené body</b> vypadaly jako platné. Teď se čte všech 16 vrstev správně (TB, ZhB, PPBP, nivelace ZVBP/PVBP i tíhové body) a zrušené se nezobrazují.",
     "<b>Karta úředního bodu</b> nově ukazuje druh bodu, <b>úplné dvanáctimístné číslo</b> (ne jen „28“), katastrální území a okres, třídu přesnosti (PPBP), nivelační pořad a u bodů určených v ETRS89 elipsoidickou výšku.",
     "<b>Přesnější výška z GPS:</b> u bodů určených v ETRS89 zná ČÚZK i elipsoidickou výšku, takže appka spočítá skutečnou odchylku geoidu na místě (na centimetry) místo vzorce s chybou 1–2 m — přenos GPS výšky na Bpv je tím přesnější v celé appce (export, dvojí měření, výška bodu).",

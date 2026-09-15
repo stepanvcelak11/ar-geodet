@@ -261,7 +261,7 @@
         var bar = document.createElement('div');
         bar.id = BAR_ID; bar.className = 'walk';
         bar.innerHTML = '<div id="ag-hr-live"><span class="ag-hr-pulse"></span>Jdi podél čáry od zeleného k červenému…</div>'
-            + '<button type="button" id="ag-hr-bar-stop">⏹ Zastavit a spočítat</button>';
+            + '<button type="button" id="ag-hr-bar-stop"><svg class="icon"><use href="#i-stop"/></svg> Zastavit a spočítat</button>';
         document.body.appendChild(bar);
         bar.querySelector('#ag-hr-bar-stop').addEventListener('click', function () { stopWalk(); finish(); });
     }
@@ -421,18 +421,18 @@
                     + q.n + ' fixů' + (q.dropped ? ' (' + q.dropped + ' vyřazeno)' : '') + ' na ' + fmt(q.walked, 0) + ' m · rozptyl ±' + fmt(q.sigma, 1) + ' m · odhad chyby korekce <b>±' + fmt(q.sterr) + ' m</b>'
                     + (q.b != null ? '<br>Šel jsi tam i zpět → oddělil jsem <b>držení telefonu ' + fmt(Math.abs(q.b)) + ' m ' + (q.b >= 0 ? 'vpravo' : 'vlevo') + '</b> od tvé stopy (do korekce se nepočítá).' : '<br><span style="opacity:.8">Tip: jdi po hraně <b>tam i zpět</b> — appka pak oddělí, o kolik držíš telefon stranou od své stopy (jinak to zůstane v korekci, typicky 0,2–0,4 m).</span>')
                     + '<br><span style="opacity:.8;font-size:.92em">Po zapnutí budou nové body ' + (q.mode === '1d' ? 'kolmo k hraně' : '') + ' přesné zhruba na ±' + fmt(Math.max(q.sterr, 0.2), 1) + ' m' + (q.mode === '1d' ? ' (podél hrany zůstává chyba GPS)' : '') + '; platnost 20 min / 300 m odsud, hlídá se.</span></div>'
-                    + '<div class="hr-btns"><button class="btn btn-primary" id="ag-hr-apply">✓ Zapnout korekci</button><button class="btn btn-secondary" id="ag-hr-again">↻ Jít znovu</button></div>';
+                    + '<div class="hr-btns"><button class="btn btn-primary" id="ag-hr-apply"><svg class="icon"><use href="#i-check"/></svg> Zapnout korekci</button><button class="btn btn-secondary" id="ag-hr-again">↻ Jít znovu</button></div>';
             }
         }
         body.innerHTML = howTo()
             + '<p class="hr-p">Ujdi kus podél <b>hrany, kterou znáš</b> (obrubník, chodník, plot, osa z DXF), a appka z toho zjistí, o kolik tady a teď GPS lže. Bez zastavování.</p>'
             + curTxt + resTxt
             + '<div class="hr-card"><div>Čára: ' + lineTxt + '</div>'
-            + '<div class="hr-btns"><button class="btn btn-primary" id="ag-hr-pick">🗺 Vybrat v mapě (od–kam)</button></div>'
+            + '<div class="hr-btns"><button class="btn btn-primary" id="ag-hr-pick"><svg class="icon"><use href="#i-map"/></svg> Vybrat v mapě (od–kam)</button></div>'
             + (pts.length >= 2 ? '<div class="hr-row" style="margin-top:8px;"><label>Nebo z bodů: od</label><select id="ag-hr-pa">' + opts + '</select></div><div class="hr-row"><label>do</label><select id="ag-hr-pb">' + opts + '</select></div>' : '')
             + '<div class="hr-row" style="margin-top:8px;"><label>Boční odstup (m)</label><input id="ag-hr-off-in" type="text" inputmode="decimal" value="' + fmt(_offset, 1) + '"><span style="opacity:.7;font-size:.9em">+ vpravo / − vlevo ve směru chůze</span></div>'
             + '</div>'
-            + '<button class="btn btn-primary" id="ag-hr-go" style="margin-top:10px;"' + (_verts.length >= 2 ? '' : ' disabled') + '>🚶 Spustit chůzi po čáře</button>';
+            + '<button class="btn btn-primary" id="ag-hr-go" style="margin-top:10px;"' + (_verts.length >= 2 ? '' : ' disabled') + '><svg class="icon"><use href="#i-navigation"/></svg> Spustit chůzi po čáře</button>';
         byId('ag-hr-pick').addEventListener('click', pickOnMap);
         var pa = byId('ag-hr-pa'), pb = byId('ag-hr-pb');
         function fromPts() {

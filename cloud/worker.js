@@ -1273,6 +1273,56 @@ async function lastActiveAdminGuard(env, firmId, exceptUserId) {
 // hodnoty a pošle ~1 kB. Route je veřejná (bez tokenu): počasí není firemní data.
 // Podmínky ČHMÚ: data zdarma s uvedením zdroje — atribuce „© ČHMÚ" je v appce
 // v rozbalovacím seznamu zdrojů pod předpovědí.
+// ---------------------------------------------------------------------------
+// ČÚZK: oficiální místopisný náčrt bodu (15. 9. 2026)
+// ---------------------------------------------------------------------------
+// Appka má u úředního bodu odkaz GEODETICKE_UDAJE (geoportal.cuzk.cz/mistopis2/…),
+// který přes 302 vede na stránku s geodetickými údaji. Ta má uvnitř OBRÁZEK
+// místopisného náčrtu (oměrné k rohům domů, plotům, patníkům — to, co geodet
+// při dohledávání potřebuje). Prohlížeč si stránku SÁM přečíst nemůže (ČÚZK
+// neposílá CORS), obrázek ale zobrazí bez problému. Tenhle endpoint tedy jen
+// ZJISTÍ ADRESY OBRÁZKŮ a vrátí je jako JSON; samotné obrázky si telefon bere
+// rovnou od ČÚZK (a service worker mu je schová pro offline).
+//
+// Ověřené podoby stránek (15. 9. 2026):
+//   nivelační (bodovapole.cuzk.gov.cz/_nbOutput_ws_n2.aspx): <img id="ctl00_Obsah_mistopis" src="Obrs/Mist/…bmp">
+//   PPBP (dataz.cuzk.gov.cz/gu.php?…&4=p):  <img src="mistopis.php?id=…" alt="mistopis"> + alt="detail"
+//   TB / ZhB (dataz.cuzk.gov.cz/gu.php?…):   <img src="gu/ztl_…gif" alt="geodeticke udaje"> = CELÝ LIST,
+//                                            náčrt je v jeho pravém horním rohu (ořez dělá appka)
+//   tíhové (bodovapole …/_gbOutput…):        id="ctl00_Obsah_imgNacrt" (+ imgMapa, imgFoto)
+// Bez UA prohlížeče geoportál přesměruje na Podmínky.pdf — proto User-Agent níž.
+const NACRT_HOSTS = ['geoportal.cuzk.cz', 'geoportal.cuzk.gov.cz', 'dataz.cuzk.gov.cz', 'bodovapole.cuzk.gov.cz', 'bodovapole.cuzk.cz'];
+const NACRT_UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1 QTRIG';
+function nacrtHostOk(u) {
+    try { const h = new URL(u); return h.protocol === 'https:' && NACRT_HOSTS.indexOf(h.hostname) !== -1; } catch (e) { return false; }
+}
+function nacrtParse(html, base) {
+    const out = [];
+    const re = /<img\b[^>]*>/gi;
+    let m;
+    while ((m = re.exec(html))) {
+        const tag = m[0];
+        const src = (tag.match(/\bsrc\s*=\s*"([^"]+)"/i) || tag.match(/\bsrc\s*=\s*'([^']+)'/i) || [])[1];
+        if (!src) continue;
+        const id = (tag.match(/\bid\s*=\s*"([^"]+)"/i) || [])[1] || '';
+        const alt = ((tag.match(/\balt\s*=\s*"([^"]*)"/i) || [])[1] || '').toLowerCase();
+        const w = parseInt((tag.match(/\bwidth\s*=\s*"?(\d+)/i) || [])[1], 10) || 0;
+        const h = parseInt((tag.match(/\bheight\s*=\s*"?(\d+)/i) || [])[1], 10) || 0;
+        let role = null;
+        if (id === 'ctl00_Obsah_mistopis' || id === 'ctl00_Obsah_imgNacrt' || alt === 'mistopis') role = 'nacrt';
+        else if (alt === 'detail') role = 'detail';
+        else if (alt === 'geodeticke udaje' || /\/gu\/.*\.(gif|png|jpg)$/i.test(src)) role = 'list';
+        else if (id === 'ctl00_Obsah_imgMapa') role = 'mapa';
+        else if (id === 'ctl00_Obsah_imgFoto') role = 'foto';
+        if (!role) continue;
+        let abs;
+        try { abs = new URL(src, base).href; } catch (e) { continue; }
+        if (!nacrtHostOk(abs)) continue;
+        out.push({ url: abs, role, w, h });
+    }
+    return out;
+}
+
 const CHMI_BASE = 'https://opendata.chmi.cz/meteorology/climate/now/';
 const CHMI_MAX_KM = 60;          // dál od stanice už měření tohle místo nepopisuje
 // ⚠ 8.8.2026: TENHLE LIMIT BYL 2 h A TICHO SHAZOVAL CELÉ REGIONY.
@@ -1463,6 +1513,7 @@ export default {
             // Starsi nasazeny worker tuhle polozku nema, takze podle ni pozna appka,
             // ze na serveru bezi stara verze — viz js/hodinky-parovani.js.
             //
+            // v:25 = GET /cuzk/nacrt?u= (adresy obrázků místopisného náčrtu bodu ze stránky ČÚZK).
             // v:24 = /dgps/push + /dgps/pull (DGPS živě: základna sdílí korekce kódem, rover je tahá).
             // v:23 = prehled.chybyUcty[].acc (id uctu k hlidaci chyb).
             // v:22 = /feedback prijima kind 'odpoved' (odpoved cloveka na vzkaz od vlastnika).
@@ -1478,7 +1529,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 24, dgps: true, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 25, nacrt: true, dgps: true, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
 
             // ---------------- BRZDA VYDÁNÍ (12. 9. 2026) ---------------------
             // Vlastník vyvíjí a testuje na svém telefonu, ale lidem venku nesmí
@@ -1489,6 +1540,38 @@ export default {
             // číslo verze není tajemství a ptá se na něj i nepřihlášený telefon.
             if (req.method === 'GET' && path === '/vydano') {
                 return json(await vydanoStav(env));
+            }
+
+            // ---------------- ČÚZK: adresy obrázků místopisného náčrtu bodu -----
+            // veřejné (bez tokenu) — jsou to veřejná data ČÚZK; viz NACRT_* nahoře
+            if (req.method === 'GET' && path === '/cuzk/nacrt') {
+                const u = String(url.searchParams.get('u') || '');
+                if (!nacrtHostOk(u)) return err(400, 'Adresa musí být z geoportal/dataz/bodovapole ČÚZK.');
+                // Cache API: stejná adresa = stejný list; ČÚZK ho mění zřídka. Klíč je
+                // NAŠE URL (ne ČÚZK), takže se necachuje přesměrování s razítkem.
+                const cache = (typeof caches !== 'undefined' && caches.default) ? caches.default : null;
+                const ck = new Request(url.origin + '/cuzk/nacrt?u=' + encodeURIComponent(u), { method: 'GET' });
+                if (cache) { try { const hit = await cache.match(ck); if (hit) return hit; } catch (e) {} }
+                let r;
+                try {
+                    r = await fetch(u, { redirect: 'follow', headers: { 'User-Agent': NACRT_UA, 'Accept': 'text/html,*/*' }, cf: { cacheTtl: 0 } });
+                } catch (e) { return json({ ok: false, reason: 'ČÚZK neodpovídá' }, 502); }
+                if (!r.ok) return json({ ok: false, reason: 'ČÚZK vrátil HTTP ' + r.status }, 502);
+                const finalUrl = r.url || u;
+                const ct = String(r.headers.get('Content-Type') || '');
+                let imgs = [];
+                if (/^image\//i.test(ct)) imgs = [{ url: finalUrl, role: 'list', w: 0, h: 0 }];   // odkaz vedl rovnou na obrázek
+                else if (/pdf/i.test(ct) || /\.pdf(\?|$)/i.test(finalUrl)) imgs = [];
+                else {
+                    const html = await r.text();
+                    imgs = nacrtParse(html, finalUrl);
+                }
+                const resp = new Response(JSON.stringify({ ok: true, page: finalUrl, img: imgs }), {
+                    status: 200,
+                    headers: Object.assign({ 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'public, max-age=604800' }, CORS)
+                });
+                if (cache && imgs.length && ctx && ctx.waitUntil) { try { ctx.waitUntil(cache.put(ck, resp.clone())); } catch (e) {} }
+                return resp;
             }
 
             // ---------------- ČHMÚ: měření z nejbližší stanice ---------------

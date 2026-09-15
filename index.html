@@ -95,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=328">
-    <link rel="stylesheet" href="css/style.css?v=328">
+    <link rel="stylesheet" href="css/tokens.css?v=329">
+    <link rel="stylesheet" href="css/style.css?v=329">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -227,7 +227,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=328">
+    <link rel="stylesheet" href="css/vylepseni.css?v=329">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -314,6 +314,9 @@
         <symbol id="i-volume" viewBox="0 0 24 24"><path d="M12 2.7 21 7v10l-9 4.3L3 17V7Z"/><path d="M3 7l9 4.3L21 7"/><path d="M12 11.3v10"/></symbol>
         <symbol id="i-map-download" viewBox="0 0 24 24"><path d="M20 11.5V5.2a1 1 0 0 0-1.3-.95L15 5.5 9 3.5 4.3 5.05A1 1 0 0 0 3.6 6v13a1 1 0 0 0 1.3.95L9 18.5l3.2 1.07"/><path d="M9 3.5v15"/><path d="M15 5.5v5"/><polyline points="15.5 17 18 19.5 20.5 17"/><line x1="18" y1="13.5" x2="18" y2="19.5"/></symbol>
         <symbol id="i-skyplot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v18M3 12h18"/><path d="M4 20c3-5 6-2 8-5s4-1 6-3"/></symbol>
+        <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5Z"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18.5 6.5a8 8 0 0 1 0 11"/></symbol>
+        <symbol id="i-stop" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><rect x="9" y="9" width="6" height="6" rx="1"/></symbol>
+        <symbol id="i-map" viewBox="0 0 24 24"><path d="M3.5 6.2 9 4l6 2.2 5.5-2.2v14l-5.5 2.2-6-2.2-5.5 2.2Z"/><path d="M9 4v14M15 6.2v14"/></symbol>
         <symbol id="i-drone" viewBox="0 0 24 24"><circle cx="5" cy="5" r="2.5"/><circle cx="19" cy="5" r="2.5"/><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="19" r="2.5"/><rect x="9.5" y="9.5" width="5" height="5" rx="1.5"/><line x1="7" y1="7" x2="9.5" y2="9.5"/><line x1="17" y1="7" x2="14.5" y2="9.5"/><line x1="7" y1="17" x2="9.5" y2="14.5"/><line x1="17" y1="17" x2="14.5" y2="14.5"/></symbol>
     </svg>
 
@@ -1039,7 +1042,7 @@
                 <div class="ms-rows">
                     <button type="button" class="ms-row" id="btn-katastr" onclick="toggleKatastr()" data-ms-pro="cadastre-vector">
                         <svg class="icon"><use href="#i-grid"/></svg>
-                        <span class="ms-row-t">Katastrální mapa<em>Hranice a čísla parcel z ČÚZK — potřebuje signál</em></span>
+                        <span class="ms-row-t">Katastrální mapa<em>Hranice a čísla parcel z ČÚZK; klepnutí do parcely = údaje a vlastník — potřebuje signál</em></span>
                         <span class="ms-sw" aria-hidden="true"></span>
                     </button>
                     <!-- Řádek „Terén (DMR 5G)" tu byl do 11. 9. 2026 — terénní AR zrušen
@@ -1342,6 +1345,10 @@
          sám, jakmile agOpenCadastreVector existuje. V Základu se tím stal smazatelným
          (zástupnou dlaždici vyrobí js/pro-zamky.js z registru). -->
     <script type="ag/lazy" data-src="js/cadastre-vector.js"></script>
+    <!-- KLEPNUTÍ DO PARCELY (odpojitelné: smaž tento řádek + js/parcela-klik.js) — při zapnuté
+         Katastrální mapě klik do mapy = karta parcely z RÚIAN + odkaz na vlastníka v Nahlížení do KN.
+         Volá ho větev „klik do prázdna" v js/grafika.js (typeof-guard). -->
+    <script type="ag/lazy" data-src="js/parcela-klik.js"></script>
     <!-- NOVÝ TUTORIÁL (odpojitelné: smaž tento řádek + js/tutorial-pro.js) — základní + pokročilá prohlídka -->
     <!-- 13. 9. 2026: tutorial-pro, historie-aktualizaci, seznam-souradnic a pruvodce jsou ve fronte
          ag/lazy (start -113 kB): nikdo je pri startu nevola, vsechny si init delaji podle readyState. -->

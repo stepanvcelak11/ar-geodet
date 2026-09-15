@@ -248,7 +248,7 @@
             out.push({ id: 'cely-porad', znak: 'KP', nazev: 'Celý pořad', jak: 'všechny body jednoho nivelačního pořadu (' + esc(nejPorad || '?') + ')', ma: !!hotovyPorad, p: Math.min(1, nejP), txt: nejPorad ? (porady[nejPorad] || 0) + ' z ' + st.porady[nejPorad] + ' · ' + nejPorad : '—' });
             var tbOk = tb.filter(function (x) { return x.okres === st.okres; }).length;
             out.push({ id: 'okres', znak: 'OK', nazev: 'Okres ' + st.okres, jak: 'všechny TB v okrese', ma: st.cat.TB > 0 && tbOk >= st.cat.TB, p: st.cat.TB ? Math.min(1, tbOk / st.cat.TB) : 0, txt: tbOk + ' z ' + st.cat.TB });
-            if (st.vrchol) out.push({ id: 'vrchol', znak: '⛰', nazev: 'Vrchol okresu', jak: 'nejvýš položený TB okresu: ' + esc(st.vrchol.name) + ' (' + esc(st.vrchol.ku || '') + ', ' + Math.round(st.vrchol.vyska) + ' m)', ma: !!_ix[st.vrchol.id], p: _ix[st.vrchol.id] ? 1 : 0, txt: _ix[st.vrchol.id] ? 'máš' : Math.round(st.vrchol.vyska) + ' m' });
+            if (st.vrchol) out.push({ id: 'vrchol', znak: '△', nazev: 'Vrchol okresu', jak: 'nejvýš položený TB okresu: ' + esc(st.vrchol.name) + ' (' + esc(st.vrchol.ku || '') + ', ' + Math.round(st.vrchol.vyska) + ' m)', ma: !!_ix[st.vrchol.id], p: _ix[st.vrchol.id] ? 1 : 0, txt: _ix[st.vrchol.id] ? 'máš' : Math.round(st.vrchol.vyska) + ' m' });
         } else {
             out.push({ id: 'cely-porad', znak: 'KP', nazev: 'Celý pořad', jak: 'všechny body jednoho nivelačního pořadu — potřebuje stažený okres', ma: false, p: 0, txt: 'stáhni okres' });
             out.push({ id: 'okres', znak: 'OK', nazev: 'Okres', jak: 'všechny TB v okrese — potřebuje stažený okres', ma: false, p: 0, txt: 'stáhni okres' });

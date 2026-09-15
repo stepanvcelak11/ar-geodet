@@ -1001,8 +1001,13 @@
             //   „Doveď mě" v kartě (a „Navést" v seznamu Body, kde je to řečeno jménem).
             if (nearbyPoints.length === 1) { showDetails(nearbyPoints[0], getDistance(userLat, userLng, nearbyPoints[0].lat, nearbyPoints[0].lng)); }
             else if (nearbyPoints.length > 1) { showClusterList(nearbyPoints); }
+            // KLIK DO PRÁZDNA PŘI ZAPNUTÉ KATASTRÁLNÍ MAPĚ = karta parcely (15. 9. 2026, přání:
+            // „při kliknutí do parcely aby se otevřely údaje o vlastníkovi, ploše atd."):
+            // js/parcela-klik.js se zeptá RÚIAN a vede na vlastníka v Nahlížení. Bez modulu
+            // nebo bez katastru klik do prázdna dál nedělá nic.
+            else if (visSettings.showKatastr && window.AGParcelaKlik && typeof window.AGParcelaKlik.tap === 'function') { window.AGParcelaKlik.tap(clickLatLng.lat, clickLatLng.lng); }
             // Nabídka „Stáhnout okolí" na klik do prázdné mapy byla SCHOVÁNA (na přání uživatele).
-            // Kód + návod na obnovu: _archiv/map-click-stahnout-oblast.md . Klik do prázdna teď nic nedělá.
+            // Kód + návod na obnovu: _archiv/map-click-stahnout-oblast.md . Klik do prázdna bez katastru nic nedělá.
         });
 
         function showClusterList(points) {

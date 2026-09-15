@@ -52,6 +52,10 @@
     var _openTs = 0;                        // kdy naposled uživatel s rozbaleným detailem pracoval
     var AUTO_CLOSE_MS = 30000;              // po půl minutě klidu se detail sbalí sám
     var _azTs = 0;                          // škrcení přepisů azimutu (viz mirrorAz)
+    // Co fitHead() z pilulky uřízl (azimut / přesnost), aby se hláška vešla, a u jaké
+    // hlášky. Další překreslení TÉŽE hlášky se staví rovnou bez uříznutých kusů —
+    // viz „BLIKÁNÍ ZLEVA DOPRAVA" u headHtml().
+    var _trim = { txt: '', az: false, acc: false };
 
     function on() { return true; }   // bublina jde vždy; vypínač zrušen 13. 9. 2026 (viz hlavička)
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -412,6 +416,7 @@
         // seznamu a tečky se dosadí AŽ MEZI TY, které opravdu jsou.
         var h = '<span class="ag-sp-dot ' + (note ? noteCls(note.level) : w) + '"></span>';
         var parts = [];
+        var alertTxt = '';   // text hlášky v pilulce (kvůli _trim, viz níže)
         if (note) {
             // Vlastní alertFor() se záměrně přeskakuje — centrum tu hlášku už nese
             // (jinak by tu „Srovnej sever" stálo dvakrát vedle sebe).
@@ -420,23 +425,35 @@
             // O paměť odkliknutí se stará modul hlášky (gps-warn se ozve zas až při
             // výrazném zhoršení) — tady se jen volá AGNotify.dismiss(id).
             // note.short = kratší podoba pro pilulku (modul ji dá, když je věta dlouhá)
-            parts.push('<span class="ag-sp-alert ' + noteCls(note.level) + '">' + esc(note.short || note.text) + '</span>'
+            alertTxt = String(note.short || note.text || '');
+            parts.push('<span class="ag-sp-alert ' + noteCls(note.level) + '">' + esc(alertTxt) + '</span>'
                 + (note.count > 1 ? '<span class="ag-sp-ncount">' + note.count + '</span>' : '')
                 + (note.id ? '<button type="button" class="ag-sp-x" data-note="' + esc(note.id)
                     + '" aria-label="Rozumím, skrýt upozornění">×</button>' : ''));
         } else if (_msg && (Date.now() - _msgTs) < MSG_MS) {
             // hláška z #info (krátkodobá: „Stahuji data…")
-            parts.push('<span class="ag-sp-msg">' + esc(_msg) + '</span>');
+            alertTxt = String(_msg);
+            parts.push('<span class="ag-sp-msg">' + esc(alertTxt) + '</span>');
         } else {
             var al = alertFor(g, ar, d, b);
-            if (al && (Date.now() - _alertTs) < ALERT_MS) parts.push('<span class="ag-sp-alert ' + al.c + '">' + esc(al.t) + '</span>');
+            if (al && (Date.now() - _alertTs) < ALERT_MS) { alertTxt = al.t; parts.push('<span class="ag-sp-alert ' + al.c + '">' + esc(al.t) + '</span>'); }
         }
+        // BLIKÁNÍ ZLEVA DOPRAVA (nahlášeno 15. 9. 2026: „upozornění v horní bublině mi
+        // bliká zleva doprava, je to otravné"). PŘÍČINA: když se hláška s čísly do
+        // pilulky nevešla, fitHead() azimut (a přesnost) z DOM vyhodil — jenže
+        // mirrorAz() pak 5× za vteřinu zjistil, že `.ag-sp-az` chybí, a vynutil
+        // renderBar(), který azimut zase postavil; o snímek později ho fitHead zase
+        // uřízl. Pilulka je vystředěná, takže s každým cyklem změnila šířku a text
+        // hlášky poskočil doleva a zpět. ŘEŠENÍ: co fitHead u dané hlášky uřízl, se
+        // při dalším překreslení TÉŽE hlášky už do HTML nedává (a mirrorAz chybějící
+        // azimut v takovém případě nedohání). Jiná hláška = měří se znovu.
+        var keep = !!(alertTxt && _trim.txt === alertTxt);
         // sestaveno z čísel, ne z textu uživatele. Prázdná pomlčka se ukáže, JEN když
         // vedle ní nestojí věta, která už říká totéž slovy („GPS bez fixu…").
         var accv = accHtml();
-        if (accv && !(accv === '—' && parts.length)) parts.push('<span class="ag-sp-num ag-sp-acc">' + accv + '</span>');
+        if (accv && !(accv === '—' && parts.length) && !(keep && _trim.acc)) parts.push('<span class="ag-sp-num ag-sp-acc">' + accv + '</span>');
         var az = azHtml();
-        if (az) parts.push('<span class="ag-sp-num ag-sp-az">' + az + '</span>');
+        if (az && !(keep && _trim.az)) parts.push('<span class="ag-sp-num ag-sp-az">' + az + '</span>');
         h += parts.join('<span class="ag-sp-sep">·</span>');
         // šipka je PRÁZDNÝ span obarvený v CSS — dřív to byly znaky ▴/▾, které si
         // každý systém bere z jiného záložního fontu (na iOS vyjdou o polovinu
@@ -560,7 +577,9 @@
     function fitHeadNow(headEl) {
         try {
             var al = headEl.querySelector('.ag-sp-alert') || headEl.querySelector('.ag-sp-msg');   // i kratkodoba hlaska (Stahuji data)
-            if (!al) return;
+            if (!al) { _trim = { txt: '', az: false, acc: false }; return; }
+            var txt = al.textContent || '';
+            if (txt !== _trim.txt) _trim = { txt: txt, az: false, acc: false };   // jiná hláška → měřit znovu
             var kusy = ['.ag-sp-az', '.ag-sp-acc'];
             for (var i = 0; i < kusy.length; i++) {
                 if (al.scrollWidth <= al.clientWidth + 1) return;
@@ -569,6 +588,7 @@
                 var sep = n.previousElementSibling;
                 if (sep && sep.classList.contains('ag-sp-sep')) sep.remove();
                 n.remove();
+                if (kusy[i] === '.ag-sp-az') _trim.az = true; else _trim.acc = true;
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stavovy-pruh:fitHead'); }
     }
@@ -647,7 +667,7 @@
                 var el = document.querySelector('#ag-sp .ag-sp-az');
                 var az = azHtml();
                 if (el && az) { el.innerHTML = az; _lastHead = ''; }
-                else if (!el) { _lastHead = ''; renderBar(); }
+                else if (!el && !_trim.az) { _lastHead = ''; renderBar(); }   // uříznutý kvůli hlášce → nedohánět (blikání)
             });
             window.__agSpAzMo.observe(src, { childList: true, subtree: true, characterData: true });
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stavovy-pruh:mirrorAz'); }
@@ -743,7 +763,11 @@
                     try { if (e.target && e.target.closest && e.target.closest('#ag-sp')) _openTs = Date.now(); } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'stavovy-pruh:init'); }
                 }, true);
             });
-            window.addEventListener('resize', function () { if (_open) fitBody(); });
+            window.addEventListener('resize', function () {
+                if (_open) fitBody();
+                // jiná šířka → hláška se s čísly možná vejde (nebo naopak): měřit znovu
+                if (_trim.az || _trim.acc) { _trim = { txt: '', az: false, acc: false }; _lastHead = ''; renderBar(); }
+            });
         }
         if (!window.__agSpTimer) window.__agSpTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(tick, 2000);
         tick();

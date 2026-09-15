@@ -305,9 +305,9 @@
           help: { t: 'Vektorová mapa offline' } },
         { k: 'balicek-zakazky', fn: 'openBalicekZakazky', pro: 1, inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Sbalit zakázku pro terén', vh: 'mapa, katastr a body kolem ZAKÁZKY, ne kolem mě', keys: 'sbalit balicek offline pred vyjezdem stahnout mapu katastr body zakazka kancelar wifi priprava',
           help: { t: 'Sbalit zakázku' } },
-        { k: 'oblasti-offline', fn: 'agOpenOblasti', pro: 1, inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Stáhnout okres, kraj nebo celou ČR', vh: 'všechny úřední body + přehledová mapa v telefonu — jako Pokémon Go', keys: 'stahnout okres kraj cela cr republika oblast offline body bodove pole mapa telefon pokemon bez signalu plynule nacitani balicek',
+        { k: 'oblasti-offline', fn: 'agOpenOblasti', pro: 1, inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Stáhnout okres, kraj nebo celou ČR', vh: 'všechny úřední body + přehledová mapa v telefonu, bez signálu', keys: 'stahnout okres kraj cela cr republika oblast offline body bodove pole mapa telefon bez signalu plynule nacitani balicek',
           help: { t: 'Stáhnout oblast' } },
-        { k: 'lovci-bodu', fn: 'agOpenLovci', cat: 'Pomůcky', verb: 'Zaznamenat', vl: 'Lovci bodů', vh: 'sbírka objevených úředních bodů, ocenění, lov — jako Pokémon Go', keys: 'lovci bodu sbirka objevene body oceneni odznaky lov lovit pokemon go hra skore kamen dne nasel jsem ho',
+        { k: 'lovci-bodu', fn: 'agOpenLovci', cat: 'Pomůcky', verb: 'Zaznamenat', vl: 'Lovci bodů', vh: 'sbírka objevených úředních bodů, ocenění, lov', keys: 'lovci bodu sbirka objevene body oceneni odznaky lov lovit hra skore kamen dne nasel jsem ho',
           help: { t: 'Lovci bodů' } },
         { k: 'bodove-pole', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Nejbližší známý bod', vh: 'kam dojít na ověření / kotvu GPS', keys: 'znamy bod bodove pole trigonometricky zhustovaci pbpp nivelacni nejblizsi overeni kotva cuzk kam dojit',
           help: { t: 'Nejbližší známý bod' } },
@@ -407,6 +407,18 @@
     // Skupiny pro seznam úkonů ve tvaru, který čeká js/nastroje-ukony.js:
     // [{ t: 'Změřit', items: [{ k, l, h }] }] — pořadí skupin dle VERBS, pořadí
     // položek dle pořadí záznamů v T.
+    // jména položek rozcestníku, oddělená tečkou; první písmeno malé, ať to čte
+    // jako výčet („srovnat na dva body · srovnat sever podle bodu · …")
+    function hubSub(id) {
+        var names = [];
+        for (var j = 0; j < T.length; j++) {
+            var m = T[j];
+            if (m.inhub !== id || m.hidden) continue;
+            var n = String(m.vl || m.k);
+            names.push(n.charAt(0).toLowerCase() + n.slice(1));
+        }
+        return names.join(' · ');
+    }
     function groups() {
         var byVerb = {}, out = [], j;
         for (j = 0; j < VERBS.length; j++) { byVerb[VERBS[j]] = { t: VERBS[j], items: [] }; }
@@ -415,6 +427,13 @@
             if (!r.verb || !byVerb[r.verb]) continue;
             var it = { k: r.k, l: r.vl || r.k };
             if (r.vh) it.h = r.vh;
+            // ROZCESTNÍK: podtitulek se skládá ŽIVĚ ze jmen jeho položek (bez `hidden`),
+            // ne z ručního `vh`. Ruční text zastarával: „Srovnat jinak" 15. 9. 2026 pořád
+            // slibovalo Helmerta (od 13. 9. stranou) a nic o kalibraci chůzí po hraně
+            // (v325), „Podklady a katastr" nevědělo o stažení okresu — uživatel pak
+            // nový nástroj v seznamu úkonů nenašel, protože řádek rozcestníku o něm
+            // mlčel. `vh` zůstává jen jako záloha pro rozcestník bez položek.
+            if (r.hub) { var hh = hubSub(r.k); if (hh) it.h = hh; }
             // student-start (13. 9. 2026): student má místo firmy „partu" — jediný popisek,
             // který se podle profilu osoby mění; zbytek registru zůstává statický popis.
             if (r.k === 'ucty-firma') { try { if (window.AGProfilOsoby && AGProfilOsoby.je('student')) { it.l = 'Parta a účty'; it.h = 'kdo je v partě, kód party'; } } catch (e) { /* bez modulu */ } }

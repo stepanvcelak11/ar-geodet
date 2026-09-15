@@ -487,10 +487,10 @@
             '<p class="agdg-intro"><b>Jak to funguje:</b> základna (telefon na známém bodě) posílá každou minutu na server, o kolik GPS zrovna lže; tenhle telefon si to každých 30 s stáhne a <b>přičte k bodům, které uložíš</b> — stejně jako „Posun GPS na známý bod", jen se korekce sama obnovuje. Platí do ~' + (MAX_DIST_M / 1000) + ' km od základny; hlídá to pilulka nahoře. Potřebuje internet na obou telefonech.</p>'
             + '<div id="ag-dgps-lr"></div>'
             + (_lr
-                ? '<button class="btn btn-secondary" id="ag-dgps-lr-off" style="color:var(--danger,#fb7185);">⏹ Odpojit (a nabídnout opravu starších bodů)</button>'
+                ? '<button class="btn btn-secondary" id="ag-dgps-lr-off" style="color:var(--danger,#fb7185);"><svg class="icon"><use href="#i-stop"/></svg> Odpojit (a nabídnout opravu starších bodů)</button>'
                 : '<label style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:.8;">Kód základny (6 znaků z jejího displeje)</label>'
                   + '<input id="ag-dgps-code" class="bgps-name" type="text" autocapitalize="characters" autocomplete="off" maxlength="6" placeholder="např. K7QM3X" value="' + esc(saved && saved.code ? saved.code : '') + '" style="width:100%; margin:4px 0 10px; font-size:calc(22px * var(--ag-font-scale, 1)); letter-spacing:.2em; text-align:center; text-transform:uppercase;">'
-                  + '<button class="btn btn-primary" id="ag-dgps-lr-go">📡 Připojit se k základně</button>')
+                  + '<button class="btn btn-primary" id="ag-dgps-lr-go"><svg class="icon"><use href="#i-satellite"/></svg> Připojit se k základně</button>')
             + '<button class="btn btn-secondary" id="ag-dgps-back" style="margin-top:8px;">← Zpět</button>';
         var go = document.getElementById('ag-dgps-lr-go');
         if (go) go.addEventListener('click', function () { liveConnect(document.getElementById('ag-dgps-code').value); });
@@ -685,7 +685,7 @@
                       + (_live.err ? '<span style="color:var(--danger,#fb7185)">⚠ odeslání selhalo: ' + esc(_live.err) + '</span>' : (_live.lastTs ? 'poslední odeslání před ' + Math.round((Date.now() - _live.lastTs) / 1000) + ' s · ' + _live.pulls + '× staženo' : 'odesílám…'))
                       + '</span></div>'
                       + '<button class="btn btn-secondary" id="ag-dgps-live-off" style="margin:0 0 10px;">Přestat sdílet živě</button>'
-                    : '<button class="btn btn-secondary" id="ag-dgps-live-on" style="margin:0 0 10px;">📡 Sdílet korekce živě (kód pro druhý telefon)</button>';
+                    : '<button class="btn btn-secondary" id="ag-dgps-live-on" style="margin:0 0 10px;"><svg class="icon"><use href="#i-satellite"/></svg> Sdílet korekce živě (kód pro druhý telefon)</button>';
                 var on = document.getElementById('ag-dgps-live-on'); if (on) on.addEventListener('click', function () { liveStart(); renderBaseLive(); });
                 var of = document.getElementById('ag-dgps-live-off'); if (of) of.addEventListener('click', function () { liveStop(); renderBaseLive(); });
             }
@@ -748,7 +748,7 @@
                 + '<span class="geo-value">posun ' + (mag * 100).toFixed(0) + ' cm <span style="opacity:.6;">(' + r.off.kind + ')</span></span></div>';
         }).join('');
         body.innerHTML = head + rowsHtml
-            + '<button class="btn" id="ag-dgps-apply" style="margin-top:12px;">✓ Aplikovat korekce na vybrané body</button>'
+            + '<button class="btn" id="ag-dgps-apply" style="margin-top:12px;"><svg class="icon"><use href="#i-check"/></svg> Aplikovat korekce na vybrané body</button>'
             + '<p style="font-size:calc(11px * var(--ag-font-scale, 1)); opacity:.55; margin:8px 0 0;">Posun bodu se zapíše do žurnálu (jde dohledat i vrátit ruční editací). Každý bod lze korigovat jen jednou.</p>'
             + '<button class="btn btn-secondary" id="ag-dgps-back" style="margin-top:8px;">← Zpět</button>';
         var chks = body.querySelectorAll('.ag-dgps-chk');

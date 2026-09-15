@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v328';   // mapa: dva body se stejnym id (nivelacni + PPBP na jednom miste) se kresli oba a neprehazuji se
+const SHELL_CACHE = 'argeodet-shell-v329';   // klik do parcely (RUIAN + Nahlizeni), oficialni nacrt CUZK v karte bodu, bublina neposkakuje, Omerne/Stopa/Dnesek zpet v Nastrojich
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=328',
-    './css/style.css?v=328',
-    './css/vylepseni.css?v=328',
+    './css/tokens.css?v=329',
+    './css/style.css?v=329',
+    './css/vylepseni.css?v=329',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -175,6 +175,7 @@ const ASSETS_TO_CACHE = [
     './js/project-import.js',
     './js/geo-overlay.js',
     './js/cadastre-vector.js',
+    './js/parcela-klik.js',
     './js/tutorial-pro.js',
     './js/tools-plus.js',
     './js/tools-simple.js',
@@ -325,7 +326,10 @@ function isTile(url) {
     return url.includes('tile.openstreetmap.org')
         || url.includes('cuzk.gov.cz/arcgis1')   // ortofoto WMS
         || url.includes('services.cuzk.cz/wms')   // katastr WMS
-        || url.includes('services.cuzk.gov.cz/wms');
+        || url.includes('services.cuzk.gov.cz/wms')
+        // oficialni mistopisne nacrty bodu (karta bodu, 15. 9. 2026) — obrazky od CUZK
+        // maji prezit update kodu stejne jako dlazdice, aby nacrt fungoval i bez signalu
+        || url.includes('dataz.cuzk.gov.cz/') || url.includes('bodovapole.cuzk.gov.cz/');
 }
 
 // Predchozi verze shellu (argeodet-shell-v211 pri instalaci v212). Slouzi jako

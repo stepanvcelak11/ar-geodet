@@ -365,7 +365,9 @@
     // Vrácení je jednorázové stejně jako skrytí — kdo si nástroj po vlně schová znovu,
     // schovaný mu zůstane.
     var SEED_WAVES = [
-        { id: 'agAktHiddenSeed_v1', keys: ['openCheckDist', 'kontrola-vrstvy', 'track-log', 'brifink', 'bezpecnost', 'kniha-jizd'] },
+        // (openCheckDist, kontrola-vrstvy, track-log a brifink z v1 vrací v4/v5 níže —
+        //  nová instalace už je ani chvíli neschová)
+        { id: 'agAktHiddenSeed_v1', keys: ['bezpecnost', 'kniha-jizd'] },
         { id: 'agAktHiddenSeed_v2', keys: ['ar-visual-track'] },
         // Sjednocené dvojice: v seznamu úkonů zůstává jeden vstup a druhá cesta je
         // odkazem uvnitř okna (js/nastroje-parky.js). Dlaždice se proto schová —
@@ -377,7 +379,17 @@
         // sedí na projekt". Schovaná dlaždice navíc vypadne i ze sekce „Pro tuto práci",
         // kam ji od 5. 9. 2026 dává profil Pokládka (js/rezim-prace.js) — profil by pak
         // ukazoval na prázdno.
-        { id: 'agAktHiddenSeed_v4', vrat: ['kontrola-vrstvy'] }
+        { id: 'agAktHiddenSeed_v4', vrat: ['kontrola-vrstvy'] },
+        // 15. 9. 2026: „některé nástroje, novější nebo starší, nedokážu v Nástrojích
+        // dohledat — myslím, že tam mají být". Vlna v1 byla OSOBNÍ třídění jednoho
+        // uživatele z 9. 8., jenže seed běží na KAŽDÉ instalaci — takže od Play
+        // (13. 9.) schovávala i cizím lidem Oměrné, které Základ od 11. 9. výslovně
+        // slibuje, Stopu trasy a Dnešek v terénu (ten tak chyběl i v rozcestníku
+        // Počasí a světlo). Vracejí se; kdo je nechce, schová si je v „Skryté
+        // nástroje" a schované mu zůstanou. `ar-visual-track` (beta, vstup má
+        // v Nastavení → AR & přesnost) a bezpečnost/kniha jízd (`hidden` v registru
+        // od 13. 9.) zůstávají stranou.
+        { id: 'agAktHiddenSeed_v5', vrat: ['openCheckDist', 'track-log', 'brifink'] }
     ];
     function seedHidden() {
         var a = hidden(), changed = false, w, i, done;
