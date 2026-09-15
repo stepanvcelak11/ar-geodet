@@ -253,7 +253,7 @@
         rows.forEach(function (z) { z._d = dist2user(z); });
         rows.sort(function (a, b) { return (b.sev - a.sev) || ((a._d == null ? 9e9 : a._d) - (b._d == null ? 9e9 : b._d)); });
         if (!rows.length) {
-            var t = _filter === 'done' ? 'Žádné vyřešené závady.' : (_filter === 'open' ? 'Žádné otevřené závady. 👍' : 'Zatím žádné závady.');
+            var t = _filter === 'done' ? 'Žádné vyřešené závady.' : (_filter === 'open' ? 'Žádné otevřené závady.' : 'Zatím žádné závady.');
             host.innerHTML = '<div class="ag-zv-empty">' + t + '<br><br>Tip: závadu zapíšeš i <b>dlouhým stiskem</b> tlačítka „Nový bod" v doku.</div>';
             return;
         }
@@ -712,7 +712,7 @@
                 + 'img{max-width:320px;max-height:240px;border-radius:6px;margin-top:8px;display:block;}'
                 + '.done{opacity:0.6;} @media print{button{display:none}}'
                 + '</style></head><body>'
-                + '<button onclick="window.print()" style="padding:8px 16px;margin-bottom:14px;">🖨 Tisk / Uložit PDF</button>'
+                + '<button onclick="window.print()" style="padding:8px 16px;margin-bottom:14px;"><svg class="icon"><use href="#i-print"/></svg> Tisk / Uložit PDF</button>'
                 + '<h1>Protokol závad — ' + esc(projName) + '</h1>'
                 + '<p class="sub">Vygenerováno ' + fmtTs(Date.now()) + ' · QTRIG · poloha dle GPS telefonu (orientační)</p>';
             rows.forEach(function (z, i) {

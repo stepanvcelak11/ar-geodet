@@ -26,12 +26,14 @@
 
     var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16V11l1.7-4.2A2 2 0 0 1 8.6 5.5h6.8a2 2 0 0 1 1.9 1.3L19 11v5"/><path d="M5 16h14M7.5 16v2M16.5 16v2M7 11.5h10"/></svg>';
     var STYLE_ID = 'ag-kj-style';
+    // ikony ze sprite místo emoji (15. 9. 2026: „oprav ty ikony všude")
+    function ico(n) { return '<svg class="icon"><use href="#i-' + n + '"/></svg>'; }
     var LS_KEY = 'agParked_v1';        // [{id, label, lat, lng, acc, ts}]
     var PRESETS = [
-        { label: 'Auto', emoji: '🚗' },
-        { label: 'Báze', emoji: '📡' },
-        { label: 'Stativ', emoji: '📐' },
-        { label: 'Materiál', emoji: '📦' }
+        { label: 'Auto', emoji: ico('car') },
+        { label: 'Báze', emoji: ico('satellite') },
+        { label: 'Stativ', emoji: ico('tripod') },
+        { label: 'Materiál', emoji: ico('box') }
     ];
 
     var _timer = null, _layer = null, _shown = false;
@@ -98,7 +100,7 @@
     }
     function emojiOf(label) {
         for (var i = 0; i < PRESETS.length; i++) if (PRESETS[i].label === label) return PRESETS[i].emoji;
-        return '📍';
+        return ico('map-pin');
     }
 
     // ---- uložení / smazání ------------------------------------------------------------
@@ -168,7 +170,7 @@
                 L.marker([r.lat, r.lng], {
                     icon: L.divIcon({
                         className: 'ag-kj-mk',
-                        html: '<div style="font-size:calc(22px * var(--ag-font-scale, 1));line-height:1;text-shadow:0 1px 3px #000;">' + emojiOf(r.label) + '</div>' +
+                        html: '<div style="width:26px;height:26px;color:#fff;filter:drop-shadow(0 1px 2px #000);">' + emojiOf(r.label).replace('class="icon"', 'class="icon" style="width:26px;height:26px"') + '</div>' +
                             '<div style="font-size:calc(10px * var(--ag-font-scale, 1));background:rgba(0,0,0,.65);color:#fff;padding:1px 4px;border-radius:4px;white-space:nowrap;">' + esc(r.label) + '</div>',
                         iconSize: [0, 0], iconAnchor: [10, 22]
                     }),
@@ -195,10 +197,10 @@
         s.textContent =
             '#ag-kj-modal .ag-kj-btns{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px;}' +
             '#ag-kj-modal .ag-kj-btns button{flex:1 1 84px;padding:12px 6px;border-radius:12px;border:1px solid var(--border,rgba(255,255,255,.15));background:var(--bg-input,rgba(255,255,255,.06));color:inherit;font-size:.9em;}' +
-            '#ag-kj-modal .ag-kj-btns button b{display:block;font-size:1.5em;margin-bottom:2px;}' +
+            '#ag-kj-modal .ag-kj-btns button b{display:block;font-size:1.5em;margin-bottom:2px;} #ag-kj-modal .ag-kj-btns button b .icon{width:1.15em;height:1.15em;}' +
             '#ag-kj-modal .ag-kj-it{display:flex;gap:10px;align-items:center;padding:10px;border-radius:12px;background:var(--bg-input,rgba(255,255,255,.06));margin-bottom:8px;}' +
             '#ag-kj-modal .ag-kj-ar{width:44px;height:44px;flex:0 0 44px;border-radius:50%;background:rgba(96,165,250,.18);display:flex;align-items:center;justify-content:center;font-size:calc(22px * var(--ag-font-scale, 1));}' +
-            '#ag-kj-modal .ag-kj-ar span{display:block;transition:transform .25s;}' +
+            '#ag-kj-modal .ag-kj-ar span{display:block;transition:transform .25s;} #ag-kj-modal .ag-kj-ar .icon{width:24px;height:24px;display:block;} #ag-kj-modal .ag-kj-tx b .icon{width:1em;height:1em;vertical-align:-2px;}' +
             '#ag-kj-modal .ag-kj-tx{flex:1;min-width:0;} #ag-kj-modal .ag-kj-tx b{display:block;}' +
             '#ag-kj-modal .ag-kj-tx small{color:var(--text-muted,#9aa1ac);display:block;font-size:.82em;}' +
             '#ag-kj-modal .ag-kj-d{font-variant-numeric:tabular-nums;font-size:1.05em;white-space:nowrap;}' +
@@ -226,7 +228,7 @@
         m.id = 'ag-kj-modal'; m.setAttribute('data-ag-needs', 'gps kompas'); /* js/power-save.js: senzory neuspávat, dokud je okno vidět */
         var btns = PRESETS.map(function (p) {
             return '<button type="button" data-lbl="' + esc(p.label) + '"><b>' + p.emoji + '</b>' + esc(p.label) + '</button>';
-        }).join('') + '<button type="button" data-lbl="__custom"><b>➕</b>Vlastní</button>';
+        }).join('') + '<button type="button" data-lbl="__custom"><b><svg class="icon"><use href="#i-plus"/></svg></b>Vlastní</button>';
         m.innerHTML =
             '<div class="modal-content">' +
             '  <h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Kde co mám</h3>' +
@@ -264,7 +266,7 @@
         var list = load().slice().sort(function (a, b) { return b.ts - a.ts; });
         var p = me(), hd = heading();
         if (!list.length) {
-            el.innerHTML = '<div style="padding:10px;color:var(--text-muted,#9aa1ac);font-size:.9em;">Nic neuloženo. Až vystoupíš z auta, klepni na 🚗 — pak tě sem appka dovede.</div>';
+            el.innerHTML = '<div style="padding:10px;color:var(--text-muted,#9aa1ac);font-size:.9em;">Nic neuloženo. Až vystoupíš z auta, klepni na Auto — pak tě sem appka dovede.</div>';
             return;
         }
         var h = '';
@@ -273,7 +275,7 @@
             var az = p ? bearing(p, r) : null;
             var rel = (az != null && hd != null) ? ((az - hd + 360) % 360) : null;
             h += '<div class="ag-kj-it">' +
-                '<div class="ag-kj-ar"><span style="transform:rotate(' + (rel != null ? rel.toFixed(0) : 0) + 'deg);">' + (rel != null ? '⬆' : emojiOf(r.label)) + '</span></div>' +
+                '<div class="ag-kj-ar"><span style="transform:rotate(' + (rel != null ? rel.toFixed(0) : 0) + 'deg);">' + (rel != null ? ico('arrow-up') : emojiOf(r.label)) + '</span></div>' +
                 '<div class="ag-kj-tx"><b>' + emojiOf(r.label) + ' ' + esc(r.label) + '</b>' +
                 '<small>' + agoTxt(r.ts) + (r.acc != null ? ' · uloženo s přesností ±' + Math.round(r.acc) + ' m' : '') +
                 (az != null ? ' · azimut ' + az.toFixed(0) + '°' : '') + '</small></div>' +

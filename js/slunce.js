@@ -159,7 +159,7 @@
             '#ag-su-modal .ag-su-row span:first-child{width:50px;color:var(--text-muted,#9aa1ac);}' +
             // štítek („nízké slunce — dlouhé stíny…") na 390 px vedle čtyř sloupců nezbývalo místo
             // a lámal se do tří řádků (15. 9. 2026) → jde na vlastní řádek pod čísla
-            '#ag-su-modal .ag-su-row .w{width:74px;} #ag-su-modal .ag-su-row .g{flex:1 1 100%;color:var(--warning,#fbbf24);font-size:.85em;line-height:1.3;}' +
+            '#ag-su-modal .ag-su-row .w{min-width:74px;white-space:nowrap;} #ag-su-modal .ag-su-row .g{flex:1 1 100%;color:var(--warning,#fbbf24);font-size:.85em;line-height:1.3;}' +
             '#ag-su-modal .ag-su-row .g:empty{display:none;}' +
             '#ag-su-modal .ag-su-in{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap;}' +
             '#ag-su-modal .ag-su-in input{width:88px;}' +
@@ -232,12 +232,12 @@
         if (t.polar === 'den') html += 'Slunce dnes nezapadá.';
         else if (t.polar === 'noc') html += 'Slunce dnes nevychází.';
         else if (toSet != null && toSet > 0) {
-            html += '☀️ <b>Do západu zbývá ' + durTxt(toSet) + '</b>, na náčrt a úklid pak ještě ' + durTxt(toTwi - toSet) + ' soumraku.';
+            html += '<svg class="icon"><use href="#i-sun"/></svg> <b>Do západu zbývá ' + durTxt(toSet) + '</b>, na náčrt a úklid pak ještě ' + durTxt(toTwi - toSet) + ' soumraku.';
             html += '<div id="ag-su-tempo" style="margin-top:4px;color:var(--text-muted,#9aa1ac);">Počítám dnešní tempo…</div>';
         } else if (toTwi != null && toTwi > 0) {
-            html += '🌆 <b>Slunce zapadlo</b> — do konce občanského soumraku ' + durTxt(toTwi) + '. Přesné cílení v AR už bude problém.';
+            html += '<svg class="icon"><use href="#i-sun"/></svg> <b>Slunce zapadlo</b> — do konce občanského soumraku ' + durTxt(toTwi) + '. Přesné cílení v AR už bude problém.';
         } else {
-            html += '🌙 <b>Je tma.</b> Zaměřování v AR (kamera potřebuje světlo) odlož na ' + hhmm(sunTimes(new Date(now.getTime() + 86400000), p.lat, p.lng, 96).rise) + '.';
+            html += '<svg class="icon"><use href="#i-moon"/></svg> <b>Je tma.</b> Zaměřování v AR (kamera potřebuje světlo) odlož na ' + hhmm(sunTimes(new Date(now.getTime() + 86400000), p.lat, p.lng, 96).rise) + '.';
         }
         html += '</div>';
 
@@ -269,10 +269,10 @@
                     seg.push(pad2(st) + ':00–' + pad2((prev + 1) % 24) + ':00');
                     if (i < bad.length) { st = bad[i]; prev = bad[i]; }
                 }
-                html += '<div class="ag-su-hi ag-su-warn">🕶 Slunce bude nízko v ose záměry (±25°) v ' + esc(seg.join(', ')) +
+                html += '<div class="ag-su-hi ag-su-warn"><svg class="icon"><use href="#i-sun"/></svg> Slunce bude nízko v ose záměry (±25°) v ' + esc(seg.join(', ')) +
                     '. V tu dobu neuvidíš do displeje, kamera AR bude přeexponovaná a na hranol se nezaměříš — měř tuto záměru mimo tyto hodiny, nebo z protisměru.</div>';
             } else {
-                html += '<div class="ag-su-hi">✅ Na tuhle záměru dnes slunce nízko v ose nepůjde — protisvětlo neřeš.</div>';
+                html += '<div class="ag-su-hi">✓ Na tuhle záměru dnes slunce nízko v ose nepůjde — protisvětlo neřeš.</div>';
             }
         }
 

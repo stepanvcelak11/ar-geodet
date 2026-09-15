@@ -430,7 +430,7 @@
             } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-resection:applyNorth'); }
         }
         agAlert('Sever srovnán', 'Sever srovnán resekcí z ' + _result.residuals.length + ' bodů (' + (d >= 0 ? '+' : '') + d.toFixed(1) + '°).'
-            + (_anchored ? '\n\n📍 Stanovisko ZAKOTVENO jako počátek AR — značky teď nekotví na kolísavou GPS, ale na spočítanou polohu (±' + (_result.posSigma != null ? _result.posSigma.toFixed(2) : '?') + ' m). Až odejdeš, AR se vrátí na GPS.' : '')
+            + (_anchored ? '\n\nStanovisko ZAKOTVENO jako počátek AR — značky teď nekotví na kolísavou GPS, ale na spočítanou polohu (±' + (_result.posSigma != null ? _result.posSigma.toFixed(2) : '?') + ' m). Až odejdeš, AR se vrátí na GPS.' : '')
             + (_result.mode === 'full' ? '\n\nStanovisko můžeš uložit jako bod (tlačítko níže).' : ''));
     }
 

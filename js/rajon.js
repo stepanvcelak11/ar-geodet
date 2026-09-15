@@ -168,7 +168,7 @@
         var st = document.getElementById('agrj-st'), or = document.getElementById('agrj-or');
         if (st) {
             st.innerHTML = '<option value="">— vyber bod —</option>'
-                + (haveUser() ? '<option value="__gps__">📍 moje aktuální poloha (GPS)</option>' : '')
+                + (haveUser() ? '<option value="__gps__">moje aktuální poloha (GPS)</option>' : '')
                 + optsPts;
             st.value = _stId || '';
         }

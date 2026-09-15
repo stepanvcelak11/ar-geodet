@@ -111,7 +111,7 @@
     ];
 
     var ADV = [
-        { title: 'Pokročilé nástroje', body: 'Co appka umí navíc — sada geodetických nástrojů v sekci <b>Nástroje</b>. Tip: každá dlaždice má vpravo nahoře <b>?</b> s krátkým návodem, hvězdičkou ⭐ si oblíbené držíš nahoře.' },
+        { title: 'Pokročilé nástroje', body: 'Co appka umí navíc — sada geodetických nástrojů v sekci <b>Nástroje</b>. Tip: každá dlaždice má vpravo nahoře <b>?</b> s krátkým návodem, hvězdičkou ★ si oblíbené držíš nahoře.' },
         {
             title: 'Sekce Nástroje', target: '#dock button[onclick*="tools-modal"]',
             body: 'Nástroje jsou řazené do kategorií: <b>Měření</b>, <b>Vytyčování a náčrt</b>, <b>Katastr a data</b>, <b>AR a kalibrace</b> a <b>Pomůcky</b>.',
@@ -151,7 +151,7 @@
                 try { var m = document.getElementById('side-menu'); if (m) m.classList.add('open'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tutorial-pro:pruvodce'); }
             }
         },
-        { title: 'Hotovo!', body: 'Skoro vše funguje <b>offline</b> a každý nástroj má návod pod <b>?</b> na dlaždici. Hodně zdaru v terénu. 📐' }
+        { title: 'Hotovo!', body: 'Skoro vše funguje <b>offline</b> a každý nástroj má návod pod <b>?</b> na dlaždici. Hodně zdaru v terénu.' }
     ];
 
     // ---- engine ----------------------------------------------------------------

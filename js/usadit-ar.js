@@ -241,7 +241,7 @@
         if (searchQuery()) { if (head) head.style.display = 'none'; if (box) box.style.display = 'none'; return; }
         var keys = suggestions();
         if (!keys.length) { if (head) head.remove(); if (box) box.remove(); return; }
-        if (!head) { head = document.createElement('div'); head.id = 'ag-ua-now-head'; head.textContent = '⚡ Teď se hodí'; }
+        if (!head) { head = document.createElement('div'); head.id = 'ag-ua-now-head'; head.textContent = 'Teď se hodí'; }
         if (!box) { box = document.createElement('div'); box.id = 'ag-ua-now'; }
         head.style.display = ''; box.style.display = '';
         // vždy jako první dva prvky mřížky (i po překreslení oblíbených)

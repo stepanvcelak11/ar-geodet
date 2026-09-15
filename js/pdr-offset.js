@@ -219,8 +219,8 @@
                 : '<p style="font-size:calc(13px * var(--ag-font-scale, 1)); color:var(--warning,#fbbf24);">V zakázce nejsou body — nejdřív změř/naimportuj bod A.</p>')
             + '<label style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:.8;">Délka kroku (m)</label>'
             + '<input id="ag-pdr-len" class="bgps-name" type="text" inputmode="decimal" autocomplete="off" value="' + stepLen().toFixed(2) + '" style="width:100%; margin:4px 0 10px;">'
-            + (pts.length ? '<button class="btn" id="ag-pdr-go">▶ Start chůze od bodu A</button>' : '')
-            + '<button class="btn btn-secondary" id="ag-pdr-cal" style="margin-top:8px;">📏 Kalibrace kroku (GPS úsek ≥ ' + CAL_MIN_DIST + ' m)</button>'
+            + (pts.length ? '<button class="btn" id="ag-pdr-go"><svg class="icon"><use href="#i-play"/></svg> Start chůze od bodu A</button>' : '')
+            + '<button class="btn btn-secondary" id="ag-pdr-cal" style="margin-top:8px;"><svg class="icon"><use href="#i-ruler"/></svg> Kalibrace kroku (GPS úsek ≥ ' + CAL_MIN_DIST + ' m)</button>'
             + '<p style="font-size:calc(11px * var(--ag-font-scale, 1)); opacity:.55; margin:10px 0 0;">Drž telefon volně před sebou displejem nahoru a choď normálně. U budov kompas ruší kov — výsledek ber jako ±' + Math.round(Math.sin(HEAD_ERR_RAD) * 100 * 1.3) + ' cm na každých 10 m.</p>';
         var go = document.getElementById('ag-pdr-go');
         if (go) go.addEventListener('click', function () {
@@ -244,8 +244,8 @@
         var calib = _mode === 'calib';
         body.innerHTML =
             '<div class="bgps-card amber">' + (calib
-                ? '<b>📏 Kalibrace:</b> jdi ROVNĚ aspoň ' + CAL_MIN_DIST + ' m pod volným nebem, pak zastav.'
-                : '<b>🚶 Jdu od bodu ' + esc(_startPt.name) + '</b> — dojdi na nový bod a zastav.') + '</div>'
+                ? '<b>Kalibrace:</b> jdi ROVNĚ aspoň ' + CAL_MIN_DIST + ' m pod volným nebem, pak zastav.'
+                : '<b>Jdu od bodu ' + esc(_startPt.name) + '</b> — dojdi na nový bod a zastav.') + '</div>'
             + '<div class="bgps-stats" style="margin-top:10px;">'
             + '<div class="bgps-stat"><div class="k">Kroky</div><div class="v" id="ag-pdr-steps">0</div></div>'
             + '<div class="bgps-stat"><div class="k">Vzdálenost</div><div class="v" id="ag-pdr-dist">0,0 m</div></div>'
@@ -253,7 +253,7 @@
             + '</div>'
             + (calib ? '<div id="ag-pdr-gps" style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:.75; margin-top:8px;">GPS: čekám na přesný fix…</div>'
                      : '<div id="ag-pdr-vec" style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:.75; margin-top:8px;">vektor: –</div>')
-            + '<button class="btn" id="ag-pdr-stop" style="margin-top:12px;">⏹ Zastavit' + (calib ? ' a spočítat krok' : '') + '</button>';
+            + '<button class="btn" id="ag-pdr-stop" style="margin-top:12px;"><svg class="icon"><use href="#i-stop"/></svg> Zastavit' + (calib ? ' a spočítat krok' : '') + '</button>';
         document.getElementById('ag-pdr-stop').addEventListener('click', function () {
             stopWalk();
             if (calib) finishCalib(); else finishWalk();

@@ -169,7 +169,8 @@
     border-radius: 13px;
     background: var(--glass-bg, rgba(255, 255, 255, 0.04));
 }
-.agodz-z { font-size: calc(24px * var(--ag-font-scale, 1)); line-height: 1.1; flex: 0 0 auto; }
+.agodz-z { font-size: calc(24px * var(--ag-font-scale, 1)); line-height: 1.1; flex: 0 0 auto; color: var(--accent); }
+.agodz-z .icon { width: 28px; height: 28px; display: block; }
 .agodz-t { min-width: 0; }
 .agodz-n {
     font-weight: 700;

@@ -1404,7 +1404,7 @@
             // by to bylo tlacitko, ktere umi jedine vyprazdnit seznam.
             if (_mngWatchCount()) {
                 ch += '<button type="button" class="mng-chip mng-chip-watch' + (_mngWatchOnly ? ' on' : '') + '" id="mng-watchbtn"'
-                    + ' aria-pressed="' + (_mngWatchOnly ? 'true' : 'false') + '" aria-label="Jen body z hodinek">⌚ ' + _mngWatchCount() + '</button>';
+                    + ' aria-pressed="' + (_mngWatchOnly ? 'true' : 'false') + '" aria-label="Jen body z hodinek"><svg class="icon"><use href="#i-watch"/></svg> ' + _mngWatchCount() + '</button>';
             }
             ch += '<button type="button" class="mng-chip mng-chip-sel' + (_mngSelMode ? ' on' : '') + '" id="mng-selbtn"'
                 + ' aria-pressed="' + (_mngSelMode ? 'true' : 'false') + '">' + (_mngSelMode ? 'Hotovo' : 'Vybrat') + '</button>';
@@ -1448,7 +1448,7 @@
                 const age = _mngAge(pt.prov && pt.prov.ts);
                 item.innerHTML = '<div class="mngr-id"><b>' + _escHtml(pt.name)
                     + (pt.kod ? ' <span class="cp-kod">' + _escHtml(pt.kod) + '</span>' : '')
-                    + (zHodinek ? ' <span class="cp-watch-tag" title="Změřeno hodinkami — přesnost jednotky metrů">⌚</span>' : '')
+                    + (zHodinek ? ' <span class="cp-watch-tag" title="Změřeno hodinkami — přesnost jednotky metrů"><svg class="icon"><use href="#i-watch"/></svg></span>' : '')
                     + '</b><small>' + (age ? _escHtml(age) + ' · ' : '') + _mngAcc(pt) + '</small></div>'
                     + '<div class="mngr-far">' + far + '</div>'
                     + '<span class="mngr-arw" aria-hidden="true">›</span>';

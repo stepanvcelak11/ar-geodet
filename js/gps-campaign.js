@@ -149,7 +149,7 @@
         var el = document.createElement('div');
         el.className = 'modal-overlay'; el.id = DLG_ID;
         el.innerHTML = '<div class="modal-content">'
-            + '<h3 style="color:var(--accent); margin-top:0; margin-bottom:5px;">📅 Kampaň: 3 návštěvy</h3>'
+            + '<h3 style="color:var(--accent); margin-top:0; margin-bottom:5px;"><svg class="icon"><use href="#i-calendar"/></svg> Kampaň: 3 návštěvy</h3>'
             + '<p style="margin:0 0 10px; font-size:calc(12.5px * var(--ag-font-scale, 1)); opacity:0.8;">Chyba GPS se během dne systematicky posouvá. Tři sezení v různých konstelacích družic se zprůměrují a systematika se z velké části vyruší — typicky ±0,3–0,5 m → ±0,15–0,25 m.</p>'
             + '<div class="modal-body" id="ag-campaign-body"></div>'
             + '<button class="btn btn-secondary" style="margin-top:15px;" id="ag-campaign-close">Zavřít</button>'
@@ -243,12 +243,12 @@
             var next = null;
             for (var i = 0; i < camp.plan.length; i++) { if (camp.plan[i].ts > Date.now() - WINDOW_MIN * 60000) { next = camp.plan[i]; break; } }
             card.style.display = '';
-            card.innerHTML = '<b>📅 Kampaň „' + esc(camp.name) + '": sezení ' + k + '/3</b>'
+            card.innerHTML = '<b><svg class="icon"><use href="#i-calendar"/></svg> Kampaň „' + esc(camp.name) + '": sezení ' + k + '/3</b>'
                 + (k >= 3 ? ' — hotovo, ulož bod.' : (next ? ' — další ' + fmtWhen(next.ts) + '.' : ' — termíny prošly, změř kdykoli (jinou denní dobu).'))
                 + ' <span style="opacity:.7;">(detail klepnutím)</span>';
         } else if (sessCount() >= 1) {
             card.style.display = '';
-            card.innerHTML = '<b>📅 Naplánovat kampaň (3 návštěvy)</b> — jiná konstelace družic vyruší systematiku. <span style="opacity:.7;">(klepni)</span>';
+            card.innerHTML = '<b><svg class="icon"><use href="#i-calendar"/></svg> Naplánovat kampaň (3 návštěvy)</b> — jiná konstelace družic vyruší systematiku. <span style="opacity:.7;">(klepni)</span>';
         } else {
             card.style.display = 'none';
         }

@@ -314,7 +314,7 @@
         groups.forEach(function (g) { g.items.forEach(function (it) { total++; if (ch[it.k]) done++; }); });
         var pct = total ? Math.round(done / total * 100) : 0;
         var h = '<div class="ag-cl-prog"><b>' + done + ' / ' + total + '</b> hotovo' +
-            (done === total && total ? ' — můžeš vyrazit ✅' : '') +
+            (done === total && total ? ' — můžeš vyrazit ✓' : '') +
             '<div class="ag-cl-bar"><i style="width:' + pct + '%;"></i></div></div>';
         groups.forEach(function (g) {
             h += '<h4>' + esc(g.title) + (g.sub ? '<small>' + esc(g.sub) + '</small>' : '') + '</h4>';

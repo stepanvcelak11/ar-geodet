@@ -139,7 +139,7 @@
     function batState() {
         if (!_bat) return null;
         var p = Math.round(_bat.level * 100);
-        if (_bat.charging) return { c: 'green', t: '⚡' + p + '%', d: 'Baterie ' + p + ' %, nabíjí se.', a: '' };
+        if (_bat.charging) return { c: 'green', t: p + '% (nabíjí se)', d: 'Baterie ' + p + ' %, nabíjí se.', a: '' };
         if (p >= 35) return { c: 'green', t: p + '%', d: 'Baterie ' + p + ' %.', a: '' };
         if (p >= 15) return { c: 'yellow', t: p + '%', d: 'Baterie ' + p + ' % — AR s kamerou žere hodně.', a: 'Přepni na „Pouze mapa" (kolečko vpravo dole), displej ztlum. Úsporný režim appka řeší sama mimo AR.' };
         return { c: 'red', t: p + '%', d: 'Baterie ' + p + ' % — dojede ti během měření.', a: 'Zapni úsporný režim telefonu, používej jen mapu a zavři AR. Data máš uložená průběžně.' };

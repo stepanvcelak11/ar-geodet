@@ -1039,7 +1039,7 @@
                 '<span class="ag-gz-lb' + (ready ? '' : ' off') + '">' + esc(toolLabel(key)) +
                 '<i>' + arrows(c.prefix) + ' ' + arrows(codes[i]) + '</i>' +
                 (ready ? '' : '<small>teď není v Nástrojích dostupný</small>') + '</span>' +
-                '<button type="button" data-act="edit" data-code="' + codes[i] + '" title="Změnit gesto">✎</button>' +
+                '<button type="button" data-act="edit" data-code="' + codes[i] + '" title="Změnit gesto"><svg class="icon"><use href="#i-edit"/></svg></button>' +
                 '<button type="button" data-act="del" data-code="' + codes[i] + '" title="Odebrat">✕</button></div>';
         }
         if (!codes.length) h = '<div class="ag-gz-empty">Zatím žádná zkratka. Přidej první tlačítkem níž.</div>';

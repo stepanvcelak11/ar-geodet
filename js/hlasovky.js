@@ -640,7 +640,7 @@
                 var t = recText(r);
                 h += '<div class="ag-hl-item" data-id="' + esc(r.id) + '">'
                     + '<div class="ag-hl-top">'
-                    + '<button type="button" class="ag-hl-play" aria-label="Přehrát"' + (r.blob ? '' : ' disabled') + '>▶</button>'
+                    + '<button type="button" class="ag-hl-play" aria-label="Přehrát"' + (r.blob ? '' : ' disabled') + '><svg class="icon"><use href="#i-play"/></svg></button>'
                     + '<div class="ag-hl-meta"><b>' + esc(fmtT(r.ts)) + ' · ' + esc(fmtDur(r.dur)) + '</b>'
                     + (r.ptName ? ' · u bodu <b>' + esc(r.ptName) + '</b>' + (r.ptDist != null ? ' (' + r.ptDist + ' m)' : '') : '')
                     + '<br>' + esc(geoStamp(r)) + '</div>'

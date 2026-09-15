@@ -412,7 +412,7 @@
         // rozjetá jízda / akce
         if (o) {
             var mins = Math.round((Date.now() - o.t0) / 60000);
-            h += '<div class="ag-kz-open">🚗 <b>Jízda běží</b> — start ' + pad2(new Date(o.t0).getHours()) + ':' + pad2(new Date(o.t0).getMinutes()) +
+            h += '<div class="ag-kz-open"><svg class="icon"><use href="#i-car"/></svg> <b>Jízda běží</b> — start ' + pad2(new Date(o.t0).getHours()) + ':' + pad2(new Date(o.t0).getMinutes()) +
                 ' z „' + esc(o.fromName || '—') + '"' + (o.odo0 != null ? ', tachometr ' + o.odo0 + ' km' : '') +
                 ' (' + mins + ' min).</div>' +
                 '<div class="ag-kz-act"><button type="button" class="btn btn-primary" id="ag-kz-end">Přijel jsem</button>' +

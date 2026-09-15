@@ -93,6 +93,24 @@ def staticke():
     ok('F1 žádná žlutá natvrdo jako barva textu (var(--warning))', not zle, zle)
     ok('F2 tokens.css přebíjí inline #fbbf24 ve světlém motivu', 'body.light-mode [style*="color:#fbbf24"]' in src('css/tokens.css'))
     ok('F3 Oměrné: hlavička tabulky z tokenu', 'background: var(--bg-color, #161b21)' in src('css/check-distance.css'))
+    # H — emoji jako ikony nikde (15. 9. 2026 „oprav ty ikony všude"); výjimky: výběr symbolu
+    #     avataru (ucty-admin AVA_EMOJI = obsah, ne ikona) a klávesa ⌫ v kalkulačce
+    emo = re.compile(u'[\U0001F300-🫿🀀-🋿✅❌⭐⌚-⏿▶✎⬆➕☀-☄☇-☙☛-⚟⚢-⛿]')
+    emoji_soubory = []
+    for f in sorted(os.listdir(os.path.join(ROOT, 'js'))):
+        if not f.endswith('.js'):
+            continue
+        for l in src('js/' + f).splitlines():
+            st = l.strip()
+            if st.startswith('//') or st.startswith('*') or st.startswith('/*') or 'AVA_EMOJI' in l or "'⌫'" in l:
+                continue
+            if emo.search(l):
+                emoji_soubory.append(f + ': ' + ''.join(sorted(set(emo.findall(l)))))
+    ok('H1 žádné emoji jako ikony v js (mimo avatar a ⌫)', not emoji_soubory, emoji_soubory[:8])
+    for f in ('data/navody.json', 'data/co-je-noveho.json'):
+        ok('H2 bez emoji v ' + f, not emo.search(src(f)))
+    ok('H3 sprite má nové ikony (car, tripod, box, clock, play, pause, calendar, moon, walk, watch, print, palette, mountain, trophy)',
+       all(('symbol id="i-%s"' % k) in src('index.html') for k in ('car', 'tripod', 'box', 'clock', 'play', 'pause', 'calendar', 'moon', 'walk', 'watch', 'print', 'palette', 'mountain', 'trophy')))
     # G
     ok('G1 GNSS předpověď: celé okno = „kdykoli v příštích 24 h"', "kdykoli v příštích 24 h" in src('js/gnss-forecast.js'))
 

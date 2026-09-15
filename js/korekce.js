@@ -263,7 +263,7 @@
         // meteo hlavička
         var mel = document.getElementById('ag-ko-met');
         if (mt.t != null) {
-            mel.innerHTML = '<div class="ag-ko-met">🌡 Z počasí' + (mt.src ? ' (' + esc(mt.src) + ')' : '') + ' před ' + mt.age + ' min: ' +
+            mel.innerHTML = '<div class="ag-ko-met"><svg class="icon"><use href="#i-thermo"/></svg> Z počasí' + (mt.src ? ' (' + esc(mt.src) + ')' : '') + ' před ' + mt.age + ' min: ' +
                 mt.t.toFixed(1) + ' °C' + (mt.rh != null ? ', vlhkost ' + Math.round(mt.rh) + ' %' : '') +
                 (mt.pmsl != null ? ', tlak ' + mt.pmsl.toFixed(0) + ' hPa na hladině moře' : '') +
                 (mt.pLoc != null && mt.alt != null ? ' → <b>' + mt.pLoc.toFixed(0) + ' hPa v místě</b> (výška z GPS ' + Math.round(mt.alt) + ' m)' : '') +

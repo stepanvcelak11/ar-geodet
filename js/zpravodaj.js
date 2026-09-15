@@ -150,9 +150,9 @@
         var tagStyle = 'background:' + hexRgba(color, 0.16) + ';color:' + color + ';border-color:' + hexRgba(color, 0.42) + ';';
         var hasBody = p.body && p.body.length;
         var bodyHtml = hasBody ? ('<ul class="zpr-list">' + p.body.map(function (b) { return '<li>' + esc(b) + '</li>'; }).join('') + '</ul>') : '';
-        var procHtml = p.proc ? ('<div class="zpr-proc">💡 Proč to řešit: ' + esc(p.proc) + '</div>') : '';
+        var procHtml = p.proc ? ('<div class="zpr-proc"><svg class="icon"><use href="#i-bulb"/></svg> Proč to řešit: ' + esc(p.proc) + '</div>') : '';
         var srcHtml = (p.odkaz)
-            ? ('<a class="zpr-src" href="' + esc(p.odkaz) + '" target="_blank" rel="noopener noreferrer">📄 Číst originál' + (p.zdroj ? (' u zdroje (' + esc(p.zdroj) + ')') : '') + ' →</a>')
+            ? ('<a class="zpr-src" href="' + esc(p.odkaz) + '" target="_blank" rel="noopener noreferrer"><svg class="icon"><use href="#i-file-text"/></svg> Číst originál' + (p.zdroj ? (' u zdroje (' + esc(p.zdroj) + ')') : '') + ' →</a>')
             : (p.zdroj ? ('<div class="zpr-src zpr-src-none">Zdroj: ' + esc(p.zdroj) + '</div>') : '');
         var teloHtml = p.telo ? ('<p class="zpr-telo">' + esc(p.telo) + '</p>') : '';
 

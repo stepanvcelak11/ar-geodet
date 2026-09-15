@@ -342,7 +342,7 @@
             h.push('<div class="sa-row' + (_open === f.id ? ' on' : '') + '" data-f="' + esc(f.id) + '">' +
                 (_dead ? '<input type="checkbox" class="sa-ck" data-ck="' + esc(f.id) + '"' + (_pick[f.id] ? ' checked' : '') + '>' : '') +
                 '<span class="sa-dot' + (f.frozen >= 2 ? ' z2' : (f.frozen >= 1 ? ' z1' : (jeMrtva(f) ? ' old' : ''))) + '"></span>' +
-                '<span class="sa-nm"><b>' + esc(f.name || '?') + (f.pending ? ' ⏳' : '') + '</b>' +
+                '<span class="sa-nm"><b>' + esc(f.name || '?') + (f.pending ? ' <svg class="icon"><use href="#i-clock"/></svg>' : '') + '</b>' +
                 '<small>' + esc(f.code) + ' · ' + den(f.last) + ' · ' + tis(f.reqToday) + ' dnes</small></span>' +
                 '<span class="sa-cnt' + (plno ? ' full' : '') + '">' + (f.users || 0) + '/' + (f.max_users || 10) +
                 '<small>' + tis(f.pts) + ' bodů</small></span>' +

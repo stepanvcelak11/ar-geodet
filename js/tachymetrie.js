@@ -175,7 +175,7 @@
                 <button class="tm-btn" id="tachy-label" onclick="tachySetMode('label')"><svg class="icon"><use href="#i-edit"/></svg> Popisek</button>
             </div>
             <div id="tachy-stylebar">
-                <div class="ts-row"><span class="ts-lab">Barva</span><div class="ts-items" id="tachy-colors">${colorSw}<label class="ts-sw ts-custom" title="Vlastní barva">🎨<input type="color" id="tachy-color-pick" onchange="tachySetColor(this.value)"></label></div></div>
+                <div class="ts-row"><span class="ts-lab">Barva</span><div class="ts-items" id="tachy-colors">${colorSw}<label class="ts-sw ts-custom" title="Vlastní barva"><svg class="icon"><use href="#i-palette"/></svg><input type="color" id="tachy-color-pick" onchange="tachySetColor(this.value)"></label></div></div>
                 <div class="ts-row"><span class="ts-lab">Tloušťka</span><div class="ts-items" id="tachy-widths">${widthCh}</div></div>
                 <div class="ts-row"><span class="ts-lab">Styl</span><div class="ts-items" id="tachy-dashes">${dashCh}</div></div>
             </div>

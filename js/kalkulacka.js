@@ -1045,7 +1045,7 @@ function renderPointDoc(id) {
             h += '<div class="pd-thumbs">';
             photos.forEach((src, i) => {
                 h += `<div class="pd-thumb"><img src="${src}" onclick="viewPhotoFull('${id}',${i})">`
-                    + `<button class="pd-th-edit" onclick="editPhoto('${id}',${i})" title="Šipka">✎</button>`
+                    + `<button class="pd-th-edit" onclick="editPhoto('${id}',${i})" title="Šipka"><svg class="icon"><use href="#i-edit"/></svg></button>`
                     + `<button class="pd-th-del" onclick="removePointPhoto('${id}',${i})" title="Odebrat">✕</button></div>`;
             });
             h += '</div>';

@@ -285,7 +285,7 @@
         var h = '<span class="ag-kb-chip">' + esc(druh) + '</span>';
         if (pt.kod) h += '<span class="ag-kb-chip kod">' + esc(pt.kod) + '</span>';
         try { if (window.isStaked && isStaked(pt.id)) h += '<span class="ag-kb-chip ok">✓ vytyčeno</span>'; } catch (e) { }
-        try { if (typeof agZHodinek === 'function' && agZHodinek(pt)) h += '<span class="ag-kb-chip">⌚ z hodinek</span>'; } catch (e) { }
+        try { if (typeof agZHodinek === 'function' && agZHodinek(pt)) h += '<span class="ag-kb-chip"><svg class="icon"><use href="#i-watch"/></svg> z hodinek</span>'; } catch (e) { }
         sub.innerHTML = h;
         sub.setAttribute('data-kb', String(pt.id));
     }

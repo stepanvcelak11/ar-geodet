@@ -2,6 +2,14 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 337,
+   "datum": "2026-09-15",
+   "nadpis": "Ikony místo emoji všude",
+   "body": [
+    "Všechna místa, kde appka místo ikony používala emoji (Kde co mám, odznaky v Ročence, Krokový offset, Kampaň, Slunce a světlo, radar v Počasí, Zpravodaj, Závady, hlasové poznámky, hodinky u bodů, průvodce…), mají teď ikony appky — stejné na iPhonu i Androidu, správně i ve světlém motivu. Emoji zůstala jen ve výběru symbolu avataru (to je tvoje volba, ne ikona)."
+   ]
+  },
+  {
    "v": 336,
    "datum": "2026-09-15",
    "nadpis": "Vzdálené body do AR: území vybereš i z domova, body se dostáhnou z ČÚZK a jsou i v mapě",

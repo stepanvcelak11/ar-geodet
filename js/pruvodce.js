@@ -27,7 +27,7 @@
 
     // znacka offline / online
     function badge(needsNet) {
-        if (needsNet) return '<span class="pruv-badge off">🌐 potřebuje internet</span>';
+        if (needsNet) return '<span class="pruv-badge off"><svg class="icon"><use href="#i-globe"/></svg> potřebuje internet</span>';
         return '<span class="pruv-badge on">✓ funguje offline</span>';
     }
 
@@ -261,7 +261,7 @@
         render({
             title: 'Připraveno k vytyčování',
             crumb: 'Vytyčování › Kontrola',
-            body: '<div class="pruv-check">' + (hasGps ? '✓ GPS poloha k dispozici' : '⏳ Čekám na GPS signál — venku se ustálí během chvíle') + '</div>'
+            body: '<div class="pruv-check">' + (hasGps ? '✓ GPS poloha k dispozici' : '<svg class="icon"><use href="#i-clock"/></svg> Čekám na GPS signál — venku se ustálí během chvíle') + '</div>'
                 + '<div class="pruv-check">' + (off ? '○ Jsi offline — vytyčování i checklist fungují, ale mapový podklad se nenačte, pokud není stažený' : '✓ Online — mapový podklad se načte') + '</div>'
                 + '<p style="font-size:calc(13px * var(--ag-font-scale, 1)); opacity:0.8; margin-top:10px;">Spustím vytyčovací checklist seřazený podle vzdálenosti. U každého bodu klepni „Vytyčeno" až ho zatlučeš.</p>',
             footer: [
@@ -458,7 +458,7 @@
         f.push({ label: 'Hotovo', cls: 'btn-primary', icon: 'check', act: function () { W.active = false; closeWizard(); } });
         showWizard();
         render({
-            title: 'Hotovo 🎉',
+            title: 'Hotovo',
             crumb: activityLabel() + ' › Dokončeno',
             body: '<p style="font-size:calc(14px * var(--ag-font-scale, 1)); line-height:1.55;">' + activityLabel() + ' je hotové'
                 + (W.activity === 'collect' ? ' — uloženo ' + W.savedCount + ' bodů.' : '.')

@@ -520,15 +520,15 @@
         // toasty — každý stupeň jen jednou na jednu korekci
         function once(k, msg) { if (f[k]) return; f[k] = true; toastSafe(msg); }
         if (st.live) {
-            if (st.age != null && st.age >= st.maxMin) once('age2', '⌛ Základna DGPS neposlala nic už ' + Math.round(st.age) + ' min — stojí, nebo nemá signál. Korekce pro nové body už není spolehlivá.');
-            else if (st.age != null && st.age >= st.warnMin) once('age1', '⏳ Základna DGPS neposílá ' + Math.round(st.age) + ' min — zkontroluj ji (displej, signál).');
-            if (st.dist != null && st.dist >= st.maxM) once('dist2', '📍 Jsi ' + (st.dist / 1000).toFixed(1) + ' km od základny DGPS — dál než ' + (st.maxM / 1000) + ' km korekce neplatí.');
-            else if (st.dist != null && st.dist >= st.warnM) once('dist1', '📏 Jsi ' + (st.dist / 1000).toFixed(1) + ' km od základny DGPS — na ' + (st.maxM / 1000) + ' km korekce přestane platit.');
+            if (st.age != null && st.age >= st.maxMin) once('age2', 'Základna DGPS neposlala nic už ' + Math.round(st.age) + ' min — stojí, nebo nemá signál. Korekce pro nové body už není spolehlivá.');
+            else if (st.age != null && st.age >= st.warnMin) once('age1', 'Základna DGPS neposílá ' + Math.round(st.age) + ' min — zkontroluj ji (displej, signál).');
+            if (st.dist != null && st.dist >= st.maxM) once('dist2', 'Jsi ' + (st.dist / 1000).toFixed(1) + ' km od základny DGPS — dál než ' + (st.maxM / 1000) + ' km korekce neplatí.');
+            else if (st.dist != null && st.dist >= st.warnM) once('dist1', 'Jsi ' + (st.dist / 1000).toFixed(1) + ' km od základny DGPS — na ' + (st.maxM / 1000) + ' km korekce přestane platit.');
         } else {
-            if (st.age != null && st.age >= st.maxMin) once('age2', '⌛ Korekce GPS je starší než ' + st.maxMin + ' min — chyba GPS se mezitím mohla změnit, za posun už appka neručí. Projdi hranu / změř známý bod znovu, nebo korekci vypni.');
-            else if (st.age != null && st.age >= st.warnMin) once('age1', '⏳ Korekce GPS vyprší za ' + Math.max(1, st.zbyva) + ' min. Budeš-li ještě měřit, obnov ji včas (chůze po hraně / známý bod).');
-            if (st.dist != null && st.dist >= st.maxM) once('dist2', '📍 Jsi ' + Math.round(st.dist) + ' m od místa kalibrace — za hranicí ' + st.maxM + ' m posun nemusí platit. Zkalibruj znovu tady.');
-            else if (st.dist != null && st.dist >= st.warnM) once('dist1', '📏 Jsi ' + Math.round(st.dist) + ' m od místa kalibrace — na ' + st.maxM + ' m korekce přestane platit.');
+            if (st.age != null && st.age >= st.maxMin) once('age2', 'Korekce GPS je starší než ' + st.maxMin + ' min — chyba GPS se mezitím mohla změnit, za posun už appka neručí. Projdi hranu / změř známý bod znovu, nebo korekci vypni.');
+            else if (st.age != null && st.age >= st.warnMin) once('age1', 'Korekce GPS vyprší za ' + Math.max(1, st.zbyva) + ' min. Budeš-li ještě měřit, obnov ji včas (chůze po hraně / známý bod).');
+            if (st.dist != null && st.dist >= st.maxM) once('dist2', 'Jsi ' + Math.round(st.dist) + ' m od místa kalibrace — za hranicí ' + st.maxM + ' m posun nemusí platit. Zkalibruj znovu tady.');
+            else if (st.dist != null && st.dist >= st.warnM) once('dist1', 'Jsi ' + Math.round(st.dist) + ' m od místa kalibrace — na ' + st.maxM + ' m korekce přestane platit.');
         }
         // pilulka
         if (_pillHidden === st.s.t) return;

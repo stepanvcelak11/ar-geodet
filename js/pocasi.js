@@ -2654,7 +2654,7 @@
                         '</div>' +
                     '</div>' +
                     '<div class="wx-radar-foot">' +
-                        '<button type="button" id="ag-wx-radar-play" class="wx-radar-btn" aria-label="Přehrát / pozastavit">⏸</button>' +
+                        '<button type="button" id="ag-wx-radar-play" class="wx-radar-btn" aria-label="Přehrát / pozastavit"><svg class="icon"><use href="#i-pause"/></svg></button>' +
                         '<input type="range" id="ag-wx-radar-seek" class="wx-radar-seek" min="0" max="0" step="1" value="0" aria-label="Čas snímku radaru">' +
                     '</div>' +
                     '<div class="wx-radar-sub"><span>−70 min</span><span class="wx-radar-hint">pohyb srážkových mraků — mapou jde hýbat i přibližovat</span><span>+30 min</span></div>' +
@@ -2679,7 +2679,7 @@
         });
         byId('ag-wx-radar-play').addEventListener('click', function () {
             _radar.playing = !_radar.playing;
-            this.textContent = _radar.playing ? '⏸' : '▶';
+            this.innerHTML = _radar.playing ? '<svg class="icon"><use href="#i-pause"/></svg>' : '<svg class="icon"><use href="#i-play"/></svg>';
         });
         byId('ag-wx-radar-center').addEventListener('click', function () {
             try { if (_radar.map && _radar.center) _radar.map.setView(_radar.center, 7); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi'); }
@@ -2689,7 +2689,7 @@
         // tažení posuvníku = ruční listování snímky (animace se pozastaví)
         byId('ag-wx-radar-seek').addEventListener('input', function () {
             _radar.playing = false;
-            var pb = byId('ag-wx-radar-play'); if (pb) pb.textContent = '▶';
+            var pb = byId('ag-wx-radar-play'); if (pb) pb.innerHTML = '<svg class="icon"><use href="#i-play"/></svg>';
             showRadarFrame(parseInt(this.value, 10) || 0);
         });
         byId('ag-wx-myloc').addEventListener('click', function () {

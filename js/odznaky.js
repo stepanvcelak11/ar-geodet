@@ -29,8 +29,10 @@
 // existenci téhle vrstvy ověřuje (`window.AGOdznaky && AGOdznaky.html`), takže
 // se bez ní jen neukáže sekce s odznaky.
 // ==============================================================================
+// ikony odznaků ze sprite místo emoji (15. 9. 2026)
 (function () {
     'use strict';
+    function ico(n) { return '<svg class="icon"><use href="#i-' + n + '"/></svg>'; }
     if (window.AGOdznaky) return;
 
     function esc(s) {
@@ -80,24 +82,24 @@
     // `ma` rozhoduje, jestli se ukáže. Nesplněné se NEUKAZUJÍ VŮBEC (viz pravidlo 2).
     var ODZNAKY = [
         {
-            id: 'prvni-bod', znak: '📍', nazev: 'První bod',
+            id: 'prvni-bod', znak: ico('map-pin'), nazev: 'První bod',
             popis: 'Změřil jsi svůj první bod.',
             ma: function (d) { return d.body.length >= 1; }
         },
         {
-            id: 'sto-bodu', znak: '🎯', nazev: 'Sto bodů',
+            id: 'sto-bodu', znak: ico('crosshair'), nazev: 'Sto bodů',
             popis: 'Sto změřených bodů za rok.',
             ma: function (d) { return d.body.length >= 100; },
             hodnota: function (d) { return d.body.length + ' bodů'; }
         },
         {
-            id: 'maraton', znak: '👟', nazev: 'Maraton v terénu',
+            id: 'maraton', znak: ico('walk'), nazev: 'Maraton v terénu',
             popis: 'Nachodil jsi za rok přes 42 km — a to jen s appkou v ruce.',
             ma: function (d) { return d.souhrn.dist >= 42195; },
             hodnota: function (d) { return Math.round(d.souhrn.dist / 1000) + ' km'; }
         },
         {
-            id: 'snezka', znak: '⛰', nazev: 'Výškař',
+            id: 'snezka', znak: ico('mountain'), nazev: 'Výškař',
             popis: 'Nastoupáno tolik, co výstup na Sněžku.',
             ma: function (d) { return d.souhrn.up >= 1200; },
             hodnota: function (d) { return Math.round(d.souhrn.up) + ' m nahoru'; }
@@ -109,19 +111,19 @@
             hodnota: function (d) { return kontrolovanych(d.body) + ' ověřených bodů'; }
         },
         {
-            id: 'serie', znak: '📅', nazev: 'Série',
+            id: 'serie', znak: ico('calendar'), nazev: 'Série',
             popis: 'Nejdelší řada pracovních dnů po sobě, kdy jsi byl v terénu. Víkendy sérii nepřerušují.',
             ma: function (d) { return d.serie.nej >= 3; },
             hodnota: function (d) { return d.serie.nej + ' dnů po sobě'; }
         },
         {
-            id: 'cely-rok', znak: '🗓', nazev: 'Celý rok',
+            id: 'cely-rok', znak: ico('trophy'), nazev: 'Celý rok',
             popis: 'Měřil jsi aspoň v deseti různých měsících.',
             ma: function (d) { return d.mesicuSBody >= 10; },
             hodnota: function (d) { return d.mesicuSBody + ' měsíců'; }
         },
         {
-            id: 'sirokosahly', znak: '🗺', nazev: 'Široký záběr',
+            id: 'sirokosahly', znak: ico('map'), nazev: 'Široký záběr',
             popis: 'Body od sebe vzdálené přes 50 km — za rok jsi projezdil pořádný kus republiky.',
             ma: function (d) { return d.rozpeti >= 50000; },
             hodnota: function (d) { return Math.round(d.rozpeti / 1000) + ' km napříč'; }

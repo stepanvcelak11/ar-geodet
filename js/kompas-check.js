@@ -230,7 +230,7 @@
                 html += row('Tvůj směr (kompas)', head.toFixed(0) + '°');
                 const dev = _adiff(head, s.az);
                 const ad = Math.abs(dev);
-                let col = 'var(--accent)', verdict = 'Kompas sedí dobře ✅';
+                let col = 'var(--accent)', verdict = 'Kompas sedí dobře ✓';
                 if (ad > 20) { col = 'var(--danger)'; verdict = 'Velká odchylka — kompas rušen/nezkalibrovaný'; }
                 else if (ad > 8) { col = 'var(--warning)'; verdict = 'Mírná odchylka — zvaž rekalibraci (osmička)'; }
                 html += row('Odchylka', (dev > 0 ? '+' : '') + dev.toFixed(0) + '°', col);
