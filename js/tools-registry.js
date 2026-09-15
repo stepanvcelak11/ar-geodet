@@ -179,6 +179,8 @@
           help: { t: 'Volné stanovisko (průvodce)' } },
         { k: 'dgps', pro: 1, w: 1, cat: 'Měření', verb: 'Určit nový bod', vl: 'Dvoutelefonní DGPS', vh: 'základna a rover', keys: 'dgps diferencni korekce zakladna rover druhy telefon presnost oprava bodu',
           help: { t: 'Dvoutelefonní DGPS' } },
+        { k: 'akusticky-dalkomer', pro: 1, w: 1, cat: 'Měření', verb: 'Určit nový bod', vl: 'Akustickým dálkoměrem', vh: 'délka mezi telefony na centimetry, protínání z délek', keys: 'akusticky dalkomer zvuk chirp pipnuti delka vzdalenost centimetry dva telefony protinani z delek mikrofon reproduktor',
+          help: { t: 'Akustický dálkoměr' } },
 
         // ── Vytyčit ─────────────────────────────────────────────────────
         { k: 'openStakeoutModal', verb: 'Vytyčit', vl: 'Body podle seznamu', vh: 'vytyčovací checklist', keys: 'vytyceni vytycovaci checklist seznam protokol', base: 1,
@@ -250,6 +252,8 @@
           help: { t: 'Lokalizace (Helmert)' } },
         { k: 'ref-calibration', w: 1, inhub: 'srovnat-sever', verb: 'Srovnat AR', vl: 'Opravit posun GPS podle bodu', vh: 'opravuje POLOHU, ne sever', keys: 'kalibrace referencni bod srovnani ar posun usazeni znamy bod',
           help: { t: 'Posun GPS na známý bod' } },
+        { k: 'kalibrace-hranou', pro: 1, w: 1, inhub: 'srovnat-sever', cat: 'AR a kalibrace', verb: 'Srovnat AR', vl: 'Opravit posun GPS chůzí po hraně', vh: 'obrubník, chodník, osa — bez zastavování', keys: 'kalibrace hrana chuze obrubnik chodnik cara posun gps vektor chyba bez zastaveni dxf osa',
+          help: { t: 'Kalibrace chůzí po hraně' } },
         { k: 'fov-kalib', pro: 1, inhub: 'srovnat-sever', verb: 'Srovnat AR', vl: 'Změřit zorný úhel kamery', keys: 'zorny uhel kamery fov kalibrace ohnisko sirka zaberu ar presnost',
           help: { t: 'Zorný úhel kamery (FOV)' } },
         // ar-visual-track do rozcestníku ZÁMĚRNĚ nejde: uživatel ho 9. 8. 2026 označil

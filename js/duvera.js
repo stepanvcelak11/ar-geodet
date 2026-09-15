@@ -102,7 +102,7 @@
         'gps-avg': 'průměr GPS', 'dgps': 'diferenční GPS', 'ruc': 'ruční zadání',
         'mapa': 'odečet z mapy', 'rajon': 'rajón', 'pdr': 'krokový offset',
         'recheck': 'kontrolní měření', 'kolize': 'řešení kolize', 'edit': 'ruční úprava',
-        'garmin-qr': 'import z hodinek'
+        'garmin-qr': 'import z hodinek', 'akustika': 'akustický dálkoměr (protínání z délek)'
     };
     // `proc` se vklada jako HTML, a origin muze prijit z importovaneho souboru -> escape
     function puvodCesky(o) { return PUVOD_CZ[o] || esc(o); }

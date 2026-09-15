@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+    "v": 321,
+    "datum": "2026-09-15",
+    "nadpis": "Dva nové způsoby, jak z holého telefonu dostat přesnější polohu — zvukem a chůzí",
+    "body": [
+      "<b>Akustický dálkoměr (Pro):</b> délka mezi dvěma telefony <b>ze zvuku, na centimetry</b>. Telefon na známém bodě odpovídá pípnutím, druhý měří; každý si ve vlastní nahrávce najde, kdy pípl on a kdy ten druhý (jeden vzorek = 7 mm cesty zvuku), rozdíl hodin se odečte sám a druhý telefon svůj naměřený čas „řekne\" mezerou mezi dvěma pípnutími — bez internetu, bez opisování. Délky ke dvěma známým bodům → <b>Bod ze dvou délek</b> (protínání) bez GPS. Uvnitř je vysvětlení i postup, poprvé udělej kalibraci nuly na 2,00 m. Nástroje → Měření.",
+      "<b>Kalibrace chůzí po hraně (Pro):</b> klepni v mapě, odkud kam půjdeš (obrubník, hrana chodníku, plot, osa z DXF — nebo dva uložené body), zadej boční odstup a prostě jdi. Appka z příčných odchylek fixů spočítá, o kolik tady a teď GPS lže, a <b>Zapnout korekci</b> ji přičte k novým bodům jako „Posun GPS na známý bod\" — jen bez zastavování. Na rovné čáře jde jen složka kolmo k čáře, na lomené celý vektor. Nástroje → Srovnat jinak.",
+      "Nové návody pod „?\" u obou dlaždic; původ bodu „akustický dálkoměr\" v kartě bodu."
+    ]
+  },
+  {
    "v": 320,
    "datum": "2026-09-15",
    "nadpis": "Okres, kraj nebo celá ČR v telefonu — body bez načítání; úřední body správně roztříděné",

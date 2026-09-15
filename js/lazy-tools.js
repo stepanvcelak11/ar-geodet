@@ -156,6 +156,19 @@
             open: 'agOpenObchuzka',
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 8 5l8 3 5-2.5"/><path d="M3 8.5V18l5 3 8-3 5 2.5V6.5"/><path d="M8 5v16M16 8v10"/></svg>'
         },
+        // ---- 15. 9. 2026: dva nástroje „zpřesnění GPS čistě softwarem" ----------
+        // Oba dělají do klepnutí jen dlaždici (ověřeno čtením: register() končí u
+        // agRegisterFieldTool, tělo IIFE jen definuje globály + 'pagehide').
+        {
+            id: 'akusticky-dalkomer', src: 'js/akusticky-dalkomer.js', label: 'Akustický dálkoměr', cat: 'Měření', order: 6,
+            open: 'AGAkustika.open',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="5" height="10" rx="1.5"/><rect x="17" y="7" width="5" height="10" rx="1.5"/><path d="M9.5 9.5a4 4 0 0 1 0 5M12 7.5a7 7 0 0 1 0 9"/></svg>'
+        },
+        {
+            id: 'kalibrace-hranou', src: 'js/kalibrace-hranou.js', label: 'Kalibrace chůzí po hraně', cat: 'AR a kalibrace', order: 71,
+            open: 'AGHrana.open',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20 21 4"/><path d="M6 21v-2a3 3 0 0 1 3-3h0a3 3 0 0 0 3-3v-2"/><circle cx="14" cy="6" r="2"/><path d="M17 21l2-4-3-2"/></svg>'
+        },
         {
             id: 'pdr-offset', src: 'js/pdr-offset.js', label: 'Krokový offset', cat: 'Měření', order: 8,
             open: 'AGPdr.open',
