@@ -813,8 +813,13 @@
         // se stejným podpisem ZŮSTÁVÁ (jen se posune, když se bod hnul); mění se jen ty,
         // kterým se podpis změnil, a mizí ty, co už kreslit nemáme. Klepnutí, které dřív
         // padalo do prázdna po výměně značky, tak už nemá kam spadnout.
-        const _mk = new Map();          // pt.id -> { m: L.marker, sig: podpis, lat, lng }
-        let _mkKeep = null;             // id, které aktuální kresba ponechala / postavila
+        // ⚠ Klíč NENÍ jen pt.id: úřední body mají id z polohy (stableId v logika.js) a
+        //   nivelační značka s PPBP na TÉMŽE místě (běžná stabilizace) sdílí id. Klíč jen
+        //   podle id kreslil z takové dvojice jediný bod a při každém překreslení je
+        //   přehazoval (zjištěno 15. 9. 2026 po nasazení v326). Proto id + kategorie + jméno.
+        const _mk = new Map();          // _mkKey(pt) -> { m: L.marker, sig: podpis, lat, lng }
+        let _mkKeep = null;             // klíče, které aktuální kresba ponechala / postavila
+        function _mkKey(pt) { return pt.id + '|' + pt.cat + '|' + pt.name; }
         let _mkPrvniKresba = false;     // první kresba po startu jde až po prvním snímku (bod 05)
         function _mkSig(pt) {
             let col = agBarvaBodu(pt);
@@ -830,14 +835,14 @@
         }
         function _drawOneMarker(pt) {
                 if (!_mkChce(pt)) return;
-                const sig = _mkSig(pt);
-                const have = _mk.get(pt.id);
+                const sig = _mkSig(pt), key = _mkKey(pt);
+                const have = _mk.get(key);
                 if (have && have.sig === sig) {
                     if (have.lat !== pt.lat || have.lng !== pt.lng) { try { have.m.setLatLng([pt.lat, pt.lng]); } catch (e) { } have.lat = pt.lat; have.lng = pt.lng; }
-                    if (_mkKeep) _mkKeep.add(pt.id);
+                    if (_mkKeep) _mkKeep.add(key);
                     return;
                 }
-                if (have) { try { markersGroup.removeLayer(have.m); } catch (e) { } _mk.delete(pt.id); }
+                if (have) { try { markersGroup.removeLayer(have.m); } catch (e) { } _mk.delete(key); }
                 let col = agBarvaBodu(pt);
                 const stakedBadge = (window.isStaked && isStaked(pt.id)) ? `<div style="position:absolute; top:-7px; right:-7px; width:13px; height:13px; border-radius:50%; background:#10b981; border:1.5px solid #fff; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>` : '';
                 // LOVCI BODŮ (js/lovci-bodu.js): objevený úřední bod má zlatou hvězdičku — na první pohled, co ještě nemáš
@@ -845,8 +850,8 @@
                 const svgIcon = getMapMarkerSVG(pt.cat, col); const htmlContent = `<div style="position: relative; width: 24px; height: 24px; pointer-events:none;${stakedBadge ? ' opacity:0.65;' : ''}">${svgIcon}${stakedBadge}${nalezBadge}<div class="map-label-text" style="transform: rotate(${mapRotation}deg);">${_escHtml(pt.name)}</div></div>`;
                 const icon = L.divIcon({ className: 'custom-map-marker', html: htmlContent, iconSize: [24, 24], iconAnchor: [12, 12] });
                 const m = L.marker([pt.lat, pt.lng], { icon: icon }).addTo(markersGroup);
-                _mk.set(pt.id, { m: m, sig: sig, lat: pt.lat, lng: pt.lng });
-                if (_mkKeep) _mkKeep.add(pt.id);
+                _mk.set(key, { m: m, sig: sig, lat: pt.lat, lng: pt.lng });
+                if (_mkKeep) _mkKeep.add(key);
                 window._labelsDirty = true;
         }
         // Po dokreslení: co v rejstříku zbylo mimo aktuální kresbu, pryč (bod smazán,

@@ -227,7 +227,8 @@ def main():
     # ---- A) health -------------------------------------------------------------
     base_rules()
     h = call('GET', '/health')
-    ok('A1 /health v:21', h['data'].get('v') == 21, h['data'].get('v'))
+    # v roste s kazdym nasazenim workeru (v24 = DGPS zive, 15. 9. 2026) - test hlida jen, ze prodej je tam od v21
+    ok('A1 /health v>=21', (h['data'].get('v') or 0) >= 21, h['data'].get('v'))
     ok('A2 /health prodej:true', h['data'].get('prodej') is True)
     # 12. 9. 2026: /health rika, v jakem stavu je OWNER_KEY ('ok' | 'chybi' | 'kratky') —
     # uzivatel klic „nastavoval nekolikrat" a appka hlasila jen obecnou 503.
@@ -594,7 +595,7 @@ def main():
     base_rules()
     rule('/SELECT name, code, ver, created FROM accounts WHERE created>=/', 'function(){ return { all: [{ name: "Karel", code: "K1", ver: "v305", created: 5 }] }; }')
     rule('/SELECT sig, MIN\(ts\) AS m FROM errors GROUP BY sig/', 'function(){ return { first: { n: 2 } }; }')
-    rule('/SELECT uname, SUM\(n\) AS n, MAX\(ver\) AS ver FROM errors/', 'function(){ return { all: [{ uname: "Karel", n: 30, ver: "v305" }] }; }')
+    rule('/SELECT (e\.)?uname, SUM\((e\.)?n\) AS n, MAX\((e\.)?ver\) AS ver/', 'function(){ return { all: [{ uname: "Karel", n: 30, ver: "v305" }] }; }')
     n1 = call('GET', '/owner/prehled?od=%d' % (1789000000000), headers=OWN)
     ok('N1 /owner/prehled?od= vraci novinky od casu (noviLide, noveDruhy, chybyUcty, od)', n1['status'] == 200 and n1['data'].get('od') == 1789000000000 and n1['data']['noviLide'][0]['name'] == 'Karel' and n1['data'].get('noveDruhy') == 2 and n1['data']['chybyUcty'][0]['n'] == 30, n1['data'])
     base_rules()

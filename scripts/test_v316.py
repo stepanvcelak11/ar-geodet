@@ -135,6 +135,19 @@ async def beh(url):
         await page.wait_for_timeout(400)
         d1 = await page.evaluate("() => ({ dotyk: AG.dotyk(), znacky: markersGroup.getLayers().length })")
         ok('A4 s prstem na displeji se překreslení mapy odloží a po zvednutí doběhne', d0['odlozeno'] and d0['dotyk'] and not d1['dotyk'] and d1['znacky'] > 50, (d0, d1))
+        # ROZDÍLOVÉ PŘEKRESLENÍ (v326) + dvojice bodů se STEJNÝM id (v327, 15. 9. 2026):
+        # nivelační značka a PPBP na témže místě dostanou z stableId totéž id — rejstřík
+        # značek klíčovaný jen podle id kreslil z dvojice jediný bod a při každém
+        # překreslení je přehazoval. Teď zůstávají obě značky a nic se nepřestavuje.
+        a5 = await page.evaluate("""() => { const q = arPoints.find(p => p.cat !== 'CUSTOM' && p.currentDist != null && p.currentDist < 150) || arPoints[0];
+            const dvojce = Object.assign({}, q, { cat: q.cat === 'NIVEL' ? 'PBPP' : 'NIVEL', name: q.name + '-DVOJCE', rawData: q.rawData || {} });
+            arPoints.push(dvojce); drawAllMarkersOnMap();
+            const ids = () => markersGroup.getLayers().map(l => l._leaflet_id).sort((x, y) => x - y);
+            return new Promise(r => setTimeout(() => { const a = ids(); drawAllMarkersOnMap(); setTimeout(() => { const b = ids();
+                const oba = markersGroup.getLayers().filter(l => (l.options.icon.options.html || '').includes(q.name)).length;
+                arPoints.pop(); drawAllMarkersOnMap();
+                r({ oba: oba, stejne: a.length === b.length && a.every((v, i) => v === b[i]), n: a.length }); }, 600); }, 600)); }""")
+        ok('A5 dva body se stejným id (nivelační + PPBP na jednom místě) se kreslí OBA a překreslení je nepřestavuje', a5['oba'] == 2 and a5['stejne'], a5)
         src = io.open(os.path.join(ROOT, 'js', 'grafika.js'), encoding='utf-8').read()
         ok('A3 renderAR už nepřepisuje transform popisků každý snímek', "window._mapLabelEls.forEach(el => { el.style.transform = `rotate(${_mapHdg}deg)`; });" not in src and '_lblSettle(_mapHdg)' in src)
 
