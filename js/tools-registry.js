@@ -123,7 +123,12 @@
     if (window.AGReg) return;
 
     // Pořadí sloves = pořadí skupin v seznamu úkonů (js/nastroje-ukony.js).
-    var VERBS = ['Změřit', 'Určit nový bod', 'Vytyčit', 'Zaznamenat', 'Srovnat AR', 'Zjistit podmínky', 'Katastr a podklady', 'Před výjezdem', 'Firma a papíry', 'Příručka a výpočty', 'Učit se'];
+    // „Přesné měření" (15. 9. 2026, uživatel: „v Nástrojích vytvoř novou sekci Přesné
+    // měření, kam dej vše, co se toho týká"): Přesná GPS, DGPS a akustika se do té
+    // doby skrývaly pod „Určit nový bod" a obě kalibrace GPS pod rozcestníkem
+    // „Srovnat jinak" — kdo hledal, jak z telefonu vymáčknout přesnost, musel
+    // vědět, že to je „srovnání AR". Teď je to jedna sekce s průvodcem v čele.
+    var VERBS = ['Změřit', 'Určit nový bod', 'Přesné měření', 'Vytyčit', 'Zaznamenat', 'Srovnat AR', 'Zjistit podmínky', 'Katastr a podklady', 'Před výjezdem', 'Firma a papíry', 'Příručka a výpočty', 'Učit se'];
 
     // Typy práce pro jednoduchý režim (js/tools-simple.js). Pořadí = pořadí
     // v přepínači; `tools` je pořadí dlaždic v sekci „Pro tuto práci“.
@@ -153,12 +158,8 @@
           help: { t: 'Korekce měření' } },
         { k: 'obchuzka', pro: 1, hidden: 1, w: 1, verb: 'Změřit', vl: 'Kubaturu obejitím výkopu', vh: 'obvod z GNSS + dno, objem hned na místě', keys: 'obchuzka vykop kubatura objem obejiti obvod dno jama',
           help: { t: 'Obchůzka výkopu' } },
-        { k: 'dvoji-mereni', fn: 'openDvojiMereni', pro: 1, cat: 'Měření', verb: 'Změřit', vl: 'Kontrolní měření bodu podruhé', vh: 'jediná poctivá přesnost z mobilu', keys: 'kontrola dvoji mereni podruhe overeni presnost rozdil delta opakovane zmerit znovu multipath',
-          help: { t: 'Kontrolní měření' } },
 
         // ── Určit nový bod ──────────────────────────────────────────────
-        { k: 'brutal-gps', w: 1, cat: 'Měření', verb: 'Určit nový bod', vl: 'Přesnou GPS', vh: 'dlouhé průměrování s otočením', keys: 'presne gps mereni prumer prumerovani brutalni poloha bod', base: 1,
-          help: { t: 'Přesná GPS (dlouhé průměrování)' } },
         { k: 'bod-vypoctem', pro: 1, w: 1, verb: 'Určit nový bod', vl: 'Výpočtem z jiných bodů', vh: 'rajón, offset, protínání vpřed', hub: 1,
           keys: 'bod vypoctem novy vypocet rajon offset protinani smernik delka uhel konstrukce rozcestnik',
           help: { t: 'Bod výpočtem' } },
@@ -177,10 +178,23 @@
           help: { t: 'Resekce ze známých bodů' } },
         { k: 'free-station', pro: 1, verb: 'Určit nový bod', vl: 'Volným stanoviskem', vh: 'průvodce krok za krokem', keys: 'volne stanovisko pruvodce resekce prechodne',
           help: { t: 'Volné stanovisko (průvodce)' } },
-        { k: 'dgps', pro: 1, w: 1, cat: 'Měření', verb: 'Určit nový bod', vl: 'Dvoutelefonní DGPS', vh: 'základna a rover', keys: 'dgps diferencni korekce zakladna rover druhy telefon presnost oprava bodu',
+
+        // ── Přesné měření ──────────────────────────────────────────────
+        // Pořadí = pořadí v sekci: průvodce první, pak nástroje v pořadí postupu
+        { k: 'presne-mereni', cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Jak měřit přesně z mobilu', vh: 'tři chyby GPS, co čekat, postupy a pořadí nástrojů', keys: 'jak merit presne presnost pruvodce postup chyby gps sum posun plavani rtk co cekat navod zacatecnik',
+          help: { t: 'Jak měřit přesně z mobilu' } },
+        { k: 'brutal-gps', w: 1, cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Přesnou GPS', vh: 'dlouhé průměrování s otočením, kam s telefonem', keys: 'presne presnou gps mereni prumer prumerovani brutalni poloha bod antena stred telefonu', base: 1,
+          help: { t: 'Přesná GPS (dlouhé průměrování)' } },
+        { k: 'kalibrace-hranou', pro: 1, w: 1, cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Opravit posun GPS chůzí po hraně', vh: 'obrubník, obvod pozemku, plusko — kalibrace před a po', keys: 'kalibrace hrana chuze obrubnik chodnik cara posun gps vektor chyba bez zastaveni dxf osa obvod pozemek plusko ctverec uzavreny tvar pred a po zpetne',
+          help: { t: 'Kalibrace chůzí po hraně' } },
+        { k: 'ref-calibration', w: 1, cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Opravit posun GPS podle známého bodu', vh: 'stoupni si na úřední bod — opravuje POLOHU, ne sever', keys: 'kalibrace referencni bod srovnani ar posun usazeni znamy bod',
+          help: { t: 'Posun GPS na známý bod' } },
+        { k: 'dgps', pro: 1, w: 1, cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Dvoutelefonní DGPS', vh: 'základna a rover, i dočasná základna z Přesné GPS', keys: 'dgps diferencni korekce zakladna rover druhy telefon presnost oprava bodu docasna zakladna stanice',
           help: { t: 'Dvoutelefonní DGPS' } },
-        { k: 'akusticky-dalkomer', pro: 1, w: 1, cat: 'Měření', verb: 'Určit nový bod', vl: 'Akustickým dálkoměrem', vh: 'délka mezi telefony na centimetry, protínání z délek', keys: 'akusticky dalkomer zvuk chirp pipnuti delka vzdalenost centimetry dva telefony protinani z delek mikrofon reproduktor',
+        { k: 'akusticky-dalkomer', pro: 1, w: 1, cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Akustickým dálkoměrem', vh: 'délka mezi telefony na centimetry, protínání z délek', keys: 'akusticky dalkomer zvuk chirp pipnuti delka vzdalenost centimetry dva telefony protinani z delek mikrofon reproduktor',
           help: { t: 'Akustický dálkoměr' } },
+        { k: 'dvoji-mereni', fn: 'openDvojiMereni', pro: 1, cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Kontrolní měření bodu podruhé', vh: 'jediná poctivá přesnost z mobilu', keys: 'kontrola dvoji mereni podruhe overeni presnost rozdil delta opakovane zmerit znovu multipath',
+          help: { t: 'Kontrolní měření' } },
 
         // ── Vytyčit ─────────────────────────────────────────────────────
         { k: 'openStakeoutModal', verb: 'Vytyčit', vl: 'Body podle seznamu', vh: 'vytyčovací checklist', keys: 'vytyceni vytycovaci checklist seznam protokol', base: 1,
@@ -236,7 +250,7 @@
         // za jedním rozcestníkem, kde je u každé volby napsané, KDY se hodí.
         // Definice rozcestníku (ikona, titulek, pořadí voleb) je v js/tools-hub.js
         // v poli HUBS — bez ní by se položky jen skryly a dlaždice by nevznikla.
-        { k: 'srovnat-sever', w: 1, verb: 'Srovnat AR', vl: 'Srovnat jinak', vh: 'dva body, podle bodu, Slunce, Helmert, posun GPS, FOV', hub: 1,
+        { k: 'srovnat-sever', w: 1, verb: 'Srovnat AR', vl: 'Srovnat jinak', vh: 'dva body, podle bodu, Slunce, FOV', hub: 1,
           keys: 'srovnat sever ar kalibrace helmert lokalizace posun gps referencni bod slunce dva body zorny uhel fov stabilizace znacky nesedi rozcestnik',
           help: { t: 'Srovnat AR — další způsoby' } },
         { k: 'agOpenCalibrate', verb: 'Srovnat AR', vl: 'Srovnat sever', keys: 'sever kalibrace kompas azimut srovnat smer odchylka', base: 1,
@@ -250,10 +264,6 @@
           help: { t: 'Sever podle Slunce' } },
         { k: 'localization-helmert', fn: 'agOpenLocalize', pro: 1, hidden: 1, verb: 'Srovnat AR', vl: 'Lokalizace (Helmert)', vh: 'místní systém', keys: 'helmert lokalizace transformace klic mistni system',
           help: { t: 'Lokalizace (Helmert)' } },
-        { k: 'ref-calibration', w: 1, inhub: 'srovnat-sever', verb: 'Srovnat AR', vl: 'Opravit posun GPS podle bodu', vh: 'opravuje POLOHU, ne sever', keys: 'kalibrace referencni bod srovnani ar posun usazeni znamy bod',
-          help: { t: 'Posun GPS na známý bod' } },
-        { k: 'kalibrace-hranou', pro: 1, w: 1, inhub: 'srovnat-sever', cat: 'AR a kalibrace', verb: 'Srovnat AR', vl: 'Opravit posun GPS chůzí po hraně', vh: 'obrubník, chodník, osa — bez zastavování', keys: 'kalibrace hrana chuze obrubnik chodnik cara posun gps vektor chyba bez zastaveni dxf osa',
-          help: { t: 'Kalibrace chůzí po hraně' } },
         { k: 'fov-kalib', pro: 1, inhub: 'srovnat-sever', verb: 'Srovnat AR', vl: 'Změřit zorný úhel kamery', keys: 'zorny uhel kamery fov kalibrace ohnisko sirka zaberu ar presnost',
           help: { t: 'Zorný úhel kamery (FOV)' } },
         // ar-visual-track do rozcestníku ZÁMĚRNĚ nejde: uživatel ho 9. 8. 2026 označil

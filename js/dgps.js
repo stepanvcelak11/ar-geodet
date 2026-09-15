@@ -18,7 +18,17 @@
 // bodu v logika.js (persistentCustomPoints + arPoints + setStoredData) a každý
 // posun se zapíše do žurnálu (AGJournal, origin 'dgps').
 //
-// Vstup: dlaždice „Dvoutelefonní DGPS" v Nástrojích (kategorie Měření).
+// DOČASNÁ ZÁKLADNA (15. 9. 2026, uživatel: „na to bych mohl hned navázat DGPS z toho
+// místa a vytvořit si dočasnou stanici pro druhý mobil… hoď to do jednoho DGPS"):
+// základna nemusí ležet na úředním bodě. Bod změřený Přesnou GPS s kalibrací chůzí
+// (±0,3–0,5 m) jde použít taky — Přesná GPS ho po uložení rovnou nabídne
+// (AGDgps.openBase(id)). Co to dá a co ne, říká okno: chyba základny se přenese na
+// všechny body roveru jako SPOLEČNÝ posun (tvar a délky mezi body ±0,5 m, absolutně
+// ±0,6–1 m) a platnost kalibrace chůzí se prodlouží v čase — ale přesnost navíc to
+// nepřidá. Bez jakéhokoli známého bodu (základna „kde právě leží") je výsledek jen
+// relativní: tvar sedí, celek může být posunutý o metry.
+//
+// Vstup: dlaždice „Dvoutelefonní DGPS" v Nástrojích (Přesné měření).
 // Odstranění: smaž js/dgps.js + řádky v index.html a sw.js.
 // ================================================================================
 (function () {
@@ -417,7 +427,7 @@
         var out = [];
         points().forEach(function (p) {
             if (!p.prov || p.prov.origin !== 'gps-avg') return;
-            if (p.prov.dgps || p.refShift) { out.push({ p: p, state: 'done' }); return; }   // refShift = už posunut živou korekcí
+            if (p.prov.dgps || p.refShift || p.prov.refShift) { out.push({ p: p, state: 'done' }); return; }   // refShift = už posunut živou korekcí / kalibrací
             var ts = p.prov.ts;
             if (!ts || ts < log.t0 - NEAR_MS || ts > log.t1 + NEAR_MS) return;
             var off = offsetAt(log, ts, p.prov.t0);
@@ -529,7 +539,12 @@
             '.agdg-draft-b{display:flex;gap:8px;flex-wrap:wrap;}',
             '.agdg-draft-b .btn{flex:1;margin:0;min-width:90px;}',
             '.agdg-note{font-size:calc(11.5px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);margin:10px 0 0;line-height:1.5;}',
-            'body.ag-glove .agdg-opt{padding:17px 14px;}'
+            'body.ag-glove .agdg-opt{padding:17px 14px;}',
+            '.agdg-simple{border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.06);border-radius:12px;padding:4px 12px;margin:0 0 12px;font-size:calc(12.5px * var(--ag-font-scale, 1));line-height:1.45;}',
+            '.agdg-simple summary{cursor:pointer;color:var(--accent,#2f9e74);font-weight:600;padding:6px 0;}',
+            '.agdg-simple ol{padding-left:18px;margin:6px 0;}',
+            '.agdg-simple li{margin:4px 0;}',
+            '.agdg-simple p{margin:6px 0;opacity:.9;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
@@ -569,7 +584,16 @@
         // menu
         var draft = loadDraft();
         body.innerHTML =
-            '<p class="agdg-intro">Atmosférická chyba GPS je pro dva telefony do ~2 km stejná. Jeden telefon polož na <b>přesně známý bod</b> jako základnu, druhým měř. Korekce buď chodí <b>živě přes internet</b> (kód základny, body jsou opravené hned při uložení), nebo je přeneseš <b>naskenováním QR</b> z displeje základny (nebo souborem) a body se opraví zpětně.</p>'
+            '<details class="agdg-simple" open><summary>Jednoduše: co to dělá a jak na to</summary>'
+            + '<p>Dva telefony se ve stejnou chvíli pletou skoro <b>stejně</b>. Jeden nech ležet na bodě, kde víš, kde je (<b>základna</b>) — ten měří, o kolik se GPS právě plete. Druhým měříš (<b>rover</b>) a appka mu tu chybu odečte.</p>'
+            + '<ol>'
+            + '<li><b>Základna:</b> telefon A polož na známý bod. Nemáš-li ho, změř si ho nejdřív <b>Přesnou GPS</b> (s kalibrací chůzí) = <b>dočasná základna</b>; Přesná GPS ho sem po uložení rovnou nabídne. Klepni <b>Základna → Spustit</b>. Na displeji je 6znakový kód.</li>'
+            + '<li><b>Rover:</b> na telefonu B otevři tenhle nástroj → <b>Živě z internetu</b> → zadej kód. Od té chvíle se každý uložený bod (i z Přesné GPS) opraví hned.</li>'
+            + '<li>Bez internetu: základnu na konci zastav → <b>ukáže QR</b>; rover ho naskenuje (<b>Korekce z QR</b>) a body opraví zpětně.</li>'
+            + '</ol>'
+            + '<p>Co čekat: body roveru vůči sobě <b>±0,5 m</b> (do 150 m od základny nejlíp, platí do ~2 km). Poloha celku je tak dobrá, jak dobře znáš bod základny: úřední bod = ±0,5 m, bod z Přesné GPS s kalibrací = ±0,6–1 m, bod bez kalibrace = jen tvar, celek může být posunutý o metry.</p>'
+            + '</details>'
+            + '<p class="agdg-intro">Atmosférická chyba GPS je pro dva telefony do ~2 km stejná. Jeden telefon polož na <b>přesně známý bod</b> jako základnu, druhým měř. Korekce buď chodí <b>živě přes internet</b> (kód základny, body jsou opravené hned při uložení), nebo je přeneseš <b>naskenováním QR</b> z displeje základny (nebo souborem) a body se opraví zpětně.</p>'
             + (_lr ? '<div id="ag-dgps-lr"></div>' : '')
             + '<button type="button" class="agdg-opt" id="ag-dgps-mode-base">'
             + '  <span class="agdg-opt-ic">' + ICON_BASE + '</span>'
@@ -604,6 +628,19 @@
         var dd = document.getElementById('ag-dgps-draft-del');
         if (dd) dd.addEventListener('click', function () { clearDraft(); renderModal(); });
     }
+
+    // Popisek bodu v nabídce základny: úřední/importovaný = správná základna; bod
+    // z Přesné GPS s kalibrací = dočasná základna (zdědí ±acc); GPS bez kalibrace = jen
+    // relativní přesnost. Vrací {kind:'ok'|'temp'|'rel', txt, acc}.
+    function baseKind(p) {
+        var org = p.prov && p.prov.origin ? p.prov.origin : '?';
+        if (org !== 'gps-avg' && org !== 'ruc') return { kind: 'ok', txt: '', acc: null };
+        var acc = (p.acc != null && isFinite(p.acc)) ? p.acc : ((p.prov && isFinite(p.prov.acc)) ? p.prov.acc : null);
+        var kal = !!(p.refShift || (p.prov && p.prov.refShift));
+        if (org === 'gps-avg' && kal) return { kind: 'temp', txt: ' (Přesná GPS s kalibrací — dočasná základna' + (acc != null ? ', ±' + acc.toFixed(2).replace('.', ',') + ' m' : '') + ')', acc: acc };
+        return { kind: 'rel', txt: ' (měřen GPS bez kalibrace — jen relativní přesnost)', acc: acc };
+    }
+    var _preselect = null;   // id bodu, který má být v nabídce základny vybraný (z Přesné GPS)
 
     // ---- UI základny -----------------------------------------------------------------
     function renderBase(body) {
@@ -651,12 +688,21 @@
                 pts.sort(function (a, b) { return planarDist(a.lat, a.lng, userLat, userLng) - planarDist(b.lat, b.lng, userLat, userLng); });
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:renderBase'); }
+        var pre = _preselect; _preselect = null;
+        var preP = null;
+        pts.forEach(function (p) { if (pre && p.id === pre) preP = p; });
         var opts = pts.map(function (p) {
-            var org = p.prov && p.prov.origin ? p.prov.origin : '?';
-            return '<option value="' + esc(p.id) + '">' + esc(p.name) + (org === 'gps-avg' ? ' (měřen GPS — NEvhodný!)' : '') + '</option>';
+            return '<option value="' + esc(p.id) + '"' + (pre && p.id === pre ? ' selected' : '') + '>' + esc(p.name) + esc(baseKind(p).txt) + '</option>';
         }).join('');
+        var preTxt = '';
+        if (preP) {
+            var bk = baseKind(preP);
+            preTxt = '<div class="agdg-live"><span class="agdg-dot"></span><span><b>Dočasná základna z bodu ' + esc(preP.name) + '</b>' + (bk.acc != null ? ' (±' + bk.acc.toFixed(2).replace('.', ',') + ' m)' : '') + '.<br>'
+                + 'Nech tento telefon ležet na bodě a spusť základnu. Druhý telefon zadá kód základny (Živě) nebo naskenuje QR. Body roveru budou vůči sobě přesné na ~±0,5 m; celek zdědí chybu tohohle bodu jako společný posun.</span></div>';
+        }
         body.innerHTML =
-            '<p class="agdg-intro">Na kterém bodě telefon leží? Musí to být bod se <b>spolehlivě známou polohou</b> (import S-JTSK, vytyčovací bod) — NE bod měřený tímhle mobilem.</p>'
+            '<p class="agdg-intro">Na kterém bodě telefon leží? Nejlepší je bod se <b>spolehlivě známou polohou</b> (úřední bod, import S-JTSK, vytyčovací bod). Bod z <b>Přesné GPS s kalibrací chůzí</b> jde použít jako <b>dočasnou základnu</b> — jeho chyba (±0,3–0,5 m) se přenese na všechny body roveru jako společný posun, tvar a délky zůstanou přesné. Bod měřený GPS bez kalibrace dá jen relativní přesnost (tvar ano, poloha celku ne).</p>'
+            + preTxt
             + '<select id="ag-dgps-pt" class="bgps-name" style="width:100%; margin:4px 0 12px;">' + opts + '</select>'
             + '<button class="btn" id="ag-dgps-start">Spustit základnu</button>'
             + '<button class="btn btn-secondary" id="ag-dgps-back" style="margin-top:8px;">← Zpět</button>';
@@ -667,8 +713,9 @@
             for (i = 0; i < ps.length; i++) if (ps[i].id === id) { pt = ps[i]; break; }
             if (!pt) return;
             var go = function () { startBase(pt); };
-            if (pt.prov && pt.prov.origin === 'gps-avg' && window.agConfirm) {
-                window.agConfirm({ title: 'Nevhodná základna', message: 'Bod „' + esc(pt.name) + '" byl sám měřen GPS tohoto typu — korekce z něj zdědí jeho chybu. Opravdu použít?', okText: 'Použít i tak', danger: true }).then(function (ok) { if (ok) go(); });
+            var bk2 = baseKind(pt);
+            if (bk2.kind === 'rel' && window.agConfirm) {
+                window.agConfirm({ title: 'Základna bez známé polohy', message: 'Bod „' + esc(pt.name) + '" byl měřen GPS bez kalibrace — korekce z něj zdědí jeho chybu (1–3 m) jako <b>společný posun</b> všech bodů roveru. Tvar a délky mezi body budou dobré, poloha celku ne. Použít jako <b>relativní</b> základnu?', okText: 'Použít i tak', danger: true }).then(function (ok) { if (ok) go(); });
             } else go();
         });
         document.getElementById('ag-dgps-back').addEventListener('click', function () { _mode = 'menu'; renderModal(); });
@@ -765,7 +812,16 @@
     }
 
     // ---- registrace ----------------------------------------------------------------------
-    window.AGDgps = { open: openModal, _test: { liveOffset: liveOffset, normCode: normCode, makeCode: makeCode, liveConnect: liveConnect, liveDisconnect: liveDisconnect, stav: function () { return { lr: _lr ? { code: _lr.code, off: _lr.off, err: _lr.err } : null, live: _live ? { code: _live.code, pulls: _live.pulls, err: _live.err } : null }; } } };
+    // Otevře rovnou nabídku základny s předvybraným bodem (volá js/brutal-gps.js po uložení).
+    function openBase(pointId) {
+        if (_watchId != null) { openModal(); return; }   // základna už běží — neměnit
+        _preselect = pointId || null;
+        ensureModal();
+        document.getElementById(DLG_ID).style.display = 'flex';
+        _mode = 'base';
+        renderModal();
+    }
+    window.AGDgps = { open: openModal, openBase: openBase, _test: { liveOffset: liveOffset, normCode: normCode, makeCode: makeCode, liveConnect: liveConnect, liveDisconnect: liveDisconnect, stav: function () { return { lr: _lr ? { code: _lr.code, off: _lr.off, err: _lr.err } : null, live: _live ? { code: _live.code, pulls: _live.pulls, err: _live.err } : null }; } } };
     function register() {
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'dgps', label: 'Dvoutelefonní DGPS', icon: ICON, cat: 'Měření', onClick: openModal, order: 7 });

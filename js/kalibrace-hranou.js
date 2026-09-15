@@ -23,7 +23,27 @@
 // směru chůze, − vlevo). Pozor: čára odečtená z podkladové mapy je přesná jen jako
 // ten podklad (ortofoto ČÚZK ~0,2–0,5 m); z DXF/uložených bodů je přesná úplně.
 //
-// Vstup: dlaždice „Kalibrace chůzí po hraně" v Nástrojích (AR a kalibrace),
+// 2. KOLO (15. 9. 2026, uživatel: „ušel bych trojúhelník, čtverec nebo plusko… obešel
+// bych pozemek… kalibrace před měřením a po měření a korekce bodů i trochu zpětně"):
+//   • UZAVŘENÝ TVAR: čáru jde zavřít (tlačítko Uzavřít, nebo klepnutí k prvnímu
+//     vrcholu) — obvod pozemku, plusko, čtverec. Lomená čára řeší celý vektor
+//     (bylo už dřív), nově se počítá i PLAVÁNÍ chyby během chůze (první vs. druhá
+//     půlka fixů) — u uzavřeného tvaru je to totéž co uzávěr obchůzky.
+//   • ODKUD JE ČÁRA: appka si pamatuje zdroj (ortofoto / uliční mapa / hranice
+//     z katastru / uložené body) a jeho přesnost přičte k odhadu chyby korekce.
+//     Uliční mapa (OSM) je na kalibraci nevhodná (čáry kreslené od ruky, ±1–5 m)
+//     — okno to řekne a doporučí ortofoto. Klepnutí do 4 m od lomového bodu
+//     parcely (js/cadastre-vector.js, uložené parcely) se na něj přichytí.
+//   • KALIBRACE PŘED A PO: když se zapíná nová korekce a předchozí (src 'hrana',
+//     do 90 min a 500 m) ještě platí, body uložené MEZI oběma chůzemi dostanou
+//     vektor INTERPOLOVANÝ podle času uložení (u Brutální GPS podle středu
+//     okupace) a přepočítají se zpětně. Každý bod si nese, co dostal
+//     (p.refShift z js/ref-calibration.js, p.prov.refShift z js/brutal-gps.js),
+//     takže se nahrazuje, ne sčítá; přepočtený bod má refShift.interp a podruhé
+//     se už nebere. Rozdíl obou chůzí je zároveň hlídač: nad 1 m appka řekne,
+//     že GPS dnes plave a měření mezi tím je nejisté.
+//
+// Vstup: dlaždice „Kalibrace chůzí po hraně" v Nástrojích (Přesné měření),
 // načítá se až na klepnutí. Odstranění: smaž js/kalibrace-hranou.js + záznam v
 // js/lazy-tools.js a js/tools-registry.js (+ data/navody.json), přegeneruj sw.js.
 // ================================================================================
@@ -35,6 +55,16 @@
     var DLG_ID = 'ag-hr-modal';
     var BAR_ID = 'ag-hr-bar';
     var LS_LAST = 'agHranaLast_v1';
+    var LS_HIST = 'agHranaHist_v1';   // posledních pár kalibrací (čas, vektor, místo) — na hlídání plavání chyby
+    var CLOSE_SNAP_M = 3;      // m — klepnutí takhle blízko prvního vrcholu (≥ 3 vrcholy) tvar uzavře
+    var KAT_SNAP_M = 4;        // m — přichycení klepnutí k lomovému bodu parcely z katastru
+    var PREV_MAX_MIN = 90;     // min — starší předchozí kalibrace se za „před" nebere
+    var PREV_MAX_M = 500;      // m — vzdálenější předchozí kalibrace se za „před" nebere
+    var DRIFT_WARN_M = 1.0;    // m — nad to je plavání chyby GPS „neklidný den"
+    // Přesnost čáry podle zdroje (m, 1σ). Přičítá se k chybě korekce: kalibrace nikdy
+    // není lepší než to, po čem jdeš.
+    var LINE_ACC = { orto: 0.35, osm: 2.0, katastr: 0.3, body: 0.05 };
+    var LINE_LABEL = { orto: 'z ortofota', osm: 'z uliční mapy', katastr: 'z hranice katastru', body: 'z uložených bodů' };
     var ACC_MAX = 20;          // m — horší fix se nepočítá
     var SPEED_MIN = 0.3;       // m/s — pod tím stojím (fix se hromadí na jednom místě)
     var MOVE_MIN = 0.5;        // m — náhrada rychlosti, když ji telefon nehlásí
@@ -75,6 +105,9 @@
             this.seg.push({ a: a, b: b, ux: dx / L, uy: dy / L, L: L, s0: this.len, brg: Math.atan2(dx, dy) * 180 / Math.PI });
             this.len += L;
         }
+        // uzavřený tvar = poslední vrchol leží na prvním (obvod pozemku, plusko, čtverec)
+        var f = this.v[0], l = this.v[this.v.length - 1];
+        this.closed = this.v.length >= 4 && Math.hypot(l.x - f.x, l.y - f.y) < 0.5;
     }
     Line.prototype.xy = function (lat, lng) { return { x: (lng - this.lng0) * this.m.lng, y: (lat - this.lat0) * this.m.lat }; };
     Line.prototype.project = function (lat, lng) {
@@ -131,7 +164,25 @@
         for (i = k - 1; i >= 0; i--) { var sum = r[i]; for (j = i + 1; j < k; j++) sum -= N[i][j] * x[j]; x[i] = sum / N[i][i]; }
         return x;
     }
-    function solve(fixes, twoD) {
+    // PLAVÁNÍ CHYBY BĚHEM CHŮZE: vektor z první a z druhé půlky fixů (podle času) zvlášť,
+    // rozdíl = o kolik se chyba GPS za dobu chůze posunula. U uzavřeného tvaru je to
+    // totéž, co geodet zná jako uzávěr obchůzky. Řeší se stejným režimem jako celek.
+    function driftOf(fixes, twoD, b) {
+        var withT = fixes.filter(function (f) { return f.t; });
+        if (withT.length < 2 * MIN_FIX) return null;
+        var srt = withT.slice().sort(function (a, b) { return a.t - b.t; });
+        var span = (srt[srt.length - 1].t - srt[0].t) / 1000;
+        if (span < 40) return null;
+        var half = srt.length >> 1;
+        // držení telefonu stranou (b z celku, tam a zpět) se odečte předem — jinak by
+        // cesta tam v první půlce a zpět v druhé vypadala jako plavání o 2·b
+        function cp(f) { return { nx: f.nx, ny: f.ny, e: f.e - (b != null ? (f.dir || 0) * b : 0), s: f.s, acc: f.acc, t: f.t }; }
+        var p1 = solve(srt.slice(0, half).map(cp), twoD, true);
+        var p2 = solve(srt.slice(half).map(cp), twoD, true);
+        if (!p1 || !p2) return null;
+        return { dE: p2.vE - p1.vE, dN: p2.vN - p1.vN, mag: Math.hypot(p2.vE - p1.vE, p2.vN - p1.vN), span: span };
+    }
+    function solve(fixes, twoD, noDrift) {
         var i, last = null, nF = 0, nB = 0;
         // směr chůze u fixu: podle staničení proti předchozímu (malé couvání = šum → drž minulý směr)
         for (i = 0; i < fixes.length; i++) {
@@ -178,8 +229,70 @@
             if (keep.length === use.length || keep.length < MIN_FIX / 2) break;
             use = keep;
         }
-        if (res) res.sterr = res.sigma / Math.sqrt(res.nEff);
+        if (res) {
+            res.sterr = res.sigma / Math.sqrt(res.nEff);
+            if (!noDrift) { try { res.drift = driftOf(fixes, twoD, res.b); } catch (e) { res.drift = null; swallow(e, 'drift'); } }
+        }
         return res;
+    }
+
+    // ---- KALIBRACE PŘED A PO: zpětný přepočet bodů uložených mezi dvěma chůzemi -------
+    // Bod měřený v čase t mezi kalibrací „před" (prev) a „po" (next) dostane vektor
+    // interpolovaný podle času: s(t) = prev + (next − prev)·(t − t_prev)/(t_next − t_prev).
+    // Chyba GPS neplave lineárně, takže to plavání srazí zhruba na polovinu, ne na
+    // nulu — ale je to nejlevnější zpřesnění, které tu je. Bod si nese, co dostal
+    // (refShift), takže se předchozí vektor NAHRADÍ, ne přičte.
+    function pointTime(p) { var pr = p.prov || {}; if (pr.t0 && pr.ts && pr.t0 < pr.ts) return (pr.t0 + pr.ts) / 2; return pr.ts || p.mts || 0; }
+    function appliedShift(p) { return p.refShift || (p.prov && p.prov.refShift) || null; }
+    function setAppliedShift(p, s) { if (p.prov && p.prov.refShift) p.prov.refShift = s; else p.refShift = s; }
+    function interpShift(prev, next, t) {
+        var f = Math.max(0, Math.min(1, (t - prev.t) / Math.max(1, next.t - prev.t)));
+        return { dlat: prev.dlat + (next.dlat - prev.dlat) * f, dlng: prev.dlng + (next.dlng - prev.dlng) * f, f: f };
+    }
+    // Předchozí korekce, která se bere jako „před": z chůze po hraně, zapnutá, do 90 min a 500 m.
+    function prevShiftFor(q) {
+        var s = null;
+        try { s = window.agRefShift || JSON.parse(localStorage.getItem('agRefShift') || 'null'); } catch (e) { s = null; }
+        if (!s || s.src !== 'hrana' || !s.on || !s.t || !isFinite(s.dlat) || !isFinite(s.dlng)) return null;
+        if (Date.now() - s.t > PREV_MAX_MIN * 60000) return null;
+        if (isFinite(s.lat) && isFinite(s.lng) && isFinite(q.lat) && isFinite(q.lng)) {
+            var m = mPerDeg(q.lat);
+            if (Math.hypot((s.lng - q.lng) * m.lng, (s.lat - q.lat) * m.lat) > PREV_MAX_M) return null;
+        }
+        return s;
+    }
+    function betweenCandidates(prev, tNext) {
+        return points().filter(function (p) {
+            var a = appliedShift(p); if (!a || a.t !== prev.t || a.interp) return false;
+            if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return false;
+            var t = pointTime(p); return t > prev.t && t <= tNext + 60000;
+        });
+    }
+    function reapply(prev, next, cands) {
+        var n = 0, sum = 0;
+        cands.forEach(function (p) {
+            var t = pointTime(p), s = interpShift(prev, next, t);
+            var before = { name: p.name, lat: p.lat, lng: p.lng, vyska: (p.vyska != null ? p.vyska : null), acc: (p.acc != null ? p.acc : null), cat: p.cat, prov: (p.prov ? JSON.parse(JSON.stringify(p.prov)) : null) };
+            var m = mPerDeg(p.lat), ddlat = s.dlat - prev.dlat, ddlng = s.dlng - prev.dlng;
+            p.lat += ddlat; p.lng += ddlng;
+            setAppliedShift(p, { dlat: s.dlat, dlng: s.dlng, t: prev.t, interp: next.t, f: Math.round(s.f * 100) / 100 });
+            sum += Math.hypot(ddlng * m.lng, ddlat * m.lat); n++;
+            try {
+                if (typeof arPoints !== 'undefined' && Array.isArray(arPoints)) {
+                    var tw = null, k; for (k = 0; k < arPoints.length; k++) if (arPoints[k].id === p.id) { tw = arPoints[k]; break; }
+                    if (tw) { tw.lat = p.lat; tw.lng = p.lng; if (tw.element) { tw.element.remove(); tw.element = null; } }
+                }
+            } catch (e) { swallow(e, 'reapply:ar'); }
+            try { if (window.AGJournal) window.AGJournal.commit({ op: 'edit', id: p.id, before: before, after: p, origin: 'hrana' }); } catch (e) { swallow(e, 'reapply:journal'); }
+        });
+        if (n) {
+            try { if (typeof setStoredData === 'function') setStoredData('arCustomPoints12', JSON.stringify(points())); } catch (e) { swallow(e, 'reapply:store'); }
+            try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { swallow(e, 'reapply:map'); }
+            try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) { swallow(e, 'reapply:ar2'); }
+            try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) { swallow(e, 'reapply:info'); }
+            try { if (typeof renderManageList === 'function') renderManageList(); } catch (e) { swallow(e, 'reapply:list'); }
+        }
+        return { n: n, avg: n ? sum / n : 0 };
     }
 
     // ---- stav ------------------------------------------------------------------------
@@ -190,6 +303,48 @@
     var _result = null;
     var _layer = null;          // Leaflet vrstvy čáry
     var _pickOn = false;
+    var _src = null;            // odkud je čára: {kind:'orto'|'osm'|'katastr'|'body', acc}
+    var _katCache = null;       // lomové body parcel z katastru (jen po dobu klepání)
+
+    // ---- zdroj čáry a jeho přesnost ------------------------------------------------------
+    function baseLayerKind() {
+        try { if (typeof visSettings !== 'undefined' && visSettings && visSettings.baseLayer === 'ortofoto') return 'orto'; } catch (e) { swallow(e, 'baseLayer'); }
+        return 'osm';
+    }
+    function lineAcc() { return _src ? _src.acc : LINE_ACC.orto; }
+    function srcLabel() {
+        if (!_src) return '';
+        return (LINE_LABEL[_src.kind] || '') + ' (±' + fmt(_src.acc, _src.acc < 0.1 ? 2 : 1) + ' m)';
+    }
+    // Lomové body parcel z js/cadastre-vector.js (uložené v zakázce) — klepnutí do 4 m
+    // od nich se přichytí, protože hranice z katastru je přesnější než klepnutí prstem.
+    function katVertices() {
+        if (_katCache) return _katCache;
+        var out = [];
+        try {
+            if (typeof getStoredData === 'function') {
+                var raw = getStoredData('agCadastreParcels');
+                var arr = raw ? (JSON.parse(raw) || []) : [];
+                arr.forEach(function (pc) { (pc.rings || []).forEach(function (r) { r.forEach(function (v) { if (v && isFinite(v.lat) && isFinite(v.lng)) out.push(v); }); }); });
+            }
+        } catch (e) { swallow(e, 'katVertices'); }
+        _katCache = out;
+        return out;
+    }
+    function snapKatastr(ll) {
+        var vs = katVertices(); if (!vs.length) return null;
+        var m = mPerDeg(ll.lat), best = null, i;
+        for (i = 0; i < vs.length; i++) {
+            var d = Math.hypot((vs[i].lng - ll.lng) * m.lng, (vs[i].lat - ll.lat) * m.lat);
+            if (d <= KAT_SNAP_M && (!best || d < best.d)) best = { d: d, lat: vs[i].lat, lng: vs[i].lng };
+        }
+        return best;
+    }
+    function nearFirst(ll) {
+        if (_verts.length < 3) return false;
+        var m = mPerDeg(ll.lat), f = _verts[0];
+        return Math.hypot((f.lng - ll.lng) * m.lng, (f.lat - ll.lat) * m.lat) <= CLOSE_SNAP_M;
+    }
 
     // ---- kreslení do mapy ---------------------------------------------------------------
     function drawLine() {
@@ -210,38 +365,57 @@
         if (!m) { agAlert('Mapa', 'Mapa zatím neběží — přepni na mapu.'); return; }
         if (vm === 'ar') { agAlert('Mapa', 'Přepni na mapu nebo dělené zobrazení, pak klepni do mapy.'); return; }
         _verts = []; drawLine();
+        _katCache = null;
+        var kat = 0, base = baseLayerKind();
+        _src = { kind: base, acc: LINE_ACC[base] };
         var dlg = byId(DLG_ID); if (dlg) dlg.style.display = 'none';
         _pickOn = true;
         var bar = document.createElement('div');
         bar.id = BAR_ID;
         bar.innerHTML = '<span id="ag-hr-bar-txt">Klepni na <b>začátek</b> čáry, po které půjdeš</span>'
+            + '<button type="button" id="ag-hr-bar-close" style="display:none" title="Spojit poslední bod s prvním — obvod pozemku, plusko, čtverec">Uzavřít tvar</button>'
             + '<button type="button" id="ag-hr-bar-ok" style="display:none">Hotovo</button>'
             + '<button type="button" id="ag-hr-bar-x">Zrušit</button>';
         document.body.appendChild(bar);
+        function isClosed() { return _verts.length >= 4 && new Line(_verts).closed; }
         function txt() {
-            var t = byId('ag-hr-bar-txt'), ok = byId('ag-hr-bar-ok'); if (!t) return;
-            if (_verts.length === 0) t.innerHTML = 'Klepni na <b>začátek</b> čáry, po které půjdeš';
+            var t = byId('ag-hr-bar-txt'), ok = byId('ag-hr-bar-ok'), cl = byId('ag-hr-bar-close'); if (!t) return;
+            if (_verts.length === 0) t.innerHTML = 'Klepni na <b>začátek</b> čáry, po které půjdeš' + (base === 'osm' ? '<br><small style="color:#fbbf24">Máš uliční mapu — přepni na ortofoto, tam hranu vidíš (±0,3 m místo metrů)</small>' : '');
             else if (_verts.length === 1) t.innerHTML = 'Teď <b>konec</b> (nebo další lomový bod)';
-            else { t.innerHTML = '<b>' + _verts.length + ' body</b> · ' + fmt(new Line(_verts).len, 0) + ' m · další lom, nebo Hotovo'; }
+            else { var ln = new Line(_verts); t.innerHTML = '<b>' + _verts.length + ' body</b> · ' + fmt(ln.len, 0) + ' m · ' + (ln.closed ? 'uzavřený tvar → celý vektor' : (ln.spread() >= ANGLE_2D ? 'lomená → celý vektor' : 'rovná → jen kolmá složka')) + (kat ? ' · ' + kat + '× hranice katastru' : '') + '<br><small>další lom, Uzavřít tvar (obvod, plusko), nebo Hotovo</small>'; }
             if (ok) ok.style.display = _verts.length >= 2 ? '' : 'none';
+            if (cl) cl.style.display = (_verts.length >= 3 && !isClosed()) ? '' : 'none';
         }
         function end(cancel) {
             try { m.off('click', onClick); } catch (e) { swallow(e, 'off'); }
             bar.remove(); _pickOn = false;
-            if (cancel) { _verts = []; clearLine(); }
+            if (cancel) { _verts = []; clearLine(); _src = null; }
+            else if (kat) _src = { kind: 'katastr', acc: LINE_ACC.katastr };
+            _katCache = null;
             if (dlg) dlg.style.display = 'flex';
             render();
+        }
+        function closeShape() {
+            if (_verts.length < 3 || isClosed()) return;
+            _verts.push({ lat: _verts[0].lat, lng: _verts[0].lng });
+            drawLine(); txt();
+            toast('Tvar uzavřen — ' + fmt(new Line(_verts).len, 0) + ' m obvodu. Řeší se celý vektor chyby.');
         }
         function onClick(e) {
             var ll = null;
             try { if (e.originalEvent && typeof window.agScreenToLatLng === 'function') ll = window.agScreenToLatLng(e.originalEvent.clientX, e.originalEvent.clientY); } catch (err) { swallow(err, 'onClick'); }
             if (!ll && e.latlng) ll = e.latlng;
             if (!ll || !isFinite(ll.lat) || !isFinite(ll.lng)) return;
+            if (isClosed()) return;                       // uzavřený tvar už další body nebere
+            if (nearFirst(ll)) { closeShape(); return; }  // klepnutí k prvnímu vrcholu = uzavřít
+            var sn = snapKatastr(ll);
+            if (sn) { ll = { lat: sn.lat, lng: sn.lng }; kat++; }
             _verts.push({ lat: ll.lat, lng: ll.lng });
             drawLine(); txt();
         }
         bar.querySelector('#ag-hr-bar-x').addEventListener('click', function () { end(true); });
         bar.querySelector('#ag-hr-bar-ok').addEventListener('click', function () { end(false); });
+        bar.querySelector('#ag-hr-bar-close').addEventListener('click', closeShape);
         m.on('click', onClick);
         txt();
     }
@@ -314,20 +488,50 @@
         }
         var q = solve(w.fixes, _line.spread() >= ANGLE_2D);
         q.walked = walked; q.lat = w.sumLat / n; q.lng = w.sumLng / n; q.t = Date.now(); q.spread = _line.spread();
+        q.closed = !!_line.closed;
+        // celková chyba korekce = chyba z fixů ⊕ přesnost čáry (po čem jdeš)
+        q.lineAcc = lineAcc(); q.src = _src ? _src.kind : null;
+        q.total = Math.sqrt(q.sterr * q.sterr + q.lineAcc * q.lineAcc);
         _result = q;
         try { localStorage.setItem(LS_LAST, JSON.stringify({ t: q.t, vE: q.vE, vN: q.vN, sterr: q.sterr, mode: q.mode, n: q.n, walked: walked })); } catch (e) { swallow(e, 'lsLast'); }
         render();
+    }
+    // historie kalibrací (posledních 12) — na porovnání „před × po" v okně
+    function hist() { try { var a = JSON.parse(localStorage.getItem(LS_HIST) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+    function histPush(q) {
+        try { var a = hist(); a.push({ t: q.t, vE: q.vE, vN: q.vN, sterr: q.sterr, total: q.total, mode: q.mode, lat: q.lat, lng: q.lng }); localStorage.setItem(LS_HIST, JSON.stringify(a.slice(-12))); } catch (e) { swallow(e, 'hist'); }
     }
 
     // ---- zapnutí korekce (sdílený mechanismus js/ref-calibration.js) ---------------------
     function applyShift(q) {
         var m = mPerDeg(q.lat);
         // GPS přičítá v → k novým bodům se přičte −v
-        var s = { dlat: -q.vN / m.lat, dlng: -q.vE / m.lng, t: Date.now(), acc: Math.round(q.sterr * 100) / 100, on: true, lat: q.lat, lng: q.lng, src: 'hrana', mode: q.mode };
+        var acc = (q.total != null && isFinite(q.total)) ? q.total : q.sterr;
+        var s = { dlat: -q.vN / m.lat, dlng: -q.vE / m.lng, t: Date.now(), acc: Math.round(acc * 100) / 100, on: true, lat: q.lat, lng: q.lng, src: 'hrana', mode: q.mode };
+        // KALIBRACE PŘED A PO: předchozí chůze (do 90 min / 500 m) + body uložené mezi tím
+        var prev = prevShiftFor(q), cands = prev ? betweenCandidates(prev, s.t) : [];
+        var mm = prev ? mPerDeg(prev.lat || q.lat) : null;
+        var jump = prev ? Math.hypot((s.dlng - prev.dlng) * mm.lng, (s.dlat - prev.dlat) * mm.lat) : null;
         window.agRefShift = s;
         try { localStorage.setItem('agRefShift', JSON.stringify(s)); } catch (e) { swallow(e, 'saveShift'); }
+        histPush(q);
         toast('Korekce GPS zapnuta: ' + fmt(Math.hypot(q.vE, q.vN)) + ' m' + (q.mode === '1d' ? ' (kolmo k čáře)' : '') + ' — přičítá se k novým bodům. Hlídám 20 min a 300 m, nahoře vidíš pilulku.');
         try { if (window.agRefShiftWatch) window.agRefShiftWatch(); } catch (e) { swallow(e, 'watch'); }
+        if (prev && jump != null) {
+            var minutes = Math.max(1, Math.round((s.t - prev.t) / 60000));
+            var msg = 'Od minulé chůze (před ' + minutes + ' min) se chyba GPS posunula o <b>' + fmt(jump) + ' m</b>' + (jump > DRIFT_WARN_M ? ' — GPS dnes plave, měření mezi tím je nejisté.' : ' — klidná GPS.');
+            if (cands.length) {
+                var doIt = function () {
+                    var r = reapply(prev, s, cands);
+                    if (r.n) toast('Přepočítáno ' + r.n + ' bodů podle času měření, průměrný posun ' + fmt(r.avg) + ' m.');
+                    render();
+                };
+                var txt = msg + '<br><br>Mezi oběma chůzemi jsi uložil <b>' + cands.length + ' bodů</b> (' + cands.map(function (p) { return esc(p.name); }).slice(0, 6).join(', ') + (cands.length > 6 ? '…' : '') + '). Přepočítat je <b>podle času měření</b> (bod uprostřed dostane půlku rozdílu)? Změna jde do žurnálu.';
+                if (typeof window.agConfirm === 'function') {
+                    window.agConfirm({ title: 'Kalibrace před a po', message: txt, okText: 'Přepočítat ' + cands.length + ' bodů', cancelText: 'Nechat' }).then(function (ok) { if (ok) doIt(); });
+                } else doIt();
+            } else if (jump > DRIFT_WARN_M) agAlert('Kalibrace před a po', msg);
+        }
     }
     function shiftOff() {
         var s = window.agRefShift; if (s) { s.on = false; try { localStorage.setItem('agRefShift', JSON.stringify(s)); } catch (e) { swallow(e, 'off'); } }
@@ -352,6 +556,7 @@
             '#ag-hr-modal .btn:disabled{opacity:.45;}',
             '.hr-how{margin:0 0 10px;font-size:calc(12.5px * var(--ag-font-scale,1));}',
             '.hr-how summary{cursor:pointer;color:var(--accent);font-weight:600;padding:6px 0;}',
+            '.hr-simple{border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.06);border-radius:12px;padding:4px 12px;}',
             '.hr-how ol{padding-left:18px;margin:6px 0;}',
             '.hr-how li{margin:4px 0;line-height:1.4;}',
             '.hr-big{font-size:calc(30px * var(--ag-font-scale,1));font-weight:700;text-align:center;font-variant-numeric:tabular-nums;margin:6px 0;}',
@@ -387,20 +592,44 @@
             + '<p class="hr-p"><b>Jak to appka počítá.</b> Každý fix GPS při chůzi promítne na nejbližší úsek čáry a spočítá <b>příčnou odchylku</b> (o kolik jsi podle GPS vedle čáry, minus tvůj boční odstup). Když je 40 fixů v průměru 2,3 m vlevo od hrany, GPS lže o 2,3 m doprava — a to se u nových bodů odečte. Hrubé uskoky (odraz od budovy) se vyřadí (3× MAD), z rozptylu zbylých vyjde odhad chyby korekce. Na <b>rovné</b> čáře jde vidět jen složka <b>kolmo k čáře</b> — podél ní by se každý bod hodil stejně dobře, takže podélná zůstane nula. Proto je u <b>silnice</b> ideální jít podél obrubníku: příčná složka je ta, o kterou při pokládce jde. Na <b>lomené</b> čáře (zatáčka, roh ≥ 30°) vyjde vektor celý.</p>'
             + '<p class="hr-p"><b>Na jakou přesnost se dá dostat.</b> Chyba korekce ≈ rozptyl fixů ÷ √(nezávislých fixů) ⊕ přesnost samotné čáry. Prakticky: 30–50 m chůze s fixy ±3–5 m dá kolmou složku na <b>±0,3–0,5 m</b>; s dobrým signálem a 80 m chůze <b>±0,2 m</b>. Čára klepnutá z mapy přidává chybu podkladu (ortofoto ČÚZK ~0,2–0,5 m, uliční mapa i víc) — hrana z <b>DXF nebo z bodů, které znáš</b>, tuhle chybu nemá. Z holého telefonu (±3–5 m) se tak dostaneš na půl metru kolmo k hraně — ne na RTK, ale na pokládku, kontrolu hrany nebo dohledání bodu to obvykle stačí. Odhad chyby vidíš u výsledku. Fixy se váží podle své přesnosti (±3 m má 16× větší slovo než ±12 m), hrubé uskoky se vyřadí. <b>Nejpřesnější je jít tam i zpět:</b> telefon nedržíš přesně nad svou stopou (v pravé ruce je o 0,2–0,4 m vpravo) a při chůzi zpět se ta chyba otočí — appka ji tak oddělí od skutečné chyby GPS.</p>'
             + '<p class="hr-p"><b>Jak dlouho to platí.</b> Korekce má hlídanou platnost <b>' + '20 min a 300 m' + '</b> od místa chůze: po zapnutí je nahoře pilulka „Korekce GPS · ještě X min · Y m od místa" (zelená = platí, oranžová = blíží se hranice, červená = za hranicí) a appka tě upozorní <b>5 min před vypršením</b>, po vypršení, na <b>200 m</b> a na 300 m. Sama korekci nevypíná — když víš, že je dnes GPS klidná, můžeš měřit dál, jen už za to appka neručí. Obnova = prostě projdi hranu znovu (klidně cestou zpět).</p>'
+            + '<p class="hr-p"><b>Uzavřený tvar místo přímky.</b> Na rovné čáře vyjde jen kolmá složka; když obejdeš <b>roh, čtverec, plusko nebo celý obvod pozemku</b> (klepni „Uzavřít tvar" nebo klepni zpátky k prvnímu bodu), úseky míří různými směry a vyjde <b>celý vektor</b>. Appka navíc porovná první a druhou půlku chůze — o kolik se chyba GPS během chůze posunula (u obchůzky je to totéž co uzávěr). Nad 1 m je to neklidný den: kalibruj častěji.</p>'
+            + '<p class="hr-p"><b>Kalibrace před a po.</b> Chyba GPS mezi dvěma chůzemi plave (za 20 min typicky 0,5–1 m). Když projdeš hranu <b>před</b> měřením i <b>po</b> něm (do 90 min a 500 m), appka nabídne body uložené mezi tím <b>přepočítat podle času</b>: bod změřený uprostřed dostane půlku rozdílu obou vektorů, bod těsně po první chůzi skoro nic. Chyba neplave lineárně, takže to plavání srazí zhruba na polovinu — ale je to nejlevnější zpřesnění, které tu je. Každý bod si nese, co dostal, takže se vektor nahrazuje, ne sčítá (i u Přesné GPS). Změny jdou do žurnálu.</p>'
+            + '<p class="hr-p"><b>Odkud je čára, tak přesná je korekce.</b> Ortofoto ČÚZK ±0,2–0,5 m (ostrá hrana na zemi: obrubník, hrana asfaltu, pata zdi — ne střecha, ta je na fotce posunutá), hranice z katastru v DKM ±0,14–0,3 m (plot na ní často neleží), uložené či importované body ±cm, <b>uliční mapa ±1–5 m = na kalibraci nevhodná</b>. Přesnost čáry se přičítá k odhadu chyby a vidíš ji u výsledku.</p>'
             + '<ol>'
             + '<li><b>Vyber čáru</b>: klepni v mapě na začátek a konec (klidně i lomy) hrany, po které opravdu půjdeš — obrubník, hrana chodníku, plot, čára z DXF. Nebo dva uložené body.</li>'
             + '<li>Zadej <b>boční odstup</b>: jdeš-li 0,4 m vpravo od klepnuté hrany, zadej +0,4 (vlevo záporně).</li>'
             + '<li><b>Spusť chůzi</b> a jdi rovnoměrně od zeleného konce k červenému, telefon volně v ruce. Stačí 30–50 m.</li>'
             + '<li><b>Zastav a spočítat</b> → zapni korekci. Přičítá se k nově ukládaným bodům (jako „Posun GPS na známý bod"), s upozorněním po 20 min / 300 m.</li>'
+            + '<li>Až doměříš, <b>projdi hranu znovu</b> (klidně cestou zpět) → body mezi oběma chůzemi se přepočítají podle času.</li>'
             + '</ol>'
             + '<p class="hr-p">Čára klepnutá z mapy je jen tak přesná jako podklad (ortofoto ~0,2–0,5 m) — nejlepší je hrana z DXF nebo z bodů, které znáš. Korekce se týká <b>ukládaných bodů</b>, ne živé polohy v navigaci.</p>'
+            + '</details>';
+    }
+    // Jednoduché vysvětlení pro nové lidi (uživatel 15. 9. 2026: „pro nové lidi je to
+    // složité na pochopení, ke každému dej jednoduché vysvětlení s postupem").
+    function simple() {
+        return '<details class="hr-how hr-simple" open><summary>Jednoduše: co to dělá a jak na to</summary>'
+            + '<p class="hr-p">GPS v telefonu se plete o pár metrů — ale chvíli <b>pořád stejným směrem</b>. Když projdeš kus hrany, kterou appka zná z mapy, zjistí, <b>o kolik a kam</b> se teď plete, a u bodů, které pak uložíš, to odečte.</p>'
+            + '<ol>'
+            + '<li>V mapě přepni na <b>ortofoto</b> a najdi ostrou hranu na zemi: obrubník, hranu asfaltu, patu zdi.</li>'
+            + '<li><b>Vybrat v mapě</b> → naklepej hranu. Nejlíp roh, plusko nebo celý obvod pozemku (<b>Uzavřít tvar</b>) — pak vyjde chyba v obou směrech, na přímce jen kolmo.</li>'
+            + '<li><b>Spustit chůzi</b> a projdi ji, ideálně tam i zpět. Stačí 30–50 m.</li>'
+            + '<li><b>Zastavit a spočítat → Zapnout korekci.</b> Změř body (nejlíp <b>Přesnou GPS</b>).</li>'
+            + '<li>Až skončíš, <b>projdi hranu ještě jednou</b> — body mezi tím se zpřesní zpětně.</li>'
+            + '</ol>'
+            + '<p class="hr-p">Co čekat: z ±3–5 m holé GPS na <b>±0,3–0,5 m</b>. Platí ~20 minut a ~300 m od místa chůze.</p>'
             + '</details>';
     }
     function render() {
         var body = byId('ag-hr-body'); if (!body) return;
         var pts = points();
         var opts = '<option value="">—</option>' + pts.map(function (p) { return '<option value="' + esc(p.id) + '">' + esc(p.name) + '</option>'; }).join('');
-        var lineTxt = _verts.length >= 2 ? '<b>' + _verts.length + ' body</b>, ' + fmt(new Line(_verts).len, 0) + ' m' + (new Line(_verts).spread() >= ANGLE_2D ? ' · lomená → celý vektor' : ' · rovná → jen kolmá složka') : '<i>zatím žádná</i>';
+        var lineTxt = '<i>zatím žádná</i>';
+        if (_verts.length >= 2) {
+            var ln = new Line(_verts);
+            lineTxt = '<b>' + _verts.length + ' body</b>, ' + fmt(ln.len, 0) + ' m' + (ln.closed ? ' · uzavřený tvar → celý vektor' : (ln.spread() >= ANGLE_2D ? ' · lomená → celý vektor' : ' · rovná → jen kolmá složka'))
+                + (_src ? '<br><span style="opacity:.8;font-size:.92em">Čára ' + srcLabel() + (_src.kind === 'osm' ? ' — <span style="color:var(--warning,#fbbf24)">uliční mapa je na kalibraci nevhodná, přepni na ortofoto a naklepej znovu</span>' : '') + '</span>' : '');
+        }
         var cur = window.agRefShift, curTxt = '';
         if (cur && cur.on) {
             var mm = mPerDeg(cur.lat || 49.8), stv = null;
@@ -418,17 +647,19 @@
                 var q = _result, mag = Math.hypot(q.vE, q.vN), brg = ((Math.atan2(q.vE, q.vN) * 180 / Math.PI) + 360) % 360;
                 resTxt = '<div class="hr-card green"><b>Výsledek:</b> GPS tu lže o <span class="hr-big" style="display:block">' + fmt(mag) + ' m</span>'
                     + 'směrem ' + Math.round(brg) + '° (' + fmt(q.vE) + ' m V / ' + fmt(q.vN) + ' m S)' + (q.mode === '1d' ? ' — <b>jen kolmo k čáře</b>, podélná složka zůstává neznámá' : ' — celý vektor (lomená čára)') + '<br>'
-                    + q.n + ' fixů' + (q.dropped ? ' (' + q.dropped + ' vyřazeno)' : '') + ' na ' + fmt(q.walked, 0) + ' m · rozptyl ±' + fmt(q.sigma, 1) + ' m · odhad chyby korekce <b>±' + fmt(q.sterr) + ' m</b>'
+                    + q.n + ' fixů' + (q.dropped ? ' (' + q.dropped + ' vyřazeno)' : '') + ' na ' + fmt(q.walked, 0) + ' m' + (q.closed ? ' (uzavřený tvar)' : '') + ' · rozptyl ±' + fmt(q.sigma, 1) + ' m · odhad chyby korekce <b>±' + fmt(q.sterr) + ' m</b>'
+                    + (q.lineAcc != null ? ' · čára ' + (q.src ? (LINE_LABEL[q.src] || '') + ' ' : '') + '±' + fmt(q.lineAcc, q.lineAcc < 0.1 ? 2 : 1) + ' m → <b>celkem ±' + fmt(q.total) + ' m</b>' : '')
+                    + (q.drift && q.drift.mag != null ? '<br>Během chůze (' + Math.round(q.drift.span / 60) + ' min) se chyba GPS posunula o <b>' + fmt(q.drift.mag, 1) + ' m</b>' + (q.drift.mag > DRIFT_WARN_M ? ' — <span style="color:var(--warning,#fbbf24)">GPS dnes plave, kalibruj častěji a měř hned po chůzi.</span>' : ' — klidná GPS.') : '')
                     + (q.b != null ? '<br>Šel jsi tam i zpět → oddělil jsem <b>držení telefonu ' + fmt(Math.abs(q.b)) + ' m ' + (q.b >= 0 ? 'vpravo' : 'vlevo') + '</b> od tvé stopy (do korekce se nepočítá).' : '<br><span style="opacity:.8">Tip: jdi po hraně <b>tam i zpět</b> — appka pak oddělí, o kolik držíš telefon stranou od své stopy (jinak to zůstane v korekci, typicky 0,2–0,4 m).</span>')
-                    + '<br><span style="opacity:.8;font-size:.92em">Po zapnutí budou nové body ' + (q.mode === '1d' ? 'kolmo k hraně' : '') + ' přesné zhruba na ±' + fmt(Math.max(q.sterr, 0.2), 1) + ' m' + (q.mode === '1d' ? ' (podél hrany zůstává chyba GPS)' : '') + '; platnost 20 min / 300 m odsud, hlídá se.</span></div>'
+                    + '<br><span style="opacity:.8;font-size:.92em">Po zapnutí budou nové body ' + (q.mode === '1d' ? 'kolmo k hraně' : '') + ' přesné zhruba na ±' + fmt(Math.max(q.total != null ? q.total : q.sterr, 0.2), 1) + ' m' + (q.mode === '1d' ? ' (podél hrany zůstává chyba GPS)' : '') + '; platnost 20 min / 300 m odsud, hlídá se.' + (prevShiftFor(q) ? ' <b>Předchozí chůze ještě platí → po zapnutí nabídnu přepočet bodů změřených mezi tím.</b>' : '') + '</span></div>'
                     + '<div class="hr-btns"><button class="btn btn-primary" id="ag-hr-apply"><svg class="icon"><use href="#i-check"/></svg> Zapnout korekci</button><button class="btn btn-secondary" id="ag-hr-again">↻ Jít znovu</button></div>';
             }
         }
-        body.innerHTML = howTo()
+        body.innerHTML = simple() + howTo()
             + '<p class="hr-p">Ujdi kus podél <b>hrany, kterou znáš</b> (obrubník, chodník, plot, osa z DXF), a appka z toho zjistí, o kolik tady a teď GPS lže. Bez zastavování.</p>'
             + curTxt + resTxt
             + '<div class="hr-card"><div>Čára: ' + lineTxt + '</div>'
-            + '<div class="hr-btns"><button class="btn btn-primary" id="ag-hr-pick"><svg class="icon"><use href="#i-map"/></svg> Vybrat v mapě (od–kam)</button></div>'
+            + '<div class="hr-btns"><button class="btn btn-primary" id="ag-hr-pick"><svg class="icon"><use href="#i-map"/></svg> Vybrat v mapě (od–kam, nebo obejít tvar)</button></div>'
             + (pts.length >= 2 ? '<div class="hr-row" style="margin-top:8px;"><label>Nebo z bodů: od</label><select id="ag-hr-pa">' + opts + '</select></div><div class="hr-row"><label>do</label><select id="ag-hr-pb">' + opts + '</select></div>' : '')
             + '<div class="hr-row" style="margin-top:8px;"><label>Boční odstup (m)</label><input id="ag-hr-off-in" type="text" inputmode="decimal" value="' + fmt(_offset, 1) + '"><span style="opacity:.7;font-size:.9em">+ vpravo / − vlevo ve směru chůze</span></div>'
             + '</div>'
@@ -437,7 +668,13 @@
         var pa = byId('ag-hr-pa'), pb = byId('ag-hr-pb');
         function fromPts() {
             var a = null, b = null; pts.forEach(function (p) { if (p.id === pa.value) a = p; if (p.id === pb.value) b = p; });
-            if (a && b && a !== b) { _verts = [{ lat: a.lat, lng: a.lng }, { lat: b.lat, lng: b.lng }]; drawLine(); render(); }
+            if (a && b && a !== b) {
+                _verts = [{ lat: a.lat, lng: a.lng }, { lat: b.lat, lng: b.lng }];
+                // přesnost čáry = horší z obou bodů (importované/vytyčené ±cm, měřené GPS podle acc)
+                function pAcc(p) { var o = p.prov && p.prov.origin; if (p.acc != null && isFinite(p.acc)) return Math.max(LINE_ACC.body, p.acc); return (o === 'gps-avg' || o === 'ruc') ? 0.5 : LINE_ACC.body; }
+                _src = { kind: 'body', acc: Math.round(Math.max(pAcc(a), pAcc(b)) * 100) / 100 };
+                drawLine(); render();
+            }
         }
         if (pa && pb) { pa.addEventListener('change', fromPts); pb.addEventListener('change', fromPts); }
         byId('ag-hr-off-in').addEventListener('change', function () { var v = parseFloat(String(byId('ag-hr-off-in').value).replace(',', '.')); _offset = isFinite(v) ? Math.max(-10, Math.min(10, v)) : 0; });
@@ -448,7 +685,7 @@
     }
 
     // ---- registrace ----------------------------------------------------------------------
-    window.AGHrana = { open: open, _test: { Line: Line, solve: solve, ANGLE_2D: ANGLE_2D } };
+    window.AGHrana = { open: open, _test: { Line: Line, solve: solve, ANGLE_2D: ANGLE_2D, interpShift: interpShift, betweenCandidates: betweenCandidates, reapply: reapply, prevShiftFor: prevShiftFor, pointTime: pointTime, LINE_ACC: LINE_ACC } };
     function register() {
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'kalibrace-hranou', label: 'Kalibrace chůzí po hraně', icon: ICON, cat: 'AR a kalibrace', onClick: open, order: 71 });

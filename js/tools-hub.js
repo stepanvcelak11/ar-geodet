@@ -113,7 +113,8 @@
             // se hodí. Členství je v js/tools-registry.js (`inhub: 'srovnat-sever'`).
             id: 'srovnat-sever', label: 'Srovnat<br>jinak', title: 'Srovnat AR — další způsoby', cat: 'AR a kalibrace', order: 5,
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.2 8.8l-2 4.4-4.4 2 2-4.4z"/><path d="M12 1.8v1.6"/></svg>',
-            poradi: ['ar-calib2', 'orient-point', 'sever-slunce', 'ref-calibration', 'fov-kalib'],
+            // ref-calibration a kalibrace-hranou odešly 15. 9. 2026 do sekce Přesné měření
+            poradi: ['ar-calib2', 'orient-point', 'sever-slunce', 'fov-kalib'],
             sub: 'Značky v AR nesedí na realitu. Vyber podle toho, CO je špatně a co máš kolem sebe:'
         }
     ];

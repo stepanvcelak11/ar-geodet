@@ -121,6 +121,7 @@
         //   jen si musí případné omezení nastavit znovu podle nových skupin.
         { k: 'tools.Změřit',               g: 'Kategorie nástrojů', t: 'Změřit' },
         { k: 'tools.Určit nový bod',       g: 'Kategorie nástrojů', t: 'Určit nový bod' },
+        { k: 'tools.Přesné měření',        g: 'Kategorie nástrojů', t: 'Přesné měření' },
         { k: 'tools.Vytyčit',              g: 'Kategorie nástrojů', t: 'Vytyčit' },
         { k: 'tools.Zaznamenat',           g: 'Kategorie nástrojů', t: 'Zaznamenat' },
         { k: 'tools.Srovnat AR',           g: 'Kategorie nástrojů', t: 'Srovnat AR' },

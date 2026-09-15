@@ -2,6 +2,19 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 330,
+   "datum": "2026-09-15",
+   "nadpis": "Přesné měření — nová sekce v Nástrojích: obejdi tvar, kalibrace před a po, kam s telefonem, dočasná základna DGPS",
+   "body": [
+    "<b>Sekce Přesné měření</b> v Nástrojích: všechno, co z telefonu vymáčkne přesnost, pohromadě — Přesná GPS, Kalibrace chůzí po hraně, Posun GPS na známý bod, Dvoutelefonní DGPS, Akustický dálkoměr a Kontrolní měření. V čele <b>Jak měřit přesně z mobilu</b>: tři chyby GPS (šum, posun, plavání), co která metoda řeší, tabulka „co čekat“, postup ke každé metodě ve 3–5 krocích, kde jde kalibrovat a kde ne, a typické situace (pokládka u obrubníku, pozemek, pole bez bodu). Každý nástroj má nahoře i krátké „Jednoduše“.",
+    "<b>Kalibrace chůzí: obejdi tvar.</b> Čáru jde <b>uzavřít</b> (tlačítko Uzavřít tvar nebo klepnutí zpátky k prvnímu bodu) — obvod pozemku, plusko, čtverec — a vyjde celý vektor chyby, ne jen složka kolmo k přímce. Appka nově ukazuje, <b>o kolik chyba GPS během chůze plavala</b> (první vs. druhá půlka; u obchůzky totéž co uzávěr) a varuje nad 1 m.",
+    "<b>Kalibrace před a po.</b> Když projdeš hranu znovu do 90 minut a 500 m, appka řekne, o kolik se chyba GPS mezi tím posunula, a nabídne body uložené mezi oběma chůzemi (i z Přesné GPS) <b>přepočítat podle času měření</b> — bod uprostřed dostane půlku rozdílu. Vektor se nahrazuje, ne sčítá; změny jdou do žurnálu.",
+    "<b>Odkud je čára, tak přesná je korekce:</b> appka si pamatuje zdroj (ortofoto ±0,35 m, hranice z katastru ±0,3 m, uložené body ±cm, uliční mapa ±2 m — tu rovnou odrazuje a radí přepnout na ortofoto) a přičítá ho k odhadu chyby jako „celkem“. Klepnutí do 4 m od lomového bodu stažené parcely se přichytí na hranici z katastru.",
+    "<b>Přesná GPS: kam s telefonem.</b> Obrázek telefonu s křížkem — nad bod patří <b>střed</b>, anténa je u horní hrany a otáčením o 90° kolem středu se její poloha vyruší. K bodu se ukládá, jaká korekce se přičetla (kvůli přepočtu před/po). Po uložení appka nabídne bod jako <b>dočasnou základnu DGPS</b> pro druhý telefon.",
+    "<b>Dvoutelefonní DGPS: dočasná základna.</b> Základnou může být i bod z Přesné GPS s kalibrací chůzí — okno říká, co to dá (body roveru vůči sobě ±0,5 m, celek zdědí chybu základny jako společný posun, kalibrace chůzí tím platí déle) a co ne (přesnost navíc). Akustický dálkoměr u protínání ze dvou GPS bodů říká, že tvar je na centimetry a poloha celku po známých bodech."
+   ]
+  },
+  {
    "v": 329,
    "datum": "2026-09-15",
    "nadpis": "Klepnutí do parcely, oficiální náčrt ČÚZK v kartě bodu, nástroje zpátky na očích",

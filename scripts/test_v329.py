@@ -178,7 +178,10 @@ async def beh(url):
         b = await page.evaluate("""() => { var rows = {}; document.querySelectorAll('#tools-modal .ag-uk-i').forEach(function (r) { var k = r.getAttribute('data-k'); if (k) rows[k] = (r.querySelector('small') || {}).textContent || ''; }); return rows; }""")
         ok('B1 Oměrné jsou v seznamu úkonů (nová instalace je už neschovává)', 'openCheckDist' in b, list(b.keys())[:30])
         ok('B2 Stopa trasy je v seznamu úkonů', 'track-log' in b)
-        ok('B3 řádek „Srovnat jinak" vypisuje kalibraci chůzí po hraně', 'srovnat-sever' in b and 'chůzí po hraně' in b['srovnat-sever'] and 'Helmert' not in b['srovnat-sever'], b.get('srovnat-sever'))
+        # (v330: kalibrace chůzí po hraně a posun na známý bod odešly do sekce „Přesné měření" —
+        #  rozcestník vypisuje zbylé položky, viz scripts/test_presne_mereni.py)
+        ok('B3 řádek „Srovnat jinak" vypisuje své položky živě (podle Slunce), bez Helmerta', 'srovnat-sever' in b and 'slunce' in b['srovnat-sever'].lower() and 'Helmert' not in b['srovnat-sever'], b.get('srovnat-sever'))
+        ok('B3b kalibrace chůzí po hraně je řádek sekce Přesné měření', 'kalibrace-hranou' in b, list(b.keys())[:40])
         ok('B4 řádek „Podklady a katastr" vypisuje stažení okresu', 'podklady-katastr' in b and 'okres' in b['podklady-katastr'], b.get('podklady-katastr'))
         ok('B5 řádek „Počasí a světlo" vypisuje Dnešek v terénu', 'pocasi-svetlo' in b and 'dnešek v terénu' in b['pocasi-svetlo'], b.get('pocasi-svetlo'))
         ok('B6 Lovci bodů bez Pokémon Go', 'lovci-bodu' in b and 'Pok' not in b['lovci-bodu'], b.get('lovci-bodu'))

@@ -95,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=329">
-    <link rel="stylesheet" href="css/style.css?v=329">
+    <link rel="stylesheet" href="css/tokens.css?v=330">
+    <link rel="stylesheet" href="css/style.css?v=330">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -227,7 +227,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=329">
+    <link rel="stylesheet" href="css/vylepseni.css?v=330">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -526,6 +526,8 @@
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openDmtVolume();"><svg class="icon"><use href="#i-volume"/></svg><span>Kubatury /<br>vrstevnice</span></button>
 
                     <div class="tool-cat">Určit nový bod</div>
+
+                    <div class="tool-cat">Přesné měření</div>
 
                     <div class="tool-cat">Vytyčit</div>
                     <button class="tool-tile" onclick="document.getElementById('tools-modal').style.display='none'; openStakeoutModal();"><svg class="icon"><use href="#i-check"/></svg><span>Vytyčovací<br>checklist</span></button>

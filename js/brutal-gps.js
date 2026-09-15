@@ -18,7 +18,15 @@
 //     poradí, KDY se vrátit (jiná geometrie → vyruší se multipath), a sezení spojí.
 //   • Otočení o 90° ve čtvrtinách ZVOLENÉ doby (0/90/180/270°) — průměruje multipath
 //     i excentricitu antény podle orientace telefonu (A5).
-//   • Napojení na lokální kalibraci (window.agRefShift) — přičte korekční vektor.
+//   • Napojení na lokální kalibraci (window.agRefShift) — přičte korekční vektor
+//     a ZAPÍŠE HO K BODU (prov.refShift), aby ho „Kalibrace před a po" v
+//     js/kalibrace-hranou.js uměla zpětně nahradit vektorem podle času měření.
+//   • KAM S TELEFONEM (15. 9. 2026): obrázek telefonu s křížkem — nad bod patří
+//     STŘED telefonu; anténa GNSS je u horní hrany (5–7 cm od středu, model od
+//     modelu jinde, žádné API to neřekne), ale otáčením o 90° kolem středu se
+//     její výstřednost vyruší. Proto se otáčí kolem křížku, ne kolem antény.
+//   • Po uložení nabídne bod jako DOČASNOU ZÁKLADNU pro Dvoutelefonní DGPS
+//     (js/dgps.js, AGDgps.openBase) — druhý telefon pak měří s korekcí z něj.
 //
 // Vstup: dlaždice „Brutální GPS" v launcheru (js/field-tools.js).
 // Odstranění: smaž js/brutal-gps.js + css/brutal-gps.css a jejich řádky v index.html (a sw.js).
@@ -249,6 +257,19 @@
     }
 
     // ====== UI =================================================================
+    // Obrázek telefonu shora: křížek = střed (ten nad bod), tečka = anténa u horní hrany.
+    function phoneSvg() {
+        return '<svg viewBox="0 0 64 120" aria-hidden="true">'
+            + '<rect x="6" y="4" width="52" height="112" rx="9" fill="rgba(255,255,255,.05)" stroke="currentColor" stroke-width="2"/>'
+            + '<rect x="11" y="12" width="42" height="96" rx="4" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1"/>'
+            + '<circle cx="32" cy="14" r="4" fill="var(--warning,#fbbf24)"/>'
+            + '<text x="32" y="30" text-anchor="middle" font-size="7" fill="var(--warning,#fbbf24)">anténa</text>'
+            + '<circle cx="32" cy="60" r="9" fill="none" stroke="var(--accent,#2f9e74)" stroke-width="2"/>'
+            + '<path d="M32 44v32M16 60h32" stroke="var(--accent,#2f9e74)" stroke-width="2"/>'
+            + '<text x="32" y="86" text-anchor="middle" font-size="7" fill="var(--accent,#2f9e74)">střed = bod</text>'
+            + '<path d="M46 40a14 14 0 0 1 0 40" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.5" stroke-dasharray="3 3"/><path d="M44 78l3 3 3-3" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.5"/>'
+            + '</svg>';
+    }
     function ringSvg() {
         // dvě kružnice: cílová (čárkovaná) a aktuální (plná, barevná dle kvality)
         return '<svg viewBox="0 0 248 248">'
@@ -264,6 +285,17 @@
         el.innerHTML =
             '<div class="bgps-top"><h2>' + ICON + ' Přesná GPS</h2><button class="bgps-x" type="button" aria-label="Zavřít" id="bgps-close">×</button></div>'
             + '<p class="bgps-sub">Statické vysoce přesné měření jen z mobilu. Polož telefon <b>na plocho, displejem nahoru</b>, mimo tělo a kov, na měřený bod — a nech ležet. Čím déle, tím líp.</p>'
+            + '<div class="bgps-place" id="bgps-place">'
+            + '  <div class="bgps-phone">' + phoneSvg() + '</div>'
+            + '  <div class="bgps-place-tx"><b>Kam s telefonem:</b> nad bod patří <b>střed telefonu</b> (křížek). Anténa GPS je u <b>horní hrany</b> (tečka) — u každého modelu trochu jinde, proto tě appka ve čtvrtinách vyzve <b>otočit o 90°</b> kolem středu: chyba antény se tím vyruší.'
+            + '  <details class="bgps-how"><summary>Jednoduše: postup na nejpřesnější bod z mobilu</summary><ol>'
+            + '  <li><b>Před tím</b> (volitelně, ale hodně pomůže): <b>Kalibrace chůzí po hraně</b> — projdi obrubník nebo obvod pozemku, zapni korekci.</li>'
+            + '  <li>Polož telefon <b>středem na bod</b>, displejem nahoru, ustup metr od něj. Vyber dobu: <b>10–15 min</b> je optimum (5 min = ±0,7 m, 15 min = ±0,4–0,5 m, 30 min už skoro nic nepřidá).</li>'
+            + '  <li><b>Spustit měření.</b> Když appka řekne, otoč telefon o 90° kolem křížku a znovu ho nech.</li>'
+            + '  <li><b>Uložit bod.</b> Pak (volitelně) <b>projdi hranu znovu</b> — bod se zpřesní zpětně. Nebo ho nabídni druhému telefonu jako <b>základnu DGPS</b>.</li>'
+            + '  </ol><p>Co čekat: vodorovně <b>±0,3–0,5 m</b> s kalibrací (bez ní zůstává posun GPS 1–3 m), výška ±1–2 m. Není to RTK a nikdy nebude — telefon nedává surová měření družic.</p></details>'
+            + '  </div>'
+            + '</div>'
             + '<div class="bgps-dur"><span class="bgps-dur-lbl">Plánovaná doba (ve čtvrtinách vyzve otočit o 90°)</span><div class="bgps-dur-chips" id="bgps-dur-chips"></div></div>'
             + '<div class="bgps-ring-wrap"><div class="bgps-ring">' + ringSvg()
             + '<div class="bgps-ring-center"><div class="bgps-val" id="bgps-val">–</div><div class="bgps-val-sub" id="bgps-val-sub">čeká na start</div></div></div></div>'
@@ -443,6 +475,7 @@
         } catch (e) { agAlert('GPS', 'Nepodařilo se spustit měření.'); return; }
         show('bgps-start', false); show('bgps-stop', true);
         show('bgps-save', false); show('bgps-reocc-add', false); show('bgps-when', false);
+        show('bgps-place', false);
         setStatus('Zahřívání čipu…', 'warn');
     }
 
@@ -517,7 +550,7 @@
             : null;
         var src = combineSessions(cur) || _result;
         if (!src) { agAlert('Uložit', 'Nemám žádný výsledek k uložení.'); return; }
-        var lat = src.lat, lng = src.lng, calibTxt = '';
+        var lat = src.lat, lng = src.lng, calibTxt = '', applied = null;
         // lokální kalibrace (P-DGPS) — přičti korekční vektor, pokud je zapnutá
         try {
             var sh = window.agRefShift;
@@ -528,6 +561,9 @@
                 // expirace: konstantní posun stárne (systematika GPS se mění) → varuj nad 20 min
                 var ageMin = sh.t ? (Date.now() - sh.t) / 60000 : null;
                 if (ageMin != null && ageMin > 20) calibTxt += ' ⚠ kalibrace stará ' + Math.round(ageMin) + ' min (přesnost klesá)';
+                // co bod dostal — kalibrace před a po (js/kalibrace-hranou.js) to podle času nahradí
+                applied = { dlat: sh.dlat, dlng: sh.dlng, t: sh.t || null, src: sh.src || 'ref' };
+                if (sh.src === 'hrana') calibTxt += '\nTip: až doměříš, projdi hranu znovu — bod se zpřesní zpětně podle času měření.';
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:save'); }
         var name = ($('bgps-name').value || '').trim() || ('BG' + Date.now().toString().slice(-4));
@@ -562,6 +598,7 @@
             n: (src.epochs != null && isFinite(src.epochs)) ? src.epochs
                : ((src.n != null && isFinite(src.n) && !_sessions.length) ? src.n : null)
         };
+        if (applied) prov.refShift = applied;
         var added = window.addImportedPoints([{ name: name, lat: lat, lng: lng, origin: 'gps-avg', acc: accR, prov: prov }]);
         if (added > 0) {
             // Převod přes GeoCore — jediné místo, které si ověří pořadí os Křováku.
@@ -577,8 +614,27 @@
             _sessions = _sessions.filter(function (s) { return pouzito.indexOf(s) === -1; });
             persistSessions();
             try { if (window.AGCampaign && AGCampaign.onSaved) AGCampaign.onSaved(name); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:save'); }
-            agAlert('Bod uložen', '#' + name + ' uložen do zakázky.\nDosažená přesnost ±' + (src.sterr != null ? src.sterr.toFixed(2) : '?') + ' m' + coords + srcTxt + calibTxt);
-            close();
+            var escN = (window.AG && AG.esc) ? AG.esc(name) : String(name).replace(/[<>&]/g, '');
+            var uloz = '#' + escN + ' uložen do zakázky.\nDosažená přesnost ±' + (src.sterr != null ? src.sterr.toFixed(2) : '?') + ' m' + coords + srcTxt + calibTxt;
+            // DOČASNÁ ZÁKLADNA: tenhle bod může druhému telefonu posílat korekce (Dvoutelefonní
+            // DGPS). Zdědí svou chybu (±sterr ⊕ kalibrace) jako společný posun všech bodů
+            // roveru, ale prodlouží platnost kalibrace v čase a dá roveru tvar na ±0,5 m.
+            var savedId = null;
+            try { var arr = (typeof persistentCustomPoints !== 'undefined') ? persistentCustomPoints : []; if (arr.length) savedId = arr[arr.length - 1].id; } catch (e) { savedId = null; }
+            var muzeZakladna = !!(savedId && (window.AGDgps || (window.AGLazyTools && typeof AGLazyTools.open === 'function')) && typeof window.agConfirm === 'function');
+            if (muzeZakladna) {
+                window.agConfirm({ title: 'Bod uložen', message: uloz.replace(/\n/g, '<br>') + '<br><br>Máš druhý telefon? Tenhle bod může být <b>dočasná základna DGPS</b>: tento telefon tu nech ležet a druhý bude měřit s korekcí (přesnost bodu se přenese jako společný posun, tvar bodů roveru ±0,5 m).', okText: 'Základna DGPS', cancelText: 'Hotovo' })
+                    .then(function (ok) {
+                        close();
+                        if (!ok) return;
+                        var go = function () { try { if (window.AGDgps && AGDgps.openBase) AGDgps.openBase(savedId); else if (window.AGDgps) AGDgps.open(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:zakladna'); } };
+                        if (window.AGDgps) go();
+                        else AGLazyTools.open('dgps').then(go);
+                    });
+            } else {
+                agAlert('Bod uložen', uloz);
+                close();
+            }
         } else {
             agAlert('Neuloženo', 'Bod se stejným názvem a polohou už v zakázce je.');
         }
@@ -594,6 +650,7 @@
         _ui.classList.add('on');
         show('bgps-start', true); show('bgps-stop', false); show('bgps-save', false);
         show('bgps-reocc-add', false); show('bgps-when', _sessions.length > 0);
+        show('bgps-place', true);
         $('bgps-start').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4"/></svg> Spustit měření';
         var val = $('bgps-val'); if (val) val.textContent = '–';
         var sub = $('bgps-val-sub'); if (sub) sub.textContent = 'čeká na start';

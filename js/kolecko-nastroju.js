@@ -97,6 +97,7 @@
     // Co tu není, použije svůj plný název.
     var SHORT_G = {
         'Určit nový bod': 'Nový bod',
+        'Přesné měření': 'Přesně',
         // „Zaznamenat" je nejdelší slovo v květu a určuje velikost písma pro VŠECHNY
         // lístky (jedna velikost od 13. 9. 2026) — bez zkrácení by srazilo celý květ
         // na 10 px. Plný název ukáže střed květu, když se na lístek zamíří.

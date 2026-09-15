@@ -165,9 +165,15 @@
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="5" height="10" rx="1.5"/><rect x="17" y="7" width="5" height="10" rx="1.5"/><path d="M9.5 9.5a4 4 0 0 1 0 5M12 7.5a7 7 0 0 1 0 9"/></svg>'
         },
         {
-            id: 'kalibrace-hranou', src: 'js/kalibrace-hranou.js', label: 'Kalibrace chůzí po hraně', cat: 'AR a kalibrace', order: 71,
+            id: 'kalibrace-hranou', src: 'js/kalibrace-hranou.js', label: 'Kalibrace chůzí po hraně', cat: 'Přesné měření', order: 71,
             open: 'AGHrana.open',
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20 21 4"/><path d="M6 21v-2a3 3 0 0 1 3-3h0a3 3 0 0 0 3-3v-2"/><circle cx="14" cy="6" r="2"/><path d="M17 21l2-4-3-2"/></svg>'
+        },
+        // 15. 9. 2026: průvodce sekce Přesné měření (jen text + tlačítka, nic neměří)
+        {
+            id: 'presne-mereni', src: 'js/presne-mereni.js', label: 'Jak měřit přesně', cat: 'Přesné měření', order: 1,
+            open: 'AGPresne.open',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>'
         },
         {
             id: 'pdr-offset', src: 'js/pdr-offset.js', label: 'Krokový offset', cat: 'Měření', order: 8,

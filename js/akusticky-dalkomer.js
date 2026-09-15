@@ -563,8 +563,14 @@
             try { if (typeof userLat !== 'undefined' && userLat != null) { var da = planarDist(r.a.lat, r.a.lng, userLat, userLng), db = planarDist(r.b.lat, r.b.lng, userLat, userLng); near = da <= db ? 'a' : 'b'; } } catch (e) { swallow(e, 'near'); }
             var u = Math.sqrt(Math.pow(s[0].u || 0.03, 2) + Math.pow(s[1].u || 0.03, 2)) / Math.max(0.2, Math.sin(r.gamma * Math.PI / 180));
             function sj(ll) { try { if (window.GeoCore && GeoCore.toSJTSK) { var q = GeoCore.toSJTSK(ll.lat, ll.lng); return 'Y ' + q.y.toFixed(2) + '  X ' + q.x.toFixed(2); } } catch (e) { swallow(e, 'sj'); } return ll.lat.toFixed(6) + ', ' + ll.lng.toFixed(6); }
+            // Známé body z Přesné GPS (ne úřední/importované): tvar a délky vyjdou na cm,
+            // ale poloha CELKU zdědí jejich chybu — řetězec „chůze po hraně → Přesná GPS →
+            // akustika" (uživatel 15. 9. 2026) to má říkat nahlas, ne schovat do ±3 cm.
+            var zded = 0;
+            [s[0].pt, s[1].pt].forEach(function (pt) { var o = pt && pt.prov && pt.prov.origin; var a = (pt && pt.acc != null && isFinite(pt.acc)) ? pt.acc : ((o === 'gps-avg' || o === 'ruc') ? 1.0 : 0); if (o === 'gps-avg' || o === 'ruc') zded = Math.max(zded, a); });
             out.innerHTML = '<div class="aku-card green"><b>Protínání z délek</b> · úhel protnutí ' + Math.round(r.gamma) + '° · odhad ±' + Math.round(u * 100) + ' cm'
-                + (r.gamma < 30 || r.gamma > 150 ? '<br><span style="color:var(--warning,#fbbf24)">Úhel je moc ostrý/tupý — přesnost klesá. Druhý známý bod vyber víc stranou.</span>' : '') + '</div>'
+                + (r.gamma < 30 || r.gamma > 150 ? '<br><span style="color:var(--warning,#fbbf24)">Úhel je moc ostrý/tupý — přesnost klesá. Druhý známý bod vyber víc stranou.</span>' : '')
+                + (zded ? '<br><span style="opacity:.85">Známé body jsou z GPS (±' + fmt(zded) + ' m): <b>tvar a délky</b> vůči nim jsou na centimetry, <b>poloha celku</b> zdědí jejich ±' + fmt(zded) + ' m.</span>' : '') + '</div>'
                 + '<p class="aku-p">Dva možné průsečíky — vyber ten, u kterého stojíš' + (near ? ' (podle GPS spíš ' + (near === 'a' ? 'první' : 'druhý') + ')' : '') + ':</p>'
                 + '<div class="aku-row"><input id="ag-aku-pname" type="text" placeholder="Název nového bodu"></div>'
                 + '<div class="aku-btns"><button class="btn' + (near === 'b' ? ' btn-secondary' : '') + '" data-s="a">1: ' + sj(r.a) + '</button><button class="btn' + (near === 'a' ? ' btn-secondary' : '') + '" data-s="b">2: ' + sj(r.b) + '</button></div>';

@@ -53,6 +53,16 @@ SIM = r"""
   // projekce: bod 3 m vpravo od cary na vychod (tj. na jih) -> e = +3
   var line = new T.Line([ll(0, 0), ll(50, 0)]), pr = line.project(ll(20, -3).lat, ll(20, -3).lng);
   out.push({ proj_e: pr.e, proj_s: pr.s, inside: pr.inside, outside: !line.project(ll(60, 0).lat, ll(60, 0).lng).inside });
+  // 5) UZAVRENY CTVEREC (obvod pozemku): closed=true, cely vektor; plavani = null (chyba konstantni)
+  var r5 = walk([ll(0, 0), ll(40, 0), ll(40, 40), ll(0, 40), ll(0, 0)], 1.5, -2.0, 0, 0.5);
+  r5.expect = 'ctverec: vE=1.5 vN=-2.0 (2d), closed'; r5.closed = new T.Line([ll(0, 0), ll(40, 0), ll(40, 40), ll(0, 40), ll(0, 0)]).closed; out.push(r5);
+  // 6) plavani: chyba roste z (0,-2) na (1,-2) behem chuze po ctverci → drift ~ +0.5 V
+  (function () {
+    var verts = [ll(0, 0), ll(40, 0), ll(40, 40), ll(0, 40), ll(0, 0)], line = new T.Line(verts), fixes = [], tt = 0, done = 0;
+    line.seg.forEach(function (s) { for (var k = 0; k < s.L; k += 1.2) { var f = (done + k) / line.len; var tx = s.a.x + k * s.ux, ty = s.a.y + k * s.uy; var p = ll(tx + f * 1.0 + 0.4 * gauss(), ty - 2.0 + 0.4 * gauss()), pr = line.project(p.lat, p.lng); fixes.push({ nx: pr.nx, ny: pr.ny, e: pr.e, s: pr.s, acc: 5, t: (tt += 1000) }); } done += s.L; });
+    var q = T.solve(fixes, line.spread() >= T.ANGLE_2D);
+    out.push({ drift: q.drift, vE: q.vE, vN: q.vN, mode: q.mode });
+  })();
   return out;
 })()
 """
@@ -68,8 +78,8 @@ def main():
         pg.add_script_tag(content=SRC)
         res = pg.evaluate(SIM)
         b.close()
-    r1, r2, r3, r4a, r4b, pr = res
-    for r in (r1, r2, r3, r4a, r4b):
+    r1, r2, r3, r4a, r4b, pr, r5, r6 = res
+    for r in (r1, r2, r3, r4a, r4b, r5):
         print('%-38s -> mode %s vE %+.2f vN %+.2f b %s n %d dropped %d sigma %.2f sterr %.2f' % (r['expect'], r['mode'], r['vE'], r['vN'], ('%+.2f' % r['b']) if r['b'] is not None else '-', r['n'], r['dropped'], r['sigma'], r['sterr']))
     if not (r1['mode'] == '1d' and abs(r1['vN'] + 2.0) < 0.35 and abs(r1['vE']) < 0.05): print('CHYBA 1'); ok = False
     if not (r2['mode'] == '2d' and abs(r2['vE'] - 1.5) < 0.35 and abs(r2['vN'] + 2.0) < 0.35): print('CHYBA 2'); ok = False
@@ -82,6 +92,10 @@ def main():
     if not (r4b['sterr'] < r4a['sterr'] * 1.5): print('CHYBA: sterr tam+zpet neni rozumny', r4a['sterr'], r4b['sterr']); ok = False
     print('projekce: e %.2f (ma byt +3) s %.1f (20) inside %s outside %s' % (pr['proj_e'], pr['proj_s'], pr['inside'], pr['outside']))
     if not (abs(pr['proj_e'] - 3) < 0.02 and abs(pr['proj_s'] - 20) < 0.05 and pr['inside'] and pr['outside']): print('CHYBA projekce'); ok = False
+    # uzavreny ctverec: cely vektor, closed, bez plavani (konstantni chyba → drift maly)
+    if not (r5['closed'] and r5['mode'] == '2d' and abs(r5['vE'] - 1.5) < 0.3 and abs(r5['vN'] + 2.0) < 0.3): print('CHYBA 5 (ctverec)', r5); ok = False
+    print('plavani: drift %s (ma byt ~0.5 V), celek vE %.2f vN %.2f' % (r6['drift'], r6['vE'], r6['vN']))
+    if not (r6['drift'] and 0.2 < r6['drift']['mag'] < 1.0 and r6['drift']['dE'] > 0.2 and abs(r6['drift']['dN']) < 0.45 and r6['mode'] == '2d'): print('CHYBA 6 (plavani)', r6); ok = False
     print('OK' if ok else 'SELHALO')
     sys.exit(0 if ok else 1)
 
