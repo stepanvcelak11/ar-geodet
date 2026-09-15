@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-09-14",
-  "uvodnik": "Vydání 14. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-09-15",
+  "uvodnik": "Vydání 15. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -15,88 +15,88 @@
       "datum": "2026-08-25"
     },
     {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "3DT Brings the Whole Survey Workflow In-House",
-      "perex": "Three announcements at INTERGEO 2026 — global shutter imagery, native trajectory processing (and more) and LiDAR integrated colourisation — take the survey from acquisition to deliverable inside a sin…",
-      "telo": "Three announcements at INTERGEO 2026 — global shutter imagery, native trajectory processing (and more) and LiDAR integrated colourisation — take the survey from acquisition to deliverable inside a single platform Brescia, Italy — 14 September 2026 – 3DT will present three developments for its Scanfly mobile mapping systems at INTERGEO 2026: a new global shutter camera, trajectory processing (and more) integrated into SmartProcessing Lidar, and a compact 64-channel LiDAR head capable of producing natively coloured point clouds. SCANFLYv3_PRO With these three, 3DT moves further towards its own vision: one system that carries the survey from the field to the finished deliverable, and an operato",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/14/3dt-brings-the-whole-survey-workflow-in-house/?utm_source=rss&utm_medium=rss&utm_campaign=3dt-brings-the-whole-survey-workflow-in-house",
-      "datum": "2026-09-14"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Aerial Surveys International Awarded GSA Multiple Award Schedule Contract",
-      "perex": "WATKINS, Colorado — 11 September 2026 — Aerial Surveys International (ASIntl), a Watkins, Colorado-based provider of high-resolution digital aerial imagery, LiDAR data, and geospatial analytics, has b…",
-      "telo": "WATKINS, Colorado — 11 September 2026 — Aerial Surveys International (ASIntl), a Watkins, Colorado-based provider of high-resolution digital aerial imagery, LiDAR data, and geospatial analytics, has been awarded a Multiple Award Schedule (MAS) contract by the U.S. General Services Administration (GSA). The award enables federal, state, local, and tribal government agencies nationwide to procure GIS and Earth observation services directly from ASIntl as a prime contractor — a significant expansion of a role the company has built over nearly three decades as a trusted subcontractor to the federal mapping community. The Aerial Surveys International GSA contract number is 47QTCA26D008Q – Visit t",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/11/aerial-surveys-international-awarded-gsa-multiple-award-schedule-contract/?utm_source=rss&utm_medium=rss&utm_campaign=aerial-surveys-international-awarded-gsa-multiple-award-schedule-contract",
-      "datum": "2026-09-11"
-    },
-    {
       "rubrika": "Z praxe",
       "top": false,
-      "nadpis": "Topcon Releases Advanced Version of Delta Watch, Now Powered by GEOvis",
-      "perex": "Topcon Positioning Systems announces Delta Watch powered by GEOvis, a cloud-based workflow platform that brings advanced visualization, reporting, alarms, project administration, stakeholder communica…",
-      "telo": "Topcon Positioning Systems announces Delta Watch powered by GEOvis, a cloud-based workflow platform that brings advanced visualization, reporting, alarms, project administration, stakeholder communication, and geodetic network adjustment into the Delta Solutions deformation monitoring system. Image: Topcon Developed with Amberg Infra 7D and based on GEOvis technology, Delta Watch integrates automated and manually collected data from total stations, GNSS receivers, and geotechnical, structural, and environmental sensors. The platform helps teams streamline monitoring workflows, improve accuracy through least-squares adjustment, and manage project data in one connected environment. GIS-based s",
+      "nadpis": "Topcon Launches Innovations Supporting Integrated Geomatics Workflows at INTERGEO 2026",
+      "perex": "Topcon Positioning Systems announces additions to its geomatics portfolio designed to support integrated digital workflows for survey, construction, and infrastructure projects.",
+      "telo": "Topcon Positioning Systems announces additions to its geomatics portfolio designed to support integrated digital workflows for survey, construction, and infrastructure projects. The new solutions expand Topcon’s geospatial ecosystem, including reality capture, positioning, data management, monitoring, and subsurface intelligence technologies to improve accuracy and the flow of information on projects. The announcement was made in conjunction with INTERGEO 2026, the trade fair for geodesy, geoinformation, and land management, taking place September 15–17 in Munich, Germany. “Industry professionals are looking for flexible technologies that fit within their existing processes,” said Neil Vanca",
       "body": [],
       "proc": "",
       "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/constructionbim/topcon-releases-advanced-version-of-delta-watch-now-powered-by-geovis/",
-      "datum": "2026-09-11"
+      "odkaz": "https://www.xyht.com/surveying/topcon-launches-innovations-supporting-integrated-geomatics-workflows-at-intergeo-2026/",
+      "datum": "2026-09-15"
     },
     {
-      "rubrika": "Akce",
+      "rubrika": "Přístroje",
       "top": false,
-      "nadpis": "Commercial UAV Expo 2026 Draws Record Turnout",
-      "perex": "3,800 professionals and more than 250 exhibiting companies convened at Caesars Forum as Part 108, the FCC Covered List, and Section 232 tariffs reshape the U.S. commercial drone market Las Vegas, NV,…",
-      "telo": "3,800 professionals and more than 250 exhibiting companies convened at Caesars Forum as Part 108, the FCC Covered List, and Section 232 tariffs reshape the U.S. commercial drone market Las Vegas, NV, USA — September 10, 2026 — Commercial drone professionals from around the world gathered last week for the 12th edition of Commercial UAV Expo , held September 1-3, 2026, at Caesars Forum in Las Vegas. The event drew 3,800 verified professionals from all 50 U.S. states and 65 countries, alongside more than 250 exhibiting companies, the largest turnout in the event’s 12-year history and a signal of how squarely the industry is looking to Commercial UAV Expo as it works through a period of rapid r",
+      "nadpis": "Calian Strengthens Precision GNSS Antenna Portfolio with New Survey and Anti-Jamming Antenna Solutions",
+      "perex": "Calian, a leader in high-precision GNSS antenna technology, today announced the expansion of its precision positioning and resilient PNT portfolio with three innovative antenna solutions: the new Accu…",
+      "telo": "Calian, a leader in high-precision GNSS antenna technology, today announced the expansion of its precision positioning and resilient PNT portfolio with three innovative antenna solutions: the new Accutenna® 4 (AC4) pole mount antenna (AC4990PXF), the latest pole mount Controlled Reception Pattern Antenna (CRPA) (CR8894PXF+), and the AJ979XF+-MAR full-band anti-jamming antenna. These solutions address the evolving requirements of surveying, mapping, critical infrastructure, marine, autonomy, public safety and defence users who require both precision positioning and GNSS resilience in increasingly challenging RF environments. Together, the AC4990PXF, CR8894PXF+, and AJ979XF+-MAR full-band anti",
       "body": [],
       "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/10/commercial-uav-expo-2026-draws-record-turnout/?utm_source=rss&utm_medium=rss&utm_campaign=commercial-uav-expo-2026-draws-record-turnout",
-      "datum": "2026-09-10"
-    },
-    {
-      "rubrika": "Z praxe",
-      "top": false,
-      "nadpis": "Trimble VRS Network to Provide High-Precision Positioning Services in Japan",
-      "perex": "Westminster, Colo., Sept. 9, 2026 — Trimble announced today the acquisition of Terasat Japan, one of the largest virtual reference station (VRS) service providers in the Japanese market.",
-      "telo": "Westminster, Colo., Sept. 9, 2026 — Trimble announced today the acquisition of Terasat Japan, one of the largest virtual reference station (VRS) service providers in the Japanese market. The acquisition allows Trimble to now directly offer its VRS correction service in Japan, providing significant incremental coverage for real-time, centimeter-level positioning for the geospatial, construction, automotive and agriculture industries. By providing a high-precision positioning foundation across Japan’s infrastructure, Trimble bridges the connection between digital models and the physical world. Financial terms were not disclosed. With full Global Navigation Satellite System (GNSS) constellation",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/09/trimble-vrs-network-to-provide-high-precision-positioning-services-in-japan/?utm_source=rss&utm_medium=rss&utm_campaign=trimble-vrs-network-to-provide-high-precision-positioning-services-in-japan",
-      "datum": "2026-09-09"
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/gnsslocation-tech/calian-strengthens-precision-gnss-antenna-portfolio-with-new-survey-and-anti-jamming-antenna-solutions/",
+      "datum": "2026-09-15"
     },
     {
       "rubrika": "Ze světa",
       "top": false,
-      "nadpis": "Geo Week Announces Strategic Partnerships for 2027 Event",
-      "perex": "Leading geospatial and mapping event confirms partners to unite the industry and enhance offerings through collaboration Salt Lake City, UT – USA, September 9, 2026 – Organizers of Geo Week , the prem…",
-      "telo": "Leading geospatial and mapping event confirms partners to unite the industry and enhance offerings through collaboration Salt Lake City, UT – USA, September 9, 2026 – Organizers of Geo Week , the premier conference and trade show for geospatial and mapping professionals, have announced their Strategic Partnerships for 2027, comprised of Event Partners, Industry Partners, and Supporting Partners. Each partnership plays a pivotal role in bolstering the event’s success and bringing together a multi-faceted audience with complex challenges under one roof. Geo Week will take place February 23-25, 2027, in Salt Lake City, Utah, at the Salt Palace Convention Center. Supporting Partners encompass mo",
+      "nadpis": "The Surveyor and Alpha Gal Syndrome",
+      "perex": "About forty years ago, I woke up in the middle of the night, itching.",
+      "telo": "About forty years ago, I woke up in the middle of the night, itching. Now, it wasn’t a normal itch, it was taking over my entire body. When I turned on the lights, I discovered I was covered with whelps or hives. It was in my scalp, inside my ears and even under my eyelids. I looked like the skin of a strawberry. It continued to get worse and lasted about two hours before subsiding. I told a friend about it. Being light skinned and tending toward red hair, John had sensitive skin and was always peeling or raw somewhere because of the sun. The life of the surveyor. John said when things got bad with him, he would take two Benadryl. So, it appeared I had a cure but still no idea what the origi",
       "body": [],
       "proc": "",
       "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/09/geo-week-announces-strategic-partnerships-for-2027-event/?utm_source=rss&utm_medium=rss&utm_campaign=geo-week-announces-strategic-partnerships-for-2027-event",
-      "datum": "2026-09-09"
+      "odkaz": "https://amerisurv.com/2026/09/14/the-surveyor-and-alpha-gal-syndrome/?utm_source=rss&utm_medium=rss&utm_campaign=the-surveyor-and-alpha-gal-syndrome",
+      "datum": "2026-09-15"
     },
     {
-      "rubrika": "Z praxe",
+      "rubrika": "Ze světa",
       "top": false,
-      "nadpis": "INTERGEO 2026: A Field Guide by Role",
-      "perex": "INTERGEO returns to Munich September 15–17, and depending on who you are, it is effectively several different shows under one roof.",
-      "telo": "INTERGEO returns to Munich September 15–17, and depending on who you are, it is effectively several different shows under one roof. Rather than a session-by-session recap, this is a practical guide to which parts of the 32nd edition are actually worth a surveyor’s, a GIS manager’s, or a BIM lead’s limited floor time — organized by who you are, not by hall number. Image: INTERGEO INTERGEO 2026 runs September 15–17 at Messe München, spread across Halls B5, B6, C5, and C6. It is organized by DVW e.V., the German Society for Geodesy, Geoinformation and Land Management, which owns the INTERGEO brand and sets the conference program, with HINTE Expo & Conference GmbH running logistics. Last year’s",
+      "nadpis": "Old Ways and New",
+      "perex": "I love the small computer that fits in my pocket.",
+      "telo": "I love the small computer that fits in my pocket. With my smartphone I can conduct hands-free calls, check my calendar to avoid scheduling conflicts, catch up on email between meetings, pay a parking meter from two blocks away. The technology is amazing. This is not to say that new ways are always the best. One big problem with cell phones is that they don’t make a satisfyingly loud and solid bang when I hang up angrily. There definitely was an advantage to those old-fashioned heavy land line phones. The same “old is not always bad” adage applies to surveying. The illustration accompanying this article is from a 1722 edition of William Leybourne’s textbook, “The Compleat Surveyor” 1 , origin",
       "body": [],
       "proc": "",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/intergeo-2026-a-field-guide-by-role/",
-      "datum": "2026-09-08"
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/14/old-ways-and-new/?utm_source=rss&utm_medium=rss&utm_campaign=old-ways-and-new",
+      "datum": "2026-09-15"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "Alternative Path",
+      "perex": "I live in a state (no – not the State of Confusion) that requires applicants to be “a graduate of a land-surveying curriculum of 4 years or more that is approved by the Board.” That is straight out of…",
+      "telo": "I live in a state (no – not the State of Confusion) that requires applicants to be “a graduate of a land-surveying curriculum of 4 years or more that is approved by the Board.” That is straight out of statute No. 625.270(3). This state, and the organization of Professional Land Surveyors I belong to fought hard for many years to get a bachelor’s degree established within the bounds of our fair state. There are two universities and neither was interested in such a no-profit, low-enrollment program and so they both declined, on multiple occasions. Finally, we found a community college that wanted to up its game and offer Baccalaureate degrees as a way to distinguish itself. We were the second",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/14/alternative-path/?utm_source=rss&utm_medium=rss&utm_campaign=alternative-path",
+      "datum": "2026-09-15"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "Another Dusty Bookshelf",
+      "perex": "Hey there, y’all, it’s me, Lancer Vang, and I’m back with more books from my dusty bookshelf.",
+      "telo": "Hey there, y’all, it’s me, Lancer Vang, and I’m back with more books from my dusty bookshelf. Let’s talk about maps… and mapmaking… and mapmakers. Or more specifically, let’s talk about books about maps, mapmaking, mapmakers, and map stealers, too while we are at it. This is very fertile ground, there are a lot of weighty tomes on these topics, and yeah, I got ‘em all, or most of them anyway. Waldseemüller map. Where to start? This is not a linear journey, so be prepared to double back and do a loop-de-loop once or twice. First up: The Story of Maps by Lloyd A. Brown. Published in 1949 by Bonanza Books. Dear Lloyd starts with the Greek polymath Strabo in 25 B.C. and walks us through the earl",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/14/another-dusty-bookshelf/?utm_source=rss&utm_medium=rss&utm_campaign=another-dusty-bookshelf",
+      "datum": "2026-09-15"
+    },
+    {
+      "rubrika": "Přístroje",
+      "top": false,
+      "nadpis": "Product Review: Carlson Viking RTK",
+      "perex": "The Carlson Viking RTK Receiver is Carlson Software’s next-generation GNSS Smart Antenna, built in Maysville, Kentucky, and engineered to provide professionals in surveying, engineering, and construct…",
+      "telo": "The Carlson Viking RTK Receiver is Carlson Software’s next-generation GNSS Smart Antenna, built in Maysville, Kentucky, and engineered to provide professionals in surveying, engineering, and construction with unmatched accuracy and speed. Designed to excel in environments where traditional receivers often fail—such as dense forests and urban canyons—the Viking ensures reliable performance through a suite of advanced features. Core Technologies and Advantages The Viking’s round top protects an industry-leading antenna element. The Viking stands out by integrating industry-leading hardware with the Carlson GAMA® RTK engine. Key technical highlights include: Triple-Fix RTK: For the first time i",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/14/product-review-carlson-viking-rtk/?utm_source=rss&utm_medium=rss&utm_campaign=product-review-carlson-viking-rtk",
+      "datum": "2026-09-15"
     }
   ]
 }
