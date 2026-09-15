@@ -1,0 +1,73 @@
+/* ===== QTRIG — OBLASTI V TELEFONU (odpojitelná vrstva) ======================
+   Drží se design-tokenů ze style.css (--accent, --glass-border, --text-color,
+   --text-muted, --warning, --danger, --r-md). Připojuje si ji js/oblasti-offline.js
+   přes AG.cssFile() až po prvním vykreslení. Odstranění: smaž css/oblasti-offline.css
+   + js/oblasti-offline.js a řádek v index.html / sw.js (gen_sw_assets.py).
+   ============================================================================== */
+
+#ago-modal { z-index: 19999; }
+#ago-modal .ago-content { display: flex; flex-direction: column; }
+
+.ago-title { margin: 0 0 6px; color: var(--accent); font-family: var(--font-display, sans-serif); }
+
+.ago-note {
+    margin: 0 0 10px; padding-bottom: 10px;
+    border-bottom: 1px dashed var(--glass-border, rgba(255, 255, 255, 0.14));
+    font-size: calc(12px * var(--ag-font-scale, 1)); line-height: 1.5;
+    color: var(--text-muted, #9aa1ac);
+}
+.ago-note b { color: var(--text-color, #eceef2); }
+
+#ago-modal .ago-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+.ago-kde, .ago-odhad, .ago-prubeh {
+    padding: 10px 12px; border-radius: var(--r-md, 12px);
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
+    background: rgba(255, 255, 255, 0.04);
+    font-size: calc(12.5px * var(--ag-font-scale, 1)); line-height: 1.5;
+    color: var(--text-color, #eceef2);
+}
+.ago-odhad { margin-top: 10px; }
+.ago-prubeh { margin-top: 8px; border-color: var(--accent); font-variant-numeric: tabular-nums; }
+.ago-dim { font-size: calc(11px * var(--ag-font-scale, 1)); color: var(--text-muted, #9aa1ac); }
+.ago-ok { color: var(--accent); font-size: calc(11.5px * var(--ag-font-scale, 1)); }
+.ago-bad { color: var(--danger, #e5534b); }
+
+.ago-lbl {
+    margin: 14px 0 6px; font-size: calc(11.5px * var(--ag-font-scale, 1)); font-weight: 700;
+    letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-faint, #6b727d);
+}
+
+.ago-seg { display: flex; gap: 6px; margin-bottom: 8px; }
+.ago-seg button {
+    flex: 1 1 0; min-height: 40px; border-radius: var(--r-md, 12px);
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.14));
+    background: rgba(255, 255, 255, 0.04); color: var(--text-color, #eceef2);
+    font: 600 calc(13px * var(--ag-font-scale, 1)) / 1.2 var(--font-ui, system-ui); cursor: pointer;
+}
+.ago-seg button.on { border-color: var(--accent); background: var(--accent-soft, rgba(47, 158, 116, 0.16)); color: var(--accent); }
+
+.ago-sel { width: 100%; box-sizing: border-box; margin-bottom: 8px; min-height: 42px; }
+
+.ago-chk {
+    display: flex; align-items: flex-start; gap: 10px; padding: 8px 2px;
+    font-size: calc(13px * var(--ag-font-scale, 1)); line-height: 1.35; cursor: pointer;
+}
+.ago-chk input { margin-top: 3px; width: 18px; height: 18px; flex: 0 0 auto; }
+.ago-chk small { display: block; color: var(--text-muted, #9aa1ac); font-size: calc(11px * var(--ag-font-scale, 1)); }
+
+.ago-list { display: flex; flex-direction: column; gap: 8px; }
+.ago-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    border-radius: var(--r-md, 12px); border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
+    background: rgba(255, 255, 255, 0.04);
+}
+.ago-item[data-st="ok"] { border-left: 3px solid var(--accent); }
+.ago-item[data-st="warn"] { border-left: 3px solid var(--warning, #d4a02c); }
+.ago-item[data-st="run"] { border-left: 3px solid var(--accent); animation: ago-pulse 1.4s ease-in-out infinite; }
+@keyframes ago-pulse { 50% { border-left-color: transparent; } }
+.ago-it-txt { flex: 1 1 auto; min-width: 0; font-size: calc(13px * var(--ag-font-scale, 1)); line-height: 1.35; }
+.ago-it-txt small { display: block; color: var(--text-muted, #9aa1ac); font-size: calc(11px * var(--ag-font-scale, 1)); }
+.ago-it-akce { display: flex; gap: 6px; flex: 0 0 auto; }
+#ago-modal .ago-mini { min-height: 36px; padding: 6px 12px; font-size: calc(12px * var(--ag-font-scale, 1)); margin: 0; }
+#ago-modal .ago-del { min-width: 36px; padding: 6px 10px; }
