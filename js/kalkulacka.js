@@ -306,7 +306,7 @@ function calcProtUhel() {
         if (t < 0) throw 'Záměry se protínají za zády stanoviska A — zkontroluj úhly.';
         _puRes = { name: _cs('pu-name') || 'Protínání', y: P.y, x: P.x };
         const gamma = Math.abs(gonDiff(sm1, sm2));
-        const warn = (gamma < 33 || gamma > 367 || (gamma > 167 && gamma < 233)) ? `<div style="color:#fbbf24; font-size:calc(12px * var(--ag-font-scale, 1)); padding-top:4px;">⚠ Úhel protnutí ${fmtGon(gamma)} gon je nepříznivý (ideál kolem 100 gon) — výsledek bude málo přesný.</div>` : '';
+        const warn = (gamma < 33 || gamma > 367 || (gamma > 167 && gamma < 233)) ? `<div style="color:var(--warning,#fbbf24); font-size:calc(12px * var(--ag-font-scale, 1)); padding-top:4px;">⚠ Úhel protnutí ${fmtGon(gamma)} gon je nepříznivý (ideál kolem 100 gon) — výsledek bude málo přesný.</div>` : '';
         document.getElementById('calc-result').innerHTML = _resBox(
             _row('Směrník A→P', fmtGon(sm1) + ' gon') + _row('Směrník B→P', fmtGon(sm2) + ' gon')
             + _row('<b>Y</b>', '<b>' + P.y.toFixed(2) + '</b>') + _row('<b>X</b>', '<b>' + P.x.toFixed(2) + '</b>') + warn)

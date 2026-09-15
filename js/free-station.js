@@ -125,7 +125,7 @@
             '#agfs-modal .agfs-num{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--accent,#2f9e74);color:#04110b;display:flex;align-items:center;justify-content:center;font-size:calc(12.5px * var(--ag-font-scale, 1));font-weight:800;}',
             '#agfs-modal .agfs-note{font-size:calc(12px * var(--ag-font-scale, 1));opacity:.8;line-height:1.5;margin-bottom:10px;}',
             '#agfs-modal .agfs-count{font-size:calc(13px * var(--ag-font-scale, 1));margin:6px 0 10px;padding:8px 10px;border-radius:8px;background:rgba(0,0,0,0.18);}',
-            '#agfs-modal .agfs-warn{font-size:calc(12px * var(--ag-font-scale, 1));color:#fbbf24;margin:2px 0 8px;min-height:1px;}'
+            '#agfs-modal .agfs-warn{font-size:calc(12px * var(--ag-font-scale, 1));color:var(--warning,#fbbf24);margin:2px 0 8px;min-height:1px;}'
         ].join('\n');
         document.head.appendChild(st);
     }

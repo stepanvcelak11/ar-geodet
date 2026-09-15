@@ -321,8 +321,11 @@
             '#ag-dd-modal .ag-dd-sec .row{font:500 13px/1.5 var(--font-ui,system-ui);color:var(--text-muted,#c3c9d2);white-space:pre-wrap;word-break:break-word;}',
             '#ag-dd-modal .ag-dd-sec .empty{font:500 12.5px/1.4 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);font-style:italic;}',
             '#ag-dd-modal .ag-dd-hdr{font:500 12px/1.5 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);margin:0 0 8px;}',
-            '#ag-dd-modal .ag-dd-foot{display:flex;gap:8px;margin-top:12px;}',
-            '#ag-dd-modal .ag-dd-foot .btn{flex:1;}'
+            // pět tlačítek (Sdílet · PDF · Plakát z js/plakat-dne.js · Co s sebou · Zavřít) se
+            // na 390 px do jednoho řádku nevejde — „Zavřít" bylo uříznuté na „Za" (15. 9. 2026).
+            // Zalamovat, ne mačkat: každé tlačítko aspoň 30 % šířky, zbytek na další řádek.
+            '#ag-dd-modal .ag-dd-foot{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}',
+            '#ag-dd-modal .ag-dd-foot .btn{flex:1 1 30%;min-width:0;margin:0;padding-left:6px;padding-right:6px;}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }

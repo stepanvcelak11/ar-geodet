@@ -141,7 +141,7 @@
             '<div class="modal-content" style="display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
             + '<h3 style="color:#f59e0b;margin-top:0;">' + ICON + ' Stopa trasy</h3>'
             + '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.7;margin:2px 0 10px;">Zaznamenává, kudy jdeš (oranžová čára na mapě). Šetří GPS šum — bere bod po posunu ≥ ' + MIN_MOVE_M + ' m.</p>'
-            + '<div id="agtr-stats" style="font-family:var(--font-mono,monospace);margin:6px 0 12px;color:#fbbf24;"></div>'
+            + '<div id="agtr-stats" style="font-family:var(--font-mono,monospace);margin:6px 0 12px;color:var(--warning,#fbbf24);"></div>'
             + '<button class="btn" id="agtr-toggle"></button>'
             + '<label class="filter-row" style="margin-top:10px;"><input type="checkbox" id="agtr-ar"> Zobrazit stopu i v AR pohledu</label>'
             + '<button class="btn btn-secondary" id="agtr-gpx" style="margin-top:10px;"><svg class="icon"><use href="#i-upload"/></svg> Export GPX</button>'
@@ -157,7 +157,9 @@
         document.getElementById('agtr-clear').addEventListener('click', clearTrack);
     }
 
-    function openTool() { ensureModal(); redraw(); refreshPanel(); document.getElementById('agtr-modal').style.display = 'flex'; }
+    // display:flex PŘED refreshPanel(): ten se při zavřeném okně hned vrací, takže tlačítko
+    // „Spustit nahrávání stopy" zůstávalo prázdný šedý pruh a statistika chyběla (15. 9. 2026)
+    function openTool() { ensureModal(); redraw(); document.getElementById('agtr-modal').style.display = 'flex'; refreshPanel(); }
 
     // ---- přepnutí zakázky: znovu načíst + překreslit ---------------------------
     function hookProjectSwitch() {

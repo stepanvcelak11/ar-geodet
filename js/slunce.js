@@ -153,11 +153,14 @@
             '#ag-su-modal .ag-su-hi{background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.4);border-radius:10px;padding:9px 12px;margin:0 0 12px;font-size:.95em;line-height:1.5;}' +
             '#ag-su-modal .ag-su-warn{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.4);}' +
             '#ag-su-modal h4{margin:14px 0 6px;font-size:1em;}' +
-            '#ag-su-modal .ag-su-row{display:flex;gap:8px;align-items:center;padding:4px 6px;border-radius:7px;font-size:.9em;font-variant-numeric:tabular-nums;}' +
+            '#ag-su-modal .ag-su-row{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;padding:4px 6px;border-radius:7px;font-size:.9em;font-variant-numeric:tabular-nums;}' +
             '#ag-su-modal .ag-su-row:nth-child(odd){background:rgba(255,255,255,.03);}' +
             '#ag-su-modal .ag-su-row.now{background:rgba(96,165,250,.18);}' +
             '#ag-su-modal .ag-su-row span:first-child{width:50px;color:var(--text-muted,#9aa1ac);}' +
-            '#ag-su-modal .ag-su-row .w{width:74px;} #ag-su-modal .ag-su-row .g{flex:1;color:#fbbf24;font-size:.92em;}' +
+            // štítek („nízké slunce — dlouhé stíny…") na 390 px vedle čtyř sloupců nezbývalo místo
+            // a lámal se do tří řádků (15. 9. 2026) → jde na vlastní řádek pod čísla
+            '#ag-su-modal .ag-su-row .w{width:74px;} #ag-su-modal .ag-su-row .g{flex:1 1 100%;color:var(--warning,#fbbf24);font-size:.85em;line-height:1.3;}' +
+            '#ag-su-modal .ag-su-row .g:empty{display:none;}' +
             '#ag-su-modal .ag-su-in{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap;}' +
             '#ag-su-modal .ag-su-in input{width:88px;}' +
             '#ag-su-modal .ag-su-note{color:var(--text-muted,#9aa1ac);font-size:.82em;line-height:1.45;margin-top:10px;}' +

@@ -516,7 +516,7 @@
             + '<h3 style="color:var(--accent);margin-top:0;">' + ICON + ' Podzemní sítě — rentgen do země</h3>'
             + '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.82;margin:2px 0 10px;line-height:1.45;">Naimportuj trasy sítí (DXF / GeoJSON / GML) a appka je promítne '
             + '<b>pod terén</b> v AR kameře, barevně dle ČSN. Když stojíš blízko, upozorní na <b>ochranné pásmo</b>. '
-            + '<b style="color:#fbbf24">Orientační pomůcka</b> (poloha telefonu ±3–7 m) — nenahrazuje geodetické vytyčení, nekopat naslepo.</p>'
+            + '<b style="color:var(--warning,#fbbf24)">Orientační pomůcka</b> (poloha telefonu ±3–7 m) — nenahrazuje geodetické vytyčení, nekopat naslepo.</p>'
 
             + '<div class="agun-srs"><span style="font-size:calc(12px * var(--ag-font-scale, 1));opacity:.75;">Souřadnice v souboru:</span>'
             + '  <label class="agun-radio"><input type="radio" name="agun-srs" value="sjtsk" checked> S-JTSK (5514)</label>'
@@ -524,7 +524,7 @@
 
             + '<button class="btn btn-blue" id="agun-imp"><svg class="icon"><use href="#i-folder"/></svg> Načíst trasy (DXF / GeoJSON / GML)</button>'
             + '<input type="file" id="agun-imp-file" accept=".dxf,.json,.geojson,.gml,.xml" style="display:none">'
-            + '<div id="agun-status" style="font-size:calc(12.5px * var(--ag-font-scale, 1));color:#fbbf24;margin:6px 2px;"></div>'
+            + '<div id="agun-status" style="font-size:calc(12.5px * var(--ag-font-scale, 1));color:var(--warning,#fbbf24);margin:6px 2px;"></div>'
 
             + '<div id="agun-list" class="agun-list"></div>'
 

@@ -449,7 +449,7 @@
             }
             function report() {
                 var head = 'Zakázka: ' + esc(projName()) + '<br>Ověřeno snímků: <b>' + (mine.length - noHash) + '</b> z ' + mine.length
-                    + (noHash ? '<br><span style="color:#fbbf24;">' + noHash + '× otisk chybí (fotka z verze bez řetězu, nebo prohlížeč neuměl SHA-256).</span>' : '');
+                    + (noHash ? '<br><span style="color:var(--warning,#fbbf24);">' + noHash + '× otisk chybí (fotka z verze bez řetězu, nebo prohlížeč neuměl SHA-256).</span>' : '');
                 if (!bad.length) {
                     fail('Řetěz otisků sedí', head + '<br><br>Žádná fotka nebyla po pořízení změněná a pořadí souhlasí.'
                         + '<br><br><i>Pozor: tohle dokládá neporušenost sady v tomhle telefonu, není to elektronický podpis.</i>');
@@ -591,9 +591,9 @@
             '#ag-gf-vinfo{position:absolute;left:0;right:0;bottom:calc(126px + env(safe-area-inset-bottom,0px));',
             '  padding:10px 14px;background:linear-gradient(to top,rgba(0,0,0,0.72),rgba(0,0,0,0));',
             '  color:#fff;font:600 13px/1.5 var(--font-ui,system-ui);text-shadow:0 1px 3px rgba(0,0,0,0.8);}',
-            '#ag-gf-vinfo .warn{color:#fbbf24;}',
+            '#ag-gf-vinfo .warn{color:var(--warning,#fbbf24);}',
             '#ag-gf-vnote{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));left:14px;right:14px;padding:9px 12px;border-radius:11px;',
-            '  background:rgba(251,191,36,0.16);border:1px solid rgba(251,191,36,0.45);color:#fbbf24;',
+            '  background:rgba(251,191,36,0.16);border:1px solid rgba(251,191,36,0.45);color:var(--warning,#fbbf24);',
             '  font:600 12.5px/1.4 var(--font-ui,system-ui);display:none;}',
             '#ag-gf-vbar{position:absolute;left:0;right:0;bottom:0;padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px));',
             '  display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.55);}',

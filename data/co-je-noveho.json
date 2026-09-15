@@ -2,6 +2,20 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 335,
+   "datum": "2026-09-15",
+   "nadpis": "Průchod appkou — 11 oprav z klikání přes všechny nástroje",
+   "body": [
+    "<b>GNSS předpověď</b> se po otevřené Geo-fotce ukazovala v jejím okně (oba moduly měly stejné id okna) — každý má své; podobná dvojice Postupy měření × Průvodce prvním měřením (jeden z nich zůstával bez stylu).",
+    "<b>Funguje mi všechno?</b> hlásilo u účtu „Základ“ i s Pro (volalo neexistující funkci licence).",
+    "<b>Stopa trasy</b> se otevírala s prázdným tlačítkem a bez statistiky, dokud nepřišel další GPS fix.",
+    "<b>Ročenka:</b> řada měsíců začínala „led led“ a prosinec chyběl.",
+    "<b>Deník dne:</b> pět tlačítek se na úzkém telefonu nevešlo do řádku („Zavřít“ uříznuté); <b>Offset bod:</b> pole azimutu bylo zmáčknuté na pár pixelů; <b>Parcela:</b> dva křížky přes sebe; <b>Poznávačka:</b> uříznutý popisek pod kresbou; <b>Slunce a světlo:</b> štítek řádku lámaný do tří řádků; jezdec „Stáhnout v okruhu300 m“ bez mezery; <b>Nastavení → Profily:</b> oříznutý výběr „Kdo jsi“.",
+    "<b>Světlý motiv:</b> žlutá upozornění (Rajón, Protínání, Volné stanovisko, průvodce, karta bodu…) byla na bílé nečitelná — teď tmavá; hlavička tabulky Oměrných už není tmavý pruh.",
+    "<b>GNSS předpověď:</b> místo „Měř 20:00–20:00“ (celé okno) říká „kdykoli v příštích 24 h“."
+   ]
+  },
+  {
    "v": 334,
    "datum": "2026-09-15",
    "nadpis": "Karta bodu: mapový list místo rozbalovátka „všechny úřední záznamy“",

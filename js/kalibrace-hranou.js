@@ -382,7 +382,7 @@
         function isClosed() { return _verts.length >= 4 && new Line(_verts).closed; }
         function txt() {
             var t = byId('ag-hr-bar-txt'), ok = byId('ag-hr-bar-ok'), cl = byId('ag-hr-bar-close'); if (!t) return;
-            if (_verts.length === 0) t.innerHTML = 'Klepni na <b>začátek</b> čáry, po které půjdeš' + (base === 'osm' ? '<br><small style="color:#fbbf24">Máš uliční mapu — přepni na ortofoto, tam hranu vidíš (±0,3 m místo metrů)</small>' : '');
+            if (_verts.length === 0) t.innerHTML = 'Klepni na <b>začátek</b> čáry, po které půjdeš' + (base === 'osm' ? '<br><small style="color:var(--warning,#fbbf24)">Máš uliční mapu — přepni na ortofoto, tam hranu vidíš (±0,3 m místo metrů)</small>' : '');
             else if (_verts.length === 1) t.innerHTML = 'Teď <b>konec</b> (nebo další lomový bod)';
             else { var ln = new Line(_verts); t.innerHTML = '<b>' + _verts.length + ' body</b> · ' + fmt(ln.len, 0) + ' m · ' + (ln.closed ? 'uzavřený tvar → celý vektor' : (ln.spread() >= ANGLE_2D ? 'lomená → celý vektor' : 'rovná → jen kolmá složka')) + (kat ? ' · ' + kat + '× hranice katastru' : '') + '<br><small>další lom, Uzavřít tvar (obvod, plusko), nebo Hotovo</small>'; }
             if (ok) ok.style.display = _verts.length >= 2 ? '' : 'none';

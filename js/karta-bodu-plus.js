@@ -124,7 +124,7 @@
             '.ag-kb-t.yx{display:flex;flex-direction:column;justify-content:center;gap:6px;background:linear-gradient(135deg,var(--accent-soft,rgba(47,158,116,.18)),rgba(47,158,116,.04));border-color:var(--accent-line,rgba(47,158,116,.4));}',
             '.ag-kb-t.yx b{font-size:calc(17px * var(--ag-font-scale,1));color:var(--accent,#3fbc8c);margin-top:1px;}',
             '.ag-kb-t.yx .ic{position:absolute;right:8px;top:8px;width:30px;height:30px;color:var(--accent,#3fbc8c);opacity:.55;}',
-            '.ag-kb-t.ok b{color:#3fbc8c;}.ag-kb-t.warn{background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.35);}.ag-kb-t.warn b{color:#fbbf24;}',
+            '.ag-kb-t.ok b{color:#3fbc8c;}.ag-kb-t.warn{background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.35);}.ag-kb-t.warn b{color:var(--warning,#fbbf24);}',
             '.ag-kb-t.bad{background:rgba(226,104,95,.08);border-color:rgba(226,104,95,.35);}.ag-kb-t.bad b{color:#e2685f;}',
             '.ag-kb-t.tap{cursor:pointer;}',
             '.ag-kb-sk{position:relative;margin:0 0 8px;border-radius:14px;overflow:hidden;background:#0f151d;border:1px solid var(--glass-border,rgba(255,255,255,.12));}',
@@ -134,7 +134,7 @@
             '.ag-kb-om{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 4px;}',
             '.ag-kb-om div{padding:7px 6px;border-radius:10px;background:var(--surface-1,rgba(255,255,255,.05));border:1px solid var(--glass-border,rgba(255,255,255,.08));text-align:center;min-width:0;}',
             '.ag-kb-om small{display:block;font:600 9.5px/1.2 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
-            '.ag-kb-om b{display:block;font:700 calc(13px * var(--ag-font-scale,1))/1.3 var(--font-mono,ui-monospace,monospace);color:#fbbf24;}',
+            '.ag-kb-om b{display:block;font:700 calc(13px * var(--ag-font-scale,1))/1.3 var(--font-mono,ui-monospace,monospace);color:var(--warning,#fbbf24);}',
             '.ag-kb-sk .leaflet-container{background:#0f151d;font-family:var(--font-ui,system-ui);}',
             '.ag-kb-sk .leaflet-control-scale-line{background:rgba(11,15,21,.6);color:#e6e8eb;border-color:#e6e8eb;font-size:10px;}',
             '.ag-kb-ml{white-space:nowrap;font:700 11px/1 var(--font-mono,ui-monospace,Menlo,monospace);color:#e6e8eb;text-shadow:0 0 3px #000,0 0 3px #000,0 0 2px #000;}',
@@ -365,6 +365,9 @@
         if (korTxt) tile('c2', 'Korekce GPS', '<b class="t">' + esc(korTxt) + '</b>');
         // úřední bod: výšku už máme v mozaice, v zeleném rámečku (stabilizace…) by byla dvakrát
         if (z != null) { var dup = body.querySelectorAll('.geo-highlight .geo-data-row'); for (var d = 0; d < dup.length; d++) { var dl = dup[d].querySelector('.geo-label'); if (dl && /^Nadmořská/.test(dl.textContent || '')) dup[d].remove(); } }
+        // když v rámečku (stabilizace, kód…) po tom úklidu nic nezbylo, zůstával prázdný
+        // modrý proužek pod náčrtem (15. 9. 2026) → schovat
+        try { var gh = body.querySelector('.geo-highlight'); if (gh && !(gh.textContent || '').trim()) gh.style.display = 'none'; } catch (e) { }
         var box = document.createElement('div'); box.id = 'ag-kb-bento'; box.className = 'ag-kb-bento';
         box.innerHTML = t.join('');
         (dev || body.firstChild).insertAdjacentElement('afterend', box);

@@ -434,7 +434,7 @@
             '  letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
             '.ag-in-src{padding:9px 11px;border-radius:11px;margin-bottom:8px;font:600 12px/1.45 var(--font-ui,system-ui);}',
             '.ag-in-src.xr{border:1px solid var(--accent-line,rgba(47,158,116,0.42));background:var(--accent-soft,rgba(47,158,116,0.12));color:var(--accent,#2f9e74);}',
-            '.ag-in-src.pdr{border:1px solid rgba(251,191,36,0.42);background:rgba(251,191,36,0.09);color:#fbbf24;}',
+            '.ag-in-src.pdr{border:1px solid rgba(251,191,36,0.42);background:rgba(251,191,36,0.09);color:var(--warning,#fbbf24);}',
             '.ag-in-row{display:flex;gap:8px;margin-bottom:8px;}',
             '.ag-in-row button,.ag-in-row select{flex:1;min-width:0;padding:11px 10px;border-radius:12px;box-sizing:border-box;cursor:pointer;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:var(--glass-bg,rgba(255,255,255,0.05));',
@@ -568,7 +568,7 @@
                     + '<div class="ag-in-arrow"' + (rot != null ? ' style="transform:rotate(' + rot.toFixed(0) + 'deg);"' : '') + '>↑</div>'
                     + '<div class="ag-in-navt"><b>' + d.toFixed(1) + ' m</b>' + esc(_target.name || 'cíl')
                     + ' · azimut ' + Math.round(az) + '°'
-                    + (d < _err ? ' · <span style="color:#fbbf24;">jsi uvnitř kruhu nejistoty — hledej okolo</span>' : '')
+                    + (d < _err ? ' · <span style="color:var(--warning,#fbbf24);">jsi uvnitř kruhu nejistoty — hledej okolo</span>' : '')
                     + '</div></div>';
             } else nav.innerHTML = '';
         }

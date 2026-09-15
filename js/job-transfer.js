@@ -205,12 +205,12 @@
         var out = document.getElementById('agjt-export-out'); if (!out) return;
         var canS = false;
         try { canS = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [file] })); } catch (e) { canS = false; }
-        var comp = hasCompression() ? '' : '<div style="color:#fbbf24;font-size:calc(11.5px * var(--ag-font-scale, 1));margin-top:4px;">Prohlížeč neumí gzip → soubor je nezabalený (větší). Na druhém telefonu se přesto načte.</div>';
+        var comp = hasCompression() ? '' : '<div style="color:var(--warning,#fbbf24);font-size:calc(11.5px * var(--ag-font-scale, 1));margin-top:4px;">Prohlížeč neumí gzip → soubor je nezabalený (větší). Na druhém telefonu se přesto načte.</div>';
         out.innerHTML =
             '<div class="agjt-box">'
             + '<div style="font-size:calc(14px * var(--ag-font-scale, 1));margin-bottom:4px;">Balíček připraven <b>' + fmtSize(blob.size) + '</b></div>'
             + '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.85;line-height:1.5;">' + sum.pts + ' bodů · ' + sum.lines + ' spojnic · ' + sum.docs + ' foto/pozn.' + (sum.journal ? ' · ' + sum.journal + ' záznamů žurnálu' : '') + '<br>'
-            + (withPhotos ? '' : '<span style="color:#fbbf24;">bez fotek (jen poznámky)</span> · ') + 'soubor <b>' + file.name + '</b></div>'
+            + (withPhotos ? '' : '<span style="color:var(--warning,#fbbf24);">bez fotek (jen poznámky)</span> · ') + 'soubor <b>' + file.name + '</b></div>'
             + comp
             + '<div class="agjt-actrow">'
             + (canS ? '<button class="btn" id="agjt-do-share"><svg class="icon"><use href="#i-upload"/></svg> Sdílet (Airdrop/chat…)</button>' : '')

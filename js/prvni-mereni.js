@@ -19,7 +19,9 @@
     'use strict';
     if (window.AGPrvniMereni) return;
 
-    var ID = 'ag-pm', STYLE_ID = 'ag-pm-style', LS = 'agPrvniMereni_v1';
+    // STYLE_ID bylo 'ag-pm-style' — TOTÉŽ jako v js/postupy.js (Postupy měření). Kdo připojil
+    // styl první, vyhrál; druhý modul zůstal bez CSS (kroužek průvodce, nebo okno postupů).
+    var ID = 'ag-pm', STYLE_ID = 'ag-prvni-style', LS = 'agPrvniMereni_v1';
     var _gFn = {};
     function g(name) {
         try { if (name in window) return window[name]; } catch (e) { swallow(e, 'g'); }

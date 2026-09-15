@@ -359,7 +359,7 @@
             + '  <div id="aghl-capbar" class="aghl-capbar" style="display:none;"><div id="aghl-capfill"></div><span id="aghl-captxt"></span></div>'
             + '</div>'
             + '<div id="aghl-list" class="aghl-list"></div>'
-            + '<div id="aghl-warn" style="font-size:calc(12px * var(--ag-font-scale, 1));color:#fbbf24;margin:6px 2px;"></div>'
+            + '<div id="aghl-warn" style="font-size:calc(12px * var(--ag-font-scale, 1));color:var(--warning,#fbbf24);margin:6px 2px;"></div>'
             + '<div id="aghl-result" class="aghl-result" style="display:none;"></div>'
             + '<div id="aghl-actions" style="display:none;">'
             + '  <button class="btn btn-blue" id="aghl-apply-pose" style="display:none;"><svg class="icon"><use href="#i-check"/></svg> Aplikovat na AR počátek</button>'

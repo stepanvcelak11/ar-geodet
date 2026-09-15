@@ -238,8 +238,8 @@
         pts.forEach(function (p) { if (names[p.name]) dup++; names[p.name] = 1; });
         var sample = pts.slice(0, 4).map(function (p) { return '#' + esc(p.name); }).join(', ') + (pts.length > 4 ? ' …' : '');
         div.innerHTML = '<b style="color:var(--accent);">Rozpoznáno ' + pts.length + ' bodů.</b><br>' + sample
-            + (dup ? '<br><span style="color:#fbbf24;">⚠ ' + dup + 'x stejné číslo bodu</span>' : '')
-            + (outside ? '<br><span style="color:#fbbf24;">⚠ ' + outside + ' bodů leží mimo ČR — zkontroluj pořadí Y/X</span>' : '');
+            + (dup ? '<br><span style="color:var(--warning,#fbbf24);">⚠ ' + dup + 'x stejné číslo bodu</span>' : '')
+            + (outside ? '<br><span style="color:var(--warning,#fbbf24);">⚠ ' + outside + ' bodů leží mimo ČR — zkontroluj pořadí Y/X</span>' : '');
     }
     function commitPaste() {
         var pts = parsePasteField();
@@ -591,9 +591,9 @@
             + '.pruv-card-s{font-size:calc(13px * var(--ag-font-scale, 1));opacity:0.72;margin-top:4px;line-height:1.4;}'
             + '.pruv-badge{font-size:calc(11px * var(--ag-font-scale, 1));font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap;}'
             + '.pruv-badge.on{background:rgba(16,185,129,0.2);color:#34d399;}'
-            + '.pruv-badge.off{background:rgba(251,191,36,0.18);color:#fbbf24;}'
+            + '.pruv-badge.off{background:rgba(251,191,36,0.18);color:var(--warning,#fbbf24);}'
             + '.pruv-check{font-size:calc(13px * var(--ag-font-scale, 1));padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);}'
-            + '.pruv-warn{font-size:calc(13px * var(--ag-font-scale, 1));line-height:1.5;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.35);color:#fbbf24;border-radius:10px;padding:10px;}'
+            + '.pruv-warn{font-size:calc(13px * var(--ag-font-scale, 1));line-height:1.5;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.35);color:var(--warning,#fbbf24);border-radius:10px;padding:10px;}'
             + '#pruv-footer .btn{margin-top:10px;}';
         document.head.appendChild(st);
     })();

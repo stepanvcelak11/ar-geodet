@@ -212,7 +212,7 @@
             '.ag-uk-g{margin:0 0 14px;}',
             '.ag-uk-owner > .ag-uk-h > span:first-child{color:#d4a02c;}',
             '.ag-uk-owner .ag-uk-i{border-color:rgba(212,160,44,.45);}',
-            '.ag-uk-fav > .ag-uk-h > span:first-child{color:#fbbf24;}',
+            '.ag-uk-fav > .ag-uk-h > span:first-child{color:var(--warning,#fbbf24);}',
             // ---- řádek nástroje
             '.ag-uk-i{display:flex;align-items:center;gap:11px;width:100%;box-sizing:border-box;position:relative;',
             '  margin:0 0 6px;padding:12px 11px 12px 13px;border-radius:12px;text-align:left;cursor:pointer;',
@@ -236,7 +236,7 @@
             '.ag-uk-r i.ag-uk-q{border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);}',
             '.ag-uk-r i.ag-uk-q:active{color:var(--accent,#2f9e74);}',
             '.ag-uk-r i.ag-uk-star{font-size:calc(16px * var(--ag-font-scale, 1));color:var(--text-faint,#7b828c);opacity:.7;}',
-            '.ag-uk-r i.ag-uk-star.on{color:#fbbf24;opacity:1;}',
+            '.ag-uk-r i.ag-uk-star.on{color:var(--warning,#fbbf24);opacity:1;}',
             // gesto: šipky ve zlaté (jako v okně Gesta); chybějící gesto u připnutého = čárkovaná pilulka
             '.ag-uk-r i.ag-uk-gest{width:auto;height:26px;padding:0 8px;border-radius:8px;letter-spacing:.06em;',
             '  color:#e6bd76;background:rgba(230,189,118,.12);font-weight:600;font-size:calc(12px * var(--ag-font-scale, 1));}',

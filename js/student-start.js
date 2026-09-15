@@ -104,7 +104,7 @@
         var row = document.createElement('div');
         row.className = 'st-row'; row.id = 'ag-ss-setrow';
         row.innerHTML = '<span class="st-lab">' + t('Kdo jsi') + '<small>' + t('Student dostane „Učit se" nahoře a „partu" místo firmy') + '</small></span>'
-            + '<select id="ag-ss-sel" style="width:fit-content;min-width:120px;max-width:58%;"><option value="">' + t('— nevybráno —') + '</option><option value="student">' + t('Student') + '</option><option value="geodet">' + t('Geodet') + '</option><option value="firma">' + t('Firma') + '</option></select>';
+            + '<select id="ag-ss-sel" style="width:auto;min-width:150px;max-width:60%;flex:0 0 auto;"><option value="">' + t('— nevybráno —') + '</option><option value="student">' + t('Student') + '</option><option value="geodet">' + t('Geodet') + '</option><option value="firma">' + t('Firma') + '</option></select>';
         tab.appendChild(row);
         row.querySelector('#ag-ss-sel').addEventListener('change', function () { set(this.value || null); });
         syncSettings();

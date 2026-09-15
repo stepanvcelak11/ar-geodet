@@ -42,14 +42,14 @@
             '  color:var(--text-muted,#9aa1ac);font:700 12px/1 var(--font-ui,system-ui);font-style:normal;cursor:pointer;z-index:2;}',
             'i.ag-tp-help:active{background:var(--accent-soft,rgba(47,158,116,0.18));color:var(--accent,#2f9e74);}',
             '#tools-modal .tool-tile i.ag-tp-star{position:absolute;top:4px;left:4px;width:24px;height:24px;display:none !important;align-items:center;justify-content:center;',
-            '  border-radius:50%;background:rgba(0,0,0,0.35);border:1px solid rgba(251,191,36,0.6);color:#fbbf24;font-size:calc(14px * var(--ag-font-scale, 1));font-style:normal;cursor:pointer;z-index:2;}',
+            '  border-radius:50%;background:rgba(0,0,0,0.35);border:1px solid rgba(251,191,36,0.6);color:var(--warning,#fbbf24);font-size:calc(14px * var(--ag-font-scale, 1));font-style:normal;cursor:pointer;z-index:2;}',
             'body.ag-tp-edit #tools-modal .tool-tile i.ag-tp-star{display:flex !important;}',
             'body.ag-tp-edit #tools-modal .tool-tile{outline:1px dashed var(--glass-border,rgba(255,255,255,0.2));}',
             '#tools-modal .tool-tile i.ag-tp-star.on{background:#fbbf24;color:#1a1205;}',
             '#ag-tp-editbtn{margin:2px 0 10px;width:100%;padding:9px;border-radius:12px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));',
             '  background:transparent;color:var(--text-muted,#9aa1ac);font-size:calc(12.5px * var(--ag-font-scale, 1));font-weight:600;cursor:pointer;}',
             'body.ag-tp-edit #ag-tp-editbtn{background:var(--accent-soft,rgba(47,158,116,0.15));color:var(--accent,#2f9e74);border-color:var(--accent-line,rgba(47,158,116,0.4));}',
-            '#ag-fav-head{color:#fbbf24 !important;}',
+            '#ag-fav-head{color:var(--warning,#fbbf24) !important;}',
             // Proužek u dlaždic, které sahají na body zakázky. Tenká linka u SPODNÍ
             // hrany — horní rohy jsou obsazené („?" vpravo, hvězdička vlevo).
             '#tools-modal .tool-tile.ag-tp-w::after{content:"";position:absolute;left:22%;right:22%;bottom:0;height:3px;',

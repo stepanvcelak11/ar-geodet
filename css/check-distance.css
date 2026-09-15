@@ -44,7 +44,7 @@
 
 .omr-table-wrap { flex: 1 1 auto; overflow: auto; border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1)); border-radius: 10px; }
 .omr-table { width: 100%; border-collapse: collapse; font-size: calc(13px * var(--ag-font-scale, 1)); }
-.omr-table th { position: sticky; top: 0; background: #161b21; color: var(--text-muted, #9aa1ac); font-weight: 600; text-align: right; padding: 7px 8px; font-size: calc(11.5px * var(--ag-font-scale, 1)); border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12)); }
+.omr-table th { position: sticky; top: 0; background: var(--bg-color, #161b21); color: var(--text-muted, #9aa1ac); font-weight: 600; text-align: right; padding: 7px 8px; font-size: calc(11.5px * var(--ag-font-scale, 1)); border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12)); }
 .omr-table th:first-child { text-align: left; }
 .omr-table td { padding: 7px 8px; text-align: right; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
 .omr-table td:first-child { text-align: left; }

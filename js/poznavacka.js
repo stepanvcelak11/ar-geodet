@@ -30,7 +30,15 @@
 
     // ---- kresby (pohled z boku / shora; barvy z motivu) -------------------------------------------
     var S = 'stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"';
-    function svg(inner) { return '<svg viewBox="0 0 160 110" class="pz-svg" aria-hidden="true">' + inner + '</svg>'; }
+    // Popisek pod kresbou je HTML, ne <text> v SVG: v šířce 160 jednotek se 45 znaků
+    // nevešlo a „věž / kostelní věž / stožár — signál na dálku" se uřízlo (15. 9. 2026).
+    // Kresby si popisek dál píší jako <text x="80" y="104">, tady se jen vyjme a zalomí.
+    function svg(inner) {
+        var cap = '';
+        inner = inner.replace(/<text x="80" y="104"[^>]*>([^<]*)<\/text>/, function (m, t) { cap = t; return ''; });
+        return '<svg viewBox="0 0 160 ' + (cap ? 96 : 110) + '" class="pz-svg" aria-hidden="true">' + inner + '</svg>'
+            + (cap ? '<div class="pz-cap">' + cap + '</div>' : '');
+    }
     var KAMEN_KRIZ = svg('<path d="M10 90h140" ' + S + ' stroke-dasharray="3 3"/><path d="M62 90V48h36v42" ' + S + '/><rect x="60" y="40" width="40" height="9" ' + S + '/><path d="M74 44.5h12M80 41v7" ' + S + '/>'
         + '<rect x="24" y="80" width="14" height="10" ' + S + '/><rect x="122" y="80" width="14" height="10" ' + S + '/><text x="80" y="104" font-size="9" text-anchor="middle" fill="currentColor" opacity=".7">žulový hranol, křížek, ochranné kameny</text>');
     var KAMEN_MALY = svg('<path d="M10 90h140" ' + S + ' stroke-dasharray="3 3"/><path d="M68 90V58h24v32" ' + S + '/><rect x="66" y="52" width="28" height="7" ' + S + '/><path d="M76 55.5h8M80 53v5" ' + S + '/><path d="M40 90V70" ' + S + ' stroke-dasharray="2 2"/><text x="80" y="104" font-size="9" text-anchor="middle" fill="currentColor" opacity=".7">menší kámen s křížkem, bez ochrany, u TB</text>');
@@ -84,7 +92,8 @@
         if (document.getElementById(STYLE_ID)) return;
         var st = document.createElement('style'); st.id = STYLE_ID;
         st.textContent = [
-            '#' + ID + ' .pz-svg{width:100%;max-width:300px;display:block;margin:4px auto 8px;color:var(--text-color,#eceef2);}',
+            '#' + ID + ' .pz-svg{width:100%;max-width:300px;display:block;margin:4px auto 2px;color:var(--text-color,#eceef2);}',
+            '#' + ID + ' .pz-cap{text-align:center;color:var(--text-muted,#9aa1ac);font:500 calc(12px * var(--ag-font-scale,1))/1.35 var(--font-ui,system-ui);margin:0 auto 8px;max-width:300px;}',
             '#' + ID + ' .pz-top{display:flex;justify-content:space-between;font-size:calc(12.5px * var(--ag-font-scale,1));color:var(--text-muted,#9aa1ac);margin-bottom:4px;}',
             '#' + ID + ' .pz-popis{font-size:calc(14px * var(--ag-font-scale,1));line-height:1.5;margin:0 0 10px;}',
             '#' + ID + ' .pz-opt{display:block;width:100%;box-sizing:border-box;text-align:left;margin:6px 0;padding:11px 12px;border-radius:12px;border:1px solid var(--glass-border,rgba(255,255,255,.14));background:rgba(255,255,255,.04);color:inherit;font:inherit;font-size:calc(14px * var(--ag-font-scale,1));cursor:pointer;}',

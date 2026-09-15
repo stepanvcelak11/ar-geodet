@@ -288,7 +288,7 @@
             + '<div class="st-slider"><div class="st-slider-head"><span>Stáhnout v okruhu</span><span><span id="agcv-rad-val">300</span> m</span></div>'
             + '  <input type="range" id="agcv-rad" min="100" max="1000" step="50" value="300"></div>'
             + '<button class="btn btn-blue" id="agcv-dl"><svg class="icon"><use href="#i-download"/></svg> Stáhnout parcely v okolí</button>'
-            + '<div id="agcv-status" style="font-size:calc(12.5px * var(--ag-font-scale, 1));color:#fbbf24;margin:6px 2px;"></div>'
+            + '<div id="agcv-status" style="font-size:calc(12.5px * var(--ag-font-scale, 1));color:var(--warning,#fbbf24);margin:6px 2px;"></div>'
             + '<div id="agcv-info" style="font-size:calc(13px * var(--ag-font-scale, 1));margin:8px 0;opacity:.9;"></div>'
             + '<label class="agcv-sw" style="margin-top:6px;"><input type="checkbox" id="agcv-ar" checked> Zobrazit hranice v AR kameře</label>'
             + '<button class="btn" id="agcv-stake" style="margin-top:10px;"><svg class="icon"><use href="#i-navigation"/></svg> Navést na nejbližší lomový bod</button>'

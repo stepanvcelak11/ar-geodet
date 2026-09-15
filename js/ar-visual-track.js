@@ -497,7 +497,7 @@
             + '  <label class="st-sw"><input type="checkbox" id="agvt-cb"><span class="st-sw-face"></span></label>'
             + '</div>'
             + '<div id="agvt-stat" style="font-family:var(--font-mono,monospace);font-size:calc(12px * var(--ag-font-scale, 1));opacity:.85;margin:4px 2px 8px;min-height:18px;"></div>'
-            + '<div style="font-size:calc(12px * var(--ag-font-scale, 1));color:#fbbf24;margin:2px 2px 10px;line-height:1.4;">Funguje jen se zapnutou kamerou (AR nebo Split). Za tmy, na holé stěně nebo při rozmazání se sám ztlumí. Při přetížení telefonu se sám vypne.</div>'
+            + '<div style="font-size:calc(12px * var(--ag-font-scale, 1));color:var(--warning,#fbbf24);margin:2px 2px 10px;line-height:1.4;">Funguje jen se zapnutou kamerou (AR nebo Split). Za tmy, na holé stěně nebo při rozmazání se sám ztlumí. Při přetížení telefonu se sám vypne.</div>'
             + '<details style="margin:6px 0 10px;"><summary style="cursor:pointer;font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.8;">WebXR kotvení (experimentální, Android)</summary>'
             + '  <p style="font-size:calc(12px * var(--ag-font-scale, 1));opacity:.75;line-height:1.4;margin:6px 0;">WebXR si bere kameru celého systému a může kolidovat s běžným AR zobrazením. Jen rychlý test na zařízeních s ARCore.</p>'
             + '  <button class="btn btn-secondary" id="agvt-xr" style="width:100%;">Zkusit WebXR kotvení</button>'

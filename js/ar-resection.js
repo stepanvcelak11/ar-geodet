@@ -211,7 +211,7 @@
             + 'Z rozdílů azimutů appka srovná sever (a při <b>3+</b> bodech i dopočítá tvoji přesnou polohu). '
             + 'Rozdíly azimutů ruší chybu kompasu, takže to funguje i tam, kde magnetometr blbne.</p>'
             + '<div id="agrx-list" class="agrx-list"></div>'
-            + '<div id="agrx-warn" style="font-size:calc(12px * var(--ag-font-scale, 1));color:#fbbf24;margin:6px 2px;"></div>'
+            + '<div id="agrx-warn" style="font-size:calc(12px * var(--ag-font-scale, 1));color:var(--warning,#fbbf24);margin:6px 2px;"></div>'
             + '<button class="btn" id="agrx-start"><svg class="icon"><use href="#i-crosshair"/></svg> Spustit zaměřování</button>'
             + '<div id="agrx-result" class="agrx-result" style="display:none;"></div>'
             + '<div id="agrx-actions" style="display:none;">'

@@ -229,6 +229,14 @@ body.light-mode {
     --warn: #8a5a00;
     --warn-color: #8a5a00;
 }
+/* ŽLUTÁ NATVRDO VE ZDROJÁCÍCH MODULŮ (46× `color:#fbbf24` v inline stylech — rajón,
+   protínání, volné stanovisko, průvodce, karta bodu…): na bílé je to 1,7:1, nečitelné
+   („Zatím nemáš dost vlastních bodů", „Zapni zobrazení s kamerou" — 15. 9. 2026).
+   Přepsat 46 míst by znamenalo sáhnout do dvaceti modulů; tohle chytí inline styl
+   podle jeho textu a ve světlém motivu dosadí tmavou --warning. Totéž pro #f59e0b. */
+body.light-mode [style*="color:#fbbf24"], body.light-mode [style*="color: #fbbf24"],
+body.light-mode [style*="color:#f59e0b"], body.light-mode [style*="color: #f59e0b"] { color: var(--warning) !important; }
+
 
 /* Motiv „Aurora" (původní tyrkys–fialová) — nově jen volitelný, ne výchozí */
 body.theme-aurora {

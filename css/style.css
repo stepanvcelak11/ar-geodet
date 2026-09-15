@@ -1922,7 +1922,10 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
 
 /* Slider: popisek + hodnota nahore, jezdec pres celou sirku (uzky mobil) */
 #settings-modal .st-slider { margin-top: 16px; }
-#settings-modal .st-slider-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+/* Hlavička jezdce platí VŠUDE, ne jen v Nastavení: stejné markup používají i okna
+   nástrojů (Katastr — parcely „Stáhnout v okruhu 300 m", Import projektu „Průhlednost
+   70 %") a bez flexu se popisek slepil s hodnotou („okruhu300 m"; viděno 15. 9. 2026). */
+.st-slider-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 #settings-modal .st-slider-head .st-lab { font-size: calc(13.5px * var(--ag-font-scale, 1)); }
 #settings-modal .st-val { font-family: var(--font-mono); font-size: calc(12.5px * var(--ag-font-scale, 1)); font-weight: 600; color: var(--data); white-space: nowrap; }
 #settings-modal .st-slider input[type="range"] { margin-top: 10px; height: 6px; background: var(--surface-3); }

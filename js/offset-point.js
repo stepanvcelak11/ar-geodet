@@ -121,7 +121,7 @@
             + '<div id="agof-base-info" style="font-size:calc(13px * var(--ag-font-scale, 1));margin:2px 0 12px;color:var(--accent);"></div>'
             + '<label>Azimut (°, zeměpisný)</label>'
             + '<div style="display:flex;gap:8px;align-items:center;"><input type="text" id="agof-az" step="0.1" inputmode="decimal" style="flex:1;" placeholder="0–360">'
-            + '<button type="button" class="btn btn-secondary" style="white-space:nowrap;margin:0;" id="agof-compass">Z kompasu</button></div>'
+            + '<button type="button" class="btn btn-secondary" style="white-space:nowrap;margin:0;flex:0 0 auto;width:auto;" id="agof-compass">Z kompasu</button></div>'
             + '<label style="margin-top:8px;">Vodorovná délka (m)</label>'
             + '<input type="text" id="agof-dist" step="0.01" inputmode="decimal" placeholder="např. 4.20">'
             + '<label style="margin-top:8px;">Název bodu</label>'

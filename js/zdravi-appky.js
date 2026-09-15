@@ -151,7 +151,7 @@
             // 6) účet
             var U = window.AGUcty, cu = null, fm = null, cloud = false;
             try { cu = U && U.currentUser && U.currentUser(); fm = U && U.getFirm && U.getFirm(); cloud = !!(U && U.isCloud && U.isCloud()); } catch (e) { swallow(e, 'ucet'); }
-            var pro = false; try { pro = !!(window.AGLic && AGLic.jePro && AGLic.jePro()); } catch (e) { swallow(e, 'lic'); }
+            var pro = false; try { pro = !!(window.AGLic && AGLic.isPro && AGLic.isPro()); } catch (e) { swallow(e, 'lic'); }   // bylo AGLic.jePro — takové API není, řádek Účet hlásil Základ i s Pro (15. 9. 2026)
             rows.push({ k: 'ucet', st: cu ? 'ok' : 'warn', b: t('Účet'),
                 s: cu ? (cu.name || '?') + (fm && fm.firmName ? ' · ' + fm.firmName : '') + ' · ' + (cloud ? t('firemní server') : t('jen v telefonu')) + ' · ' + (pro ? 'Pro' : t('Základ')) : t('nepřihlášen') });
 

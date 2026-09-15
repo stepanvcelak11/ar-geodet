@@ -36,7 +36,7 @@
     'use strict';
     if (window.AGParcelaKlik) return;
 
-    var STYLE_ID = 'ag-pk-style', OV_ID = 'ag-pk-modal';
+    var STYLE_ID = 'ag-pcl-style', OV_ID = 'ag-pcl-modal';
     var RUIAN = 'https://ags.cuzk.gov.cz/arcgis/rest/services/RUIAN/Prohlizeci_sluzba_nad_daty_RUIAN/MapServer/';
     var NAHLIZENI = 'https://nahlizenidokn.cuzk.gov.cz/MapaIdentifikace.aspx?l=KN';
     var TIMEOUT_MS = 12000;
@@ -135,7 +135,7 @@
         smazZvyrazneni();
         try {
             if (p && p.rings && p.rings.length) {
-                _poly = L.polygon(p.rings, { color: BARVA, weight: 3, opacity: 0.95, fillColor: BARVA, fillOpacity: 0.16, interactive: false, className: 'ag-pk-poly' }).addTo(m);
+                _poly = L.polygon(p.rings, { color: BARVA, weight: 3, opacity: 0.95, fillColor: BARVA, fillOpacity: 0.16, interactive: false, className: 'ag-pcl-poly' }).addTo(m);
             }
             _mark = L.circleMarker([p.lat, p.lng], { radius: 5, color: BARVA, weight: 2, fillColor: '#fff', fillOpacity: 0.9, interactive: false }).addTo(m);
         } catch (e) { swallow(e, 'zvyrazni'); }

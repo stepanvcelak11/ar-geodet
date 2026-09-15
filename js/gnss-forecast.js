@@ -36,13 +36,17 @@
 // Odstranění: smaž js/gnss-forecast.js + řádek <script> v index.html a přegeneruj
 // sw.js (scripts/gen_sw_assets.py).
 // ================================================================================
+// ⚠ PŘEDPONA ag-gp- (15. 9. 2026): do té doby ag-gf-, tedy TÁŽ jako Geo-fotka
+// (js/geo-foto.js, #ag-gf-modal + #ag-gf-style). Kdo otevřel Geo-fotku dřív, dostal
+// pod „GNSS předpověď" její okno (ensureModal našel cizí #ag-gf-modal) a styly
+// druhého modulu se nikdy nepřipojily (AG.style/#id už existoval). gp = GNSS Předpověď.
 (function () {
     'use strict';
     if (window.__agGnssForecastInit) return;
     window.__agGnssForecastInit = true;
 
     var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v2M4.6 5.6l1.4 1.4M19.4 5.6 18 7"/><circle cx="12" cy="11" r="4"/><path d="M3 19h18M6 22h12"/></svg>';
-    var STYLE_ID = 'ag-gf-style';
+    var STYLE_ID = 'ag-gp-style';
     var TLE_URL_FALLBACK = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=gnss&FORMAT=tle';
     var TLE_KEY = 'arTleCache1';               // sdílená cache se satelity.js ({t, txt})
     var KP_URL = 'https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json';
@@ -289,84 +293,84 @@
         s.id = STYLE_ID;
         s.textContent =
             // stavové barvy (viz hlavička): NE z --accent, ten se v motivech mění
-            '#ag-gf-modal{--gf-good:#34d399;--gf-mid:var(--warning,#fbbf24);--gf-bad:#c0405a;}' +
-            '#ag-gf-modal .ag-gf-now{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 10px;}' +
-            '#ag-gf-modal .ag-gf-stat{flex:1 1 90px;background:var(--surface-1,rgba(255,255,255,.06));border-radius:var(--r-sm,10px);padding:7px 10px;text-align:center;}' +
-            '#ag-gf-modal .ag-gf-stat b{display:block;font-size:1.25em;}' +
-            '#ag-gf-modal .ag-gf-stat small{color:var(--text-muted,#9aa1ac);}' +
+            '#ag-gp-modal{--gf-good:#34d399;--gf-mid:var(--warning,#fbbf24);--gf-bad:#c0405a;}' +
+            '#ag-gp-modal .ag-gp-now{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 10px;}' +
+            '#ag-gp-modal .ag-gp-stat{flex:1 1 90px;background:var(--surface-1,rgba(255,255,255,.06));border-radius:var(--r-sm,10px);padding:7px 10px;text-align:center;}' +
+            '#ag-gp-modal .ag-gp-stat b{display:block;font-size:1.25em;}' +
+            '#ag-gp-modal .ag-gp-stat small{color:var(--text-muted,#9aa1ac);}' +
             // graf
-            '#ag-gf-modal .ag-gf-chart{background:var(--surface-1,rgba(255,255,255,.06));border:1px solid var(--glass-border,rgba(255,255,255,.10));border-radius:var(--r-md,12px);padding:8px 6px 4px;}' +
-            '#ag-gf-modal .ag-gf-cap{color:var(--text-muted,#9aa1ac);font-size:.78em;margin:0 4px 4px;}' +
-            '#ag-gf-modal .ag-gf-svg{display:block;width:100%;height:auto;touch-action:pan-y;}' +
-            '#ag-gf-modal .ag-gf-svg text{font-family:var(--font-ui,sans-serif);}' +
-            '#ag-gf-modal .gf-band-good{fill:var(--gf-good);opacity:.11;}' +
-            '#ag-gf-modal .gf-band-mid{fill:var(--gf-mid);opacity:.09;}' +
-            '#ag-gf-modal .gf-band-bad{fill:var(--gf-bad);opacity:.15;}' +
-            '#ag-gf-modal .gf-grid{stroke:var(--glass-border,rgba(255,255,255,.14));stroke-width:1;}' +
-            '#ag-gf-modal .gf-tick{fill:var(--text-muted,#9aa1ac);font-size:calc(10px * var(--ag-font-scale, 1));font-variant-numeric:tabular-nums;}' +
-            '#ag-gf-modal .gf-line{fill:none;stroke:var(--text-color,#eceef2);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;}' +
-            '#ag-gf-modal .gf-win{fill:var(--accent-bright,#3eb487);opacity:.12;}' +
-            '#ag-gf-modal .gf-winrule{stroke:var(--accent-bright,#3eb487);stroke-width:3;stroke-linecap:round;}' +
-            '#ag-gf-modal .gf-nowline{stroke:var(--accent-bright,#3eb487);stroke-width:1.5;}' +
-            '#ag-gf-modal .gf-nowlb{fill:var(--accent-bright,#3eb487);font-size:calc(10px * var(--ag-font-scale, 1));font-weight:600;}' +
-            '#ag-gf-modal .gf-lab{fill:var(--text-color,#eceef2);font-size:calc(10px * var(--ag-font-scale, 1));font-variant-numeric:tabular-nums;}' +
-            '#ag-gf-modal .gf-c-good{fill:var(--gf-good);}' +
-            '#ag-gf-modal .gf-c-mid{fill:var(--gf-mid);}' +
-            '#ag-gf-modal .gf-c-bad{fill:url(#agGfHatch);}' +
-            '#ag-gf-modal .gf-c-na{fill:none;stroke:var(--text-faint,#6b727d);stroke-width:1;}' +
-            '#ag-gf-modal .gf-badbase{fill:var(--gf-bad);}' +
-            '#ag-gf-modal .gf-hatchl{stroke:rgba(255,255,255,.55);stroke-width:2;}' +
-            '#ag-gf-modal .gf-warn{fill:none;stroke:var(--gf-mid);stroke-width:1.4;stroke-linejoin:round;}' +
-            '#ag-gf-modal .gf-cut{fill:var(--text-color,#eceef2);}' +
-            '#ag-gf-modal .gf-probe{stroke:var(--text-color,#eceef2);stroke-width:1;opacity:.55;}' +
-            '#ag-gf-modal .gf-probedot{fill:var(--text-color,#eceef2);stroke:var(--bg-elev,#171b20);stroke-width:2;}' +
+            '#ag-gp-modal .ag-gp-chart{background:var(--surface-1,rgba(255,255,255,.06));border:1px solid var(--glass-border,rgba(255,255,255,.10));border-radius:var(--r-md,12px);padding:8px 6px 4px;}' +
+            '#ag-gp-modal .ag-gp-cap{color:var(--text-muted,#9aa1ac);font-size:.78em;margin:0 4px 4px;}' +
+            '#ag-gp-modal .ag-gp-svg{display:block;width:100%;height:auto;touch-action:pan-y;}' +
+            '#ag-gp-modal .ag-gp-svg text{font-family:var(--font-ui,sans-serif);}' +
+            '#ag-gp-modal .gf-band-good{fill:var(--gf-good);opacity:.11;}' +
+            '#ag-gp-modal .gf-band-mid{fill:var(--gf-mid);opacity:.09;}' +
+            '#ag-gp-modal .gf-band-bad{fill:var(--gf-bad);opacity:.15;}' +
+            '#ag-gp-modal .gf-grid{stroke:var(--glass-border,rgba(255,255,255,.14));stroke-width:1;}' +
+            '#ag-gp-modal .gf-tick{fill:var(--text-muted,#9aa1ac);font-size:calc(10px * var(--ag-font-scale, 1));font-variant-numeric:tabular-nums;}' +
+            '#ag-gp-modal .gf-line{fill:none;stroke:var(--text-color,#eceef2);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;}' +
+            '#ag-gp-modal .gf-win{fill:var(--accent-bright,#3eb487);opacity:.12;}' +
+            '#ag-gp-modal .gf-winrule{stroke:var(--accent-bright,#3eb487);stroke-width:3;stroke-linecap:round;}' +
+            '#ag-gp-modal .gf-nowline{stroke:var(--accent-bright,#3eb487);stroke-width:1.5;}' +
+            '#ag-gp-modal .gf-nowlb{fill:var(--accent-bright,#3eb487);font-size:calc(10px * var(--ag-font-scale, 1));font-weight:600;}' +
+            '#ag-gp-modal .gf-lab{fill:var(--text-color,#eceef2);font-size:calc(10px * var(--ag-font-scale, 1));font-variant-numeric:tabular-nums;}' +
+            '#ag-gp-modal .gf-c-good{fill:var(--gf-good);}' +
+            '#ag-gp-modal .gf-c-mid{fill:var(--gf-mid);}' +
+            '#ag-gp-modal .gf-c-bad{fill:url(#agGfHatch);}' +
+            '#ag-gp-modal .gf-c-na{fill:none;stroke:var(--text-faint,#6b727d);stroke-width:1;}' +
+            '#ag-gp-modal .gf-badbase{fill:var(--gf-bad);}' +
+            '#ag-gp-modal .gf-hatchl{stroke:rgba(255,255,255,.55);stroke-width:2;}' +
+            '#ag-gp-modal .gf-warn{fill:none;stroke:var(--gf-mid);stroke-width:1.4;stroke-linejoin:round;}' +
+            '#ag-gp-modal .gf-cut{fill:var(--text-color,#eceef2);}' +
+            '#ag-gp-modal .gf-probe{stroke:var(--text-color,#eceef2);stroke-width:1;opacity:.55;}' +
+            '#ag-gp-modal .gf-probedot{fill:var(--text-color,#eceef2);stroke:var(--bg-elev,#171b20);stroke-width:2;}' +
             // legenda + odečet + závěr
-            '#ag-gf-modal .ag-gf-leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.8em;color:var(--text-muted,#9aa1ac);margin:6px 4px 0;}' +
-            '#ag-gf-modal .ag-gf-leg i{width:13px;height:13px;border-radius:3px;display:inline-block;vertical-align:-2px;margin-right:5px;}' +
-            '#ag-gf-modal .ag-gf-leg .l-good{background:var(--gf-good);}' +
-            '#ag-gf-modal .ag-gf-leg .l-mid{background:var(--gf-mid);}' +
-            '#ag-gf-modal .ag-gf-leg .l-bad{background:repeating-linear-gradient(45deg,var(--gf-bad) 0 3px,rgba(255,255,255,.55) 3px 5px);}' +
-            '#ag-gf-modal .ag-gf-leg .l-win{background:var(--accent-bright,#3eb487);height:4px;border-radius:2px;vertical-align:2px;}' +
-            '#ag-gf-modal .ag-gf-read{margin:6px 4px 0;padding:6px 8px;background:var(--surface-2,rgba(255,255,255,.09));border-radius:var(--r-sm,9px);font-size:.9em;font-variant-numeric:tabular-nums;min-height:1.4em;}' +
-            '#ag-gf-modal .ag-gf-win{display:flex;gap:8px;align-items:flex-start;background:var(--accent-soft,rgba(52,211,153,.12));border:1px solid var(--accent-line,rgba(52,211,153,.4));border-radius:var(--r-md,12px);padding:10px 12px;margin:10px 0 4px;font-size:.98em;line-height:1.35;}' +
-            '#ag-gf-modal .ag-gf-win svg{width:20px;height:20px;flex:0 0 20px;margin-top:1px;color:var(--accent-bright,#3eb487);}' +
-            '#ag-gf-modal .ag-gf-win.warn{background:rgba(251,191,36,.10);border-color:rgba(251,191,36,.40);}' +
-            '#ag-gf-modal .ag-gf-win.warn svg{color:var(--warning,#fbbf24);}' +
+            '#ag-gp-modal .ag-gp-leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.8em;color:var(--text-muted,#9aa1ac);margin:6px 4px 0;}' +
+            '#ag-gp-modal .ag-gp-leg i{width:13px;height:13px;border-radius:3px;display:inline-block;vertical-align:-2px;margin-right:5px;}' +
+            '#ag-gp-modal .ag-gp-leg .l-good{background:var(--gf-good);}' +
+            '#ag-gp-modal .ag-gp-leg .l-mid{background:var(--gf-mid);}' +
+            '#ag-gp-modal .ag-gp-leg .l-bad{background:repeating-linear-gradient(45deg,var(--gf-bad) 0 3px,rgba(255,255,255,.55) 3px 5px);}' +
+            '#ag-gp-modal .ag-gp-leg .l-win{background:var(--accent-bright,#3eb487);height:4px;border-radius:2px;vertical-align:2px;}' +
+            '#ag-gp-modal .ag-gp-read{margin:6px 4px 0;padding:6px 8px;background:var(--surface-2,rgba(255,255,255,.09));border-radius:var(--r-sm,9px);font-size:.9em;font-variant-numeric:tabular-nums;min-height:1.4em;}' +
+            '#ag-gp-modal .ag-gp-win{display:flex;gap:8px;align-items:flex-start;background:var(--accent-soft,rgba(52,211,153,.12));border:1px solid var(--accent-line,rgba(52,211,153,.4));border-radius:var(--r-md,12px);padding:10px 12px;margin:10px 0 4px;font-size:.98em;line-height:1.35;}' +
+            '#ag-gp-modal .ag-gp-win svg{width:20px;height:20px;flex:0 0 20px;margin-top:1px;color:var(--accent-bright,#3eb487);}' +
+            '#ag-gp-modal .ag-gp-win.warn{background:rgba(251,191,36,.10);border-color:rgba(251,191,36,.40);}' +
+            '#ag-gp-modal .ag-gp-win.warn svg{color:var(--warning,#fbbf24);}' +
             // podrobná tabulka (rozbalovací)
-            '#ag-gf-modal .ag-gf-det{margin-top:10px;border-top:1px solid var(--glass-border,rgba(255,255,255,.10));}' +
-            '#ag-gf-modal .ag-gf-det>summary{list-style:none;cursor:pointer;padding:12px 4px;color:var(--text-muted,#9aa1ac);font-size:.9em;}' +
-            '#ag-gf-modal .ag-gf-det>summary::-webkit-details-marker{display:none;}' +
-            '#ag-gf-modal .ag-gf-det>summary::after{content:" ▾";}' +
-            '#ag-gf-modal .ag-gf-det[open]>summary::after{content:" ▴";}' +
-            '#ag-gf-modal .ag-gf-row{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:8px;font-size:.92em;}' +
-            '#ag-gf-modal .ag-gf-row:nth-child(odd){background:rgba(255,255,255,.03);}' +
-            '#ag-gf-modal .ag-gf-h{width:52px;font-variant-numeric:tabular-nums;color:var(--text-muted,#9aa1ac);}' +
-            '#ag-gf-modal .ag-gf-dot{width:12px;height:12px;border-radius:50%;flex:0 0 12px;background:var(--text-faint,#6b727d);}' +
-            '#ag-gf-modal .good .ag-gf-dot{background:var(--gf-good);} #ag-gf-modal .mid .ag-gf-dot{background:var(--gf-mid);} #ag-gf-modal .bad .ag-gf-dot{background:var(--gf-bad);}' +
-            '#ag-gf-modal .ag-gf-v{width:88px;font-variant-numeric:tabular-nums;}' +
-            '#ag-gf-modal .ag-gf-lb{flex:1;} #ag-gf-modal .ag-gf-note{color:var(--warning,#fbbf24);font-size:.88em;}' +
-            '#ag-gf-modal .ag-gf-foot{color:var(--text-muted,#9aa1ac);font-size:.82em;margin-top:10px;line-height:1.45;}';
+            '#ag-gp-modal .ag-gp-det{margin-top:10px;border-top:1px solid var(--glass-border,rgba(255,255,255,.10));}' +
+            '#ag-gp-modal .ag-gp-det>summary{list-style:none;cursor:pointer;padding:12px 4px;color:var(--text-muted,#9aa1ac);font-size:.9em;}' +
+            '#ag-gp-modal .ag-gp-det>summary::-webkit-details-marker{display:none;}' +
+            '#ag-gp-modal .ag-gp-det>summary::after{content:" ▾";}' +
+            '#ag-gp-modal .ag-gp-det[open]>summary::after{content:" ▴";}' +
+            '#ag-gp-modal .ag-gp-row{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:8px;font-size:.92em;}' +
+            '#ag-gp-modal .ag-gp-row:nth-child(odd){background:rgba(255,255,255,.03);}' +
+            '#ag-gp-modal .ag-gp-h{width:52px;font-variant-numeric:tabular-nums;color:var(--text-muted,#9aa1ac);}' +
+            '#ag-gp-modal .ag-gp-dot{width:12px;height:12px;border-radius:50%;flex:0 0 12px;background:var(--text-faint,#6b727d);}' +
+            '#ag-gp-modal .good .ag-gp-dot{background:var(--gf-good);} #ag-gp-modal .mid .ag-gp-dot{background:var(--gf-mid);} #ag-gp-modal .bad .ag-gp-dot{background:var(--gf-bad);}' +
+            '#ag-gp-modal .ag-gp-v{width:88px;font-variant-numeric:tabular-nums;}' +
+            '#ag-gp-modal .ag-gp-lb{flex:1;} #ag-gp-modal .ag-gp-note{color:var(--warning,#fbbf24);font-size:.88em;}' +
+            '#ag-gp-modal .ag-gp-foot{color:var(--text-muted,#9aa1ac);font-size:.82em;margin-top:10px;line-height:1.45;}';
         document.head.appendChild(s);
     }
     function ensureModal() {
-        var m = document.getElementById('ag-gf-modal');
+        var m = document.getElementById('ag-gp-modal');
         if (m) return m;
         injectStyles();
         m = document.createElement('div');
         m.className = 'modal-overlay';
-        m.id = 'ag-gf-modal';
+        m.id = 'ag-gp-modal';
         m.innerHTML =
             '<div class="modal-content">' +
             '  <h3 style="color:var(--accent);margin-top:0;">' + ICON + ' GNSS předpověď</h3>' +
-            '  <div id="ag-gf-body"><div style="padding:14px;color:var(--text-muted,#9aa1ac);">Počítám dráhy družic…</div></div>' +
+            '  <div id="ag-gp-body"><div style="padding:14px;color:var(--text-muted,#9aa1ac);">Počítám dráhy družic…</div></div>' +
             '  <div style="display:flex;gap:8px;margin-top:12px;">' +
-            '    <button type="button" class="btn btn-secondary" id="ag-gf-refresh">Aktualizovat</button>' +
-            '    <button type="button" class="btn btn-secondary" id="ag-gf-close" style="margin-left:auto;">Zavřít</button>' +
+            '    <button type="button" class="btn btn-secondary" id="ag-gp-refresh">Aktualizovat</button>' +
+            '    <button type="button" class="btn btn-secondary" id="ag-gp-close" style="margin-left:auto;">Zavřít</button>' +
             '  </div>' +
             '</div>';
         document.body.appendChild(m);
-        m.querySelector('#ag-gf-close').addEventListener('click', function () { m.style.display = 'none'; });
-        m.querySelector('#ag-gf-refresh').addEventListener('click', function () {
+        m.querySelector('#ag-gp-close').addEventListener('click', function () { m.style.display = 'none'; });
+        m.querySelector('#ag-gp-refresh').addEventListener('click', function () {
             try { localStorage.removeItem(KP_KEY); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:ensureModal'); }
             refresh(true);
         });
@@ -403,7 +407,7 @@
         function yv(v) { var c = Math.min(Math.max(v, 1), vmax); return r1(T + (PB - T) * (c - 1) / (vmax - 1)); }
         _geo = { W: W, L: L, R: R, T: T, PB: PB, ST: ST, SB: SB, iw: iw, n: n, vmax: vmax };
 
-        var s = '<svg class="ag-gf-svg" id="ag-gf-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" ' +
+        var s = '<svg class="ag-gp-svg" id="ag-gp-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" ' +
             'aria-label="Graf předpovědi kvality GNSS na 24 hodin dopředu">' +
             '<title>Předpověď kvality GNSS na 24 hodin</title>' +
             '<defs><pattern id="agGfHatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">' +
@@ -478,18 +482,18 @@
         var nx = r1(L + iw * frac);
         s += '<line x1="' + nx + '" y1="' + (T - 3) + '" x2="' + nx + '" y2="' + SB + '" class="gf-nowline"/>';
         s += '<text class="gf-nowlb" x="' + r1(nx + 3) + '" y="' + (T - 5) + '">teď</text>';
-        s += '<line id="ag-gf-probe" x1="' + nx + '" y1="' + T + '" x2="' + nx + '" y2="' + PB + '" class="gf-probe"/>';
-        s += '<circle id="ag-gf-probedot" cx="' + nx + '" cy="' + (rows[0].pdop != null ? yv(rows[0].pdop) : -20) + '" r="4" class="gf-probedot"/>';
+        s += '<line id="ag-gp-probe" x1="' + nx + '" y1="' + T + '" x2="' + nx + '" y2="' + PB + '" class="gf-probe"/>';
+        s += '<circle id="ag-gp-probedot" cx="' + nx + '" cy="' + (rows[0].pdop != null ? yv(rows[0].pdop) : -20) + '" r="4" class="gf-probedot"/>';
         s += '</svg>';
         return { svg: s, clipped: clipped, vmax: vmax };
     }
 
     // odečítání hodnot prstem — jen dotykové posluchače, žádná smyčka
     function attachProbe() {
-        var svg = document.getElementById('ag-gf-svg');
+        var svg = document.getElementById('ag-gp-svg');
         if (!svg || !_geo || !_model) return;
-        var line = document.getElementById('ag-gf-probe'), dot = document.getElementById('ag-gf-probedot');
-        var out = document.getElementById('ag-gf-read');
+        var line = document.getElementById('ag-gp-probe'), dot = document.getElementById('ag-gp-probedot');
+        var out = document.getElementById('ag-gp-read');
         function yv(v) { var c = Math.min(Math.max(v, 1), _geo.vmax); return _geo.T + (_geo.PB - _geo.T) * (c - 1) / (_geo.vmax - 1); }
         function show(k) {
             var r = _model.rows[k];
@@ -516,9 +520,12 @@
 
     // ---- závěr jednou větou ---------------------------------------------------------
     function rangeTxt(rows, w) {
+        // celé okno = všech 24 hodin → „20:00–20:00" nic neříká (viděno 15. 9. 2026)
+        if (w.s === 0 && w.n >= rows.length) return 'kdykoli v příštích 24 h';
         var a = rows[w.s].t, b = new Date(rows[w.s + w.n - 1].t.getTime() + 3600 * 1000);
-        var zitra = a.getDate() !== new Date().getDate();
-        return pad2(a.getHours()) + ':00–' + pad2(b.getHours()) + ':00' + (zitra ? ' (zítra)' : '');
+        var dnes = new Date().getDate();
+        var zitraA = a.getDate() !== dnes, zitraB = b.getDate() !== dnes;
+        return pad2(a.getHours()) + ':00' + (zitraA ? ' (zítra)' : '') + '–' + pad2(b.getHours()) + ':00' + (zitraB && !zitraA ? ' (zítra)' : '');
     }
     function conclusion(model) {
         var rows = model.rows, win = model.win, bad = model.worst, i, storm = false, reason = 'slabá geometrie';
@@ -536,55 +543,55 @@
     var IC_WARN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 2.5 20h19L12 4Z"/><path d="M12 10v4M12 17.5v.01"/></svg>';
 
     function render(model) {
-        var body = document.getElementById('ag-gf-body');
+        var body = document.getElementById('ag-gp-body');
         if (!body) return;
         _model = null; _geo = null;
         if (model.err) { body.innerHTML = '<div style="padding:14px;color:var(--text-muted,#9aa1ac);">' + esc(model.err) + '</div>'; return; }
         _model = model;
         var r0 = model.rows[0];
-        var h = '<div class="ag-gf-now">' +
-            '<div class="ag-gf-stat"><small>PDOP teď</small><b>' + num1(r0.pdop) + '</b></div>' +
-            '<div class="ag-gf-stat"><small>Družic ≥' + EL_MASK + '°</small><b>' + (r0.nsat || '–') + '</b></div>' +
-            '<div class="ag-gf-stat"><small>Kp index' + (_kpStale ? ' (offline)' : '') + '</small><b>' + esc(kpTxt(model.kpNow)) + '</b></div>' +
+        var h = '<div class="ag-gp-now">' +
+            '<div class="ag-gp-stat"><small>PDOP teď</small><b>' + num1(r0.pdop) + '</b></div>' +
+            '<div class="ag-gp-stat"><small>Družic ≥' + EL_MASK + '°</small><b>' + (r0.nsat || '–') + '</b></div>' +
+            '<div class="ag-gp-stat"><small>Kp index' + (_kpStale ? ' (offline)' : '') + '</small><b>' + esc(kpTxt(model.kpNow)) + '</b></div>' +
             '</div>';
 
         var ch = chartSvg(model);
         if (ch) {
-            h += '<div class="ag-gf-chart">' +
-                '<div class="ag-gf-cap">Kvalita geometrie po hodinách — nahoře lepší (čísla vlevo = PDOP). Ťukni do grafu pro hodnoty.</div>' +
+            h += '<div class="ag-gp-chart">' +
+                '<div class="ag-gp-cap">Kvalita geometrie po hodinách — nahoře lepší (čísla vlevo = PDOP). Ťukni do grafu pro hodnoty.</div>' +
                 ch.svg +
-                '<div class="ag-gf-leg">' +
+                '<div class="ag-gp-leg">' +
                 '<span><i class="l-good"></i>výborné (PDOP ≤ ' + num1(PD_GOOD) + ')</span>' +
                 '<span><i class="l-mid"></i>dobré (≤ ' + num1(PD_MID) + ')</span>' +
                 '<span><i class="l-bad"></i>slabé (šrafa)</span>' +
                 '<span><i class="l-win"></i>nejlepší okno</span>' +
                 '</div>' +
-                '<div class="ag-gf-read" id="ag-gf-read"></div>' +
+                '<div class="ag-gp-read" id="ag-gp-read"></div>' +
                 '</div>';
         } else {
-            h += '<div class="ag-gf-chart" style="padding:16px;color:var(--text-muted,#9aa1ac);">' +
+            h += '<div class="ag-gp-chart" style="padding:16px;color:var(--text-muted,#9aa1ac);">' +
                 'Pro graf nemám ani jednu spočítanou hodinu (málo družic nad maskou ' + EL_MASK + '°). ' +
                 'Křivku si nevymýšlím — zkus to znovu po aktualizaci drah.</div>';
         }
 
         var c = conclusion(model);
-        h += '<div class="ag-gf-win' + (c.ok ? '' : ' warn') + '">' + (c.ok ? IC_OK : IC_WARN) + '<div>' + esc(c.txt) + '</div></div>';
+        h += '<div class="ag-gp-win' + (c.ok ? '' : ' warn') + '">' + (c.ok ? IC_OK : IC_WARN) + '<div>' + esc(c.txt) + '</div></div>';
 
         // podrobnosti = tabulková varianta grafu (schované, ať panel nezabírá půl dne)
-        h += '<details class="ag-gf-det"><summary>Podrobně po hodinách (' + model.rows.length + ' h)</summary>';
+        h += '<details class="ag-gp-det"><summary>Podrobně po hodinách (' + model.rows.length + ' h)</summary>';
         model.rows.forEach(function (r) {
             if (r.t.getHours() === 0) h += '<div style="margin:8px 0 2px;color:var(--text-muted,#9aa1ac);font-size:.85em;">— ' + r.t.toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'numeric' }) + ' —</div>';
-            h += '<div class="ag-gf-row ' + r.cls + '">' +
-                '<span class="ag-gf-h">' + pad2(r.t.getHours()) + ':00</span>' +
-                '<span class="ag-gf-dot"></span>' +
-                '<span class="ag-gf-v">PDOP ' + num1(r.pdop) + '</span>' +
-                '<span class="ag-gf-v">' + r.nsat + ' druž.' + (r.kp != null && r.kp >= 5 ? ' · Kp' + Math.round(r.kp) : '') + '</span>' +
-                '<span class="ag-gf-lb">' + esc(r.label) + (r.note ? ' <span class="ag-gf-note">' + esc(r.note.txt) + '</span>' : '') + '</span>' +
+            h += '<div class="ag-gp-row ' + r.cls + '">' +
+                '<span class="ag-gp-h">' + pad2(r.t.getHours()) + ':00</span>' +
+                '<span class="ag-gp-dot"></span>' +
+                '<span class="ag-gp-v">PDOP ' + num1(r.pdop) + '</span>' +
+                '<span class="ag-gp-v">' + r.nsat + ' druž.' + (r.kp != null && r.kp >= 5 ? ' · Kp' + Math.round(r.kp) : '') + '</span>' +
+                '<span class="ag-gp-lb">' + esc(r.label) + (r.note ? ' <span class="ag-gp-note">' + esc(r.note.txt) + '</span>' : '') + '</span>' +
                 '</div>';
         });
         h += '</details>';
 
-        h += '<div class="ag-gf-foot">Geometrie z drah TLE' + (model.tleAge != null ? ' (stáří ' + Math.round(model.tleAge) + ' h)' : '') +
+        h += '<div class="ag-gp-foot">Geometrie z drah TLE' + (model.tleAge != null ? ' (stáří ' + Math.round(model.tleAge) + ' h)' : '') +
             ', ionosféra z Kp indexu NOAA SWPC. ' + (ch && ch.clipped ? 'Špičky nad PDOP ' + num1(ch.vmax) + ' jsou v grafu uříznuté (přesná čísla v podrobnostech). ' : '') +
             'Předpověď platí pro otevřený obzor — stínění stromy/budovami posoudí nástroj „Predikce signálu". ' +
             'Bouřková značka je bezpečnostní (výtyčka = hromosvod), s přesností GNSS nesouvisí.</div>';
@@ -592,7 +599,7 @@
         attachProbe();
     }
     function refresh(force) {
-        var body = document.getElementById('ag-gf-body');
+        var body = document.getElementById('ag-gp-body');
         if (body) body.innerHTML = '<div style="padding:14px;color:var(--text-muted,#9aa1ac);">Počítám dráhy družic…</div>';
         ensureTle(function () { ensureKp(function () { render(buildModel()); }); });
         if (force) toast('Aktualizuji TLE a Kp…');

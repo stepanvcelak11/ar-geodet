@@ -190,7 +190,7 @@
             + '<div id="agix-stations"></div>'
             + '<button class="btn btn-secondary" id="agix-add" style="margin:2px 0 8px;"><svg class="icon"><use href="#i-plus"/></svg> Přidat stanovisko</button>'
             + '<label class="agix-fld"><span>Název neznámého cíle</span><input type="text" id="agix-name" placeholder="např. P1" maxlength="24"></label>'
-            + '<div id="agix-warn" style="font-size:calc(12px * var(--ag-font-scale, 1));color:#fbbf24;margin:4px 2px;"></div>'
+            + '<div id="agix-warn" style="font-size:calc(12px * var(--ag-font-scale, 1));color:var(--warning,#fbbf24);margin:4px 2px;"></div>'
             + '<button class="btn" id="agix-start"><svg class="icon"><use href="#i-crosshair"/></svg> Spustit zaměřování</button>'
             + '<div id="agix-result" class="agix-result" style="display:none;"></div>'
             + '<div id="agix-actions" style="display:none;">'
@@ -345,7 +345,7 @@
         crossSvg.forEach(function (n) { if (n.getAttribute('fill') === '#34d399' || n.getAttribute('fill') === '#fbbf24') n.setAttribute('fill', isTarget ? '#fbbf24' : '#34d399'); if (n.getAttribute('stroke')) n.setAttribute('stroke', isTarget ? '#fbbf24' : '#34d399'); });
 
         if (isTarget) {
-            if (bar) bar.innerHTML = 'Stoj na <b>#' + (stPt ? stPt.name : '?') + '</b> · zaměř <b style="color:#fbbf24">NEZNÁMÝ CÍL</b>'
+            if (bar) bar.innerHTML = 'Stoj na <b>#' + (stPt ? stPt.name : '?') + '</b> · zaměř <b style="color:var(--warning,#fbbf24)">NEZNÁMÝ CÍL</b>'
                 + (_targetName ? ' (' + _targetName + ')' : '') + (step.sIdx > 0 ? '<br><span style="opacity:.75;font-size:calc(12px * var(--ag-font-scale, 1))">stejný bod jako z ostatních stanovisek!</span>' : '');
         } else {
             var dTxt = (orPt && stPt) ? ' · ' + dist2(stPt, orPt).toFixed(0) + ' m' : '';
@@ -426,13 +426,13 @@
             + 'Úhel protnutí: <b style="color:' + qCol + '">' + r.angleP.toFixed(0) + '°</b> <span style="opacity:.7">(ideál ~90°)</span>'
             + (r.posSigma != null ? '<br>Odhad stř. chyby polohy: <b>±' + fmtMiss(r.posSigma) + '</b> <span style="opacity:.7">(z geometrie a ~0,8° chyby směru)</span>' : '')
             + (r.n > 2 ? '<br>Shoda paprsků: <b>' + fmtMiss(r.rms) + '</b> <span style="opacity:.7">(rms odchylka, ⌀ jak dobře paprsky souhlasí)</span>'
-                       : '<br><span style="color:#fbbf24;">2 stanoviska = bez nadbytečného měření — výsledek NENÍ ničím kontrolován. Přidej třetí stanovisko.</span>')
+                       : '<br><span style="color:var(--warning,#fbbf24);">2 stanoviska = bez nadbytečného měření — výsledek NENÍ ničím kontrolován. Přidej třetí stanovisko.</span>')
             + '</div>';
         var warn = '';
         if (r.behind) warn += '<div style="color:#f87171;font-size:calc(12px * var(--ag-font-scale, 1));margin-top:6px;">⚠ Cíl vyšel „za zády" některého stanoviska — nejspíš zaměněné body nebo špatné zaměření. Zkontroluj a zaměř znovu.</div>';
         if (r.angleP < 20) warn += '<div style="color:#f87171;font-size:calc(12px * var(--ag-font-scale, 1));margin-top:4px;">⚠ Velmi ostrý úhel protnutí — poloha je nejistá. Zvol stanoviska tak, ať svírají s cílem úhel blíž 90°.</div>';
-        else if (r.angleP < 35) warn += '<div style="color:#fbbf24;font-size:calc(12px * var(--ag-font-scale, 1));margin-top:4px;">Úhel protnutí je malý — výsledek je citlivý na přesnost zaměření.</div>';
-        if (r.n > 2 && r.maxMiss > 1.0) warn += '<div style="color:#fbbf24;font-size:calc(12px * var(--ag-font-scale, 1));margin-top:4px;">Paprsky se rozcházejí až o ' + fmtMiss(r.maxMiss) + ' — některé stanovisko může být zaměřené nepřesně.</div>';
+        else if (r.angleP < 35) warn += '<div style="color:var(--warning,#fbbf24);font-size:calc(12px * var(--ag-font-scale, 1));margin-top:4px;">Úhel protnutí je malý — výsledek je citlivý na přesnost zaměření.</div>';
+        if (r.n > 2 && r.maxMiss > 1.0) warn += '<div style="color:var(--warning,#fbbf24);font-size:calc(12px * var(--ag-font-scale, 1));margin-top:4px;">Paprsky se rozcházejí až o ' + fmtMiss(r.maxMiss) + ' — některé stanovisko může být zaměřené nepřesně.</div>';
         box.innerHTML = html + warn;
         box.style.display = 'block';
         if (acts) acts.style.display = 'block';

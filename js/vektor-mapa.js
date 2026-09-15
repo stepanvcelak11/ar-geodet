@@ -489,7 +489,7 @@
         if (v) {
             h += '<div class="ag-vm-vyrez"><b>Co je teď v mapě:</b> ' + v.sirka.toFixed(2).replace('.', ',') + ' × '
                 + v.vyska.toFixed(2).replace('.', ',') + ' km (' + v.km2.toFixed(2).replace('.', ',') + ' km²)'
-                + (v.km2 > MAX_KM2 ? '<br><span style="color:#fbbf24">Nad strop ' + MAX_KM2 + ' km² — přibliž mapu.</span>' : '')
+                + (v.km2 > MAX_KM2 ? '<br><span style="color:var(--warning,#fbbf24)">Nad strop ' + MAX_KM2 + ' km² — přibliž mapu.</span>' : '')
                 + '<br><small>Posuň a přibliž mapu tam, kam pojedeš, a ťukni na „Sbalit tento výřez“. GPS k tomu není potřeba.</small></div>';
         }
         h += '<div id="ag-vm-list"><p class="ag-vm-note">Načítám sbalené oblasti…</p></div>';

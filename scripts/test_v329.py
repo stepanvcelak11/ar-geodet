@@ -192,11 +192,11 @@ async def beh(url):
         # bez katastru: klik do prázdna nic neotevře
         await page.evaluate("() => { visSettings.showKatastr = false; map.fire('click', { latlng: L.latLng(%f, %f), originalEvent: { clientX: 195, clientY: 500 } }); }" % (LAT + 0.0002, LNG + 0.0002))
         await page.wait_for_timeout(800)
-        c0 = await page.evaluate("() => { var m = document.getElementById('ag-pk-modal'); return m ? m.style.display : 'none'; }")
+        c0 = await page.evaluate("() => { var m = document.getElementById('ag-pcl-modal'); return m ? m.style.display : 'none'; }")
         ok('C0 bez katastrální mapy klik do prázdna kartu parcely NEotevře', c0 != 'flex', c0)
         await page.evaluate("() => { visSettings.showKatastr = true; map.fire('click', { latlng: L.latLng(%f, %f), originalEvent: { clientX: 195, clientY: 500 } }); }" % (LAT + 0.0002, LNG + 0.0002))
-        await cekej(page, "document.querySelector('#ag-pk-modal .agpk-row')", 20)
-        c = await page.evaluate("""() => { var m = document.getElementById('ag-pk-modal'); if (!m) return null; return { disp: m.style.display, title: m.querySelector('#agpk-title').textContent, sub: m.querySelector('#agpk-sub').textContent, body: m.querySelector('#agpk-body').textContent, acts: Array.from(m.querySelectorAll('#agpk-acts button')).map(b => b.textContent), poly: !!document.querySelector('path.ag-pk-poly') }; }""")
+        await cekej(page, "document.querySelector('#ag-pcl-modal .agpk-row')", 20)
+        c = await page.evaluate("""() => { var m = document.getElementById('ag-pcl-modal'); if (!m) return null; return { disp: m.style.display, title: m.querySelector('#agpk-title').textContent, sub: m.querySelector('#agpk-sub').textContent, body: m.querySelector('#agpk-body').textContent, acts: Array.from(m.querySelectorAll('#agpk-acts button')).map(b => b.textContent), poly: !!document.querySelector('path.ag-pcl-poly') }; }""")
         ok('C1 s katastrální mapou se otevře karta parcely 4079/1', c and c['disp'] == 'flex' and 'Parcela 4079/1' in c['title'], c)
         ok('C2 k.ú. a obec z RÚIAN', c and 'Vinohrady' in c['sub'] and '727164' in c['sub'] and 'Praha' in c['sub'], c and c['sub'])
         ok('C3 výměra, druh pozemku, způsob využití podle číselníků', c and '16 239' in c['body'] and 'ostatní plocha' in c['body'] and 'ostatní komunikace' in c['body'], c and c['body'][:300])
@@ -207,7 +207,7 @@ async def beh(url):
         m = re.search(r'MapaIdentifikace\.aspx\?l=KN&x=(-?\d+(?:\.\d+)?)&y=(-?\d+(?:\.\d+)?)', u or '')
         ok('C7 odkaz do Nahlížení = S-JTSK se záporným znaménkem (x=−Y, y=−X)', m and -760000 < float(m.group(1)) < -720000 and -1060000 < float(m.group(2)) < -1030000, u)
         await page.evaluate("() => AGParcelaKlik.close()")
-        c8 = await page.evaluate("() => ({ disp: document.getElementById('ag-pk-modal').style.display, poly: !!document.querySelector('path.ag-pk-poly') })")
+        c8 = await page.evaluate("() => ({ disp: document.getElementById('ag-pcl-modal').style.display, poly: !!document.querySelector('path.ag-pcl-poly') })")
         ok('C8 zavření karty sundá zvýraznění z mapy', c8['disp'] == 'none' and not c8['poly'], c8)
 
         # ---- D: oficiální náčrt v kartě bodu -----------------------------------------

@@ -572,7 +572,7 @@
             '  max-height:88px;overflow-y:auto;}',
             // stejné okénko, ale když poctivě hlásí, že přepis nejede
             '#ag-hl-live.info{border-style:solid;border-color:rgba(251,191,36,0.45);',
-            '  background:rgba(251,191,36,0.09);color:#fbbf24;}',
+            '  background:rgba(251,191,36,0.09);color:var(--warning,#fbbf24);}',
             // hlavička: přepínač přepisu + filtr
             '#ag-hl-modal .ag-hl-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px;}',
             '#ag-hl-modal .ag-hl-chk{display:flex;align-items:center;gap:7px;font:500 12.5px/1.3 var(--font-ui,system-ui);',
@@ -595,7 +595,7 @@
             '#ag-hl-modal .ag-hl-note{width:100%;margin-top:8px;padding:8px 10px;border-radius:10px;box-sizing:border-box;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:var(--glass-bg,rgba(255,255,255,0.05));',
             '  color:var(--text-color,#e6e8eb);font:500 13.5px/1.45 var(--font-ui,system-ui);resize:vertical;min-height:52px;}',
-            '#ag-hl-modal .ag-hl-empty-txt{margin-top:8px;font:500 12.5px/1.4 var(--font-ui,system-ui);color:#fbbf24;font-style:italic;}',
+            '#ag-hl-modal .ag-hl-empty-txt{margin-top:8px;font:500 12.5px/1.4 var(--font-ui,system-ui);color:var(--warning,#fbbf24);font-style:italic;}',
             '#ag-hl-modal .ag-hl-acts{display:flex;gap:8px;margin-top:8px;}',
             '#ag-hl-modal .ag-hl-acts button{flex:1;padding:7px 8px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));',
             '  background:transparent;color:var(--text-muted,#c3c9d2);font:600 12.5px/1 var(--font-ui,system-ui);cursor:pointer;}',

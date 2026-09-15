@@ -240,7 +240,7 @@
         var r = computeStakePoint(true); var out = document.getElementById('agsl-stake-out'); if (!out) return;
         if (!r) { out.innerHTML = ''; return; }
         var mimo = (r.s < -0.005 || r.s > r.g.len + 0.005)
-            ? '<br><span style="color:#fbbf24;font-size:calc(12px * var(--ag-font-scale, 1))">mimo osu — bod leží v prodloužení krajního úseku</span>' : '';
+            ? '<br><span style="color:var(--warning,#fbbf24);font-size:calc(12px * var(--ag-font-scale, 1))">mimo osu — bod leží v prodloužení krajního úseku</span>' : '';
         out.innerHTML = (r.Y ? '<b>Y</b> ' + r.Y + ' &nbsp; <b>X</b> ' + r.X : '<span style="opacity:.65">S-JTSK není k dispozici</span>')
             + '<br><span style="opacity:.65;font-size:calc(12px * var(--ag-font-scale, 1))">staničení ' + r.sAbs.toFixed(2) + ' m'
             + (r.o ? ', odstup ' + Math.abs(r.o).toFixed(2) + ' m ' + (r.o > 0 ? 'vlevo' : 'vpravo') : ' na ose') + '</span>' + mimo;
@@ -282,7 +282,7 @@
         var over = b.list.length > MAX_BATCH;
         out.innerHTML = '<b>' + b.list.length + '</b> kolíků · staničení ' + shortNum(b.list[0]) + ' … ' + shortNum(b.list[b.list.length - 1])
             + (o ? '<br><span style="opacity:.65;font-size:calc(12px * var(--ag-font-scale, 1))">odsazené ' + Math.abs(o).toFixed(2) + ' m ' + (o > 0 ? 'vlevo' : 'vpravo') + ' od osy</span>' : '')
-            + (over ? '<br><span style="color:#fbbf24;font-size:calc(12px * var(--ag-font-scale, 1))">strop je ' + MAX_BATCH + ' bodů — zvětši krok</span>' : '');
+            + (over ? '<br><span style="color:var(--warning,#fbbf24);font-size:calc(12px * var(--ag-font-scale, 1))">strop je ' + MAX_BATCH + ' bodů — zvětši krok</span>' : '');
     }
     function saveBatch() {
         var b = batchStations();

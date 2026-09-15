@@ -136,7 +136,7 @@
             + '<label class="agrj-fld"><span>orientace — zaměřím známý bod</span><select id="agrj-or"></select></label>'
             + '<label class="agrj-fld"><span>vodorovná délka na cíl (m) — pásmo / dálkoměr</span><input type="text" id="agrj-dist" inputmode="decimal" step="0.01" min="0" placeholder="např. 24.35"></label>'
             + '<label class="agrj-fld"><span>název nového bodu</span><input type="text" id="agrj-name" placeholder="např. R1" maxlength="24"></label>'
-            + '<div id="agrj-warn" style="font-size:calc(12px * var(--ag-font-scale, 1));color:#fbbf24;margin:4px 2px;"></div>'
+            + '<div id="agrj-warn" style="font-size:calc(12px * var(--ag-font-scale, 1));color:var(--warning,#fbbf24);margin:4px 2px;"></div>'
             + '<button class="btn" id="agrj-start"><svg class="icon"><use href="#i-crosshair"/></svg> Spustit zaměřování</button>'
             + '<div id="agrj-result" class="agrj-result" style="display:none;"></div>'
             + '<div id="agrj-actions" style="display:none;">'
@@ -240,7 +240,7 @@
         var crossSvg = document.querySelectorAll('#agrj-cross svg line, #agrj-cross svg circle');
         crossSvg.forEach(function (n) { if (n.getAttribute('fill') === '#34d399' || n.getAttribute('fill') === '#fbbf24') n.setAttribute('fill', isTarget ? '#fbbf24' : '#34d399'); if (n.getAttribute('stroke')) n.setAttribute('stroke', isTarget ? '#fbbf24' : '#34d399'); });
         if (isTarget) {
-            if (bar) bar.innerHTML = 'Stoj na <b>#' + (S ? S.name : '?') + '</b> · zaměř <b style="color:#fbbf24">CÍL</b>'
+            if (bar) bar.innerHTML = 'Stoj na <b>#' + (S ? S.name : '?') + '</b> · zaměř <b style="color:var(--warning,#fbbf24)">CÍL</b>'
                 + (_targetName ? ' (' + _targetName + ')' : '') + '<br><span style="opacity:.75;font-size:calc(12px * var(--ag-font-scale, 1))">délka na cíl: ' + (_dist > 0 ? _dist.toFixed(2) + ' m' : '—') + '</span>';
         } else {
             var dTxt = (O && S) ? ' · ' + dist2(S, O).toFixed(0) + ' m' : '';
@@ -308,14 +308,14 @@
             + '<div style="margin:6px 0;font-family:var(--font-mono,monospace);font-size:calc(13px * var(--ag-font-scale, 1));">'
             + 'S-JTSK:&nbsp; <b>Y</b> ' + (r.Y != null ? r.Y.toFixed(2) : '—') + ' &nbsp; <b>X</b> ' + (r.X != null ? r.X.toFixed(2) : '—') + '</div>'
             + '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.9;line-height:1.5;">'
-            + 'Stanovisko: <b>#' + r.sName + '</b>' + (r.gpsStation ? ' <span style="color:#fbbf24">(GPS — poloha bodu jen tak přesná jako GPS)</span>' : '') + '<br>'
+            + 'Stanovisko: <b>#' + r.sName + '</b>' + (r.gpsStation ? ' <span style="color:var(--warning,#fbbf24)">(GPS — poloha bodu jen tak přesná jako GPS)</span>' : '') + '<br>'
             + 'Orientace: <b>#' + r.oName + '</b> <span style="opacity:.7">(vzdálenost ' + '<b style="color:' + oCol + '">' + r.distSO.toFixed(1) + ' m</b>)</span><br>'
             + 'Směrník na cíl: <b>' + r.theta.toFixed(2) + '°</b> · délka <b>' + r.dist.toFixed(2) + ' m</b>'
             + (_capSpread != null ? '<br>Rozptyl zaměření cíle: <b>±' + _capSpread.toFixed(1) + '°</b>' : '')
             + '</div>';
         var warn = '';
         if (r.distSO < 5) warn += '<div style="color:#f87171;font-size:calc(12px * var(--ag-font-scale, 1));margin-top:6px;">⚠ Orientace je velmi blízko stanoviska (' + r.distSO.toFixed(1) + ' m) — malá nepřesnost zaměření orientace se výrazně promítne do směru. Zvol vzdálenější orientační bod.</div>';
-        else if (r.distSO < 15) warn += '<div style="color:#fbbf24;font-size:calc(12px * var(--ag-font-scale, 1));margin-top:6px;">Orientace je blízko — pro přesnější směr použij vzdálenější orientační bod.</div>';
+        else if (r.distSO < 15) warn += '<div style="color:var(--warning,#fbbf24);font-size:calc(12px * var(--ag-font-scale, 1));margin-top:6px;">Orientace je blízko — pro přesnější směr použij vzdálenější orientační bod.</div>';
         box.innerHTML = html + warn;
         box.style.display = 'block';
         if (acts) acts.style.display = 'block';

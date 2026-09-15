@@ -621,7 +621,7 @@
     // (areaClip) jsou správné, ale nakreslená čára / uložené body popíší jen první dva
     // průsečíky — varuj, ať uživatel nedůvěřuje neúplné čáře.
     function ncWarnHTML() {
-        return '<div style="margin-top:8px;color:#fbbf24;font-size:calc(12px * var(--ag-font-scale, 1));line-height:1.4;">⚠ Parcela je nekonvexní – dělicí čára protíná hranici na více místech. Výměry dílů jsou správné, ale nakreslená čára a uložené body nemusí dělení popsat úplně. Ověř geometrii ručně.</div>';
+        return '<div style="margin-top:8px;color:var(--warning,#fbbf24);font-size:calc(12px * var(--ag-font-scale, 1));line-height:1.4;">⚠ Parcela je nekonvexní – dělicí čára protíná hranici na více místech. Výměry dílů jsou správné, ale nakreslená čára a uložené body nemusí dělení popsat úplně. Ověř geometrii ručně.</div>';
     }
     function enrich(pts) {
         return pts.map(function (p) { var ll = yxToLL(p.Y, p.X); return { Y: p.Y, X: p.X, lat: ll.lat, lng: ll.lng }; });
@@ -824,7 +824,12 @@
         if (document.getElementById('agpc-style')) return;
         var st = document.createElement('style'); st.id = 'agpc-style';
         st.textContent = [
-            '#agpc-modal .agpc-head{display:flex;align-items:center;gap:6px;margin-bottom:8px;}',
+            // Vlastní ✕ se schovává: křížek (a šipku sbalení) kreslí js/modal-close.js vpravo
+            // nahoře, takže tu byly dva křížky přes sebe a „—" pod nimi (15. 9. 2026). Odsazení
+            // zprava drží místo pro ty dva; vlastní #agpc-close zůstává v DOM, protože přes něj
+            // modal-close okno zavírá (ownCloseButton) a modul si tak udělá úklid.
+            '#agpc-modal .agpc-head{display:flex;align-items:center;gap:6px;margin-bottom:8px;padding-right:50px;}',
+            '#agpc-modal #agpc-close{display:none;}',
             '#agpc-modal .agpc-hbtn{width:34px;height:34px;flex:0 0 34px;border:1px solid var(--glass-border,rgba(255,255,255,.1));border-radius:10px;',
             '  background:var(--surface-2,rgba(255,255,255,.09));color:var(--text-color,#e8edf2);font-size:calc(16px * var(--ag-font-scale, 1));line-height:1;cursor:pointer;}',
             '#agpc-modal .agpc-sec-h{font:700 12px/1 var(--font-ui,system-ui),sans-serif;letter-spacing:.06em;text-transform:uppercase;',

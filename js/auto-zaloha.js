@@ -135,7 +135,7 @@
                 'font-size:calc(12.5px * var(--ag-font-scale, 1))', 'line-height:1.35'
             ].join(';');
             _row.innerHTML =
-                '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="flex:0 0 auto;color:#fbbf24">'
+                '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="flex:0 0 auto;color:var(--warning,#fbbf24)">'
                 + '<path d="M12 2 1 21h22L12 2z" fill="currentColor"></path>'
                 + '<rect x="11" y="9" width="2" height="6" rx="1" fill="#1a1205"></rect>'
                 + '<rect x="11" y="17" width="2" height="2" rx="1" fill="#1a1205"></rect></svg>'

@@ -65,7 +65,9 @@
         return p.join(',');
     }
     // zkratky měsíců: první tři písmena dala „čer" pro červen i červenec (13. 9. 2026) → čvn / čvc
-    function mesicZkr(m) { return ['led', 'úno', 'bře', 'dub', 'kvě', 'čvn', 'čvc', 'srp', 'zář', 'říj', 'lis', 'pro'][(+m || 1) - 1] || ''; }
+    // index 0–11 jako u mesicJmeno() a v poli `mesice` (do 15. 9. 2026 bral 1–12, takže
+    // proužek měsíců začínal „led led" a prosinec chyběl)
+    function mesicZkr(m) { return ['led', 'úno', 'bře', 'dub', 'kvě', 'čvn', 'čvc', 'srp', 'zář', 'říj', 'lis', 'pro'][+m || 0] || ''; }
     function dnuTxt(n) { n = +n || 0; return n + ' ' + (n === 1 ? 'den' : (n >= 2 && n <= 4 ? 'dny' : 'dnů')); }
     function mesicJmeno(m) {
         return ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec',
