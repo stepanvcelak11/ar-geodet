@@ -176,7 +176,7 @@
         if (d.chyby24 >= PRAHY.chybyMin && prum > 0 && d.chyby24 > PRAHY.chybyKrat * prum)
             out.push({ w: 0, t: 'Chyby dnes ' + d.chyby24 + ' — průměr ' + Math.round(prum) + ' za den', s: (d.topChyba && d.topChyba.msg ? 'nejčastěji: ' + String(d.topChyba.msg).slice(0, 80) : ''), go: 'errors' });
         if (d.chybyUcty && d.chybyUcty[0] && d.chybyUcty[0].n >= PRAHY.ucetChyb)
-            out.push({ w: 1, t: d.chybyUcty[0].n + '× chyba u jednoho člověka: ' + (d.chybyUcty[0].uname || '?') + (d.chybyUcty[0].ver ? ' (' + d.chybyUcty[0].ver + ')' : ''), s: 'zacyklená smyčka, nebo rozbitý telefon — koukni na Deník člověka', go: 'errors' });
+            out.push({ w: 1, t: d.chybyUcty[0].n + '× chyba u jednoho člověka: ' + (d.chybyUcty[0].uname || '?') + (d.chybyUcty[0].ver ? ' (' + d.chybyUcty[0].ver + ')' : ''), s: 'zacyklená smyčka, nebo rozbitý telefon — ' + (d.chybyUcty[0].acc ? 'klepni: pohled na jeho účet a co mu padá' : 'koukni na Deník člověka'), go: d.chybyUcty[0].acc ? 'pohled:' + d.chybyUcty[0].acc : 'errors' });
         if (g && g.body && g.body.length && d.poslBod && Date.now() - d.poslBod > PRAHY.bezBoduDni * 864e5)
             out.push({ w: 1, t: 'Od ' + datum(d.poslBod) + ' nikdo nesynchronizoval body', s: 'za 14 dní přitom chodily — vypadla synchronizace, nebo nikdo neměří?', go: 'prehled' });
         if (d.dotazyDnes > PRAHY.dotazyPodil * 100000)
@@ -233,7 +233,7 @@
             var vyp7 = (d.vyprsi || []).filter(function (u) { return dni(u.tarif_do) <= 7; }).length;
             box.innerHTML = (stare && !r ? '' : '') +
                 tile(d.lidi24, 'lidí za 24 h', 'prehled') + tile(d.body24, 'bodů za 24 h', 'prehled') + tile((d.online || []).length, 'v terénu teď', 'prehled', (d.online || []).length ? 'ok' : '') +
-                tile(d.zadosti, 'žádostí o Pro', 'zadosti', d.zadosti ? 'warn' : '') + tile(d.zpravy, 'zpráv čeká', 'zpravy', d.zpravy ? 'warn' : '') + tile(d.chyby24, 'chyb za 24 h', 'errors', d.chyby24 ? 'bad' : '') +
+                tile(d.zadosti, 'žádostí o Pro', 'zadosti', d.zadosti ? 'warn' : '') + tile(d.zpravy, 'zpráv čeká', 'zpravy', d.zpravy ? 'warn' : '') + tile(d.chyby24, _okno === 'minule' ? 'chyb od minula' : (_okno === 72 ? 'chyb za 3 dny' : 'chyb za 24 h'), 'errors', d.chyby24 ? 'bad' : '') +
                 (vyp7 ? tile(vyp7, 'Pro končí brzy', 'kalendar', 'warn') : '') + (d.ucty24 ? tile(d.ucty24, 'nových účtů', 'lide') : '')
                 + grafyBtn('7 / 30 / 90 dní po dnech: lidé, akce, body, chyby, verze, nástroje')
                 + (stare && d === stare ? '<div class="agvp-star" style="grid-column:1/-1;">⚠ Server teď neodpověděl — čísla jsou <b>z ' + esc(cas(_cacheTs)) + '</b>.</div>' : '');
@@ -250,6 +250,8 @@
         return '<div class="agvp-t' + (cls ? ' ' + cls : '') + '" data-go="' + go + '"><b>' + (n == null ? '—' : n) + '</b><small>' + popis + '</small></div>';
     }
     function otevri(kam) {
+        // 'pohled:<id účtu>' — z hlídače „chyba u jednoho člověka" rovnou na jeho účet (15. 9. 2026)
+        if (typeof kam === 'string' && kam.indexOf('pohled:') === 0) { pohled(kam.slice(7)); return; }
         if (kam === 'zadosti' || kam === 'lide') {
             var go = function () { try { AGVlastnik.close(); AGProdej.open(kam === 'zadosti' ? 'zad' : 'lide'); } catch (e) { swallow(e, 'prodej'); } };
             if (window.AGProdej) go(); else if (window.AGLazy) AGLazy.need('js/prodej-konzole.js', go);
@@ -276,7 +278,7 @@
             if (!plati('prehled')) return;
             var vypadek = false;
             if (!d && stare) { d = stare; vypadek = true; }
-            if (!d) { x.sayFail(r || { status: 0 }, 'souhrn'); jdi(''); return; }
+            if (!d) { x.fail(b, r || { status: 0 }, 'souhrn', function () { viewPrehled(b); }); return; }
             var oknoTxt = _okno === 'minule' ? 'od tvé poslední návštěvy' : (_okno === 72 ? 'za poslední 3 dny' : 'za posledních 24 hodin');
             var h = [x.hlava('Souhrn dne', 'Napříč všemi firmami, ' + oknoTxt + '. <button type="button" class="agv-b" id="agvp-refresh">znovu</button>')];
             h.push('<div class="agvp-min"><button type="button" class="agv-b' + (_okno === 24 ? ' on' : '') + '" data-okno="24">24 h</button><button type="button" class="agv-b' + (_okno === 72 ? ' on' : '') + '" data-okno="72">3 dny</button>' + (posledniNavsteva() ? '<button type="button" class="agv-b' + (_okno === 'minule' ? ' on' : '') + '" data-okno="minule">od minula</button>' : '') + '</div>');
@@ -333,7 +335,7 @@
             x.cekam(b, 'Načítám deník…');
             api('/owner/log').then(function (r) {
                 if (!plati('denik')) return;
-                if (!r.ok) { x.sayFail(r, 'deník'); jdi(''); return; }
+                if (!r.ok) { x.fail(b, r, 'deník', function () { viewDenik(b); }); return; }
                 _log = r.data || { rows: [] }; viewDenik(b);
             });
             return;
@@ -366,7 +368,7 @@
         x.cekam(b, 'Načítám účty…');
         nactiUcty(function (ucty, r) {
             if (!plati('kalendar')) return;
-            if (!ucty) { x.sayFail(r, 'účty'); jdi(''); return; }
+            if (!ucty) { x.fail(b, r, 'účty', function () { viewKalendar(b); }); return; }
             _ucty = ucty;
             var ted = Date.now();
             var pro = ucty.filter(function (u) { return u.tarif === 'pro' && u.tarif_do; }).sort(function (a, c) { return a.tarif_do - c.tarif_do; });
@@ -466,7 +468,7 @@
             x.cekam(b, 'Skládám pohled účtu…');
             api('/owner/ucty/' + encodeURIComponent(_pohledId) + '/pohled').then(function (r) {
                 if (!plati('pohled')) return;
-                if (!r.ok) { x.sayFail(r, 'pohled'); jdi(''); return; }
+                if (!r.ok) { x.fail(b, r, 'pohled', function () { viewPohled(b); }); return; }
                 _pohled = r.data; viewPohled(b);
             });
             return;
@@ -511,6 +513,9 @@
     }
 
     // ---- TEČKA „NĚCO ČEKÁ" NA VSTUPECH -----------------------------------------------------
+    // zvenčí (schránka po Vyřízeno/Smazat): tečka se přepočítá hned, ne až za 5 minut —
+    // uživatel: „ukazuje mi to dvě upozornění, ale reálně tam nic není" (15. 9. 2026)
+    function badgeRefresh() { _liteTs = 0; badge(); }
     function badge() {
         if (!isOn()) { odznak(0); return; }
         if (Date.now() - _liteTs < 5 * 60000) { odznak(_lite ? (_lite.zadosti + _lite.zpravy) : 0); return; }
@@ -706,7 +711,7 @@
                 if (!plati('grafy')) return;
                 if (!r.ok || !r.data) {
                     if (_grafy) { _grafyDni = _grafy.dni; viewGrafy(b, r); return; }   // výpadek: poslední známé grafy se štítkem
-                    x.sayFail(r, 'grafy'); jdi(''); return;
+                    x.fail(b, r, 'grafy', function () { viewGrafy(b); }); return;
                 }
                 _grafy = r.data;
                 if (_grafy.dni == null) _grafy.dni = _grafyDni;   // starší worker (< v20) dni nevrací — jinak by se dotaz točil
@@ -745,7 +750,7 @@
             x.cekam(b, 'Počítám trychtýř…');
             api('/owner/trychtyr?dni=' + _trDni).then(function (r) {
                 if (!plati('trychtyr')) return;
-                if (!r.ok || !r.data) { x.sayFail(r, 'trychtýř'); jdi(''); return; }
+                if (!r.ok || !r.data) { x.fail(b, r, 'trychtýř', function () { viewTrychtyr(b); }); return; }
                 _tr = r.data; viewTrychtyr(b);
             });
             return;
@@ -780,7 +785,7 @@
         Promise.all([api('/owner/kapacita'), api('/health')]).then(function (rs) {
             if (!plati('kapacita')) return;
             var r = rs[0], hh = rs[1].data || {};
-            if (!r.ok || !r.data) { x.sayFail(r, 'kapacita'); jdi(''); return; }
+            if (!r.ok || !r.data) { x.fail(b, r, 'kapacita', function () { viewKapacita(b); }); return; }
             var d = r.data;
             var h = [x.hlava('Stav serveru a kapacita', 'Cloudflare zdarma: 100 000 požadavků denně a 500 MB databáze. Free plán ti nic neřekne předem — jednoho dne prostě přestane odpovídat; tady to uvidíš měsíce dopředu.')];
             h.push('<div class="agv-st">Worker <b>v' + esc(String(hh.v == null ? '?' : hh.v)) + '</b> · konzole ' + (hh.owner ? '<span class="ok">zapnutá</span>' : '<span class="bad">vypnutá</span>') + ' · klíč <span class="ok">sedí</span> · schránka ' + (hh.fb ? '<span class="ok">ano</span>' : '<span class="bad">ne</span>') + '</div>');
@@ -814,7 +819,7 @@
         x.cekam(b, 'Počítám, co je staré…');
         api('/owner/uklid?dni=' + _uklDni).then(function (r) {
             if (!plati('uklid')) return;
-            if (!r.ok || !r.data) { x.sayFail(r, 'úklid'); jdi(''); return; }
+            if (!r.ok || !r.data) { x.fail(b, r, 'úklid', function () { viewUklid(b); }); return; }
             var n = r.data.nahled || {};
             var h = [x.hlava('Úklid starých dat', 'Smaže se jen to, co zaškrtneš, a až po potvrzení s počty. <b>Body a zakázky se neuklízí nikdy.</b> Účty jen ty, do kterých se za půl roku nikdo nepřihlásil a nemají žádné členství.')];
             h.push('<div class="agvp-min">' + [90, 180, 365].map(function (d0) { return '<button type="button" class="agv-b' + (_uklDni === d0 ? ' on' : '') + '" data-dni="' + d0 + '">starší než ' + d0 + ' dní</button>'; }).join('') + '</div>');
@@ -861,7 +866,7 @@
         Promise.all([api('/owner/push'), navigator.serviceWorker ? navigator.serviceWorker.getRegistration().catch(function () { return null; }) : Promise.resolve(null)]).then(function (rs) {
             if (!plati('push')) return;
             var r = rs[0], reg = rs[1];
-            if (!r.ok || !r.data) { x.sayFail(r, 'upozornění'); jdi(''); return; }
+            if (!r.ok || !r.data) { x.fail(b, r, 'upozornění', function () { viewPush(b); }); return; }
             var d = r.data;
             (reg && reg.pushManager ? reg.pushManager.getSubscription().catch(function () { return null; }) : Promise.resolve(null)).then(function (sub) {
                 if (!plati('push')) return;
@@ -1034,7 +1039,7 @@
             x.cekam(b, 'Sbírám zprávy, hodnocení a chyby…');
             Promise.all([api('/feedback?stav=open'), api('/owner/errors?dni=14'), api('/owner/grafy')]).then(function (rs) {
                 if (!plati('hlaseni')) return;
-                if (!rs[0].ok && !rs[1].ok) { x.sayFail(rs[0], 'hlášení'); jdi(''); return; }
+                if (!rs[0].ok && !rs[1].ok) { x.fail(b, rs[0], 'hlášení', function () { viewHlaseni(b); }); return; }
                 _hl = { fb: rs[0].ok ? rs[0].data : { messages: [] }, errors: rs[1].ok ? rs[1].data : {}, grafy: rs[2].ok ? rs[2].data : null };
                 _hl.txt = slozHlaseni(_hl);
                 viewHlaseni(b);
@@ -1086,5 +1091,5 @@
 
     // zapomen(): paměť pohledů propadne (data zůstanou pro štítek „z 18:40, nenačteno"); zapomen(true) = smazat úplně
     function zapomen(vse) { _cacheTs = 0; _g14Ts = 0; if (vse) { _cache = null; _grafy = null; _g14 = null; _hl = null; _tr = null; } }
-    window.AGVlastnikPlus = { view: view, dashboard: dashboard, items: function () { return []; }, pohled: pohled, csv: csv, ulozSoubor: ulozSoubor, badge: badge, zapomen: zapomen };
+    window.AGVlastnikPlus = { view: view, dashboard: dashboard, badgeRefresh: badgeRefresh, items: function () { return []; }, pohled: pohled, csv: csv, ulozSoubor: ulozSoubor, badge: badge, zapomen: zapomen };
 })();

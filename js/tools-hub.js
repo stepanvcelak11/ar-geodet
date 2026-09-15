@@ -100,7 +100,7 @@
         {
             id: 'podklady-katastr', label: 'Podklady<br>a katastr', title: 'Podklady a katastr', cat: 'Katastr a data', order: 5,
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3.5L3 6.5v14l6-3 6 3 6-3v-14l-6 3-6-3z"/><path d="M9 3.5v14M15 6.5v14"/></svg>',
-            poradi: ['prohlidka', 'cadastre-vector', 'cadastre-area', 'vektor-mapa', 'balicek-zakazky'],
+            poradi: ['prohlidka', 'cadastre-vector', 'cadastre-area', 'vektor-mapa', 'balicek-zakazky', 'oblasti-offline'],
             sub: 'Co si přitáhneš do mapy a do AR. (Katastr „kde právě stojím" má vlastní dlaždici — to je jedno klepnutí.)'
         },
         {

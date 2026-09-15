@@ -3317,8 +3317,17 @@
         // pojistka: kdyby cokoli selhalo, úvodní obrazovka se nesmí zaseknout skrytá
         // pojistka: kdyz po 6 s nestoji zadna brana a appka porad nebezi, spustit ji
         // (jinak by uzivatel koukal na zamcenou prazdnou obrazovku)
+        // ⚠⚠ PRŮVODCE „DALŠÍ MOŽNOSTI" BRÁNU ZASTUPUJE (15. 9. 2026): klepnutí na „Další
+        //   možnosti" bránu z DOM ODSTRANÍ (agg-new → ov.remove()) a otevře průvodce
+        //   (#agfa-modal). Když v tu chvíli doběhlo těchhle 6 s, pojistka viděla „žádná
+        //   brána" a appku SPUSTILA — a po zavření průvodce byl člověk uvnitř bez účtu
+        //   (uživatel: „dostal jsem se dovnitř, aniž bych se přihlašoval"). Stejný seznam
+        //   zástupců brány jako v gateCheck().
         setTimeout(function () {
-            if (document.getElementById('ag-login') || document.getElementById('ag-gate')) return;
+            if (document.getElementById('ag-login') || document.getElementById('ag-gate')
+                || document.getElementById('ag-reg') || document.getElementById('ag-kod')) return;
+            var w = document.getElementById('agfa-modal');
+            if (w && w.style.display === 'flex') return;
             enterApp();
         }, 6000);
         // periodické srovnání UI (mřížku Nástrojů překreslují jiné moduly) + auto-zámek
@@ -3395,6 +3404,7 @@
         showProstory: showProstory,
         showRegister: showRegister,
         isOwner: isOwner,
+        gateCheck: gateCheck,   // průvodce (ucty-admin.js) po zavření bránu vrátí hned, ne až tikem
         showFirmy: showFirmy,
         // Face ID / odemknutí telefonem (WebAuthn) — pro vlastníka (js/vlastnik.js)
         bio: { supported: bioSupported, available: bioAvailable, enroll: bioEnroll, verify: bioVerify, forget: bioForget },

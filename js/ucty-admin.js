@@ -277,7 +277,9 @@
             '  <div class="agfa-firmbar" id="agfa-firmbar"></div>' +
             '  <div class="agfa-nav" id="agfa-nav"></div>' +
             '  <div class="modal-body" id="agfa-body" style="flex:1;overflow-y:auto;"></div>' +
-            '  <button class="btn btn-secondary" style="margin-top:12px;" onclick="document.getElementById(\'agfa-modal\').style.display=\'none\'">Zavřít</button>' +
+            // Zavřít bez dokončení = brána HNED zpět (AGUcty.gateCheck), ne až tikem po 2 s —
+            // v té mezeře pojistka startu (ucty.js, 6 s) pouštěla dovnitř bez účtu (15. 9. 2026)
+            '  <button class="btn btn-secondary" style="margin-top:12px;" onclick="document.getElementById(\'agfa-modal\').style.display=\'none\'; try { window.AGUcty && AGUcty.gateCheck && AGUcty.gateCheck(); } catch (e) {}">Zavřít</button>' +
             '</div>';
         document.body.appendChild(m);
         return m;

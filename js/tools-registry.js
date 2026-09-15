@@ -301,6 +301,8 @@
           help: { t: 'Vektorová mapa offline' } },
         { k: 'balicek-zakazky', fn: 'openBalicekZakazky', pro: 1, inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Sbalit zakázku pro terén', vh: 'mapa, katastr a body kolem ZAKÁZKY, ne kolem mě', keys: 'sbalit balicek offline pred vyjezdem stahnout mapu katastr body zakazka kancelar wifi priprava',
           help: { t: 'Sbalit zakázku' } },
+        { k: 'oblasti-offline', fn: 'agOpenOblasti', pro: 1, inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Stáhnout okres, kraj nebo celou ČR', vh: 'všechny úřední body + přehledová mapa v telefonu — jako Pokémon Go', keys: 'stahnout okres kraj cela cr republika oblast offline body bodove pole mapa telefon pokemon bez signalu plynule nacitani balicek',
+          help: { t: 'Stáhnout oblast' } },
         { k: 'bodove-pole', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Nejbližší známý bod', vh: 'kam dojít na ověření / kotvu GPS', keys: 'znamy bod bodove pole trigonometricky zhustovaci pbpp nivelacni nejblizsi overeni kotva cuzk kam dojit',
           help: { t: 'Nejbližší známý bod' } },
         { k: 'parcela', fn: 'agOpenParcela', pro: 1, w: 1, cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Parcela — geometrie a dělení', keys: 'parcela geometrie deleni vymera obvod smerniky dily',

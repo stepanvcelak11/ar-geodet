@@ -441,6 +441,9 @@
         try { L.control.scale({ imperial: false, position: 'bottomleft', maxWidth: 90 }).addTo(m); } catch (e) { }
         function usad() {
             try {
+                // karta zavřená dřív, než doběhla animace → mapka už v DOM není (jinak
+                // Leaflet hodí „Cannot set properties of undefined" a appka ukáže chybu)
+                if (!m || !m._container || !document.body.contains(m._container)) return;
                 m.invalidateSize();
                 if (pts.length > 1) m.fitBounds(pts, { padding: [28, 28], maxZoom: 21 });
                 else m.setView([pt.lat, pt.lng], 19.5);

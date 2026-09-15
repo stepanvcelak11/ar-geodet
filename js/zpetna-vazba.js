@@ -618,6 +618,8 @@
             _inboxState.konec = msgs.length < 60;
             m.querySelector('#ag-fb-open-n').textContent = r.data && r.data.open ? '· ' + r.data.open + ' nevyřízených' : '';
             renderInbox();
+            // tečka „něco čeká" v konzoli vlastníka má stejné číslo — přepočítat hned (js/vlastnik-plus.js)
+            try { if (window.AGVlastnikPlus && AGVlastnikPlus.badgeRefresh) AGVlastnikPlus.badgeRefresh(); } catch (e) { swallow(e, 'badge'); }
         });
     }
 

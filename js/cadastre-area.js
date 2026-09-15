@@ -24,7 +24,11 @@
     'use strict';
 
     var ENDPOINT = 'https://ags.cuzk.gov.cz/arcgis/rest/services/BodovaPole/MapServer';
-    var LAYERS = [1, 2, 4, 5, 6];          // shodné s fetchGeodata() v logika.js
+    // 15. 9. 2026: dotazy po vrstvách zrušeny — identify(layers=all) vrací všechny
+    // vrstvy naráz a o významu vrstvy (popisek, zrušený bod, kategorie) rozhoduje
+    // agCuzkBod() v logika.js, stejně jako u fetchGeodata(). Prázdný seznam =
+    // jen identify.
+    var LAYERS = [];
     var FETCH_MS = 15000;                   // timeout jednoho dotazu
     var MAX_BBOX_M = 1500;                  // pojistka: moc velká oblast = zahltí ČÚZK i appku
 
@@ -99,8 +103,10 @@
         var TOTAL = LAYERS.length + 1;   // +1 za identify krok
 
         // přidá bod (jen uvnitř bboxu, dedup podle jméno+poloha)
-        function addPoint(g, attrs) {
+        function addPoint(g, attrs, layerId) {
             if (!g || typeof g.x !== 'number' || typeof g.y !== 'number') return;
+            // popisky (duplikáty) a zrušené body ven — viz AG_CUZK_VRSTVY v logika.js
+            if (layerId != null && typeof window.agCuzkBod === 'function') { try { if (!window.agCuzkBod(layerId, attrs, g.x, g.y, 0)) return; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-area:addPoint'); } }
             var lat = g.y, lng = g.x;
             if (lat < bbox.s - 1e-9 || lat > bbox.n + 1e-9 || lng < bbox.w - 1e-9 || lng > bbox.e + 1e-9) return;
             var nm = pointName(attrs);
@@ -124,7 +130,7 @@
                 '&imageDisplay=1000,1000,96&returnGeometry=true&f=json';
             return fetchJson(idUrl).then(function (idData) {
                 if (idData && idData.results && idData.results.length) {
-                    idData.results.forEach(function (res) { addPoint(res.geometry, res.attributes); });
+                    idData.results.forEach(function (res) { addPoint(res.geometry, res.attributes, res.layerId); });
                 }
             }).catch(function () { errCount++; });
         }

@@ -2,6 +2,31 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 319,
+   "datum": "2026-09-15",
+   "nadpis": "Okres, kraj nebo celá ČR v telefonu — body bez načítání; úřední body správně roztříděné",
+   "body": [
+    "<b>Stáhnout oblast</b> (Nástroje → Podklady a katastr): jako v Pokémon Go si stáhneš <b>všechny úřední body</b> celého okresu, kraje nebo republiky (~635 000 bodů) a k nim přehledovou mapu. Při chůzi se pak body neberou ze sítě, ale z telefonu — naskočí hned (12 ms místo sekund) a fungují bez signálu. Stahování jde přerušit a dokončit později; balíčky jdou aktualizovat a mazat.",
+    "<b>Oprava třídění úředních bodů:</b> appka se ptala ČÚZK na vrstvy, které služba dávno přečíslovala — trigonometrický bod se ukazoval jako „zhušťovací“, zhušťovací jako „podrobný“ a <b>zrušené body</b> vypadaly jako platné. Teď se čte všech 16 vrstev správně (TB, ZhB, PPBP, nivelace ZVBP/PVBP i tíhové body) a zrušené se nezobrazují.",
+    "<b>Karta úředního bodu</b> nově ukazuje druh bodu, <b>úplné dvanáctimístné číslo</b> (ne jen „28“), katastrální území a okres, třídu přesnosti (PPBP), nivelační pořad a u bodů určených v ETRS89 elipsoidickou výšku.",
+    "<b>Přesnější výška z GPS:</b> u bodů určených v ETRS89 zná ČÚZK i elipsoidickou výšku, takže appka spočítá skutečnou odchylku geoidu na místě (na centimetry) místo vzorce s chybou 1–2 m — přenos GPS výšky na Bpv je tím přesnější v celé appce (export, dvojí měření, výška bodu).",
+    "<b>Méně dotazů na ČÚZK:</b> jedna dávka bodů za chůze = 1 dotaz místo 6 (stejná data). Jednodušší i pro slabý signál.",
+    "<b>Jazyk na přihlašovací obrazovce:</b> po přepnutí jazyka zůstávalo přihlášení, registrace i kód účtu česky — texty chyběly ve slovníku. Doplněno (EN/DE/PL)."
+   ]
+  },
+  {
+   "v": 318,
+   "datum": "2026-09-15",
+   "nadpis": "Brána bez díry, konzole vlastníka drží, kamera z Playe s návodem",
+   "body": [
+    "<b>Oprava:</b> „Další možnosti“ na přihlašovací obrazovce a hned Zavřít mohlo pustit dovnitř bez účtu (pojistka startu viděla „žádná brána“). Průvodce teď bránu vrátí hned a pojistka ho bere jako bránu.",
+    "<b>Protokol chyb</b> už nezapisuje nenačtené dlaždice mapy (chvíle bez signálu) — 18 z 20 záznamů bylo tohle a skutečné chyby v nich zapadaly. Totéž platí pro Chyby od lidí v konzoli.",
+    "<b>Konzole vlastníka:</b> když server neodpoví (slabý signál, brzda), pohled zůstane otevřený s důvodem a „Zkusit znovu“ — dřív vyskočil alert a konzole skočila na rozcestník („nejde rozkliknout“). Tečka „něco čeká“ se po vyřízení zpráv přepočítá hned. Hlídač „chyba u jednoho člověka“ vede rovnou na jeho účet. Dlaždice chyb má popisek podle zvoleného období.",
+    "<b>Kamera z Google Play:</b> když je zakázaná, návod říká, kde ji povolit — v Chromu (Nastavení telefonu → Aplikace → Chrome → Kamera a Chrome → Nastavení webu → Kamera), ne v neexistujícím adresním řádku.",
+    "<b>Kdo jsi?</b> při zakládání účtu vysvětluje rozdíl Student / Geodet / Firma konkrétně (zaměstnanec = Geodet a kód od šéfa; Firma = šéf, který lidi vede) a radí: nevíš → Geodet."
+   ]
+  },
+  {
    "v": 317,
    "datum": "2026-09-14",
    "nadpis": "Nastavení začíná dosahem bodů, mapa se otáčí hladce, klepnutí se neztrácí",

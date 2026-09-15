@@ -63,7 +63,14 @@
     window.addEventListener('error', function (ev) {
         // chyba načtení zdroje (img/script) nemá message - zaznamenat stručně
         if (ev && ev.target && ev.target !== window && (ev.target.src || ev.target.href)) {
-            record('Nepodařilo se načíst: ' + (ev.target.src || ev.target.href), '', 0, 0, '');
+            // ⚠ OBRÁZKY (dlaždice mapy, ortofoto, katastr WMS) SE NEZAPISUJÍ (15. 9. 2026):
+            //   v protokolu chyb bylo 18 z 20 záznamů „Nepodařilo se načíst tile.openstreetmap…"
+            //   = chvíle bez signálu v terénu, ne chyba appky. Zahltily protokol i konzoli
+            //   vlastníka (Chyby od lidí) a skutečné chyby v nich zapadly. Skripty a styly
+            //   se hlásí dál — ty jsou chyba nasazení.
+            var _t = ev.target, _u = String(_t.src || _t.href || '');
+            if ((_t.tagName && _t.tagName.toUpperCase() === 'IMG') || /tile\.openstreetmap|cuzk\.gov\.cz|cuzk\.cz\/wms|rainviewer|arcgis/i.test(_u)) return;
+            record('Nepodařilo se načíst: ' + _u, '', 0, 0, '');
             return;
         }
         if (!ev) return;

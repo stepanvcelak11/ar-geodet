@@ -1446,6 +1446,7 @@ export default {
             // Starsi nasazeny worker tuhle polozku nema, takze podle ni pozna appka,
             // ze na serveru bezi stara verze — viz js/hodinky-parovani.js.
             //
+            // v:23 = prehled.chybyUcty[].acc (id uctu k hlidaci chyb).
             // v:22 = /feedback prijima kind 'odpoved' (odpoved cloveka na vzkaz od vlastnika).
             // v:21 = POST /account/delete (smazani uctu na vlastni zadost — pozadavek Google Play).
             // v:12 = prodej Pro: /objednavky, /owner/objednavky, /owner/blokace, cron s Fio.
@@ -1459,7 +1460,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 22, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 23, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
 
             // ---------------- BRZDA VYDÁNÍ (12. 9. 2026) ---------------------
             // Vlastník vyvíjí a testuje na svém telefonu, ale lidem venku nesmí
@@ -1962,7 +1963,8 @@ export default {
                     let noviLide = [], topChyba = null, chybyUcty = [], poslBod = 0, dotazyDnes = 0;
                     try { noviLide = (await dbAll(env, 'SELECT name, code, ver, created FROM accounts WHERE created>=? ORDER BY created DESC LIMIT 10', od)) || []; } catch (e) {}
                     try { topChyba = await dbFirst(env, 'SELECT msg, SUM(n) AS n FROM errors WHERE ts>=? GROUP BY sig ORDER BY n DESC LIMIT 1', od); } catch (e) {}
-                    try { chybyUcty = (await dbAll(env, 'SELECT uname, SUM(n) AS n, MAX(ver) AS ver FROM errors WHERE ts>=? GROUP BY uname ORDER BY n DESC LIMIT 3', od)) || []; } catch (e) {}
+                    // acc = id účtu podle jména v users (15. 9. 2026): hlídač „chyba u jednoho člověka" vede rovnou na pohled účtu
+                    try { chybyUcty = (await dbAll(env, 'SELECT e.uname, SUM(e.n) AS n, MAX(e.ver) AS ver, (SELECT u.acc_id FROM users u WHERE u.name=e.uname AND u.acc_id IS NOT NULL ORDER BY u.last_login DESC LIMIT 1) AS acc FROM errors e WHERE e.ts>=? GROUP BY e.uname ORDER BY n DESC LIMIT 3', od)) || []; } catch (e) {}
                     try { const r = await dbFirst(env, 'SELECT MAX(srv) AS ts FROM sync_points WHERE deleted=0'); poslBod = (r && r.ts) || 0; } catch (e) {}
                     try { const r = await dbFirst(env, 'SELECT n FROM stats WHERE day=?', new Date(ted).toISOString().slice(0, 10)); dotazyDnes = (r && r.n) || 0; } catch (e) {}
                     const lidi24 = await cnt('SELECT COUNT(DISTINCT uid) AS n FROM usage WHERE ts>=?', od);

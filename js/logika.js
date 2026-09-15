@@ -1153,7 +1153,20 @@ if ('serviceWorker' in navigator) {
         // VYSKA: coords.altitude je elipsoidicka (WGS84). Pro Bpv (vyska nad morem v CR) odecist
         // undulaci kvazigeoidu CR-2005 (~44-47 m). Linearni aproximace, presnost ~1-2 m
         // (hluboko pod svislou chybou telefonni GPS), odstranuje systematicky posun ~45 m.
-        function getGeoidUndulation(lat, lng) { if (typeof GeoCore !== 'undefined' && GeoCore.geoidUndulation) return GeoCore.geoidUndulation(lat, lng); return 45.5 + 0.55 * (lng - 15.5) - 0.4 * (lat - 49.8); }
+        // UNDULACE GEOIDU: vzorec (±1–2 m) zpřesněný nejbližším bodem ČÚZK určeným
+        // v ETRS89 (HEL − Bpv, viz agGeoidLocal) — přenáší se rozdíl vůči vzorci,
+        // takže sklon geoidu mezi bodem a místem drží vzorec a hodnotu bod.
+        function getGeoidUndulation(lat, lng) {
+            const vz = (typeof GeoCore !== 'undefined' && GeoCore.geoidUndulation) ? GeoCore.geoidUndulation(lat, lng) : (45.5 + 0.55 * (lng - 15.5) - 0.4 * (lat - 49.8));
+            try {
+                const loc = window.agGeoidLocal ? window.agGeoidLocal(lat, lng) : null;
+                if (loc && loc.N != null && isFinite(loc.N) && Math.abs(loc.N - 45) < 5) {
+                    const vzBod = (typeof GeoCore !== 'undefined' && GeoCore.geoidUndulation) ? GeoCore.geoidUndulation(loc.lat, loc.lng) : (45.5 + 0.55 * (loc.lng - 15.5) - 0.4 * (loc.lat - 49.8));
+                    return loc.N + (vz - vzBod);
+                }
+            } catch (e) { /* vzorec stačí */ }
+            return vz;
+        }
         // ============================================================================
         // AGPose — JEDINÝ zdroj pravdy o poloze/orientaci "stanoviska" pro AR i měřické
         // moduly. Dřív se přesná póza z resekce (solveResection) spočítala a ZAHODILA;
@@ -1429,6 +1442,162 @@ if ('serviceWorker' in navigator) {
         // stabilni ID z polohy bodu -> pri opakovanem fetchi si bod udrzi stejne id (zvyrazneni, detail)
         function stableId(lat, lng) { return 'p_' + lat.toFixed(6) + '_' + lng.toFixed(6); }
 
+        // ============================================================================
+        // BODOVÁ POLE ČÚZK — CO KTERÁ VRSTVA SLUŽBY ZNAMENÁ (ověřeno 15. 9. 2026
+        // proti ags.cuzk.gov.cz/arcgis/rest/services/BodovaPole/MapServer).
+        // ⚠⚠ Do 15. 9. 2026 appka stahovala vrstvy [1, 2, 4, 5, 6] a třídila je
+        //   „1 = TB, 2 = ZhB, 4/5 = nivelace". Číslování služby ale je jiné:
+        //   1 = POPISKY stanic CZEPOS, 2/4 = ZPBP (trigonometrické) v ETRS89,
+        //   5 = jen popisky, 6 = přidružený bod. Zhušťovací body (22–40), PPBP (42),
+        //   nivelace (44/46) ani tíhové body (48) se přes vrstvy nestahovaly vůbec
+        //   — zachraňoval to jen záložní identify(layers=all), který je ale třídil
+        //   podle téhož špatného klíče: trigonometrický bod skončil jako „ZhB",
+        //   ZhB jako „PBPP" a ZRUŠENÉ body (vrstvy 10–16, 30–36) se ukazovaly
+        //   jako platné. Tahle tabulka je teď JEDINÉ místo, kde se o vrstvě
+        //   rozhoduje; čte ji fetchGeodata, js/cadastre-area.js i balíčky oblastí.
+        //   cat = kategorie appky (filtry, barvy, ikony), druh = text do karty,
+        //   etrs = souřadnice B/L/HEL jsou přímo ETRS89 (kotva pro GNSS),
+        //   zrus = zrušený bod (nezobrazuje se), lbl = jen popisky (duplikát).
+        const AG_CUZK_VRSTVY = {
+            0: { lbl: 1 }, 1: { lbl: 1 },                                   // stanice CZEPOS — na střechách, ne v terénu
+            2: { cat: 'TB', druh: 'Trigonometrický bod (ZPBP) — ETRS89 static', etrs: 1 },
+            4: { cat: 'TB', druh: 'Trigonometrický bod (ZPBP) — ETRS89 RTK', etrs: 1 },
+            6: { cat: 'TB', druh: 'Přidružený bod k TB — ETRS89', etrs: 1 },
+            8: { cat: 'TB', druh: 'Přidružený bod k TB — ETRS89 RTK', etrs: 1 },
+            10: { zrus: 1 }, 12: { zrus: 1 }, 14: { zrus: 1 }, 16: { zrus: 1 },
+            18: { cat: 'TB', druh: 'Trigonometrický bod (ZPBP)' },
+            20: { cat: 'TB', druh: 'Přidružený bod k TB' },
+            22: { cat: 'ZHB', druh: 'Zhušťovací bod — ETRS89 static', etrs: 1 },
+            24: { cat: 'ZHB', druh: 'Zhušťovací bod — ETRS89 RTK', etrs: 1 },
+            26: { cat: 'ZHB', druh: 'Přidružený bod k ZhB — ETRS89', etrs: 1 },
+            28: { cat: 'ZHB', druh: 'Přidružený bod k ZhB — ETRS89 RTK', etrs: 1 },
+            30: { zrus: 1 }, 32: { zrus: 1 }, 34: { zrus: 1 }, 36: { zrus: 1 },
+            38: { cat: 'ZHB', druh: 'Zhušťovací bod' },
+            40: { cat: 'ZHB', druh: 'Přidružený bod k ZhB' },
+            42: { cat: 'PBPP', druh: 'Podrobný polohový bod (PPBP)' },
+            44: { cat: 'NIVEL', druh: 'Základní nivelační bod (ZVBP)' },
+            46: { cat: 'NIVEL', druh: 'Podrobný nivelační bod (PVBP)' },
+            48: { cat: 'TB', druh: 'Tíhový bod (ZTBP)' }
+        };
+        // Vrstvy s BODY (bez popisků, bez zrušených) — tohle se stahuje dotazem po vrstvách.
+        const AG_CUZK_BODOVE_VRSTVY = Object.keys(AG_CUZK_VRSTVY).map(Number).filter(k => AG_CUZK_VRSTVY[k].cat);
+        window.AG_CUZK_VRSTVY = AG_CUZK_VRSTVY; window.AG_CUZK_BODOVE_VRSTVY = AG_CUZK_BODOVE_VRSTVY;
+
+        function _cuzkNum(v) { if (v == null) return null; const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; }
+        function _cuzkStr(v) { if (v == null) return null; const t = String(v).trim(); return (t === '' || t === 'Null') ? null : t; }
+        // Jeden prvek ze služby BodovaPole → bod appky. Vrací null u popisků, zrušených
+        // bodů a stanic CZEPOS (počítá je do `stat`, když je předané). Neznámé číslo
+        // vrstvy (kdyby ČÚZK službu zase přečíslovalo) padá na starou heuristiku
+        // podle tvaru čísla, aby body nezmizely — jen budou hůř roztříděné.
+        function agCuzkBod(layerId, props, lng, lat, dist, stat) {
+            const ln = parseInt(layerId, 10);
+            const v = AG_CUZK_VRSTVY[ln];
+            if (v && v.lbl) return null;
+            if (v && v.zrus) { if (stat) stat.zrusene = (stat.zrusene || 0) + 1; return null; }
+            const cisloBodu = extractPointNumber(props);
+            let cat, druh = null, etrs = false;
+            if (v) { cat = v.cat; druh = v.druh; etrs = !!v.etrs; }
+            else { const up = cisloBodu.toUpperCase(); cat = (up.includes('-') || up.includes('NIVEL')) ? 'NIVEL' : 'PBPP'; }
+            const g = (k) => { for (const key in props) if (key.toUpperCase() === k) return props[key]; return null; };
+            const pt = {
+                id: stableId(lat, lng), name: cisloBodu, lat: lat, lng: lng, cat: cat,
+                type: (cat === 'NIVEL' ? 'vyskovy' : 'polohovy'), rawData: props, hidden: false,
+                currentDist: (dist == null ? 0 : dist), bestAccuracy: null, vrstva: ln, druh: druh
+            };
+            // ÚPLNÉ ČÍSLO BODU (12 míst). TB/ZhB: 0009 + list ZTLTL(4) + číslo(3) + pořadové
+            // přidruženého PL(1). Appka do karty dřív dávala jen „28" — a takových je
+            // na každém triangulačním listu jedno. PPBP: kód k.ú.(6) + 00 + číslo(4).
+            const ztltl = _cuzkStr(g('ZTLTL')), cis = _cuzkNum(g('CISLO')), ku = _cuzkNum(g('CISLO_KU'));
+            if (ztltl && cis != null && (cat === 'TB' || cat === 'ZHB') && ln !== 48) {
+                const pl = _cuzkNum(g('PL')) || 0;
+                pt.cislo12 = '0009' + ('0000' + ztltl).slice(-4) + ('000' + Math.round(cis)).slice(-3) + String(pl).slice(-1);
+                pt.list = ztltl;
+            } else if (ku != null && cis != null && cat === 'PBPP') {
+                pt.cislo12 = ('000000' + Math.round(ku)).slice(-6) + '00' + ('0000' + Math.round(cis)).slice(-4);
+            }
+            pt.ku = _cuzkStr(g('NAZEV_KU')); pt.okres = _cuzkStr(g('NAZEV_OKRES'));
+            pt.vyska = _cuzkNum(g('VYSKA'));                          // Bpv (m); nivelace na mm
+            const pres = _cuzkNum(g('PRESNOST')); if (pres != null) pt.presnost = pres;   // PPBP: třída přesnosti
+            pt.porad = _cuzkStr(g('PORAD'));                          // nivelace: pořad (např. PNS-JM, KP)
+            pt.nazevBodu = _cuzkStr(g('NAZEV_BODU'));                 // tíhové body mají jméno
+            if (etrs) {
+                const B = _cuzkNum(g('B')), L = _cuzkNum(g('L')), HEL = _cuzkNum(g('HEL'));
+                // Souřadnice přímo z ETRS89 jsou přesnější než převod S-JTSK → WGS84
+                // na serveru (rozdíl ~10 cm) — pro kotvení GNSS na bod se berou ty.
+                if (B != null && L != null && Math.abs(B - lat) < 0.001 && Math.abs(L - lng) < 0.001) { pt.lat = B; pt.lng = L; pt.id = stableId(B, L); }
+                if (HEL != null) { pt.hel = HEL; if (pt.vyska != null) pt.geoidN = Math.round((HEL - pt.vyska) * 1000) / 1000; }
+                pt.metoda = _cuzkStr(g('GPS'));
+            }
+            return pt;
+        }
+        window.agCuzkBod = agCuzkBod;
+
+        // Řádky do karty bodu z toho, co normalizace vytáhla (grafika.js je vloží
+        // nad „všechny úřední záznamy"). Prázdné pole = nic navíc (vlastní bod).
+        function agCuzkKartaRows(pt) {
+            if (!pt || pt.cat === 'CUSTOM' || !pt.rawData) return '';
+            const esc = (t) => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            const row = (l, v) => `<div class="geo-data-row" style="border:none; padding: 4px 0;"><span class="geo-label" style="color:var(--text-color);">${l}:</span><span class="geo-value">${v}</span></div>`;
+            const f3 = (n) => n.toFixed(3).replace('.', ',');
+            let h = '';
+            if (pt.druh) h += row('Druh', esc(pt.druh));
+            if (pt.cislo12) h += row('Úplné číslo', `<span style="font-family:var(--font-mono,monospace);letter-spacing:.04em;">${esc(pt.cislo12)}</span>`);
+            if (pt.ku || pt.okres) h += row('Kat. území', esc([pt.ku, pt.okres].filter(Boolean).join(' · ')));
+            if (pt.presnost != null) h += row('Třída přesnosti', esc(pt.presnost) + ' <span style="opacity:.7;">(nižší = přesnější)</span>');
+            if (pt.porad) h += row('Nivelační pořad', esc(pt.porad));
+            if (pt.nazevBodu) h += row('Název', esc(pt.nazevBodu));
+            if (pt.hel != null) h += row('Elipsoidická výška (ETRS89)', f3(pt.hel) + ' m' + (pt.metoda ? ` <span style="opacity:.7;">${esc(pt.metoda)}</span>` : ''));
+            if (pt.geoidN != null) h += row('Odchylka geoidu N', f3(pt.geoidN) + ' m <span style="opacity:.7;">= výška GPS − Bpv zde</span>');
+            return h;
+        }
+        window.agCuzkKartaRows = agCuzkKartaRows;
+
+        // MÍSTNÍ UNDULACE GEOIDU z nejbližšího bodu určeného v ETRS89 (HEL − Bpv).
+        // Lineární vzorec v GeoCore má chybu 1–2 m; body ČÚZK s elipsoidickou výškou
+        // dávají N na centimetry a leží v průměru pár km od sebe. Bere se nejbližší
+        // do 15 km a přenáší se jen ROZDÍL vůči vzorci (sklon geoidu vzorec drží).
+        let _geoidMemo = { k: '', v: null };
+        window.agGeoidLocal = function (lat, lng) {
+            try {
+                const k = lat.toFixed(3) + ',' + lng.toFixed(3);
+                if (_geoidMemo.k === k) return _geoidMemo.v;
+                let best = null, bd = 15000;
+                for (let i = 0; i < arPoints.length; i++) {
+                    const p = arPoints[i]; if (p.geoidN == null) continue;
+                    const d = getDistance(lat, lng, p.lat, p.lng);
+                    if (d < bd) { bd = d; best = p; }
+                }
+                _geoidMemo = { k: k, v: best ? { N: best.geoidN, dist: bd, lat: best.lat, lng: best.lng, name: best.name } : null };
+                // Nic v načtených bodech → zkusit stažený balíček oblasti (asynchronně;
+                // tenhle dotaz vrátí vzorec, další už bod z balíčku).
+                if (!best && window.AGOblasti && AGOblasti.etrs) {
+                    AGOblasti.etrs(lat, lng).then(r => { if (r && _geoidMemo.k === k) _geoidMemo.v = r; }).catch(() => {});
+                }
+                return _geoidMemo.v;
+            } catch (e) { return null; }
+        };
+
+        // Sestavení bodů z odpovědi ČÚZK do arPoints (společné pro identify i dotazy po vrstvách).
+        // Vrací počet nově přidaných / obnovených bodů.
+        function _cuzkVlozBody(items, lat, lng, fetchRadius, najdi, pridej, stat) {
+            let n = 0;
+            items.forEach(it => {
+                if (!it || !it.geometry || !isFinite(it.geometry.x) || !isFinite(it.geometry.y)) return;
+                const dist = getDistance(lat, lng, it.geometry.y, it.geometry.x);
+                if (dist > fetchRadius + 5) return;
+                const pt = agCuzkBod(it.layerId, it.attributes, it.geometry.x, it.geometry.y, dist, stat);
+                if (!pt) return;
+                const existing = najdi(pt.name, pt.lat);
+                if (!existing) { arPoints.push(pt); pridej(pt); n++; }
+                else {
+                    if (existing.hidden) { existing.hidden = false; n++; }
+                    // Dřív stažený bod bez nových polí (starší verze appky) si je doplní.
+                    if (existing.druh == null && pt.druh) ['druh', 'cislo12', 'ku', 'okres', 'presnost', 'porad', 'hel', 'geoidN', 'metoda', 'vrstva', 'vyska', 'nazevBodu', 'list'].forEach(k => { if (pt[k] != null) existing[k] = pt[k]; });
+                }
+            });
+            return n;
+        }
+
         async function fetchGeodata(lat, lng, radius, clearExisting = false, onProgress = null) {
             lastFetchNetworkError = false; lastFetchServerError = false;
             if (clearExisting) { arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; persistentCustomPoints.forEach(pt => arPoints.push({...pt})); }
@@ -1449,15 +1618,55 @@ if ('serviceWorker' in navigator) {
                 for (let i = 0; i < a.length; i++) if (Math.abs(a[i].lat - la) < 0.00001) return a[i];
                 return undefined;
             };
-            const fetchRadius = radius || mapRadius; const latOffset = fetchRadius / 111320; const lngOffset = fetchRadius / (111320 * Math.cos(lat * Math.PI / 180)); const bbox = `${lng - lngOffset},${lat - latOffset},${lng + lngOffset},${lat + latOffset}`; let newFoundCount = 0;
-            let _gstep = 0; for (let layerId of [1, 2, 4, 5, 6]) { if (onProgress) onProgress(_gstep++, 6); 
-                const url = `https://ags.cuzk.gov.cz/arcgis/rest/services/BodovaPole/MapServer/${layerId}/query?where=1%3D1&geometry=${bbox}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&outSR=4326&f=json`;
-                try { const data = await _cuzkFetchJson(url); if (data && data.features && data.features.length > 0) { data.features.forEach(feat => { const dist = getDistance(lat, lng, feat.geometry.y, feat.geometry.x); if (dist <= fetchRadius + 5) { const props = feat.attributes; const layerNum = parseInt(layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = _najdiBod(cisloBodu, feat.geometry.y); if (!existing) { const _novy = { id: stableId(feat.geometry.y, feat.geometry.x), name: cisloBodu, lat: feat.geometry.y, lng: feat.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }; arPoints.push(_novy); _ixPridej(_novy); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:fetchGeodata'); }
+            const fetchRadius = radius || mapRadius; const latOffset = fetchRadius / 111320; const lngOffset = fetchRadius / (111320 * Math.cos(lat * Math.PI / 180));
+            const bbox = `${lng - lngOffset},${lat - latOffset},${lng + lngOffset},${lat + latOffset}`;
+            let newFoundCount = 0; const stat = {};
+            _geoidMemo = { k: '', v: null };
+
+            // 1) STAŽENÁ OBLAST V TELEFONU (js/oblasti-offline.js — okres/kraj/ČR).
+            //    Když je místo pokryté, body se berou z telefonu a na síť se nesahá
+            //    vůbec: žádné čekání, funguje bez signálu, ČÚZK dostane pokoj.
+            let zTelefonu = false;
+            try {
+                if (window.AGOblasti && AGOblasti.pokryto(lat, lng)) {
+                    if (onProgress) onProgress(1, 6);
+                    const loc = await AGOblasti.body(lat, lng, fetchRadius);
+                    if (loc) { newFoundCount += _cuzkVlozBody(loc, lat, lng, fetchRadius, _najdiBod, _ixPridej, stat); zTelefonu = true; }
+                }
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:fetchGeodata:oblast'); }
+
+            if (!zTelefonu) {
+                // 2) JEDEN DOTAZ identify(layers=all). Do 15. 9. 2026 se posílalo 5 dotazů po
+                //    vrstvách + identify navíc, tedy 6 kol na síť při každé dávce za chůze.
+                //    identify vrátí VŠECHNY vrstvy naráz: tolerance je v pixelech obrázku,
+                //    takže se výřez nastaví přesně na obálku poloměru (1000 px = 2·r) a
+                //    tolerance 500 px = přesně r. Popisky a zrušené body vyřadí agCuzkBod.
+                if (onProgress) onProgress(1, 6);
+                const idUrl = `https://ags.cuzk.gov.cz/arcgis/rest/services/BodovaPole/MapServer/identify?geometry=${lng},${lat}&geometryType=esriGeometryPoint&sr=4326&layers=all&tolerance=500&mapExtent=${bbox}&imageDisplay=1000,1000,96&returnGeometry=true&f=json`;
+                let idData = null;
+                try { idData = await _cuzkFetchJson(idUrl); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:fetchGeodata'); }
+                if (idData && Array.isArray(idData.results)) {
+                    newFoundCount += _cuzkVlozBody(idData.results, lat, lng, fetchRadius, _najdiBod, _ixPridej, stat);
+                } else {
+                    // 3) ZÁLOHA: dotazy po vrstvách (16 vrstev, po čtyřech naráz), když identify
+                    //    neodpoví. Stejná data, jen víc kol na síť.
+                    const vrstvy = AG_CUZK_BODOVE_VRSTVY.slice();
+                    let _gstep = 1;
+                    while (vrstvy.length) {
+                        const davka = vrstvy.splice(0, 4);
+                        if (onProgress) onProgress(Math.min(5, ++_gstep), 6);
+                        const odp = await Promise.all(davka.map(layerId => {
+                            const url = `https://ags.cuzk.gov.cz/arcgis/rest/services/BodovaPole/MapServer/${layerId}/query?where=1%3D1&geometry=${bbox}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&outSR=4326&f=json`;
+                            return _cuzkFetchJson(url).then(d => ({ layerId, d })).catch(() => ({ layerId, d: null }));
+                        }));
+                        odp.forEach(o => {
+                            if (!o.d || !Array.isArray(o.d.features)) return;
+                            newFoundCount += _cuzkVlozBody(o.d.features.map(f => ({ layerId: o.layerId, attributes: f.attributes, geometry: f.geometry })), lat, lng, fetchRadius, _najdiBod, _ixPridej, stat);
+                        });
+                    }
+                }
             }
-            if (newFoundCount === 0 || !clearExisting) {
-                const mapExtent = `${lng-0.005},${lat-0.005},${lng+0.005},${lat+0.005}`; const idUrl = `https://ags.cuzk.gov.cz/arcgis/rest/services/BodovaPole/MapServer/identify?geometry=${lng},${lat}&geometryType=esriGeometryPoint&sr=4326&layers=all&tolerance=${Math.max(fetchRadius, 40)}&mapExtent=${mapExtent}&imageDisplay=1000,1000,96&returnGeometry=true&f=json`;
-                try { const idData = await _cuzkFetchJson(idUrl); if (idData && idData.results && idData.results.length > 0) { idData.results.forEach(res => { const dist = getDistance(lat, lng, res.geometry.y, res.geometry.x); if (dist <= fetchRadius + 5) { const props = res.attributes; const layerNum = parseInt(res.layerId, 10); const cisloBodu = extractPointNumber(props); const nameUpper = cisloBodu.toUpperCase(); let cat = "PBPP"; if (layerNum === 1) cat = "TB"; else if (layerNum === 2) cat = "ZHB"; else if (layerNum === 4 || layerNum === 5 || nameUpper.includes('-') || nameUpper.includes('NIVEL')) cat = "NIVEL"; const existing = _najdiBod(cisloBodu, res.geometry.y); if (!existing) { const _novy = { id: stableId(res.geometry.y, res.geometry.x), name: cisloBodu, lat: res.geometry.y, lng: res.geometry.x, cat: cat, type: (cat==="NIVEL"?"vyskovy":"polohovy"), rawData: props, hidden: false, currentDist: dist, bestAccuracy: null }; arPoints.push(_novy); _ixPridej(_novy); newFoundCount++; } else if (existing.hidden) { existing.hidden = false; newFoundCount++; } } }); } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:fetchGeodata'); }
-            }
+            if (stat.zrusene) window._agCuzkZrusene = stat.zrusene;   // jen pro diagnostiku (karta stavu)
             // Kazde zvlast: kdyz spadne initARMarkers (AR), MUSI se stejne prekreslit
             // mapa — jinak jedna chyba v AR schova body i v mape.
             if (onProgress) onProgress(6, 6);
@@ -1589,7 +1798,7 @@ if ('serviceWorker' in navigator) {
                     else {
                         const moved = getDistance(lastFetchLat, lastFetchLng, userLat, userLng);
                         const step = Math.max(40, Math.min(150, (mapRadius || 500) / 4));
-                        if (moved > step && appStarted && navigator.onLine !== false && (Date.now() - _lastAutoFetchTs) > 45000) {
+                        if (moved > step && appStarted && (navigator.onLine !== false || (window.AGOblasti && AGOblasti.pokryto(userLat, userLng))) && (Date.now() - _lastAutoFetchTs) > 45000) {
                             lastFetchLat = userLat; lastFetchLng = userLng; _lastAutoFetchTs = Date.now();
                             initFetch(userLat, userLng);
                         }

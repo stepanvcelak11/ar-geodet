@@ -16,6 +16,7 @@ Spuštění:  python scripts/test_v316.py [port]
 """
 import io
 import os
+import re
 import sys
 import json
 import asyncio
@@ -204,7 +205,7 @@ async def beh(url):
         zv = io.open(os.path.join(ROOT, 'js', 'zpetna-vazba.js'), encoding='utf-8').read()
         ok('E2 zpráva autorovi nese kód účtu (meta.ucet) → vlastník může odpovědět do appky', 'o.ucet = String(_u.code)' in zv and 'poslat: poslat' in zv)
         wk = io.open(os.path.join(ROOT, 'cloud', 'worker.js'), encoding='utf-8').read()
-        ok('E3 worker přijímá kind odpoved a hlásí „Odpověď na vzkaz"', "'hodnoceni', 'odpoved']" in wk and "'Odpověď na vzkaz'" in wk and 'v: 22' in wk)
+        ok('E3 worker přijímá kind odpoved a hlásí „Odpověď na vzkaz"', "'hodnoceni', 'odpoved']" in wk and "'Odpověď na vzkaz'" in wk and int(re.search(r"v: (\d+),", wk).group(1)) >= 22)
         sa = io.open(os.path.join(ROOT, 'js', 'sprava-appky.js'), encoding='utf-8').read()
         ok('E4 odpověď jde přes AGZpetna.poslat s odkazem na vzkaz', "AGZpetna.poslat({ kind: 'odpoved'" in sa and "meta: { vzkaz: v.id" in sa)
 

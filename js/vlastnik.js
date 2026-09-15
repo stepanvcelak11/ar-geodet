@@ -800,7 +800,7 @@
             cekam(b, 'Načítám stav vypínače…');
             _load = 1;
             api('/owner/firms').then(function (r) {
-                if (!r.ok) { _load = null; sayFail(r, 'vypínač'); jdi(''); return; }
+                if (!r.ok) { _load = null; nepovedlo(b, r, 'vypínač', render); return; }
                 _pick = {};
                 (((r.data || {}).flags || {}).off || []).forEach(function (x) { _pick[x] = 1; });
                 _load = 2;
@@ -890,7 +890,7 @@
             cekam(b, 'Načítám chyby ze serveru…');
             _load = 1;
             api('/owner/errors?dni=' + _dni).then(function (r) {
-                if (!r.ok) { _load = null; sayFail(r, 'chyby'); jdi(''); return; }
+                if (!r.ok) { _load = null; nepovedlo(b, r, 'chyby', render); return; }
                 _load = r.data || { rows: [], total: 0 };
                 render();
             });
@@ -969,7 +969,7 @@
             cekam(b, 'Počítám napříč firmami…');
             _load = 1;
             api('/owner/usage?dni=' + _dni).then(function (r) {
-                if (!r.ok) { _load = null; sayFail(r, 'užívání'); jdi(''); return; }
+                if (!r.ok) { _load = null; nepovedlo(b, r, 'užívání', render); return; }
                 _load = r.data || { rows: [] };
                 render();
             });
@@ -1027,6 +1027,22 @@
         if (r.status === 403 || r.status === 503 || r.status === 404 || r.status === 0)
             return agAlert('Nepovedlo se', proc(r));
         agAlert('Nepovedlo se', esc((r.data && r.data.error) || ('Chyba ' + r.status + ' — ' + kde)));
+    }
+
+    // NEPOVEDLO SE → ZŮSTAT V POHLEDU (15. 9. 2026). Dřív každý pohled při chybě serveru
+    // (slabý signál, 429 brzda, 5xx) vyhodil alert a `jdi('')` — uživatele to hodilo zpátky
+    // na rozcestník a vypadalo to, že „chyby u člověka nejdou rozkliknout" / „blbne
+    // načítání". Teď pohled zůstane otevřený, řekne proč a nabídne Zkusit znovu;
+    // Zpět je pořád v hlavičce.
+    function nepovedlo(b, r, kde, znovu) {
+        if (!b) return;
+        r = r || { status: 0 };
+        var txt = (r.status === 403 || r.status === 503 || r.status === 404 || r.status === 0)
+            ? proc(r) : esc((r.data && r.data.error) || ('Chyba ' + r.status + ' — ' + kde));
+        b.innerHTML = '<div class="agv-p" style="padding:22px 4px;text-align:center;color:#e0574a;">' + txt + '</div>' +
+            (typeof znovu === 'function' ? '<button type="button" class="btn btn-secondary" id="agv-znovu" style="width:100%;margin-top:6px;">Zkusit znovu</button>' : '');
+        var z = b.querySelector('#agv-znovu');
+        if (z) z.addEventListener('click', function () { try { znovu(); } catch (e) { swallow(e, 'znovu'); } });
     }
 
     var _q = '', _qT = null, _qSeq = 0;
@@ -1548,6 +1564,6 @@
         isOn: isOn, open: open, close: close, login: login, leave: leave,
         key: key, setKey: setKey, promptKey: promptKey,
         // pro js/vlastnik-plus.js (souhrn, deník, kalendář, záloha, pohled očima účtu)
-        jdi: jdi, ext: { verze: verzeAppky, hlava: hlava, wireZpet: wireZpet, cekam: cekam, api: api, esc: esc, kdy: kdy, sayFail: sayFail, ask: ask, agAlert: agAlert, render: render, view: function () { return _view; } }
+        jdi: jdi, ext: { verze: verzeAppky, hlava: hlava, wireZpet: wireZpet, cekam: cekam, fail: nepovedlo, api: api, esc: esc, kdy: kdy, sayFail: sayFail, ask: ask, agAlert: agAlert, render: render, view: function () { return _view; } }
     };
 })();

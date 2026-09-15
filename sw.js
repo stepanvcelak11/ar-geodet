@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v317';   // Nastaveni: AR & presnost prvni + sekce Dosah bodu; popisky jen ve vyrezu; AG.dotyk() - zadne prestavby DOM pod prstem
+const SHELL_CACHE = 'argeodet-shell-v319';   // Brana: Dalsi moznosti + Zavrit nepusti dovnitr; protokol bez dlazdic mapy; konzole drzi pohled pri vypadku; kamera z Playe navod; Kdo jsi? srozumitelneji
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=317',
-    './css/style.css?v=317',
-    './css/vylepseni.css?v=317',
+    './css/tokens.css?v=319',
+    './css/style.css?v=319',
+    './css/vylepseni.css?v=319',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -230,6 +230,7 @@ const ASSETS_TO_CACHE = [
     './js/overeni-bodu.js',
     './js/cuzk-geodata.js',
     './js/ag-store.js',
+    './js/oblasti-offline.js',
     './js/ag-pocty.js',
     './js/duvera.js',
     './js/fronta.js',
@@ -279,6 +280,7 @@ const ASSETS_TO_CACHE = [
     './css/bodove-pole.css',
     './css/dvoji-mereni.css',
     './css/balicek-zakazky.css',
+    './css/oblasti-offline.css',
     './css/duvera.css',
     './css/rocenka.css',
     './css/kolize-bodu.css',

@@ -95,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=317">
-    <link rel="stylesheet" href="css/style.css?v=317">
+    <link rel="stylesheet" href="css/tokens.css?v=319">
+    <link rel="stylesheet" href="css/style.css?v=319">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -227,7 +227,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=317">
+    <link rel="stylesheet" href="css/vylepseni.css?v=319">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -1528,6 +1528,9 @@
          sedmi ručně psaných databází; navíc přehled zabraného místa a úklid
          sirotků po smazané zakázce napříč všemi databázemi -->
     <script type="ag/lazy" data-src="js/ag-store.js"></script>
+    <!-- OBLASTI V TELEFONU: okres / kraj / celá ČR (odpojitelné: smaž tento řádek + js/oblasti-offline.js
+         + css/oblasti-offline.css + data/oblasti.json). Musí být ZA ag-store.js (ukládá do jeho police). -->
+    <script type="ag/lazy" data-src="js/oblasti-offline.js"></script>
     <!-- POČÍTÁNÍ VEDLE (odpojitelné) — první Web Worker v appce; triangulace
          kubatur už nedrží hlavní vlákno. Matematiku dostane od volajícího,
          takže se algoritmus nepíše dvakrát -->
