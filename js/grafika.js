@@ -805,17 +805,56 @@
         }
         // Odkud se naposled kreslilo (pro dokreslení po chůzi — viz _mapDosahCheck).
         let _mapDrawLat = null, _mapDrawLng = null;
+        // ROZDÍLOVÉ PŘEKRESLENÍ (15. 9. 2026, plynulost 2. kolo, bod 03). Do té doby
+        // každé překreslení mapy SMAZALO všechny značky a postavilo je znovu — 96–177 ms
+        // za 200 značek na slabém telefonu (CPU 4×), při chůzi 60 m šest dlouhých úloh.
+        // Teď si mapa drží rejstřík značek podle id bodu s podpisem toho, co značku
+        // ovlivňuje (kategorie, barva, jméno, vytyčeno, nalezeno, filtr, dosah). Značka
+        // se stejným podpisem ZŮSTÁVÁ (jen se posune, když se bod hnul); mění se jen ty,
+        // kterým se podpis změnil, a mizí ty, co už kreslit nemáme. Klepnutí, které dřív
+        // padalo do prázdna po výměně značky, tak už nemá kam spadnout.
+        const _mk = new Map();          // pt.id -> { m: L.marker, sig: podpis, lat, lng }
+        let _mkKeep = null;             // id, které aktuální kresba ponechala / postavila
+        let _mkPrvniKresba = false;     // první kresba po startu jde až po prvním snímku (bod 05)
+        function _mkSig(pt) {
+            let col = agBarvaBodu(pt);
+            const staked = !!(window.isStaked && isStaked(pt.id));
+            const nalez = !staked && !!(window.AGLovci && pt.cat !== 'CUSTOM' && AGLovci.nalezen(pt));
+            return pt.cat + '|' + col + '|' + pt.name + '|' + (staked ? 'S' : '') + (nalez ? 'N' : '');
+        }
+        function _mkChce(pt) {
+                if (_mapDrawnBounds && !_mapDrawnBounds.contains([pt.lat, pt.lng])) return false;
+                if (_mimoDosahMapy(pt)) return false;
+                if (pt.hidden) return false; if (pt.cat === 'TB' && !filters.tb) return false; if (pt.cat === 'ZHB' && !filters.zhb) return false; if (pt.cat === 'PBPP' && !filters.pbpp) return false; if (pt.cat === 'NIVEL' && !filters.nivel) return false; if (pt.cat === 'CUSTOM' && !filters.custom) return false; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+                return true;
+        }
         function _drawOneMarker(pt) {
-                if (_mapDrawnBounds && !_mapDrawnBounds.contains([pt.lat, pt.lng])) return;
-                if (_mimoDosahMapy(pt)) return;
-                if (pt.hidden) return; if (pt.cat === 'TB' && !filters.tb) return; if (pt.cat === 'ZHB' && !filters.zhb) return; if (pt.cat === 'PBPP' && !filters.pbpp) return; if (pt.cat === 'NIVEL' && !filters.nivel) return; if (pt.cat === 'CUSTOM' && !filters.custom) return; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return;
+                if (!_mkChce(pt)) return;
+                const sig = _mkSig(pt);
+                const have = _mk.get(pt.id);
+                if (have && have.sig === sig) {
+                    if (have.lat !== pt.lat || have.lng !== pt.lng) { try { have.m.setLatLng([pt.lat, pt.lng]); } catch (e) { } have.lat = pt.lat; have.lng = pt.lng; }
+                    if (_mkKeep) _mkKeep.add(pt.id);
+                    return;
+                }
+                if (have) { try { markersGroup.removeLayer(have.m); } catch (e) { } _mk.delete(pt.id); }
                 let col = agBarvaBodu(pt);
                 const stakedBadge = (window.isStaked && isStaked(pt.id)) ? `<div style="position:absolute; top:-7px; right:-7px; width:13px; height:13px; border-radius:50%; background:#10b981; border:1.5px solid #fff; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>` : '';
                 // LOVCI BODŮ (js/lovci-bodu.js): objevený úřední bod má zlatou hvězdičku — na první pohled, co ještě nemáš
                 const nalezBadge = (!stakedBadge && window.AGLovci && pt.cat !== 'CUSTOM' && AGLovci.nalezen(pt)) ? `<div style="position:absolute; top:-7px; right:-7px; width:13px; height:13px; border-radius:50%; background:#f59e0b; border:1.5px solid #fff; display:flex; align-items:center; justify-content:center; font:700 9px/1 sans-serif; color:#fff;">★</div>` : '';
                 const svgIcon = getMapMarkerSVG(pt.cat, col); const htmlContent = `<div style="position: relative; width: 24px; height: 24px; pointer-events:none;${stakedBadge ? ' opacity:0.65;' : ''}">${svgIcon}${stakedBadge}${nalezBadge}<div class="map-label-text" style="transform: rotate(${mapRotation}deg);">${_escHtml(pt.name)}</div></div>`;
                 const icon = L.divIcon({ className: 'custom-map-marker', html: htmlContent, iconSize: [24, 24], iconAnchor: [12, 12] });
-                L.marker([pt.lat, pt.lng], { icon: icon }).addTo(markersGroup);
+                const m = L.marker([pt.lat, pt.lng], { icon: icon }).addTo(markersGroup);
+                _mk.set(pt.id, { m: m, sig: sig, lat: pt.lat, lng: pt.lng });
+                if (_mkKeep) _mkKeep.add(pt.id);
+                window._labelsDirty = true;
+        }
+        // Po dokreslení: co v rejstříku zbylo mimo aktuální kresbu, pryč (bod smazán,
+        // vypadl z dosahu, filtr). Zavolá se až po poslední dávce, ne po každé.
+        function _mkUklid(keep) {
+            let n = 0;
+            _mk.forEach((v, id) => { if (!keep.has(id)) { try { markersGroup.removeLayer(v.m); } catch (e) { } _mk.delete(id); n++; } });
+            if (n) window._labelsDirty = true;
         }
 
         let _drawOdlozeno = null;
@@ -825,7 +864,8 @@
             // mezitím překreslení vyměnilo za novou, se ztratí („musím klepnout vícekrát").
             if (window.AG && AG.dotyk && AG.dotyk()) { clearTimeout(_drawOdlozeno); _drawOdlozeno = setTimeout(drawAllMarkersOnMap, 120); return; }
             const gen = ++_drawGen;
-            markersGroup.clearLayers();
+            // (dřív tu bylo markersGroup.clearLayers() — teď se maže jen rozdíl, viz _mkUklid)
+            const keep = new Set(); _mkKeep = keep;
             _mapDrawnBounds = _mapPadBounds(_MAP_DRAW_PAD);
             _mapDrawLat = userLat; _mapDrawLng = userLng;
             // Poradi podle vzdalenosti od stredu mapy: co ma geodet pod nohama,
@@ -842,12 +882,21 @@
                 } catch (e) { seznam = arPoints; }
             }
             let i = 0;
-            (function davka() {
+            // MAPA NEJDŘÍV, ZNAČKY PO SNÍMKU (15. 9. 2026, plynulost 2. kolo, bod 05).
+            // První kresba po startu stavěla 200 značek synchronně ještě před prvním
+            // obrazem mapy (640 ms na slabém telefonu při 800 bodech). Teď se mapa
+            // ukáže a značky se doplní po malých dávkách až po prvním snímku.
+            const prvni = !_mkPrvniKresba; _mkPrvniKresba = true;
+            const chunk = prvni ? 40 : ((window.AGLite && AGLite.lite) ? 80 : _DRAW_CHUNK);   // SLABŠÍ TELEFON: menší dávky
+            function davka() {
                 if (gen !== _drawGen) return;          // mezitim prisla novejsi kresba
-                const konec = Math.min(i + ((window.AGLite && AGLite.lite) ? 80 : _DRAW_CHUNK), seznam.length);   // SLABŠÍ TELEFON: menší dávky
+                _mkKeep = keep;
+                const konec = Math.min(i + chunk, seznam.length);
                 for (; i < konec; i++) _drawOneMarker(seznam[i]);
                 if (i < seznam.length) _drawIdle(davka);
-            })();
+                else _mkUklid(keep);
+            }
+            if (prvni && window.AG && AG.poPaint) AG.poPaint('map-first-draw', davka); else davka();
             drawAllLinesOnMap();
         }
 

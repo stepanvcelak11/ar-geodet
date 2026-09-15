@@ -1862,6 +1862,12 @@ body.light-mode .tools-search { background: rgba(0, 0, 0, 0.04); }
     cursor: pointer;
     transition: background 0.15s ease, transform 0.1s ease;
 }
+/* OTEVŘENÍ NÁSTROJŮ (15. 9. 2026, plynulost 2. kolo): mřížka má ~110 dlaždic a při
+   otevření se rozvrhovaly a kreslily všechny — 540 ms dlouhá úloha na slabém telefonu
+   (CPU 4×), z toho většina layout/styl. content-visibility:auto nechá prohlížeč
+   rozvrhnout jen dlaždice ve výřezu; ostatní drží náhradní výšku (stejný postup
+   jako řádky okna Body ve v316). Schované (display:none) dlaždice to neovlivní. */
+.tool-grid > .tool-tile, .tool-grid > .ag-ft-tile { content-visibility: auto; contain-intrinsic-size: auto 118px; }
 .tool-tile:active { transform: scale(0.96); background: var(--surface-2); }
 .tool-tile .icon { width: 24px; height: 24px; color: var(--accent); }
 

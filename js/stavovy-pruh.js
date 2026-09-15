@@ -552,6 +552,12 @@
     // („GPS bez fixu 6 s · poloha…" — viděno 13. 9. 2026 na 390 px). Hláška je to
     // hlavní; čísla si člověk přečte po klepnutí. Pořadí obětí: azimut, pak přesnost.
     function fitHead(headEl) {
+        // čtení scrollWidth hned po innerHTML = vynucený layout celé stránky;
+        // po snímku (AG.poPaint) je zadarmo — viz js/ag-guard.js 3c
+        if (window.AG && AG.poPaint) { AG.poPaint('sp-head', function () { fitHeadNow(headEl); }); return; }
+        fitHeadNow(headEl);
+    }
+    function fitHeadNow(headEl) {
         try {
             var al = headEl.querySelector('.ag-sp-alert') || headEl.querySelector('.ag-sp-msg');   // i kratkodoba hlaska (Stahuji data)
             if (!al) return;
@@ -572,6 +578,10 @@
     // nebo později neseděla. Když lišta není vidět (modul odpojen), strop drží
     // spodní hrana okna.
     function fitBody() {
+        if (window.AG && AG.poPaint) { AG.poPaint('sp-body', fitBodyNow); return; }
+        fitBodyNow();
+    }
+    function fitBodyNow() {
         try {
             var el = document.getElementById('ag-sp'); if (!el) return;
             var bodyEl = el.querySelector('.ag-sp-body'); if (!bodyEl) return;

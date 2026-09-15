@@ -377,6 +377,12 @@
     var CORE_ANIM = { 'settings-modal': 1, 'manage-modal': 1, 'tools-modal': 1, 'custom-modal-overlay': 1 };
     function videt(el) {
         try {
+            // LEVNÉ CESTY BEZ getComputedStyle (15. 9. 2026): každé gCS nad rozdělaným
+            // DOM přepočítává styly; tady rozhoduje inline display a třída .ag-open.
+            if (el.id && CORE_ANIM[el.id]) return el.classList.contains('ag-open');
+            var inl = el.style ? el.style.display : '';
+            if (inl === 'none') return false;
+            if (inl === 'flex' || inl === 'block') return true;
             var st = window.getComputedStyle(el);
             if (st.display === 'none' || st.visibility === 'hidden') return false;
             if (el.id && CORE_ANIM[el.id] && !el.classList.contains('ag-open')) return false;

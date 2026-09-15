@@ -441,6 +441,13 @@
     // aby se pod něj posunul #quick-toast a horní hinty.
     function measure(stack) {
         if (!stack) return;
+        // tik → render → measure (i 2×) + pozorovatel bubliny → measure: každé volání
+        // četlo geometrii nad rozdělaným layoutem. Teď jedno čtení po snímku.
+        if (window.AG && AG.poPaint) { AG.poPaint('upoz-measure', function () { measureNow(stack); }); return; }
+        measureNow(stack);
+    }
+    function measureNow(stack) {
+        if (!stack || !stack.isConnected) return;
         try {
             var sp = document.querySelector(ANCHOR_SEL);
             var top = null;

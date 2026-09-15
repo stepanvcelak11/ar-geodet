@@ -95,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=325">
-    <link rel="stylesheet" href="css/style.css?v=325">
+    <link rel="stylesheet" href="css/tokens.css?v=326">
+    <link rel="stylesheet" href="css/style.css?v=326">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -227,7 +227,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=325">
+    <link rel="stylesheet" href="css/vylepseni.css?v=326">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -1140,10 +1140,9 @@
     <!-- UCIT SE (odpojitelne: smaz radky a soubory js/cvicne-ulohy.js + data/ulohy.json,
          js/poznavacka.js, js/vzorce.js; zaznamy v sw.js, js/tools-registry.js a data/navody.json;
          'vzorce' z rozcestniku Prirucka v js/tools-hub.js) — cvicne ulohy s klicem, poznavacka
-         stabilizaci, tahak vzorcu. Vsechno v Zakladu, bez zamku. -->
-    <script type="ag/lazy" data-src="js/cvicne-ulohy.js"></script>
-    <script type="ag/lazy" data-src="js/poznavacka.js"></script>
-    <script type="ag/lazy" data-src="js/vzorce.js"></script>
+         stabilizaci, tahak vzorcu. Vsechno v Zakladu, bez zamku.
+         15. 9. 2026: vsechny tri se stahuji az na klepnuti — jsou v MANIFESTu js/lazy-tools.js,
+         ne tady (do klepnuti jen registrovaly dlazdici). -->
     <!-- PRVNI MERENI (odpojitelne: smaz tento radek, js/prvni-mereni.js, zaznam v sw.js a dve
          mista v js/tutorial-pro.js oznacena „prvni mereni") — pruvodce peti kroky nad zivou
          appkou na prvnim spusteni; kroky se odskrtavaji samy. -->

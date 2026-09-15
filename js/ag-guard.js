@@ -204,6 +204,29 @@
         } catch (e) { return false; }
     };
 
+    // ================================================================
+    // 3c) AG.poPaint(klic, fn) — ČTENÍ ROZMĚRŮ AŽ PO VYKRESLENÍ SNÍMKU.
+    //     Moduly, které si po zápisu do DOM hned měří šířku/výšku
+    //     (scrollWidth, getBoundingClientRect), nutí prohlížeč dopočítat
+    //     layout CELÉ stránky synchronně — a při startu je layout rozdělaný
+    //     pořád. Změřeno 15. 9. 2026 (CPU 4×, prvních 8 s): stavový pruh
+    //     fitHead 250–330 ms, upozornění measure 170–210 ms, zavírání oken
+    //     75–85 ms, mini-panel 90 ms, režim práce 45 ms = ~0,7 s.
+    //     rAF + setTimeout(0) = čtení PO snímku: layout už je hotový a
+    //     čtení je zadarmo. Stejný klíč = jen jedno spuštění za snímek.
+    var _pp = {};
+    AG.poPaint = function (klic, fn) {
+        if (_pp[klic]) { _pp[klic] = fn; return; }
+        _pp[klic] = fn;
+        var raf = window.requestAnimationFrame || function (f) { return setTimeout(f, 16); };
+        raf(function () {
+            setTimeout(function () {
+                var f = _pp[klic]; delete _pp[klic];
+                try { if (f) f(); } catch (e) { AG.swallow && AG.swallow(e, 'poPaint:' + klic); }
+            }, 0);
+        });
+    };
+
     AG.style = function (id, css) {
         try {
             if (!id || document.getElementById(id)) return false;

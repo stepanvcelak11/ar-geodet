@@ -2,23 +2,36 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
-    "v": 325,
-    "datum": "2026-09-15",
-    "nadpis": "DGPS živě přes internet a přesnější kalibrace chůzí (tam a zpět)",
-    "body": [
-      "<b>Dvoutelefonní DGPS živě (Pro):</b> základna na známém bodě klepne <b>Sdílet korekce živě</b> a ukáže šestiznakový kód; druhý telefon zadá kód v <b>Živě z internetu</b> a od té chvíle se ke každému uloženému bodu (i v Brutální GPS) přičítá aktuální korekce — už žádné čekání na QR. Pilulka nahoře hlásí stáří dat a vzdálenost od základny (hranice 6 min / 3 km), Odpojit nabídne zpětnou opravu starších bodů. Dosah ~2–3 km, potřebuje internet na obou telefonech (základna posílá ~4 kB za minutu).",
-      "<b>Kalibrace chůzí po hraně je přesnější:</b> fixy se váží podle své přesnosti (±3 m má 16× větší slovo než ±12 m) a když hranu projdeš <b>tam i zpět</b>, appka oddělí, o kolik držíš telefon stranou od své stopy (v pravé ruce typicky 0,2–0,4 m) — to dřív zůstávalo v korekci. Odhad chyby korekce počítá s tím, že fixy po sekundě nejsou nezávislé.",
-      "Návod DGPS a kalibrace chůzí doplněny."
-    ]
+   "v": 326,
+   "datum": "2026-09-15",
+   "nadpis": "Plynulost 2. kolo — rychlejší start, mapa bez škubání při chůzi, Nástroje bez zaseknutí",
+   "body": [
+    "<b>Start na slabším telefonu:</b> odložené moduly se od teď nasazují zminifikované (3,0 MB → ~1,2 MB; kratší stažení aktualizace i parsování), v režimu Slabší telefon se dotahují po dvou a jen v nečinnosti; tři studentské nástroje se stahují až na klepnutí.",
+    "<b>Měření rozměrů až po vykreslení:</b> stavový pruh, upozornění, zavírání oken, mini-panel a režim práce si dřív měřily prvky uprostřed rozdělaného layoutu (asi 0,7 s hlavního vlákna v prvních sekundách). Teď se měří jednou po snímku a jen když se něco změnilo.",
+    "<b>Mapa překresluje jen rozdíl:</b> značky, které zůstávají, se nemažou a nestaví znovu — překreslení 200 značek 96–177 ms → 5–28 ms, chůze 60 m bez šesti záseků. Klepnutí na značku se už neztratí výměnou značky pod prstem.",
+    "<b>Nástroje:</b> mřížka se skládá jednou po dávce registrací místo stokrát při startu; při otevření se rozvrhují jen dlaždice na obrazovce. Otevření: 11 dlouhých úloh (1,3 s, z toho jedna 0,54 s) → jedna do 0,2 s (slabý telefon).",
+    "<b>Mapa nejdřív, značky po snímku:</b> po startu se ukáže mapa a poloha, značky se doplní po malých dávkách.",
+    "<b>Slabší telefon:</b> dlaždice mapy se načítají až po dotažení posunu a s menší zásobou za okrajem."
+   ]
   },
   {
-    "v": 324,
-    "datum": "2026-09-15",
-    "nadpis": "Korekce GPS se hlídá: pilulka nahoře, upozornění před vypršením a u hranice vzdálenosti",
-    "body": [
-      "<b>Hlídač platnosti korekce GPS</b> (z chůze po hraně i z „Posun GPS na známý bod\"): po zapnutí svítí nahoře pilulka „Korekce GPS 1,8 m · ještě 12 min · 80 m od místa\" — zelená platí, oranžová se blíží hranici, červená je za ní. Appka upozorní <b>5 min před vypršením</b> (20 min), po vypršení, na <b>200 m</b> od místa kalibrace a na 300 m — každé jednou. Klepnutí na pilulku otevře nástroj, který korekci vyrobil; sama se nevypíná, rozhodnutí je tvoje.",
-      "<b>Kalibrace chůzí po hraně:</b> podstatně delší vysvětlení v okně — proč to jde (stejný princip jako DGPS), jak se to počítá, <b>na jakou přesnost se dá dostat</b> (30–50 m chůze → ±0,3–0,5 m kolmo k hraně, s dobrým signálem ±0,2 m; čára z mapy přidává chybu podkladu) a jak dlouho to platí. U výsledku je rovnou napsáno, jak přesné budou nové body; zapnutá korekce v okně ukazuje zbývající minuty a vzdálenost od místa kalibrace."
-    ]
+   "v": 325,
+   "datum": "2026-09-15",
+   "nadpis": "DGPS živě přes internet a přesnější kalibrace chůzí (tam a zpět)",
+   "body": [
+    "<b>Dvoutelefonní DGPS živě (Pro):</b> základna na známém bodě klepne <b>Sdílet korekce živě</b> a ukáže šestiznakový kód; druhý telefon zadá kód v <b>Živě z internetu</b> a od té chvíle se ke každému uloženému bodu (i v Brutální GPS) přičítá aktuální korekce — už žádné čekání na QR. Pilulka nahoře hlásí stáří dat a vzdálenost od základny (hranice 6 min / 3 km), Odpojit nabídne zpětnou opravu starších bodů. Dosah ~2–3 km, potřebuje internet na obou telefonech (základna posílá ~4 kB za minutu).",
+    "<b>Kalibrace chůzí po hraně je přesnější:</b> fixy se váží podle své přesnosti (±3 m má 16× větší slovo než ±12 m) a když hranu projdeš <b>tam i zpět</b>, appka oddělí, o kolik držíš telefon stranou od své stopy (v pravé ruce typicky 0,2–0,4 m) — to dřív zůstávalo v korekci. Odhad chyby korekce počítá s tím, že fixy po sekundě nejsou nezávislé.",
+    "Návod DGPS a kalibrace chůzí doplněny."
+   ]
+  },
+  {
+   "v": 324,
+   "datum": "2026-09-15",
+   "nadpis": "Korekce GPS se hlídá: pilulka nahoře, upozornění před vypršením a u hranice vzdálenosti",
+   "body": [
+    "<b>Hlídač platnosti korekce GPS</b> (z chůze po hraně i z „Posun GPS na známý bod\"): po zapnutí svítí nahoře pilulka „Korekce GPS 1,8 m · ještě 12 min · 80 m od místa\" — zelená platí, oranžová se blíží hranici, červená je za ní. Appka upozorní <b>5 min před vypršením</b> (20 min), po vypršení, na <b>200 m</b> od místa kalibrace a na 300 m — každé jednou. Klepnutí na pilulku otevře nástroj, který korekci vyrobil; sama se nevypíná, rozhodnutí je tvoje.",
+    "<b>Kalibrace chůzí po hraně:</b> podstatně delší vysvětlení v okně — proč to jde (stejný princip jako DGPS), jak se to počítá, <b>na jakou přesnost se dá dostat</b> (30–50 m chůze → ±0,3–0,5 m kolmo k hraně, s dobrým signálem ±0,2 m; čára z mapy přidává chybu podkladu) a jak dlouho to platí. U výsledku je rovnou napsáno, jak přesné budou nové body; zapnutá korekce v okně ukazuje zbývající minuty a vzdálenost od místa kalibrace."
+   ]
   },
   {
    "v": 323,

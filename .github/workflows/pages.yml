@@ -106,12 +106,17 @@ jobs:
       # ⚠ POŘADÍ JE PRO NAPŘED. Sestavení Základu ze stromu MAŽE Pro moduly
       #   (scripts/vydani.py --zaklad --pred), takže po něm už není z čeho Pro
       #   postavit. Opačné pořadí by tiše vyrobilo dvě kopie Základu.
+      # ODLOŽENÉ MODULY (ag/lazy + MANIFEST lazy-tools) se minifikují NA MÍSTĚ (scripts/minify-lazy.mjs,
+      # 15. 9. 2026): do té doby šly na Pages 3,0 MB zdrojů i s komentáři — 2,7 s hlavního
+      # vlákna po startu na slabém telefonu. Krok běží AŽ POSLEDNÍ (po gen_sw_assets a
+      # vydani --po, které js/ čtou regexem), do repa nic nepíše.
       - name: Sestavit vydání PRO (nasadí se do /pro/)
         run: |
           python scripts/vydani.py --pro --pred
           npm run build -- --apply
           python scripts/gen_sw_assets.py
           python scripts/vydani.py --pro --po
+          node scripts/minify-lazy.mjs
 
       # Obě vydání se testují ZVLÁŠŤ. Kdyby se pouštěl smoke jen nad Základem
       # (ten je rizikovější, mažou se v něm soubory), rozbité Pro by se nasadilo
@@ -134,12 +139,14 @@ jobs:
                    ./ _site/pro/
 
       # Zdroje zpátky do původního stavu, ať Základ nestaví nad přepsaným
-      # index.html. `git checkout` bere jen sledované soubory — dist/ se maže
+      # index.html — a nad ZMINIFIKOVANÝMI js/ (minify-lazy.mjs přepisuje soubory na
+      # místě; check_verze/vydani/gen_sw_assets čtou js/tools-registry.js a
+      # js/lazy-tools.js regexem, minifikované by nepřečetly). `git checkout` bere jen sledované soubory — dist/ se maže
       # zvlášť, jinak by v balíčku Základu zůstal bundle vyrobený z Pro kódu
       # (jméno má hash, takže by se ani nepřepsal, jen by tam ležel navíc).
       - name: Vrátit strom do stavu z checkoutu
         run: |
-          git checkout -- index.html sw.js manifest.json
+          git checkout -- index.html sw.js manifest.json js
           rm -rf dist
 
       - name: Sestavit vydání ZÁKLAD (nasadí se na kořen)
@@ -148,6 +155,7 @@ jobs:
           npm run build -- --apply
           python scripts/gen_sw_assets.py
           python scripts/vydani.py --zaklad --po
+          node scripts/minify-lazy.mjs
 
       # Rozpočet startu se v release-check.yml měří nad ZDROJI, jenže uživatel
       # venku dostává tenhle balíček. Do 5. 9. 2026 to byly dvě různé appky:

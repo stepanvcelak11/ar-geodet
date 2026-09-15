@@ -361,8 +361,22 @@
         //   jedna nekonečná hromada. Ukládá se proto jen to, co řekl modul, a
         //   registr se ptá až syncTiles() — tam už je jistě načtený.
         _items.push({ id: item.id, label: item.label || item.id, icon: item.icon || '', onClick: item.onClick, order: item.order, cat: item.cat || '' });
-        syncTiles();
+        scheduleSync();
     };
+    // ⚠ JEDNA STAVBA ZA DÁVKU REGISTRACÍ (15. 9. 2026, plynulost 2. kolo, bod 04).
+    //   Dřív každá registrace zavolala syncTiles() → applyFilter() nad celou mřížkou
+    //   (display/order na ~110 dlaždicích) — a modulů se při startu hlásí přes sto,
+    //   takže mřížka vznikala stokrát za sebou: 163–172 ms při startu na slabém
+    //   telefonu (CPU 4×), plus lavina zneplatněných layoutů pro ostatní moduly.
+    //   Teď se registrace jen zapíše a mřížka se srovná jednou, 120 ms po poslední.
+    var _syncTmr = null;
+    function scheduleSync() {
+        if (_syncTmr) return;
+        _syncTmr = setTimeout(function () {
+            _syncTmr = null;
+            try { syncTiles(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'field-tools:scheduleSync'); }
+        }, 120);
+    }
     // Odebrání nástroje z mřížky. Potřebuje to js/vlastnik.js: když se režim
     // vlastníka vypne, musí čtyři dlaždice správy aplikace zmizet — bez tohohle
     // by v mřížce zůstaly viset až do reloadu.
@@ -370,7 +384,7 @@
         if (!id) return;
         var n = _items.length;
         _items = _items.filter(function (x) { return x.id !== id; });
-        if (_items.length !== n) syncTiles();
+        if (_items.length !== n) scheduleSync();
     };
     // Které nástroje jsou zaregistrované. Ptá se js/pro-zamky.js, než vyrobí
     // zástupnou dlaždici: DOM nestačí, mřížka se kreslí až za startem.

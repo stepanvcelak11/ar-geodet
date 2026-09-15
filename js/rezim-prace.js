@@ -663,6 +663,9 @@
         var list = document.getElementById('ag-rp-list');
         var wrap = document.getElementById('ag-rp-wrap');
         if (!strip || !list || !wrap) return;
+        // nad zavřeným oknem Nástrojů se scrollWidth číst nemá (vynucený layout každý tik)
+        var ov = list.closest ? list.closest('.modal-overlay') : null;
+        if (ov && !(ov.classList.contains('ag-open') || ov.style.display === 'flex')) return;
         var max = list.scrollWidth - list.clientWidth;
         strip.classList.toggle('sl', max > 6 && list.scrollLeft > 6);
         strip.classList.toggle('sr', max > 6 && list.scrollLeft < max - 6);
@@ -673,7 +676,13 @@
     function scrollToActive(list) {
         if (!needScroll) return;
         var b = list.querySelector('button.on');
-        if (!b || !list.clientWidth) return;                  // schovaná karta má šířku 0 — zkusíme příště
+        if (!b) return;
+        // schované okno: dřív se to poznávalo z clientWidth === 0, jenže čtení
+        // clientWidth nad zavřeným Nastavením každých 1,5 s = vynucený layout
+        // (45 ms při startu na slabém telefonu). Otevřenost okna se pozná bez layoutu.
+        var ov = list.closest ? list.closest('.modal-overlay') : null;
+        if (ov && !(ov.classList.contains('ag-open') || ov.style.display === 'flex')) return;
+        if (!list.clientWidth) return;                        // pojistka: karta mimo okno
         var max = list.scrollWidth - list.clientWidth;
         var target = b.offsetLeft - (list.clientWidth - b.offsetWidth) / 2;
         if (target > max) target = max;
@@ -788,7 +797,10 @@
             // Když je modál Nástrojů zavřený, nemá smysl číst mřížku a přepočítávat
             // výčet — šetříme baterii (viz js/power-save.js).
             var w = document.getElementById('ag-rp-wrap');
-            if (w && w.offsetParent === null && !w.hidden) return;
+            // offsetParent = vynucený layout; otevřenost okna Nástrojů se pozná z třídy
+            var ovv = w && w.closest ? w.closest('.modal-overlay') : null;
+            if (ovv && !(ovv.classList.contains('ag-open') || ovv.style.display === 'flex')) return;
+            if (w && !ovv && w.offsetParent === null && !w.hidden) return;
             render();
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:tick'); }
     }

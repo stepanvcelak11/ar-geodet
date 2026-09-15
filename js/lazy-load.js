@@ -157,17 +157,23 @@
         }
     }
 
+    // SLABŠÍ TELEFON (js/slabsi-telefon.js): fronta jede po DVOU a čeká na skutečnou
+    // nečinnost déle (timeout 3 s místo 1,2 s). Celková práce je stejná — změřeno
+    // 15. 9. 2026 na CPU 4×: 103 modulů = 2,7 s hlavního vlákna — ale nesráží se
+    // s prvními klepnutími uživatele, které jinak čekaly za dávkou čtyř skriptů.
+    function lite() { try { return !!(window.AGLite && AGLite.lite); } catch (e) { return false; } }
     function idle(fn) {
         if (typeof window.requestIdleCallback === 'function') {
-            window.requestIdleCallback(fn, { timeout: 1200 });
+            window.requestIdleCallback(fn, { timeout: lite() ? 3000 : 1200 });
         } else {
-            setTimeout(fn, IDLE_MS);
+            setTimeout(fn, lite() ? IDLE_MS * 4 : IDLE_MS);
         }
     }
 
     function step() {
         if (!queue.length) { done(''); return; }
-        for (var i = 0; i < BATCH && queue.length; i++) inject(queue.shift());
+        var n = lite() ? 2 : BATCH;
+        for (var i = 0; i < n && queue.length; i++) inject(queue.shift());
         if (queue.length) idle(step);
     }
 

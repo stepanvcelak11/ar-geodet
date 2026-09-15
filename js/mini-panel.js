@@ -505,9 +505,15 @@
         // ensureBtn() už se k němu nevrátí — tlačítko tam totiž je.
         // Zavřené modály NEMAJÍ display:none: parkují mimo displej a rozhoduje
         // .ag-open (viz skript na konci index.html), proto se ptáme na obojí.
+        // levné cesty bez getComputedStyle: čtyři hlavní okna řídí .ag-open, ostatní
+        // domácí modály inline display (15. 9. 2026 — gCS každé 2 s nad všemi okny
+        // stálo 70 ms při startu na slabém telefonu)
+        if (el.id && CORE_ANIM[el.id]) return el.classList.contains('ag-open');
+        var inl = el.style ? el.style.display : '';
+        if (inl === 'none') return false;
+        if (inl === 'flex') return true;
         var st = cs(el);
         if (!st || st.display === 'none' || st.visibility === 'hidden') return false;
-        if (el.id && CORE_ANIM[el.id] && !el.classList.contains('ag-open')) return false;
         return true;
     }
     // modály, jejichž viditelnost řídí .ag-open (zavřené parkují mimo displej)
@@ -518,6 +524,10 @@
     function modWin(el) {
         if (!el || el.nodeType !== 1) return false;
         if (el.classList && el.classList.contains('modal-overlay')) return false;
+        // Prvek, který při minulé prohlídce oknem nebyl a od té doby nezměnil třídy
+        // ani inline styl, oknem nebude ani teď — bez getComputedStyle a bez rect.
+        var sig = (el.className && el.className.baseVal !== undefined ? el.className.baseVal : String(el.className || '')) + '|' + (el.style ? el.style.cssText : '');
+        if (el.__agMiniNe === sig) return false;
         var st = cs(el);
         if (!st || st.position !== 'fixed' || st.display === 'none') return false;
         if (st.visibility === 'hidden' || parseFloat(st.opacity || '1') < 0.05) return false;
@@ -561,7 +571,7 @@
         if (!modal || skipped(modal)) return;
         if (modal.querySelector('.ag-mini-fab') || modal.querySelector('.ag-mini-btn')) return;
         var core = coreWin(modal);
-        if (!core && !modWin(modal)) return;
+        if (!core && !modWin(modal)) { try { modal.__agMiniNe = (modal.className && modal.className.baseVal !== undefined ? modal.className.baseVal : String(modal.className || '')) + '|' + (modal.style ? modal.style.cssText : ''); } catch (e) { } return; }
         if (!fromTool(modal)) return;
         injectStyles();
         var mk = function () {

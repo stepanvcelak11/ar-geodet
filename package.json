@@ -7,6 +7,8 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "build:check": "node scripts/build.mjs --check",
+    "minify:lazy": "node scripts/minify-lazy.mjs",
+    "minify:lazy:check": "node scripts/minify-lazy.mjs --check",
     "test:smoke": "playwright test",
     "test:smoke:ui": "playwright test --ui",
     "check:js": "python scripts/check_js.py"

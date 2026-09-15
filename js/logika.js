@@ -89,10 +89,18 @@ if ('serviceWorker' in navigator) {
         window.agNumIn = agNumIn;
         proj4.defs("EPSG:5514","+proj=krovak +lat_0=49.5 +lon_0=24.83333333333333 +alpha=30.28813972222222 +k=0.9999 +x_0=0 +y_0=0 +ellps=bessel +towgs84=570.8,85.7,462.8,4.998,1.587,5.261,3.56 +units=m +no_defs");
         const map = L.map('map', { maxZoom: 22, minZoom: 10, zoomSnap: 0, zoomDelta: 1, zoomControl: false, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false });
-        const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 18, zIndex: 1 });
+        // SLABŠÍ TELEFON (js/slabsi-telefon.js, 15. 9. 2026 — plynulost 2. kolo, bod 06):
+        // dlaždice se načítají až po dotažení posunu (updateWhenIdle — Leaflet to na
+        // mobilu dělá sám, tady i pro případ desktopového UA), zásoba za okrajem jen
+        // jedna řada (keepBuffer 1 místo 2) a přepočet výřezu nejvýš 2,5×/s. Během
+        // posunu prstem se tak nedekódují obrázky, které stejně za chvíli zmizí.
+        // Rozhoduje se při startu (lite je uložený příznak / paměť telefonu); změna
+        // režimu v Nastavení platí od dalšího spuštění.
+        const _liteTiles = (window.AGLite && AGLite.lite) ? { updateWhenIdle: true, keepBuffer: 1, updateInterval: 400 } : {};
+        const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', Object.assign({ maxZoom: 22, maxNativeZoom: 18, zIndex: 1 }, _liteTiles));
         // Podklady CUZK (overeno: WMS 1.3.0, EPSG:3857). Ortofoto = base, katastr KN = pruhledny overlay nad base.
-        const ortofotoLayer = L.tileLayer.wms('https://ags.cuzk.gov.cz/arcgis1/services/ORTOFOTO/MapServer/WMSServer', { layers: '0', format: 'image/jpeg', version: '1.3.0', maxZoom: 22, zIndex: 1, attribution: '© ČÚZK' });
-        const katastrLayer = L.tileLayer.wms('https://services.cuzk.cz/wms/wms.asp', { layers: 'KN', format: 'image/png', transparent: true, version: '1.3.0', maxZoom: 22, zIndex: 2, attribution: '© ČÚZK' });
+        const ortofotoLayer = L.tileLayer.wms('https://ags.cuzk.gov.cz/arcgis1/services/ORTOFOTO/MapServer/WMSServer', Object.assign({ layers: '0', format: 'image/jpeg', version: '1.3.0', maxZoom: 22, zIndex: 1, attribution: '© ČÚZK' }, _liteTiles));
+        const katastrLayer = L.tileLayer.wms('https://services.cuzk.cz/wms/wms.asp', Object.assign({ layers: 'KN', format: 'image/png', transparent: true, version: '1.3.0', maxZoom: 22, zIndex: 2, attribution: '© ČÚZK' }, _liteTiles));
         const baseLayers = { osm: osmLayer, ortofoto: ortofotoLayer };
         osmLayer.addTo(map);
         // VYCHOZI POHLED HNED PRI STARTU (oprava „bod vytvořený offline není vidět"):

@@ -223,6 +223,25 @@
             id: 'odhadovacka', src: 'js/odhadovacka.js', label: 'Odhadni to', cat: 'Pomůcky',
             open: 'agOpenOdhad',
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>'
+        },
+        // ---- 15. 9. 2026 (plynulost 2. kolo, bod 01): tři studentské nástroje ----
+        // Ověřeno čtením: register() končí u agRegisterFieldTool, tělo IIFE jen
+        // definuje globály; zvenku je otevírá jen student-start.js přes `open` níž.
+        // (chybovy-rozpocet zůstává v ag/lazy — otevírá ho stavový pruh přes AGLazy.need.)
+        {
+            id: 'poznavacka', src: 'js/poznavacka.js', label: 'Poznávačka bodů', cat: 'Pomůcky', order: 5,
+            open: 'agOpenPoznavacka',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21h6"/><path d="M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/><path d="M12 8v3M10.5 9.5h3"/></svg>'
+        },
+        {
+            id: 'cvicne-ulohy', src: 'js/cvicne-ulohy.js', label: 'Cvičné úlohy', cat: 'Pomůcky', order: 4,
+            open: 'agOpenCvicneUlohy',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12l4 4v12H4z"/><path d="M8 13l2.5 2.5L16 10"/></svg>'
+        },
+        {
+            id: 'vzorce', src: 'js/vzorce.js', label: 'Vzorce', cat: 'Pomůcky', order: 3,
+            open: 'agOpenVzorce',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16"/><path d="M8 4l4 8-4 8"/><path d="M8 20h12"/><path d="M15 12h5"/></svg>'
         }
     ];
 

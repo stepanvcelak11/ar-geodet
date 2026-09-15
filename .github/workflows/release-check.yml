@@ -102,6 +102,13 @@ jobs:
       - name: Integrita kódu (syntaxe, duplicitní klíče, chybějící soubory)
         run: python scripts/check_js.py --require-node
 
+      # Minifikace odložených modulů (scripts/minify-lazy.mjs) musí projít KAŽDÝ soubor —
+      # syntaxe, kterou esbuild odmítne, by shodila až nasazení.
+      - name: Závislosti pro esbuild
+        run: npm install --no-audit --no-fund
+      - name: Minifikace odložených modulů (jen kontrola)
+        run: node scripts/minify-lazy.mjs --check
+
       # Každý nástroj musí mít v js/tools-registry.js záznam s kategorií, slovesem,
       # synonymy a návodem. Dřív to bylo rozepsané v šesti ručních tabulkách a nic
       # to nekontrolovalo — takže se opakovaně zapomnělo (Kompas nešel najít,
