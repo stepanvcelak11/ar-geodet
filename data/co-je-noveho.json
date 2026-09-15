@@ -2,6 +2,14 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 327,
+   "datum": "2026-09-15",
+   "nadpis": "Uvolnit místo v telefonu",
+   "body": [
+    "<b>Nastavení → Údržba → Uvolnit místo:</b> přehled, co appka v telefonu drží — stažená mapa (dílky z Uložit okolí, Sbalit zakázku i Stáhnout oblast, s odhadem MB) a každý stažený okres/kraj zvlášť — a u každé položky <b>Smazat</b>. Smazání oblasti bere i její dílky mapy; řádek „Využito X MB“ se hned přepočítá."
+   ]
+  },
+  {
    "v": 326,
    "datum": "2026-09-15",
    "nadpis": "Plynulost 2. kolo — rychlejší start, mapa bez škubání při chůzi, Nástroje bez zaseknutí",

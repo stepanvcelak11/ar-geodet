@@ -408,10 +408,34 @@
         });
     }
 
+    // Dlaždice balíčku ven z TILE_CACHE (přání 15. 9. 2026: „mít možnost je smazat a uvolnit
+    // místo"). Dlaždice sdílené s jiným balíčkem / s „Uložit okolí" se smažou taky — jsou
+    // znovu stažitelné, kdežto neuvolněné místo v telefonu nikomu nepomůže.
+    function smazatDlazdice(b) {
+        if (!b || !b.mapa || !('caches' in window)) return Promise.resolve(0);
+        var urls = tileUrls(b.bbox, b.mapa.zooms || []);
+        return caches.open(TILE_CACHE).then(function (cache) {
+            var i = 0, n = 0;
+            function davka() {
+                if (i >= urls.length) return n;
+                var chunk = urls.slice(i, i + 50); i += 50;
+                return Promise.all(chunk.map(function (u) { return cache.delete(u).then(function (ok) { if (ok) n++; }).catch(function () { }); })).then(davka);
+            }
+            return davka();
+        }).catch(function (e) { swallow(e, 'oblasti:smazatDlazdice'); return 0; });
+    }
+    // Po smazání celé cache dlaždic (Nastavení → Údržba) balíčky mapu nemají — zapsat.
+    function mapaSmazana() {
+        return loadMeta().then(function () {
+            _meta.balicky.forEach(function (b) { if (b.mapa) b.mapa = null; });
+            return saveMeta();
+        });
+    }
     function smazat(id) {
         var b = najdiBalicek(id); if (!b) return Promise.resolve();
         var ostatni = _meta.balicky.filter(function (x) { return x.id !== id && x.body; });
         var s = shelf(); if (!s) return Promise.resolve();
+        var dl = smazatDlazdice(b);
         // buňky v obálce balíčku: vyhodit záznamy tohoto balíčku, které neleží v jiném
         var bb = b.bbox, keys = [];
         for (var la = Math.floor(bb[1] / CELL); la <= Math.floor(bb[3] / CELL); la++)
@@ -432,7 +456,7 @@
                 return zbyva.length ? s.put('c:' + k, JSON.stringify(zbyva)) : s.del('c:' + k);
             }).then(dalsi);
         }
-        return dalsi().then(function () {
+        return dalsi().then(function () { return dl; }).then(function () {
             _meta.balicky = _meta.balicky.filter(function (x) { return x.id !== id; });
             _cells = {}; _cellOrder = [];
             return saveMeta();
@@ -629,7 +653,7 @@
     }
     function close() { if (_ov) _ov.style.display = 'none'; }
 
-    window.AGOblasti = { open: open, pokryto: pokryto, body: body, etrs: etrs, stahnout: stahnout, smazat: smazat, meta: function () { return _meta; }, hranice: hranice, kdeJsem: kdeJsem, _cell: cellKey };
+    window.AGOblasti = { open: open, pokryto: pokryto, body: body, etrs: etrs, stahnout: stahnout, smazat: smazat, mapaSmazana: mapaSmazana, loadMeta: loadMeta, meta: function () { return _meta; }, hranice: hranice, kdeJsem: kdeJsem, _cell: cellKey };
     window.agOpenOblasti = open;
 
     // dlaždice v Nástrojích
