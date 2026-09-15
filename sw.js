@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v321';   // Brana: Dalsi moznosti + Zavrit nepusti dovnitr; protokol bez dlazdic mapy; konzole drzi pohled pri vypadku; kamera z Playe navod; Kdo jsi? srozumitelneji
+const SHELL_CACHE = 'argeodet-shell-v323';   // modal-close: zaseknute odsunute okno po ztracenem touchend se vrati (konzole 'sprajsle')
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=321',
-    './css/style.css?v=321',
-    './css/vylepseni.css?v=321',
+    './css/tokens.css?v=323',
+    './css/style.css?v=323',
+    './css/vylepseni.css?v=323',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -263,6 +263,8 @@ const ASSETS_TO_CACHE = [
     './js/ar-metr.js',
     './js/indoor.js',
     './js/obchuzka.js',
+    './js/akusticky-dalkomer.js',
+    './js/kalibrace-hranou.js',
     './js/pdr-offset.js',
     './js/vyska-objektu.js',
     './js/job-transfer.js',

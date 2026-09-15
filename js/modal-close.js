@@ -563,7 +563,28 @@
         mc.style.opacity = '';
     }
 
+    // ⚠ ZASEKNUTÉ OKNO (15. 9. 2026, vlastník: „nástroje vyletěly mimo obrazovku a zůstalo
+    //   to šprajslé"). Když prohlížeč po rozjetém tahu NEpošle touchend ani touchcancel
+    //   (iOS: systémové gesto od okraje, přepnutí appky, dlouhý stisk), panel zůstal
+    //   odsunutý s inline transformem napořád. Stará zbylá tah se proto uklidí při
+    //   dalším doteku, při odchodu z appky i po chvíli klidu.
+    function uklidZbyly() {
+        var d = drag;
+        if (d && d.armed && d.mc) { drag = null; odpojCil(d); resetPull(d.mc); }
+        else if (d && !d.armed) { drag = null; }
+    }
+    document.addEventListener('visibilitychange', uklidZbyly);
+    window.addEventListener('blur', uklidZbyly);
+    setInterval(function () {
+        // panel s cizím translateX a bez živého tahu = zaseknutý → vrátit
+        if (drag && (performance.now() - (drag.t0 || 0)) > 4000) uklidZbyly();   // t0 = e.timeStamp (od načtení stránky)
+        if (drag) return;
+        var els = document.querySelectorAll('.agmc-drag');
+        for (var i = 0; i < els.length; i++) resetPull(els[i]);
+    }, 1500);
+
     function onStart(e) {
+        uklidZbyly();
         drag = null;
         if (!e.touches || e.touches.length !== 1) return;
         var t = e.target;

@@ -184,7 +184,8 @@
         'geo-overlay': 'Vlastní podklad', 'denik-dne': 'Deník dne', 'hlasovky': 'Hlasové poznámky',
         'brifink': 'Dnešek v terénu', 'checklist': 'Co s sebou',
         'pocasi': 'Počasí', 'gnss-forecast': 'GNSS předpověď', 'job-transfer': 'Poslat/načíst zakázku',
-        'kniha-jizd': 'Kniha jízd', 'pdr-offset': 'Krokový offset', 'dgps': 'Dvoutelefonní DGPS'
+        'kniha-jizd': 'Kniha jízd', 'pdr-offset': 'Krokový offset', 'dgps': 'Dvoutelefonní DGPS',
+        'akusticky-dalkomer': 'Akustický dálkoměr', 'kalibrace-hranou': 'Kalibrace chůzí po hraně'
     };
 
     function ls(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
