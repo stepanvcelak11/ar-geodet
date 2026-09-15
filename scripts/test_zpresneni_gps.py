@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-u"""Regrese k v321 (15. 9. 2026): dva nástroje „zpřesnění GPS čistě softwarem".
+u"""Regrese k v321/v324 (15. 9. 2026): dva nástroje „zpřesnění GPS čistě softwarem".
   A  AKUSTICKÝ DÁLKOMĚR (js/akusticky-dalkomer.js): dlaždice + návod, okno se otevře,
      mikrofon se zapne (fake zařízení Chromia) a telefon B přejde do „Poslouchám",
      uložené délky → protínání z délek → bod v zakázce s prov.origin 'akustika'
   B  KALIBRACE CHŮZÍ PO HRANĚ (js/kalibrace-hranou.js): čára ze dvou bodů, simulovaná
      chůze s posunutou GPS, výsledek = správný vektor, Zapnout korekci → agRefShift
+  H  HLÍDAČ PLATNOSTI (js/ref-calibration.js): pilulka zelená/oranžová/červená, toasty
+     5 min před vypršením, po 20 min, na 200 m a 300 m (každý jednou), klepnutí, vypnutí
 Matematika obou je zvlášť v scripts/test_akustika.py a scripts/test_hrana.py.
 Spuštění:  python scripts/test_zpresneni_gps.py [port]
 """
@@ -146,8 +148,53 @@ async def beh(url):
         await page.wait_for_timeout(300)
         sh = await page.evaluate("() => { var s = window.agRefShift; if (!s) return null; return { on: s.on, src: s.src, dN: s.dlat * 111320, dE: s.dlng * 111320 * Math.cos(50.0755 * Math.PI / 180), ls: !!localStorage.getItem('agRefShift') }; }")
         ok('B6 Zapnout korekci → agRefShift (posun +2,5 m na sever, nic na východ)', sh and sh['on'] and sh['src'] == 'hrana' and 2.2 < sh['dN'] < 2.8 and abs(sh['dE']) < 0.05 and sh['ls'], sh)
+        okno = await page.evaluate("() => (document.querySelector('#ag-hr-body .hr-card') || {}).textContent || ''")
+        ok('B6b okno ukazuje platnost korekce (zbývající minuty + vzdálenost)', ('platí ještě' in okno) and ('m od místa' in okno), okno[:200])
         await page.click('#ag-hr-close')
         ok('B7 Zavřít uklidí čáru z mapy', await page.evaluate("() => getComputedStyle(document.getElementById('ag-hr-modal')).display === 'none' && !document.getElementById('ag-hr-bar')"))
+
+        # ---- H: hlídač platnosti korekce (js/ref-calibration.js) -------------------------
+        await page.evaluate("() => window.agRefShiftWatch()")
+        pill = await page.evaluate("() => { const p = document.getElementById('agref-pill'); return p ? { cls: p.className, txt: p.textContent } : null; }")
+        ok('H1 po zapnutí svítí zelená pilulka „Korekce GPS · ještě 20 min"', pill and 'show' in pill['cls'] and 'warn' not in pill['cls'] and 'Korekce GPS' in pill['txt'] and 'ještě' in pill['txt'], pill)
+        toasty = []
+        await page.expose_function('_agToastSpy', lambda m: toasty.append(m))
+        await page.evaluate("() => { const o = window.quickToast; window.quickToast = function (m) { window._agToastSpy(String(m)); return o && o.apply(this, arguments); }; }")
+        # čas: 16 min → oranžová + toast „vyprší za 4 min"
+        await page.evaluate("() => { window.agRefShift.t = Date.now() - 16 * 60000; localStorage.setItem('agRefShift', JSON.stringify(window.agRefShift)); window.agRefShiftWatch(); }")
+        pill = await page.evaluate("() => ({ cls: document.getElementById('agref-pill').className, txt: document.getElementById('agref-pill').textContent })")
+        ok('H2 v 16 min: oranžová pilulka „ještě 4 min" + toast o vypršení', 'warn' in pill['cls'] and 'ještě 4 min' in pill['txt'] and any('vyprší za' in t for t in toasty), (pill, toasty))
+        # 21 min → červená + toast „starší než 20 min"
+        await page.evaluate("() => { window.agRefShift.t = Date.now() - 21 * 60000; window.agRefShiftWatch(); }")
+        pill = await page.evaluate("() => ({ cls: document.getElementById('agref-pill').className, txt: document.getElementById('agref-pill').textContent })")
+        ok('H3 ve 21 min: červená pilulka + toast „starší než 20 min"', 'bad' in pill['cls'] and 'starší než 20 min' in pill['txt'] and any('starší než 20 min' in t for t in toasty), (pill, toasty))
+        n0 = len(toasty)
+        await page.evaluate("() => window.agRefShiftWatch()")
+        ok('H4 stejný stupeň se toastem neopakuje', len(toasty) == n0, toasty)
+        # vzdálenost: čerstvá korekce, odejdi 250 m → oranžová podle vzdálenosti, 320 m → červená
+        await page.evaluate("() => { window.agRefShift.t = Date.now(); window.agRefShiftWatch(); }")
+        p250 = ll(30, -250)
+        await ctx.set_geolocation({'latitude': p250['lat'], 'longitude': p250['lng'], 'accuracy': 4})
+        await page.wait_for_timeout(1500)
+        await page.evaluate("() => window.agRefShiftWatch()")
+        pill = await page.evaluate("() => ({ cls: document.getElementById('agref-pill').className, txt: document.getElementById('agref-pill').textContent })")
+        ok('H5 250 m od místa: oranžová + toast „200 m"', 'warn' in pill['cls'] and 'm od místa' in pill['txt'] and any('od místa kalibrace' in t and '300 m' in t for t in toasty), (pill, toasty[-2:]))
+        p320 = ll(30, -320)
+        await ctx.set_geolocation({'latitude': p320['lat'], 'longitude': p320['lng'], 'accuracy': 4})
+        await page.wait_for_timeout(1500)
+        await page.evaluate("() => window.agRefShiftWatch()")
+        pill = await page.evaluate("() => ({ cls: document.getElementById('agref-pill').className, txt: document.getElementById('agref-pill').textContent })")
+        ok('H6 320 m: červená „za hranicí 300 m"', 'bad' in pill['cls'] and 'za hranicí 300 m' in pill['txt'], pill)
+        # klepnutí na pilulku otevře nástroj, který korekci vyrobil
+        await page.click('#agref-pill .txt')
+        await page.wait_for_timeout(500)
+        ok('H7 klepnutí na pilulku otevře Kalibraci chůzí po hraně', await page.evaluate("() => getComputedStyle(document.getElementById('ag-hr-modal')).display === 'flex'"))
+        await page.click('#ag-hr-off')
+        await page.wait_for_timeout(300)
+        ok('H8 Vypnout → pilulka zhasne', await page.evaluate("() => !document.getElementById('agref-pill').classList.contains('show') && !(window.agRefShift && window.agRefShift.on)"))
+        await page.click('#ag-hr-close')
+        await ctx.set_geolocation({'latitude': LAT, 'longitude': LNG, 'accuracy': 3})
+        await page.wait_for_timeout(800)
 
         # ---- A: akustický dálkoměr -------------------------------------------------
         await page.evaluate("() => AGLazyTools.open('akusticky-dalkomer')")

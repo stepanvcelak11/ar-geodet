@@ -283,11 +283,13 @@
         var s = { dlat: -q.vN / m.lat, dlng: -q.vE / m.lng, t: Date.now(), acc: Math.round(q.sterr * 100) / 100, on: true, lat: q.lat, lng: q.lng, src: 'hrana', mode: q.mode };
         window.agRefShift = s;
         try { localStorage.setItem('agRefShift', JSON.stringify(s)); } catch (e) { swallow(e, 'saveShift'); }
-        toast('Korekce GPS zapnuta: ' + fmt(Math.hypot(q.vE, q.vN)) + ' m' + (q.mode === '1d' ? ' (kolmo k čáře)' : '') + ' — přičítá se k novým bodům ~15 min.');
+        toast('Korekce GPS zapnuta: ' + fmt(Math.hypot(q.vE, q.vN)) + ' m' + (q.mode === '1d' ? ' (kolmo k čáře)' : '') + ' — přičítá se k novým bodům. Hlídám 20 min a 300 m, nahoře vidíš pilulku.');
+        try { if (window.agRefShiftWatch) window.agRefShiftWatch(); } catch (e) { swallow(e, 'watch'); }
     }
     function shiftOff() {
         var s = window.agRefShift; if (s) { s.on = false; try { localStorage.setItem('agRefShift', JSON.stringify(s)); } catch (e) { swallow(e, 'off'); } }
         toast('Korekce GPS vypnuta.');
+        try { if (window.agRefShiftWatch) window.agRefShiftWatch(); } catch (e) { swallow(e, 'watch'); }
     }
 
     // ---- UI --------------------------------------------------------------------------------
@@ -337,8 +339,11 @@
     function open() { ensureModal(); byId(DLG_ID).style.display = 'flex'; if (_verts.length) drawLine(); render(); }
 
     function howTo() {
-        return '<details class="hr-how"><summary>Jak to funguje</summary>'
-            + '<p class="hr-p">GPS v telefonu se v tuhle chvíli a na tomhle místě mýlí o nějaký <b>vektor</b> (třeba 2 m na severovýchod) — a ten se mění pomalu, v řádu čtvrthodin, a v okruhu stovek metrů je skoro stejný. Když jdeš podél čáry, o níž appka ví, kde přesně je, vidí, o kolik od ní GPS uhýbá, a ten vektor spočítá. Na rovné čáře jde vidět jen složka <b>kolmo k čáře</b> (podél ní by se stejně dobře hodil kterýkoli bod); na lomené (zatáčka, roh) vyjde vektor celý.</p>'
+        return '<details class="hr-how"><summary>Jak to funguje, jaká je přesnost a jak dlouho to platí</summary>'
+            + '<p class="hr-p"><b>Proč to jde.</b> Chyba GPS v telefonu není náhodný rozptyl kolem správného místa — v danou chvíli je to hlavně <b>jeden vektor</b> (třeba 2 m na severovýchod), který vzniká v ionosféře, troposféře a v drahách družic. Ten vektor se mění <b>pomalu</b> (v řádu čtvrthodin) a v okruhu stovek metrů je pro všechny telefony <b>skoro stejný</b>. Přesně na tom stojí i profesionální DGPS/RTK: referenční stanice na známém bodě změří, o kolik GPS lže, a rover si to odečte. Tady je „referenční stanice" tvoje chůze po známé hraně.</p>'
+            + '<p class="hr-p"><b>Jak to appka počítá.</b> Každý fix GPS při chůzi promítne na nejbližší úsek čáry a spočítá <b>příčnou odchylku</b> (o kolik jsi podle GPS vedle čáry, minus tvůj boční odstup). Když je 40 fixů v průměru 2,3 m vlevo od hrany, GPS lže o 2,3 m doprava — a to se u nových bodů odečte. Hrubé uskoky (odraz od budovy) se vyřadí (3× MAD), z rozptylu zbylých vyjde odhad chyby korekce. Na <b>rovné</b> čáře jde vidět jen složka <b>kolmo k čáře</b> — podél ní by se každý bod hodil stejně dobře, takže podélná zůstane nula. Proto je u <b>silnice</b> ideální jít podél obrubníku: příčná složka je ta, o kterou při pokládce jde. Na <b>lomené</b> čáře (zatáčka, roh ≥ 30°) vyjde vektor celý.</p>'
+            + '<p class="hr-p"><b>Na jakou přesnost se dá dostat.</b> Chyba korekce ≈ rozptyl fixů ÷ √(nezávislých fixů) ⊕ přesnost samotné čáry. Prakticky: 30–50 m chůze s fixy ±3–5 m dá kolmou složku na <b>±0,3–0,5 m</b>; s dobrým signálem a 80 m chůze <b>±0,2 m</b>. Čára klepnutá z mapy přidává chybu podkladu (ortofoto ČÚZK ~0,2–0,5 m, uliční mapa i víc) — hrana z <b>DXF nebo z bodů, které znáš</b>, tuhle chybu nemá. Z holého telefonu (±3–5 m) se tak dostaneš na půl metru kolmo k hraně — ne na RTK, ale na pokládku, kontrolu hrany nebo dohledání bodu to obvykle stačí. Odhad chyby vidíš u výsledku.</p>'
+            + '<p class="hr-p"><b>Jak dlouho to platí.</b> Korekce má hlídanou platnost <b>' + '20 min a 300 m' + '</b> od místa chůze: po zapnutí je nahoře pilulka „Korekce GPS · ještě X min · Y m od místa" (zelená = platí, oranžová = blíží se hranice, červená = za hranicí) a appka tě upozorní <b>5 min před vypršením</b>, po vypršení, na <b>200 m</b> a na 300 m. Sama korekci nevypíná — když víš, že je dnes GPS klidná, můžeš měřit dál, jen už za to appka neručí. Obnova = prostě projdi hranu znovu (klidně cestou zpět).</p>'
             + '<ol>'
             + '<li><b>Vyber čáru</b>: klepni v mapě na začátek a konec (klidně i lomy) hrany, po které opravdu půjdeš — obrubník, hrana chodníku, plot, čára z DXF. Nebo dva uložené body.</li>'
             + '<li>Zadej <b>boční odstup</b>: jdeš-li 0,4 m vpravo od klepnuté hrany, zadej +0,4 (vlevo záporně).</li>'
@@ -354,7 +359,15 @@
         var opts = '<option value="">—</option>' + pts.map(function (p) { return '<option value="' + esc(p.id) + '">' + esc(p.name) + '</option>'; }).join('');
         var lineTxt = _verts.length >= 2 ? '<b>' + _verts.length + ' body</b>, ' + fmt(new Line(_verts).len, 0) + ' m' + (new Line(_verts).spread() >= ANGLE_2D ? ' · lomená → celý vektor' : ' · rovná → jen kolmá složka') : '<i>zatím žádná</i>';
         var cur = window.agRefShift, curTxt = '';
-        if (cur && cur.on) { var mm = mPerDeg(cur.lat || 49.8); curTxt = '<div class="hr-card">Teď zapnutá korekce: <b>' + fmt(Math.hypot(cur.dlng * mm.lng, cur.dlat * mm.lat)) + ' m</b>' + (cur.src === 'hrana' ? ' (z chůze po hraně)' : ' (z „Posun GPS na známý bod")') + (cur.t ? ', před ' + Math.round((Date.now() - cur.t) / 60000) + ' min' : '') + ' <button class="btn btn-secondary" id="ag-hr-off" style="width:auto;padding:4px 10px;margin:0 0 0 8px;">Vypnout</button></div>'; }
+        if (cur && cur.on) {
+            var mm = mPerDeg(cur.lat || 49.8), stv = null;
+            try { stv = window.agRefShiftStav ? window.agRefShiftStav() : null; } catch (e) { swallow(e, 'stav'); }
+            var barva = stv ? (stv.stav === 'bad' ? 'amber' : (stv.stav === 'warn' ? 'amber' : 'green')) : '';
+            curTxt = '<div class="hr-card ' + barva + '">Teď zapnutá korekce: <b>' + fmt(Math.hypot(cur.dlng * mm.lng, cur.dlat * mm.lat)) + ' m</b>' + (cur.src === 'hrana' ? ' (z chůze po hraně)' : ' (z „Posun GPS na známý bod")')
+                + (stv ? '<br>' + (stv.zbyva != null ? (stv.zbyva > 0 ? '<b>platí ještě ' + stv.zbyva + ' min</b>' : '<b>starší než ' + stv.maxMin + ' min — už neručím</b>') : '') + (stv.dist != null ? ' · <b>' + Math.round(stv.dist) + ' m</b> od místa kalibrace (hranice ' + stv.maxM + ' m)' : '') : '')
+                + (stv && stv.stav !== 'ok' ? '<br><span style="opacity:.85">Blížíš se hranici platnosti — projdi hranu znovu, ať korekce sedí na tuhle chvíli a tohle místo.</span>' : '')
+                + ' <button class="btn btn-secondary" id="ag-hr-off" style="width:auto;padding:4px 10px;margin:6px 0 0;">Vypnout</button></div>';
+        }
         var resTxt = '';
         if (_result) {
             if (_result.err) resTxt = '<div class="hr-card amber">' + esc(_result.err) + '</div>';
@@ -362,7 +375,8 @@
                 var q = _result, mag = Math.hypot(q.vE, q.vN), brg = ((Math.atan2(q.vE, q.vN) * 180 / Math.PI) + 360) % 360;
                 resTxt = '<div class="hr-card green"><b>Výsledek:</b> GPS tu lže o <span class="hr-big" style="display:block">' + fmt(mag) + ' m</span>'
                     + 'směrem ' + Math.round(brg) + '° (' + fmt(q.vE) + ' m V / ' + fmt(q.vN) + ' m S)' + (q.mode === '1d' ? ' — <b>jen kolmo k čáře</b>, podélná složka zůstává neznámá' : ' — celý vektor (lomená čára)') + '<br>'
-                    + q.n + ' fixů' + (q.dropped ? ' (' + q.dropped + ' vyřazeno)' : '') + ' na ' + fmt(q.walked, 0) + ' m · rozptyl ±' + fmt(q.sigma, 1) + ' m · odhad chyby korekce <b>±' + fmt(q.sterr) + ' m</b></div>'
+                    + q.n + ' fixů' + (q.dropped ? ' (' + q.dropped + ' vyřazeno)' : '') + ' na ' + fmt(q.walked, 0) + ' m · rozptyl ±' + fmt(q.sigma, 1) + ' m · odhad chyby korekce <b>±' + fmt(q.sterr) + ' m</b>'
+                    + '<br><span style="opacity:.8;font-size:.92em">Po zapnutí budou nové body ' + (q.mode === '1d' ? 'kolmo k hraně' : '') + ' přesné zhruba na ±' + fmt(Math.max(q.sterr, 0.2), 1) + ' m' + (q.mode === '1d' ? ' (podél hrany zůstává chyba GPS)' : '') + '; platnost 20 min / 300 m odsud, hlídá se.</span></div>'
                     + '<div class="hr-btns"><button class="btn btn-primary" id="ag-hr-apply">✓ Zapnout korekci</button><button class="btn btn-secondary" id="ag-hr-again">↻ Jít znovu</button></div>';
             }
         }

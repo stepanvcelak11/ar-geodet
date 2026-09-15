@@ -46,7 +46,7 @@
             if (raw) {
                 var o = JSON.parse(raw);
                 if (o && isFinite(o.dlat) && isFinite(o.dlng)) {
-                    window.agRefShift = { dlat: +o.dlat, dlng: +o.dlng, t: o.t || 0, acc: o.acc, on: !!o.on, lat: (isFinite(o.lat) ? +o.lat : null), lng: (isFinite(o.lng) ? +o.lng : null) };
+                    window.agRefShift = { dlat: +o.dlat, dlng: +o.dlng, t: o.t || 0, acc: o.acc, on: !!o.on, lat: (isFinite(o.lat) ? +o.lat : null), lng: (isFinite(o.lng) ? +o.lng : null), src: (o.src === 'hrana' ? 'hrana' : undefined), mode: o.mode };   // src: kdo korekci vyrobil (js/kalibrace-hranou.js) — pilulka podle toho otevírá správný nástroj
                     return window.agRefShift;
                 }
             }
@@ -388,7 +388,7 @@
 
         // bezpečnostní brzda na nesmyslně velký posun (špatně zadané souřadnice / jiný kat. systém)
         var cm = shiftCm(s, a.lat);
-        var doSave = function () { saveShift(s); renderState(); alertBox('Kalibrace zapnuta', 'Posun GPS ~<b>' + escapeHtml(dist) + '</b> se teď přičítá k <b>nově</b> ukládaným bodům. Existující body zůstaly beze změny. Můžeš ji kdykoli vypnout.'); };
+        var doSave = function () { saveShift(s); renderState(); window.agRefShiftWatch && window.agRefShiftWatch(); alertBox('Kalibrace zapnuta', 'Posun GPS ~<b>' + escapeHtml(dist) + '</b> se teď přičítá k <b>nově</b> ukládaným bodům. Existující body zůstaly beze změny. Můžeš ji kdykoli vypnout.'); };
         if (cm != null && cm > 5000) {
             confirmBox('Velký posun (' + dist + ')', 'Spočítaný posun je <b>' + escapeHtml(dist) + '</b> — to je hodně. Bývá to známka špatně zadaných souřadnic nebo jiného souřadnicového systému. Opravdu zapnout?', 'Přesto zapnout', 'Zpět', true)
                 .then(function (ok) { if (ok) doSave(); });
@@ -401,7 +401,7 @@
         var s = loadShift();
         if (!s || !isFinite(s.dlat)) { alertBox('Není co přepnout', 'Nejdřív kalibraci nastav (zadej referenční bod a klepni na „Spočítat a zapnout").'); return; }
         s.on = !s.on;
-        saveShift(s);
+        window.agRefShiftWatch && setTimeout(window.agRefShiftWatch, 50); saveShift(s);
         renderState();
     }
 
@@ -429,6 +429,103 @@
     }
     var _gpsTimer = null;
     window.openRefCalibration = open;
+
+    // --------------------------------------------------------------------------------
+    // HLÍDAČ PLATNOSTI KOREKCE (15. 9. 2026, uživatel: „upozornění, že za chvilku vyprší
+    // čas nebo se blíží hranice vzdálenosti, ať o tom člověk víc ví").
+    // Dřív se člověk o vypršení dozvěděl až toastem PŘI UKLÁDÁNÍ bodu — tedy až když
+    // bylo pozdě. Teď se korekce hlídá průběžně (každých 15 s) a stav je pořád vidět:
+    //   • pilulka pod horním HUD: „Korekce GPS 1,8 m · ještě 12 min · 80 m od místa"
+    //     zelená = platí, oranžová = blíží se hranice (≥ 15 min nebo ≥ 200 m),
+    //     červená = za hranicí (≥ 20 min nebo ≥ 300 m); klepnutí otevře nástroj,
+    //     který korekci vyrobil (chůze po hraně / posun na známý bod), × pilulku schová
+    //   • toast při KAŽDÉM přechodu stavu (jen jednou na jednu korekci): „vyprší za
+    //     5 min", „vypršela", „jsi 200 m od místa", „jsi za hranicí 300 m"
+    // Proč se korekce sama NEVYPÍNÁ: geodet může vědět, že chyba GPS je dnes stabilní
+    // (klidná ionosféra) — rozhodnutí je jeho, appka jen říká, že už za to neručí.
+    // Korekci sdílí js/kalibrace-hranou.js (src:'hrana') i tenhle modul.
+    // --------------------------------------------------------------------------------
+    var PILL_ID = 'agref-pill';
+    var WARN_AGE_MS = 15 * 60 * 1000;   // „vyprší za 5 min"
+    var WARN_DIST_M = 200;              // „blížíš se k hranici 300 m"
+    var _watchTimer = null, _fired = {}, _pillHidden = null;
+    function pillCss() {
+        if (!window.AG || !AG.style) return;
+        AG.style('agref-pill-style', [
+            '#' + PILL_ID + '{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 44px);z-index:11990;display:none;',
+            '  align-items:center;gap:7px;padding:5px 8px 5px 12px;border-radius:999px;font:600 12px/1.2 var(--font-ui,system-ui),sans-serif;color:#fff;',
+            '  border:1px solid rgba(255,255,255,.22);box-shadow:0 4px 16px rgba(0,0,0,.45);max-width:88vw;background:rgba(20,83,45,.92);cursor:pointer;}',
+            '#' + PILL_ID + '.show{display:flex;}',
+            '#' + PILL_ID + '.warn{background:rgba(146,94,7,.92);}',
+            '#' + PILL_ID + '.bad{background:rgba(140,28,28,.94);}',
+            '#' + PILL_ID + ' .x{appearance:none;-webkit-appearance:none;border:0;background:rgba(255,255,255,.18);color:#fff;width:22px;height:22px;border-radius:50%;flex:0 0 22px;font:700 14px/22px var(--font-ui,system-ui),sans-serif;padding:0;cursor:pointer;text-align:center;}',
+            // pruh js/gps-trust.js sedí na stejném místě — když svítí, uhni pod něj
+            'body.ag-fix-stale #' + PILL_ID + ',body.ag-fix-lost #' + PILL_ID + ',body.ag-net-off #' + PILL_ID + '{top:calc(env(safe-area-inset-top,0px) + 84px);}',
+            // AR na celou obrazovku / jednoduchý režim: pilulka nesmí překážet hledáčku
+            'body.ag-simple #' + PILL_ID + '{display:none!important;}'
+        ].join('\n'));
+    }
+    function ensurePill() {
+        var p = document.getElementById(PILL_ID);
+        if (p) return p;
+        pillCss();
+        p = document.createElement('div');
+        p.id = PILL_ID; p.setAttribute('role', 'status');
+        p.innerHTML = '<span class="txt"></span><button type="button" class="x" aria-label="Schovat">×</button>';
+        p.addEventListener('click', function (e) {
+            if (e.target && e.target.classList.contains('x')) { var s = loadShift(); _pillHidden = s ? s.t : true; p.classList.remove('show'); return; }
+            var s2 = loadShift();
+            if (s2 && s2.src === 'hrana' && window.AGLazyTools && typeof AGLazyTools.open === 'function') AGLazyTools.open('kalibrace-hranou');
+            else open();
+        });
+        document.body.appendChild(p);
+        return p;
+    }
+    // Vrátí stav korekce pro pilulku i pro okna nástrojů: {age (min), dist (m|null),
+    // zbyva (min), stav 'ok'|'warn'|'bad', text}. window.agRefShiftStav() pro ostatní moduly.
+    function shiftStatus() {
+        var s = loadShift();
+        if (!s || !s.on || !isFinite(s.dlat) || !isFinite(s.dlng)) return null;
+        var now = Date.now(), age = s.t ? (now - s.t) / 60000 : null;
+        var dist = null;
+        try {
+            if (isFinite(s.lat) && isFinite(s.lng) && typeof userLat === 'number' && typeof userLng === 'number' && isFinite(userLat)) dist = planarDist(s.lat, s.lng, userLat, userLng);
+        } catch (e) { dist = null; }
+        var stav = 'ok';
+        if ((age != null && age >= WARN_AGE_MS / 60000) || (dist != null && dist >= WARN_DIST_M)) stav = 'warn';
+        if ((age != null && age >= MAX_AGE_MS / 60000) || (dist != null && dist >= MAX_DIST_M)) stav = 'bad';
+        var zbyva = age != null ? Math.max(0, Math.round(MAX_AGE_MS / 60000 - age)) : null;
+        var parts = ['Korekce GPS ' + fmtShift(s)];
+        if (age != null) parts.push(zbyva > 0 ? 'ještě ' + zbyva + ' min' : 'starší než ' + Math.round(MAX_AGE_MS / 60000) + ' min');
+        if (dist != null) parts.push(Math.round(dist) + ' m od místa' + (dist >= MAX_DIST_M ? ' (za hranicí ' + MAX_DIST_M + ' m)' : ''));
+        return { s: s, age: age, dist: dist, zbyva: zbyva, stav: stav, text: parts.join(' · '), maxMin: MAX_AGE_MS / 60000, maxM: MAX_DIST_M };
+    }
+    window.agRefShiftStav = shiftStatus;
+    function watchTick() {
+        var st = shiftStatus();
+        var p = document.getElementById(PILL_ID);
+        if (!st) { if (p) p.classList.remove('show'); _fired = {}; _pillHidden = null; return; }
+        var key = String(st.s.t || 0);
+        if (!_fired[key]) { _fired = {}; _fired[key] = {}; }
+        var f = _fired[key];
+        // toasty — každý stupeň jen jednou na jednu korekci
+        function once(k, msg) { if (f[k]) return; f[k] = true; toastSafe(msg); }
+        if (st.age != null && st.age >= st.maxMin) once('age2', '⌛ Korekce GPS je starší než ' + st.maxMin + ' min — chyba GPS se mezitím mohla změnit, za posun už appka neručí. Projdi hranu / změř známý bod znovu, nebo korekci vypni.');
+        else if (st.age != null && st.age >= WARN_AGE_MS / 60000) once('age1', '⏳ Korekce GPS vyprší za ' + Math.max(1, st.zbyva) + ' min. Budeš-li ještě měřit, obnov ji včas (chůze po hraně / známý bod).');
+        if (st.dist != null && st.dist >= st.maxM) once('dist2', '📍 Jsi ' + Math.round(st.dist) + ' m od místa kalibrace — za hranicí ' + st.maxM + ' m posun nemusí platit. Zkalibruj znovu tady.');
+        else if (st.dist != null && st.dist >= WARN_DIST_M) once('dist1', '📏 Jsi ' + Math.round(st.dist) + ' m od místa kalibrace — na ' + st.maxM + ' m korekce přestane platit.');
+        // pilulka
+        if (_pillHidden === st.s.t) return;
+        p = ensurePill();
+        p.className = 'show ' + (st.stav === 'ok' ? '' : st.stav);
+        p.querySelector('.txt').textContent = st.text;
+    }
+    function startWatch() {
+        if (_watchTimer) return;
+        _watchTimer = setInterval(function () { try { watchTick(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:watch'); } }, 15000);
+        setTimeout(function () { try { watchTick(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:watch0'); } }, 2500);
+    }
+    window.agRefShiftWatch = function () { try { watchTick(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:watchNow'); } };
 
     // --------------------------------------------------------------------------------
     // Vstup: dlaždice v „Nástroje" (kategorie Pomůcky, vedle „Srovnat sever").
@@ -465,6 +562,7 @@
         try { loadShift(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:init'); }
         try { wrapSave(); } catch (e) { console.warn('[ref-calibration] wrapSave', e); }
         try { injectMenuButton(); } catch (e) { console.warn('[ref-calibration] menu', e); }
+        try { startWatch(); } catch (e) { console.warn('[ref-calibration] watch', e); }
     }
 
     if (document.readyState === 'loading') {

@@ -2,6 +2,15 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+    "v": 324,
+    "datum": "2026-09-15",
+    "nadpis": "Korekce GPS se hlídá: pilulka nahoře, upozornění před vypršením a u hranice vzdálenosti",
+    "body": [
+      "<b>Hlídač platnosti korekce GPS</b> (z chůze po hraně i z „Posun GPS na známý bod\"): po zapnutí svítí nahoře pilulka „Korekce GPS 1,8 m · ještě 12 min · 80 m od místa\" — zelená platí, oranžová se blíží hranici, červená je za ní. Appka upozorní <b>5 min před vypršením</b> (20 min), po vypršení, na <b>200 m</b> od místa kalibrace a na 300 m — každé jednou. Klepnutí na pilulku otevře nástroj, který korekci vyrobil; sama se nevypíná, rozhodnutí je tvoje.",
+      "<b>Kalibrace chůzí po hraně:</b> podstatně delší vysvětlení v okně — proč to jde (stejný princip jako DGPS), jak se to počítá, <b>na jakou přesnost se dá dostat</b> (30–50 m chůze → ±0,3–0,5 m kolmo k hraně, s dobrým signálem ±0,2 m; čára z mapy přidává chybu podkladu) a jak dlouho to platí. U výsledku je rovnou napsáno, jak přesné budou nové body; zapnutá korekce v okně ukazuje zbývající minuty a vzdálenost od místa kalibrace."
+    ]
+  },
+  {
    "v": 323,
    "datum": "2026-09-15",
    "nadpis": "Lovci bodů — sbírka objevených bodů, ocenění a lov",
