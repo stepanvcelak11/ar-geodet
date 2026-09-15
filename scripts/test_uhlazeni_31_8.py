@@ -201,9 +201,14 @@ async def test_admin(ctx):
         const host = document.getElementById('ag-uk-list');
         if (!host) return null;
         const cs = getComputedStyle(host);
-        const rows = [...host.querySelectorAll('.ag-uk-i')];
+        // od v331 (listovani) nese stranka „Pro" v Zakladu i zamcene polozky rozcestniku
+        // (Pro nastroje jsou vsechny stranou) — do `klice` (B3, B4) se nepocitaji,
+        // do `vse` (B2: kazdy rozcestnik ma radek, i zamceny) ano
+        const vse = [...host.querySelectorAll('.ag-uk-i')];
+        const rows = vse.filter(r => !r.closest('.ag-uk-pro'));
         return { vidno: cs.display !== 'none',
                  pocet: rows.length,
+                 vse: vse.map(r => r.getAttribute('data-k') || '').filter(Boolean),
                  klice: rows.map(r => r.getAttribute('data-k') || '').filter(Boolean) };
     }""")
     ok('B1 seznam ukonu se vykreslil', sez and sez.get('vidno') and sez.get('pocet', 0) > 20, sez and sez.get('pocet'))
@@ -215,7 +220,7 @@ async def test_admin(ctx):
         stojici = await page.evaluate("""() => AGReg.all().filter(r => r.hub)
             .filter(r => !![...document.querySelectorAll('#tools-modal .tool-tile')]
                 .find(t => (t.getAttribute('data-tool') || '') === r.k)).map(r => r.k)""")
-        chybi_hub = [h for h in stojici if h not in klice]
+        chybi_hub = [h for h in stojici if h not in set(sez['vse'])]
         ok('B2 kazdy postaveny rozcestnik ma v seznamu svuj radek',
            not chybi_hub, {'chybi': chybi_hub, 'stoji': len(stojici), 'huby': len(huby)})
 

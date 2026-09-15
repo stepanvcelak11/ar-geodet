@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v331';   // karta bodu + duvera ukazuji korekci GPS (chuze po hrane / znamy bod / DGPS), prepocet pred a po zachova puvod korekce
+const SHELL_CACHE = 'argeodet-shell-v332';   // Nastroje = listovani po slovesech (Moje, stranka Pro), kolecko nastroju pryc
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=331',
-    './css/style.css?v=331',
-    './css/vylepseni.css?v=331',
+    './css/tokens.css?v=332',
+    './css/style.css?v=332',
+    './css/vylepseni.css?v=332',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -217,7 +217,6 @@ const ASSETS_TO_CACHE = [
     './js/nastaveni-hledani.js',
     './js/nastaveni-poradek.js',
     './js/nastaveni-lista.js',
-    './js/kolecko-nastroju.js',
     './js/gesta-zkratky.js',
     './js/kompas-magneticky.js',
     './js/vyska-gps.js',

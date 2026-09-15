@@ -1,7 +1,8 @@
 /* ===== QTRIG — VZHLED PRO (ODPOJITELNÁ vrstva) ===================================
    Uživatel 13. 9. 2026: „Líbí se mi, jak má Pro vizuálně upravenou kytičku, udělej
-   víc takových úprav v aplikaci pro Pro verzi." Kytička (js/kolecko-nastroju.js)
-   je v Pro zlatá (#e6bd76) místo zelené. Tahle vrstva táhne TUTÉŽ zlatou na to,
+   víc takových úprav v aplikaci pro Pro verzi." Kytička (kolečko nástrojů, od
+   15. 9. 2026 zrušené) byla v Pro zlatá (#e6bd76) místo zelené. Tahle vrstva
+   táhne TUTÉŽ zlatou na to,
    co je na hlavní obrazovce pořád — všechno jen pod `body.ag-pro` (třídu dává
    js/licence.js hned od prvního obrazu, viz znakPro), Základ se nemění ani o pixel.
 

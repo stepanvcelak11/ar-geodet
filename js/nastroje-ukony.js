@@ -1,123 +1,112 @@
-// ===== QTRIG — NÁSTROJE JAKO SEZNAM ÚKONŮ (ODPOJITELNÁ vrstva) =============
-// PROBLÉM: Nástroje měly 70 dlaždic v 6 kategoriích. Kategorie „Pomůcky" jich
-// nesla 23 a byla to skládka (Kalkulačka, Docházka, Počasí, Předpisy, Kniha jízd…),
-// dlaždice byly zatoulané (Kalibrace na ref. bod patří k AR, Rajón není kalibrace)
-// a kategorie „Terénní nástroje" měla jedinou dlaždici. Hledat mezi ikonami
-// v rukavicích na slunci je pomalé — geodet neví „která ikona", ví „co chci udělat".
+// ===== QTRIG — NÁSTROJE JAKO LISTOVÁNÍ PO SLOVESECH (ODPOJITELNÁ vrstva) ======
+// PROBLÉM (původní, 2026): Nástroje měly 70 dlaždic v 6 kategoriích. Kategorie
+// „Pomůcky" jich nesla 23 a byla to skládka, dlaždice byly zatoulané a hledat mezi
+// ikonami v rukavicích na slunci je pomalé — geodet neví „která ikona", ví „co
+// chci udělat". Proto seznam SLOVES: Změřit · Určit nový bod · Vytyčit · …
 //
-// ŘEŠENÍ: JEDINÝ pohled — svislý seznam sloves: Změřit · Určit nový bod · Vytyčit ·
-// Zaznamenat · Srovnat AR · Zjistit podmínky · Katastr a podklady · Před výjezdem ·
-// Firma a papíry · Příručka a výpočty (+ záchytné „Další nástroje").
+// PROBLÉM DRUHÝ (15. 9. 2026, přání uživatele): k nástroji vedly TŘI cesty —
+// klepnutí (svislý seznam všech sloves, 4 470 px, sedm obrazovek), podržení
+// tlačítka (kytka, js/kolecko-nastroju.js) a gesta — „je to hodně, je to složitý
+// a ani jedno není dostatečně přehledný … pokud se chceš prolistovat a něco
+// dohledat nebo zkoušet, tak nic není pro to ideální." Rozhodnutí:
+//   • DVĚ cesty místo tří: tenhle panel = LISTOVAT A ZKOUŠET, gesta = spustit
+//     zpaměti. Kytka je pryč (soubor smazán, tlačítko Nástroje jen otevírá panel).
+//   • JEDNO SLOVESO = JEDNA STRÁNKA. Nahoře pásek sloves (zároveň mapa celé
+//     appky), pod ním stránka s 3–10 řádky, která se vejde na displej. Mezi
+//     stránkami se listuje tahem do strany (scroll-snap, nativní) nebo klepnutím
+//     na sloveso. Dole je napsáno, co je vlevo a vpravo.
+//   • PRVNÍ STRÁNKA „MOJE": Pokračovat (naposledy použitý), volba typu práce
+//     (pás „Co dnes děláš" z js/rezim-prace.js se sem PŘESTĚHUJE), ★ Připnuté
+//     s gestem a ◆ Pro tuto práci. Dřív každý z těchhle organizátorů stál ve
+//     vlastní sekci NAD seznamem a první nástroj byl až v půlce displeje.
+//     Panel je tím zároveň TAHÁK NA GESTA — kdo si gesto nezapamatoval, vidí ho
+//     tam, kde nástroj hledá, ne v Nastavení pod osmi přepínači.
+//   • POSLEDNÍ STRÁNKA „PRO" (jen v Základu): zamčené Pro nástroje NEJSOU
+//     rozházené ve slovesech („aby to bylo stranou a nepřekáželo"), sejdou se
+//     na dvanácté stránce se slovesem v popisku. Kdo Pro má, tu stránku nevidí.
+//     Dřív totéž jako sekce „Ve verzi Pro" na konci sloupce (12. 9. 2026).
+//   • ROZCESTNÍKY se ROZBALUJÍ NA MÍSTĚ (řádek se šipkou ›), ne do druhého okna
+//     — při listování bylo druhé okno slepá ulička. Položky se stavějí až při
+//     prvním rozbalení (levnější a v sbaleném stavu v seznamu nestojí, viz
+//     test_uhlazeni_31_8 B3). Okno z js/tools-hub.js zůstává pro mřížku/hledání.
+//   • ★ PŘIPNOUT je rovnou v řádku (hvězdička vpravo). Dřív „Upravit oblíbené"
+//     přepínalo hvězdičky na DLAŽDICÍCH mřížky — kterou tenhle pohled schovává,
+//     takže tlačítko v seznamu nedělalo nic viditelného. Klíč je pořád
+//     agToolFavs_v1 z js/tools-plus.js (mřížka při hledání ho čte dál).
+//   • Sbalování skupin (agUkonyClosed_v1) zaniklo — stránky ho nahrazují.
+//   (nasazeno jako v332)
 //
-// PROČ UŽ NE DVA POHLEDY: dřív tu byl přepínač „Úkony / Vše" a mřížka byla druhý
-// plnohodnotný pohled. Měřením v prohlížeči se ukázalo, že týž nástroj je v jednom
-// pohledu na jedno klepnutí a ve druhém dvě (schovaný v rozcestníku) — a pod jiným
-// názvem („Brutální GPS" × „Přesnou GPS", „AR resekce" × „Resekcí ze známých bodů").
-// Naučená cesta v jednom pohledu tedy v druhém neplatila. Přepínač je odstraněn,
-// mřížka zůstává v DOM jako klikací cíl a ukazuje se při HLEDÁNÍ.
+// KLÍČOVÉ (nezměněno): seznam si NEVEDE vlastní nástroje. Každý řádek jen KLIKNE
+// na svou (schovanou) dlaždici v mřížce — takže dál platí všechno, co na mřížce
+// staví ostatní moduly: počítadlo použití, návody (?), návrat do Nástrojů,
+// oprávnění rolí, zámky Pro (js/pro-zamky.js věší data-agpro i na .ag-uk-i).
+// Co v mapě sloves není (nový modul, který přibude potom), spadne na stránku
+// „Další" — nikdy nezmizí.
 //
-// KLÍČOVÉ: seznam si NEVEDE vlastní nástroje. Každá položka jen KLIKNE na svou
-// (schovanou) dlaždici v mřížce — takže dál platí všechno, co na mřížce staví
-// ostatních devět modulů: ★ Oblíbené, ⚡ Teď se hodí, ◆ Pro tuto práci, počítadlo
-// použití, návody (?), návrat do Nástrojů, oprávnění rolí. Co v mapě sloves není
-// (nový modul, který přibude potom), spadne do sekce „Další nástroje" — nikdy
-// nezmizí.
+// Mřížka `.tool-grid` zůstává v DOM jako KLIKACÍ CÍL a ukazuje se při HLEDÁNÍ
+// (tam běží chytré vyhledávání z field-tools.js — synonyma, překlepy, řazení).
+// Jakmile začneš psát, `body.ag-uk-on` spadne a je vidět mřížka; po smazání
+// dotazu se vrátí listování.
 //
-// PŘEHLEDNOST SEZNAMU (nic se z něj neubírá — úkony jsou celé): každá skupina je
-// vlastní <section> se SLEPENOU hlavičkou (position:sticky). Při rolování tak pořád
-// vidíš, ve kterém slovese jsi („Změřit", „Vytyčit", …), a hlavička další skupiny tu
-// předchozí vystřídá až ve chvíli, kdy skupina opravdu končí. Vedle názvu je počet
-// položek, mezi skupinami je mezera a linka — dlouhý seznam se tím dá projet očima
-// po blocích místo jednoho nekonečného sloupce.
+// ⚠⚠ STROP: DALŠÍ POVRCH „JAK NAJÍT NÁSTROJ" UŽ NEPŘIDÁVAT (zapsáno 5. 9. 2026,
+// 15. 9. jeden ubrán). Do jednoho nástroje vede: tenhle panel · mřížka při
+// hledání · rozcestníky (v mřížce) · gesta · globální hledání · mini panel ·
+// jednoduchý režim · průvodci. Každý nový nástroj se musí chovat správně ve
+// všech. LEVNÝ PRŮBĚŽNÝ KROK: slučovat do rozcestníků (`inhub` v registru).
 //
-// SKUPINY JSOU SBALITELNÉ (nadpis = tlačítko, stav v agUkonyClosed_v1). Plochý seznam
-// všech nástrojů je vysoký 4585 px v okně 640 px, tedy 7,2 obrazovky; se sbalenými
-// papíry a příručkou 3725 px a se všemi sbalenými se vejde na jednu obrazovku.
-// Nic se sbalením neschovává — je to jedno klepnutí a stav se pamatuje.
-//
-// ROZCESTNÍKY (js/tools-hub.js) jsou v seznamu JEDEN řádek a jejich položky se
-// samostatně nevypisují — podle pole `inhub` v js/tools-registry.js. Do 31. 8. 2026
-// to bylo naopak a slučování do rozcestníků tak v tomhle (jediném viditelném)
-// pohledu neušetřilo ani řádek; podrobně u proměnné INHUB níž.
-//
-// ⚠⚠ STROP: DALŠÍ POVRCH „JAK NAJÍT NÁSTROJ" UŽ NEPŘIDÁVAT (zapsáno 5. 9. 2026).
-// Meta-vrstva „jak se dostat k nástroji" váží 433 kB vlastního JS — 3,4× víc než
-// celý pokládkový okruh (vytyčení + vrstvy + protokol, 127 kB), a do jednoho
-// nástroje dnes vede dvanáct souběžných cest: seznam úkonů · mřížka při hledání ·
-// rozcestníky · ★ Oblíbené · ⚡ Teď se hodí · ◆ Pro tuto práci · kolečko · gesta ·
-// globální hledání · mini panel · jednoduchý režim · průvodci. Každý nový nástroj
-// se musí chovat správně ve všech a každá změna v jedné z nich hrozí regresí
-// v ostatních (a taková regrese se v repu už několikrát stala).
-//
-// CO SE ODEBRAT NEDÁ: mřížka. Není to zbytkový pohled, ale KLIKACÍ CÍL všeho
-// ostatního (viz odstavec „KLÍČOVÉ" níž) — s ní by naráz přestaly fungovat všechny
-// povrchy a tools-plus.js/tools-simple.js by se stejně neuvolnily, protože staví
-// právě sekce V TÉ mřížce.
-// CO SE ODEBRAT DÁ: jedno ze dvou gest. js/kolecko-nastroju.js (50 kB) a
-// js/gesta-zkratky.js (98 kB) dělají tutéž úlohu („spustit nástroj bez hledání")
-// a obě končí u téhož AGUkony.run. Obě jsou psané jako odpojitelné vrstvy, takže
-// stačí smazat soubor + řádek v index.html + přegenerovat sw.js. Které z nich —
-// to je otázka na uživatele, ne na kód; dokud neodpoví, nesahat ani na jedno.
-// LEVNÝ PRŮBĚŽNÝ KROK: slučovat do rozcestníků (`inhub` v js/tools-registry.js).
-// Jeden zápis ubere řádek v seznamu úkonů, dlaždici v mřížce i položku v kolečku
-// naráz — tak 5. 9. 2026 zmizelo sedm kalibračních řádků pod „Srovnat jinak".
-//
-// Hledání se nepřepisuje: jakmile začneš psát, pohled se přepne na mřížku, kde
-// běží chytré vyhledávání z field-tools.js (synonyma, překlepy, řazení). Po
-// smazání dotazu se vrátí seznam úkonů.
+// ⚠ TAH DO STRANY UVNITŘ OKNA: js/modal-close.js zavírá okno tahem zleva
+// doprava, ale tah, který začne v prvku s vodorovným rolováním (scrollWidth >
+// clientWidth), nezakládá — pásek sloves i stránky jsou přesně takové prvky,
+// takže se v nich listuje a okno se zavírá tahem přes hlavičku/hledání.
+// `.modal-body{touch-action:pan-y}` (css/style.css) vodorovný tah NEBLOKUJE:
+// rozhoduje touch-action mezi dotčeným prvkem a nejbližším rolovacím předkem,
+// a tím je tady .ag-uk-pages (má pan-x pan-y).
 //
 // Odstranění: smaž js/nastroje-ukony.js + řádek <script> v index.html
-// (a přegeneruj sw.js). Nástroje pak vypadají přesně jako dřív.
+// (a přegeneruj sw.js). Nástroje pak ukazují jen mřížku dlaždic.
 // ================================================================================
 (function () {
     'use strict';
     if (window.AGUkony) return;
 
     var STYLE_ID = 'ag-uk-style', LIST_ID = 'ag-uk-list', SEG_ID = 'ag-uk-seg';
-    var VIEW_KEY = 'agToolsView_v1';        // 'ukony' (výchozí) | 'vse'
+    var FAV_KEY = 'agToolFavs_v1';          // týž klíč jako js/tools-plus.js
+    var PAGE_MOJE = 'moje', PAGE_PRO = 'pro', PAGE_DALSI = 'dalsi';
 
     // ---- mapa sloves --------------------------------------------------------------
     // Slovesa i popisky jsou v js/tools-registry.js (jeden záznam na nástroj) a sem
-    // přijdou hotové ve tvaru [{ t: 'Změřit', items: [{ k, l, h }] }]. Dřív byla
-    // tabulka tady a nový nástroj se musel dopisovat zvlášť sem, zvlášť do nápověd
-    // a zvlášť do synonym — a opakovaně se na některé z těch míst zapomnělo.
-    // Bez registru zůstane seznam prázdný a všechny nástroje spadnou do záchytného
-    // „Další nástroje": nic nezmizí, jen se to neroztřídí podle sloves.
+    // přijdou hotové ve tvaru [{ t: 'Změřit', items: [{ k, l, h }] }]. Bez registru
+    // zůstane listování bez sloves a všechny nástroje spadnou na stránku „Další".
     var GROUPS = (window.AGReg && window.AGReg.groups()) || [];
-    // student-start (13. 9. 2026): kdo v „Kdo jsi?" řekl Student, má skupinu „Učit se"
-    // (Trenažér, Odhadni to, Cvičné úlohy, Poznávačka, Vzorce) NAHOŘE; ostatním
-    // zůstává na konci, kam patří pro geodeta v práci. Čte se při každém vykreslení,
-    // takže změna v Nastavení → Profily se projeví hned.
+    // student-start (13. 9. 2026): kdo v „Kdo jsi?" řekl Student, má „Učit se" jako
+    // první sloveso; ostatním zůstává na konci. Čte se při každém vykreslení.
     function poradiSkupin() {
         var stud = false, gs = GROUPS;
         try { stud = !!(window.AGProfilOsoby && AGProfilOsoby.je('student')); } catch (e) { stud = false; }
-        if (!stud) return GROUPS;
-        try { gs = (window.AGReg && AGReg.groups()) || GROUPS; } catch (e) { gs = GROUPS; }   // čerstvé popisky (Parta a účty)
+        try { gs = (window.AGReg && AGReg.groups()) || GROUPS; } catch (e) { gs = GROUPS; }   // čerstvé popisky (rozcestníky, Parta a účty)
+        if (!stud) return gs;
         return gs.filter(function (g) { return g.t === 'Učit se'; }).concat(gs.filter(function (g) { return g.t !== 'Učit se'; }));
     }
+    // KRÁTKÉ NÁZVY DO PÁSKU: na 390 px se jich vejde sedm, delší se dorolují palcem.
+    // Klíčem je plný název slovesa z registru; co tu není, jde do pásku celé.
+    var KRATCE = { 'Určit nový bod': 'Nový bod', 'Zjistit podmínky': 'Podmínky', 'Katastr a podklady': 'Katastr',
+                   'Firma a papíry': 'Firma', 'Příručka a výpočty': 'Příručka', 'Přesné měření': 'Přesně měřit' };
 
-    // ⚠⚠ ROZCESTNÍKY (js/tools-hub.js) — 31. 8. 2026 OBRÁCENO NARUBY.
-    // Do té doby platilo: v seznamu sloves jsou rovnou POLOŽKY rozcestníku a sám
-    // rozcestník se přeskočí. Znamenalo to, že slučování do rozcestníků NEUŠETŘILO
-    // V SEZNAMU ANI JEDEN ŘÁDEK — rozcestník skrýval dlaždice v mřížce, jenže mřížku
-    // tenhle soubor schovává (`body.ag-uk-on .tool-grid{display:none}`), takže ji
-    // uživatel vůbec nevidí. Počasí, Slunce, GNSS předpověď i Dnešek tedy stály
-    // v seznamu dál vedle sebe a uživatel táž sloučení žádal podruhé.
-    // TEĎ: rozcestník je v seznamu JEDEN řádek (má v registru vlastní `verb`/`vl`)
-    // a jeho položky se samostatně nevypisují.
+    // ROZCESTNÍKY (js/tools-hub.js): v seznamu je rozcestník JEDEN řádek, položky se
+    // samostatně nevypisují (`inhub`), rozbalí se pod ním.
     //   inhub  = položka rozcestníku — v seznamu ji zastupuje řádek rozcestníku
     //   hidden = „ať to není vidět" (řádek ani dlaždice); najde se dál hledáním
-    //   noverb = zamerne bez slovesa, do "Dalsich nastroju" PATRI
-    var INHUB = {}, NOVERB = {}, HIDDEN = {};
+    //   noverb = zamerne bez slovesa, na stránku „Další" PATŘÍ
+    var INHUB = {}, NOVERB = {}, HIDDEN = {}, HUB = {};
     ((window.AGReg && window.AGReg.all()) || []).forEach(function (r) {
         if (r.inhub) INHUB[r.k] = r.inhub;
         if (r.noverb) NOVERB[r.k] = 1;
         if (r.hidden) HIDDEN[r.k] = 1;
+        if (r.hub) HUB[r.k] = 1;
     });
     // POJISTKA: když se js/tools-hub.js nenačte (je lazy, nebo ho někdo odpojil),
-    // jeho dlaždice v mřížce není — a položky by pak zmizely ÚPLNĚ: řádek
-    // rozcestníku by nebyl a jednotlivé nástroje by byly potlačené. Proto se
-    // položka skryje jen tehdy, když dlaždice jejího rozcestníku OPRAVDU existuje.
+    // jeho dlaždice v mřížce není — položky by pak zmizely ÚPLNĚ. Proto se položka
+    // skryje jen tehdy, když dlaždice jejího rozcestníku OPRAVDU existuje.
     function vHubu(k) { var h = INHUB[k]; return !!(h && findTile(h)); }
 
     var KNOWN = {};
@@ -127,15 +116,8 @@
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function modal() { return document.getElementById('tools-modal'); }
     function grid() { var m = modal(); return m ? m.querySelector('.tool-grid') : null; }
-    function body() { var m = modal(); return m ? m.querySelector('.modal-body') : null; }
     function searchVal() { var i = document.getElementById('tools-search'); return i ? (i.value || '').trim() : ''; }
-
-    // Pohled je JEDEN — seznam úkonů. Mřížka zůstává v DOM (klikací cíl pro run(),
-    // a hlavně ji ukazuje HLEDÁNÍ, kde běží chytré vyhledávání z field-tools.js),
-    // ale jako druhý plnohodnotný pohled se už nenabízí: týž nástroj v ní byl jinak
-    // hluboko a pod jiným názvem než v seznamu, takže naučená cesta v jednom pohledu
-    // v druhém neplatila. Klíč agToolsView_v1 se dál čte kvůli starým instalacím,
-    // ale 'vse' už z něj nemůže vyjít.
+    function swallow(e, kde) { if (window.AG && AG.swallow) AG.swallow(e, 'nastroje-ukony:' + kde); }
     function view() { return 'ukony'; }
 
     // klíč dlaždice — stejná logika jako v ostatních modulech mřížky
@@ -157,15 +139,13 @@
         for (var i = 0; i < tiles.length; i++) {
             if (tileKey(tiles[i]) !== key) continue;
             // Oprávnění podle role se v appce VYMÁHAJÍ SKRYTÍM dlaždice (ucty.js
-            // applyPerms nastaví display:none + data-agucty). Seznam úkonů hledá
-            // dlaždice v DOM, takže bez téhle podmínky by zaměstnanci ukázal
-            // a přes t.click() i spustil nástroj, na který nemá právo.
-            // Záměrně se testuje JEN data-agucty: dlaždice skryté zjednodušením
-            // Nástrojů (usadit-ar, tools-simple) mají v seznamu zůstat.
+            // applyPerms nastaví display:none + data-agucty). Bez téhle podmínky by
+            // seznam zaměstnanci ukázal a přes t.click() i spustil nástroj, na který
+            // nemá právo. Záměrně se testuje JEN data-agucty: dlaždice skryté
+            // zjednodušením Nástrojů (usadit-ar, tools-simple) mají v seznamu zůstat.
             if (tiles[i].hasAttribute('data-agucty')) return null;
-            // Nástroje, které si uživatel sám schoval v „Moje aktivita" (js/moje-aktivita.js,
-            // atribut data-ag-hidden), nemá cenu držet ani v seznamu úkonů — jinak by
-            // schování zdánlivě nic nedělalo. Najít je pořád jde hledáním v mřížce.
+            // Nástroje, které si uživatel sám schoval v „Moje aktivita" (data-ag-hidden),
+            // nemá cenu držet ani tady — jinak by schování zdánlivě nic nedělalo.
             if (tiles[i].hasAttribute('data-ag-hidden')) return null;
             return tiles[i];
         }
@@ -178,6 +158,11 @@
         if (t) { t.click(); return true; }
         return false;
     }
+    function iconOf(key) {
+        var t = findTile(key); if (!t) return '';
+        var svg = t.querySelector('svg');
+        return svg ? svg.outerHTML : '';
+    }
 
     // ---- styly ----------------------------------------------------------------------
     function injectStyles() {
@@ -185,34 +170,52 @@
         var st = document.createElement('style');
         st.id = STYLE_ID;
         st.textContent = [
-            // seznam úkonů
             '#' + LIST_ID + '{display:none;}',
             'body.ag-uk-on #' + LIST_ID + '{display:block;}',
             'body.ag-uk-on #tools-modal .tool-grid{display:none !important;}',
-            // skupina = vlastní blok; sticky hlavička se drží jen po dobu SVÉ skupiny
-            '.ag-uk-g{margin:0 0 14px;}',
-            '.ag-uk-g:last-child{margin-bottom:6px;}',
-            '.ag-uk-h{position:sticky;top:0;z-index:3;display:flex;align-items:baseline;gap:8px;',
-            '  margin:0 0 7px;padding:9px 2px 7px;',
+            // tlačítko „Upravit oblíbené" (js/tools-plus.js) patří k mřížce — hvězdička je tu v řádku
+            'body.ag-uk-on #ag-tp-editbtn{display:none !important;}',
+            // ---- pásek sloves: slepený nahoře, roluje vodorovně, bez posuvníku
+            '.ag-uk-tabs{position:sticky;top:0;z-index:4;display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;',
+            '  margin:0 0 8px;padding:6px 2px 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch;',
             '  background:var(--modal-bg,rgba(14,18,24,0.97));',
+            '  border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.12));}',
+            '.ag-uk-tabs::-webkit-scrollbar{display:none;}',
+            'body.outdoor-mode .ag-uk-tabs{background:#0a0e1a;}',
+            'body.light-mode.outdoor-mode .ag-uk-tabs{background:#fff;}',
+            '.ag-uk-tab{flex:0 0 auto;-webkit-appearance:none;appearance:none;cursor:pointer;white-space:nowrap;',
+            '  padding:8px 12px;border-radius:999px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));',
+            '  background:transparent;color:var(--text-muted,#9aa1ac);',
+            '  font:600 calc(13px * var(--ag-font-scale, 1))/1 var(--font-ui,system-ui),sans-serif;',
+            '  -webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;}',
+            '.ag-uk-tab[aria-selected="true"]{background:var(--accent,#2f9e74);border-color:var(--accent,#2f9e74);color:#08130e;}',
+            '.ag-uk-tab.ag-uk-tab-pro{color:#e6bd76;border-color:rgba(230,189,118,.45);}',
+            '.ag-uk-tab.ag-uk-tab-pro[aria-selected="true"]{background:#e6bd76;border-color:#e6bd76;color:#1a1408;}',
+            '.ag-uk-tab:focus-visible{outline:2px solid var(--accent,#2f9e74);outline-offset:2px;}',
+            'body.ag-glove .ag-uk-tab{padding:10px 14px;}',
+            // ---- stránky: vodorovný pás se zarážkami, výšku určuje AKTIVNÍ stránka (JS)
+            '.ag-uk-pages{display:flex;align-items:flex-start;overflow-x:auto;overflow-y:hidden;',
+            '  scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;',
+            '  touch-action:pan-x pan-y;overscroll-behavior-x:contain;transition:height .18s ease;}',
+            '.ag-uk-pages::-webkit-scrollbar{display:none;}',
+            '@media (prefers-reduced-motion: reduce){.ag-uk-pages{transition:none;}}',
+            '.ag-uk-page{flex:0 0 100%;width:100%;box-sizing:border-box;scroll-snap-align:start;scroll-snap-stop:always;padding:0 1px;}',
+            // hlavička stránky / sekce (titulek + počet)
+            '.ag-uk-h{display:flex;align-items:baseline;gap:8px;margin:0 0 7px;padding:6px 2px 7px;',
             '  border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.12));',
             '  font:700 11px/1 var(--font-display,system-ui),sans-serif;',
             '  letter-spacing:.09em;text-transform:uppercase;color:var(--text-muted,#9aa1ac);}',
             '.ag-uk-h .ag-uk-n{margin-left:auto;font-weight:600;font-size:calc(10.5px * var(--ag-font-scale, 1));',
             '  letter-spacing:.02em;color:var(--text-faint,#7b828c);}',
-            // venkovní režim má modály neprůhledné — hlavička musí mít stejné pozadí,
-            // jinak by pod ní při rolování prosvítal text položek
-            'body.outdoor-mode .ag-uk-h{background:#0a0e1a;}',
-            // sekce zamčených (Pro): oddělená čarou a zlatým nadpisem, ať je na první pohled hranice
-            '.ag-uk-pro{margin-top:18px;padding-top:12px;border-top:1px dashed var(--glass-border,rgba(255,255,255,0.18));}',
-            '.ag-uk-pro > .ag-uk-h > span:first-child{color:#e6bd76;}',
+            '.ag-uk-h .ag-uk-hint{margin-left:auto;font-weight:500;font-size:calc(10.5px * var(--ag-font-scale, 1));',
+            '  letter-spacing:0;text-transform:none;color:var(--text-faint,#7b828c);}',
+            '.ag-uk-g{margin:0 0 14px;}',
             '.ag-uk-owner > .ag-uk-h > span:first-child{color:#d4a02c;}',
             '.ag-uk-owner .ag-uk-i{border-color:rgba(212,160,44,.45);}',
-            '.ag-uk-pro > .ag-uk-h > span:first-child::before{content:"";display:inline-block;width:12px;height:12px;margin-right:6px;vertical-align:-1px;',
-            '  background:#e6bd76;-webkit-mask:var(--ag-pro-mask) center/12px 12px no-repeat;mask:var(--ag-pro-mask) center/12px 12px no-repeat;}',
-            'body.light-mode.outdoor-mode .ag-uk-h{background:#fff;}',
-            '.ag-uk-i{display:flex;align-items:center;gap:11px;width:100%;box-sizing:border-box;',
-            '  margin:0 0 6px;padding:12px 13px;border-radius:12px;text-align:left;cursor:pointer;',
+            '.ag-uk-fav > .ag-uk-h > span:first-child{color:#fbbf24;}',
+            // ---- řádek nástroje
+            '.ag-uk-i{display:flex;align-items:center;gap:11px;width:100%;box-sizing:border-box;position:relative;',
+            '  margin:0 0 6px;padding:12px 11px 12px 13px;border-radius:12px;text-align:left;cursor:pointer;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.10));',
             '  background:var(--surface-1,rgba(255,255,255,0.045));color:inherit;',
             '  font:inherit;-webkit-tap-highlight-color:transparent;}',
@@ -225,75 +228,84 @@
             '.ag-uk-tx b{display:block;font-size:calc(14.5px * var(--ag-font-scale, 1));font-weight:600;line-height:1.3;}',
             '.ag-uk-tx small{display:block;margin-top:2px;font-size:calc(12px * var(--ag-font-scale, 1));line-height:1.35;',
             '  color:var(--text-muted,#9aa1ac);}',
-            // blok „Teď" nahoře — jeden vstup místo tří rozesetých
+            // pravá strana řádku: gesto · ★ · ? · ›  (jsou to <i>, ne tlačítka — leží uvnitř <button>)
+            '.ag-uk-r{flex:0 0 auto;display:flex;align-items:center;gap:4px;margin-left:2px;}',
+            '.ag-uk-r i{font-style:normal;display:flex;align-items:center;justify-content:center;',
+            '  width:30px;height:30px;border-radius:50%;color:var(--text-muted,#9aa1ac);',
+            '  font:700 calc(12.5px * var(--ag-font-scale, 1))/1 var(--font-ui,system-ui);}',
+            '.ag-uk-r i.ag-uk-q{border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.05);}',
+            '.ag-uk-r i.ag-uk-q:active{color:var(--accent,#2f9e74);}',
+            '.ag-uk-r i.ag-uk-star{font-size:calc(16px * var(--ag-font-scale, 1));color:var(--text-faint,#7b828c);opacity:.7;}',
+            '.ag-uk-r i.ag-uk-star.on{color:#fbbf24;opacity:1;}',
+            // gesto: šipky ve zlaté (jako v okně Gesta); chybějící gesto u připnutého = čárkovaná pilulka
+            '.ag-uk-r i.ag-uk-gest{width:auto;height:26px;padding:0 8px;border-radius:8px;letter-spacing:.06em;',
+            '  color:#e6bd76;background:rgba(230,189,118,.12);font-weight:600;font-size:calc(12px * var(--ag-font-scale, 1));}',
+            '.ag-uk-r i.ag-uk-gest.ag-uk-gest-add{color:var(--text-faint,#7b828c);background:transparent;',
+            '  border:1px dashed var(--glass-border,rgba(255,255,255,0.22));font-weight:500;letter-spacing:0;}',
+            // rozcestník: šipka › se otočí dolů, položky pod ním s linkou vlevo
+            '.ag-uk-r i.ag-uk-chev::before{content:"";width:7px;height:7px;box-sizing:border-box;',
+            '  border-right:1.8px solid currentColor;border-bottom:1.8px solid currentColor;border-radius:1px;',
+            '  transform:rotate(-45deg);transition:transform .16s ease;}',
+            '.ag-uk-i[aria-expanded="true"] .ag-uk-r i.ag-uk-chev::before{transform:rotate(45deg);}',
+            '@media (prefers-reduced-motion: reduce){.ag-uk-r i.ag-uk-chev::before{transition:none;}}',
+            '.ag-uk-sub{position:relative;margin:-2px 0 8px;padding-left:20px;}',
+            '.ag-uk-sub::before{content:"";position:absolute;left:8px;top:4px;bottom:10px;width:2px;border-radius:2px;',
+            '  background:var(--glass-border,rgba(255,255,255,0.14));}',
+            '.ag-uk-sub .ag-uk-i{padding:10px 10px 10px 12px;}',
+            '.ag-uk-sub .ag-uk-tx b{font-size:calc(13.5px * var(--ag-font-scale, 1));}',
+            '.ag-uk-sub .ag-uk-ico,.ag-uk-sub .ag-uk-ico svg{width:19px;height:19px;}',
+            // zámek Pro (js/pro-zamky.js kreslí ::after vpravo) — nechat mu místo za „?"
+            '.ag-uk-i[data-agpro="1"]{padding-right:32px;}',
+            // blok „Pokračovat" nahoře na Moje
             '.ag-uk-now{margin:0 0 14px;padding:11px 13px;border-radius:12px;',
             '  border:1px solid var(--accent-line,rgba(47,158,116,0.38));',
             '  background:var(--accent-soft,rgba(47,158,116,0.13));}',
             '.ag-uk-now .ag-uk-i{background:transparent;border:0;margin:0;padding:6px 0;}',
-            '.ag-uk-now .ag-uk-i + .ag-uk-i{border-top:1px solid var(--glass-border,rgba(255,255,255,0.10));}',
-            // sbalitelná skupina: šipka ukazuje stav, zavřená skryje své položky
-            // nadpis je <button> — prohlížeč by mu jinak nakreslil vlastní rám a šířku.
-            // border se musí přepsat CELÝ a spodní linka vrátit, jinak ji zruší reset.
-            '.ag-uk-h{width:100%;-webkit-appearance:none;appearance:none;text-align:left;cursor:pointer;',
-            '  border:0;border-bottom:1px solid var(--glass-border,rgba(255,255,255,0.12));',
-            '  -webkit-user-select:none;user-select:none;}',
-            // ⚠ 31. 8. 2026 — sipka BYLA textovy znak: content:"▾", pri sbaleni "▸".
-            // Tri veci na tom byly spatne a dohromady vypadaly jako blikani:
-            //  1) prepnuti obsahu ::after je SKOK, ne pohyb — znak se v jedne snimku
-            //     zmenil na uplne jiny tvar (a jinou sirku, takze se posunul i pocet vedle);
-            //  2) ▾/▸ jsou znaky z bloku geometrickych tvaru: kazdy system je bere z jineho
-            //     zalozniho fontu, na iOS vyjdou o polovinu mensi nez na Androidu a nekde
-            //     je system prekresli jako barevne emoji;
-            //  3) hlavicka ma align-items:baseline, takze znak sedel na uctari radku
-            //     a proti cislu poctu byl viditelne vejs.
-            // Ted je to kreslena sipka (::after s vlastnim ramem), ktera se OTOCI o 90°
-            // s prechodem. Rotace nemeni sirku, takze se uz nic vedle ni neposouva.
-            '.ag-uk-h::after{content:"";flex:0 0 auto;align-self:center;margin-left:8px;',
-            '  width:6px;height:6px;box-sizing:border-box;',
-            '  border-right:1.8px solid currentColor;border-bottom:1.8px solid currentColor;',
-            '  border-radius:1px;color:var(--text-faint,#7b828c);',
-            '  transform:rotate(45deg);transform-origin:60% 60%;',
-            '  transition:transform .16s ease;}',
-            '.ag-uk-closed > .ag-uk-h::after{transform:rotate(-45deg);}',
-            // zapnute setreni pohybem (i sporici rezim) prechod vypina — sipka pak jen
-            // preskoci, ale nic neblika, protoze se meni jen uhel
-            '@media (prefers-reduced-motion: reduce){.ag-uk-h::after{transition:none;}}',
-            '.ag-uk-closed > .ag-uk-i{display:none;}',
-            '.ag-uk-h:focus-visible{outline:2px solid var(--accent,#2f9e74);outline-offset:2px;}',
-            // patička seznamu — co se dělá zřídka (průvodce, úprava oblíbených).
-            // Odsazená linkou, ať je vidět, že tady seznam nástrojů končí.
-            '.ag-uk-foot{margin:18px 0 0;padding-top:12px;',
+            // pás „Co dnes děláš" (js/rezim-prace.js) uvnitř Moje: bez vlastního odsazení navrch
+            '.ag-uk-page #ag-rp-wrap{margin-top:0;}',
+            // prázdné „Připnuté": jedna věta, co s tím
+            '.ag-uk-empty{margin:0 0 12px;padding:10px 12px;border-radius:10px;border:1px dashed var(--glass-border,rgba(255,255,255,0.18));',
+            '  font-size:calc(12.5px * var(--ag-font-scale, 1));line-height:1.4;color:var(--text-muted,#9aa1ac);}',
+            // stránka Pro: zlatý nadpis se zámkem, úvodní věta, slovesa jako drobné titulky
+            '.ag-uk-pro > .ag-uk-h > span:first-child{color:#e6bd76;}',
+            '.ag-uk-pro > .ag-uk-h > span:first-child::before{content:"";display:inline-block;width:12px;height:12px;margin-right:6px;vertical-align:-1px;',
+            '  background:#e6bd76;-webkit-mask:var(--ag-pro-mask) center/12px 12px no-repeat;mask:var(--ag-pro-mask) center/12px 12px no-repeat;}',
+            '.ag-uk-pro .ag-uk-intro{margin:0 0 10px;font-size:calc(12.5px * var(--ag-font-scale, 1));line-height:1.45;color:var(--text-muted,#9aa1ac);}',
+            '.ag-uk-pro .ag-uk-intro button{margin-top:8px;width:100%;padding:9px;border-radius:10px;cursor:pointer;',
+            '  border:1px solid rgba(230,189,118,.5);background:rgba(230,189,118,.1);color:#e6bd76;font:600 calc(13px * var(--ag-font-scale, 1)) var(--font-ui,system-ui);}',
+            '.ag-uk-cap{margin:10px 2px 6px;font:600 calc(11px * var(--ag-font-scale, 1))/1 var(--font-ui,system-ui);letter-spacing:.06em;',
+            '  text-transform:uppercase;color:var(--text-faint,#7b828c);}',
+            '.ag-uk-cap:first-of-type{margin-top:2px;}',
+            // patička pod stránkami: co je vlevo a vpravo (klikací)
+            '.ag-uk-nav{display:flex;justify-content:space-between;gap:8px;margin:6px 0 0;padding:8px 0 4px;',
             '  border-top:1px solid var(--glass-border,rgba(255,255,255,0.10));}',
+            '.ag-uk-nav button{-webkit-appearance:none;appearance:none;border:0;background:transparent;cursor:pointer;padding:6px 2px;',
+            '  color:var(--text-muted,#9aa1ac);font:500 calc(12.5px * var(--ag-font-scale, 1)) var(--font-ui,system-ui);}',
+            '.ag-uk-nav button b{color:var(--text-color,#e9eef7);font-weight:600;}',
+            '.ag-uk-nav button:empty{visibility:hidden;}',
+            // patička Moje — co se dělá zřídka (průvodce)
+            '.ag-uk-foot{margin:14px 0 0;padding-top:10px;border-top:1px solid var(--glass-border,rgba(255,255,255,0.10));}',
             '.ag-uk-foot .ag-uk-i{background:transparent;}',
-            // tlačítko oblíbených si vyrábí tools-plus.js; v patičce ho zesvětlíme,
-            // ať nepřebíjí vlastní nástroje nad sebou
-            '.ag-uk-foot #ag-tp-editbtn{width:100%;margin:8px 0 0;}',
-            'body.ag-glove .ag-uk-i{padding:15px 14px;}',
+            'body.ag-glove .ag-uk-i{padding:15px 12px 15px 14px;}',
             'body.ag-glove .ag-uk-tx b{font-size:calc(15.5px * var(--ag-font-scale, 1));}'
         ].join('\n');
         (document.head || document.documentElement).appendChild(st);
     }
 
-    // ---- přepínač pohledu ------------------------------------------------------------
-    // Přepínač „Úkony / Vše" byl TADY. Odstraněn: dva pohledy na týž obsah znamenaly
-    // dvě různé cesty i dvě různá jména pro jeden nástroj. Kdyby se měl někdy vrátit,
-    // je celý v historii tohohle souboru (funkce ensureSeg + syncSeg).
-    // Zbytek po něm uklidíme, kdyby v DOM zůstal ze starší verze appky:
+    // Přepínač „Úkony / Vše" byl TADY, zrušen 31. 8. 2026. Zbytek po něm uklidíme,
+    // kdyby v DOM zůstal ze starší verze appky:
     function dropSeg() {
         var seg = document.getElementById(SEG_ID);
         if (seg && seg.parentNode) seg.parentNode.removeChild(seg);
     }
 
-    // ---- „Teď" — Pokračovat + Průvodce na jednom místě --------------------------------
+    // ---- „Pokračovat" — naposledy použitý nástroj (js/pokracovat.js) ----------------
     function lastTool() {
         var r; try { r = JSON.parse(localStorage.getItem('agLastTool_v1')); } catch (e) { return null; }
         if (!r || !r.key || !r.ts) return null;
         if (Date.now() - r.ts > 48 * 3600 * 1000) return null;
         return findTile(r.key) ? r : null;
     }
-    // NAHOŘE zůstává jen „Pokračovat" — to není organizátor, ale zkratka na jeden
-    // konkrétní nástroj, který jsi měl v ruce naposledy. V terénu je to nejčastější
-    // další klik, takže si první řádek zaslouží.
     function nowBlock() {
         var rec = lastTool();
         if (!rec) return null;
@@ -302,82 +314,43 @@
         box.appendChild(item({ l: 'Pokračovat: ' + rec.label, h: 'naposledy použitý nástroj' }, function () { run(rec.key); }));
         return box;
     }
-
-    // DOLE naopak to, co se dělá zřídka a nemá stát v cestě k nástrojům: průvodce
-    // („Poradit, co použít" — je i v menu Více jako „Průvodce úkolem") a přepnutí do
-    // režimu úprav oblíbených. Tlačítko oblíbených si staví tools-plus.js a vkládá ho
-    // na začátek .modal-body; tady ho jen PŘESTĚHUJEME (nevyrábíme druhé), takže jeho
-    // vlastní logika i text „✓ Hotovo" fungují dál.
+    // Průvodce úkolem („Poradit, co použít") — dole na Moje, nestojí v cestě.
     function footBlock() {
         var box = document.createElement('div');
         box.className = 'ag-uk-foot';
         if (typeof window.openPruvodce === 'function') {
             box.appendChild(item({ l: 'Poradit, co použít', h: 'průvodce úkolem' }, function () {
                 var m = modal(); if (m) m.style.display = 'none';
-                try { window.openPruvodce(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:footBlock'); }
+                try { window.openPruvodce(); } catch (e) { swallow(e, 'footBlock'); }
             }));
         }
         return box;
     }
-    // Přesun tlačítka oblíbených do patičky seznamu. Idempotentní — když už tam je,
-    // nic nedělá, takže to smí volat periodický sync().
-    function adoptFavBtn() {
-        var btn = document.getElementById('ag-tp-editbtn');
-        var host = document.getElementById(LIST_ID);
-        if (!btn || !host) return;
-        var foot = host.querySelector('.ag-uk-foot');
-        if (!foot || btn.parentNode === foot) return;
-        foot.appendChild(btn);
-    }
 
-    // ---- položka seznamu -----------------------------------------------------------------
-    // `key` se zapisuje do data-k. Seznam ho sám nepotřebuje (nástroj spouští
-    // closure v onClick), ale odpojitelné vrstvy nad ním ano — js/gesta-zkratky.js
-    // podle něj pozná, kterému nástroji přiřadit gesto při podržení řádku. Bez
-    // atributu by musely hádat podle textu popisku.
-    function item(def, onClick, iconHtml, key) {
-        var b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'ag-uk-i';
-        if (key) b.setAttribute('data-k', key);
-        b.innerHTML = (iconHtml ? '<span class="ag-uk-ico">' + iconHtml + '</span>' : '')
-            + '<span class="ag-uk-tx"><b>' + esc(def.l) + '</b>'
-            + (def.h ? '<small>' + esc(def.h) + '</small>' : '') + '</span>';
-        b.addEventListener('click', onClick);
-        return b;
-    }
-
-    // ---- sestavení seznamu ------------------------------------------------------------------
-    // Přestavuje se jen když se změní složení mřížky (dlaždice přibývají postupně,
-    // jak se moduly registrují) — jinak by seznam problikával při každém tiku.
-    // ---- sbalené skupiny --------------------------------------------------------------
-    // Vlastní klíč, NE agToolCatsClosed_v1 z field-tools.js: ten drží názvy kategorií
-    // MŘÍŽKY („Měření“, „Pomůcky“), tady jsou názvy sloves („Změřit“, „Vytyčit“).
-    // Jeden klíč pro dvě různá názvosloví by se pletl, jakmile by se některý název
-    // shodl. VÝCHOZÍ STAV: zavřené jsou skupiny, které se v terénu neotvírají každý
-    // den — papíry a příručka. Nic se tím neschovává, jen to nestojí v cestě
-    // k měřickým nástrojům; jedno klepnutí a je to zpátky (a stav se pamatuje).
-    var CLOSED_KEY = 'agUkonyClosed_v1';
-    var CLOSED_DEFAULT = ['Před výjezdem', 'Firma a papíry', 'Příručka a výpočty', 'Další nástroje'];
-    function loadClosed() {
-        try {
-            var raw = localStorage.getItem(CLOSED_KEY);
-            if (raw == null) return CLOSED_DEFAULT.slice();
-            var a = JSON.parse(raw);
-            return Array.isArray(a) ? a : [];
-        } catch (e) { return []; }
-    }
-    function isClosed(title) { return loadClosed().indexOf(title) !== -1; }
-    function setClosed(title, closed) {
-        var a = loadClosed(), ix = a.indexOf(title);
-        if (closed && ix === -1) a.push(title);
-        else if (!closed && ix !== -1) a.splice(ix, 1);
-        try { localStorage.setItem(CLOSED_KEY, JSON.stringify(a)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:setClosed'); }
-    }
-
+    // ---- oblíbené (★ připnuté) a gesta --------------------------------------------------
     function favKeys() {
-        try { var a = JSON.parse(localStorage.getItem('agToolFavs_v1')); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+        try { var a = JSON.parse(localStorage.getItem(FAV_KEY)); return Array.isArray(a) ? a : []; } catch (e) { return []; }
     }
+    function toggleFav(k) {
+        var a = favKeys(), ix = a.indexOf(k);
+        if (ix === -1) a.push(k); else a.splice(ix, 1);
+        try { localStorage.setItem(FAV_KEY, JSON.stringify(a)); } catch (e) { swallow(e, 'toggleFav'); }
+        try { if (typeof window.quickToast === 'function') window.quickToast(ix === -1 ? 'Připnuto do Moje' : 'Odepnuto'); } catch (e) { swallow(e, 'toggleFav:toast'); }
+        build();   // hned — tik by to přestavěl až za 1,4 s
+    }
+    // Gesto nástroje: js/gesta-zkratky.js vede mapu {kód: klíč}; tady se jen čte.
+    var SIPKA = { U: '↑', D: '↓', L: '←', R: '→' };
+    function sipky(code) { var s = ''; for (var i = 0; i < (code || '').length; i++) s += SIPKA[code.charAt(i)] || ''; return s; }
+    function gestoPro(k) {
+        try {
+            if (!window.AGGesta || !AGGesta.get) return null;
+            var g = AGGesta.get(); if (!g || g.off || !g.map) return null;
+            for (var c in g.map) if (g.map[c] === k) return sipky(g.prefix) + ' ' + sipky(c);
+        } catch (e) { swallow(e, 'gestoPro'); }
+        return null;
+    }
+    function gestaZapnuta() { try { return !!(window.AGGesta && AGGesta.assignFor && !AGGesta.get().off); } catch (e) { return false; } }
+
     // tools-simple.js značí dlaždice zvoleného typu práce atributem data-ag-ts
     function profileKeys() {
         var g = grid(); if (!g) return [];
@@ -385,9 +358,6 @@
         for (var i = 0; i < t.length; i++) { var k = tileKey(t[i]); if (k) out.push(k); }
         return out;
     }
-    // Typ práce se dá nastavit na dvou místech (select v Nástrojích i karta na
-    // úvodu z rezim-prace.js). Ptáme se proto přednostně tools-simple.js, který
-    // je pro obě místa jediným zdrojem pravdy; select je jen záloha.
     function profileLabel() {
         try {
             if (window.AGToolsSimple && AGToolsSimple.profiles) {
@@ -397,34 +367,207 @@
                 var p = AGToolsSimple.profiles[id];
                 if (p && p.label) return p.label;
             }
-        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:profileLabel'); }
+        } catch (e) { swallow(e, 'profileLabel'); }
         var s = document.getElementById('ag-ts-profsel');
         if (!s || !s.options || s.selectedIndex < 0) return '';
         var v = s.options[s.selectedIndex];
         return (v && v.value !== 'univerzal') ? v.text : '';
     }
+    // Táž dvojice podmínek jako zamceno() v js/pro-zamky.js — bez atributu
+    // data-agpro z dlaždice, ten věší pro-zamky.js až po svém tiku.
+    function zamceno(k) {
+        try {
+            if (window.AGProZamky && typeof AGProZamky.zamceno === 'function') return !!AGProZamky.zamceno(k);
+            return !!(k && window.AGReg && AGReg.isPro && AGReg.isPro(k) && !(window.AGLic && AGLic.isPro()));
+        } catch (e) { return false; }
+    }
+
     function gridSig() {
         var g = grid(); if (!g) return '';
         var tiles = g.querySelectorAll('.tool-tile'), out = [];
         for (var i = 0; i < tiles.length; i++) { var k = tileKey(tiles[i]); if (k) out.push(k); }
         out.sort();
-        // do otisku patří i personalizace — po změně oblíbených nebo typu práce
-        // se seznam musí přestavět, jinak by volba nahoře zdánlivě nic nedělala
-        // …a licence: po odemčení Pro se zamčené položky stěhují zpátky ke slovesům
-        var pro = '0', own = '0';
+        // do otisku patří i personalizace (připnuté, typ práce, gesta), licence
+        // (po odemčení Pro se stránka Pro rozpustí do sloves), režim vlastníka a „Kdo jsi"
+        var pro = '0', own = '0', kdo = '', gz = '';
         try { pro = (window.AGLic && AGLic.isPro && AGLic.isPro()) ? '1' : '0'; } catch (e) { pro = '0'; }
         try { own = (window.AGVlastnik && AGVlastnik.isOn && AGVlastnik.isOn()) ? '1' : '0'; } catch (e) { own = '0'; }
-        // …a „Kdo jsi" (js/student-start.js): student má skupinu „Učit se" nahoře, takže
-        // po změně profilu osoby se seznam musí přestavět taky
-        var kdo = '';
         try { kdo = (window.AGProfilOsoby && AGProfilOsoby.get()) || ''; } catch (e) { kdo = ''; }
-        return out.join(',') + '|f:' + favKeys().join(',') + '|p:' + profileKeys().join(',') + '|pro:' + pro + '|own:' + own + '|kdo:' + kdo;
+        try { if (window.AGGesta && AGGesta.get) { var gg = AGGesta.get(); gz = (gg.off ? 'x' : gg.prefix) + JSON.stringify(gg.map || {}); } } catch (e) { gz = ''; }
+        return out.join(',') + '|f:' + favKeys().join(',') + '|p:' + profileKeys().join(',') + '|pro:' + pro + '|own:' + own + '|kdo:' + kdo + '|g:' + gz;
     }
-    function iconOf(key) {
-        var t = findTile(key); if (!t) return '';
-        var svg = t.querySelector('svg');
-        return svg ? svg.outerHTML : '';
+
+    // ---- řádek nástroje -------------------------------------------------------------------
+    // `key` se zapisuje do data-k. Seznam ho sám nepotřebuje (nástroj spouští closure
+    // v onClick), ale odpojitelné vrstvy nad ním ano — js/gesta-zkratky.js podle něj
+    // pozná, kterému nástroji přiřadit gesto při podržení řádku, js/pro-zamky.js
+    // podle něj věší zámek.
+    // opts: { fav: 1 = ukázat hvězdičku, gest: 1 = ukázat gesto / nabídnout ho,
+    //         hub: 1 = řádek rozcestníku (rozbaluje, nespouští), q: 0 = bez „?" }
+    function item(def, onClick, iconHtml, key, opts) {
+        opts = opts || {};
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'ag-uk-i';
+        if (key) b.setAttribute('data-k', key);
+        var r = '';
+        if (key && opts.gest && gestaZapnuta()) {
+            var gs = gestoPro(key);
+            r += gs ? '<i class="ag-uk-gest" data-act="gest" title="Změnit gesto">' + esc(gs) + '</i>'
+                    : '<i class="ag-uk-gest ag-uk-gest-add" data-act="gest" title="Nakreslit gesto">+ gesto</i>';
+        }
+        if (key && opts.fav) r += '<i class="ag-uk-star' + (favKeys().indexOf(key) !== -1 ? ' on' : '') + '" data-act="fav" title="Připnout do Moje">★</i>';
+        if (key && opts.q !== 0 && !opts.hub && maNavod(key)) r += '<i class="ag-uk-q" data-act="q" title="Návod">?</i>';
+        if (opts.hub) r += '<i class="ag-uk-chev" aria-hidden="true"></i>';
+        b.innerHTML = (iconHtml ? '<span class="ag-uk-ico">' + iconHtml + '</span>' : '')
+            + '<span class="ag-uk-tx"><b>' + esc(def.l) + '</b>'
+            + (def.h ? '<small>' + esc(def.h) + '</small>' : '') + '</span>'
+            + (r ? '<span class="ag-uk-r">' + r + '</span>' : '');
+        if (opts.hub) b.setAttribute('aria-expanded', 'false');
+        b.addEventListener('click', function (e) {
+            var act = e.target && e.target.closest ? e.target.closest('[data-act]') : null;
+            if (act && b.contains(act)) {
+                e.stopPropagation(); e.preventDefault();
+                var a = act.getAttribute('data-act');
+                if (a === 'fav') toggleFav(key);
+                else if (a === 'q') { try { window.agToolHelp && window.agToolHelp(key, def.l); } catch (er) { swallow(er, 'item:q'); } }
+                else if (a === 'gest') { try { AGGesta.assignFor(key); } catch (er) { swallow(er, 'item:gest'); } }
+                return;
+            }
+            onClick(e);
+        });
+        return b;
     }
+    function maNavod(k) {
+        try { var h = window.AGReg && AGReg.help && AGReg.help(k); return !!(h && h.t); } catch (e) { return false; }
+    }
+
+    // ---- rozcestník rozbalený na místě ---------------------------------------------------
+    // Položky se stavějí až při prvním klepnutí: sbalený rozcestník je v seznamu
+    // JEDEN řádek (tak to čekají i regresní testy) a nic se nestaví do zavřených větví.
+    var OTEVRENE = {};   // id rozcestníku → 1 (jen po dobu běhu; po zavření okna se sbalí)
+    // Položky rozcestníku, které se pod ním v TÉHLE licenci rozbalí: bez `hidden`,
+    // s dlaždicí a NEZAMČENÉ. Zamčené (Pro v Základu) jdou na stránku Pro jako
+    // ostatní — jinak by se Pro vracelo do sloves zadními vrátky rozcestníku.
+    function hubPolozky(hubId) {
+        var keys = [];
+        try { keys = (window.AGReg && AGReg.hubItems) ? AGReg.hubItems(hubId) : []; } catch (e) { keys = []; }
+        return keys.filter(function (k) { return !HIDDEN[k] && !!findTile(k) && !zamceno(k); });
+    }
+    // podtitulek řádku rozcestníku = výčet toho, co se pod ním OPRAVDU rozbalí
+    // (registr skládá výčet bez ohledu na licenci — v Základu by sliboval Pro položky)
+    function hubPodtitul(hubId, zaloha) {
+        var names = hubPolozky(hubId).map(function (k) {
+            var r = (window.AGReg && AGReg.get(k)) || {}; var n = String(r.vl || k);
+            return n.charAt(0).toLowerCase() + n.slice(1);
+        });
+        return names.length ? names.join(' · ') : (zaloha || '');
+    }
+    function hubRow(it, verb) {
+        var wrap = document.createDocumentFragment();
+        var def = { l: it.l, h: hubPodtitul(it.k, it.h) };
+        var row = item(def, function () { toggleHub(row, sub, it.k); }, iconOf(it.k), it.k, { hub: 1, fav: 0 });
+        var sub = document.createElement('div');
+        sub.className = 'ag-uk-sub';
+        sub.setAttribute('data-sub', it.k);
+        sub.hidden = true;
+        wrap.appendChild(row); wrap.appendChild(sub);
+        if (OTEVRENE[it.k]) toggleHub(row, sub, it.k, true);
+        return wrap;
+    }
+    function toggleHub(row, sub, hubId, force) {
+        var open = force === true ? true : row.getAttribute('aria-expanded') !== 'true';
+        if (open && !sub.childNodes.length) {
+            hubPolozky(hubId).forEach(function (k) {
+                var r = (window.AGReg && AGReg.get(k)) || {};
+                var b = item({ l: r.vl || tileLabel(findTile(k)), h: r.vh || '' }, function () { run(k); }, iconOf(k), k, { fav: 1 });
+                b.classList.add('ag-uk-sub-i');
+                sub.appendChild(b);
+            });
+            if (!sub.childNodes.length) {
+                // bez položek (odpojený modul / role) se rozcestník chová jako dřív: otevře své okno
+                run(hubId); return;
+            }
+        }
+        row.setAttribute('aria-expanded', String(open));
+        sub.hidden = !open;
+        if (open) OTEVRENE[hubId] = 1; else delete OTEVRENE[hubId];
+        fitHeight();
+    }
+
+    // Sbalit všechny rozbalené rozcestníky (při novém otevření okna — ať je stránka
+    // zase krátká). Položky zůstávají postavené, jen se schovají.
+    function sbalHuby() {
+        OTEVRENE = {};
+        var host = document.getElementById(LIST_ID); if (!host) return;
+        var rows = host.querySelectorAll('.ag-uk-i[aria-expanded="true"]');
+        for (var i = 0; i < rows.length; i++) {
+            rows[i].setAttribute('aria-expanded', 'false');
+            var sub = host.querySelector('.ag-uk-sub[data-sub="' + rows[i].getAttribute('data-k') + '"]');
+            if (sub) sub.hidden = true;
+        }
+    }
+
+    // ---- stránky ------------------------------------------------------------------------------
+    var PAGES = [];          // [{ id, t, el, tab }] v pořadí pásku
+    var curPage = PAGE_MOJE; // id aktivní stránky; přežije přestavbu seznamu
+    var _scrollT = null;
+
+    function pageIndex(id) { for (var i = 0; i < PAGES.length; i++) if (PAGES[i].id === id) return i; return -1; }
+    function pagesEl() { var h = document.getElementById(LIST_ID); return h ? h.querySelector('.ag-uk-pages') : null; }
+
+    // Výška pásu = výška aktivní stránky. Sousední (vyšší) stránky se během tahu
+    // ořežou, po zarážce se výška přepočte. Bez toho by pás měl výšku nejvyšší
+    // stránky a pod krátkou (Vytyčit, 3 řádky) by zela díra na dvě obrazovky.
+    function fitHeight() {
+        var p = pagesEl(); if (!p) return;
+        var ix = pageIndex(curPage); if (ix < 0) return;
+        var el = PAGES[ix].el;
+        p.style.height = el.offsetHeight + 'px';
+    }
+    function go(id, hned) {
+        var ix = pageIndex(id);
+        if (ix < 0) { ix = 0; id = PAGES.length ? PAGES[0].id : PAGE_MOJE; }
+        if (!PAGES.length) return;
+        curPage = id;
+        var p = pagesEl();
+        if (p) {
+            var left = ix * p.clientWidth;
+            var smooth = !hned && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+            try { p.scrollTo({ left: left, behavior: smooth ? 'smooth' : 'auto' }); } catch (e) { p.scrollLeft = left; }
+        }
+        oznacTab();
+        fitHeight();
+    }
+    function oznacTab() {
+        var host = document.getElementById(LIST_ID); if (!host) return;
+        var ix = pageIndex(curPage);
+        PAGES.forEach(function (pg, i) {
+            pg.tab.setAttribute('aria-selected', i === ix ? 'true' : 'false');
+            pg.el.setAttribute('aria-hidden', i === ix ? 'false' : 'true');
+        });
+        // aktivní sloveso v pásku na oči (pásek roluje vodorovně)
+        try { var t = PAGES[ix] && PAGES[ix].tab; if (t && t.scrollIntoView) t.scrollIntoView({ block: 'nearest', inline: 'center' }); } catch (e) { swallow(e, 'oznacTab'); }
+        var nav = host.querySelector('.ag-uk-nav');
+        if (nav) {
+            var l = nav.firstChild, r = nav.lastChild;
+            l.innerHTML = ix > 0 ? '‹ <b>' + esc(PAGES[ix - 1].t) + '</b>' : '';
+            r.innerHTML = ix < PAGES.length - 1 ? '<b>' + esc(PAGES[ix + 1].t) + '</b> ›' : '';
+        }
+    }
+    // Po tahu prstem: která stránka zůstala na zarážce → označit ji (a přepočítat výšku).
+    function poScrollu() {
+        var p = pagesEl(); if (!p || !p.clientWidth) return;
+        var ix = Math.round(p.scrollLeft / p.clientWidth);
+        if (ix < 0 || ix >= PAGES.length) return;
+        if (PAGES[ix].id !== curPage) { curPage = PAGES[ix].id; oznacTab(); }
+        fitHeight();
+    }
+
+    // ---- sestavení -------------------------------------------------------------------------------
+    // Přestavuje se jen když se změní otisk (dlaždice přibývají postupně, jak se
+    // moduly registrují; připnutí; licence) — jinak by listování problikávalo při
+    // každém tiku. Aktivní stránka přestavbu přežije (curPage).
     function build() {
         var g = grid(); if (!g) return;
         var host = document.getElementById(LIST_ID);
@@ -433,77 +576,124 @@
             host.id = LIST_ID;
             g.parentNode.insertBefore(host, g);
         }
+        // Pás „Co dnes děláš" (js/rezim-prace.js) si vyrábí jiný modul a MUSÍ přežít
+        // přestavbu: vyndat před smazáním obsahu, po sestavení vrátit na Moje.
+        var rp = document.getElementById('ag-rp-wrap');
+        if (rp && host.contains(rp)) host.parentNode.insertBefore(rp, host);
         host.innerHTML = '';
+        PAGES = [];
 
-        var nb = nowBlock();
-        if (nb) host.appendChild(nb);
-        var used = {};
+        var tabs = document.createElement('div');
+        tabs.className = 'ag-uk-tabs';
+        tabs.setAttribute('role', 'tablist');
+        var pager = document.createElement('div');
+        pager.className = 'ag-uk-pages';
+        var nav = document.createElement('div');
+        nav.className = 'ag-uk-nav';
+        var navL = document.createElement('button'), navR = document.createElement('button');
+        navL.type = 'button'; navR.type = 'button';
+        navL.addEventListener('click', function () { var ix = pageIndex(curPage); if (ix > 0) go(PAGES[ix - 1].id); });
+        navR.addEventListener('click', function () { var ix = pageIndex(curPage); if (ix < PAGES.length - 1) go(PAGES[ix + 1].id); });
+        nav.appendChild(navL); nav.appendChild(navR);
+        host.appendChild(tabs); host.appendChild(pager); host.appendChild(nav);
 
-        // Každá skupina je samostatná sekce — jen díky tomu se sticky hlavička
-        // odlepí, jakmile skupina skončí (sticky se drží uvnitř svého rodiče).
-        function section(title, count) {
+        function page(id, title, kratce, cls) {
             var sec = document.createElement('section');
-            sec.className = 'ag-uk-g';
-            if (isClosed(title)) sec.classList.add('ag-uk-closed');
-            // Nadpis je TLAČÍTKO — sbalitelné skupiny jsou v Nástrojích už zavedené
-            // (mřížka je tak má z field-tools.js), takže seznam se chová stejně.
-            var h = document.createElement('button');
-            h.type = 'button';
-            h.className = 'ag-uk-h';
-            h.setAttribute('aria-expanded', String(!isClosed(title)));
-            h.innerHTML = '<span>' + esc(title) + '</span><span class="ag-uk-n">' + count + '</span>';
-            h.addEventListener('click', function () {
-                var nowClosed = !sec.classList.contains('ag-uk-closed');
-                sec.classList.toggle('ag-uk-closed', nowClosed);
-                h.setAttribute('aria-expanded', String(!nowClosed));
-                setClosed(title, nowClosed);
-            });
-            sec.appendChild(h);
-            host.appendChild(sec);
+            sec.className = 'ag-uk-page' + (cls ? ' ' + cls : '');
+            sec.setAttribute('data-page', id);
+            sec.setAttribute('role', 'tabpanel');
+            var tab = document.createElement('button');
+            tab.type = 'button';
+            tab.className = 'ag-uk-tab' + (id === PAGE_PRO ? ' ag-uk-tab-pro' : '');
+            tab.setAttribute('role', 'tab');
+            tab.setAttribute('data-page', id);
+            tab.textContent = kratce || title;
+            tab.addEventListener('click', function () { go(id); });
+            tabs.appendChild(tab);
+            pager.appendChild(sec);
+            PAGES.push({ id: id, t: kratce || title, el: sec, tab: tab });
             return sec;
         }
-
-        // Personalizace z mřížky se do seznamu propíše — ★ Oblíbené i ◆ typ práce
-        // (jinak by volba „Typ práce" nad seznamem zdánlivě nic nedělala).
-        function shortcutGroup(title, keys) {
-            // Oblíbené a typ práce jsou VOLBA UŽIVATELE — co si sem dál sám, to
-            // rozcestník ani `hidden` nepotlačuje.
-            var live = keys.filter(function (k) { return findTile(k); });
-            if (!live.length) return;
-            var sec = section(title, live.length);
-            live.forEach(function (k) {
-                var t = findTile(k);
-                sec.appendChild(item({ l: tileLabel(t) }, (function (kk) { return function () { run(kk); }; })(k), iconOf(k), k));
-            });
+        function heading(parent, title, count, hint) {
+            var h = document.createElement('div');
+            h.className = 'ag-uk-h';
+            h.innerHTML = '<span>' + esc(title) + '</span>'
+                + (hint ? '<span class="ag-uk-hint">' + esc(hint) + '</span>' : (count != null ? '<span class="ag-uk-n">' + count + '</span>' : ''));
+            parent.appendChild(h);
+            return h;
         }
-        // VLASTNÍK APLIKACE ÚPLNĚ NAHOŘE (12. 9. 2026). Dlaždice vlastnik-* z js/vlastnik.js
-        // (kategorie „Správa aplikace") padaly do sbalené sekce „Další nástroje" —
-        // uživatel konzoli nenašel. Tady jsou první, zlatě, jen když je režim zapnutý.
+        // sekce uvnitř stránky (Moje má tři; testy čekají .ag-uk-g + .ag-uk-h)
+        function section(parent, title, count, cls, hint) {
+            var sec = document.createElement('section');
+            sec.className = 'ag-uk-g' + (cls ? ' ' + cls : '');
+            heading(sec, title, count, hint);
+            parent.appendChild(sec);
+            return sec;
+        }
+        var used = {};
+
+        // ---- MOJE --------------------------------------------------------------------------------
+        var moje = page(PAGE_MOJE, 'Moje', '★ Moje');
+        var nb = nowBlock();
+        if (nb) moje.appendChild(nb);
+        // VLASTNÍK APLIKACE ÚPLNĚ NAHOŘE (12. 9. 2026): dlaždice vlastnik-* padaly do
+        // „Dalších nástrojů" a uživatel konzoli nenašel. Tady jsou první, zlatě,
+        // jen když je režim zapnutý.
         var vlast = [];
         try {
             if (window.AGVlastnik && AGVlastnik.isOn && AGVlastnik.isOn()) {
                 var vt = g.querySelectorAll('.tool-tile[data-tool^="vlastnik-"]');
-                for (var vi = 0; vi < vt.length; vi++) { var vk = tileKey(vt[vi]); if (vk) vlast.push(vk); }
+                for (var vi = 0; vi < vt.length; vi++) { var vk = tileKey(vt[vi]); if (vk && findTile(vk)) vlast.push(vk); }
             }
         } catch (e) { vlast = []; }
         if (vlast.length) {
-            var vsec = section('Vlastník aplikace', vlast.length);
-            vsec.classList.add('ag-uk-owner');
+            var vsec = section(moje, 'Vlastník aplikace', vlast.length, 'ag-uk-owner');
             vlast.forEach(function (k) {
                 used[k] = 1;
                 vsec.appendChild(item({ l: tileLabel(findTile(k)) }, (function (kk) { return function () { run(kk); }; })(k), iconOf(k), k));
             });
         }
-        shortcutGroup('★ Oblíbené', favKeys());
+        // místo pro pás „Co dnes děláš" — vloží se po sestavení (adoptRp)
+        var rpSlot = document.createElement('div');
+        rpSlot.className = 'ag-uk-rpslot';
+        moje.appendChild(rpSlot);
+        // ★ Připnuté — VOLBA UŽIVATELE: co si sem dal sám, to rozcestník ani `hidden`
+        // nepotlačuje. Připnutý nástroj tu ukazuje své gesto (nebo nabídne ho nakreslit).
+        var favs = favKeys().filter(function (k) { return findTile(k); });
+        var fsec = section(moje, '★ Připnuté', favs.length ? favs.length : null, 'ag-uk-fav',
+            favs.length ? (gestaZapnuta() ? 'klepni na gesto = změnit' : null) : null);
+        if (favs.length) {
+            favs.forEach(function (k) {
+                var r = (window.AGReg && AGReg.get(k)) || {};
+                var t = findTile(k);
+                fsec.appendChild(item({ l: r.vl || tileLabel(t), h: r.vh || '' }, (function (kk) { return function () { run(kk); }; })(k), iconOf(k), k, { fav: 1, gest: 1 }));
+            });
+        } else {
+            var em = document.createElement('div');
+            em.className = 'ag-uk-empty';
+            em.textContent = 'Nástroj, který používáš pořád, si připni hvězdičkou ★ v jeho řádku — bude tady' + (gestaZapnuta() ? ' a půjde mu dát gesto.' : '.');
+            fsec.appendChild(em);
+        }
         var pl = profileLabel();
-        if (pl) shortcutGroup('◆ Pro tuto práci · ' + pl, profileKeys());
+        if (pl) {
+            var pk = profileKeys().filter(function (k) { return findTile(k); });
+            if (pk.length) {
+                var psec = section(moje, '◆ Pro tuto práci · ' + pl, pk.length);
+                pk.forEach(function (k) {
+                    var r = (window.AGReg && AGReg.get(k)) || {};
+                    psec.appendChild(item({ l: r.vl || tileLabel(findTile(k)), h: r.vh || '' }, (function (kk) { return function () { run(kk); }; })(k), iconOf(k), k, { fav: 1 }));
+                });
+            }
+        }
+        moje.appendChild(footBlock());
 
-        // ⚠ ZAMČENÉ (PRO BEZ LICENCE) AŽ DOLŮ (12. 9. 2026, přání uživatele: „všechny
-        //   zamčené nástroje se přesunou dolů a odemčené budou nahoře — ať to není, že
-        //   skroluješ a něco tam je uzavřený, něco otevřený"). Slovesné skupiny nahoře
-        //   obsahují jen to, co jde spustit; co je za peníze, se sesype do jediné
-        //   sekce „Ve verzi Pro" na konci — se slovesem v popisku, ať se dá najít.
-        //   Zámek samotný (data-agpro, karta po klepnutí) věší dál js/pro-zamky.js.
+        // ---- SLOVESA: jedno sloveso = jedna stránka ---------------------------------------------
+        // ⚠ ZAMČENÉ (PRO BEZ LICENCE) STRANOU (12. 9. 2026 dolů, 15. 9. 2026 na vlastní
+        //   stránku, přání: „aby ta Pro nebyly rozházený v těch daných kategoriích,
+        //   ale aby to bylo stranou a nepřekáželo"). Slovesné stránky obsahují jen to,
+        //   co jde spustit; co je za peníze, je na poslední stránce „Pro" — se
+        //   slovesem v titulku skupiny, ať se dá najít. Zámek samotný (data-agpro,
+        //   karta po klepnutí) věší dál js/pro-zamky.js.
         var zamcene = [];
         poradiSkupin().forEach(function (grp) {
             var live = grp.items.filter(function (it) {
@@ -514,48 +704,53 @@
                 if (zamceno(it.k)) { used[it.k] = 1; zamcene.push({ it: it, verb: grp.t }); return false; }
                 return true;
             });
-            if (!volne.length) return;                      // celé sloveso je za peníze → jen dole
-            var sec = section(grp.t, volne.length);
+            if (!volne.length) return;                      // celé sloveso je za peníze → jen na Pro
+            var sec = page(grp.t, grp.t, KRATCE[grp.t] || grp.t);
+            heading(sec, grp.t, volne.length);
             volne.forEach(function (it) {
                 used[it.k] = 1;
-                sec.appendChild(item(it, function () { run(it.k); }, iconOf(it.k), it.k));
+                if (HUB[it.k]) {
+                    sec.appendChild(hubRow(it, grp.t));
+                    // zamčené položky rozcestníku → stránka Pro (s názvem rozcestníku v popisku)
+                    var hk = [];
+                    try { hk = (window.AGReg && AGReg.hubItems) ? AGReg.hubItems(it.k) : []; } catch (e) { hk = []; }
+                    hk.forEach(function (k) {
+                        if (HIDDEN[k] || !findTile(k) || !zamceno(k) || used[k]) return;
+                        var r = (window.AGReg && AGReg.get(k)) || {};
+                        used[k] = 1;
+                        zamcene.push({ it: { k: k, l: r.vl || tileLabel(findTile(k)), h: it.l + (r.vh ? ' · ' + r.vh : '') }, verb: grp.t });
+                    });
+                }
+                else sec.appendChild(item(it, function () { run(it.k); }, iconOf(it.k), it.k, { fav: 1 }));
             });
         });
 
-        // POJISTKA: co v mapě sloves není (nový modul, který přibude potom), se
-        // ukáže tady — nikdy nezmizí jen proto, že jsem ho nezařadil.
+        // ---- DALŠÍ: pojistka — co v mapě sloves není (nový modul), se ukáže tady ------------
         var rest = [];
         var tiles = g.querySelectorAll('.tool-tile');
         for (var i = 0; i < tiles.length; i++) {
             var k = tileKey(tiles[i]);
             if (!k || used[k] || KNOWN[k] || HIDDEN[k] || vHubu(k)) continue;
-            // Stejná dvě skrytí jako ve findTile(): tahle smyčka sahá na dlaždice
-            // přímo, takže si je musí ohlídat sama. Bez toho by pojistka ukázala
-            // (a přes run() i spustila) nástroj zakázaný rolí nebo ten, který si
-            // uživatel schoval v „Moje aktivita".
+            // Stejná dvě skrytí jako ve findTile(): tahle smyčka sahá na dlaždice přímo.
             if (tiles[i].hasAttribute('data-agucty')) continue;
             if (tiles[i].hasAttribute('data-ag-hidden')) continue;
             if (tiles[i].id === 'ag-sm-allbtn') continue;
             rest.push({ k: k, l: tileLabel(tiles[i]) });
         }
-        // Pojistka respektuje totéž rozdělení: zamčené bez slovesa jdou taky dolů.
         rest = rest.filter(function (r) {
             if (zamceno(r.k)) { zamcene.push({ it: { k: r.k, l: r.l }, verb: '' }); return false; }
             return true;
         });
         if (rest.length) {
-            var rsec = section('Další nástroje', rest.length);
+            var rsec = page(PAGE_DALSI, 'Další nástroje', 'Další');
+            heading(rsec, 'Další nástroje', rest.length);
             rest.forEach(function (r) {
-                rsec.appendChild(item({ l: r.l }, function () { run(r.k); }, iconOf(r.k), r.k));
+                rsec.appendChild(item({ l: r.l }, function () { run(r.k); }, iconOf(r.k), r.k, { fav: 1 }));
             });
-            // Pojistka funguje, ale tiše: 9. 8. 2026 se ukázalo, že tu půl roku ležel
-            // „Metr v kameře" a hlavně „Kontrola vrstvy" — nástroj na každodenní práci
-            // za finišerem — protože je nikdo do mapy sloves nedopsal a uživatel je
-            // v obecné škatuli nenašel. Teď se to aspoň ozve v konzoli, ať to při
-            // přidávání dalšího modulu nezůstane bez povšimnutí.
-            // "noverb" z registru = nastroj tu MA byt (protokol chyb se slovesem popsat
-            // neda), takze se na nej neupozornuje. A kdyz registr vubec nenabehl, je
-            // v "rest" cela appka a rada "dopsat do tools-registry.js" by byla mylna.
+            // Pojistka funguje, ale tiše: 9. 8. 2026 tu půl roku ležel „Metr v kameře"
+            // a „Kontrola vrstvy", protože je nikdo do mapy sloves nedopsal. Ozve se
+            // v konzoli. "noverb" z registru = nástroj tu MÁ být; bez registru je tu
+            // celá appka a rada „dopsat do tools-registry.js" by byla mylná.
             var chybi = rest.filter(function (r) { return !NOVERB[r.k]; });
             try {
                 if (!_restWarned && chybi.length && GROUPS.length) {
@@ -564,32 +759,64 @@
                         + chybi.map(function (r) { return r.k; }).join(', ')
                         + ' — dopsat do js/tools-registry.js (verb + vl), ať to jde najít podle toho, co chce uživatel udělat.');
                 }
-            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:shortcutGroup'); }
+            } catch (e) { swallow(e, 'rest'); }
         }
+
+        // ---- PRO: dvanáctá stránka, jen v Základu ------------------------------------------------
         if (zamcene.length) {
-            var zsec = section(PRO_SEKCE, zamcene.length);
-            zsec.classList.add('ag-uk-pro');
+            var zsec = page(PAGE_PRO, PRO_SEKCE, 'Pro', 'ag-uk-pro');
+            heading(zsec, PRO_SEKCE, zamcene.length);
+            var intro = document.createElement('div');
+            intro.className = 'ag-uk-intro';
+            intro.innerHTML = '<span>Nástroje z placené verze — tady stranou, ať nepřekážejí ve slovesech. Klepnutím zjistíš, co který umí.</span>';
+            if (window.AGProZamky && typeof AGProZamky.prehled === 'function') {
+                var pb = document.createElement('button');
+                pb.type = 'button'; pb.textContent = 'Co všechno umí Pro';
+                pb.addEventListener('click', function () { try { AGProZamky.prehled(); } catch (e) { swallow(e, 'pro:prehled'); } });
+                intro.appendChild(pb);
+            }
+            zsec.appendChild(intro);
+            var lastVerb = null;
             zamcene.forEach(function (z) {
-                var def = { l: z.it.l, h: z.verb ? (z.verb + (z.it.h ? ' · ' + z.it.h : '')) : z.it.h };
-                zsec.appendChild(item(def, function () { run(z.it.k); }, iconOf(z.it.k), z.it.k));
+                var v = z.verb || 'Další nástroje';
+                if (v !== lastVerb) {
+                    var cap = document.createElement('div');
+                    cap.className = 'ag-uk-cap'; cap.textContent = v;
+                    zsec.appendChild(cap); lastVerb = v;
+                }
+                zsec.appendChild(item({ l: z.it.l, h: z.it.h || '' }, function () { run(z.it.k); }, iconOf(z.it.k), z.it.k));
             });
         }
-        host.appendChild(footBlock());
-        adoptFavBtn();
+
         host.setAttribute('data-sig', gridSig());
+        adoptRp();
+        // posluchač tahu — jednou na pás (pás se staví s každou přestavbou znovu)
+        pager.addEventListener('scroll', function () {
+            if (_scrollT) clearTimeout(_scrollT);
+            _scrollT = setTimeout(poScrollu, 90);
+        }, { passive: true });
+        go(curPage, true);
+        // výška po vykreslení (offsetHeight před prvním snímkem bývá 0 při otevírání)
+        try { requestAnimationFrame(function () { go(curPage, true); }); } catch (e) { swallow(e, 'build:raf'); }
     }
-    // Sekce zamčených — jméno je i klíčem sbalení (CLOSED_KEY), tak ať je jedno.
+    // Sekce zamčených — jméno je tu od 12. 9. 2026, testy ho znají.
     var PRO_SEKCE = 'Ve verzi Pro';
-    // Táž dvojice podmínek jako zamceno() v js/pro-zamky.js — bez atributu
-    // data-agpro z dlaždice, ten věší pro-zamky.js až po svém tiku.
-    function zamceno(k) {
-        try {
-            if (window.AGProZamky && typeof AGProZamky.zamceno === 'function') return !!AGProZamky.zamceno(k);
-            return !!(k && window.AGReg && AGReg.isPro && AGReg.isPro(k) && !(window.AGLic && AGLic.isPro()));
-        } catch (e) { return false; }
+
+    // Pás „Co dnes děláš" z js/rezim-prace.js patří na Moje (typ práce se tam projeví
+    // v sekci „Pro tuto práci"). Modul ho vkládá před seznam; tady se jen přestěhuje.
+    // Idempotentní — smí to volat periodický sync().
+    function adoptRp() {
+        var rp = document.getElementById('ag-rp-wrap');
+        var host = document.getElementById(LIST_ID);
+        if (!rp || !host) return;
+        var slot = host.querySelector('.ag-uk-rpslot');
+        if (!slot || rp.parentNode === slot) return;
+        slot.appendChild(rp);
+        fitHeight();
     }
 
     // ---- hlavní sync -------------------------------------------------------------------------
+    var _byloOtevreno = false;
     function sync() {
         injectStyles();
         if (!grid()) return;
@@ -601,72 +828,72 @@
         var active = q ? 'vse' : view();
 
         var host = document.getElementById(LIST_ID);
-        // ⚠⚠ SKLÁDAT SEZNAM DO ZAVŘENÉHO OKNA JE ČISTÁ ZTRÁTA (8. 9. 2026). Tik
-        //   běží každých 1400 ms a při startu do mřížky přibývají dlaždice z
-        //   odkládací fronty, takže se otisk pokaždé změní a build() poskládal
-        //   celou stovku položek znovu — do okna, které nikdo neotevřel.
-        //   Naměřeno při startu: 253 ms ve čtyřech voláních, nejdelší tik 104 ms.
-        //   Po otevření okna se seznam postaví hned (viz posluchač níž), takže
-        //   uživatel na nic nečeká.
+        // ⚠⚠ SKLÁDAT SEZNAM DO ZAVŘENÉHO OKNA JE ČISTÁ ZTRÁTA (8. 9. 2026): tik běží
+        //   každých 1400 ms a při startu do mřížky přibývají dlaždice, otisk se pokaždé
+        //   změní a build() by skládal stovku položek do okna, které nikdo neotevřel.
+        //   Po otevření okna se seznam postaví hned (pozorovatel níž).
         var _m = modal();
         var _otevreno = !!(_m && _m.style.display && _m.style.display !== 'none');
+        // Okno se OTEVÍRÁ NA MOJE (rozhodnutí 15. 9. 2026) — ne tam, kde se naposledy
+        // listovalo. Rozbalené rozcestníky se sbalí, ať je stránka zase krátká.
+        if (_otevreno && !_byloOtevreno) { curPage = PAGE_MOJE; sbalHuby(); if (host) go(PAGE_MOJE, true); }
+        _byloOtevreno = _otevreno;
         if (_otevreno && active === 'ukony' && (!host || host.getAttribute('data-sig') !== gridSig())) build();
 
         // ⚠⚠⚠ `ag-uk-on` SMÍ BÝT JEN TEHDY, KDYŽ SEZNAM SKUTEČNĚ EXISTUJE. Ta třída
-        //   schová mřížku (`body.ag-uk-on #tools-modal .tool-grid{display:none}`),
-        //   takže když se seznam nepostavil, zůstalo okno Nástrojů ÚPLNĚ PRÁZDNÉ.
-        //   Přesně to jsem 8. 9. 2026 způsobil podmínkou „stavět jen do otevřeného
-        //   okna": kdo okno otevřel jinak než klepnutím (test, gesto, volání z kódu),
-        //   neměl v Nástrojích nic. Chytily to až regresní sady test_opravy_3_9
-        //   a test_navrhy_d2 — obě spadly na tom, že v mřížce nic nenašly.
-        //   Podmínka na existenci seznamu tenhle stav vylučuje bez ohledu na to,
-        //   jakou cestou se okno otevře.
+        //   schová mřížku, takže bez seznamu by okno Nástrojů zůstalo PRÁZDNÉ — přesně
+        //   to se 8. 9. 2026 stalo každému, kdo okno otevřel jinak než klepnutím.
         document.body.classList.toggle('ag-uk-on',
             active === 'ukony' && !!document.getElementById(LIST_ID));
-        // tools-plus.js si tlačítko oblíbených vkládá zpátky na začátek .modal-body,
-        // kdykoli ho tam nenajde — tak ho po každém ticku vrátíme do patičky seznamu.
-        if (active === 'ukony') adoptFavBtn();
+        if (active === 'ukony') { adoptRp(); fitHeight(); }
     }
 
     // Okno Nástrojů se otevírá inline onclickem (index.html), takže na něj není
-    // událost. Bez tohohle by po zavedení podmínky „stavět jen do otevřeného okna"
-    // byl seznam prvních až 1,4 s prázdný (než přijde tik).
-    // ⚠ HLÍDÁ SE ZMĚNA ATRIBUTU, NE KLEPNUTÍ. Klepnutí mine každou jinou cestu
-    //   k otevření — volání z kódu, gesto, zkratku, test. Pozorovatel na `style`
-    //   a `class` okna je chytí všechny a je levný: běží jen při skutečné změně.
+    // událost. ⚠ HLÍDÁ SE ZMĚNA ATRIBUTU, NE KLEPNUTÍ — chytí i volání z kódu,
+    // gesto, zkratku, test. Pozorovatel je levný: běží jen při skutečné změně.
     function hlidejOtevreni() {
         var m = modal();
         if (!m || m.getAttribute('data-uk-obs') === '1') return;
         try {
             m.setAttribute('data-uk-obs', '1');
             new MutationObserver(function () {
-                try { sync(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:obs'); }
+                try { sync(); } catch (e) { swallow(e, 'obs'); }
             }).observe(m, { attributes: true, attributeFilter: ['style', 'class'] });
-        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:hlidejOtevreni'); }
+        } catch (e) { swallow(e, 'hlidejOtevreni'); }
     }
 
     function init() {
         try { sync(); } catch (e) { console.warn('[nastroje-ukony] init', e); }
         try { hlidejOtevreni(); } catch (e) { console.warn('[nastroje-ukony] hlidejOtevreni', e); }
-        // okno může vzniknout až za startem — pozorovatel se doveší v tiku
         (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () {
-            try { hlidejOtevreni(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:tik-obs'); }
+            try { hlidejOtevreni(); } catch (e) { swallow(e, 'tik-obs'); }
         }, 3000);
         if (!window.__agUkTimer) {
             window.__agUkTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () {
-                try { sync(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastroje-ukony:init'); }
+                try { sync(); } catch (e) { swallow(e, 'init'); }
             }, 1400);
         }
         document.addEventListener('input', function (e) {
-            if (e.target && e.target.id === 'tools-search') { try { sync(); } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'nastroje-ukony:init'); } }
+            if (e.target && e.target.id === 'tools-search') { try { sync(); } catch (er) { swallow(er, 'init'); } }
         }, true);
+        // ⚠ init() běží DVAKRÁT (DOMContentLoaded/readyState + pojistka po load) —
+        //   posluchače níž smí vzniknout jen jednou, jinak šipka listovala o dvě stránky.
+        if (window.__agUkKeys) return;
+        window.__agUkKeys = 1;
+        // otočení telefonu: zarážky zůstávají, ale posun je v pixelech → srovnat
+        window.addEventListener('resize', function () { try { if (PAGES.length) go(curPage, true); } catch (e) { swallow(e, 'resize'); } });
+        // klávesnice (tablet s klávesnicí, prohlížeč): šipky listují
+        document.addEventListener('keydown', function (e) {
+            if (!document.body.classList.contains('ag-uk-on')) return;
+            var m = modal(); if (!m || m.style.display === 'none') return;
+            if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+            var ix = pageIndex(curPage);
+            if (e.key === 'ArrowRight' && ix < PAGES.length - 1) go(PAGES[ix + 1].id);
+            else if (e.key === 'ArrowLeft' && ix > 0) go(PAGES[ix - 1].id);
+        });
     }
-    // ⚠ STAVBA SEZNAMU AŽ ZA START (5. 9. 2026). build() poskládá celý seznam
-    // sloves do okna Nástroje — tedy do okna, které při startu nikdo neotevřel.
-    // Měřeno v prohlížeči (CPU 4×): 311 ms vlastního času, nejdražší modul startu
-    // hned po Leafletu. Odsouvá se za první dotek a i pak se pouští v nečinnosti;
-    // do Nástrojů vede vždycky ještě jedno klepnutí, takže je seznam včas hotový.
-    // Záložní doba zaručuje, že se to stane i uživateli, který se ničeho nedotkne.
+    // ⚠ STAVBA AŽ ZA START (5. 9. 2026): build() je nejdražší modul startu hned po
+    // Leafletu (311 ms při CPU 4×). Odsouvá se za první dotek a i pak do nečinnosti.
     function initPozdeji() {
         if (window.AG && typeof AG.poPrvnimDoteku === 'function') AG.poPrvnimDoteku(init, 3500);
         else init();
@@ -675,29 +902,22 @@
     else initPozdeji();
     window.addEventListener('load', function () { setTimeout(initPozdeji, 500); });
 
-    // setView() zrušen spolu s přepínačem pohledů — pohled je jeden. Necháváme ho
-    // v API jako no-op, aby starší volání odjinud nespadlo na „not a function".
-    // groups/run/has vystrkuje ven kvůli js/kolecko-nastroju.js: kolečko musí
-    // vybírat ze STEJNÉ mapy sloves a spouštět nástroje STEJNOU cestou (klik na
-    // původní dlaždici), jinak by se rozešly a obcházela by se oprávnění.
+    // groups/run/has zůstávají venku: gesta (js/gesta-zkratky.js) vybírají ze STEJNÉ
+    // mapy sloves a spouštějí nástroje STEJNOU cestou (klik na původní dlaždici).
     window.AGUkony = {
         rebuild: build,
-        setView: function () { sync(); },
+        setView: function () { sync(); },   // no-op po zrušení přepínače pohledů (starší volání)
         groups: GROUPS,
         run: run,
+        // LISTOVÁNÍ: id stránky = plný název slovesa z registru, 'moje', 'pro', 'dalsi'
+        go: go,
+        page: function () { return curPage; },
+        pages: function () { return PAGES.map(function (p) { return p.id; }); },
         // JDE TENHLE NÁSTROJ VŮBEC SPUSTIT? (dlaždice v DOM + právo role)
-        // ⚠⚠ ZÁMĚRNĚ BEZ pravidla o rozcestnících. Podle `has()` se ptají i GESTA
-        //   (js/gesta-zkratky.js), a zkratka na Počasí musí jet dál i po tom, co se
-        //   Počasí sloučilo pod rozcestník „Počasí a světlo". Když se sem to pravidlo
-        //   přidalo, přestala fungovat výchozí zkratka gesta — chyba odhalená testem
-        //   scripts/test_opravy_31_8.py (15/15 → 13/15). Sloučení je věc VÝPISU,
-        //   ne spouštění; pro výpis je vVypisu() níž.
+        // ⚠⚠ ZÁMĚRNĚ BEZ pravidla o rozcestnících: podle has() se ptají GESTA a zkratka
+        //   na Počasí musí jet dál i po sloučení pod „Počasí a světlo" (test_opravy_31_8).
         has: function (k) { return !!findTile(k); },
         // PATŘÍ NÁSTROJ DO NABÍDKY? = has() + pravidlo rozcestníků a `hidden`.
-        // Používá to kolečko nástrojů (js/kolecko-nastroju.js): do 3. 9. 2026 v něm
-        // stál rozcestník „Firma" A VEDLE NĚJ pořád Docházka, Chat, Vysílačka i Účty.
-        // Hlášeno uživatelem: „když si rozkliknu firmu, jsou tam ty nástroje
-        // duplicitně — chci tam jen ten jeden, ve kterém jsou ty podnástroje."
         vVypisu: function (k) {
             if (HIDDEN[k]) return false;
             if (vHubu(k)) return false;

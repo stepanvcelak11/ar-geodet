@@ -132,8 +132,8 @@
     // žije v panelu Mapa a vrstvy (js/poloha-z-mapy.js) a její „?" míří sem. Bez
     // tohohle by záznam v registru existoval, ale uživatel by se k němu nedostal.
     window.agToolHelp = function (key, label) { try { openHelp(key, label); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tools-plus:agToolHelp'); } };
-    // Krátká nápověda jako HOLÝ TEXT (první věty návodu). Používá ji kolečko
-    // nástrojů (js/kolecko-nastroju.js): v kolečku není kam dát otazník, tak se
+    // Krátká nápověda jako HOLÝ TEXT (první věty návodu). Používalo ji kolečko
+    // nástrojů (do 15. 9. 2026), teď je to obecná služba pro místa bez otazníku:
     // u zamířeného nástroje rovnou vypíše, co dělá. Zdroj je TÝŽ registr,
     // takže se texty nemůžou rozejít — jen se zkrátí.
     // MUSÍ ZŮSTAT SYNCHRONNÍ (volá se při tažení prstu, na Promise není kdy).

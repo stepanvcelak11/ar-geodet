@@ -96,7 +96,7 @@
         'settings-modal': 1, 'tools-modal': 1, 'manage-modal': 1, 'custom-modal-overlay': 1,
         'dict-modal': 1, 'about-modal': 1, 'cluster-modal': 1, 'nearby-modal': 1,
         'compass-calib-modal': 1,
-        'ag-kn': 1, 'ag-gate': 1, 'ag-login': 1, 'welcome-screen': 1, 'agtp-block': 1,
+        'ag-gate': 1, 'ag-login': 1, 'welcome-screen': 1, 'agtp-block': 1,
         'ag-mini': 1, 'ag-backup-bar': 1, 'ag-stack': 1, 'hud-editor': 1,
         // karta bodu (spodní plachta) — na přání: u bodu se sbalovat nemá
         'bottom-sheet': 1, 'map-sheet': 1, 'side-menu': 1,
@@ -117,11 +117,11 @@
     // Rozměr a z-index rozeznají VELKÉ OKNO, ne nástroj — a tak tlačítko „Sbalit"
     // přistálo i na nabídce Face ID nebo na kartě bodu. Rozhoduje proto ještě
     // PŮVOD okna: otevřelo se krátce po klepnutí na dlaždici v Nástrojích (nebo na
-    // řádek seznamu úkonů, na položku kolečka, na zkratku gestem — všechny tyhle
+    // řádek seznamu úkonů, na zkratku gestem — všechny tyhle
     // cesty končí klikem na dlaždici, viz AGUkony.run). Co se objeví samo od sebe,
     // tlačítko nedostane. Jakmile okno jednou projde, označí se atributem, takže
     // ho pozdější prohlídky poznají i po vypršení okna.
-    var TOOL_SEL = '.tool-tile,.ag-ft-tile,.ag-uk-i[data-k],[data-tool],#ag-kn [data-k]';
+    var TOOL_SEL = '.tool-tile,.ag-ft-tile,.ag-uk-i[data-k],[data-tool]';
     var TOOL_MS = 15000;    // jak dlouho po klepnutí se okno ještě počítá za nástroj
     var _toolClickTs = 0;
     try {

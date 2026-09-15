@@ -34,11 +34,11 @@
 // nezačíná), nástroj naskočí ještě pod rukou, bez čekání na zvednutí.
 //
 // KDE SE GESTO NEZAKLÁDÁ: nad tlačítky, poli, dlaždicemi, otevřeným modálem,
-// v panelu vrstev, na popupu mapy, nad přihlašovací obrazovkou a v kolečku nástrojů
-// (body.ag-kn-open). Tam tah znamená něco jiného a sebrat mu ho by bylo horší než
+// v panelu vrstev, na popupu mapy a nad přihlašovací obrazovkou (do 15. 9. 2026
+// i v kolečku nástrojů, to je pryč). Tam tah znamená něco jiného a sebrat mu ho by bylo horší než
 // chybějící zkratka.
 //
-// SPOUŠTÍ SE STEJNOU CESTOU JAKO KOLEČKO: AGUkony.run(klíč) klikne na původní
+// SPOUŠTÍ SE STEJNOU CESTOU JAKO SEZNAM ÚKONŮ: AGUkony.run(klíč) klikne na původní
 // dlaždici v Nástrojích. Nic se tu nevede vlastní — takže platí oprávnění rolí
 // (skrytá dlaždice = nespustitelná zkratka), počítadlo použití i návody.
 //
@@ -110,7 +110,7 @@
     var DIRNAME = { U: 'nahoru', D: 'dolů', L: 'doleva', R: 'doprava' };
 
     // Kde se tah NEZAKLÁDÁ (viz hlavička). `.btn` je i „Zavřít" v modálech,
-    // `.glass-panel` panel vrstev, `#ag-kn` kolečko nástrojů.
+    // `.glass-panel` panel vrstev (`#ag-kn` = kolečko nástrojů, od 15. 9. 2026 pryč).
     // ⚠ #ag-login/#ag-gate/#welcome-screen tu MUSÍ být: `body.app-started` je
     // nastavené i pod přihlašovací obrazovkou (ověřeno v prohlížeči), takže bez
     // nich by šlo kreslit zkratky ještě před přihlášením.
@@ -524,12 +524,10 @@
     // a viditelnost jim řídí třída .ag-open (viz skript na konci index.html),
     // takže „computed display" o otevření nevypovídá vůbec nic. Rozhoduje proto
     // JEN to, na čem tah začal: nad zavřeným oknem dotek dopadne na mapu, nad
-    // otevřeným na okno samotné — a to je v NOGO. Jedna podmínka navíc je kolečko
-    // nástrojů, které kreslí do vlastní vrstvy přes celou obrazovku.
+    // otevřeným na okno samotné — a to je v NOGO.
     function canStart(target) {
         if (load().off) return false;
         if (!document.body.classList.contains('app-started')) return false;
-        if (document.body.classList.contains('ag-kn-open')) return false;   // kolečko nástrojů
         try { if (target && target.closest && target.closest(NOGO)) return false; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:canStart'); }
         // ⚠⚠ NAD OKNEM NÁSTROJE SE GESTO NEZAKLÁDÁ (8. 9. 2026). NOGO vyřazuje
         //   `.modal-overlay`, jenže ~20 modulů si obal kreslí samo a tu třídu
@@ -1610,6 +1608,11 @@
     window.AGGesta = {
         open: openSettings,                       // otevře okno se zkratkami
         get: function () { return JSON.parse(JSON.stringify(load())); },
+        // Nakreslit (nebo přepsat) gesto pro jeden nástroj — volá stránka Moje
+        // v Nástrojích (js/nastroje-ukony.js): připnutý nástroj tam ukazuje své
+        // gesto a klepnutím na něj se mění, bez cesty přes Nastavení.
+        assignFor: function (k) { if (k && !load().off) assignFor(String(k)); },
+        arrows: arrows,
         // pro zkoušení v prohlížeči: „jako by uživatel dokreslil tenhle kód"
         simulate: function (code) {
             var st = { code: String(code || ''), fired: false, armed: true, drew: true };

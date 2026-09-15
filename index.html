@@ -95,8 +95,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=331">
-    <link rel="stylesheet" href="css/style.css?v=331">
+    <link rel="stylesheet" href="css/tokens.css?v=332">
+    <link rel="stylesheet" href="css/style.css?v=332">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -227,7 +227,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=331">
+    <link rel="stylesheet" href="css/vylepseni.css?v=332">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -438,10 +438,10 @@
     <!-- POŘADÍ PRVNÍCH DVOU JE ZÁMĚRNÉ (9. 8. 2026): „Body" nahoře, „Nástroje" druhé.
          Lišta stojí v jemném oblouku (--dock-arc, css/style.css u #dock): krajní chipy
          jsou u okraje displeje (translateX 0), druhý a čtvrtý o 0,55 × oblouku dál
-         doprostřed. Tlačítko Nástroje se drží PRSTEM a tahem se z něj vybírá
-         (js/kolecko-nastroju.js), takže každý pixel od pravého okraje je pro palec
-         k dobru — ve druhém slotu jich při výchozím oblouku má o 7 víc (36 → 43 px).
-         Body se navíc otevírají méně často. Na pořadí nic nezávisí: oprávnění
+         doprostřed. Nástroje jsou nejčastější klepnutí, takže každý pixel od pravého
+         okraje je pro palec k dobru — ve druhém slotu jich při výchozím oblouku má
+         o 7 víc (36 → 43 px). Body se navíc otevírají méně často. (Do 15. 9. 2026 se
+         tlačítko i drželo prstem kvůli kolečku nástrojů; to je pryč.) Na pořadí nic nezávisí: oprávnění
          (js/ucty.js) i tutoriál (js/tutorial-pro.js) míří přes onclick/id, ne přes
          nth-child; ten řídí jen tvar oblouku. -->
     <nav id="dock">
@@ -1441,12 +1441,12 @@
          a přežijí restart; bez tohohle není na obrazovce ŽÁDNÁ stopa, proč je mapa prázdná -->
     <script defer src="js/filtr-info.js"></script>
     <!-- NÁSTROJE JAKO SEZNAM ÚKONŮ (odpojitelné) — druhý pohled vedle mřížky;
-         seznam sloves místo 61 ikon, mřížka zůstává pod přepínačem „Vše" -->
+         listování po slovesech (Moje · Změřit · … · Pro) místo 61 ikon, mřížka zůstává pro hledání -->
     <script defer src="js/nastroje-ukony.js"></script>
     <!-- ZAMKY PRO VERZE (odpojitelne: smaz radek, js/pro-zamky.js a zaznam v sw.js)
          — Pro nastroj bez licence nejde spustit, ale je videt, ze existuje.
-         Jeden odchyt kliku v capture fazi pokryva mrizku, seznam ukonu,
-         kolecko i hledani naraz. V balicku Zaklad navic vyrobi zastupne
+         Jeden odchyt kliku v capture fazi pokryva mrizku, seznam ukonu
+         i hledani naraz. V balicku Zaklad navic vyrobi zastupne
          radky za moduly, ktere v nem vubec nejsou. -->
     <script defer src="js/pro-zamky.js"></script>
     <!-- KARTA VERZE PRO (odpojitelne: smaz radek, js/pro-karta.js a zaznam v sw.js)
@@ -1489,11 +1489,9 @@
          horní pruh záložek se skrývá (zůstává v DOM kvůli switchTab/app-search/oprávněním).
          MUSÍ být až za js/nastaveni-poradek.js, který sekce vyrábí. -->
     <script defer src="js/nastaveni-lista.js"></script>
-    <!-- KOLEČKO NÁSTROJŮ (návrh N4, odpojitelné: smaž tento řádek + js/kolecko-nastroju.js)
-         — podržením tlačítka Nástroje se vybírá nástroj tažením, bez zvedání prstu.
-         MUSÍ být až za js/nastroje-ukony.js (bere z něj slovesa i spouštění)
-         a za js/tools-plus.js (nápovědy z TOOL_HELP). -->
-    <script type="ag/lazy" data-src="js/kolecko-nastroju.js"></script>
+    <!-- KOLEČKO NÁSTROJŮ (js/kolecko-nastroju.js, podržení tlačítka Nástroje) bylo TADY
+         do 15. 9. 2026. Zrušeno na přání: tři cesty k nástroji byly moc; zůstává
+         listování v Nástrojích (js/nastroje-ukony.js) a gesta (js/gesta-zkratky.js). -->
     <!-- GESTA JAKO ZKRATKY (odpojitelné: smaž tento řádek + js/gesta-zkratky.js)
          — nakresli po displeji aktivační gesto (↓→) a došvihni zkratku nástroje.
          MUSÍ být až za js/nastroje-ukony.js (spouští nástroje přes AGUkony.run)

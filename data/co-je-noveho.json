@@ -2,6 +2,18 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 332,
+   "datum": "2026-09-15",
+   "nadpis": "Nástroje se listují: jedno sloveso = jedna stránka, Moje jako první, Pro stranou; kolečko nástrojů zrušeno",
+   "body": [
+    "<b>Nástroje jako listování.</b> Místo jednoho sloupce přes sedm obrazovek je nahoře pásek sloves (Změřit · Nový bod · Přesně měřit · Vytyčit · …) a pod ním vždy jedna stránka, která se vejde na displej. Listuje se tahem do strany nebo klepnutím na sloveso; dole je napsáno, co je vlevo a vpravo.",
+    "<b>Stránka Moje</b> je první: Pokračovat (naposledy použitý nástroj), volba typu práce, <b>★ Připnuté</b> a Pro tuto práci. Nástroj si připneš hvězdičkou přímo v jeho řádku. U připnutého je vidět jeho <b>gesto</b> (nebo „+ gesto“, kterým ho nakreslíš) — panel je tak zároveň tahák na gesta.",
+    "<b>Rozcestníky</b> (Bod výpočtem, Srovnat jinak, Signál GNSS, Podklady a katastr, Počasí a světlo, Zápis dne, Moje čísla, Příručka) se rozbalují na místě pod svým řádkem, ne do dalšího okna. Každý řádek má „?“ s návodem, takže se dá zkoušet bez otevírání.",
+    "<b>V Základu je Pro stranou.</b> Zamčené nástroje z placené verze nejsou rozházené ve slovesech — sešly se na poslední stránce „Pro“ (se slovesem v titulku), aby nepřekážely. Kdo Pro má, tu stránku nevidí.",
+    "<b>Kolečko nástrojů (podržení tlačítka Nástroje) zrušeno.</b> K nástroji vedly tři cesty a bylo to složité; zůstávají dvě: Nástroje na listování a zkoušení, gesta na spuštění zpaměti. Podržení tlačítka teď dělá totéž co klepnutí."
+   ]
+  },
+  {
    "v": 331,
    "datum": "2026-09-15",
    "nadpis": "Karta bodu říká, jaká korekce GPS se k bodu přičetla",

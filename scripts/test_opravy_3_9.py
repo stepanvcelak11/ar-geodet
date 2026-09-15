@@ -431,14 +431,16 @@ async def test_rozcestniky(ctx):
         const huby = AGReg.all().filter(r => r.hub).map(r => r.k);
         const polozky = []; huby.forEach(h => (AGReg.hubItems(h) || []).forEach(k => polozky.push(k)));
         const skryte = AGReg.hiddenKeys ? AGReg.hiddenKeys() : [];
-        // PRESNE TO, z ceho stavi okvetni listky kolecko nastroju
-        // (js/kolecko-nastroju.js -> liveGroups() -> AGUkony.has)
+        // PRESNE TO, z ceho stavelo okvetni listky kolecko nastroju (zruseno 15. 9. 2026,
+        // v331) a z ceho dal vybiraji gesta: mapa sloves AGUkony.groups + AGUkony.vVypisu/has
         const vidno = (typeof AGUkony.vVypisu === 'function') ? AGUkony.vVypisu : AGUkony.has;
         const kolecko = [];
         AGUkony.groups.forEach(g => g.items.forEach(it => { if (vidno.call(AGUkony, it.k)) kolecko.push(it.k); }));
         // a seznam ukonu, jak ho vidi uzivatel v panelu Nastroje
+        // (od v331 = listovani: stranka „Pro" v Zakladu SMI nest i zamcene polozky
+        //  rozcestniku — Pro nastroje jsou z rozhodnuti 15. 9. 2026 vsechny stranou)
         const host = document.getElementById('ag-uk-list');
-        const seznam = host ? [...host.querySelectorAll('.ag-uk-i')].map(r => r.getAttribute('data-k')) : [];
+        const seznam = host ? [...host.querySelectorAll('.ag-uk-i')].filter(r => !r.closest('.ag-uk-pro')).map(r => r.getAttribute('data-k')) : [];
         return {
             kolecko: kolecko.length,
             hubuVKolecku: huby.filter(h => kolecko.indexOf(h) >= 0).length,
@@ -452,7 +454,7 @@ async def test_rozcestniky(ctx):
         };
     }""")
     print('   ', st)
-    ok('E1 kolecko nastroju ma z ceho stavet', st.get('kolecko', 0) > 30, st.get('kolecko'))
+    ok('E1 mapa sloves (drive kolecko, ted gesta) ma z ceho stavet', st.get('kolecko', 0) > 30, st.get('kolecko'))
     ok('E2 rozcestniky v kolecku stoji', st.get('hubuVKolecku', 0) >= 8, st.get('hubuVKolecku'))
     ok('E3 polozky rozcestniku uz v kolecku samostatne nestoji',
        not st.get('polozekVKolecku'), st.get('polozekVKolecku'))

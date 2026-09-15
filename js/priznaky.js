@@ -49,7 +49,7 @@
     nacti();
 
     // Porovnání je schválně přísné. Volné „obsahuje" by u `js/kos.js` vyplo i
-    // `js/kolecko-nastroju.js`… ne, ale u krátkých id (`ar`, `kos`) by se to stát
+    // `js/kos-neco.js`… ne, ale u krátkých id (`ar`, `kos`) by se to stát
     // mohlo a vypnout omylem půlku aplikace je horší než nevypnout nic.
     function off(co) {
         if (!co || !_off.length) return false;
