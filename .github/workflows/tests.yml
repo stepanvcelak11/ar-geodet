@@ -80,9 +80,18 @@ jobs:
       #   playwright    — osm testu, ktere appku SPUSTI v Chromiu (server si
       #                   kazdy startuje sam pres scripts/test_server.py)
       #   py-mini-racer — dva testy, ktere modul spusti v holem V8 bez prohlizece
+      # ⚠⚠ PLAYWRIGHT JE PRIBITY (15. 9. 2026 vecer). Nepribity `pip install playwright`
+      #   stahl 1.63.0 vydany tyz den, ktery nese Chrome 153 — a ten NOVE ma
+      #   DeviceOrientationEvent.requestPermission() (do te doby jen iOS Safari).
+      #   V headless resolvne 'denied', appka jde iOS cestou a po PRVNIM klepnuti
+      #   otevre okno „Kompas nema povoleni“ (Zkusit znovu / Zavrit), ktere prekryje
+      #   vsechno dalsi — 10 regresnich sad padlo na Page.click timeout, ac lokalne
+      #   (1.62.0, Chrome 151) prochazi. Zelena 39eb587 mela chromium v1234, cervene
+      #   e51153e a da4016e v1243. Povysit vedome: az bude jasne, jak testy
+      #   povoleni kompasu udeli (nebo appka v headless bez senzoru okno nedava).
       - name: Zavislosti
         run: |
-          python -m pip install --quiet playwright py-mini-racer
+          python -m pip install --quiet playwright==1.62.0 py-mini-racer
           python -m playwright install --with-deps chromium
 
       # Jeden opakovany pokus po selhani: testy sahaji na kameru, GPS a casovace,
