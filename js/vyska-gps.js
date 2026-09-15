@@ -105,7 +105,7 @@
         box.innerHTML = h;
         var u = el('agvz-use');
         if (u) u.addEventListener('click', function () {
-            var z = el('custom-z'); if (z && dmr != null) z.value = f2(dmr).replace(',', '.');
+            var z = el('custom-z'); if (z && dmr != null) { z.value = f2(dmr).replace(',', '.'); window._agZSrc = 'dmr'; }   // js/ref-calibration.js: na výšku z DMR se posun GPS nepřičítá
             box.querySelector('.agvz-btns').outerHTML = '<div class="agvz-n">✓ Výška přepsána hodnotou z DMR 5G ('
                 + f2(dmr) + ' m). Můžeš ji ještě ručně upravit.</div>';
             try { if (typeof quickToast === 'function') quickToast('Výška z DMR 5G: ' + f2(dmr) + ' m'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vyska-gps:render'); }
@@ -118,6 +118,7 @@
 
     // po vyplnění bodu z průměrované GPS: dopočítej terén a nabídni
     function afterFill() {
+        window._agZSrc = 'gps';   // výška v poli je teď z GPS (js/ref-calibration.js smí přičíst posun)
         var r = avg();
         var gpsZ = bpvFromGps(r);
         if (!r || r.coarse) { var b = el(BOX_ID); if (b) b.innerHTML = ''; return; }

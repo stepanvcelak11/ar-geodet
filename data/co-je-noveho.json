@@ -2,6 +2,17 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 338,
+   "datum": "2026-09-15",
+   "nadpis": "Oprava GPS podle známého bodu i na výšku, nivelační body v nabídce, čtvereček Opravit GPS v kartě bodu",
+   "body": [
+    "<b>Výška se opravuje taky.</b> Má-li bod, na kterém stojíš, výšku Bpv (nivelační bod, řada TB a ZhB), nástroj „Posun GPS na známý bod“ spočítá i svislý posun a přičítá ho k výšce nově ukládaných bodů z GPS průměru. Telefon polož na značku, nebo napiš, o kolik ho držíš výš. Výšku přepsanou z DMR nechá být.",
+    "<b>Nivelační body jsou v nabídce.</b> Jejich poloha je v ČÚZK na metr — pořád lepší než telefon — a výška na milimetry.",
+    "<b>Opravit GPS přímo z karty bodu.</b> Mezi tlačítky karty je čtvereček „Opravit GPS“: potvrzení ti řekne, jak daleko od bodu podle GPS jsi, jestli má bod výšku a že musíš stát přímo na něm — pak se korekce zapne jedním klepnutím. Nástroj v Nástrojích zůstává.",
+    "Oprava: potvrzovací okno otevřené z karty bodu (třeba právě tohle) se nedalo odklepnout — klepnutí zavíralo kartu místo potvrzení."
+   ]
+  },
+  {
    "v": 337,
    "datum": "2026-09-15",
    "nadpis": "Ikony místo emoji všude",

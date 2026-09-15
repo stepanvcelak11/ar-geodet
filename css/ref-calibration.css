@@ -72,6 +72,10 @@
 /* Spodní řada vedlejších tlačítek */
 .agref-row2 { display: flex; gap: 10px; margin-top: 10px; }
 .agref-row2 .btn { margin-top: 0; }
+/* výška bodu + telefon nad značkou vedle sebe (15. 9. 2026) */
+.agref-hrow { margin-top: 0; }
+.agref-hrow > div { flex: 1 1 0; min-width: 0; }
+.agref-hrow input { width: 100%; box-sizing: border-box; }
 
 /* Režim rukavic — větší dialog (sladěno s body.ag-glove ve vylepseni.css) */
 body.ag-glove #agref-modal .btn { min-height: 56px; font-size: calc(17px * var(--ag-font-scale, 1)); }

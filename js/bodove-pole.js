@@ -192,7 +192,7 @@
     function useAsAnchor(pt) {
         var s = sjtsk(pt);
         if (!s) { toastSafe('Souřadnice S-JTSK se nepodařilo spočítat.'); return; }
-        var prefill = { name: pt.name || '', Y: s.Y, X: s.X, cat: pt.cat };
+        var prefill = { name: pt.name || '', Y: s.Y, X: s.X, cat: pt.cat, H: ((pt.vyska != null && isFinite(pt.vyska) && pt.vyska > 50) ? Number(pt.vyska) : null) };
         if (typeof window.openRefCalibration === 'function') {
             close();
             window.openRefCalibration(prefill);

@@ -201,6 +201,12 @@
         var h = '<button type="button" data-a="nav" class="' + (nav ? 'on' : '') + '">'
             + '<svg class="icon"><use href="#i-navigation"/></svg><span>' + (nav ? 'Navádí' : 'Doveď mě') + '</span></button>'
             + '<button type="button" data-a="check"><svg class="icon"><use href="#i-crosshair"/></svg><span>Kontrolní<br>bod</span></button>';
+        // OPRAVIT GPS PODLE BODU (15. 9. 2026 večer): čtvereček rovnou v kartě, ať se nástroj
+        // „Posun GPS na známý bod" nemusí hledat v Nástrojích. Upozornění „musíš stát na
+        // bodě" a výpočet dělá js/ref-calibration.js (agRefCalibrateFromPoint), i s výškou.
+        if (isFinite(pt.lat) && isFinite(pt.lng)) {
+            h += '<button type="button" data-a="ref" title="Stoupni si na bod a oprav podle něj GPS (polohu i výšku)"><svg class="icon"><use href="#i-locate"/></svg><span>Opravit<br>GPS</span></button>';
+        }
         if (typeof window.toggleStaked === 'function') {
             h += '<button type="button" data-a="staked" class="' + (staked ? 'on' : '') + '">'
                 + '<svg class="icon"><use href="#i-check"/></svg><span>' + (staked ? 'Vytyčeno ✓' : 'Vytyčeno') + '</span></button>';
@@ -230,8 +236,21 @@
                 newCheckPoint(_pt);
             } else if (a === 'nalez') {
                 if (window.AGLovci && AGLovci.klik(_pt)) render(_pt);
+            } else if (a === 'ref') {
+                opravitGps(_pt);
             }
         } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'karta-bodu:onAct'); }
+    }
+
+    // „Opravit GPS": js/ref-calibration.js je odložený modul (ag/lazy) — poprvé se dotáhne.
+    function opravitGps(pt) {
+        var jdi = function () {
+            if (typeof window.agRefCalibrateFromPoint === 'function') window.agRefCalibrateFromPoint(pt);
+            else if (typeof window.agInfo === 'function') agInfo('Nástroj „Posun GPS na známý bod" není v této sestavě appky.');
+        };
+        if (typeof window.agRefCalibrateFromPoint === 'function') { jdi(); return; }
+        try { if (window.AGLazy && typeof AGLazy.need === 'function') { AGLazy.need('js/ref-calibration.js', jdi); return; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:opravitGps'); }
+        jdi();
     }
 
     // „Kontrolní bod": ulož, kde právě stojím, pod jménem odkazujícím na kontrolovaný bod.

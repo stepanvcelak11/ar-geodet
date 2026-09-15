@@ -3020,6 +3020,10 @@
             if (!sheet || !sheet.classList.contains('open')) return;
             if (sheet.contains(e.target)) return;
             if (e.target.closest('.ar-marker')) return; // tuknuti na jiny bod = rovnou prepnout detail
+            // DIALOG NAD KARTOU (15. 9. 2026 vecer): agConfirm/agAlert otevreny z karty (Opravit GPS
+            //   podle bodu) lezi mimo sheet -> tenhle polykac klik na jeho tlacitko sezral a misto
+            //   potvrzeni zavrel kartu; dialog zustal viset bez odpovedi. Okna nad kartou se nechavaji.
+            if (e.target.closest('.ag-dlg-overlay, .modal-overlay')) return;
             e.preventDefault(); e.stopPropagation();
             closeBottomSheet();
         }, true);
