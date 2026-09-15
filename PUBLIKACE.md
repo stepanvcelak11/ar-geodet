@@ -31,13 +31,19 @@ balíčku (`io.github.stepanvcelak11.twa`) — Console chce `cz.stepanvcelak.arg
 vyrobit znovu (krok A2) s tímhle ID; podpisový klíč z něj (`signing.keystore` + hesla v
 `signing-key-info.txt`) se dá použít dál („Use mine"), klíč na názvu balíčku nezávisí.
 
+**Doplněk 15. 9. 2026:** bod 1 i 4 níž jsou HOTOVÉ — 13. 9. večer vznikl nový balíček
+`QTRIG - Google Play package (2)` (Downloads, package `cz.stepanvcelak.argeodet`, týž klíč) a ve
+22:07 přibyl do `assetlinks.json` otisk Play App Signing, který Console vydá až po prvním
+nahrání. Do Console se kvůli změnám v appce NEVRACÍ — obal je hotový, novou verzi appky si
+telefony berou z Pages samy (viz Údržba níž).
+
 Zbývá udělat ručně v Play Console (nic z toho appka neudělá sama):
-1. Vygenerovat nový `.aab` (A2), nahrát do interního testu (A5).
+1. ~~Vygenerovat nový `.aab` (A2), nahrát do interního testu (A5).~~ hotovo 13. 9.
 2. Záznam v obchodě: texty z `play/texty.md`, obrázky z `play/snimky/` (A3).
 3. Obsah aplikace: **Přístup k aplikaci** s demo účtem, **Zabezpečení dat** včetně URL pro
    smazání účtu, hodnocení obsahu, cílová skupina (A4). Bez zelené sekce Console nepustí ani
    uzavřený test.
-4. Po prvním nahrání: otisk Play App Signing do `assetlinks.json` (A6).
+4. ~~Po prvním nahrání: otisk Play App Signing do `assetlinks.json` (A6).~~ hotovo 13. 9. (e0bf701)
 5. Uzavřený test 12 testerů / 14 dní (A7), texty v `play/pozvanka-testeri.md`.
 
 ---
