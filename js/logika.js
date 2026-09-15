@@ -1528,6 +1528,11 @@ if ('serviceWorker' in navigator) {
             const pres = _cuzkNum(g('PRESNOST')); if (pres != null) pt.presnost = pres;   // PPBP: třída přesnosti
             pt.porad = _cuzkStr(g('PORAD'));                          // nivelace: pořad (např. PNS-JM, KP)
             pt.nazevBodu = _cuzkStr(g('NAZEV_BODU'));                 // tíhové body mají jméno
+            // Mapový list: ZM 1:50 000 (TB/ZhB) a SMO-5 (název + číslo). Jediná věc ze
+            // surových polí služby, kterou karta jinak nikde neměla.
+            pt.zm50 = _cuzkStr(g('ZM50'));
+            const smoN = _cuzkStr(g('NAZEV_SMO5')), smoC = _cuzkStr(g('CISLO_SMO5'));
+            pt.smo5 = (smoN && smoC) ? smoN + ' (' + smoC + ')' : (smoN || smoC);
             if (etrs) {
                 const B = _cuzkNum(g('B')), L = _cuzkNum(g('L')), HEL = _cuzkNum(g('HEL'));
                 // Souřadnice přímo z ETRS89 jsou přesnější než převod S-JTSK → WGS84
@@ -1541,7 +1546,7 @@ if ('serviceWorker' in navigator) {
         window.agCuzkBod = agCuzkBod;
 
         // Řádky do karty bodu z toho, co normalizace vytáhla (grafika.js je vloží
-        // nad „všechny úřední záznamy"). Prázdné pole = nic navíc (vlastní bod).
+        // pod nadmořskou výšku). Prázdné pole = nic navíc (vlastní bod).
         function agCuzkKartaRows(pt) {
             if (!pt || pt.cat === 'CUSTOM' || !pt.rawData) return '';
             const esc = (t) => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1556,6 +1561,7 @@ if ('serviceWorker' in navigator) {
             if (pt.nazevBodu) h += row('Název', esc(pt.nazevBodu));
             if (pt.hel != null) h += row('Elipsoidická výška (ETRS89)', f3(pt.hel) + ' m' + (pt.metoda ? ` <span style="opacity:.7;">${esc(pt.metoda)}</span>` : ''));
             if (pt.geoidN != null) h += row('Odchylka geoidu N', f3(pt.geoidN) + ' m <span style="opacity:.7;">= výška GPS − Bpv zde</span>');
+            if (pt.zm50 || pt.smo5) h += row('Mapový list', esc([pt.zm50 ? 'ZM50 ' + pt.zm50 : null, pt.smo5 ? 'SMO-5 ' + pt.smo5 : null].filter(Boolean).join(' · ')));
             return h;
         }
         window.agCuzkKartaRows = agCuzkKartaRows;
@@ -1600,7 +1606,7 @@ if ('serviceWorker' in navigator) {
                 else {
                     if (existing.hidden) { existing.hidden = false; n++; }
                     // Dřív stažený bod bez nových polí (starší verze appky) si je doplní.
-                    if (existing.druh == null && pt.druh) ['druh', 'cislo12', 'ku', 'okres', 'presnost', 'porad', 'hel', 'geoidN', 'metoda', 'vrstva', 'vyska', 'nazevBodu', 'list'].forEach(k => { if (pt[k] != null) existing[k] = pt[k]; });
+                    if (existing.druh == null && pt.druh) ['druh', 'cislo12', 'ku', 'okres', 'presnost', 'porad', 'hel', 'geoidN', 'metoda', 'vrstva', 'vyska', 'nazevBodu', 'list', 'zm50', 'smo5'].forEach(k => { if (pt[k] != null) existing[k] = pt[k]; });
                 }
             });
             return n;

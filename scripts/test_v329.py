@@ -229,6 +229,18 @@ async def beh(url):
         ok('D6 vlastní bod: dál náčrt z appky', d6['mapa'] and not d6['of'], d6)
         await page.evaluate("() => closeBottomSheet()")
 
+        # ---- D7–D10: karta bodu bez rozbalovátka „všechny úřední záznamy" (15. 9. večer) ------
+        # Surový výpis rawData karta neukazuje — všechno z polí BodovaPole už má nahoře; jediné,
+        # co tam bylo navíc (mapový list ZM50 / SMO-5), teď dává agCuzkKartaRows.
+        d7 = await page.evaluate("""() => { var p = arPoints.find(x => x.id === 'p_ppbp'); showDetails(p, 40); var b = document.getElementById('det-body'); return { details: !!b.querySelector('details'), txt: b.textContent }; }""")
+        ok('D7 karta úředního bodu už nemá rozbalovátko „Zobrazit všechny úřední záznamy"', not d7['details'] and 'úřední záznamy' not in d7['txt'] and 'Stabilizace' not in d7['txt'], d7['txt'][:200])
+        await page.evaluate("() => closeBottomSheet()")
+        d8 = await page.evaluate("""() => { var pt = agCuzkBod(18, { ZTLTL: '1425', CISLO: 19, PL: 0, DRUH: 'TB', Y: '  744233.46', X: ' 1042459.18', VYSKA: '   348.41', B: null, L: null, HEL: null, GPS: null, GEODETICKE_UDAJE: 'https://geoportal.cuzk.cz/mistopis2/mistopis_soap_hh.asp?NAME=BP_TB&TYP=TB&HID=x', NAZEV_OKRES: 'Hlavní město Praha', NAZEV_KU: 'Hradčany', ZM50: ' 1224', NAZEV_SMO5: 'PRAHA 7-1', CISLO_SMO5: '60771', TYPV: 0, OBJECTID: 2597, ID: 2597 }, 14.4, 50.09, 40, null); return { zm50: pt.zm50, smo5: pt.smo5, rows: agCuzkKartaRows(pt) }; }""")
+        ok('D8 agCuzkBod vytáhne mapový list (ZM50 bez mezery, SMO-5 název + číslo)', d8['zm50'] == '1224' and d8['smo5'] == 'PRAHA 7-1 (60771)', d8)
+        ok('D9 řádek „Mapový list" v kartě bodu', 'Mapový list' in d8['rows'] and 'ZM50 1224' in d8['rows'] and 'SMO-5 PRAHA 7-1 (60771)' in d8['rows'], d8['rows'][-300:])
+        d10 = await page.evaluate("""() => { var pt = agCuzkBod(42, { OBJECTID: 1627, ID: 1627, CISLO_KU: 729272, CISLO: 1034, Y: '  744558.83', X: ' 1041866.44', VYSKA: null, PRESNOST: 3, GEODETICKE_UDAJE: 'https://x/', NAZEV_OKRES: 'Hlavní město Praha', NAZEV_KU: 'Dejvice', CISLO_SMO5: 60770 }, 14.4, 50.09, 40, null); return { zm50: pt.zm50, smo5: pt.smo5, rows: agCuzkKartaRows(pt) }; }""")
+        ok('D10 PPBP: jen číslo SMO-5 (bez ZM50), číselné pole přežije', d10['zm50'] is None and d10['smo5'] == '60770' and 'SMO-5 60770' in d10['rows'] and 'ZM50' not in d10['rows'], d10)
+
         # ---- E: texty a ikony ---------------------------------------------------------
         for f in ['js/tools-registry.js', 'data/navody.json', 'data/co-je-noveho.json', 'js/oblasti-offline.js']:
             s = io.open(os.path.join(ROOT, f), encoding='utf-8').read()

@@ -2,6 +2,15 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 333,
+   "datum": "2026-09-15",
+   "nadpis": "Karta bodu: mapový list místo rozbalovátka „všechny úřední záznamy“",
+   "body": [
+    "<b>Rozbalovátko „Zobrazit všechny úřední záznamy“ z karty bodu zmizelo.</b> Byl to surový výpis z ČÚZK a všechno z něj (číslo, k.ú., třída přesnosti, výšky, pořad, název, odkaz na geodetické údaje) už karta ukazuje nahoře v čitelné podobě.",
+    "<b>Nový řádek Mapový list</b> — jediná věc, která byla jen v surovém výpisu: list ZM 1:50 000 a SMO-5 (název + číslo), pod výškami a odchylkou geoidu."
+   ]
+  },
+  {
    "v": 332,
    "datum": "2026-09-15",
    "nadpis": "Nástroje se listují: jedno sloveso = jedna stránka, Moje jako první, Pro stranou; kolečko nástrojů zrušeno",
