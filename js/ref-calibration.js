@@ -30,6 +30,12 @@
     // (systematika GPS se mění s časem i polohou). Mimo tyto meze posun varovně označíme.
     var MAX_AGE_MS = 20 * 60 * 1000;   // 20 min
     var MAX_DIST_M = 300;              // 300 m
+    // DGPS ŽIVĚ (js/dgps.js, src 'dgps-live') má jiné meze: korekce se obnovuje každou
+    // minutu, takže stáří = „základna neposílá" (6 min), a platí do ~3 km od základny.
+    function limity(s) {
+        if (s && s.src === 'dgps-live') return { warnAge: 3 * 60000, maxAge: 6 * 60000, warnDist: 2000, maxDist: 3000 };
+        return { warnAge: WARN_AGE_MS, maxAge: MAX_AGE_MS, warnDist: WARN_DIST_M, maxDist: MAX_DIST_M };   // WARN_* níž u hlídače (volá se až za běhu)
+    }
     function planarDist(lat1, lng1, lat2, lng2) {
         var m = mPerDeg((lat1 + lat2) / 2);
         return Math.hypot((lng2 - lng1) * m.lng, (lat2 - lat1) * m.lat);
@@ -46,7 +52,7 @@
             if (raw) {
                 var o = JSON.parse(raw);
                 if (o && isFinite(o.dlat) && isFinite(o.dlng)) {
-                    window.agRefShift = { dlat: +o.dlat, dlng: +o.dlng, t: o.t || 0, acc: o.acc, on: !!o.on, lat: (isFinite(o.lat) ? +o.lat : null), lng: (isFinite(o.lng) ? +o.lng : null), src: (o.src === 'hrana' ? 'hrana' : undefined), mode: o.mode };   // src: kdo korekci vyrobil (js/kalibrace-hranou.js) — pilulka podle toho otevírá správný nástroj
+                    window.agRefShift = { dlat: +o.dlat, dlng: +o.dlng, t: o.t || 0, acc: o.acc, on: !!o.on, lat: (isFinite(o.lat) ? +o.lat : null), lng: (isFinite(o.lng) ? +o.lng : null), src: (o.src === 'hrana' || o.src === 'dgps-live' ? o.src : undefined), mode: o.mode, base: o.base, code: o.code };   // src: kdo korekci vyrobil (js/kalibrace-hranou.js) — pilulka podle toho otevírá správný nástroj
                     return window.agRefShift;
                 }
             }
@@ -196,7 +202,8 @@
                 try {
                     var ageMin = s.t ? (Date.now() - s.t) / 60000 : null;
                     var farM = (isFinite(s.lat) && isFinite(s.lng)) ? planarDist(s.lat, s.lng, p.lat, p.lng) : null;
-                    if ((ageMin != null && ageMin > MAX_AGE_MS / 60000) || (farM != null && farM > MAX_DIST_M)) {
+                    var lim = limity(s);
+                    if ((ageMin != null && ageMin > lim.maxAge / 60000) || (farM != null && farM > lim.maxDist)) {
                         var det = [];
                         if (ageMin != null) det.push(Math.round(ageMin) + ' min');
                         if (farM != null) det.push(Math.round(farM) + ' m od ref. bodu');
@@ -476,6 +483,7 @@
             if (e.target && e.target.classList.contains('x')) { var s = loadShift(); _pillHidden = s ? s.t : true; p.classList.remove('show'); return; }
             var s2 = loadShift();
             if (s2 && s2.src === 'hrana' && window.AGLazyTools && typeof AGLazyTools.open === 'function') AGLazyTools.open('kalibrace-hranou');
+            else if (s2 && s2.src === 'dgps-live' && window.AGLazyTools && typeof AGLazyTools.open === 'function') AGLazyTools.open('dgps');
             else open();
         });
         document.body.appendChild(p);
@@ -491,14 +499,15 @@
         try {
             if (isFinite(s.lat) && isFinite(s.lng) && typeof userLat === 'number' && typeof userLng === 'number' && isFinite(userLat)) dist = planarDist(s.lat, s.lng, userLat, userLng);
         } catch (e) { dist = null; }
-        var stav = 'ok';
-        if ((age != null && age >= WARN_AGE_MS / 60000) || (dist != null && dist >= WARN_DIST_M)) stav = 'warn';
-        if ((age != null && age >= MAX_AGE_MS / 60000) || (dist != null && dist >= MAX_DIST_M)) stav = 'bad';
-        var zbyva = age != null ? Math.max(0, Math.round(MAX_AGE_MS / 60000 - age)) : null;
-        var parts = ['Korekce GPS ' + fmtShift(s)];
-        if (age != null) parts.push(zbyva > 0 ? 'ještě ' + zbyva + ' min' : 'starší než ' + Math.round(MAX_AGE_MS / 60000) + ' min');
-        if (dist != null) parts.push(Math.round(dist) + ' m od místa' + (dist >= MAX_DIST_M ? ' (za hranicí ' + MAX_DIST_M + ' m)' : ''));
-        return { s: s, age: age, dist: dist, zbyva: zbyva, stav: stav, text: parts.join(' · '), maxMin: MAX_AGE_MS / 60000, maxM: MAX_DIST_M };
+        var lim = limity(s), live = s.src === 'dgps-live', stav = 'ok';
+        if ((age != null && age >= lim.warnAge / 60000) || (dist != null && dist >= lim.warnDist)) stav = 'warn';
+        if ((age != null && age >= lim.maxAge / 60000) || (dist != null && dist >= lim.maxDist)) stav = 'bad';
+        var zbyva = age != null ? Math.max(0, Math.round(lim.maxAge / 60000 - age)) : null;
+        var parts = [(live ? 'DGPS živě' + (s.base ? ' (' + s.base + ')' : '') + ' ' : 'Korekce GPS ') + fmtShift(s)];
+        if (live) { if (age != null) parts.push(age < 1.5 ? 'data čerstvá' : 'data stará ' + Math.round(age) + ' min'); }
+        else if (age != null) parts.push(zbyva > 0 ? 'ještě ' + zbyva + ' min' : 'starší než ' + Math.round(lim.maxAge / 60000) + ' min');
+        if (dist != null) parts.push((dist < 1000 ? Math.round(dist) + ' m' : (dist / 1000).toFixed(1) + ' km') + (live ? ' od základny' : ' od místa') + (dist >= lim.maxDist ? ' (za hranicí ' + (lim.maxDist < 1000 ? lim.maxDist + ' m' : (lim.maxDist / 1000) + ' km') + ')' : ''));
+        return { s: s, age: age, dist: dist, zbyva: zbyva, stav: stav, live: live, text: parts.join(' · '), maxMin: lim.maxAge / 60000, maxM: lim.maxDist, warnMin: lim.warnAge / 60000, warnM: lim.warnDist };
     }
     window.agRefShiftStav = shiftStatus;
     function watchTick() {
@@ -510,10 +519,17 @@
         var f = _fired[key];
         // toasty — každý stupeň jen jednou na jednu korekci
         function once(k, msg) { if (f[k]) return; f[k] = true; toastSafe(msg); }
-        if (st.age != null && st.age >= st.maxMin) once('age2', '⌛ Korekce GPS je starší než ' + st.maxMin + ' min — chyba GPS se mezitím mohla změnit, za posun už appka neručí. Projdi hranu / změř známý bod znovu, nebo korekci vypni.');
-        else if (st.age != null && st.age >= WARN_AGE_MS / 60000) once('age1', '⏳ Korekce GPS vyprší za ' + Math.max(1, st.zbyva) + ' min. Budeš-li ještě měřit, obnov ji včas (chůze po hraně / známý bod).');
-        if (st.dist != null && st.dist >= st.maxM) once('dist2', '📍 Jsi ' + Math.round(st.dist) + ' m od místa kalibrace — za hranicí ' + st.maxM + ' m posun nemusí platit. Zkalibruj znovu tady.');
-        else if (st.dist != null && st.dist >= WARN_DIST_M) once('dist1', '📏 Jsi ' + Math.round(st.dist) + ' m od místa kalibrace — na ' + st.maxM + ' m korekce přestane platit.');
+        if (st.live) {
+            if (st.age != null && st.age >= st.maxMin) once('age2', '⌛ Základna DGPS neposlala nic už ' + Math.round(st.age) + ' min — stojí, nebo nemá signál. Korekce pro nové body už není spolehlivá.');
+            else if (st.age != null && st.age >= st.warnMin) once('age1', '⏳ Základna DGPS neposílá ' + Math.round(st.age) + ' min — zkontroluj ji (displej, signál).');
+            if (st.dist != null && st.dist >= st.maxM) once('dist2', '📍 Jsi ' + (st.dist / 1000).toFixed(1) + ' km od základny DGPS — dál než ' + (st.maxM / 1000) + ' km korekce neplatí.');
+            else if (st.dist != null && st.dist >= st.warnM) once('dist1', '📏 Jsi ' + (st.dist / 1000).toFixed(1) + ' km od základny DGPS — na ' + (st.maxM / 1000) + ' km korekce přestane platit.');
+        } else {
+            if (st.age != null && st.age >= st.maxMin) once('age2', '⌛ Korekce GPS je starší než ' + st.maxMin + ' min — chyba GPS se mezitím mohla změnit, za posun už appka neručí. Projdi hranu / změř známý bod znovu, nebo korekci vypni.');
+            else if (st.age != null && st.age >= st.warnMin) once('age1', '⏳ Korekce GPS vyprší za ' + Math.max(1, st.zbyva) + ' min. Budeš-li ještě měřit, obnov ji včas (chůze po hraně / známý bod).');
+            if (st.dist != null && st.dist >= st.maxM) once('dist2', '📍 Jsi ' + Math.round(st.dist) + ' m od místa kalibrace — za hranicí ' + st.maxM + ' m posun nemusí platit. Zkalibruj znovu tady.');
+            else if (st.dist != null && st.dist >= st.warnM) once('dist1', '📏 Jsi ' + Math.round(st.dist) + ' m od místa kalibrace — na ' + st.maxM + ' m korekce přestane platit.');
+        }
         // pilulka
         if (_pillHidden === st.s.t) return;
         p = ensurePill();

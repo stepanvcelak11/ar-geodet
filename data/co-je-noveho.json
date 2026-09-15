@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+    "v": 325,
+    "datum": "2026-09-15",
+    "nadpis": "DGPS živě přes internet a přesnější kalibrace chůzí (tam a zpět)",
+    "body": [
+      "<b>Dvoutelefonní DGPS živě (Pro):</b> základna na známém bodě klepne <b>Sdílet korekce živě</b> a ukáže šestiznakový kód; druhý telefon zadá kód v <b>Živě z internetu</b> a od té chvíle se ke každému uloženému bodu (i v Brutální GPS) přičítá aktuální korekce — už žádné čekání na QR. Pilulka nahoře hlásí stáří dat a vzdálenost od základny (hranice 6 min / 3 km), Odpojit nabídne zpětnou opravu starších bodů. Dosah ~2–3 km, potřebuje internet na obou telefonech (základna posílá ~4 kB za minutu).",
+      "<b>Kalibrace chůzí po hraně je přesnější:</b> fixy se váží podle své přesnosti (±3 m má 16× větší slovo než ±12 m) a když hranu projdeš <b>tam i zpět</b>, appka oddělí, o kolik držíš telefon stranou od své stopy (v pravé ruce typicky 0,2–0,4 m) — to dřív zůstávalo v korekci. Odhad chyby korekce počítá s tím, že fixy po sekundě nejsou nezávislé.",
+      "Návod DGPS a kalibrace chůzí doplněny."
+    ]
+  },
+  {
     "v": 324,
     "datum": "2026-09-15",
     "nadpis": "Korekce GPS se hlídá: pilulka nahoře, upozornění před vypršením a u hranice vzdálenosti",

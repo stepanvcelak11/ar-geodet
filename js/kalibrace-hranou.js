@@ -103,39 +103,82 @@
     };
 
     // ---- odhad chybového vektoru ------------------------------------------------------
-    // fixes: [{nx, ny, e}] (e už bez bočního odstupu). Vrací {vE, vN, sigma, n, mode}
-    // vE/vN = chyba GPS (kolik GPS přičítá) → korekce je −v.
+    // fixes: [{nx, ny, e, s, acc}] (e už bez bočního odstupu). Vrací {vE, vN, b, sigma,
+    // sterr, n, mode, both}; vE/vN = chyba GPS (kolik GPS přičítá) → korekce je −v.
+    //
+    // ZPŘESNĚNÍ (15. 9. 2026, uživatel: „lze tu kalibraci chůzí ještě zpřesnit?"):
+    //   • VÁHY 1/acc² — fix s ±3 m má 16× větší slovo než fix s ±12 m (u budov, pod stromy).
+    //   • TAM A ZPĚT: telefon nedržíš přesně nad čárou, ale třeba 0,3 m vpravo od své
+    //     stopy (pravá ruka). Při chůzi tam to vypadá jako chyba GPS +0,3 m vpravo, při
+    //     chůzi zpět −0,3 m — takže se to od skutečné chyby GPS (která směr chůze nezná)
+    //     dá ODDĚLIT: e_i = n_i·v + dir_i·b, dir = ±1 podle směru chůze. Řeší se, jen
+    //     když jsou oba směry zastoupené aspoň čtvrtinou fixů; jinak b = 0 a chyba
+    //     držení telefonu zůstane v korekci (řekne to výsledek).
+    //   • NEZÁVISLÉ FIXY: fixy po sekundě jsou korelované (filtr v telefonu), za
+    //     nezávislý se bere ~1 na 5 s → poctivější odhad chyby korekce.
+    function solveLin(A, b, w) {
+        // vážené nejmenší čtverce pro k ≤ 3 neznámých: (AᵀWA) x = AᵀWb, Gaussova eliminace
+        var k = A[0].length, N = [], r = [], i, j, l;
+        for (i = 0; i < k; i++) { N.push([]); r.push(0); for (j = 0; j < k; j++) N[i].push(0); }
+        for (l = 0; l < A.length; l++) for (i = 0; i < k; i++) { r[i] += w[l] * A[l][i] * b[l]; for (j = 0; j < k; j++) N[i][j] += w[l] * A[l][i] * A[l][j]; }
+        for (i = 0; i < k; i++) {
+            var piv = i; for (j = i + 1; j < k; j++) if (Math.abs(N[j][i]) > Math.abs(N[piv][i])) piv = j;
+            if (Math.abs(N[piv][i]) < 1e-9) return null;
+            if (piv !== i) { var t = N[i]; N[i] = N[piv]; N[piv] = t; var tr = r[i]; r[i] = r[piv]; r[piv] = tr; }
+            for (j = i + 1; j < k; j++) { var f = N[j][i] / N[i][i]; for (l = i; l < k; l++) N[j][l] -= f * N[i][l]; r[j] -= f * r[i]; }
+        }
+        var x = []; for (i = 0; i < k; i++) x.push(0);
+        for (i = k - 1; i >= 0; i--) { var sum = r[i]; for (j = i + 1; j < k; j++) sum -= N[i][j] * x[j]; x[i] = sum / N[i][i]; }
+        return x;
+    }
     function solve(fixes, twoD) {
+        var i, last = null, nF = 0, nB = 0;
+        // směr chůze u fixu: podle staničení proti předchozímu (malé couvání = šum → drž minulý směr)
+        for (i = 0; i < fixes.length; i++) {
+            var f = fixes[i], d = 0;
+            if (last != null) d = f.s > last + 0.3 ? 1 : (f.s < last - 0.3 ? -1 : 0);
+            f.dir = d || (i > 0 ? fixes[i - 1].dir : 0) || 0;
+            f.w = 1 / Math.pow(Math.max(2, f.acc || 5), 2);
+            last = f.s;
+        }
+        if (fixes.length > 1 && !fixes[0].dir) fixes[0].dir = fixes[1].dir || 1;
+        fixes.forEach(function (f) { if (f.dir > 0) nF++; else if (f.dir < 0) nB++; });
+        var both = Math.min(nF, nB) >= Math.max(6, 0.25 * fixes.length);
         var use = fixes.slice(), it, res = null;
         for (it = 0; it < 3; it++) {
-            var Sxx = 0, Sxy = 0, Syy = 0, Sx = 0, Sy = 0, i, vE, vN;
-            for (i = 0; i < use.length; i++) { var f = use[i]; Sxx += f.nx * f.nx; Sxy += f.nx * f.ny; Syy += f.ny * f.ny; Sx += f.nx * f.e; Sy += f.ny * f.e; }
-            // podélná složka je určená jen tehdy, když normály míří dost různými
-            // směry: poměr vlastních čísel matice Σ n nᵀ aspoň 0,1 (jinak by malý
-            // šum na pár fixech v zatáčce vyrobil metrový podélný posun)
+            // střední normála (1D) + podmíněnost pro 2D z vážené matice Σ w n nᵀ
+            var Sxx = 0, Sxy = 0, Syy = 0, nEx = 0, nEy = 0, sw = 0;
+            use.forEach(function (f) { Sxx += f.w * f.nx * f.nx; Sxy += f.w * f.nx * f.ny; Syy += f.w * f.ny * f.ny; nEx += f.w * f.nx; nEy += f.w * f.ny; sw += f.w; });
             var det = Sxx * Syy - Sxy * Sxy, tr = Sxx + Syy, disc = Math.sqrt(Math.max(0, tr * tr / 4 - det));
-            var lmin = tr / 2 - disc, lmax = tr / 2 + disc, mode;
-            if (twoD && lmax > 0 && lmin / lmax >= 0.1) {
-                vE = (Syy * Sx - Sxy * Sy) / det; vN = (Sxx * Sy - Sxy * Sx) / det; mode = '2d';
-            } else {
-                // jen kolmá složka: v = ē · n̄
-                var nEx = 0, nEy = 0, se = 0;
-                for (i = 0; i < use.length; i++) { nEx += use[i].nx; nEy += use[i].ny; se += use[i].e; }
-                var nl = Math.hypot(nEx, nEy) || 1; nEx /= nl; nEy /= nl;
-                var eb = se / use.length;
-                vE = eb * nEx; vN = eb * nEy; mode = '1d';
-            }
-            var r = use.map(function (f) { return f.e - (f.nx * vE + f.ny * vN); });
-            var mad = median(r.map(function (x) { return Math.abs(x - median(r)); })) * 1.4826;
+            var lmin = tr / 2 - disc, lmax = tr / 2 + disc;
+            var mode = (twoD && lmax > 0 && lmin / lmax >= 0.1) ? '2d' : '1d';
+            var nl = Math.hypot(nEx, nEy) || 1; nEx /= nl; nEy /= nl;
+            var A = [], bvec = [], wv = [];
+            use.forEach(function (f) {
+                var row = mode === '2d' ? [f.nx, f.ny] : [f.nx * nEx + f.ny * nEy];
+                if (both) row.push(f.dir);
+                A.push(row); bvec.push(f.e); wv.push(f.w);
+            });
+            var x = solveLin(A, bvec, wv);
+            if (!x) { mode = '1d'; A = use.map(function (f) { return [f.nx * nEx + f.ny * nEy]; }); x = solveLin(A, bvec, wv) || [0]; }
+            var vE, vN, b = null;
+            if (mode === '2d') { vE = x[0]; vN = x[1]; if (both && x.length > 2) b = x[2]; }
+            else { vE = x[0] * nEx; vN = x[0] * nEy; if (both && x.length > 1) b = x[1]; }
+            var r = use.map(function (f) { return f.e - (f.nx * vE + f.ny * vN) - (b != null ? f.dir * b : 0); });
+            var med = median(r), mad = median(r.map(function (v) { return Math.abs(v - med); })) * 1.4826;
             var thr = Math.max(3 * mad, 0.8);
             var keep = use.filter(function (f, k) { return Math.abs(r[k]) <= thr; });
-            var s2 = 0; r.forEach(function (x) { s2 += x * x; });
-            var sigma = Math.sqrt(s2 / Math.max(1, r.length - (mode === '2d' ? 2 : 1)));
-            res = { vE: vE, vN: vN, sigma: sigma, n: use.length, mode: mode, dropped: fixes.length - use.length, nEff: Math.max(1, Math.round(use.length / 5)) };
+            var s2 = 0, sw2 = 0; r.forEach(function (v, k) { s2 += use[k].w * v * v; sw2 += use[k].w; });
+            var kPar = (mode === '2d' ? 2 : 1) + (b != null ? 1 : 0);
+            var sigma = Math.sqrt((s2 / sw2) * use.length / Math.max(1, use.length - kPar));
+            // nezávislé fixy: ~1 na 5 s (podle skutečných časů, když jsou)
+            var span = 0; try { var t0 = Infinity, t1 = -Infinity; use.forEach(function (f) { if (f.t) { t0 = Math.min(t0, f.t); t1 = Math.max(t1, f.t); } }); if (isFinite(t0) && t1 > t0) span = (t1 - t0) / 1000; } catch (e) { span = 0; }
+            var nEff = Math.max(1, Math.min(use.length, span ? Math.round(span / 5) + 1 : Math.round(use.length / 5)));
+            res = { vE: vE, vN: vN, b: b, sigma: sigma, n: use.length, mode: mode, both: both, nF: nF, nB: nB, dropped: fixes.length - use.length, nEff: nEff };
             if (keep.length === use.length || keep.length < MIN_FIX / 2) break;
             use = keep;
         }
-        if (res) res.sterr = res.sigma / Math.sqrt(res.nEff);   // fixy po sekundě jsou korelované → ~1 nezávislý na 5 s
+        if (res) res.sterr = res.sigma / Math.sqrt(res.nEff);
         return res;
     }
 
@@ -342,7 +385,7 @@
         return '<details class="hr-how"><summary>Jak to funguje, jaká je přesnost a jak dlouho to platí</summary>'
             + '<p class="hr-p"><b>Proč to jde.</b> Chyba GPS v telefonu není náhodný rozptyl kolem správného místa — v danou chvíli je to hlavně <b>jeden vektor</b> (třeba 2 m na severovýchod), který vzniká v ionosféře, troposféře a v drahách družic. Ten vektor se mění <b>pomalu</b> (v řádu čtvrthodin) a v okruhu stovek metrů je pro všechny telefony <b>skoro stejný</b>. Přesně na tom stojí i profesionální DGPS/RTK: referenční stanice na známém bodě změří, o kolik GPS lže, a rover si to odečte. Tady je „referenční stanice" tvoje chůze po známé hraně.</p>'
             + '<p class="hr-p"><b>Jak to appka počítá.</b> Každý fix GPS při chůzi promítne na nejbližší úsek čáry a spočítá <b>příčnou odchylku</b> (o kolik jsi podle GPS vedle čáry, minus tvůj boční odstup). Když je 40 fixů v průměru 2,3 m vlevo od hrany, GPS lže o 2,3 m doprava — a to se u nových bodů odečte. Hrubé uskoky (odraz od budovy) se vyřadí (3× MAD), z rozptylu zbylých vyjde odhad chyby korekce. Na <b>rovné</b> čáře jde vidět jen složka <b>kolmo k čáře</b> — podél ní by se každý bod hodil stejně dobře, takže podélná zůstane nula. Proto je u <b>silnice</b> ideální jít podél obrubníku: příčná složka je ta, o kterou při pokládce jde. Na <b>lomené</b> čáře (zatáčka, roh ≥ 30°) vyjde vektor celý.</p>'
-            + '<p class="hr-p"><b>Na jakou přesnost se dá dostat.</b> Chyba korekce ≈ rozptyl fixů ÷ √(nezávislých fixů) ⊕ přesnost samotné čáry. Prakticky: 30–50 m chůze s fixy ±3–5 m dá kolmou složku na <b>±0,3–0,5 m</b>; s dobrým signálem a 80 m chůze <b>±0,2 m</b>. Čára klepnutá z mapy přidává chybu podkladu (ortofoto ČÚZK ~0,2–0,5 m, uliční mapa i víc) — hrana z <b>DXF nebo z bodů, které znáš</b>, tuhle chybu nemá. Z holého telefonu (±3–5 m) se tak dostaneš na půl metru kolmo k hraně — ne na RTK, ale na pokládku, kontrolu hrany nebo dohledání bodu to obvykle stačí. Odhad chyby vidíš u výsledku.</p>'
+            + '<p class="hr-p"><b>Na jakou přesnost se dá dostat.</b> Chyba korekce ≈ rozptyl fixů ÷ √(nezávislých fixů) ⊕ přesnost samotné čáry. Prakticky: 30–50 m chůze s fixy ±3–5 m dá kolmou složku na <b>±0,3–0,5 m</b>; s dobrým signálem a 80 m chůze <b>±0,2 m</b>. Čára klepnutá z mapy přidává chybu podkladu (ortofoto ČÚZK ~0,2–0,5 m, uliční mapa i víc) — hrana z <b>DXF nebo z bodů, které znáš</b>, tuhle chybu nemá. Z holého telefonu (±3–5 m) se tak dostaneš na půl metru kolmo k hraně — ne na RTK, ale na pokládku, kontrolu hrany nebo dohledání bodu to obvykle stačí. Odhad chyby vidíš u výsledku. Fixy se váží podle své přesnosti (±3 m má 16× větší slovo než ±12 m), hrubé uskoky se vyřadí. <b>Nejpřesnější je jít tam i zpět:</b> telefon nedržíš přesně nad svou stopou (v pravé ruce je o 0,2–0,4 m vpravo) a při chůzi zpět se ta chyba otočí — appka ji tak oddělí od skutečné chyby GPS.</p>'
             + '<p class="hr-p"><b>Jak dlouho to platí.</b> Korekce má hlídanou platnost <b>' + '20 min a 300 m' + '</b> od místa chůze: po zapnutí je nahoře pilulka „Korekce GPS · ještě X min · Y m od místa" (zelená = platí, oranžová = blíží se hranice, červená = za hranicí) a appka tě upozorní <b>5 min před vypršením</b>, po vypršení, na <b>200 m</b> a na 300 m. Sama korekci nevypíná — když víš, že je dnes GPS klidná, můžeš měřit dál, jen už za to appka neručí. Obnova = prostě projdi hranu znovu (klidně cestou zpět).</p>'
             + '<ol>'
             + '<li><b>Vyber čáru</b>: klepni v mapě na začátek a konec (klidně i lomy) hrany, po které opravdu půjdeš — obrubník, hrana chodníku, plot, čára z DXF. Nebo dva uložené body.</li>'
@@ -376,6 +419,7 @@
                 resTxt = '<div class="hr-card green"><b>Výsledek:</b> GPS tu lže o <span class="hr-big" style="display:block">' + fmt(mag) + ' m</span>'
                     + 'směrem ' + Math.round(brg) + '° (' + fmt(q.vE) + ' m V / ' + fmt(q.vN) + ' m S)' + (q.mode === '1d' ? ' — <b>jen kolmo k čáře</b>, podélná složka zůstává neznámá' : ' — celý vektor (lomená čára)') + '<br>'
                     + q.n + ' fixů' + (q.dropped ? ' (' + q.dropped + ' vyřazeno)' : '') + ' na ' + fmt(q.walked, 0) + ' m · rozptyl ±' + fmt(q.sigma, 1) + ' m · odhad chyby korekce <b>±' + fmt(q.sterr) + ' m</b>'
+                    + (q.b != null ? '<br>Šel jsi tam i zpět → oddělil jsem <b>držení telefonu ' + fmt(Math.abs(q.b)) + ' m ' + (q.b >= 0 ? 'vpravo' : 'vlevo') + '</b> od tvé stopy (do korekce se nepočítá).' : '<br><span style="opacity:.8">Tip: jdi po hraně <b>tam i zpět</b> — appka pak oddělí, o kolik držíš telefon stranou od své stopy (jinak to zůstane v korekci, typicky 0,2–0,4 m).</span>')
                     + '<br><span style="opacity:.8;font-size:.92em">Po zapnutí budou nové body ' + (q.mode === '1d' ? 'kolmo k hraně' : '') + ' přesné zhruba na ±' + fmt(Math.max(q.sterr, 0.2), 1) + ' m' + (q.mode === '1d' ? ' (podél hrany zůstává chyba GPS)' : '') + '; platnost 20 min / 300 m odsud, hlídá se.</span></div>'
                     + '<div class="hr-btns"><button class="btn btn-primary" id="ag-hr-apply">✓ Zapnout korekci</button><button class="btn btn-secondary" id="ag-hr-again">↻ Jít znovu</button></div>';
             }

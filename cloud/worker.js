@@ -1076,6 +1076,20 @@ async function ensureSyncTable(env) {
 // Body se ukládají do TÉŽE tabulky sync_points jako z mobilu, ve stejném
 // tvaru — takže se v aplikaci objeví samy, bez dalšího zařizování.
 let _watchReady = false;
+// ---- DGPS ŽIVĚ (15. 9. 2026): základna posílá korekce, rovery si je stahují ----
+// Bez přihlášení — spojovacím tajemstvím je šestiznakový kód základny (36^6),
+// stejně jako u párování hodinek. Jeden řádek na základnu: celý poslední log
+// (≤ 90 minutových bloků ≈ 4 kB) se při každém pushi přepíše, žádné skládání.
+// Rover se ptá každých 30 s; `pulls` je jen počítadlo pro displej základny.
+let _dgpsReady = false;
+async function ensureDgpsTable(env) {
+    if (_dgpsReady) return;
+    await env.DB.prepare('CREATE TABLE IF NOT EXISTS dgps_live (' +
+        'code TEXT PRIMARY KEY, base TEXT NOT NULL, buckets TEXT NOT NULL, ' +
+        'ts INTEGER NOT NULL, pulls INTEGER NOT NULL DEFAULT 0)').run();
+    _dgpsReady = true;
+}
+
 async function ensureWatchTables(env) {
     if (_watchReady) return;
     await env.DB.prepare('CREATE TABLE IF NOT EXISTS watch_codes (' +
@@ -1434,6 +1448,9 @@ export default {
                 // chyby starsi nez 90 dni uz nikomu nic nereknou (a ta tabulka roste nejrychleji)
                 ctx.waitUntil(env.DB.prepare('DELETE FROM errors WHERE ts<?')
                     .bind(Date.now() - 90 * 864e5).run().catch(() => {}));
+                // DGPS živě: kód základny platí jen den měření
+                ctx.waitUntil(env.DB.prepare('DELETE FROM dgps_live WHERE ts<?')
+                    .bind(Date.now() - 12 * 3600e3).run().catch(() => {}));
             }
         } catch (e) {}
         if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
@@ -1446,6 +1463,7 @@ export default {
             // Starsi nasazeny worker tuhle polozku nema, takze podle ni pozna appka,
             // ze na serveru bezi stara verze — viz js/hodinky-parovani.js.
             //
+            // v:24 = /dgps/push + /dgps/pull (DGPS živě: základna sdílí korekce kódem, rover je tahá).
             // v:23 = prehled.chybyUcty[].acc (id uctu k hlidaci chyb).
             // v:22 = /feedback prijima kind 'odpoved' (odpoved cloveka na vzkaz od vlastnika).
             // v:21 = POST /account/delete (smazani uctu na vlastni zadost — pozadavek Google Play).
@@ -1460,7 +1478,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 23, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 24, dgps: true, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
 
             // ---------------- BRZDA VYDÁNÍ (12. 9. 2026) ---------------------
             // Vlastník vyvíjí a testuje na svém telefonu, ale lidem venku nesmí
@@ -1872,6 +1890,39 @@ export default {
                     token: await makeWatchToken(env, u, row.job_key),
                     job: row.job_key, uname: u.name, from: blok[0], to: blok[1]
                 });
+            }
+
+            // ---- DGPS živě (bez přihlášení, viz ensureDgpsTable) -------------
+            if (req.method === 'POST' && path === '/dgps/push') {
+                await ensureDgpsTable(env);
+                const ip = req.headers.get('CF-Connecting-IP') || '0';
+                if (!await guardHit(env, 'dgpush:' + ip, 120, 15 * 60e3)) return err(429, 'Moc požadavků.');
+                const b = await req.json().catch(() => null);
+                const code = String((b && b.code) || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+                if (code.length !== 6) return err(400, 'Chybí kód základny.');
+                const base = b && b.base && typeof b.base === 'object' ? b.base : null;
+                if (!base || !isFinite(+base.lat) || !isFinite(+base.lng)) return err(400, 'Chybí poloha základny.');
+                const bk = Array.isArray(b.buckets) ? b.buckets.slice(-90).filter(x => x && isFinite(+x.t) && isFinite(+x.dE) && isFinite(+x.dN))
+                    .map(x => ({ t: +x.t, dE: Math.round(+x.dE * 1000) / 1000, dN: Math.round(+x.dN * 1000) / 1000, dU: (x.dU == null || !isFinite(+x.dU)) ? null : Math.round(+x.dU * 1000) / 1000, n: Math.max(1, +x.n || 1) })) : [];
+                const baseRow = JSON.stringify({ name: String(base.name || 'Základna').slice(0, 40), lat: +base.lat, lng: +base.lng, vyska: (isFinite(+base.vyska) ? +base.vyska : null) });
+                const prev = await env.DB.prepare('SELECT pulls FROM dgps_live WHERE code=?').bind(code).first();
+                await env.DB.prepare('INSERT INTO dgps_live(code,base,buckets,ts,pulls) VALUES(?,?,?,?,?) ' +
+                    'ON CONFLICT(code) DO UPDATE SET base=excluded.base, buckets=excluded.buckets, ts=excluded.ts')
+                    .bind(code, baseRow, JSON.stringify(bk), Date.now(), 0).run();
+                return json({ ok: true, ts: Date.now(), n: bk.length, pulls: prev ? prev.pulls : 0 });
+            }
+            if (req.method === 'GET' && path === '/dgps/pull') {
+                await ensureDgpsTable(env);
+                const ip = req.headers.get('CF-Connecting-IP') || '0';
+                if (!await guardHit(env, 'dgpull:' + ip, 600, 15 * 60e3)) return err(429, 'Moc požadavků.');
+                const code = String(url.searchParams.get('code') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+                if (code.length !== 6) return err(400, 'Chybí kód základny.');
+                const row = await env.DB.prepare('SELECT base, buckets, ts, pulls FROM dgps_live WHERE code=?').bind(code).first();
+                if (!row) return err(404, 'Kód neplatí nebo základna ještě nic neposlala.');
+                if (ctx && ctx.waitUntil) ctx.waitUntil(env.DB.prepare('UPDATE dgps_live SET pulls=pulls+1 WHERE code=?').bind(code).run().catch(() => {}));
+                let base = null, buckets = [];
+                try { base = JSON.parse(row.base); buckets = JSON.parse(row.buckets); } catch (e) {}
+                return json({ ok: true, base: base, buckets: buckets, ts: row.ts, now: Date.now(), stale: Date.now() - row.ts });
             }
 
             // ---- párování z hodinek (bez přihlášení) ----

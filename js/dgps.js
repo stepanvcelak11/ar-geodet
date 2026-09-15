@@ -57,8 +57,153 @@
     function fmtTime(s) { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
 
     function loadDraft() { try { var o = JSON.parse(localStorage.getItem(LS_LOG)); return (o && o.base && Array.isArray(o.buckets)) ? o : null; } catch (e) { return null; } }
-    function saveDraft() { try { localStorage.setItem(LS_LOG, JSON.stringify({ base: _base, t0: _t0, buckets: _buckets })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:saveDraft'); } }
+    function saveDraft() { try { localStorage.setItem(LS_LOG, JSON.stringify({ base: _base, t0: _t0, buckets: _buckets, liveCode: (_live ? _live.code : null) })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:saveDraft'); } }
     function clearDraft() { try { localStorage.removeItem(LS_LOG); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:clearDraft'); } }
+
+    // ---- DGPS ŽIVĚ PŘES INTERNET (15. 9. 2026, uživatel: „tu dgps klidně udělej") ------
+    // Základna nemusí čekat na konec měření a ukazovat QR: každou minutu pošle svůj
+    // log pod ŠESTIZNAKOVÝM KÓDEM na server (cloud/worker.js /dgps/push), rover si ho
+    // stejným kódem každých 30 s stáhne (/dgps/pull) a z posledních 3 minut bloků
+    // udělá KOREKCI PRO PRÁVĚ UKLÁDANÉ BODY — stejným mechanismem jako „Posun GPS na
+    // známý bod" (window.agRefShift, src 'dgps-live'), takže ji hlídá i pilulka
+    // v js/ref-calibration.js (tam platí 6 min bez dat / 3 km od základny).
+    // Dosah je stejný jako u QR verze: do ~2–3 km od základny (dál se atmosférická
+    // chyba rozchází). Body uložené PŘED připojením jde opravit zpětně jako dřív.
+    // Kód je jediné tajemství (36^6 kombinací, žádné přihlášení) — jako u hodinek.
+    var LIVE_POLL_MS = 30000;          // rover: jak často se ptá serveru
+    var LIVE_WIN_MS = 3 * 60000;       // rover: korekce = vážený průměr bloků za poslední 3 min
+    var LIVE_STALE_MS = 6 * 60000;     // rover: starší data než 6 min = základna stojí/nemá signál
+    var LS_LIVE = 'agDgpsLiveRover_v1';
+    var _live = null;                  // základna: {code, lastTs, pulls, err, timer}
+    var _lr = null;                    // rover: {code, timer, log, lastPull, err, off}
+
+    function apiBase() {
+        var b = '';
+        try { if (window.AGUcty) b = (typeof AGUcty.apiUrl === 'function' ? AGUcty.apiUrl() : '') || AGUcty.DEFAULT_API || ''; } catch (e) { b = ''; }
+        if (!b) b = 'https://ar-geodet-api.ar-geodet.workers.dev';
+        return b.replace(/\/+$/, '');
+    }
+    function makeCode() {
+        var A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', out = '', i;   // bez 0/O/1/I — čte se z displeje a diktuje
+        for (i = 0; i < 6; i++) out += A[Math.floor(Math.random() * A.length)];
+        return out;
+    }
+    function normCode(s) { return String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6); }
+
+    // ZÁKLADNA: odeslání logu (volá se po každém hotovém bloku + hned při zapnutí)
+    function livePush() {
+        if (!_live || !_base) return;
+        var bk = _buckets.slice(-90).map(function (b) { return { t: b.t, dE: b.dE, dN: b.dN, dU: b.dU, n: b.n }; });
+        fetch(apiBase() + '/dgps/push', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: _live.code, base: { name: _base.name, lat: _base.lat, lng: _base.lng, vyska: _base.vyska }, buckets: bk }) })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!_live) return;
+                if (x.ok) { _live.lastTs = Date.now(); _live.pulls = x.d.pulls || 0; _live.err = null; }
+                else _live.err = (x.d && x.d.error) || ('HTTP ' + (x.status || ''));
+                renderBaseLive();
+            })
+            .catch(function (e) { if (_live) { _live.err = 'bez spojení'; renderBaseLive(); } window.AG && AG.swallow && AG.swallow(e, 'dgps:livePush'); });
+    }
+    function liveStart() {
+        if (_live) return;
+        var d = loadDraft();
+        _live = { code: (d && d.liveCode) || makeCode(), lastTs: 0, pulls: 0, err: null, timer: null };
+        saveDraft();
+        livePush();
+        // pojistka: i když nepřijde žádný fix (blok se neuzavře), pošli aspoň jednou za 2 min
+        _live.timer = setInterval(function () { if (_live && Date.now() - _live.lastTs > 110000) livePush(); }, 60000);
+    }
+    function liveStop() {
+        if (!_live) return;
+        try { clearInterval(_live.timer); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:liveStop'); }
+        _live = null; saveDraft();
+    }
+
+    // ROVER: připojení kódem, pravidelné stahování, korekce pro nové body
+    function liveOffset(log) {
+        // vážený průměr bloků za posledních LIVE_WIN_MS (podle času základny), jinak null
+        var last = log.buckets.length ? log.buckets[log.buckets.length - 1].t : 0;
+        var from = last - LIVE_WIN_MS, sw = 0, sE = 0, sN = 0, sU = 0, nU = 0, n = 0;
+        var xs = [], ys = [];
+        log.buckets.forEach(function (b) {
+            if (b.t < from) return;
+            var w = b.n || 1; sw += w; sE += w * b.dE; sN += w * b.dN; n++; xs.push(b.dE); ys.push(b.dN);
+            if (b.dU != null) { sU += w * b.dU; nU += w; }
+        });
+        if (!n) return null;
+        var mE = sE / sw, mN = sN / sw, s2 = 0, i;
+        for (i = 0; i < n; i++) s2 += Math.pow(xs[i] - mE, 2) + Math.pow(ys[i] - mN, 2);
+        var sig = n > 1 ? Math.sqrt(s2 / (n - 1)) : 0.5;
+        return { dE: mE, dN: mN, dU: nU ? sU / nU : null, n: n, t: last, sterr: Math.max(0.1, sig / Math.sqrt(n)) };
+    }
+    function liveApplyShift(log, off) {
+        var m = mPerDeg(log.base.lat);
+        var s = { dlat: -off.dN / m.lat, dlng: -off.dE / m.lng, t: off.t, acc: Math.round(off.sterr * 100) / 100, on: true,
+            lat: log.base.lat, lng: log.base.lng, src: 'dgps-live', base: log.base.name, code: _lr ? _lr.code : null };
+        window.agRefShift = s;
+        try { localStorage.setItem('agRefShift', JSON.stringify(s)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:liveApplyShift'); }
+        try { if (window.agRefShiftWatch) window.agRefShiftWatch(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:watch'); }
+    }
+    function livePull() {
+        if (!_lr) return;
+        var code = _lr.code;
+        fetch(apiBase() + '/dgps/pull?code=' + encodeURIComponent(code) + '&t=' + Date.now(), { cache: 'no-store' })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, status: r.status, d: d }; }); })
+            .then(function (x) {
+                if (!_lr || _lr.code !== code) return;
+                _lr.lastPull = Date.now();
+                if (!x.ok) { _lr.err = (x.d && x.d.error) || ('HTTP ' + x.status); _lr.log = _lr.log || null; renderLiveRover(); return; }
+                var bk = (x.d.buckets || []).filter(function (b) { return b && isFinite(b.t) && isFinite(b.dE) && isFinite(b.dN); });
+                if (!bk.length) { _lr.err = 'základna zatím nemá žádný hotový blok (čekej ~1 min)'; renderLiveRover(); return; }
+                _lr.err = null;
+                _lr.log = { v: 1, app: 'ar-geodet', kind: 'dgps-log', base: x.d.base, t0: bk[0].t, t1: bk[bk.length - 1].t, bucketS: BUCKET_S, buckets: bk, serverTs: x.d.ts, stale: x.d.stale };
+                var off = liveOffset(_lr.log);
+                _lr.off = off;
+                if (off) liveApplyShift(_lr.log, off);
+                renderLiveRover();
+            })
+            .catch(function (e) { if (_lr && _lr.code === code) { _lr.err = 'bez spojení'; renderLiveRover(); } window.AG && AG.swallow && AG.swallow(e, 'dgps:livePull'); });
+    }
+    function liveConnect(code) {
+        code = normCode(code);
+        if (code.length !== 6) { agAlert('DGPS živě', 'Kód základny má 6 znaků (vidíš ho na displeji základny).'); return; }
+        liveDisconnect(true);
+        _lr = { code: code, timer: null, log: null, lastPull: 0, err: null, off: null, since: Date.now() };
+        try { localStorage.setItem(LS_LIVE, JSON.stringify({ code: code, since: _lr.since })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:liveConnect'); }
+        livePull();
+        _lr.timer = setInterval(livePull, LIVE_POLL_MS);
+        renderModal();
+    }
+    function liveDisconnect(quiet) {
+        if (!_lr) return;
+        try { clearInterval(_lr.timer); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:liveDisconnect'); }
+        var log = _lr.log;
+        _lr = null;
+        try { localStorage.removeItem(LS_LIVE); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:liveDisconnect2'); }
+        // korekci pro nové body vypni — bez živých dat by za chvíli stejně nešla věřit
+        try {
+            var s = window.agRefShift;
+            if (s && s.src === 'dgps-live') { s.on = false; localStorage.setItem('agRefShift', JSON.stringify(s)); if (window.agRefShiftWatch) window.agRefShiftWatch(); }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:liveDisconnect3'); }
+        if (!quiet && log) { _roverLog = log; _roverRows = candidates(log).map(function (c) { c.checked = c.state === 'ok'; return c; }); }
+    }
+    window.addEventListener('pagehide', function () { try { if (_live) clearInterval(_live.timer); if (_lr) clearInterval(_lr.timer); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:pagehide'); } });
+
+    function renderLiveRover() {
+        var el = document.getElementById('ag-dgps-lr'); if (!el || !_lr) return;
+        var l = _lr.log, off = _lr.off, html = '';
+        if (_lr.err) html += '<div class="agdg-live" style="border-color:rgba(251,113,133,.5);background:rgba(251,113,133,.1);"><span>⚠ ' + esc(_lr.err) + '</span></div>';
+        if (l && off) {
+            var stale = Date.now() - off.t, staleMin = Math.round(stale / 60000);
+            var far = null; try { if (typeof userLat === 'number' && isFinite(userLat)) far = planarDist(l.base.lat, l.base.lng, userLat, userLng); } catch (e) { far = null; }
+            var bad = stale > LIVE_STALE_MS || (far != null && far > MAX_DIST_M);
+            html += '<div class="agdg-live"' + (bad ? ' style="border-color:rgba(251,113,133,.5);background:rgba(251,113,133,.1);"' : '') + '><span class="agdg-dot"' + (bad ? ' style="background:#fb7185"' : '') + '></span><span><b>Připojeno k základně ' + esc(l.base.name) + '</b> (kód ' + esc(_lr.code) + ')<br>'
+                + 'GPS tam lže o <b>' + Math.hypot(off.dE, off.dN).toFixed(2).replace('.', ',') + ' m</b> (' + off.n + ' bl., ±' + Math.round(off.sterr * 100) + ' cm) · data ' + (staleMin < 1 ? 'čerstvá' : 'stará ' + staleMin + ' min') + (far != null ? ' · základna ' + (far < 1000 ? Math.round(far) + ' m' : (far / 1000).toFixed(1) + ' km') + ' odsud' : '')
+                + (bad ? '<br><b>' + (stale > LIVE_STALE_MS ? 'Základna neposílá — stojí, nebo nemá signál.' : 'Jsi dál než ' + (MAX_DIST_M / 1000) + ' km, korekce tu neplatí.') + '</b>' : '<br>Korekce se přičítá k bodům, které teď uložíš (i v Brutální GPS).') + '</span></div>';
+        } else if (!_lr.err) html += '<div class="agdg-live"><span class="agdg-dot"></span><span>Připojuji se k základně ' + esc(_lr.code) + '…</span></div>';
+        el.innerHTML = html;
+    }
 
     // ---- ZÁKLADNA: sběr --------------------------------------------------------
     function flushBucket() {
@@ -70,6 +215,7 @@
         });
         _cur = null;
         saveDraft();
+        if (_live) livePush();
     }
     function onFix(pos) {
         if (!_base) return;
@@ -102,11 +248,21 @@
         if (!_tick) _tick = setInterval(renderBaseLive, 1000);
         renderModal();
     }
+    // Rover: připojení přežije zavření okna (interval běží dál) i restart appky — kód je
+    // v localStorage a modul se po startu sám nenačte, proto se připojení obnoví až
+    // z pilulky / otevřením nástroje; do té doby hlídá stáří dat js/ref-calibration.js.
+    (function resumeLive() {
+        try {
+            var s = JSON.parse(localStorage.getItem(LS_LIVE));
+            if (s && s.code && Date.now() - (s.since || 0) < 12 * 3600e3) setTimeout(function () { if (!_lr) liveConnect(s.code); }, 800);
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:resumeLive'); }
+    })();
     function stopBase(keep) {
         if (_watchId != null) { try { navigator.geolocation.clearWatch(_watchId); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:stopBase'); } _watchId = null; }
         if (_tick) { clearInterval(_tick); _tick = null; }
         try { if (_wakeLock) { _wakeLock.release(); _wakeLock = null; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dgps:stopBase'); }
         flushBucket();
+        if (_live) { livePush(); liveStop(); }   // poslední blok ještě odejde, pak konec
         if (!keep) { _base = null; _buckets = []; clearDraft(); }
         renderModal();
     }
@@ -261,7 +417,7 @@
         var out = [];
         points().forEach(function (p) {
             if (!p.prov || p.prov.origin !== 'gps-avg') return;
-            if (p.prov.dgps) { out.push({ p: p, state: 'done' }); return; }
+            if (p.prov.dgps || p.refShift) { out.push({ p: p, state: 'done' }); return; }   // refShift = už posunut živou korekcí
             var ts = p.prov.ts;
             if (!ts || ts < log.t0 - NEAR_MS || ts > log.t1 + NEAR_MS) return;
             var off = offsetAt(log, ts, p.prov.t0);
@@ -320,6 +476,29 @@
     var ICON_QRIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
         + '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>'
         + '<path d="M14 14h3v3h-3z"/><path d="M21 14v3M14 21h3M21 20v1"/></svg>';
+
+    var ICON_LIVE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+        + '<path d="M5 12.5a7 7 0 0 1 14 0"/><path d="M8.5 12.5a3.5 3.5 0 0 1 7 0"/><circle cx="12" cy="12.5" r="1"/><path d="M12 13.5V21"/></svg>';
+
+    // ---- UI: živě (rover) ---------------------------------------------------------------
+    function renderLive(body) {
+        var saved = null; try { saved = JSON.parse(localStorage.getItem(LS_LIVE)); } catch (e) { saved = null; }
+        body.innerHTML =
+            '<p class="agdg-intro"><b>Jak to funguje:</b> základna (telefon na známém bodě) posílá každou minutu na server, o kolik GPS zrovna lže; tenhle telefon si to každých 30 s stáhne a <b>přičte k bodům, které uložíš</b> — stejně jako „Posun GPS na známý bod", jen se korekce sama obnovuje. Platí do ~' + (MAX_DIST_M / 1000) + ' km od základny; hlídá to pilulka nahoře. Potřebuje internet na obou telefonech.</p>'
+            + '<div id="ag-dgps-lr"></div>'
+            + (_lr
+                ? '<button class="btn btn-secondary" id="ag-dgps-lr-off" style="color:var(--danger,#fb7185);">⏹ Odpojit (a nabídnout opravu starších bodů)</button>'
+                : '<label style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:.8;">Kód základny (6 znaků z jejího displeje)</label>'
+                  + '<input id="ag-dgps-code" class="bgps-name" type="text" autocapitalize="characters" autocomplete="off" maxlength="6" placeholder="např. K7QM3X" value="' + esc(saved && saved.code ? saved.code : '') + '" style="width:100%; margin:4px 0 10px; font-size:calc(22px * var(--ag-font-scale, 1)); letter-spacing:.2em; text-align:center; text-transform:uppercase;">'
+                  + '<button class="btn btn-primary" id="ag-dgps-lr-go">📡 Připojit se k základně</button>')
+            + '<button class="btn btn-secondary" id="ag-dgps-back" style="margin-top:8px;">← Zpět</button>';
+        var go = document.getElementById('ag-dgps-lr-go');
+        if (go) go.addEventListener('click', function () { liveConnect(document.getElementById('ag-dgps-code').value); });
+        var off = document.getElementById('ag-dgps-lr-off');
+        if (off) off.addEventListener('click', function () { liveDisconnect(false); _mode = _roverLog ? 'rover' : 'menu'; renderModal(); });
+        document.getElementById('ag-dgps-back').addEventListener('click', function () { _mode = 'menu'; renderModal(); });
+        renderLiveRover();
+    }
 
     function injectDgStyles() {
         if (document.getElementById('ag-dg-style')) return;
@@ -386,17 +565,23 @@
         if (!body) return;
         if (_mode === 'base') { renderBase(body); return; }
         if (_mode === 'rover') { renderRover(body); return; }
+        if (_mode === 'live') { renderLive(body); return; }
         // menu
         var draft = loadDraft();
         body.innerHTML =
-            '<p class="agdg-intro">Atmosférická chyba GPS je pro dva telefony do ~2 km stejná. Jeden telefon polož na <b>přesně známý bod</b> jako základnu, druhým měř. Korekce pak přeneseš <b>naskenováním QR</b> z displeje základny (nebo souborem) a body se zpětně opraví.</p>'
+            '<p class="agdg-intro">Atmosférická chyba GPS je pro dva telefony do ~2 km stejná. Jeden telefon polož na <b>přesně známý bod</b> jako základnu, druhým měř. Korekce buď chodí <b>živě přes internet</b> (kód základny, body jsou opravené hned při uložení), nebo je přeneseš <b>naskenováním QR</b> z displeje základny (nebo souborem) a body se opraví zpětně.</p>'
+            + (_lr ? '<div id="ag-dgps-lr"></div>' : '')
             + '<button type="button" class="agdg-opt" id="ag-dgps-mode-base">'
             + '  <span class="agdg-opt-ic">' + ICON_BASE + '</span>'
             + '  <span class="agdg-opt-tx">Základna<small>tento telefon leží na známém bodě a měří, o kolik GPS lže</small></span>'
             + '  <span class="agdg-opt-arr">›</span></button>'
+            + '<button type="button" class="agdg-opt" id="ag-dgps-mode-live">'
+            + '  <span class="agdg-opt-ic">' + ICON_LIVE + '</span>'
+            + '  <span class="agdg-opt-tx">' + (_lr ? 'Živě: připojeno<small>stav, odpojení a zpětná oprava starších bodů</small>' : 'Živě z internetu<small>zadej kód základny; nové body se opravují hned, dosah ~2 km</small>') + '</span>'
+            + '  <span class="agdg-opt-arr">›</span></button>'
             + '<button type="button" class="agdg-opt" id="ag-dgps-mode-rover">'
             + '  <span class="agdg-opt-ic">' + ICON_QRIN + '</span>'
-            + '  <span class="agdg-opt-tx">Korekce<small>naskenovat QR (nebo nahrát soubor) ze základny a opravit body</small></span>'
+            + '  <span class="agdg-opt-tx">Korekce z QR<small>naskenovat QR (nebo nahrát soubor) ze základny a opravit body zpětně</small></span>'
             + '  <span class="agdg-opt-arr">›</span></button>'
             + (draft && draft.buckets.length
                 ? '<div class="agdg-draft"><b>Rozpracovaný log základny</b>'
@@ -410,6 +595,8 @@
             + '<p class="agdg-note">Zisk: na krátkou vzdálenost typicky poloviční až třetinová chyba. Oba telefony musí mít satelitní fix (venku, ne Wi-Fi polohu).</p>';
         document.getElementById('ag-dgps-mode-base').addEventListener('click', function () { _mode = 'base'; renderModal(); });
         document.getElementById('ag-dgps-mode-rover').addEventListener('click', function () { _mode = 'rover'; _roverLog = null; _roverRows = null; renderModal(); });
+        document.getElementById('ag-dgps-mode-live').addEventListener('click', function () { _mode = 'live'; renderModal(); });
+        renderLiveRover();
         var dq = document.getElementById('ag-dgps-draft-qr');
         if (dq) dq.addEventListener('click', function () { var d = loadDraft(); if (d) showLogQR(d.base, d.buckets); });
         var de = document.getElementById('ag-dgps-draft-exp');
@@ -428,6 +615,7 @@
                 + '<div class="agdg-stat"><div class="k">Bloků (1 min)</div><div class="v" id="ag-dgps-nb">0</div></div>'
                 + '<div class="agdg-stat"><div class="k">GPS lže o</div><div class="v" id="ag-dgps-off">–</div></div>'
                 + '</div>'
+                + '<div id="ag-dgps-livebox"></div>'
                 + '<p class="agdg-note" style="margin:0 0 12px;">Nech běžet po CELOU dobu, kdy druhý telefon měří. Čím déle, tím víc bodů půjde opravit.</p>'
                 + '<button class="btn" id="ag-dgps-stop-qr">Zastavit a ukázat QR s korekcemi</button>'
                 + '<button class="btn btn-secondary" id="ag-dgps-stop-exp" style="margin-top:8px;">Zastavit a uložit do souboru</button>'
@@ -486,6 +674,22 @@
         document.getElementById('ag-dgps-back').addEventListener('click', function () { _mode = 'menu'; renderModal(); });
     }
     function renderBaseLive() {
+        var lb = document.getElementById('ag-dgps-livebox');
+        if (lb) {
+            var want = _live ? ('on:' + _live.code + ':' + (_live.err || '') + ':' + _live.pulls + ':' + Math.floor((Date.now() - _live.lastTs) / 15000)) : 'off';
+            if (lb.getAttribute('data-k') !== want) {
+                lb.setAttribute('data-k', want);
+                lb.innerHTML = _live
+                    ? '<div class="agdg-live" style="border-color:rgba(74,222,128,.45);background:rgba(74,222,128,.08);"><span class="agdg-dot" style="background:#4ade80"></span><span><b>Sdílím živě</b> — kód základny pro druhý telefon:<br>'
+                      + '<span style="display:block;font:700 30px/1.2 var(--font-mono,monospace);letter-spacing:.2em;text-align:center;margin:6px 0;">' + esc(_live.code) + '</span>'
+                      + (_live.err ? '<span style="color:var(--danger,#fb7185)">⚠ odeslání selhalo: ' + esc(_live.err) + '</span>' : (_live.lastTs ? 'poslední odeslání před ' + Math.round((Date.now() - _live.lastTs) / 1000) + ' s · ' + _live.pulls + '× staženo' : 'odesílám…'))
+                      + '</span></div>'
+                      + '<button class="btn btn-secondary" id="ag-dgps-live-off" style="margin:0 0 10px;">Přestat sdílet živě</button>'
+                    : '<button class="btn btn-secondary" id="ag-dgps-live-on" style="margin:0 0 10px;">📡 Sdílet korekce živě (kód pro druhý telefon)</button>';
+                var on = document.getElementById('ag-dgps-live-on'); if (on) on.addEventListener('click', function () { liveStart(); renderBaseLive(); });
+                var of = document.getElementById('ag-dgps-live-off'); if (of) of.addEventListener('click', function () { liveStop(); renderBaseLive(); });
+            }
+        }
         var t = document.getElementById('ag-dgps-time');
         if (t) t.textContent = fmtTime((Date.now() - _t0) / 1000);
         var nb = document.getElementById('ag-dgps-nb');
@@ -561,7 +765,7 @@
     }
 
     // ---- registrace ----------------------------------------------------------------------
-    window.AGDgps = { open: openModal };
+    window.AGDgps = { open: openModal, _test: { liveOffset: liveOffset, normCode: normCode, makeCode: makeCode, liveConnect: liveConnect, liveDisconnect: liveDisconnect, stav: function () { return { lr: _lr ? { code: _lr.code, off: _lr.off, err: _lr.err } : null, live: _live ? { code: _live.code, pulls: _live.pulls, err: _live.err } : null }; } } };
     function register() {
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'dgps', label: 'Dvoutelefonní DGPS', icon: ICON, cat: 'Měření', onClick: openModal, order: 7 });

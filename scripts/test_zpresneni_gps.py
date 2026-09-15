@@ -5,6 +5,8 @@ u"""Regrese k v321/v324 (15. 9. 2026): dva nástroje „zpřesnění GPS čistě
      uložené délky → protínání z délek → bod v zakázce s prov.origin 'akustika'
   B  KALIBRACE CHŮZÍ PO HRANĚ (js/kalibrace-hranou.js): čára ze dvou bodů, simulovaná
      chůze s posunutou GPS, výsledek = správný vektor, Zapnout korekci → agRefShift
+  D  DGPS ŽIVĚ (js/dgps.js): rover kódem, agRefShift src dgps-live, pilulka s limity 6 min /
+     3 km, odpojení; základna sdílí kód a posílá log (/dgps/push, /dgps/pull přes route)
   H  HLÍDAČ PLATNOSTI (js/ref-calibration.js): pilulka zelená/oranžová/červená, toasty
      5 min před vypršením, po 20 min, na 200 m a 300 m (každý jednou), klepnutí, vypnutí
 Matematika obou je zvlášť v scripts/test_akustika.py a scripts/test_hrana.py.
@@ -234,6 +236,69 @@ async def beh(url):
         await page.wait_for_timeout(500)
         saved = await page.evaluate("""(cil) => { const p = persistentCustomPoints.find(q => q.name === 'AKU-TEST'); if (!p) return null; const m = { lat: 111320, lng: 111320 * Math.cos(cil.lat * Math.PI / 180) }; return { origin: p.prov && p.prov.origin, d: Math.hypot((p.lat - cil.lat) * m.lat, (p.lng - cil.lng) * m.lng), acc: p.acc, delky: p.prov && p.prov.delky && p.prov.delky.length }; }""", CIL)
         ok('A7 bod uložen s prov.origin akustika a oběma délkami', saved and saved['origin'] == 'akustika' and saved['d'] < 0.05 and saved['delky'] == 2 and saved['acc'] and saved['acc'] < 0.2, saved)
+
+        # ---- D: DGPS ŽIVĚ (js/dgps.js + cloud/worker.js /dgps/push, /dgps/pull) ----------
+        pushes = []
+        async def na_push(route, request):
+            pushes.append(json.loads(request.post_data or '{}'))
+            await route.fulfill(status=200, content_type='application/json', body=json.dumps({'ok': True, 'ts': 1, 'n': len(pushes[-1].get('buckets', [])), 'pulls': 3}))
+        async def na_pull(route, request):
+            now = int(time.time() * 1000)
+            bk = [{'t': now - (4 - i) * 60000, 'dE': 1.0 + 0.02 * i, 'dN': -2.0, 'dU': None, 'n': 40} for i in range(5)]
+            await route.fulfill(status=200, content_type='application/json', body=json.dumps({'ok': True, 'base': {'name': 'PBPP 241', 'lat': LAT, 'lng': LNG + 0.004, 'vyska': None}, 'buckets': bk, 'ts': now, 'now': now, 'stale': 500}))
+        # zavřít dialog „Bod uložen" z A7 (překrýval by okno)
+        await page.evaluate("() => document.querySelectorAll('.ag-dlg-overlay.open button').forEach(b => b.click())")
+        await page.wait_for_timeout(400)
+        await page.route('**/dgps/push', na_push)
+        await page.route('**/dgps/pull**', na_pull)
+        await page.evaluate("() => AGLazyTools.open('dgps')")
+        ok('D1 okno DGPS má volbu Živě z internetu', await cekej(page, "window.AGDgps && document.getElementById('ag-dgps-mode-live')"), chyby[-3:])
+        # rover: připojit kódem
+        await page.click('#ag-dgps-mode-live')
+        await page.fill('#ag-dgps-code', 'k7qm3x')
+        await page.click('#ag-dgps-lr-go')
+        await page.wait_for_timeout(1200)
+        lr = await page.evaluate("() => ({ txt: (document.getElementById('ag-dgps-lr') || {}).textContent || '', st: AGDgps._test.stav(), sh: window.agRefShift })")
+        ok('D2 rover se připojí (kód velkými), stáhne bloky a ukáže, o kolik GPS lže', lr['st']['lr'] and lr['st']['lr']['code'] == 'K7QM3X' and 'Připojeno k základně PBPP 241' in lr['txt'] and '2,2' in lr['txt'], lr['txt'][:200])
+        sh = lr['sh'] or {}
+        ok('D3 korekce pro nové body = agRefShift src dgps-live (−dE/−dN posledních 3 min)', sh.get('src') == 'dgps-live' and sh.get('on') and abs(sh['dlat'] * MLAT - 2.0) < 0.05 and abs(sh['dlng'] * MLNG + 1.06) < 0.05 and sh.get('base') == 'PBPP 241', sh)
+        await page.evaluate("() => window.agRefShiftWatch()")
+        pill = await page.evaluate("() => ({ cls: document.getElementById('agref-pill').className, txt: document.getElementById('agref-pill').textContent })")
+        ok('D4 pilulka hlásí DGPS živě, čerstvá data, vzdálenost od základny, zelená', 'show' in pill['cls'] and 'warn' not in pill['cls'] and 'DGPS živě' in pill['txt'] and 'čerstvá' in pill['txt'] and 'od základny' in pill['txt'], pill)
+        # stáří dat 4 min → oranžová (limity živé DGPS: 3/6 min), vzdálenost 2,5 km → oranžová
+        await page.evaluate("() => { window.agRefShift.t = Date.now() - 4 * 60000; window.agRefShiftWatch(); }")
+        pill = await page.evaluate("() => ({ cls: document.getElementById('agref-pill').className, txt: document.getElementById('agref-pill').textContent })")
+        ok('D5 základna 4 min neposílá → oranžová + stará 4 min', 'warn' in pill['cls'] and 'stará 4 min' in pill['txt'], pill)
+        await page.evaluate("() => { window.agRefShift.t = Date.now(); }")
+        p25 = ll(2500, 0)
+        await ctx.set_geolocation({'latitude': p25['lat'], 'longitude': p25['lng'], 'accuracy': 4})
+        await page.wait_for_timeout(1500)
+        await page.evaluate("() => window.agRefShiftWatch()")
+        pill = await page.evaluate("() => ({ cls: document.getElementById('agref-pill').className, txt: document.getElementById('agref-pill').textContent })")
+        ok('D6 2,2 km od základny → oranžová (hranice 3 km, ne 300 m)', 'warn' in pill['cls'] and 'bad' not in pill['cls'] and 'km od základny' in pill['txt'], pill)
+        await ctx.set_geolocation({'latitude': LAT, 'longitude': LNG, 'accuracy': 3})
+        await page.wait_for_timeout(800)
+        # odpojit → korekce vypnutá, nabídka zpětné opravy (žádné gps-avg body → hláška)
+        await page.click('#ag-dgps-lr-off')
+        await page.wait_for_timeout(500)
+        st = await page.evaluate("() => ({ lr: AGDgps._test.stav().lr, on: !!(window.agRefShift && window.agRefShift.on), ls: localStorage.getItem('agDgpsLiveRover_v1'), txt: document.getElementById('ag-dgps-body').textContent })")
+        ok('D7 Odpojit → korekce vypnutá, kód zapomenut, nabídka zpětné opravy z logu', st['lr'] is None and not st['on'] and st['ls'] is None and ('Základna' in st['txt']), st['txt'][:200])
+        # základna: spustit na bodě a sdílet živě
+        await page.evaluate("() => { document.getElementById('ag-dgps-back').click(); }")
+        await page.wait_for_timeout(300)
+        await page.click('#ag-dgps-mode-base')
+        await page.select_option('#ag-dgps-pt', 'cp_C')
+        await page.click('#ag-dgps-start')
+        await page.wait_for_timeout(800)
+        ok('D8 základna běží a nabízí Sdílet živě', await page.evaluate("() => !!document.getElementById('ag-dgps-live-on')"))
+        await page.click('#ag-dgps-live-on')
+        await page.wait_for_timeout(1200)
+        bs = await page.evaluate("() => ({ st: AGDgps._test.stav().live, txt: (document.getElementById('ag-dgps-livebox') || {}).textContent || '' })")
+        ok('D9 Sdílet živě: kód 6 znaků na displeji, první push odešel se základnou, 3x staženo', bs['st'] and len(bs['st']['code']) == 6 and bs['st']['code'] in bs['txt'] and len(pushes) >= 1 and pushes[-1]['code'] == bs['st']['code'] and pushes[-1]['base']['name'] == 'ZNAMY-C' and bs['st']['pulls'] == 3 and 'staženo' in bs['txt'], (bs, pushes[-1:] and pushes[-1].get('code')))
+        await page.click('#ag-dgps-stop')
+        await page.wait_for_timeout(400)
+        ok('D10 Zastavit → sdílení ukončeno', await page.evaluate("() => AGDgps._test.stav().live === null"))
+        await page.click('#ag-dgps-close')
 
         ok('Z0 bez chyb v konzoli z nových modulů', not any(('akustik' in c or 'hrana' in c or 'kalibrace-hranou' in c) for c in chyby), chyby[-5:])
         await ctx.close()
