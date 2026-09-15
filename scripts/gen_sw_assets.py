@@ -58,6 +58,7 @@ EXTRA_ASSETS = [
     './css/dvoji-mereni.css',
     './css/balicek-zakazky.css',
     './css/oblasti-offline.css',        # js/oblasti-offline.js — okres/kraj/ČR v telefonu
+    './css/lovci-bodu.css',             # js/lovci-bodu.js — sbírka objevených bodů
     './css/duvera.css',                   # js/duvera.js — jednotny vzhled "jak moc verit cislu"
     './css/rocenka.css',                  # js/rocenka.js + js/odznaky.js
     './css/kolize-bodu.css',              # js/kolize-bodu.js          # tela navodu pod "?" — cte js/tools-registry.js pres fetch

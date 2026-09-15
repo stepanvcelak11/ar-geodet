@@ -179,6 +179,13 @@
             h += '<button type="button" data-a="staked" class="' + (staked ? 'on' : '') + '">'
                 + '<svg class="icon"><use href="#i-check"/></svg><span>' + (staked ? 'Vytyčeno ✓' : 'Vytyčeno') + '</span></button>';
         }
+        // LOVCI BODŮ (js/lovci-bodu.js): „Našel jsem ho" jen u ÚŘEDNÍHO bodu; text
+        // tlačítka si modul přepisuje sám každé 2 s (kolik metrů / sekund ještě chybí).
+        if (window.AGLovci && pt.cat !== 'CUSTOM' && pt.rawData) {
+            var lid = AGLovci.idBodu(pt), lst = AGLovci.stav(lid);
+            h += '<button type="button" data-a="nalez" data-id="' + esc(lid) + '" class="' + (lst.done ? 'on' : (lst.ok ? 'ready' : '')) + '">'
+                + '<svg class="icon"><use href="#i-star"/></svg><span>' + lst.label + '</span></button>';
+        }
         return h;
     }
 
@@ -195,6 +202,8 @@
                 render(_pt);
             } else if (a === 'check') {
                 newCheckPoint(_pt);
+            } else if (a === 'nalez') {
+                if (window.AGLovci && AGLovci.klik(_pt)) render(_pt);
             }
         } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'karta-bodu:onAct'); }
     }

@@ -1,0 +1,72 @@
+/* ===== QTRIG — LOVCI BODŮ (odpojitelná vrstva) ==============================
+   Tokeny ze style.css (--accent, --glass-border, --text-color, --text-muted,
+   --color-tb/zhb/pbpp/nivel, --r-md). Připojuje si ji js/lovci-bodu.js přes
+   AG.cssFile(). Odstranění: smaž css/lovci-bodu.css + js/lovci-bodu.js.
+   ============================================================================== */
+
+#agl-modal { z-index: 19999; }
+#agl-modal .agl-content { display: flex; flex-direction: column; }
+.agl-title { margin: 0 0 8px; color: var(--accent); font-family: var(--font-display, sans-serif); }
+#agl-modal .agl-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+.agl-seg { display: flex; gap: 6px; margin-bottom: 10px; }
+.agl-seg button {
+    flex: 1 1 0; min-height: 40px; border-radius: var(--r-md, 12px);
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.14));
+    background: rgba(255, 255, 255, 0.04); color: var(--text-color, #eceef2);
+    font: 600 calc(13px * var(--ag-font-scale, 1)) / 1.2 var(--font-ui, system-ui); cursor: pointer;
+}
+.agl-seg button.on { border-color: var(--accent); background: var(--accent-soft, rgba(47, 158, 116, 0.16)); color: var(--accent); }
+
+.agl-sum { display: flex; gap: 10px; margin-bottom: 6px; }
+.agl-sum > div {
+    flex: 1 1 0; padding: 10px 12px; border-radius: var(--r-md, 12px);
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12)); background: rgba(255, 255, 255, 0.04);
+}
+.agl-sum small { display: block; color: var(--text-muted, #9aa1ac); font-size: calc(11px * var(--ag-font-scale, 1)); }
+.agl-big { font: 700 calc(24px * var(--ag-font-scale, 1)) / 1.1 var(--font-display, sans-serif); font-variant-numeric: tabular-nums; }
+.agl-mono { font-family: var(--font-mono, monospace); font-variant-numeric: tabular-nums; font-size: calc(12.5px * var(--ag-font-scale, 1)); }
+.agl-mono small { display: block; color: var(--text-muted, #9aa1ac); font-size: calc(10.5px * var(--ag-font-scale, 1)); text-align: right; }
+.agl-dim, .agl-note { color: var(--text-muted, #9aa1ac); font-size: calc(12.5px * var(--ag-font-scale, 1)); line-height: 1.5; padding: 6px 2px; }
+.agl-note b { color: var(--text-color, #eceef2); }
+.agl-small { font-size: calc(11.5px * var(--ag-font-scale, 1)); }
+.agl-link { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; text-decoration: underline; cursor: pointer; }
+.agl-lbl {
+    margin: 14px 0 6px; font-size: calc(11.5px * var(--ag-font-scale, 1)); font-weight: 700;
+    letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-faint, #6b727d);
+}
+.agl-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 2px; border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08)); font-size: calc(13px * var(--ag-font-scale, 1)); }
+.agl-bar { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.08); overflow: hidden; margin: 6px 0 2px; }
+.agl-bar i { display: block; height: 100%; background: var(--accent); }
+
+.agl-pill { display: inline-block; padding: 2px 7px; border-radius: 999px; font: 600 calc(10.5px * var(--ag-font-scale, 1)) / 1.4 var(--font-mono, monospace); background: rgba(255, 255, 255, 0.08); }
+.agl-pill.p-tb { color: var(--color-tb, #f06a4f); } .agl-pill.p-zhb { color: var(--color-zhb, #e2a53a); }
+.agl-pill.p-pbpp { color: var(--color-pbpp, #5fa3c4); } .agl-pill.p-nivel { color: var(--color-nivel, #7db86a); }
+.agl-pill.p-tiha { color: #f59e0b; }
+
+.agl-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 10px; margin-top: 6px;
+    border-radius: var(--r-md, 12px); border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12)); background: rgba(255, 255, 255, 0.04);
+    font-size: calc(13px * var(--ag-font-scale, 1));
+}
+.agl-item > div:first-child { flex: 1 1 auto; min-width: 0; }
+.agl-item small { display: block; color: var(--text-muted, #9aa1ac); font-size: calc(11px * var(--ag-font-scale, 1)); }
+.agl-item i { color: var(--warning, #d4a02c); font-style: normal; font-size: calc(11px * var(--ag-font-scale, 1)); }
+.agl-item.kd { border-color: #f59e0b; }
+.agl-kd { padding: 10px 12px; margin-top: 8px; border-radius: var(--r-md, 12px); border: 1px solid #f59e0b; background: rgba(245, 158, 11, 0.10); font-size: calc(13px * var(--ag-font-scale, 1)); }
+/* .btn ze style.css je široký na 100 % — v řádku seznamu musí být úzký, jinak přeleze text */
+#agl-modal .agl-item > .btn.agl-mini { width: auto; min-width: 0; min-height: 36px; padding: 6px 12px; font-size: calc(12px * var(--ag-font-scale, 1)); margin: 0; flex: 0 0 auto; white-space: nowrap; }
+.agl-item > .agl-mono { flex: 0 0 auto; text-align: right; }
+.agl-x { flex: 0 0 auto; min-width: 32px; min-height: 32px; border-radius: 8px; border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12)); background: transparent; color: var(--text-muted, #9aa1ac); cursor: pointer; }
+
+.agl-oc { display: flex; align-items: center; gap: 10px; padding: 9px 10px; margin-top: 6px; border-radius: var(--r-md, 12px); border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12)); background: rgba(255, 255, 255, 0.03); opacity: .75; font-size: calc(13px * var(--ag-font-scale, 1)); }
+.agl-oc.ma { opacity: 1; border-color: var(--accent); }
+.agl-oc > div { flex: 1 1 auto; min-width: 0; }
+.agl-oc small { display: block; color: var(--text-muted, #9aa1ac); font-size: calc(11px * var(--ag-font-scale, 1)); }
+.agl-stone { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; background: rgba(255, 255, 255, 0.08); color: var(--text-muted, #9aa1ac); display: inline-flex; align-items: center; justify-content: center; font: 700 12px/1 var(--font-display, sans-serif); }
+.agl-oc.ma .agl-stone { background: var(--accent); color: #06130d; }
+
+/* tlačítko v kartě bodu (js/karta-bodu-plus.js) */
+#ag-kb-acts button[data-a="nalez"] small { display: block; font-weight: 500; opacity: .8; font-size: calc(10px * var(--ag-font-scale, 1)); }
+#ag-kb-acts button[data-a="nalez"].ready { border-color: #f59e0b; color: #f59e0b; }
+#ag-kb-acts button[data-a="nalez"].on { background: #f59e0b; color: #1a1207; }

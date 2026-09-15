@@ -2,6 +2,17 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 321,
+   "datum": "2026-09-15",
+   "nadpis": "Lovci bodů — sbírka objevených bodů, ocenění a lov",
+   "body": [
+    "<b>Lovci bodů</b> (Nástroje → Pomůcky): úřední body, ke kterým v terénu skutečně dojdeš (do 5 m, GPS do 8 m, 15 s postoj) a klepneš v kartě <b>Našel jsem ho</b>, se ti ukládají do sbírky. Objevený bod má v mapě zlatou hvězdičku. Nic se nikam neposílá.",
+    "<b>Skóre podle vzácnosti v ČR</b> (z počtů ČÚZK): TB 50 · ZhB 30 · nivelační 10 · PPBP 3 · tíhový 200. Sbírka ukazuje, kolik bodů okresu ti chybí (když je okres stažený v telefonu).",
+    "<b>Ocenění:</b> První kámen, Tucet, Stovka, Trojúhelník (3 TB z jednoho triangulačního listu), Celý pořad (všechny body nivelačního pořadu), Okres (všechny TB okresu), Vrchol okresu, Kámen z budovy — s postupem k nejbližšímu.",
+    "<b>Lovit:</b> nejbližší neobjevené body do 2 km seřazené podle výnosu na ušlý metr, s tlačítkem Doveď mě; <b>Kámen dne</b> za dvojnásobek (stejný pro všechny v okrese)."
+   ]
+  },
+  {
    "v": 320,
    "datum": "2026-09-15",
    "nadpis": "Okres, kraj nebo celá ČR v telefonu — body bez načítání; úřední body správně roztříděné",
