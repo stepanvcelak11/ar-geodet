@@ -2,7 +2,7 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
-   "v": 333,
+   "v": 334,
    "datum": "2026-09-15",
    "nadpis": "Karta bodu: mapový list místo rozbalovátka „všechny úřední záznamy“",
    "body": [
