@@ -168,8 +168,8 @@ async def beh(url):
         ok('T1 uzavřený čtverec: Line.closed, řeší se celý vektor (≈ střed plavání 2,0 V / −2,0 S)', t['closed'] and not t['rovClosed'] and t['mode'] == '2d' and abs(t['vE'] - 2.0) < 0.35 and abs(t['vN'] + 2.0) < 0.35, t)
         ok('T2 plavání chyby během chůze ≈ 0,5 m na východ (první vs. druhá půlka, bias 1,5→2,5)', t['drift'] and 0.3 < t['drift']['mag'] < 0.9 and t['drift']['dE'] > 0.3 and abs(t['drift']['dN']) < 0.3, t['drift'])
         ok('T3 interpolace: uprostřed půlka, před začátkem prev, po konci next', abs(t['mid']['dlat'] - 0.00002) < 1e-9 and t['mid']['f'] == 0.5 and t['before']['f'] == 0 and t['after']['f'] == 1, t['mid'])
-        r = await page.evaluate("""() => {
-            const T = AGHrana._test, prev = window.agRefShift, now = Date.now();
+        r = await page.evaluate(("""() => {
+            const T = AGHrana._test, prev = window.agRefShift, now = NOWMS;
             const next = { dlat: prev.dlat + 1.0 / 111320, dlng: 0, t: now };   // nová korekce: +2,0 m S (posun o 1 m za 10 min)
             const c = T.betweenCandidates(prev, now).map(p => p.name);
             const pM = persistentCustomPoints.find(p => p.id === 'cp_M'), pG = persistentCustomPoints.find(p => p.id === 'cp_G');
@@ -177,15 +177,16 @@ async def beh(url):
             const res = T.reapply(prev, next, T.betweenCandidates(prev, now));
             const dM = (pM.lat - latM0) * 111320, dG = (pG.lat - latG0) * 111320;
             const c2 = T.betweenCandidates(prev, now).map(p => p.name);
-            return { c, res, dM, dG, fM: pM.refShift.f, fG: pG.prov.refShift.f, interpM: !!pM.refShift.interp, c2, tM: T.pointTime(pM), tG: T.pointTime(pG) };
-        }""")
+            return { c, res, dM, dG, fM: pM.refShift.f, fG: pG.prov.refShift.f, interpM: !!pM.refShift.interp, c2, tM: T.pointTime(pM), tG: T.pointTime(pG), srcM: pM.refShift.src };
+        }""").replace('NOWMS', str(NOW_MS)))
         ok('T4 kandidáti = body s korekcí z předchozí chůze uložené mezi tím (ruční i z Přesné GPS)', sorted(r['c']) == ['BG-ZAKL', 'MEZI-1'], r['c'])
         ok('T5 přepočet podle času: bod v půlce (5 min po první chůzi) +0,5 m, bod Přesné GPS podle středu okupace (2 min po → +0,2 m)',
            r['res']['n'] == 2 and abs(r['dM'] - 0.5) < 0.05 and abs(r['dG'] - 0.2) < 0.05 and abs(r['fM'] - 0.5) < 0.02 and abs(r['fG'] - 0.2) < 0.02, r)
         ok('T6 přepočtený bod má refShift.interp a podruhé se už nenabídne', r['interpM'] and r['c2'] == [], r['c2'])
+        ok('T6b přepočet zachová původ korekce (src hrana) — kvůli kartě bodu a důvěře', r.get('srcM') == 'hrana', r.get('srcM'))
         # vrátit body do stavu před přepočtem (kvůli U)
-        await page.evaluate("""() => { const pM = persistentCustomPoints.find(p => p.id === 'cp_M'); pM.lat -= 0.5 / 111320; pM.refShift = { dlat: window.agRefShift.dlat, dlng: 0, t: window.agRefShift.t };
-            const pG = persistentCustomPoints.find(p => p.id === 'cp_G'); pG.lat -= 0.2 / 111320; pG.prov.refShift = { dlat: window.agRefShift.dlat, dlng: 0, t: window.agRefShift.t }; }""")
+        await page.evaluate("""() => { const pM = persistentCustomPoints.find(p => p.id === 'cp_M'); pM.lat -= 0.5 / 111320; pM.refShift = { dlat: window.agRefShift.dlat, dlng: 0, t: window.agRefShift.t, src: 'hrana' };
+            const pG = persistentCustomPoints.find(p => p.id === 'cp_G'); pG.lat -= 0.2 / 111320; pG.prov.refShift = { dlat: window.agRefShift.dlat, dlng: 0, t: window.agRefShift.t, src: 'hrana' }; }""")
 
         # ---- U: celý tok „před a po" v UI ------------------------------------------------------
         await page.evaluate("() => AGHrana.open()")
@@ -218,9 +219,9 @@ async def beh(url):
         await page.click('.ag-dlg-ok')
         await page.wait_for_timeout(600)
         u = await page.evaluate("""() => { const pM = persistentCustomPoints.find(p => p.id === 'cp_M'); const s = window.agRefShift;
-            return { dM: (pM.lat - %r) * 111320, interp: pM.refShift && pM.refShift.interp === s.t, src: s.src, dN: s.dlat * 111320,
-                     ls: JSON.parse(getStoredData('arCustomPoints12')).find(p => p.id === 'cp_M').refShift.interp === s.t }; }""" % (PM['lat'] + PREV_DLAT))
-        ok('U6 bod mezi chůzemi posunut o ~+0,5 m (půlka rozdílu 1 m) a uložen', 1.7 < u['dN'] < 2.3 and 0.3 < u['dM'] < 0.7 and u['interp'] and u['ls'], u)
+            return { dM: (pM.lat - %r) * 111320, interp: pM.refShift && pM.refShift.interp === s.t, src: s.src, dN: s.dlat * 111320, f: pM.refShift && pM.refShift.f, fOcek: (5 * 60000) / (s.t - %r),
+                     ls: JSON.parse(getStoredData('arCustomPoints12')).find(p => p.id === 'cp_M').refShift.interp === s.t }; }""" % (PM['lat'] + PREV_DLAT, TPREV))
+        ok('U6 bod mezi chůzemi posunut podle času (podíl 5 min z doby mezi chůzemi) a uložen', 1.7 < u['dN'] < 2.3 and abs(u['f'] - u['fOcek']) < 0.03 and abs(u['dM'] - u['fOcek'] * (u['dN'] - 1.0)) < 0.12 and u['interp'] and u['ls'], u)
         await page.click('#ag-hr-close')
 
         # ---- D: DGPS dočasná základna ----------------------------------------------------------
@@ -234,7 +235,25 @@ async def beh(url):
             return { sel: sel && sel.value, opt: sel && sel.options[sel.selectedIndex].textContent, txt: b.textContent }; }""")
         ok('D2 openBase předvybere bod z Přesné GPS jako dočasnou základnu (±0,42 m)', d['sel'] == 'cp_G' and 'dočasná základna' in d['opt'] and '0,42' in d['opt'] and 'Dočasná základna z bodu BG-ZAKL' in d['txt'], d)
         await page.click('#ag-dgps-back')
+        await page.click('#ag-dgps-close')
+        await page.wait_for_timeout(300)
 
+        # ---- I: souhra se zbytkem appky ----------------------------------------------------
+        await page.evaluate("() => { try { closeBottomSheet(); } catch (e) {} var p = arPoints.find(x => x.id === 'cp_M'); showDetails(p, 40); }")
+        await cekej(page, "document.getElementById('ag-kb-bento')", 40)
+        karta = await page.evaluate("() => (document.getElementById('ag-kb-bento') || {}).textContent || ''")
+        ok('I1 karta bodu ukazuje dlaždici „Korekce GPS" s velikostí a původem (před a po)', 'Korekce GPS' in karta and 'chůze po hraně' in karta and 'před a po' in karta, karta[:300])
+        duv = await page.evaluate("() => { const p = persistentCustomPoints.find(x => x.id === 'cp_M'); const v = AGDuvera.bod(p); return { proc: v.proc, kor: v.korekce }; }")
+        ok('I2 karta důvěry (js/duvera.js) říká, že se k bodu přičetla korekce z chůze po hraně', duv['kor'] and 'chůze po hraně' in duv['kor'] and 'před a po' in duv['kor'] and duv['kor'] in duv['proc'], duv)
+        await page.evaluate("() => { try { closeBottomSheet(); } catch (e) {} }")
+        # DGPS z QR nesmí bod s korekcí z chůze opravit podruhé
+        dq = await page.evaluate("""() => { const now = Date.now(); const log = { kind: 'dgps-log', base: { name: 'ZAKL', lat: %r, lng: %r }, t0: now - 30 * 60000, t1: now, buckets: [{ t: now - 60000, dE: 0.5, dN: 0.5, n: 30 }] };
+            const rows = AGDgps._test.candidates ? AGDgps._test.candidates(log) : null; return rows ? rows.map(r => [r.p.name, r.state]) : 'bez _test.candidates'; }""" % (LAT, LNG))
+        ok('I3 DGPS z QR bere bod z Přesné GPS s korekcí (prov.refShift) jako už korigovaný', dq == 'bez _test.candidates' or any(n == 'BG-ZAKL' and st == 'done' for n, st in dq), dq)
+        kol = await page.evaluate("() => { if (!window.AGKolecko || !AGKolecko.groups) return null; const g = AGKolecko.groups(); const pm = g.find(x => x.full === 'Přesné měření' || x.t === 'Přesné měření'); return { n: g.length, pm: pm ? pm.items.length : 0 }; }")
+        ok('I4 kolečko nástrojů zná skupinu Přesné měření (7 položek)', kol is None or (kol['pm'] == 7), kol)
+        ges = await page.evaluate("() => !!(window.AGUkony && AGUkony.has && AGUkony.has('presne-mereni') && AGUkony.has('kalibrace-hranou'))")
+        ok('I5 seznam úkonů/gesta umí nové nástroje spustit (AGUkony.has)', ges)
         ok('Z0 bez chyb v konzoli z nových modulů', not any(('presne' in c or 'hrana' in c or 'brutal' in c or 'dgps' in c) for c in chyby), chyby[-5:])
         await br.close()
 

@@ -351,6 +351,18 @@
         var kdo = pt.prov && pt.prov.kdo;
         var puvod = [kdo, kdyS, odkud].filter(Boolean).join(' · ');
         if (puvod) tile('c2', kdyS ? 'Změřeno' : 'Zdroj', '<b class="t">' + esc(puvod) + '</b>');
+        // KOREKCE GPS (15. 9. 2026, sekce Přesné měření): bod z GPS si nese, co se k němu
+        // přičetlo — kalibrace chůzí po hraně / posun na známý bod / DGPS živě (refShift,
+        // u Přesné GPS v prov.refShift) nebo zpětná oprava z QR základny (prov.dgps).
+        // Bez dlaždice by karta říkala „průměr GPS ±0,4 m" a mlčela o půl metru, který
+        // bod dostal kalibrací zpátky na místo.
+        var rs = pt.refShift || (pt.prov && pt.prov.refShift), korTxt = null;
+        if (rs && isFinite(rs.dlat) && isFinite(rs.dlng)) {
+            var korM = Math.hypot(rs.dlng * 111320 * Math.cos(((isFinite(pt.lat) ? pt.lat : 49.8)) * Math.PI / 180), rs.dlat * 111320);
+            var KDO = { hrana: 'chůze po hraně', ref: 'známý bod', 'dgps-live': 'DGPS živě' };
+            korTxt = n2(korM) + ' m · ' + (KDO[rs.src] || 'kalibrace GPS') + (rs.interp ? ' · před a po' : '');
+        } else if (pt.prov && pt.prov.dgps && isFinite(pt.prov.dgps.mag)) korTxt = n2(pt.prov.dgps.mag) + ' m · DGPS z QR' + (pt.prov.dgps.base ? ' (' + pt.prov.dgps.base + ')' : '');
+        if (korTxt) tile('c2', 'Korekce GPS', '<b class="t">' + esc(korTxt) + '</b>');
         // úřední bod: výšku už máme v mozaice, v zeleném rámečku (stabilizace…) by byla dvakrát
         if (z != null) { var dup = body.querySelectorAll('.geo-highlight .geo-data-row'); for (var d = 0; d < dup.length; d++) { var dl = dup[d].querySelector('.geo-label'); if (dl && /^Nadmořská/.test(dl.textContent || '')) dup[d].remove(); } }
         var box = document.createElement('div'); box.id = 'ag-kb-bento'; box.className = 'ag-kb-bento';

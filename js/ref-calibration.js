@@ -195,7 +195,7 @@
                 p.lat += s.dlat;
                 p.lng += s.dlng;
                 p._agRefShifted = true;
-                p.refShift = { dlat: s.dlat, dlng: s.dlng, t: s.t };
+                p.refShift = { dlat: s.dlat, dlng: s.dlng, t: s.t, src: s.src || 'ref' };   // src: kdo korekci vyrobil (karta důvěry bodu, js/duvera.js)
 
                 // EXPIRACE: konstantní posun platí jen krátce a blízko ref. bodu. Mimo meze
                 // varuj (posun neblokujeme — uživatel může vědět, co dělá).

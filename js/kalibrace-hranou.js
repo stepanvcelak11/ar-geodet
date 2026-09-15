@@ -275,12 +275,14 @@
             var before = { name: p.name, lat: p.lat, lng: p.lng, vyska: (p.vyska != null ? p.vyska : null), acc: (p.acc != null ? p.acc : null), cat: p.cat, prov: (p.prov ? JSON.parse(JSON.stringify(p.prov)) : null) };
             var m = mPerDeg(p.lat), ddlat = s.dlat - prev.dlat, ddlng = s.dlng - prev.dlng;
             p.lat += ddlat; p.lng += ddlng;
-            setAppliedShift(p, { dlat: s.dlat, dlng: s.dlng, t: prev.t, interp: next.t, f: Math.round(s.f * 100) / 100 });
+            var byl = appliedShift(p) || {};
+            setAppliedShift(p, { dlat: s.dlat, dlng: s.dlng, t: prev.t, src: byl.src || 'hrana', interp: next.t, f: Math.round(s.f * 100) / 100 });
             sum += Math.hypot(ddlng * m.lng, ddlat * m.lat); n++;
             try {
                 if (typeof arPoints !== 'undefined' && Array.isArray(arPoints)) {
                     var tw = null, k; for (k = 0; k < arPoints.length; k++) if (arPoints[k].id === p.id) { tw = arPoints[k]; break; }
-                    if (tw) { tw.lat = p.lat; tw.lng = p.lng; if (tw.element) { tw.element.remove(); tw.element = null; } }
+                    // i refShift/prov — kartu bodu kreslí js/karta-bodu-plus.js z arPoints, ne z persistentCustomPoints
+                    if (tw) { tw.lat = p.lat; tw.lng = p.lng; tw.refShift = p.refShift; tw.prov = p.prov; if (tw.element) { tw.element.remove(); tw.element = null; } }
                 }
             } catch (e) { swallow(e, 'reapply:ar'); }
             try { if (window.AGJournal) window.AGJournal.commit({ op: 'edit', id: p.id, before: before, after: p, origin: 'hrana' }); } catch (e) { swallow(e, 'reapply:journal'); }

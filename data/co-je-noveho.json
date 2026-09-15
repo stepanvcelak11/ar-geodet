@@ -2,6 +2,15 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 331,
+   "datum": "2026-09-15",
+   "nadpis": "Karta bodu říká, jaká korekce GPS se k bodu přičetla",
+   "body": [
+    "<b>Karta bodu</b> má u bodů z GPS novou dlaždici <b>Korekce GPS</b>: o kolik a odkud se bod posunul (chůze po hraně, známý bod, DGPS živě, oprava z QR) a jestli byl přepočten kalibrací před a po. Totéž říká i vysvětlení přesnosti („odkud se přesnost vzala“) — dřív karta tvrdila „jen co hlásí telefon“ i o bodu, který kalibrací dostal půl metru zpátky na místo.",
+    "Přepočet bodů podle času (kalibrace před a po) už nezapomíná, odkud korekce byla, a karta bodu ho vidí hned."
+   ]
+  },
+  {
    "v": 330,
    "datum": "2026-09-15",
    "nadpis": "Přesné měření — nová sekce v Nástrojích: obejdi tvar, kalibrace před a po, kam s telefonem, dočasná základna DGPS",

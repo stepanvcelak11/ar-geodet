@@ -179,6 +179,26 @@
     // Vrací { a, stupen, trida, nadpis, zdroj, zdrojText, mereno, proc, text }
     //   trida  — 'ok' | 'warn' | 'bad' | 'none', shodné s data-q v existujících modulech
     //   text   — hotový krátký popisek („±0,42 m — změřeno druhým určením")
+    // KOREKCE, KTERÁ SE K BODU PŘIČETLA (15. 9. 2026, sekce Přesné měření): bod
+    // z GPS si nese, co dostal navíc — posun z chůze po hraně / ze známého bodu
+    // (p.refShift z js/ref-calibration.js, p.prov.refShift z js/brutal-gps.js),
+    // DGPS živě (src 'dgps-live') nebo zpětnou opravu z QR (prov.dgps). Bez téhle
+    // věty by karta tvrdila „jen co hlásí telefon" i o bodu, který kalibrací
+    // dostal půl metru zpátky na místo.
+    function korekceText(p) {
+        var prov = (p && p.prov) || {};
+        var r = (p && p.refShift) || prov.refShift;
+        var out = [];
+        if (r && cislo(r.dlat) != null && cislo(r.dlng) != null) {
+            var lat = (p && cislo(p.lat) != null) ? p.lat : 49.8;
+            var m = Math.hypot(r.dlng * 111320 * Math.cos(lat * Math.PI / 180), r.dlat * 111320);
+            var KDO = { hrana: 'z chůze po hraně', ref: 'z posunu na známý bod', 'dgps-live': 'DGPS živě ze základny' };
+            var kdo = KDO[r.src] || '(kalibrace GPS)';
+            out.push('K bodu se přičetla korekce ' + kdo + ': ' + fmt(m) + ' m' + (r.interp ? ', přepočtená podle času mezi dvěma chůzemi (kalibrace před a po)' : '') + '.');
+        }
+        if (prov.dgps && cislo(prov.dgps.mag) != null) out.push('Zpětně opravený DGPS ze základny ' + esc(prov.dgps.base || '') + ' o ' + fmt(prov.dgps.mag) + ' m.');
+        return out.join(' ');
+    }
     AGDuvera.bod = function (p) {
         var z = zdrojPresnosti(p);
         var stupen = stupenProPresnost(z.a);
@@ -186,6 +206,7 @@
         // Bod, jehož přesnost NIKDO nezměřil, nesmí dostat zelenou jen proto, že
         // telefon hlásí malé číslo. Nejvýš „použitelné" — zelená patří měření.
         if (!z.mereno && (stupen === 'dobre')) { stupen = 'pouzitelne'; s = STUPNE[stupen]; }
+        var kor = korekceText(p);
         return {
             a: z.a,
             stupen: stupen,
@@ -195,7 +216,8 @@
             zdroj: z.zdroj,
             zdrojText: z.zdrojText,
             mereno: z.mereno,
-            proc: z.proc,
+            korekce: kor,
+            proc: z.proc + (kor ? ' ' + kor : ''),
             text: (z.a == null) ? 'přesnost neznámá' : ('±' + fmt(z.a) + ' m — ' + z.zdrojText)
         };
     };

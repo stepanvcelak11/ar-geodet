@@ -821,7 +821,7 @@
         _mode = 'base';
         renderModal();
     }
-    window.AGDgps = { open: openModal, openBase: openBase, _test: { liveOffset: liveOffset, normCode: normCode, makeCode: makeCode, liveConnect: liveConnect, liveDisconnect: liveDisconnect, stav: function () { return { lr: _lr ? { code: _lr.code, off: _lr.off, err: _lr.err } : null, live: _live ? { code: _live.code, pulls: _live.pulls, err: _live.err } : null }; } } };
+    window.AGDgps = { open: openModal, openBase: openBase, _test: { candidates: candidates, liveOffset: liveOffset, normCode: normCode, makeCode: makeCode, liveConnect: liveConnect, liveDisconnect: liveDisconnect, stav: function () { return { lr: _lr ? { code: _lr.code, off: _lr.off, err: _lr.err } : null, live: _live ? { code: _live.code, pulls: _live.pulls, err: _live.err } : null }; } } };
     function register() {
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'dgps', label: 'Dvoutelefonní DGPS', icon: ICON, cat: 'Měření', onClick: openModal, order: 7 });
