@@ -205,7 +205,12 @@ async def main():
 
             # --- chyby
             await page.evaluate("() => { window.AGVlastnik.close(); window.agOpenKonzole(); }")
-            await page.wait_for_timeout(400)
+            # domov konzole se od v313 staví až po odpovědi serveru (tady žádný není → čeká se
+            # na timeout); pevných 400 ms nestačilo a test padal na null.click() (CI od 13. 9.)
+            for _ in range(25):
+                if await page.evaluate("() => Array.from(document.querySelectorAll('#agv-modal .agv-it')).some(x => x.textContent.indexOf('Chyby od lidí') >= 0)"):
+                    break
+                await page.wait_for_timeout(300)
             await page.evaluate("""() => {
                 Array.from(document.querySelectorAll('#agv-modal .agv-it'))
                     .find(x => x.textContent.indexOf('Chyby od lidí') >= 0).click();
@@ -229,8 +234,12 @@ async def main():
             # --- zebricek
             # kliky pres evaluate: nad konzoli muze viset dialog z predchoziho kroku
             # a Playwright by cekal na "element receives pointer events" az do timeoutu
-            await page.evaluate("() => document.getElementById('agv-zpet').click()")
-            await page.wait_for_timeout(400)
+            # od v313 je Zpět jedno velké tlačítko v hlavičce (#agv-hdr-back), malé #agv-zpet už není
+            await page.evaluate("() => (document.getElementById('agv-hdr-back') || document.getElementById('agv-zpet')).click()")
+            for _ in range(25):
+                if await page.evaluate("() => Array.from(document.querySelectorAll('#agv-modal .agv-it')).some(x => x.textContent.indexOf('doopravdy') >= 0)"):
+                    break
+                await page.wait_for_timeout(300)
             await page.evaluate("""() => {
                 Array.from(document.querySelectorAll('#agv-modal .agv-it'))
                     .find(x => x.textContent.indexOf('doopravdy') >= 0).click();
