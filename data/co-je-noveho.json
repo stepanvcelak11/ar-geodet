@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 336,
+   "datum": "2026-09-15",
+   "nadpis": "Vzdálené body do AR: území vybereš i z domova, body se dostáhnou z ČÚZK a jsou i v mapě",
+   "body": [
+    "<b>Mapou v nástroji posuneš a přiblížíš dvěma prsty</b> — nemusíš na tom území stát. Obdélník vybereš buď tahem jedním prstem jako dřív, nebo <b>ťuknutím na jeden roh a pak na protější</b> (mezi ťuknutími si mapu klidně posuň dál).",
+    "<b>Body ve výřezu se dostáhnou z ČÚZK.</b> Appka běžně stahuje bodové pole jen do 300 m kolem tebe, takže výřez 2 km daleko dřív hlásil „žádný bod“. Teď se pro něj bodové pole stáhne a vybere; bez signálu se vezme aspoň to, co telefon už má.",
+    "<b>Vybrané body se kreslí i v mapě</b>, ne jen v AR — i kilometry od tebe. Výřez a rohy jsou při výběru vidět přímo v mapě."
+   ]
+  },
+  {
    "v": 335,
    "datum": "2026-09-15",
    "nadpis": "Průchod appkou — 11 oprav z klikání přes všechny nástroje",

@@ -4,7 +4,8 @@
 // třeba 2 km daleko — natáhl bych tam čtvereček a zobrazily by se mi ještě body
 // v tom území a viděl bych je také v ARku."
 //
-// CO TO DĚLÁ: prstem se v mapě natáhne obdélník, body uvnitř dostanou příznak
+// CO TO DĚLÁ: v mapě se vybere obdélník (tahem, nebo ťuknutím na dva rohy; dvěma
+// prsty se mapa posouvá), body uvnitř se DOSTÁHNOU Z ČÚZK a dostanou příznak
 // „ukázat v AR vždy" a od té chvíle je AR kreslí BEZ OHLEDU na nastavený dosah
 // (Nastavení → AR → viditelnost, běžně 150 m). Výběr přežije restart, drží se
 // per zakázka a dá se jedním klepnutím zrušit.
@@ -104,8 +105,11 @@
                 for (var i = 0; i < pole.length; i++) {
                     var p = pole[i];
                     if (!p || p.lat == null || s[String(p.id)] !== 1) continue;
-                    if (p.currentDist == null) p.currentDist = getDistance(userLat, userLng, p.lat, p.lng);
-                    if (p.currentBearing == null) p.currentBearing = getBearing(userLat, userLng, p.lat, p.lng);
+                    // ⚠ VŽDY, ne jen když chybí: bod čerstvě stažený pro výřez má currentDist
+                    //   od STŘEDU VÝŘEZU (tak ho spočítal _cuzkVlozBody), ne ode mě — do dalšího
+                    //   fixu by v kartě i v AR svítilo 24 m u bodu 2 km daleko.
+                    p.currentDist = getDistance(userLat, userLng, p.lat, p.lng);
+                    p.currentBearing = getBearing(userLat, userLng, p.lat, p.lng);
                 }
             }
         } catch (e) { swallow(e, 'prekresli:azimut'); }
@@ -140,8 +144,27 @@
     }
 
     // ---- výběr obdélníkem ------------------------------------------------------------
+    // TŘI ZPŮSOBY (15. 9. 2026 večer, přání: „mám problém vybrat území, protože nemohu
+    // posouvat mapou a už musím být na místě — dvěma prsty posunout mapu a obdélník
+    // ťuknutím do mapy a druhým ťuknutím"):
+    //   • jeden prst TÁHNE  → obdélník jako dřív,
+    //   • ŤUKNUTÍ + ŤUKNUTÍ → první roh (značka v mapě), druhý roh = protější,
+    //   • DVA PRSTY         → posun a zoom mapy pod vrstvou (stejná matematika jako
+    //                         ovládání mapy v js/grafika.js, včetně otočení mapy).
+    // Po každém výřezu se body v něm ještě DOSTAHUJÍ Z ČÚZK (fetchGeodata se středem
+    // výřezu a poloměrem půl úhlopříčky): appka stahuje bodové pole jen do dosahu mapy
+    // kolem mě (300 m), takže území 2 km daleko dřív bývalo prázdné a nástroj hlásil
+    // „žádný nový bod". Vybrané body pak kreslí i mapa (_mimoDosahMapy v grafika.js).
     var _vrstva = null, _ram = null, _lista = null, _tah = null;
+    var _roh = null, _rohZnacka = null;        // první roh z ťuknutí (LatLng) + jeho značka v mapě
+    var _obdelnik = null;                      // poslední výřez nakreslený v mapě (L.rectangle)
+    var _pinch = null;                         // dva prsty: { d0, z0, x, y }
+    var _stahuji = false;
+    var TAP_PX = 24;                           // menší pohyb než tohle = ťuknutí, ne tah
+    var MAX_POLOMER_M = 2000;                  // půl úhlopříčky výřezu; větší výřez ČÚZK nestahujeme
 
+    function mapa() { try { return (typeof map !== 'undefined' && map && map.getCenter) ? map : null; } catch (e) { return null; } }
+    function rotace() { try { return (typeof mapRotation === 'number' && isFinite(mapRotation)) ? mapRotation : 0; } catch (e) { return 0; } }
     function bodZUdalosti(e) {
         if (e.touches && e.touches.length) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
         if (e.changedTouches && e.changedTouches.length) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
@@ -166,8 +189,11 @@
         //   uživatel nakreslil (naměřeno při otočení 45°: minul polovinu bodů).
         var rohy = [f(a.x, a.y), f(b.x, a.y), f(b.x, b.y), f(a.x, b.y)];
         for (var i = 0; i < rohy.length; i++) if (!rohy[i]) return null;
+        return bboxZLatLng(rohy);
+    }
+    function bboxZLatLng(rohy) {
         var lat1 = rohy[0].lat, lat2 = rohy[0].lat, lng1 = rohy[0].lng, lng2 = rohy[0].lng;
-        for (i = 1; i < rohy.length; i++) {
+        for (var i = 1; i < rohy.length; i++) {
             lat1 = Math.min(lat1, rohy[i].lat); lat2 = Math.max(lat2, rohy[i].lat);
             lng1 = Math.min(lng1, rohy[i].lng); lng2 = Math.max(lng2, rohy[i].lng);
         }
@@ -180,7 +206,7 @@
         var s = nacti(), pridano = 0, i, p, strop = false;
         for (i = 0; i < pole.length; i++) {
             p = pole[i];
-            if (!p || p.lat == null || p.lng == null) continue;
+            if (!p || p.lat == null || p.lng == null || p.hidden) continue;
             if (p.lat < bb.lat1 || p.lat > bb.lat2 || p.lng < bb.lng1 || p.lng > bb.lng2) continue;
             if (s[String(p.id)] === 1) continue;
             if (Object.keys(s).length >= MAX_BODU) { strop = true; break; }
@@ -190,24 +216,129 @@
         return { pridano: pridano, celkem: Object.keys(s).length, strop: strop };
     }
 
+    // ---- značky v mapě (roh, výřez) ---------------------------------------------------
+    function rohUkaz(ll) {
+        var m = mapa(); if (!m || typeof L === 'undefined') return;
+        try {
+            if (!_rohZnacka) _rohZnacka = L.circleMarker(ll, { radius: 8, color: '#38bdf8', weight: 3, fillColor: '#38bdf8', fillOpacity: 0.35, interactive: false, className: 'ag-dosah-roh' }).addTo(m);
+            else _rohZnacka.setLatLng(ll);
+        } catch (e) { swallow(e, 'rohUkaz'); }
+    }
+    function rohSmaz() {
+        _roh = null;
+        if (_rohZnacka) { try { _rohZnacka.remove(); } catch (e) { swallow(e, 'rohSmaz'); } _rohZnacka = null; }
+    }
+    function obdelnikUkaz(bb) {
+        var m = mapa(); if (!m || typeof L === 'undefined') return;
+        try {
+            var b = [[bb.lat1, bb.lng1], [bb.lat2, bb.lng2]];
+            if (!_obdelnik) _obdelnik = L.rectangle(b, { color: '#38bdf8', weight: 2, dashArray: '6,6', fillOpacity: 0.08, interactive: false, className: 'ag-dosah-vyrez' }).addTo(m);
+            else _obdelnik.setBounds(b);
+        } catch (e) { swallow(e, 'obdelnikUkaz'); }
+    }
+    function obdelnikSmaz() {
+        if (_obdelnik) { try { _obdelnik.remove(); } catch (e) { swallow(e, 'obdelnikSmaz'); } _obdelnik = null; }
+    }
+
+    // ---- dva prsty = posun a zoom mapy -------------------------------------------------
+    function prstyStred(t) { return { x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 }; }
+    function prstyDist(t) { return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY); }
+    function pinchStart(t) {
+        var m = mapa(); if (!m) return;
+        _tah = null; if (_ram) _ram.style.display = 'none';
+        var c = prstyStred(t);
+        _pinch = { d0: prstyDist(t), z0: m.getZoom(), x: c.x, y: c.y };
+        // mapa zůstane, kam ji dám — GPS fix ji nesmí vrátit na mě (tlačítko „Na mě" to vrátí)
+        try { window._mapHold = true; } catch (e) { swallow(e, 'pinchStart'); }
+    }
+    function pinchPohyb(t) {
+        var m = mapa(); if (!m || !_pinch) return;
+        var c = prstyStred(t), d = prstyDist(t);
+        try {
+            // ZOOM kolem středu mezi prsty (bod na obrazovce → bod mapy přes otočení)
+            if (_pinch.d0 > 0 && d > 0 && typeof window.agScreenToLatLng === 'function') {
+                var nz = _pinch.z0 + Math.log2(d / _pinch.d0);
+                nz = Math.max(m.getMinZoom(), Math.min(m.getMaxZoom(), nz));
+                var ll = window.agScreenToLatLng(c.x, c.y);
+                if (ll && Math.abs(nz - m.getZoom()) > 0.001) m.setZoomAround(m.latLngToContainerPoint(ll), nz, { animate: false });
+            }
+            // POSUN: pohyb středu prstů otočený do souřadnic mapy (jako v grafika.js)
+            var dx = c.x - _pinch.x, dy = c.y - _pinch.y;
+            if (dx || dy) {
+                var rad = rotace() * Math.PI / 180;
+                var lx = dx * Math.cos(rad) - dy * Math.sin(rad), ly = dx * Math.sin(rad) + dy * Math.cos(rad);
+                m.panBy([-lx, -ly], { animate: false });
+            }
+        } catch (e) { swallow(e, 'pinchPohyb'); }
+        _pinch.x = c.x; _pinch.y = c.y;
+    }
+    function pinchKonec() { _pinch = null; }
+
+    // ---- dokončení výřezu -----------------------------------------------------------------
+    function plural(n) { if (n === 1) return 'bod'; if (n >= 2 && n <= 4) return 'body'; return 'bodů'; }
+    function vzdalenost(a, b, c, d) {
+        try { if (typeof getDistance === 'function') return getDistance(a, b, c, d); } catch (e) { swallow(e, 'vzdalenost'); }
+        var m = 111320, k = Math.cos((a + c) / 2 * Math.PI / 180);
+        return Math.hypot((c - a) * m, (d - b) * m * k);
+    }
+    function hotovVyrez(bb) {
+        obdelnikUkaz(bb);
+        // 1) co už v telefonu je, vybrat HNED (i bez signálu)
+        var r = seber(bb);
+        prekresli();
+        if (r.strop) { srovnejListu('Víc než ' + MAX_BODU + ' bodů to nepustí — nejdřív něco odeber.'); return; }
+        var zprava = r.pridano ? ('Přidáno ' + r.pridano + ' ' + plural(r.pridano) + '. Vybráno celkem ' + r.celkem + '.') : 'V tom obdélníku zatím žádný bod není.';
+        // 2) dostáhnout z ČÚZK body, které appka pro tohle území ještě neměla
+        var clat = (bb.lat1 + bb.lat2) / 2, clng = (bb.lng1 + bb.lng2) / 2;
+        var polomer = Math.ceil(vzdalenost(clat, clng, bb.lat2, bb.lng2)) + 10;
+        if (typeof fetchGeodata !== 'function') { srovnejListu(zprava); return; }
+        if (polomer > MAX_POLOMER_M) { srovnejListu(zprava + ' Výřez je na stažení z ČÚZK moc velký (přes ' + Math.round(MAX_POLOMER_M * 2 / 1000) + ' km napříč) — zmenši ho.'); return; }
+        if (_stahuji) { srovnejListu(zprava); return; }
+        _stahuji = true;
+        srovnejListu(zprava + ' Stahuji body ČÚZK pro výřez…');
+        Promise.resolve().then(function () { return fetchGeodata(clat, clng, polomer, false); }).then(function () {
+            var r2 = seber(bb);
+            if (r2.pridano) prekresli();
+            var celkem = r.pridano + r2.pridano;
+            if (r2.strop) srovnejListu('Víc než ' + MAX_BODU + ' bodů to nepustí — nejdřív něco odeber.');
+            else if (!celkem) srovnejListu('V tom obdélníku žádný bod není — ani v bodovém poli ČÚZK.');
+            else srovnejListu('Přidáno ' + celkem + ' ' + plural(celkem) + (r2.pridano ? ' (z toho ' + r2.pridano + ' čerstvě z ČÚZK)' : '') + '. Vybráno celkem ' + r2.celkem + '.');
+        }).catch(function (e) {
+            swallow(e, 'hotovVyrez:fetch');
+            srovnejListu(zprava + ' ČÚZK teď neodpovídá — vybrané je jen to, co telefon už měl.');
+        }).then(function () { _stahuji = false; });
+    }
+
     function konecTahu(e) {
+        if (_pinch) { if (!e.touches || e.touches.length < 2) pinchKonec(); _tah = null; if (_ram) _ram.style.display = 'none'; return; }
         if (!_tah) return;
         var b = bodZUdalosti(e);
         var a = _tah;
         _tah = null;
         if (_ram) _ram.style.display = 'none';
-        // Ťuknutí bez tažení není výběr — jinak by každé omylem klepnutí do mapy
-        // sebralo bod pod prstem a nikdo by nevěděl proč.
-        if (Math.abs(b.x - a.x) < 24 || Math.abs(b.y - a.y) < 24) { srovnejListu('Natáhni obdélník — samotné ťuknutí nestačí.'); return; }
+        if (Math.abs(b.x - a.x) < TAP_PX && Math.abs(b.y - a.y) < TAP_PX) { tuknuti(b); return; }
         var bb = vyberDoBodu(a, b);
         if (!bb) { srovnejListu('Výřez se nepodařilo přepočítat.'); return; }
-        var r = seber(bb);
-        prekresli();
-        if (r.strop) srovnejListu('Víc než ' + MAX_BODU + ' bodů to nepustí — nejdřív něco odeber.');
-        else if (!r.pridano) srovnejListu('V tom obdélníku žádný nový bod není.');
-        else srovnejListu('Přidáno ' + r.pridano + ' ' + plural(r.pridano) + '. Vybráno celkem ' + r.celkem + '.');
+        rohSmaz();
+        hotovVyrez(bb);
     }
-    function plural(n) { if (n === 1) return 'bod'; if (n >= 2 && n <= 4) return 'body'; return 'bodů'; }
+    // Ťuknutí: první = roh (značka v mapě), druhé = protější roh → výřez. Mezi nimi jde
+    // mapou dvěma prsty posouvat — roh drží na svém místě v terénu, ne na obrazovce.
+    function tuknuti(b) {
+        var f = window.agScreenToLatLng;
+        var ll = (typeof f === 'function') ? f(b.x, b.y) : null;
+        if (!ll) { srovnejListu('Mapa ještě není připravená.'); return; }
+        if (!_roh) {
+            _roh = { lat: ll.lat, lng: ll.lng };
+            rohUkaz(ll);
+            srovnejListu('První roh je v mapě. Posuň si mapu dvěma prsty a ťukni na protější roh.');
+            return;
+        }
+        var bb = bboxZLatLng([_roh, ll]);
+        if (vzdalenost(bb.lat1, bb.lng1, bb.lat2, bb.lng2) < 5) { srovnejListu('Druhý roh je moc blízko prvního — ťukni dál.'); return; }
+        rohSmaz();
+        hotovVyrez(bb);
+    }
 
     function srovnejListu(zprava) {
         if (!_lista) return;
@@ -216,8 +347,8 @@
         if (t) {
             t.innerHTML = zprava
                 ? esc(zprava)
-                : (n ? ('V AR se ukáže <b>' + n + ' ' + plural(n) + '</b> i mimo dosah. Natáhni další obdélník, nebo dej Hotovo.')
-                    : 'Natáhni prstem obdélník přes body, které chceš vidět v AR i z dálky.');
+                : (n ? ('V AR i v mapě je <b>' + n + ' ' + plural(n) + '</b> mimo dosah. Další výřez: táhni, nebo ťukni na dva rohy. Dvěma prsty posuneš mapu.')
+                    : 'Táhni prstem obdélník přes body, které chceš vidět i z dálky — nebo ťukni na jeden roh a pak na protější. Dvěma prsty posuneš mapu.');
         }
         var z = _lista.querySelector('#ag-dosah-zrus');
         if (z) z.style.display = n ? '' : 'none';
@@ -251,15 +382,21 @@
 
         _lista.querySelector('#ag-dosah-hotovo').addEventListener('click', vypniVyber);
         _lista.querySelector('#ag-dosah-zrus').addEventListener('click', function () {
-            zrus(); srovnejListu('Výběr zrušen — v AR jsou zase jen body do nastaveného dosahu.');
+            zrus(); obdelnikSmaz(); rohSmaz(); srovnejListu('Výběr zrušen — v AR jsou zase jen body do nastaveného dosahu.');
         });
 
         var start = function (e) {
+            if (e.touches && e.touches.length >= 2) { pinchStart(e.touches); if (e.cancelable) e.preventDefault(); return; }
+            if (_pinch) return;
             _tah = bodZUdalosti(e);
             ramNa(_tah, _tah);
             if (e.cancelable) e.preventDefault();
         };
         var pohyb = function (e) {
+            if (e.touches && e.touches.length >= 2) {
+                if (!_pinch) pinchStart(e.touches); else pinchPohyb(e.touches);
+                if (e.cancelable) e.preventDefault(); return;
+            }
             if (!_tah) return;
             ramNa(_tah, bodZUdalosti(e));
             if (e.cancelable) e.preventDefault();
@@ -267,16 +404,17 @@
         _vrstva.addEventListener('touchstart', start, { passive: false });
         _vrstva.addEventListener('touchmove', pohyb, { passive: false });
         _vrstva.addEventListener('touchend', konecTahu);
-        _vrstva.addEventListener('touchcancel', function () { _tah = null; if (_ram) _ram.style.display = 'none'; });
+        _vrstva.addEventListener('touchcancel', function (e) { if (!e.touches || !e.touches.length) pinchKonec(); _tah = null; if (_ram) _ram.style.display = 'none'; });
         _vrstva.addEventListener('mousedown', start);
         _vrstva.addEventListener('mousemove', pohyb);
         _vrstva.addEventListener('mouseup', konecTahu);
     }
     function vypniVyber() {
         [_vrstva, _ram, _lista].forEach(function (el) { if (el && el.parentNode) el.parentNode.removeChild(el); });
-        _vrstva = _ram = _lista = null; _tah = null;
+        _vrstva = _ram = _lista = null; _tah = null; _pinch = null;
+        rohSmaz(); obdelnikSmaz();
         var n = pocet();
-        if (n) toast('V AR se teď ukáže ' + n + ' vzdálených ' + (n === 1 ? 'bod' : 'bodů') + '.');
+        if (n) toast('V AR i v mapě se teď ukáže ' + n + ' vzdálených ' + (n === 1 ? 'bod' : 'bodů') + '.');
     }
 
     function otevri() {

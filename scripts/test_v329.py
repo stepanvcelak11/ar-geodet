@@ -96,6 +96,16 @@ async def route_vse(route, request):
             return await route.fulfill(status=200, content_type='application/json', body=json.dumps(RUIAN_OBEC), headers={'Access-Control-Allow-Origin': '*'})
         if 'Prohlizeci_sluzba_nad_daty_RUIAN/MapServer/3/query' in u:
             return await route.fulfill(status=200, content_type='application/json', body=json.dumps(RUIAN_SO), headers={'Access-Control-Allow-Origin': '*'})
+        if 'BodovaPole/MapServer/identify?' in u:
+            # F: dostažení bodů pro výřez — TB kousek od středu dotazu (skutečná pole vrstvy 18)
+            m = re.search(r'geometry=(-?[\d.]+),(-?[\d.]+)', u)
+            cx, cy = (float(m.group(1)), float(m.group(2))) if m else (LNG, LAT)
+            return await route.fulfill(status=200, content_type='application/json', headers={'Access-Control-Allow-Origin': '*'},
+                                       body=json.dumps({'results': [{'layerId': 18, 'layerName': 'Bod ZPBP', 'attributes': {
+                                           'ZTLTL': '9999', 'CISLO': 7, 'PL': 0, 'DRUH': 'TB', 'Y': '  744233.46', 'X': ' 1042459.18', 'VYSKA': '   348.41',
+                                           'B': None, 'L': None, 'HEL': None, 'GPS': None, 'GEODETICKE_UDAJE': 'https://geoportal.cuzk.cz/mistopis2/mistopis_soap_hh.asp?NAME=BP_TB&TYP=TB&HID=f',
+                                           'NAZEV_OKRES': 'Hlavní město Praha', 'NAZEV_KU': 'Test', 'ZM50': ' 1224', 'NAZEV_SMO5': 'PRAHA 7-1', 'CISLO_SMO5': '60771', 'TYPV': 0, 'OBJECTID': 1, 'ID': 1},
+                                           'geometry': {'x': cx + 0.0003, 'y': cy + 0.0001}}]}))
         if '/cuzk/nacrt?' in u:
             return await route.fulfill(status=200, content_type='application/json', headers={'Access-Control-Allow-Origin': '*'},
                                        body=json.dumps({'ok': True, 'page': 'https://dataz.cuzk.gov.cz/gu.php?1=1', 'img': [
@@ -240,6 +250,51 @@ async def beh(url):
         ok('D9 řádek „Mapový list" v kartě bodu', 'Mapový list' in d8['rows'] and 'ZM50 1224' in d8['rows'] and 'SMO-5 PRAHA 7-1 (60771)' in d8['rows'], d8['rows'][-300:])
         d10 = await page.evaluate("""() => { var pt = agCuzkBod(42, { OBJECTID: 1627, ID: 1627, CISLO_KU: 729272, CISLO: 1034, Y: '  744558.83', X: ' 1041866.44', VYSKA: null, PRESNOST: 3, GEODETICKE_UDAJE: 'https://x/', NAZEV_OKRES: 'Hlavní město Praha', NAZEV_KU: 'Dejvice', CISLO_SMO5: 60770 }, 14.4, 50.09, 40, null); return { zm50: pt.zm50, smo5: pt.smo5, rows: agCuzkKartaRows(pt) }; }""")
         ok('D10 PPBP: jen číslo SMO-5 (bez ZM50), číselné pole přežije', d10['zm50'] is None and d10['smo5'] == '60770' and 'SMO-5 60770' in d10['rows'] and 'ZM50' not in d10['rows'], d10)
+
+        # ---- F: Vzdálené body do AR — dva rohy ťuknutím, dva prsty posun, dostažení z ČÚZK (15. 9. večer)
+        # Území 1,7 km severně: appka tam nic staženého nemá (dosah mapy 300 m). Mock identify
+        # ČÚZK vrací jeden TB kousek od středu dotazu — nástroj ho musí stáhnout, vybrat a mapa nakreslit.
+        await cekej(page, "window.AGDosah && typeof agOpenArDosah === 'function'", 20)
+        await page.evaluate("() => { window._mapHold = true; map.setView([%f, %f], 17, { animate: false }); }" % (LAT + 0.015, LNG))
+        await page.wait_for_timeout(500)
+        await page.evaluate("() => agOpenArDosah()")
+        await page.wait_for_timeout(500)
+        f0 = await page.evaluate("() => ({ vrstva: !!document.getElementById('ag-dosah-vrstva'), txt: (document.querySelector('#ag-dosah-lista .txt') || {}).textContent || '' })")
+        ok('F1 výběr se otevřel a lišta radí ťuknutí na dva rohy + dva prsty', f0['vrstva'] and 'na jeden roh a pak na protější' in f0['txt'] and 'Dvěma prsty' in f0['txt'], f0)
+        # dva prsty = posun mapy (syntetické TouchEvent, Playwright dvouprstý tah neumí)
+        c0 = await page.evaluate("() => map.getCenter().lat")
+        f2 = await page.evaluate("""() => {
+            var v = document.getElementById('ag-dosah-vrstva');
+            function T(id, x, y) { return new Touch({ identifier: id, target: v, clientX: x, clientY: y, pageX: x, pageY: y }); }
+            function ev(typ, ts) { return new TouchEvent(typ, { touches: ts, changedTouches: ts, targetTouches: ts, bubbles: true, cancelable: true }); }
+            v.dispatchEvent(ev('touchstart', [T(1, 150, 300), T(2, 250, 300)]));
+            v.dispatchEvent(ev('touchmove', [T(1, 150, 400), T(2, 250, 400)]));
+            v.dispatchEvent(ev('touchmove', [T(1, 150, 500), T(2, 250, 500)]));
+            v.dispatchEvent(ev('touchend', []));
+            return { lat: map.getCenter().lat, ram: document.getElementById('ag-dosah-ram').style.display, hold: !!window._mapHold, pocet: AGDosah.pocet() };
+        }""")
+        ok('F2 dva prsty posunou mapu (obsah jde s prsty dolů = střed na sever), bez rámečku výběru', f2['lat'] > c0 + 0.0005 and f2['ram'] != 'block' and f2['hold'] and f2['pocet'] == 0, {'pred': c0, 'po': f2})
+        await page.touchscreen.tap(100, 300)
+        await page.wait_for_timeout(300)
+        f3 = await page.evaluate("() => ({ txt: (document.querySelector('#ag-dosah-lista .txt') || {}).textContent || '', pocet: AGDosah.pocet(), znacka: !!document.querySelector('#map path.ag-dosah-roh') })")
+        ok('F3 první ťuknutí = roh (značka v mapě, nic nevybráno)', 'První roh' in f3['txt'] and f3['pocet'] == 0 and f3['znacka'], f3)
+        await page.touchscreen.tap(300, 600)
+        ok('F4 druhé ťuknutí = výřez, body se dostahují z ČÚZK a vyberou', await cekej(page, "AGDosah.pocet() >= 1 && /čerstvě z ČÚZK/.test((document.querySelector('#ag-dosah-lista .txt') || {}).textContent)", 25),
+           await page.evaluate("() => (document.querySelector('#ag-dosah-lista .txt') || {}).textContent"))
+        f5 = await page.evaluate("""() => {
+            var p = arPoints.find(x => x.rawData && x.rawData.ZTLTL === '9999' && x.lat > 50.085500);   // mock odpovídá i běžnému stahování kolem mě
+            if (!p) return { bod: false };
+            var vMape = false;
+            try { markersGroup.eachLayer(function (l) { if (l.getLatLng && Math.abs(l.getLatLng().lat - p.lat) < 1e-9 && Math.abs(l.getLatLng().lng - p.lng) < 1e-9) vMape = true; }); } catch (e) { }
+            return { bod: true, name: p.name, cislo12: p.cislo12, vzdy: AGDosah.vzdy(p.id), vMape: vMape, dist: Math.round(p.currentDist || 0), bearing: p.currentBearing,
+                     obdelnik: !!document.querySelector('#map path.ag-dosah-vyrez') };
+        }""")
+        ok('F5 stažený TB je vybraný, má azimut a MAPA ho kreslí 1,7 km od uživatele', f5['bod'] and f5['vzdy'] and f5['vMape'] and f5['dist'] > 1200 and f5['bearing'] is not None and f5['obdelnik'], f5)
+        await page.evaluate("() => document.getElementById('ag-dosah-hotovo').click()")
+        await page.wait_for_timeout(400)
+        f6 = await page.evaluate("() => ({ vrstva: !!document.getElementById('ag-dosah-vrstva'), obdelnik: !!document.querySelector('#map path.ag-dosah-vyrez'), pocet: AGDosah.pocet() })")
+        ok('F6 Hotovo zavře výběr, sundá výřez z mapy, výběr zůstane', not f6['vrstva'] and not f6['obdelnik'] and f6['pocet'] >= 1, f6)
+        await page.evaluate("() => { AGDosah.zrus(); window._mapHold = false; }")
 
         # ---- E: texty a ikony ---------------------------------------------------------
         for f in ['js/tools-registry.js', 'data/navody.json', 'data/co-je-noveho.json', 'js/oblasti-offline.js']:
