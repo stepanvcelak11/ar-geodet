@@ -129,6 +129,24 @@ if ('serviceWorker' in navigator) {
             return isFinite(v) ? v : NaN;
         }
         window.agNumIn = agNumIn;
+        // MÍSTNÍ ROVINNÉ SOUŘADNICE (16. 9. 2026, měření mimo ČR): všechno, co uživatel VIDÍ,
+        // ZADÁVÁ nebo EXPORTUJE, jde přes registr zemí (js/sour-zeme.js) — v ČR je to dál
+        // S-JTSK {y,x} kladné, v Německu E/N, v Polsku X/Y… Přímé proj4 na EPSG:5514 zůstává
+        // jen tam, kde jde o data ČÚZK/RÚIAN/VFK (ta jsou v Křováku vždy).
+        function agMistni(lat, lng) {
+            try { if (window.GeoCore && GeoCore.toMistni) return GeoCore.toMistni(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agMistni'); }
+            const r = proj4("EPSG:4326", "EPSG:5514", [lng, lat]); return { y: Math.abs(r[0]), x: Math.abs(r[1]) };
+        }
+        window.agMistni = agMistni;
+        // Tvar pole [y, x] pro moduly, které dřív četly proj4 výsledek přes Math.abs(s[0]), Math.abs(s[1]).
+        window.agMistniPole = function (lat, lng) { const m = agMistni(lat, lng); return [m.y, m.x]; };
+        // Popisky os a výšky podle země ("Y"/"X"/"Bpv" v ČR).
+        function agOsy() {
+            try { if (window.AGSour) return AGSour.popisky(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agOsy'); }
+            return { osaA: 'Y', osaB: 'X', system: 'S-JTSK', vyska: 'Bpv', krovak: true, zeme: 'CZ' };
+        }
+        window.agOsy = window.agOsy || agOsy;
+        window.agSys = window.agSys || function () { return agOsy().krovak ? 'S-JTSK' : agOsy().system; };
         proj4.defs("EPSG:5514","+proj=krovak +lat_0=49.5 +lon_0=24.83333333333333 +alpha=30.28813972222222 +k=0.9999 +x_0=0 +y_0=0 +ellps=bessel +towgs84=570.8,85.7,462.8,4.998,1.587,5.261,3.56 +units=m +no_defs");
         const map = L.map('map', { maxZoom: 22, minZoom: 10, zoomSnap: 0, zoomDelta: 1, zoomControl: false, dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false });
         // SLABŠÍ TELEFON (js/slabsi-telefon.js, 15. 9. 2026 — plynulost 2. kolo, bod 06):
@@ -573,7 +591,7 @@ if ('serviceWorker' in navigator) {
         window.agReleaseWakeLock = releaseWakeLock;
         window.agWakeLockHeld = function () { return wakeLock !== null; };
 
-        function setMeasurePoint(type) { if (!userLat || !userLng) return agInfo("Hledám GPS polohu. Počkej chvíli…"); const pt = { lat: userLat, lng: userLng, alt: userAlt }; let altStr = "Výška: nedostupná"; if (pt.alt !== null) { let bpv = pt.alt - getGeoidUndulation(pt.lat, pt.lng); altStr = `Výška (Bpv): ${bpv.toFixed(1)} m`; } let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); let coordsStr = `Y: ${Math.abs(sjtsk[0]).toFixed(2)} | X: ${Math.abs(sjtsk[1]).toFixed(2)}<br><span style="opacity:0.7;">${altStr}</span>`; if (type === 'A') { measA = pt; document.getElementById('meas-a-coords').innerHTML = coordsStr; } else { measB = pt; document.getElementById('meas-b-coords').innerHTML = coordsStr; } calcMeasure(); }
+        function setMeasurePoint(type) { if (!userLat || !userLng) return agInfo("Hledám GPS polohu. Počkej chvíli…"); const pt = { lat: userLat, lng: userLng, alt: userAlt }; let altStr = "Výška: nedostupná"; if (pt.alt !== null) { let bpv = pt.alt - getGeoidUndulation(pt.lat, pt.lng); altStr = `Výška (${agOsy().vyska}): ${bpv.toFixed(1)} m`; } let sjtsk = agMistni(pt.lat, pt.lng); let coordsStr = `${agOsy().osaA}: ${sjtsk.y.toFixed(2)} | ${agOsy().osaB}: ${sjtsk.x.toFixed(2)}<br><span style="opacity:0.7;">${altStr}</span>`; if (type === 'A') { measA = pt; document.getElementById('meas-a-coords').innerHTML = coordsStr; } else { measB = pt; document.getElementById('meas-b-coords').innerHTML = coordsStr; } calcMeasure(); }
         function calcMeasure() { if (!measA || !measB) return; const hDist = getDistance(measA.lat, measA.lng, measB.lat, measB.lng); document.getElementById('meas-horiz').innerText = `${hDist.toFixed(2)} m`; if (measA.alt !== null && measB.alt !== null) { const elev = measB.alt - measA.alt; const slant = Math.sqrt(hDist * hDist + elev * elev); document.getElementById('meas-elev').innerText = `${elev > 0 ? '+' : ''}${elev.toFixed(2)} m`; document.getElementById('meas-slant').innerText = `${slant.toFixed(2)} m`; } else { document.getElementById('meas-elev').innerText = "Nedostupné"; document.getElementById('meas-slant').innerText = "Nedostupné"; } }
         function resetMeasure() { measA = null; measB = null; document.getElementById('meas-a-coords').innerHTML = "Nenastaveno"; document.getElementById('meas-b-coords').innerHTML = "Nenastaveno"; document.getElementById('meas-horiz').innerText = "-- m"; document.getElementById('meas-elev').innerText = "-- m"; document.getElementById('meas-slant').innerText = "-- m"; }
         function updateFilters() { filters.tb = document.getElementById('f-tb').checked; filters.zhb = document.getElementById('f-zhb').checked; filters.pbpp = document.getElementById('f-pbpp').checked; filters.nivel = document.getElementById('f-nivel').checked; filters.custom = document.getElementById('f-custom').checked; setStoredData('arFilters12', JSON.stringify(filters)); drawAllMarkersOnMap(); }
@@ -749,8 +767,8 @@ if ('serviceWorker' in navigator) {
         function exportPointsCSV() {
             if (persistentCustomPoints.length === 0) return agInfo("Nemáš žádné body.");
             let lines = persistentCustomPoints.map(pt => {
-                let sj = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]);
-                let y = Math.abs(sj[0]).toFixed(2), x = Math.abs(sj[1]).toFixed(2);
+                let sj = agMistni(pt.lat, pt.lng);
+                let y = sj.y.toFixed(2), x = sj.x.toFixed(2);
                 let nm = String(pt.name == null ? 'Bod' : pt.name).replace(/[;\r\n]/g, ' ');
                 // kod bodu jako 5. sloupec (kdyz je); bez vysky drzime prazdny sloupec Z, at sedi poradi
                 let kd = pt.kod ? String(pt.kod).replace(/[;\r\n]/g, ' ') : '';
@@ -763,15 +781,21 @@ if ('serviceWorker' in navigator) {
         function exportPointsTXT() {
             if (persistentCustomPoints.length === 0) return agInfo("Nem\u00e1te \u017e\u00e1dn\u00e9 body.");
             let lines = persistentCustomPoints.map(pt => {
-                let sj = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]);
+                let sj = agMistni(pt.lat, pt.lng);
                 let nm = String(pt.name == null ? 'Bod' : pt.name).replace(/[;\r\n]/g, ' ');
                 let kd = pt.kod ? String(pt.kod).replace(/[;\r\n]/g, ' ') : '';
-                return nm + ';' + Math.abs(sj[0]).toFixed(2) + ';' + Math.abs(sj[1]).toFixed(2) + (pt.vyska != null ? ';' + Number(pt.vyska).toFixed(2) : (kd ? ';' : '')) + (kd ? ';' + kd : '');
+                return nm + ';' + sj.y.toFixed(2) + ';' + sj.x.toFixed(2) + (pt.vyska != null ? ';' + Number(pt.vyska).toFixed(2) : (kd ? ';' : '')) + (kd ? ';' + kd : '');
             });
             _exportVen(`body_${activeProjectId}.txt`, 'text/plain', lines.join("\r\n") + "\r\n");
         }
         // S-JTSK Y,X (kladne) -> WGS84. Pořadí os podle ROZSAHŮ pro ČR (Y 400-935k,
         // X 935-1300k) — sdílená logika v GeoCore.fromSJTSK; mimo rozsah padá na min/max.
+        // Vstup od uživatele / import v rovině TÉ země, kde stojím (v ČR = sjtskToLatLng).
+        function mistniToLatLng(a, b) {
+            try { if (window.GeoCore && GeoCore.fromMistni) return GeoCore.fromMistni(a, b); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:mistniToLatLng'); }
+            return sjtskToLatLng(a, b);
+        }
+        window.mistniToLatLng = mistniToLatLng;
         function sjtskToLatLng(a, b) {
             if (typeof GeoCore !== 'undefined' && GeoCore.fromSJTSK) return GeoCore.fromSJTSK(a, b);
             let Y = Math.min(Math.abs(a), Math.abs(b)), X = Math.max(Math.abs(a), Math.abs(b));
@@ -924,9 +948,9 @@ if ('serviceWorker' in navigator) {
             // trefila hlaska "Pockejte na ustaleni prumerovani GPS" a bod by nesel vyplnit.
             const _mpf = window.AGManualPos;
             if (_mpf && _mpf.active && _mpf.lat != null) {
-                const _sjm = proj4("EPSG:4326", "EPSG:5514", [_mpf.lng, _mpf.lat]);
-                document.getElementById('custom-y').value = Math.abs(_sjm[0]).toFixed(2);
-                document.getElementById('custom-x').value = Math.abs(_sjm[1]).toFixed(2);
+                const _sjm = agMistni(_mpf.lat, _mpf.lng);
+                document.getElementById('custom-y').value = _sjm.y.toFixed(2);
+                document.getElementById('custom-x').value = _sjm.x.toFixed(2);
                 pendingPointAccuracy = _mpf.acc;
                 // origin 'mapa' zaroven VYRADI bod z Helmertovy lokalizace (ta bezi jen nad
                 // 'gps-avg', viz saveCustomPoint) — posunout rucne trefeny roh budovy
@@ -948,9 +972,9 @@ if ('serviceWorker' in navigator) {
             if (_fx && _fx.ts && (Date.now() - _fx.ts) > 10000) { agInfo('Poloha je stará ' + Math.round((Date.now() - _fx.ts) / 1000) + ' s — GPS teď nedodává čerstvé fixy.\n\nPočkej pod volným nebem na obnovení signálu a zkus to znovu.'); return; }
             if (gpsAvgResult && gpsAvgResult.coarse) { agInfo("Slabý GNSS signál — telefon hlásí síťovou polohu ±" + Math.round(gpsAvgResult.acc) + " m, ne satelitní fix.\n\nVyjdi pod volné nebe a počkej, až se přesnost zlepší pod 20 m."); return; }
             if (!gpsAvgResult || gpsAvgResult.n < 2) { agInfo("Počkej na ustálení průměrování GPS (stůj chvíli na místě)."); return; }
-            const r = gpsAvgResult; let sjtsk = proj4("EPSG:4326", "EPSG:5514", [r.lng, r.lat]);
-            document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2);
-            document.getElementById('custom-x').value = Math.abs(sjtsk[1]).toFixed(2);
+            const r = gpsAvgResult; let sjtsk = agMistni(r.lat, r.lng);
+            document.getElementById('custom-y').value = sjtsk.y.toFixed(2);
+            document.getElementById('custom-x').value = sjtsk.x.toFixed(2);
             pendingPointAccuracy = r.sterr;
             window._agPointOrigin = 'gps-avg';   // #2/#5: tenhle bod vzniká z GPS průměru → správná provenience + brána pro Helmert (#3)
             // VYSKA: prumerovana elipsoidicka vyska -> Bpv (odecet undulace geoidu). Chybi-li (desktop), Z necham.
@@ -962,7 +986,7 @@ if ('serviceWorker' in navigator) {
             if (note) {
                 note.style.display = 'block';
                 let h = `Zprůměrováno z <b>${r.n}</b> měření · ⌀ přesnost <b>±${r.sterr.toFixed(2)} m</b> · σ ±${r.sigma.toFixed(2)} m`;
-                h += bpv != null ? ` · výška Bpv <b>${bpv.toFixed(2)} m</b>${r.altSterr != null ? ` (±${r.altSterr.toFixed(2)} m, ${r.altN}×)` : ''}` : ` · <span style="opacity:.7">výšku telefon nehlásí</span>`;
+                h += bpv != null ? ` · výška ${agOsy().vyska} <b>${bpv.toFixed(2)} m</b>${r.altSterr != null ? ` (±${r.altSterr.toFixed(2)} m, ${r.altN}×)` : ''}` : ` · <span style="opacity:.7">výšku telefon nehlásí</span>`;
                 note.innerHTML = h;
             }
         }
@@ -1046,9 +1070,9 @@ if ('serviceWorker' in navigator) {
         // i pri necinnosti vratil rozdil v milimetrech a "zmenu" hlasil vzdycky.
         function _provPoEdici(stary, inputY, inputX, vyska) {
             try {
-                const sj = proj4("EPSG:4326", "EPSG:5514", [stary.lng, stary.lat]);
-                const stejneYX = Math.abs(sj[0]).toFixed(2) === Math.abs(inputY).toFixed(2)
-                    && Math.abs(sj[1]).toFixed(2) === Math.abs(inputX).toFixed(2);
+                const sj = agMistni(stary.lat, stary.lng);
+                const stejneYX = sj.y.toFixed(2) === (agOsy().krovak ? Math.abs(inputY) : inputY).toFixed(2)
+                    && sj.x.toFixed(2) === (agOsy().krovak ? Math.abs(inputX) : inputX).toFixed(2);
                 const staraZ = (stary.vyska == null || !isFinite(stary.vyska)) ? null : Math.round(stary.vyska * 100) / 100;
                 if (stejneYX && staraZ === vyska) return null;   // jen prejmenovani/kod -> puvod zustava
                 const p = stary.prov || {};
@@ -1071,7 +1095,7 @@ if ('serviceWorker' in navigator) {
                 const _prazdne = !String((document.getElementById('custom-y') || {}).value || '').trim() && !String((document.getElementById('custom-x') || {}).value || '').trim();
                 return agInfo(_prazdne ? 'Vyplň souřadnice Y a X.' : ('Souřadnici ' + _bad + ' se nepodařilo přečíst — zkontroluj, jestli tam není písmeno navíc. Čárka i tečka jsou v pořádku.'));
             }
-            let krovakY = inputY > 0 ? -inputY : inputY; let krovakX = inputX > 0 ? -inputX : inputX; let wgs84 = proj4("EPSG:5514", "EPSG:4326", [krovakY, krovakX]); let lng = wgs84[0]; let lat = wgs84[1]; var _zin = agNumIn('custom-z'); var vyska = isFinite(_zin) ? Math.round(_zin * 100) / 100 : null;
+            let _ll = mistniToLatLng(inputY, inputX); let lng = _ll.lng; let lat = _ll.lat; var _zin = agNumIn('custom-z'); var vyska = isFinite(_zin) ? Math.round(_zin * 100) / 100 : null;
             // #2/#3: nový bod z GPS průměru srovnej Helmertovou lokalizací staveniště (když je aktivní).
             // Jen pro nově měřený GPS bod — ne při editaci ani u ručně zadaných S-JTSK.
             try {
@@ -1833,6 +1857,7 @@ if ('serviceWorker' in navigator) {
                     var _mp = window.AGManualPos;
                     if (_mp && _mp.active) _mp.onFix(position.coords.latitude, position.coords.longitude, position.coords.accuracy);
                     if (_mp && _mp.active) { userLat = _mp.lat; userLng = _mp.lng; }
+                    try { if (window.AGSour) AGSour.poloha(userLat, userLng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:AGSour.poloha'); }
                     magneticDeclination = getDeclination(userLat, userLng);
                     try { if (window.AGPose) window.AGPose.checkDrift(userLat, userLng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agStartGpsWatch'); }   // #1: kotvení se zneplatní, když reálně odejdu ze stanoviska
                     userAlt = (position.coords.altitude != null && isFinite(position.coords.altitude)) ? position.coords.altitude : null;
@@ -1961,7 +1986,7 @@ if ('serviceWorker' in navigator) {
         // Plocha Gaussovou (shoelace) formuli a obvod v ROVINNYCH souradnicich S-JTSK -> pro CR presne.
         function polygonAreaPerimeter(verts) {
             if (!verts || verts.length < 2) return { area: 0, perim: 0 };
-            const pts = verts.map(v => proj4("EPSG:4326", "EPSG:5514", [v.lng, v.lat]));
+            const pts = verts.map(v => { const m = agMistni(v.lat, v.lng); return [m.y, m.x]; });
             let perim = 0;
             for (let i = 1; i < pts.length; i++) perim += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
             let area = 0;

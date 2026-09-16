@@ -331,14 +331,15 @@
     // coz byl jediny takovy pripad v celem repu a cekalo to na zamenu pri prvni uprave.
     function toSJTSK(lat, lng) {
         try {
-            if (window.GeoCore && GeoCore.toSJTSK) {
-                const s = GeoCore.toSJTSK(lat, lng);
+            if (window.AGSour) { const c = AGSour.proCad(lat, lng); if (!c || !isFinite(c.x) || !isFinite(c.y)) return null; return [c.x, c.y]; }
+            if (window.GeoCore && GeoCore.toMistni) {
+                const s = GeoCore.toMistni(lat, lng);
                 if (!s || !isFinite(s.y) || !isFinite(s.x)) return null;
                 return [-s.y, -s.x];
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vylepseni:toSJTSK'); }
         if (typeof proj4 !== 'function') return null;
-        try { const sj = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return [sj[0], sj[1]]; }
+        try { const sj = window.agMistniPole(lat, lng); return [-sj[0], -sj[1]]; }   // kladné [Y, X] → záporný Křovák
         catch (e) { return null; }
     }
     function dxfDownload(filename, text) {
@@ -409,7 +410,7 @@
         if (!nOk && !lines.length) { agAlert({ title: 'Není co exportovat', message: 'Body nemají platné souřadnice.' }); return; }
 
         const dxf =
-            '999\nQTRIG — S-JTSK (EPSG:5514), vykresova orientace (sever nahoru), metry\n' +
+            '999\nQTRIG — ' + (agOsy().krovak ? 'S-JTSK (EPSG:5514)' : agOsy().system + (agOsy().epsg ? ' (EPSG:' + agOsy().epsg + ')' : '')) + ', vykresova orientace (sever nahoru), metry\n' +
             '0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1009\n9\n$INSUNITS\n70\n6\n0\nENDSEC\n' +
             '0\nSECTION\n2\nENTITIES\n' + e + '0\nENDSEC\n0\nEOF\n';
 
@@ -665,7 +666,7 @@
         const esc = escapeHtml;
         const cards = rows.map(function (r, idx) {
             return '<div class="card"><div class="hd"><span class="num">#' + esc(r.name) + '</span><span class="t">' + esc(r.when) + '</span></div>' +
-                '<table><tr><th>S-JTSK Y</th><td>' + r.Y + '</td><th>S-JTSK X</th><td>' + r.X + '</td></tr>' +
+                '<table><tr><th>' + agSys() + ' ' + agOsy().osaA + '</th><td>' + r.Y + '</td><th>' + agSys() + ' ' + agOsy().osaB + '</th><td>' + r.X + '</td></tr>' +
                 '<tr><th>Přesnost</th><td>' + esc(r.acc) + '</td><th>Pořadí</th><td>' + (idx + 1) + ' / ' + rows.length + '</td></tr></table>' +
                 (r.photo ? '<img class="ph" src="' + r.photo + '">' : '<div class="nophoto">bez fotodokumentace</div>') +
                 '</div>';
@@ -700,10 +701,10 @@
         const proj = projName(typeof activeProjectId !== 'undefined' ? activeProjectId : '') || (typeof activeProjectId !== 'undefined' ? activeProjectId : '');
         Promise.all(done.map(function (pt) {
             const rec = stakeoutData[pt.id];
-            const sj = proj4('EPSG:4326', 'EPSG:5514', [pt.lng, pt.lat]);
+            const sj = window.agMistniPole(pt.lat, pt.lng);
             const when = rec.t ? new Date(rec.t).toLocaleString('cs-CZ') : '';
             return photoGet(photoKey(pt)).catch(function () { return null; }).then(function (photo) {
-                return { name: pt.name, Y: Math.abs(sj[0]).toFixed(2), X: Math.abs(sj[1]).toFixed(2), when: when, acc: rec.acc != null ? '±' + rec.acc + ' m' : '—', photo: photo };
+                return { name: pt.name, Y: sj[0].toFixed(2), X: sj[1].toFixed(2), when: when, acc: rec.acc != null ? '±' + rec.acc + ' m' : '—', photo: photo };
             });
         })).then(function (rows) {
             const w = window.open('', '_blank');

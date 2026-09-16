@@ -562,7 +562,7 @@
             var near = null;
             try { if (typeof userLat !== 'undefined' && userLat != null) { var da = planarDist(r.a.lat, r.a.lng, userLat, userLng), db = planarDist(r.b.lat, r.b.lng, userLat, userLng); near = da <= db ? 'a' : 'b'; } } catch (e) { swallow(e, 'near'); }
             var u = Math.sqrt(Math.pow(s[0].u || 0.03, 2) + Math.pow(s[1].u || 0.03, 2)) / Math.max(0.2, Math.sin(r.gamma * Math.PI / 180));
-            function sj(ll) { try { if (window.GeoCore && GeoCore.toSJTSK) { var q = GeoCore.toSJTSK(ll.lat, ll.lng); return 'Y ' + q.y.toFixed(2) + '  X ' + q.x.toFixed(2); } } catch (e) { swallow(e, 'sj'); } return ll.lat.toFixed(6) + ', ' + ll.lng.toFixed(6); }
+            function sj(ll) { try { if (window.GeoCore && GeoCore.toMistni) { var q = GeoCore.toMistni(ll.lat, ll.lng); return 'Y ' + q.y.toFixed(2) + '  X ' + q.x.toFixed(2); } } catch (e) { swallow(e, 'sj'); } return ll.lat.toFixed(6) + ', ' + ll.lng.toFixed(6); }
             // Známé body z Přesné GPS (ne úřední/importované): tvar a délky vyjdou na cm,
             // ale poloha CELKU zdědí jejich chybu — řetězec „chůze po hraně → Přesná GPS →
             // akustika" (uživatel 15. 9. 2026) to má říkat nahlas, ne schovat do ±3 cm.

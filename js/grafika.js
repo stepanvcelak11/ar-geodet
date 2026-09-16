@@ -1196,8 +1196,8 @@
             const k = pt.lat + ',' + pt.lng;
             let c = _mngYXCache.get(pt);
             if (!c || c.k !== k) {
-                const s = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]);
-                c = { k: k, y: Math.abs(s[0]).toFixed(2), x: Math.abs(s[1]).toFixed(2) };
+                const s = agMistni(pt.lat, pt.lng);   // rovina té země, kde stojím (registr zemí, 16. 9. 2026)
+                c = { k: k, y: s.y.toFixed(2), x: s.x.toFixed(2) };
                 _mngYXCache.set(pt, c);
             }
             return c;
@@ -1690,8 +1690,8 @@
                 const undoItems = [], batch = _bulkId();
                 sel.forEach(p => {
                     const before = { ...p }; undoItems.push({ id: p.id, before: before });
-                    const sj = proj4("EPSG:4326", "EPSG:5514", [p.lng, p.lat]);
-                    const c = sjtskToLatLng(Math.abs(sj[0]) + dY, Math.abs(sj[1]) + dX);
+                    const sj = agMistni(p.lat, p.lng);
+                    const c = mistniToLatLng(sj.y + dY, sj.x + dX);
                     p.lat = c.lat; p.lng = c.lng;
                     if (dZ && p.vyska != null) p.vyska = Math.round((p.vyska + dZ) * 1000) / 1000;
                     const ar = arPoints.find(a => a.id === p.id); if (ar) { ar.lat = p.lat; ar.lng = p.lng; ar.vyska = p.vyska; }
@@ -1700,7 +1700,7 @@
                 _mngAfterEdit(ids);
                 _mngBulkDone('Posunuto ' + sel.length + ' bodů (ΔY ' + dY + ' m, ΔX ' + dX + ' m' + (dZ ? ', ΔZ ' + dZ + ' m' : '') + ').', undoItems, batch);
             };
-            if (window.agPrompt) agPrompt({ title: 'Posunout vybrané body', message: 'Posun v metrech S-JTSK: „ΔY ΔX" nebo „ΔY ΔX ΔZ" (mezerou). Např. snížit výšku o 5 cm: „0 0 -0.05".', placeholder: '0 0 -0.05', okText: 'Posunout' }).then(ask);
+            if (window.agPrompt) agPrompt({ title: 'Posunout vybrané body', message: (agOsy().krovak ? 'Posun v metrech S-JTSK: „ΔY ΔX" nebo „ΔY ΔX ΔZ" (mezerou).' : 'Posun v metrech ' + agOsy().system + ': „Δ' + agOsy().osaA + ' Δ' + agOsy().osaB + '" nebo s ΔZ (mezerou).') + ' Např. snížit výšku o 5 cm: „0 0 -0.05".', placeholder: '0 0 -0.05', okText: 'Posunout' }).then(ask);
             else ask(prompt('Posun ΔY ΔX ΔZ (m):'));
         }
         function mngBulkKod() {
@@ -1839,7 +1839,7 @@
                 }
             }
         }
-        function editCustomPoint(id) { const pt = persistentCustomPoints.find(p => p.id === id); if(!pt) return; editingCustomPointId = id; pendingPointAccuracy = null; { const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none'; } { const _h = document.getElementById('custom-create-helpers'); if (_h) _h.style.display = 'none'; } agSetupPointForm(pt, false); document.getElementById('custom-modal-title').innerText = "Upravit bod"; document.getElementById('custom-name').value = pt.name; let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2); document.getElementById('custom-x').value = Math.abs(sjtsk[1]).toFixed(2); { const _z = document.getElementById('custom-z'); if (_z) _z.value = (pt.vyska != null ? pt.vyska : ''); } resetNewPointExtras(id); document.getElementById('manage-modal').style.display = 'none'; document.getElementById('custom-modal-overlay').style.display = 'flex'; }
+        function editCustomPoint(id) { const pt = persistentCustomPoints.find(p => p.id === id); if(!pt) return; editingCustomPointId = id; pendingPointAccuracy = null; { const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none'; } { const _h = document.getElementById('custom-create-helpers'); if (_h) _h.style.display = 'none'; } agSetupPointForm(pt, false); document.getElementById('custom-modal-title').innerText = "Upravit bod"; document.getElementById('custom-name').value = pt.name; let sjtsk = agMistni(pt.lat, pt.lng); document.getElementById('custom-y').value = sjtsk.y.toFixed(2); document.getElementById('custom-x').value = sjtsk.x.toFixed(2); { const _z = document.getElementById('custom-z'); if (_z) _z.value = (pt.vyska != null ? pt.vyska : ''); } resetNewPointExtras(id); document.getElementById('manage-modal').style.display = 'none'; document.getElementById('custom-modal-overlay').style.display = 'flex'; }
         // BOD Z MAPY: tlacitko v modalu spusti rezim, dalsi TAP do mapy umisti bod (tah dal posouva mapu)
         function startMapPick() {
             if (viewMode === 'ar') { agInfo("Přepni na zobrazení s mapou (Split nebo Mapa)."); return; }
@@ -1854,9 +1854,9 @@
             { const _h = document.getElementById('custom-create-helpers'); if (_h) _h.style.display = ''; }
             document.getElementById('custom-modal-title').innerText = "Bod z mapy";
             document.getElementById('custom-name').value = '';
-            let sjtsk = proj4("EPSG:4326", "EPSG:5514", [lng, lat]);
-            document.getElementById('custom-y').value = Math.abs(sjtsk[0]).toFixed(2);
-            document.getElementById('custom-x').value = Math.abs(sjtsk[1]).toFixed(2);
+            let sjtsk = agMistni(lat, lng);
+            document.getElementById('custom-y').value = sjtsk.y.toFixed(2);
+            document.getElementById('custom-x').value = sjtsk.x.toFixed(2);
             // Výška: bod z mapy ji nezná z GPS — zkusíme ji doplnit z terénu ČÚZK DMR 5G
             // (asynchronně; když uživatel mezitím vyplní vlastní Z nebo zavře modál, nesaháme na to).
             {
@@ -2253,8 +2253,8 @@
             document.getElementById('det-title').innerHTML = `#${_escHtml(pt.name)}`; document.getElementById('det-title').style.color = "var(--accent)"; document.getElementById('det-subtitle').innerHTML = typBodu; 
             const hlBtn = document.getElementById('highlight-btn'); if (highlightedPointId === pt.id) { hlBtn.innerHTML = '<svg class="icon"><use href="#i-star"/></svg><span>Nezvýraznit</span>'; hlBtn.style.background = "#fff"; } else { hlBtn.innerHTML = '<svg class="icon"><use href="#i-star"/></svg><span>Zvýraznit</span>'; hlBtn.style.background = "#fbbf24"; }
             hideBtnLogic = () => { pt.hidden = true; if(pt.element) { pt.element.style.opacity = '0'; setTimeout(() => { if(pt.element && pt.element.parentNode) pt.element.parentNode.removeChild(pt.element); }, 200); } if (highlightedPointId === pt.id) { highlightedPointId = null; document.getElementById('ar-hud').style.display = 'none'; } updateInfoPanel(); drawAllMarkersOnMap(); };
-            let sjtskY = "Neznámé", sjtskX = "Neznámé"; if (pt.type === "custom") { let sjtsk = proj4("EPSG:4326", "EPSG:5514", [pt.lng, pt.lat]); sjtskY = Math.abs(sjtsk[0]).toFixed(2); sjtskX = Math.abs(sjtsk[1]).toFixed(2); } else if (pt.rawData) { const getVal = (keys) => { for (let k in pt.rawData) { if (keys.includes(k.toUpperCase()) && pt.rawData[k] !== "Null" && pt.rawData[k] !== null && String(pt.rawData[k]).trim() !== "") return pt.rawData[k]; } return null; }; let sY = parseFloat(getVal(['Y', 'SOURADNICE_Y'])); let sX = parseFloat(getVal(['X', 'SOURADNICE_X'])); if (!isNaN(sY) && !isNaN(sX)) { if (sY < sX) { sjtskY = sY; sjtskX = sX; } else { sjtskY = sX; sjtskX = sY; } } }
-            let html = ` <div class="geo-data-row"><span class="geo-label">Vzdálenost</span><span class="geo-value" id="sheet-distance-val">${distance.toFixed(1).replace('.', ',')} m</span></div> <div class="geo-data-row"><span class="geo-label">S-JTSK Y</span><span class="geo-value">${sjtskY}</span></div> <div class="geo-data-row"><span class="geo-label">S-JTSK X</span><span class="geo-value">${sjtskX}</span></div> ${pt.vyska != null ? '<div class="geo-data-row"><span class="geo-label">Výška Bpv</span><span class="geo-value">' + Number(pt.vyska).toFixed(2) + ' m</span></div>' : ''} ${pt.kod ? '<div class="geo-data-row"><span class="geo-label">Kód bodu</span><span class="geo-value">' + _escHtml(pt.kod) + '</span></div>' : ''} <div style="margin-top:15px; padding:12px; background:rgba(251,191,36,0.1); border-left:4px solid #fbbf24; border-radius:8px; font-size:calc(13px * var(--ag-font-scale, 1)); line-height:1.4;"><strong><svg class="icon" style="vertical-align:-0.18em; color:var(--warning,#fbbf24);"><use href="#i-alert"/></svg> Rádius hledání (tvoje GPS: ±<span id="sheet-gps-val">${currentGpsAccuracy.toFixed(1)}</span> m)</strong><br>Bod nehledej na centimetr přesně na AR značce. Může ležet kdekoliv v tomhle kruhu kolem značky.</div> `;
+            let sjtskY = "Neznámé", sjtskX = "Neznámé"; if (pt.type === "custom") { let sjtsk = agMistni(pt.lat, pt.lng); sjtskY = sjtsk.y.toFixed(2); sjtskX = sjtsk.x.toFixed(2); } else if (pt.rawData) { const getVal = (keys) => { for (let k in pt.rawData) { if (keys.includes(k.toUpperCase()) && pt.rawData[k] !== "Null" && pt.rawData[k] !== null && String(pt.rawData[k]).trim() !== "") return pt.rawData[k]; } return null; }; let sY = parseFloat(getVal(['Y', 'SOURADNICE_Y'])); let sX = parseFloat(getVal(['X', 'SOURADNICE_X'])); if (!isNaN(sY) && !isNaN(sX)) { if (sY < sX) { sjtskY = sY; sjtskX = sX; } else { sjtskY = sX; sjtskX = sY; } } }
+            let html = ` <div class="geo-data-row"><span class="geo-label">Vzdálenost</span><span class="geo-value" id="sheet-distance-val">${distance.toFixed(1).replace('.', ',')} m</span></div> <div class="geo-data-row"><span class="geo-label">${(pt.type === "custom" && !agOsy().krovak) ? agOsy().system + ' ' + agOsy().osaA : 'S-JTSK Y'}</span><span class="geo-value">${sjtskY}</span></div> <div class="geo-data-row"><span class="geo-label">${(pt.type === "custom" && !agOsy().krovak) ? agOsy().system + ' ' + agOsy().osaB : 'S-JTSK X'}</span><span class="geo-value">${sjtskX}</span></div> ${pt.vyska != null ? '<div class="geo-data-row"><span class="geo-label">Výška ' + (pt.type === "custom" ? agOsy().vyska : 'Bpv') + '</span><span class="geo-value">' + Number(pt.vyska).toFixed(2) + ' m</span></div>' : ''} ${pt.kod ? '<div class="geo-data-row"><span class="geo-label">Kód bodu</span><span class="geo-value">' + _escHtml(pt.kod) + '</span></div>' : ''} <div style="margin-top:15px; padding:12px; background:rgba(251,191,36,0.1); border-left:4px solid #fbbf24; border-radius:8px; font-size:calc(13px * var(--ag-font-scale, 1)); line-height:1.4;"><strong><svg class="icon" style="vertical-align:-0.18em; color:var(--warning,#fbbf24);"><use href="#i-alert"/></svg> Rádius hledání (tvoje GPS: ±<span id="sheet-gps-val">${currentGpsAccuracy.toFixed(1)}</span> m)</strong><br>Bod nehledej na centimetr přesně na AR značce. Může ležet kdekoliv v tomhle kruhu kolem značky.</div> `;
             if (pt.type === "custom") { html += `<div style="text-align:center; padding: 25px 0; opacity:0.6; font-style:italic;">Ručně vytvořený bod. Spravuješ ho v seznamu Body.</div>`; } else if (pt.rawData) { const props = pt.rawData; const getVal = (keys) => { for (let k in props) { if (keys.includes(k.toUpperCase()) && props[k] !== "Null" && props[k] !== null && String(props[k]).trim() !== "") return props[k]; } return null; }; let nadmRaw = getVal(['VYSKA_BPV','NADMORSKA_VYSKA','VYSKA_BODU','VYSKA_H','H_BPV','VYSKA','H','Z']); let nadmNum = parseFloat(String(nadmRaw).replace(',', '.')); let nadmVyska = (!isNaN(nadmNum) && nadmNum > 50 && nadmNum < 3000) ? nadmNum : null; let geodataLink = null; for (let k in props) { if (typeof props[k] === 'string' && props[k].startsWith('http')) { geodataLink = props[k]; break; } } const cuzkRows = (typeof agCuzkKartaRows === 'function') ? agCuzkKartaRows(pt) : ''; if (nadmVyska !== null || cuzkRows) { html += `<div class="geo-highlight" style="border-left-color: var(--accent);">`; if (nadmVyska !== null) html += `<div class="geo-data-row" style="border:none; padding: 4px 0;"><span class="geo-label" style="color:var(--text-color);">Nadmořská výška (Bpv):</span><span class="geo-value">${nadmVyska.toFixed(pt.cat === 'NIVEL' ? 3 : 2)} m</span></div>`; html += cuzkRows; html += `</div>`; } if (geodataLink) html += `<a href="${_escHtml(geodataLink)}" target="_blank" class="btn-link"><svg class="icon"><use href="#i-file-text"/></svg> Otevřít nákres (Polohopis)</a>`; /* Rozbalovátko „Zobrazit všechny úřední záznamy" (surový výpis pt.rawData) ZRUŠENO 15. 9. 2026: proti polím služby BodovaPole (ZTLTL, CISLO, PL, DRUH, Y, X, VYSKA, B, L, HEL, GPS, GEODETICKE_UDAJE, NAZEV_OKRES, NAZEV_KU, ZM50, NAZEV_SMO5, CISLO_SMO5, PRESNOST, PORAD, NAZEV_BODU) už karta ukazuje všechno nahoře; jediné navíc byl mapový list, ten teď dává agCuzkKartaRows. Řádky Stabilizace / Výška n. terénem hledaly pole, která služba nikdy neměla — stabilizace je jen v náčrtu. */ }
             document.getElementById('det-body').innerHTML = html; document.getElementById('bottom-sheet').classList.add('open');
         }

@@ -94,11 +94,11 @@
     // Frankfurt) osy TIŠE PROHODILA a parcela vyšla o stovky kilometrů jinde.
     // GeoCore se načítá eager (index.html), takže je při otevření parcely vždy po ruce.
     function llToYX(lat, lng) {
-        var s = GeoCore.toSJTSK(lat, lng);
+        var s = GeoCore.toMistni(lat, lng);
         return { Y: s.y, X: s.x };
     }
     function yxToLL(Y, X) {
-        var w = GeoCore.fromSJTSK(Y, X);
+        var w = GeoCore.fromMistni(Y, X);
         return { lat: w.lat, lng: w.lng };
     }
 
@@ -659,7 +659,7 @@
         var n = state.verts.length, lines = [];
         lines.push('QTRIG — PARCELA / protokol');
         lines.push('Vygenerováno: ' + new Date().toLocaleString('cs-CZ'));
-        lines.push('Souřadnicový systém: S-JTSK (EPSG:5514), výměra Gaussovým vzorcem.');
+        lines.push('Souřadnicový systém: ' + (agOsy().krovak ? 'S-JTSK (EPSG:5514)' : agOsy().system + (agOsy().epsg ? ' (EPSG:' + agOsy().epsg + ')' : '')) + ', výměra Gaussovým vzorcem.');
         lines.push('');
         lines.push('SEZNAM SOUŘADNIC (číslo; Y; X):');
         state.verts.forEach(function (v, i) { lines.push('  ' + (v.name || ('V' + (i + 1))) + '; ' + Math.abs(v.Y).toFixed(2) + '; ' + Math.abs(v.X).toFixed(2)); });

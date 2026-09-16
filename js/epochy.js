@@ -230,8 +230,8 @@
 
         // nová epocha
         h += '<div class="ag-ep-form"><b style="font-size:calc(13px * var(--ag-font-scale, 1));">Přidat epochu</b>'
-            + '<div class="ag-ep-row"><label class="ag-ep-fld"><span>Y (m, S-JTSK)</span><input type="text" id="ag-ep-y" inputmode="decimal" placeholder="např. 596956.46"></label>'
-            + '<label class="ag-ep-fld"><span>X (m, S-JTSK)</span><input type="text" id="ag-ep-x" inputmode="decimal" placeholder="např. 1159621.33"></label></div>'
+            + '<div class="ag-ep-row"><label class="ag-ep-fld"><span>' + agOsy().osaA + ' (m, ' + agSys() + ')</span><input type="text" id="ag-ep-y" inputmode="decimal" placeholder="např. 596956.46"></label>'
+            + '<label class="ag-ep-fld"><span>' + agOsy().osaB + ' (m, ' + agSys() + ')</span><input type="text" id="ag-ep-x" inputmode="decimal" placeholder="např. 1159621.33"></label></div>'
             + '<div class="ag-ep-row"><label class="ag-ep-fld"><span>Z (m, Bpv) — volitelné</span><input type="text" id="ag-ep-z" inputmode="decimal" placeholder="—"></label>'
             + '<label class="ag-ep-fld"><span>Datum a čas</span><input type="datetime-local" id="ag-ep-t" value="' + nowLocalISO() + '"></label></div>'
             + '<div class="ag-ep-row"><label class="ag-ep-fld"><span>Zdroj</span><select id="ag-ep-src">'
@@ -288,7 +288,7 @@
         try {
             if (typeof window.addImportedPoints !== 'function' || !window.GeoCore || typeof persistentCustomPoints === 'undefined') return;
             var ref = it.epochs[it.epochs.length - 1];
-            var ll = GeoCore.fromSJTSK(ref.y, ref.x);
+            var ll = GeoCore.fromMistni(ref.y, ref.x);
             if (!ll || !isFinite(ll.lat)) return;
             var obj = { name: it.name, lat: ll.lat, lng: ll.lng };
             if (ref.z != null) obj.vyska = ref.z;
@@ -310,7 +310,7 @@
         try {
             if (typeof persistentCustomPoints === 'undefined' || !window.GeoCore) return;
             var last = it.epochs[it.epochs.length - 1];
-            var ll = GeoCore.fromSJTSK(last.y, last.x);
+            var ll = GeoCore.fromMistni(last.y, last.x);
             if (!ll || !isFinite(ll.lat)) return;
             var found = false;
             for (var i = 0; i < persistentCustomPoints.length; i++) {
@@ -338,8 +338,8 @@
             var id = 'ep_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
             S.items.push({ id: id, name: p.name, limP: 0, limZ: 0, epochs: [], ptId: p.id });
             save();
-            if (window.GeoCore && GeoCore.toSJTSK) {
-                var s = GeoCore.toSJTSK(p.lat, p.lng);
+            if (window.GeoCore && GeoCore.toMistni) {
+                var s = GeoCore.toMistni(p.lat, p.lng);
                 _prefill = { y: s.y.toFixed(2), x: s.x.toFixed(2), z: (p.vyska != null ? Number(p.vyska).toFixed(2) : '') };
             }
             _view = { mode: 'detail', itemId: id };
@@ -437,8 +437,8 @@
         try {
             var p = null;
             for (var i = 0; i < arPoints.length; i++) if (arPoints[i].id === id) { p = arPoints[i]; break; }
-            if (!p || !window.GeoCore || !GeoCore.toSJTSK) return;
-            var s = GeoCore.toSJTSK(p.lat, p.lng);
+            if (!p || !window.GeoCore || !GeoCore.toMistni) return;
+            var s = GeoCore.toMistni(p.lat, p.lng);
             document.getElementById('ag-ep-y').value = s.y.toFixed(2);
             document.getElementById('ag-ep-x').value = s.x.toFixed(2);
             if (p.vyska != null) document.getElementById('ag-ep-z').value = Number(p.vyska).toFixed(2);
@@ -452,8 +452,8 @@
         navigator.geolocation.getCurrentPosition(function (pos) {
             try {
                 var c = pos.coords;
-                if (!window.GeoCore || !GeoCore.toSJTSK) return toast('Převod do S-JTSK není dostupný.');
-                var s = GeoCore.toSJTSK(c.latitude, c.longitude);
+                if (!window.GeoCore || !GeoCore.toMistni) return toast('Převod do ' + agSys() + ' není dostupný.');
+                var s = GeoCore.toMistni(c.latitude, c.longitude);
                 var yEl = document.getElementById('ag-ep-y'); if (!yEl) return;
                 yEl.value = s.y.toFixed(2);
                 document.getElementById('ag-ep-x').value = s.x.toFixed(2);

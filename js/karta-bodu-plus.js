@@ -52,10 +52,10 @@
     function deltaJtsk(from, to) {
         try {
             if (typeof proj4 !== 'function') return null;
-            var a = proj4('EPSG:4326', 'EPSG:5514', [from.lng, from.lat]);
-            var b = proj4('EPSG:4326', 'EPSG:5514', [to.lng, to.lat]);
-            var dy = Math.abs(b[0]) - Math.abs(a[0]);
-            var dx = Math.abs(b[1]) - Math.abs(a[1]);
+            var a = window.agMistniPole(from.lat, from.lng);
+            var b = window.agMistniPole(to.lat, to.lng);
+            var dy = b[0] - a[0];
+            var dx = b[1] - a[1];
             return { dy: dy, dx: dx, d: Math.sqrt(dy * dy + dx * dx) };
         } catch (e) { return null; }
     }
@@ -327,8 +327,8 @@
         try {
             if (pt.type === 'custom' || !pt.rawData) {
                 if (typeof proj4 !== 'function') return null;
-                var c = proj4('EPSG:4326', 'EPSG:5514', [pt.lng, pt.lat]);
-                return { y: Math.abs(c[0]), x: Math.abs(c[1]) };
+                var c = window.agMistniPole(pt.lat, pt.lng);
+                return { y: c[0], x: c[1] };
             }
             var p = pt.rawData, sY = null, sX = null;
             for (var k in p) {
@@ -366,7 +366,7 @@
         var sub = document.getElementById('det-subtitle');
         var druh = (sub && sub.getAttribute('data-druh')) || '';
         // Y a X — to hlavní, velké
-        t.push('<div class="ag-kb-t r2 yx"><div><small>S-JTSK Y</small><b>' + (s ? fmtS(s.y) : '—') + '</b></div><div><small>S-JTSK X</small><b>' + (s ? fmtS(s.x) : '—') + '</b></div><span class="ic" title="' + esc(druh) + '">' + ikona(pt) + '</span></div>');
+        t.push('<div class="ag-kb-t r2 yx"><div><small>' + agSys() + ' ' + agOsy().osaA + '</small><b>' + (s ? fmtS(s.y) : '—') + '</b></div><div><small>' + agSys() + ' ' + agOsy().osaB + '</small><b>' + (s ? fmtS(s.x) : '—') + '</b></div><span class="ic" title="' + esc(druh) + '">' + ikona(pt) + '</span></div>');
         // přesnost: barevně
         if (pt.acc != null && isFinite(pt.acc)) tile('acc ' + (pt.acc <= 0.5 ? 'ok' : (pt.acc <= 2 ? 'warn' : 'bad')), 'Přesnost', '<b>±' + n2(pt.acc) + ' m</b>');
         else if (pt.type !== 'custom') tile('ok', 'Přesnost', '<b class="t">úřední bod</b>');

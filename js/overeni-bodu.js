@@ -104,8 +104,8 @@
     function sjtsk(p) {
         try {
             if (typeof proj4 !== 'function' || p.lat == null || p.lng == null) return null;
-            var s = proj4('EPSG:4326', 'EPSG:5514', [p.lng, p.lat]);
-            return { y: Math.abs(s[0]), x: Math.abs(s[1]) };
+            var s = window.agMistniPole(p.lat, p.lng);
+            return { y: s[0], x: s[1] };
         } catch (e) { return null; }
     }
 

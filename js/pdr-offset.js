@@ -298,7 +298,7 @@
         // Převod přes GeoCore — jediné místo, které si ověří pořadí os Křováku
         // (přímé proj4 tu mělo pořadí zadrátované a při jeho změně by Y a X prohodilo).
         var sj = null;
-        try { if (window.GeoCore && GeoCore.toSJTSK) sj = GeoCore.toSJTSK(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdr-offset:finishWalk'); }
+        try { if (window.GeoCore && GeoCore.toMistni) sj = GeoCore.toMistni(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'pdr-offset:finishWalk'); }
         body.innerHTML =
             '<p style="font-size:calc(13px * var(--ag-font-scale, 1));"><b>Došel jsi:</b> ' + _steps + ' kroků, ' + _dist.toFixed(1) + ' m<br>'
             + 'vektor ' + _dE.toFixed(2) + ' m V / ' + _dN.toFixed(2) + ' m S od bodu ' + esc(_startPt.name) + '<br>'

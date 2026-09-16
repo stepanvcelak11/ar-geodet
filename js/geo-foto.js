@@ -82,7 +82,7 @@
     // a přehodí, záloha by osy TIŠE prohodila a bod by skončil o stovky km jinde.
     // V geodetické appce je „souřadnici neznám" lepší než „souřadnice vedle".
     function toSJTSK(lat, lng) {
-        try { if (window.GeoCore && GeoCore.toSJTSK) return GeoCore.toSJTSK(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:toSJTSK'); }
+        try { if (window.GeoCore && GeoCore.toMistni) return GeoCore.toMistni(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:toSJTSK'); }
         // do protokolu jen jednou za sezení — toSJTSK se volá v cyklu přes všechny body
         if (!toSJTSK._warn) { toSJTSK._warn = 1; try { if (window.agErrLog) agErrLog.record('geo-foto: chybí GeoCore — S-JTSK se nepočítá'); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'geo-foto:toSJTSK'); } }
         return null;
@@ -532,7 +532,7 @@
                     var sj = (r.lat != null) ? toSJTSK(r.lat, r.lng) : null;
                     h += '<div class="f"><h2>' + (i + 1) + '. ' + esc(fmtDT(r.ts)) + (r.ptName ? ' — u bodu ' + esc(r.ptName) + ' (' + r.ptDist + ' m)' : '') + '</h2>'
                         + '<table>'
-                        + (sj ? '<tr><td>S-JTSK</td><td>Y ' + fmtNum(sj.y) + ' · X ' + fmtNum(sj.x) + (r.bpv != null ? ' · Bpv ' + r.bpv.toFixed(2) + ' m' : '') + '</td></tr>'
+                        + (sj ? '<tr><td>' + agSys() + '</td><td>' + agOsy().osaA + ' ' + fmtNum(sj.y) + ' · ' + agOsy().osaB + ' ' + fmtNum(sj.x) + (r.bpv != null ? ' · ' + agOsy().vyska + ' ' + r.bpv.toFixed(2) + ' m' : '') + '</td></tr>'
                             : (r.lat != null ? '<tr><td>WGS84</td><td>' + r.lat.toFixed(6) + ', ' + r.lng.toFixed(6) + '</td></tr>' : '<tr><td>Poloha</td><td>nedostupná</td></tr>'))
                         + '<tr><td>Azimut pohledu</td><td>' + (r.az != null ? Math.round(r.az) + '°' : 'neurčen (systémová kamera)') + '</td></tr>'
                         + '<tr><td>Přesnost GPS</td><td>' + (r.acc != null ? '±' + Math.round(r.acc) + ' m' : 'neuvedena') + '</td></tr>'

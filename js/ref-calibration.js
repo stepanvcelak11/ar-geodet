@@ -191,7 +191,7 @@
     // pokud je v aplikaci, použij přímo ji (jeden zdroj pravdy), jinak fallback přes proj4.
     function sjtskToWgs(Y, X) {
         try {
-            if (typeof sjtskToLatLng === 'function') { var r = sjtskToLatLng(Y, X); if (r && isFinite(r.lat) && isFinite(r.lng)) return r; }
+            if (typeof sjtskToLatLng === 'function') { var r = mistniToLatLng(Y, X); if (r && isFinite(r.lat) && isFinite(r.lng)) return r; }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:sjtskToWgs'); }
         try {
             if (typeof proj4 !== 'function') return null;
@@ -296,9 +296,9 @@
             '    <select id="agref-select"><option value="">— ruční zadání níže —</option></select>' +
             '    <label class="agref-lbl">Název / číslo bodu (jen popis)</label>' +
             '    <input type="text" id="agref-name" placeholder="Např. PBPP 241">' +
-            '    <label class="agref-lbl">S-JTSK Y (m)</label>' +
+            '    <label class="agref-lbl">' + agSys() + ' ' + agOsy().osaA + ' (m)</label>' +
             '    <input type="text" id="agref-y" step="any" inputmode="decimal" placeholder="Např. 596956.46">' +
-            '    <label class="agref-lbl">S-JTSK X (m)</label>' +
+            '    <label class="agref-lbl">' + agSys() + ' ' + agOsy().osaB + ' (m)</label>' +
             '    <input type="text" id="agref-x" step="any" inputmode="decimal" placeholder="Např. 1163343.34">' +
             '    <div class="agref-row2 agref-hrow">' +
             '      <div><label class="agref-lbl">Výška Bpv bodu (m) — nepovinné</label>' +
@@ -370,15 +370,15 @@
         // Převod přes GeoCore (jeden zdroj pravdy o pořadí os Y/X), proj4 je záloha.
         var Y = null, X = null;
         try {
-            if (window.GeoCore && GeoCore.toSJTSK) {
-                var r = GeoCore.toSJTSK(p.lat, p.lng);
+            if (window.GeoCore && GeoCore.toMistni) {
+                var r = GeoCore.toMistni(p.lat, p.lng);
                 if (r && isFinite(r.y) && isFinite(r.x)) { Y = Math.abs(r.y); X = Math.abs(r.x); }
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:onSelect'); }
         try {
             if (Y == null && typeof proj4 === 'function') {
-                var sj = proj4('EPSG:4326', 'EPSG:5514', [p.lng, p.lat]); // [Y, X] (záporné v Křováku)
-                Y = Math.abs(sj[0]); X = Math.abs(sj[1]);
+                var sj = window.agMistniPole(p.lat, p.lng); // [Y, X] (záporné v Křováku)
+                Y = sj[0]; X = sj[1];
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:onSelect'); }
         if (Y != null && X != null) {
@@ -437,10 +437,10 @@
         var X = parseFloat(String(Xv).replace(',', '.'));
         if (isFinite(Y) && isFinite(X)) {
             var w = sjtskToWgs(Y, X);
-            if (!w) { alertBox('Převod selhal', 'Souřadnice S-JTSK se nepodařilo převést. Zkontroluj hodnoty.'); return; }
+            if (!w) { alertBox('Převod selhal', 'Souřadnice ' + agSys() + ' se nepodařilo převést. Zkontroluj hodnoty.'); return; }
             refLat = w.lat; refLng = w.lng;
         } else {
-            alertBox('Chybí souřadnice', 'Zadej S-JTSK Y a X referenčního bodu (nebo ho vyber z uložených).');
+            alertBox('Chybí souřadnice', 'Zadej ' + agSys() + ' ' + agOsy().osaA + ' a ' + agOsy().osaB + ' referenčního bodu (nebo ho vyber z uložených).');
             return;
         }
 

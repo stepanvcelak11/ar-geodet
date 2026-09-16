@@ -360,8 +360,8 @@
         _result = solveResection(shots, { lat: userLat, lng: userLng });
         if (_result) {
             _result.shiftFromGps = getDistance(userLat, userLng, _result.lat, _result.lng);
-            var sj = null; try { sj = proj4('EPSG:4326', 'EPSG:5514', [_result.lng, _result.lat]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-resection:compute'); }
-            if (sj) { _result.Y = Math.abs(sj[0]); _result.X = Math.abs(sj[1]); }
+            var sj = null; try { sj = window.agMistniPole(_result.lat, _result.lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-resection:compute'); }
+            if (sj) { _result.Y = sj[0]; _result.X = sj[1]; }
         }
     }
 
@@ -380,7 +380,7 @@
         if (r.mode === 'full') {
             head = '<div class="agrx-big">Sever: <b>' + (r.delta >= 0 ? '+' : '') + r.delta.toFixed(1) + '°</b></div>'
                 + '<div style="margin:6px 0;font-family:var(--font-mono,monospace);font-size:calc(13px * var(--ag-font-scale, 1));">'
-                + 'Stanovisko (S-JTSK):<br><b>Y</b> ' + (r.Y != null ? r.Y.toFixed(2) : '—') + ' &nbsp; <b>X</b> ' + (r.X != null ? r.X.toFixed(2) : '—') + '</div>'
+                + 'Stanovisko (' + agSys() + '):<br><b>' + agOsy().osaA + '</b> ' + (r.Y != null ? r.Y.toFixed(2) : '—') + ' &nbsp; <b>' + agOsy().osaB + '</b> ' + (r.X != null ? r.X.toFixed(2) : '—') + '</div>'
                 + '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.85;">Posun od GPS: <b>' + r.shiftFromGps.toFixed(1) + ' m</b>'
                 + (r.posSigma != null ? ' · odhad přesnosti ±' + r.posSigma.toFixed(2) + ' m' : ' · 3 body = bez kontroly')
                 + '</div>';

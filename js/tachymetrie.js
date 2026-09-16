@@ -480,7 +480,7 @@
     }
     // metrické souřadnice pro výpočet plochy — proj4 do S-JTSK (EPSG:5514) jako jinde v appce
     function metric(p) {
-        try { if (typeof proj4 === 'function') { const s = proj4('EPSG:4326', 'EPSG:5514', [p.lng, p.lat]); return [s[0], s[1]]; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tachymetrie:metric'); }
+        try { if (typeof proj4 === 'function') { const s = window.agMistniPole(p.lat, p.lng); return [s[0], s[1]]; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'tachymetrie:metric'); }
         const R = 6378137, la = p.lat * Math.PI / 180; return [p.lng * Math.PI / 180 * R * Math.cos(la), p.lat * Math.PI / 180 * R];
     }
     function fmtLen(m) { return m >= 1000 ? (m / 1000).toFixed(3) + ' km' : m.toFixed(m < 10 ? 2 : 1) + ' m'; }

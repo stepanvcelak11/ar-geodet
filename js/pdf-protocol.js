@@ -16,7 +16,7 @@
 // Data (OVĚŘENO v logika.js / kalkulacka.js / vytycovani.js):
 //   persistentCustomPoints: { id, name, lat, lng, cat, type, acc? }
 //   activeProjectId + projects[{id,name}]
-//   proj4("EPSG:4326","EPSG:5514",[lng,lat]) -> [Y,X] (kladné přes Math.abs)
+//   window.agMistniPole(lat, lng) -> [Y,X] (kladné přes Math.abs)
 //   loadPointDoc(id) -> Promise<{ photos:[dataURL], note, t }>  (foto-dokumentace)
 //   stakeoutData[id] / getStoredData('arStakeout12') -> mapa { id:{t,acc} } (Vytyčeno)
 //
@@ -171,10 +171,10 @@
             if (typeof lat !== 'number' || typeof lng !== 'number' || !isFinite(lat) || !isFinite(lng)) return null;
             // S-JTSK pres GeoCore (jediny autoritativni prevod, testovany proti PROJ);
             // fallback na vlastni proj4 kvuli odpojitelnosti geo-core.js.
-            if (window.GeoCore && GeoCore.toSJTSK) return GeoCore.toSJTSK(lat, lng);
+            if (window.GeoCore && GeoCore.toMistni) return GeoCore.toMistni(lat, lng);
             if (typeof proj4 !== 'function') return null;
-            var sj = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]);
-            return { y: Math.abs(sj[0]), x: Math.abs(sj[1]) };
+            var sj = window.agMistniPole(lat, lng);
+            return { y: sj[0], x: sj[1] };
         } catch (e) { return null; }
     }
 
@@ -298,8 +298,8 @@
         // sloupce tabulky: Číslo | Y | X | Přesnost | Vytyčeno
         var cols = [
             { key: 'name', title: 'Číslo bodu', w: 42, align: 'left' },
-            { key: 'y', title: 'S-JTSK Y [m]', w: 38, align: 'right' },
-            { key: 'x', title: 'S-JTSK X [m]', w: 38, align: 'right' },
+            { key: 'y', title: agSys() + ' ' + agOsy().osaA + ' [m]', w: 38, align: 'right' },
+            { key: 'x', title: agSys() + ' ' + agOsy().osaB + ' [m]', w: 38, align: 'right' },
             { key: 'acc', title: 'Přesnost', w: 28, align: 'right' },
             { key: 'staked', title: 'Vytyčeno', w: contentW - 42 - 38 - 38 - 28, align: 'center' }
         ];

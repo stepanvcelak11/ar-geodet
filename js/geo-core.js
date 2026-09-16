@@ -86,19 +86,33 @@
         return ((prev + alpha * angDiff(next, prev)) % 360 + 360) % 360;
     }
 
-    // ---- MAGNETICKÁ DEKLINACE (aproximace WMM2025 pro ČR) ----------------------
-    // Lineární fit platný jen pro ČR — mimo bbox se souřadnice přiskřípnou k okraji
-    // (lepší než extrapolovat nesmysl např. pro importovanou zahraniční zakázku).
+    // ---- MAGNETICKÁ DEKLINACE ------------------------------------------------------
+    // Od 16. 9. 2026 (měření mimo ČR): plný World Magnetic Model 2025 z js/zeme-svet.js
+    // (AGWmm, kdekoli na světě, ověřeno proti testovacím hodnotám NOAA na 0,005°).
+    // Dokud lazy modul nedoběhl, lineární fit pro ČR jako dřív — mimo bbox se
+    // souřadnice přiskřípnou k okraji (lepší než extrapolovat nesmysl).
     function declination(lat, lng) {
+        try {
+            if (window.AGWmm && AGWmm.pripraveno() && lat != null && lng != null && isFinite(lat) && isFinite(lng)) {
+                var d = AGWmm.deklinace(lat, lng, 0);
+                if (d != null && isFinite(d)) return d;
+            }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-core:declination'); }
         var c = _clampCZ(lat, lng);
         var now = new Date();
         var year = now.getFullYear() + now.getMonth() / 12;
         return 5.65 + 0.25 * (c.lng - 15.5) - 0.05 * (c.lat - 49.8) + 0.13 * (year - 2025);
     }
-    // ---- UNDULACE KVAZIGEOIDU (lineární aproximace CR-2005) --------------------
-    // WGS84 elipsoidická výška -> Bpv. Přesnost ~1-2 m (pod svislou chybou telefonu).
-    // Mimo ČR clamp k okraji (viz declination).
+    // ---- UNDULACE GEOIDU --------------------------------------------------------------
+    // Od 16. 9. 2026 (měření mimo ČR): EGM2008 z data/egm2008.bin (js/zeme-svet.js) plus
+    // posun národního výškového systému vůči EVRF2007 (js/sour-zeme.js) — takže
+    // „elipsoidická − undulace" dá Bpv v ČR, GHA v Rakousku, NAP v Nizozemsku…
+    // Lineární vzorec CR-2005 zůstává jen jako záloha, než se data stáhnou: v Praze sedí
+    // na 0,1 m, v Brně je 1,7 m vedle a v rozích ČR 3–8 m. Mimo ČR clamp k okraji.
     function geoidUndulation(lat, lng) {
+        try {
+            if (window.AGSour) { var u = AGSour.undulace(lat, lng); if (u != null && isFinite(u)) return u; }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-core:geoid'); }
         var c = _clampCZ(lat, lng);
         return 45.5 + 0.55 * (c.lng - 15.5) - 0.4 * (c.lat - 49.8);
     }
@@ -170,6 +184,20 @@
             : proj4('EPSG:5514', 'EPSG:4326', [-Y, -X]);
         return { lat: w[1], lng: w[0] };
     }
+    // ---- MÍSTNÍ ROVINNÉ SOUŘADNICE (podle země, 16. 9. 2026) ---------------------
+    // toMistni(lat,lng) -> { y, x } se STEJNÝMI klíči jako toSJTSK: y = první osa
+    // národního pořadí, x = druhá (v ČR/SK doslova Y a X, kladné; v DE E a N; v PL
+    // X=sever a Y=východ). Názvy os dá AGSour.popisky(). Bez registru (soubor odpojen)
+    // padá na Křovák, takže moduly, které přešly na toMistni, se v ČR chovají stejně.
+    // toSJTSK zůstává STRIKTNĚ Křovák pro datové zdroje (ČÚZK, RÚIAN, VFK, GML).
+    function toMistni(lat, lng) {
+        try { if (window.AGSour) return AGSour.doMistnich(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-core:toMistni'); }
+        return toSJTSK(lat, lng);
+    }
+    function fromMistni(y, x) {
+        try { if (window.AGSour) return AGSour.zMistnich(y, x); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-core:fromMistni'); }
+        return fromSJTSK(y, x);
+    }
     // Je dvojice souřadnic v rozsahu S-JTSK pro ČR? (pro validaci vstupů/importů)
     function looksLikeSJTSK(y, x) {
         var a = Math.abs(y), b = Math.abs(x);
@@ -204,12 +232,13 @@
 
     // ---- PLOCHA + OBVOD --------------------------------------------------------
     // verts = pole {lat,lng}. Gaussův (shoelace) vzorec + obvod v ROVINNÝCH
-    // souřadnicích S-JTSK -> pro ČR legálně správný výpočet výměry (vyhl. 357/2013).
+    // souřadnicích národního systému (v ČR S-JTSK -> legálně správný výpočet výměry,
+    // vyhl. 357/2013; jinde rovina té země přes AGSour, 16. 9. 2026).
     // Souřadnice se před sumací redukují o první vrchol: S-JTSK je ~10^6 m, součiny
     // ~10^12 by v double ztrácely přesnost vzájemným rušením členů.
     function polygonAreaPerimeter(verts) {
         if (!verts || verts.length < 2) return { area: 0, perim: 0 };
-        var pts = verts.map(function (v) { return proj4('EPSG:4326', 'EPSG:5514', [v.lng, v.lat]); });
+        var pts = verts.map(function (v) { var m = toMistni(v.lat, v.lng); return [m.y, m.x]; });
         var perim = 0;
         for (var i = 1; i < pts.length; i++) perim += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
         var area = 0;
@@ -302,6 +331,8 @@
         geoidUndulation: geoidUndulation,
         toSJTSK: toSJTSK,
         fromSJTSK: fromSJTSK,
+        toMistni: toMistni,
+        fromMistni: fromMistni,
         looksLikeSJTSK: looksLikeSJTSK,
         metersPerDeg: metersPerDeg,
         enuForward: enuForward,

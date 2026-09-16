@@ -2,6 +2,19 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 340,
+   "datum": "2026-09-16",
+   "nadpis": "Měření mimo ČR: souřadnice a výšky podle země, kde stojíš; geoid EGM2008 a deklinace WMM pro celý svět",
+   "body": [
+    "<b>Appka pozná zemi z GPS a přepne souřadnicový systém.</b> V ČR zůstává všechno jako dřív (S-JTSK Y/X, Bpv). Na Slovensku S-JTSK [JTSK03], v Polsku PL-2000 (X/Y, pásmo podle délky), v Německu ETRS89/UTM (E/N), v Rakousku MGI GK (M28/M31/M34), Maďarsko EOV, Švýcarsko LV95, Francie Lambert-93, Nizozemsko RD, Belgie Lambert 72, Británie OSGB, Slovinsko, Chorvatsko, Španělsko, Skandinávie, Pobaltí, Rumunsko, Bulharsko… a jinde ve světě obecné UTM. Karta bodu, formulář bodu, seznam, export CSV/TXT/DXF/PDF, kalkulačky, vytyčování, protokoly — všechno v rovině té země.",
+    "<b>Výšky v národním systému.</b> Undulace geoidu teď jde z modelu EGM2008 (celá Evropa po 5′, svět po 1°), k tomu posun národního výškového systému vůči EVRF2007: Bpv, DHHN2016, GHA (Jadran), NAP, TAW, LN02, NGF-IGN69, ODN… U zemí, kde posun neznám, se ukáže ±0,5 m. <b>Oprava i pro ČR:</b> dosavadní vzorec seděl v Praze, ale v Brně byl 1,7 m vedle a v rozích republiky 3–8 m.",
+    "<b>Deklinace kdekoli na světě.</b> Kompas se opravuje podle World Magnetic Model 2025 (NOAA) — dřív lineární odhad pro ČR, který by ve Španělsku lhal o 6°.",
+    "<b>Nastavení → Data → Země měření.</b> Automaticky podle GPS (obrysy zemí jsou přesné na ~1 km — u hranic přepni ručně), nebo napevno vybraná země. Při přejezdu hranice appka řekne, na co přepnula.",
+    "Co se NEMĚNÍ: úřední body ČÚZK, parcely RÚIAN, VFK a sítě GML zůstávají v Křováku vždy — jsou to česká data.",
+    "Data (geoid ~740 kB, obrysy ~170 kB) se stáhnou jednou po startu a zůstanou v telefonu; do té doby jedou vzorce pro ČR jako do v338."
+   ]
+  },
+  {
    "v": 339,
    "datum": "2026-09-16",
    "nadpis": "Tíhové body zvlášť, čísla přidružených bodů, klik do parcely s ochranou území, kalibrace chůzí po hranici katastru, animace stahování",

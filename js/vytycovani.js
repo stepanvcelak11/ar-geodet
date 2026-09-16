@@ -167,15 +167,15 @@ function openStakeRecord(pt) {
         </div>`;
         document.body.appendChild(el);
     }
-    const sj = proj4('EPSG:4326', 'EPSG:5514', [pt.lng, pt.lat]);
+    const sj = window.agMistniPole(pt.lat, pt.lng);
     const when = rec.t ? new Date(rec.t).toLocaleString('cs-CZ') : '—';
     const d = (userLat != null) ? getDistance(userLat, userLng, pt.lat, pt.lng) : null;
     const row = (l, v) => `<div class="geo-data-row"><span class="geo-label">${l}</span><span class="geo-value">${v}</span></div>`;
     document.getElementById('stkd-title').innerText = '#' + pt.name;
     document.getElementById('stkd-sub').innerText = _stakeTypeLabel(pt.cat);
     document.getElementById('stkd-body').innerHTML =
-        row('S-JTSK Y', Math.abs(sj[0]).toFixed(2))
-        + row('S-JTSK X', Math.abs(sj[1]).toFixed(2))
+        row(agSys() + ' ' + agOsy().osaA, sj[0].toFixed(2))
+        + row(agSys() + ' ' + agOsy().osaB, sj[1].toFixed(2))
         + row('Vytyčeno', when)
         + row('Přesnost při vytyčení', rec.acc != null ? '±' + rec.acc + ' m' : 'nezaznamenána')
         + (d != null ? row('Aktuální vzdálenost', d.toFixed(1) + ' m') : '');
@@ -188,10 +188,10 @@ function exportStakeoutCSV() {
     if (!done.length) return agInfo('Zatím není vytyčen žádný bod.');
     const lines = ['název;Y;X;vytyčeno;přesnost_m'].concat(done.map(pt => {
         const rec = stakeoutData[pt.id];
-        const sj = proj4('EPSG:4326', 'EPSG:5514', [pt.lng, pt.lat]);
+        const sj = window.agMistniPole(pt.lat, pt.lng);
         const when = rec.t ? new Date(rec.t).toLocaleString('cs-CZ') : '';
         const nm = String(pt.name == null ? 'Bod' : pt.name).replace(/[;\r\n]/g, ' ');
-        return nm + ';' + Math.abs(sj[0]).toFixed(2) + ';' + Math.abs(sj[1]).toFixed(2) + ';' + when + ';' + (rec.acc != null ? rec.acc : '');
+        return nm + ';' + sj[0].toFixed(2) + ';' + sj[1].toFixed(2) + ';' + when + ';' + (rec.acc != null ? rec.acc : '');
     }));
     const csv = '\uFEFF' + lines.join('\r\n') + '\r\n';
     const a = document.createElement('a');

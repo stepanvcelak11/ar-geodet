@@ -81,7 +81,7 @@
     // a přehodí, záloha by osy TIŠE prohodila a bod by skončil o stovky km jinde.
     // V geodetické appce je „souřadnici neznám" lepší než „souřadnice vedle".
     function toSJTSK(lat, lng) {
-        try { if (window.GeoCore && GeoCore.toSJTSK) return GeoCore.toSJTSK(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zavady:toSJTSK'); }
+        try { if (window.GeoCore && GeoCore.toMistni) return GeoCore.toMistni(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zavady:toSJTSK'); }
         // do protokolu jen jednou za sezení — toSJTSK se volá v cyklu přes všechny body
         if (!toSJTSK._warn) { toSJTSK._warn = 1; try { if (window.agErrLog) agErrLog.record('zavady: chybí GeoCore — S-JTSK se nepočítá'); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'zavady:toSJTSK'); } }
         return null;
@@ -557,7 +557,7 @@
             + '<div class="ag-zv-kv"><span>Závažnost</span><b style="color:' + sv.color + ';">' + z.sev + ' · ' + sv.label + '</b></div>'
             + '<div class="ag-zv-kv"><span>Zapsáno</span><b>' + fmtTs(z.ts) + '</b></div>'
             + (z.ptName ? '<div class="ag-zv-kv"><span>Bod</span><b>⌖ ' + esc(z.ptName) + '</b></div>' : '')
-            + (sj ? '<div class="ag-zv-kv"><span>S-JTSK</span><b>Y ' + sj.y.toFixed(2) + ' · X ' + sj.x.toFixed(2) + '</b></div>' : '')
+            + (sj ? '<div class="ag-zv-kv"><span>' + agSys() + '</span><b>' + agOsy().osaA + ' ' + sj.y.toFixed(2) + ' · ' + agOsy().osaB + ' ' + sj.x.toFixed(2) + '</b></div>' : '')
             + '<div class="ag-zv-kv"><span>Poloha</span><b>' + (z.posSrc === 'map' ? 'z mapy' : 'GPS' + (z.acc != null ? ' ±' + z.acc + ' m' : '')) + '</b></div>'
             + (d != null ? '<div class="ag-zv-kv"><span>Odsud</span><b>' + fmtDist(d) + '</b></div>' : '')
             + (z.note ? '<p style="font-size:calc(14px * var(--ag-font-scale, 1));line-height:1.5;">' + esc(z.note) + '</p>' : '')
@@ -724,7 +724,7 @@
                     + (z.resolved ? ' <span style="font-weight:400;color:#2c7a4b;">✓ vyřešeno</span>' : '') + '</h2>'
                     + '<table>'
                     + (z.ptName ? '<tr><td>Bod</td><td>' + esc(z.ptName) + '</td></tr>' : '')
-                    + (sj ? '<tr><td>S-JTSK</td><td>Y ' + sj.y.toFixed(2) + ' · X ' + sj.x.toFixed(2) + '</td></tr>' : '')
+                    + (sj ? '<tr><td>' + agSys() + '</td><td>' + agOsy().osaA + ' ' + sj.y.toFixed(2) + ' · ' + agOsy().osaB + ' ' + sj.x.toFixed(2) + '</td></tr>' : '')
                     + '<tr><td>Zapsáno</td><td>' + fmtTs(z.ts) + (z.acc != null ? ' (GPS ±' + z.acc + ' m)' : '') + '</td></tr>'
                     + (z.resolvedTs ? '<tr><td>Vyřešeno</td><td>' + fmtTs(z.resolvedTs) + '</td></tr>' : '')
                     + (z.note ? '<tr><td>Poznámka</td><td>' + esc(z.note) + '</td></tr>' : '')

@@ -67,7 +67,7 @@
     // a přehodí, záloha by osy TIŠE prohodila a bod by skončil o stovky km jinde.
     // V geodetické appce je „souřadnici neznám" lepší než „souřadnice vedle".
     function toSJTSK(lat, lng) {
-        try { if (window.GeoCore && GeoCore.toSJTSK) return GeoCore.toSJTSK(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:toSJTSK'); }
+        try { if (window.GeoCore && GeoCore.toMistni) return GeoCore.toMistni(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:toSJTSK'); }
         // do protokolu jen jednou za sezení — toSJTSK se volá v cyklu přes všechny body
         if (!toSJTSK._warn) { toSJTSK._warn = 1; try { if (window.agErrLog) agErrLog.record('obchuzka: chybí GeoCore — S-JTSK se nepočítá'); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'obchuzka:toSJTSK'); } }
         return null;

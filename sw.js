@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v339';   // tihove body zvlast, cisla pridruzenych bodu, klik do parcely s ochranou, kalibrace po hranici katastru, animace stahovani, web
+const SHELL_CACHE = 'argeodet-shell-v340';   // tihove body zvlast, cisla pridruzenych bodu, klik do parcely s ochranou, kalibrace po hranici katastru, animace stahovani, web
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=339',
-    './css/style.css?v=339',
-    './css/vylepseni.css?v=339',
+    './css/tokens.css?v=340',
+    './css/style.css?v=340',
+    './css/vylepseni.css?v=340',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -76,6 +76,7 @@ const ASSETS_TO_CACHE = [
     './css/brutal-gps.css',
     './css/ar-calibrate.css',
     './js/lib/proj4-2.9.0.min.js',
+    './js/sour-zeme.js',
     './js/geo-core.js',
     './js/err-log.js',
     './js/ag-guard.js',
@@ -146,6 +147,8 @@ const ASSETS_TO_CACHE = [
     './js/ar-visual-track.js',
     './js/theme-dark.js',
     './js/dmr-terrain.js',
+    './js/wmm2025-koef.js',
+    './js/zeme-svet.js',
     './js/parcela.js',
     './js/tools-registry.js',
     './js/student-start.js',
@@ -313,7 +316,9 @@ const ASSETS_TO_CACHE = [
 function isFont(url) { return url.includes('/fonts/') || url.endsWith('.woff2'); }
 // Pozor na pomlcku: jadro ./data/jazyky.json patri do predcache a ma se s verzi
 // obnovovat, do DICT_CACHE smi jen rozsireni data/jazyky-xx.json.
-function isDict(url) { return url.includes('/data/jazyky-'); }
+// + data registru zemí (geoid EGM2008 ~740 kB, obrysy zemí ~170 kB; 16. 9. 2026): stejný
+// princip — stahují se jednou, s verzí kódu se nemění, nesmí je smazat bump SHELL_CACHE.
+function isDict(url) { return url.includes('/data/jazyky-') || url.includes('/data/egm2008') || url.includes('/data/zeme-'); }
 
 // Knihovny z CDN. Zamerne se matchuje CELA DOMENA, ne jen *.js: z jsdelivr se
 // tahaji i pisma pro jspdf a wasm/jazykova data pro tesseract — kdyby spadly do

@@ -167,8 +167,8 @@
         list.forEach(function (p) {
             if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
             var sj;
-            try { sj = proj4('EPSG:4326', 'EPSG:5514', [p.lng, p.lat]); } catch (e) { return; }
-            var Y = Math.abs(sj[0]), X = Math.abs(sj[1]);
+            try { sj = window.agMistniPole(p.lat, p.lng); } catch (e) { return; }
+            var Y = sj[0], X = sj[1];
             var cells = [cleanNum(p.name, sepCh)];
             if (c.ord === 'XY') { cells.push(fmtNum(X, c.dec, c.dsep)); cells.push(fmtNum(Y, c.dec, c.dsep)); }
             else { cells.push(fmtNum(Y, c.dec, c.dsep)); cells.push(fmtNum(X, c.dec, c.dsep)); }

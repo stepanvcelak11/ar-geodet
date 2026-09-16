@@ -114,7 +114,7 @@
     function geoStamp(rec) {
         if (rec.lat == null) return 'bez polohy';
         var s = null;
-        try { if (window.GeoCore && GeoCore.toSJTSK) s = GeoCore.toSJTSK(rec.lat, rec.lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:geoStamp'); }
+        try { if (window.GeoCore && GeoCore.toMistni) s = GeoCore.toMistni(rec.lat, rec.lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'hlasovky:geoStamp'); }
         var t = s ? 'Y ' + fmtNum(s.y) + ' · X ' + fmtNum(s.x) : rec.lat.toFixed(6) + ', ' + rec.lng.toFixed(6);
         if (rec.acc != null) t += ' (±' + Math.round(rec.acc) + ' m)';
         return t;

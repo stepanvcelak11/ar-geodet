@@ -137,8 +137,8 @@
     function sjtsk(p) {
         try {
             if (typeof proj4 !== 'function') return null;
-            var s = proj4('EPSG:4326', 'EPSG:5514', [p.lng, p.lat]);
-            return { Y: Math.abs(s[0]), X: Math.abs(s[1]) };
+            var s = window.agMistniPole(p.lat, p.lng);
+            return { Y: s[0], X: s[1] };
         } catch (e) { return null; }
     }
     function kdy(p) {
@@ -244,7 +244,7 @@
         L.push('  epoch    kolik odečtů se použilo / kolik jich přišlo');
         L.push('  d KONTR  rozdíl dvou NEZÁVISLÝCH určení téhož bodu s časovým odstupem');
         L.push('  ± OVĚŘ   přesnost odvozená z toho rozdílu (viz odstavec KONTROLNÍ MĚŘENÍ)');
-        L.push('  Souřadnice v S-JTSK (EPSG:5514).');
+        L.push('  Souřadnice v ' + (agOsy().krovak ? 'S-JTSK (EPSG:5514)' : agOsy().system + (agOsy().epsg ? ' (EPSG:' + agOsy().epsg + ')' : '')) + '.');
         L.push('');
         L.push('BOD; Y; X; METODA; ± CHYBA [m]; SIGMA [m]; EPOCH; d KONTR [m]; ± OVĚŘ [m]; VÝSLEDEK KONTROLY; KDY');
         ps.forEach(function (p) {

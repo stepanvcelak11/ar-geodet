@@ -1388,9 +1388,9 @@
         var p = lvPos();
         if (p) {
             try {
-                var s = proj4('EPSG:4326', 'EPSG:5514', [p.lng, p.lat]);   // Křovák definuje logika.js
-                out.push(['Y', lvMez(Math.abs(s[0]))]);
-                out.push(['X', lvMez(Math.abs(s[1]))]);
+                var s = window.agMistniPole(p.lat, p.lng);   // Křovák definuje logika.js
+                out.push(['Y', lvMez(s[0])]);
+                out.push(['X', lvMez(s[1])]);
             } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:lvVals'); }
             // desetinna CARKA jako u ostatnich hodnot (drive tu byla tecka z toFixed)
             out.push(['Šířka', Math.abs(p.lat).toFixed(5).replace('.', ',') + '° ' + (p.lat < 0 ? 'S' : 'N')]);

@@ -36,7 +36,7 @@
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function sj2ll(a, b) {
-        try { if (typeof sjtskToLatLng === 'function') return sjtskToLatLng(a, b); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'project-import:sj2ll'); }
+        try { if (typeof sjtskToLatLng === 'function') return mistniToLatLng(a, b); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'project-import:sj2ll'); }
         var Y = Math.min(Math.abs(a), Math.abs(b)), X = Math.max(Math.abs(a), Math.abs(b));
         var w = proj4('EPSG:5514', 'EPSG:4326', [-Y, -X]); return { lat: w[1], lng: w[0] };
     }

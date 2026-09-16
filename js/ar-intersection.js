@@ -166,10 +166,10 @@
         }
 
         var latP = lat0 + Pn / mLat, lngP = lng0 + Pe / mLng;
-        var sj = null; try { sj = proj4('EPSG:4326', 'EPSG:5514', [lngP, latP]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-intersection'); }
+        var sj = null; try { sj = window.agMistniPole(latP, lngP); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-intersection'); }
         return {
             lat: latP, lng: lngP,
-            Y: sj ? Math.abs(sj[0]) : null, X: sj ? Math.abs(sj[1]) : null,
+            Y: sj ? sj[0] : null, X: sj ? sj[1] : null,
             n: rays.length, rms: rms, maxMiss: maxMiss, angleP: bestAngle,
             posSigma: posSigma,
             behind: behind, dists: dists, rays: rays
@@ -420,7 +420,7 @@
         var qCol = r.angleP < 20 ? '#f87171' : (r.angleP < 35 ? '#fbbf24' : '#34d399');
         var html = '<div class="agix-big">Neznámý cíl ' + (_targetName ? '<b>' + _targetName + '</b> ' : '') + 'určen <span style="opacity:.7;font-size:calc(12px * var(--ag-font-scale, 1))">(' + r.n + ' stanoviska)</span></div>'
             + '<div style="margin:6px 0;font-family:var(--font-mono,monospace);font-size:calc(13px * var(--ag-font-scale, 1));">'
-            + 'S-JTSK:&nbsp; <b>Y</b> ' + (r.Y != null ? r.Y.toFixed(2) : '—') + ' &nbsp; <b>X</b> ' + (r.X != null ? r.X.toFixed(2) : '—') + '</div>'
+            + agSys() + ':&nbsp; <b>' + agOsy().osaA + '</b> ' + (r.Y != null ? r.Y.toFixed(2) : '—') + ' &nbsp; <b>' + agOsy().osaB + '</b> ' + (r.X != null ? r.X.toFixed(2) : '—') + '</div>'
             + '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.9;line-height:1.5;">'
             + 'Stanoviska: <b>#' + r.names.join('</b>, #') + '</b><br>'
             + 'Úhel protnutí: <b style="color:' + qCol + '">' + r.angleP.toFixed(0) + '°</b> <span style="opacity:.7">(ideál ~90°)</span>'

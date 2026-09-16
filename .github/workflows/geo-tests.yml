@@ -27,6 +27,13 @@ on:
       - 'tests/**'
       - 'scripts/gen_geo_fixtures.py'
       - 'scripts/run_js_tests.py'
+      # registr zemi (16. 9. 2026): souradnice/vysky podle zeme, geoid EGM2008, deklinace WMM2025
+      - 'js/sour-zeme.js'
+      - 'js/zeme-svet.js'
+      - 'js/wmm2025-koef.js'
+      - 'data/egm2008.bin'
+      - 'data/zeme-hranice.json'
+      - 'scripts/gen_zeme_data.py'
       - '.github/workflows/geo-tests.yml'
   pull_request:
   workflow_dispatch: {}

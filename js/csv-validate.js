@@ -12,7 +12,7 @@
 //   Platné body se NEMĚNÍ a projdou beze změny. Na konci ohlásí počet přeskočených.
 //
 // Pozn.: addImportedPoints dostává body už převedené do WGS84 (lat/lng). Rozsah Křováku
-//   ověříme zpětným převodem přes GeoCore.toSJTSK (js/geo-core.js) — jediný autoritativní
+//   ověříme zpětným převodem přes GeoCore.toMistni (js/geo-core.js) — jediný autoritativní
 //   převod v appce, který si navíc ověří pořadí os. Vlastní volání proj4 tu bylo dřív,
 //   ale s heuristikou min/max, která u souřadnic mimo ČR osy tiše prohazovala.
 //
@@ -34,11 +34,11 @@
     //   se nepodařilo spočítat kontrolu.
     function inSjtskRange(lat, lng) {
         try {
-            if (!window.GeoCore || typeof GeoCore.toSJTSK !== 'function') return true;
+            if (!window.GeoCore || typeof GeoCore.toMistni !== 'function') return true;
             if (typeof lat !== 'number' || typeof lng !== 'number' || !isFinite(lat) || !isFinite(lng)) return true;
             // GeoCore vrací {y, x} kladné a v ověřeném pořadí os — proto tu už není
             // heuristika „menší = Y, větší = X", která u zahraničních souřadnic selhávala.
-            const sj = GeoCore.toSJTSK(lat, lng);
+            const sj = GeoCore.toMistni(lat, lng);
             if (!sj || !isFinite(sj.y) || !isFinite(sj.x)) return true;
             return (sj.y >= Y_MIN && sj.y <= Y_MAX && sj.x >= X_MIN && sj.x <= X_MAX);
         } catch (e) { return true; }

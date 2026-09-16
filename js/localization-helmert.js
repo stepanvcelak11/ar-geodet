@@ -59,14 +59,14 @@
             // MALYMI pismeny -> podminka byla vzdy false a tahle delegace se NIKDY
             // neprovedla; modul tise jel na vlastnim proj4 nize. Uvnitr CR to davalo
             // stejny vysledek, takze si toho nikdo nevsiml.
-            if (typeof GeoCore !== 'undefined' && GeoCore.toSJTSK) { var s = GeoCore.toSJTSK(lat, lng); if (s && isFinite(s.y)) return { Y: s.y, X: s.x }; }
+            if (typeof GeoCore !== 'undefined' && GeoCore.toMistni) { var s = GeoCore.toMistni(lat, lng); if (s && isFinite(s.y)) return { Y: s.y, X: s.x }; }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:toSJTSK'); }
-        try { if (typeof proj4 === 'function') { var p = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { Y: Math.abs(p[0]), X: Math.abs(p[1]) }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:toSJTSK'); }
+        try { if (typeof proj4 === 'function') { var p = window.agMistniPole(lat, lng); return { Y: p[0], X: p[1] }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:toSJTSK'); }
         return null;
     }
     // S-JTSK Y,X (kladné) -> WGS84 {lat,lng} nebo null
     function fromSJTSK(Y, X) {
-        try { if (typeof proj4 === 'function') { var w = proj4('EPSG:5514', 'EPSG:4326', [-Math.abs(Y), -Math.abs(X)]); return { lat: w[1], lng: w[0] }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:fromSJTSK'); }
+        try { if (window.GeoCore && GeoCore.fromMistni) return GeoCore.fromMistni(Y, X); if (typeof proj4 === 'function') { var w = proj4('EPSG:5514', 'EPSG:4326', [-Math.abs(Y), -Math.abs(X)]); return { lat: w[1], lng: w[0] }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:fromSJTSK'); }
         return null;
     }
 
@@ -350,7 +350,7 @@
             + '<b>Orientační, ne přejímací měření.</b></p>'
             + '<div id="aghl-state" class="aghl-state"></div>'
             + '<div class="aghl-add">'
-            + '  <label class="aghl-fld"><span>známý bod (přesné S-JTSK)</span><select id="aghl-sel"></select></label>'
+            + '  <label class="aghl-fld"><span>známý bod (přesné ' + agSys() + ')</span><select id="aghl-sel"></select></label>'
             + '  <div id="aghl-gps" class="aghl-gps"></div>'
             + '  <div class="aghl-addbtns">'
             + '    <button class="btn" id="aghl-measure"><svg class="icon"><use href="#i-crosshair"/></svg> Změřit GPS zde</button>'
@@ -454,7 +454,7 @@
         var p = ptById(_selKnownId);
         if (!p) { agAlert('Bod zmizel', 'Vybraný bod už není v seznamu.'); return; }
         var sj = toSJTSK(p.lat, p.lng);
-        if (!sj) { agAlert('Převod selhal', 'Nepodařilo se převést známý bod do S-JTSK (proj4 nedostupné).'); return; }
+        if (!sj) { agAlert('Převod selhal', 'Nepodařilo se převést známý bod do ' + agSys() + ' (proj4 nedostupné).'); return; }
         // odeber případný starší pár na stejný bod
         _pairs = _pairs.filter(function (pr) { return pr.id !== p.id; });
         _pairs.push({

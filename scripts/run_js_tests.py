@@ -123,6 +123,11 @@ def suite_delegace(read_fn, proj_def):
             ctx.eval(read_fn('js/lib/proj4-2.9.0.min.js'))
             ctx.eval('proj4.defs("EPSG:5514", %s);' % json.dumps(proj_def))
             ctx.eval(read_fn('js/geo-core.js'))
+            # Od 16. 9. 2026 (registr zemi) jde zaloha modulu pres window.agMistniPole z logika.js
+            # (pole [y, x] v rovine te zeme, kde stojim; bez GeoCore pada na Krovak). Bere se
+            # PRIMO z logika.js, ne opsana, aby se test nerozesel s appkou.
+            ctx.eval('(function(){ %s; window.agMistniPole = function (lat, lng) { var m = agMistni(lat, lng); return [m.y, m.x]; }; })();'
+                     % extract_fn(read_fn('js/logika.js'), 'agMistni'))
             ctx.eval('var __mod = (function(){ %s; return toSJTSK; })();' % fn)
             worst = 0.0
             for lat, lng in PTS:
@@ -221,7 +226,7 @@ def suite_obchuzka(read_fn):
             "var navigator = {};"
             "function setTimeout(){return 0;} function setInterval(){return 0;}"
             "function clearInterval(){} function clearTimeout(){}"
-            "window.GeoCore = { toSJTSK: function(lat,lng){ return { y: lng*100000, x: lat*100000 }; } };"
+            "window.GeoCore = { toSJTSK: function(lat,lng){ return { y: lng*100000, x: lat*100000 }; } }; window.GeoCore.toMistni = window.GeoCore.toSJTSK;"
             "window.getDistance = function(a,b,c,d){ var dy=(d-b)*100000, dx=(c-a)*100000;"
             " return Math.sqrt(dy*dy+dx*dx); };")
 
@@ -534,6 +539,42 @@ def suite_parse_csv(read, proj_def):
     return results
 
 
+def suite_zeme(read_fn, proj_def):
+    """Registr zemi (js/sour-zeme.js) + data sveta (js/zeme-svet.js): souradnice 20 mest
+    proti PROJ, pasma, CAD, obrysy zemi, geoid EGM2008 (data/egm2008.bin), deklinace WMM2025
+    (js/wmm2025-koef.js) proti testovacim hodnotam NOAA. Definice testu: tests/cases-zeme.js.
+    Data se do V8 dostanou base64 (V8 nema fetch) a nactou se PRESNE tou cestou, kterou jde
+    appka (AGGeoid.nactiZBufferu, AGSour.hranice)."""
+    import base64
+    from py_mini_racer import MiniRacer
+    try:
+        ctx = MiniRacer()
+        ctx.eval('var window = this; var console = { log: function(){}, warn: function(){}, error: function(){} };'
+                 ' var setTimeout = function(f){ return 0; }; var CustomEvent = function(t, o){ this.type = t; this.detail = o && o.detail; };'
+                 ' var __h = {}; var document = { readyState: "complete", getElementById: function(){ return null; }, querySelectorAll: function(){ return []; },'
+                 '   addEventListener: function(t, f){ (__h[t] = __h[t] || []).push(f); },'
+                 '   removeEventListener: function(t, f){ __h[t] = (__h[t] || []).filter(function(g){ return g !== f; }); },'
+                 '   dispatchEvent: function(ev){ (__h[ev.type] || []).forEach(function(f){ f(ev); }); return true; } };'
+                 ' var __ls = {}; var localStorage = { getItem: function(k){ return __ls[k] == null ? null : __ls[k]; }, setItem: function(k, v){ __ls[k] = String(v); } };')
+        ctx.eval(read_fn('js/lib/proj4-2.9.0.min.js'))
+        ctx.eval('proj4.defs("EPSG:5514", %s);' % json.dumps(proj_def))
+        ctx.eval(read_fn('js/sour-zeme.js'))
+        ctx.eval(read_fn('js/geo-core.js'))
+        ctx.eval(read_fn('js/wmm2025-koef.js'))
+        ctx.eval(read_fn('js/zeme-svet.js'))
+        b64 = base64.b64encode((ROOT / 'data' / 'egm2008.bin').read_bytes()).decode('ascii')
+        ctx.eval('var __b64 = "%s";' % b64)
+        ctx.eval('(function(){ var tbl = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/", m = {}; for (var i = 0; i < 64; i++) m[tbl[i]] = i;'
+                 ' var out = [], buf = 0, bits = 0; for (var i = 0; i < __b64.length; i++) { var c = __b64[i]; if (c === "=") break; buf = ((buf << 6) | m[c]) & 0xFFFFFF; bits += 6; if (bits >= 8) { bits -= 8; out.push((buf >> bits) & 255); } }'
+                 ' var ab = new ArrayBuffer(out.length), u = new Uint8Array(ab); for (var j = 0; j < out.length; j++) u[j] = out[j]; AGGeoid.nactiZBufferu(ab); })();')
+        ctx.eval('AGSour.hranice(%s);' % read_fn('data/zeme-hranice.json'))
+        ctx.eval(read_fn('tests/cases-zeme.js'))
+        raw = ctx.eval('JSON.stringify(AGZemeTests.run({ AGSour: window.AGSour, GeoCore: window.GeoCore, AGGeoid: window.AGGeoid, AGWmm: window.AGWmm, geoidNacten: AGGeoid.nacteno() }))')
+        return json.loads(raw)
+    except Exception as e:
+        return [{'name': 'registr zemi: sada se nespustila', 'ok': False, 'detail': '%s: %s' % (type(e).__name__, e)}]
+
+
 def main():
     verbose = '-v' in sys.argv[1:] or '--verbose' in sys.argv[1:]
     try:
@@ -562,6 +603,7 @@ def main():
         results += suite_lint_argorder(read)
         results += suite_vstupy(read)
         results += suite_parse_csv(read, proj_def)
+        results += suite_zeme(read, proj_def)
     except Exception as e:
         print('CHYBA pri spousteni testu: %s: %s' % (type(e).__name__, e), file=sys.stderr)
         return 2

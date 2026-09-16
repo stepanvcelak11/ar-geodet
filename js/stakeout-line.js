@@ -213,13 +213,13 @@
     // souřadnice neukážou — dřív by tady celý výpočet spadl.
     function sjtsk(lat, lng) {
         try {
-            if (typeof GeoCore !== 'undefined' && GeoCore.toSJTSK) {
-                var r = GeoCore.toSJTSK(lat, lng);
+            if (typeof GeoCore !== 'undefined' && GeoCore.toMistni) {
+                var r = GeoCore.toMistni(lat, lng);
                 if (r && isFinite(r.y) && isFinite(r.x)) return { Y: r.y.toFixed(2), X: r.x.toFixed(2) };
             }
             if (typeof proj4 === 'function') {
-                var sj = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]);
-                return { Y: Math.abs(sj[0]).toFixed(2), X: Math.abs(sj[1]).toFixed(2) };
+                var sj = window.agMistniPole(lat, lng);
+                return { Y: sj[0].toFixed(2), X: sj[1].toFixed(2) };
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stakeout-line:sjtsk'); }
         return null;
@@ -241,7 +241,7 @@
         if (!r) { out.innerHTML = ''; return; }
         var mimo = (r.s < -0.005 || r.s > r.g.len + 0.005)
             ? '<br><span style="color:var(--warning,#fbbf24);font-size:calc(12px * var(--ag-font-scale, 1))">mimo osu — bod leží v prodloužení krajního úseku</span>' : '';
-        out.innerHTML = (r.Y ? '<b>Y</b> ' + r.Y + ' &nbsp; <b>X</b> ' + r.X : '<span style="opacity:.65">S-JTSK není k dispozici</span>')
+        out.innerHTML = (r.Y ? '<b>' + agOsy().osaA + '</b> ' + r.Y + ' &nbsp; <b>' + agOsy().osaB + '</b> ' + r.X : '<span style="opacity:.65">' + agSys() + ' není k dispozici</span>')
             + '<br><span style="opacity:.65;font-size:calc(12px * var(--ag-font-scale, 1))">staničení ' + r.sAbs.toFixed(2) + ' m'
             + (r.o ? ', odstup ' + Math.abs(r.o).toFixed(2) + ' m ' + (r.o > 0 ? 'vlevo' : 'vpravo') : ' na ose') + '</span>' + mimo;
     }

@@ -169,8 +169,8 @@
         return 2;
     }
     function sjtsk(lat, lng) {
-        try { if (window.GeoCore && typeof GeoCore.toSJTSK === 'function') { var r = GeoCore.toSJTSK(lat, lng); if (r) return { y: Math.abs(r.y), x: Math.abs(r.x) }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:sjtsk'); }
-        try { if (typeof proj4 === 'function') { var s = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { y: Math.abs(s[0]), x: Math.abs(s[1]) }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:sjtsk'); }
+        try { if (window.GeoCore && typeof GeoCore.toMistni === 'function') { var r = GeoCore.toMistni(lat, lng); if (r) return { y: r.y, x: r.x }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:sjtsk'); }
+        try { if (typeof proj4 === 'function') { var s = window.agMistniPole(lat, lng); return { y: s[0], x: s[1] }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:sjtsk'); }
         return null;
     }
 
@@ -308,7 +308,7 @@
         var lines = ['Potřebuji pomoc / navedení na tuto polohu:'];
         lines.push('GPS: ' + f.lat.toFixed(6) + ', ' + f.lng.toFixed(6) + (f.acc != null ? ' (přesnost ±' + Math.round(f.acc) + ' m)' : ''));
         var s = sjtsk(f.lat, f.lng);
-        if (s) lines.push('S-JTSK Y, X: ' + s.y.toFixed(2) + ', ' + s.x.toFixed(2));
+        if (s) lines.push(agSys() + ' ' + agOsy().osaA + ', ' + agOsy().osaB + ': ' + s.y.toFixed(2) + ', ' + s.x.toFixed(2));
         lines.push('Mapa: https://www.google.com/maps?q=' + f.lat.toFixed(6) + ',' + f.lng.toFixed(6));
         // Stáří polohy patří DO zprávy: příjemce musí vědět, jestli jede na místo,
         // kde jsem teď, nebo kde jsem naposledy byl.
@@ -544,7 +544,7 @@
             var s = sjtsk(f.lat, f.lng);
             h += cell(lv === 0 ? 'good wide' : (lv === 1 ? 'warn wide' : 'bad wide'), 'i-map-pin', 'Kde jsem',
                 esc(f.lat.toFixed(6) + ', ' + f.lng.toFixed(6)),
-                (s ? 'S-JTSK Y ' + esc(s.y.toFixed(2)) + ' &nbsp; X ' + esc(s.x.toFixed(2)) + '<br>' : 'S-JTSK teď nespočítám (chybí převodní knihovna).<br>') +
+                (s ? agSys() + ' ' + agOsy().osaA + ' ' + esc(s.y.toFixed(2)) + ' &nbsp; ' + agOsy().osaB + ' ' + esc(s.x.toFixed(2)) + '<br>' : agSys() + ' teď nespočítám (chybí převodní knihovna).<br>') +
                 'Poloha: ' + esc(ageTxt(f)) + (lv === 2 ? ' — <b>nespoléhej na ni</b>' : ''));
         } else {
             h += cell('bad wide', 'i-map-pin', 'Kde jsem', 'Nemám polohu',
@@ -599,7 +599,7 @@
                 '<h4>' + esc(_firedNum) + ' — předáno telefonu</h4>' +
                 '<div style="font-size:calc(12px * var(--ag-font-scale, 1));line-height:1.45;color:var(--text-muted);">Jestli se vytáčení neotevřelo, vytoč číslo ručně — appka nepozná, jestli hovor běží.</div>' +
                 '<div class="bz-big">' + (f ? esc(f.lat.toFixed(6) + ', ' + f.lng.toFixed(6)) : 'polohu nemám') + '</div>' +
-                (s ? '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));font-weight:700;">S-JTSK Y ' + esc(s.y.toFixed(2)) + ' &nbsp; X ' + esc(s.x.toFixed(2)) + '</div>' : '') +
+                (s ? '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));font-weight:700;">' + agSys() + ' ' + agOsy().osaA + ' ' + esc(s.y.toFixed(2)) + ' &nbsp; ' + agOsy().osaB + ' ' + esc(s.x.toFixed(2)) + '</div>' : '') +
                 (f ? '<div style="font-size:calc(11px * var(--ag-font-scale, 1));color:var(--text-muted);margin-top:3px;">Poloha: ' + esc(ageTxt(f)) + '</div>' : '') +
                 '<div style="display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:10px;">' +
                 '<button type="button" class="bz-mini" data-act="dial" data-num="' + esc(_firedNum) + '">' + ICO_PHONE + 'Vytočit znovu</button>' +

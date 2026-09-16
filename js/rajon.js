@@ -111,10 +111,10 @@
         var theta = ((betaSO + ang) % 360 + 360) % 360;         // směrník stanovisko→cíl
         var Te = _dist * Math.sin(theta * D2R), Tn = _dist * Math.cos(theta * D2R);
         var latP = lat0 + Tn / mLat, lngP = lng0 + Te / mLng;
-        var sj = null; try { sj = proj4('EPSG:4326', 'EPSG:5514', [lngP, latP]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rajon:solve'); }
+        var sj = null; try { sj = window.agMistniPole(latP, lngP); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rajon:solve'); }
         return {
             lat: latP, lng: lngP,
-            Y: sj ? Math.abs(sj[0]) : null, X: sj ? Math.abs(sj[1]) : null,
+            Y: sj ? sj[0] : null, X: sj ? sj[1] : null,
             theta: theta, ang: ang, distSO: distSO, dist: _dist,
             sName: S.name, oName: O.name,
             gpsStation: _stId === '__gps__'
@@ -306,7 +306,7 @@
         var oCol = r.distSO < 5 ? '#f87171' : (r.distSO < 15 ? '#fbbf24' : '#34d399');
         var html = '<div class="agrj-big">Nový bod ' + (_targetName ? '<b>' + _targetName + '</b> ' : '') + 'spočítán</div>'
             + '<div style="margin:6px 0;font-family:var(--font-mono,monospace);font-size:calc(13px * var(--ag-font-scale, 1));">'
-            + 'S-JTSK:&nbsp; <b>Y</b> ' + (r.Y != null ? r.Y.toFixed(2) : '—') + ' &nbsp; <b>X</b> ' + (r.X != null ? r.X.toFixed(2) : '—') + '</div>'
+            + agSys() + ':&nbsp; <b>' + agOsy().osaA + '</b> ' + (r.Y != null ? r.Y.toFixed(2) : '—') + ' &nbsp; <b>' + agOsy().osaB + '</b> ' + (r.X != null ? r.X.toFixed(2) : '—') + '</div>'
             + '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.9;line-height:1.5;">'
             + 'Stanovisko: <b>#' + r.sName + '</b>' + (r.gpsStation ? ' <span style="color:var(--warning,#fbbf24)">(GPS — poloha bodu jen tak přesná jako GPS)</span>' : '') + '<br>'
             + 'Orientace: <b>#' + r.oName + '</b> <span style="opacity:.7">(vzdálenost ' + '<b style="color:' + oCol + '">' + r.distSO.toFixed(1) + ' m</b>)</span><br>'

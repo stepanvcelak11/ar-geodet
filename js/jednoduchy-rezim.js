@@ -123,8 +123,8 @@
             + '    </div>'
             + '    <div id="ag-jr-rucne" hidden>'
             + '      <div class="jr-dvojice">'
-            + '        <div><label class="jr-label" for="ag-jr-y">S-JTSK Y (m)</label><input type="text" id="ag-jr-y" class="jr-vstup" inputmode="decimal" autocomplete="off" placeholder="596956,46"></div>'
-            + '        <div><label class="jr-label" for="ag-jr-x">S-JTSK X (m)</label><input type="text" id="ag-jr-x" class="jr-vstup" inputmode="decimal" autocomplete="off" placeholder="1163343,34"></div>'
+            + '        <div><label class="jr-label" for="ag-jr-y">' + agSys() + ' ' + agOsy().osaA + ' (m)</label><input type="text" id="ag-jr-y" class="jr-vstup" inputmode="decimal" autocomplete="off" placeholder="596956,46"></div>'
+            + '        <div><label class="jr-label" for="ag-jr-x">' + agSys() + ' ' + agOsy().osaB + ' (m)</label><input type="text" id="ag-jr-x" class="jr-vstup" inputmode="decimal" autocomplete="off" placeholder="1163343,34"></div>'
             + '      </div>'
             + '    </div>'
             + '    <div class="jr-vysledek" id="ag-jr-vysledek" hidden></div>'
@@ -295,7 +295,7 @@
         var y = cti('#ag-jr-y'), x = cti('#ag-jr-x');
         if (!isFinite(y) || !isFinite(x)) { novy = null; vysledek('', false); prepocitejUlozit(); return; }
         var c = null;
-        try { if (typeof sjtskToLatLng === 'function') c = sjtskToLatLng(y, x); } catch (e) { swallow(e, 'rucneZmena'); }
+        try { if (typeof sjtskToLatLng === 'function') c = mistniToLatLng(y, x); } catch (e) { swallow(e, 'rucneZmena'); }
         if (!c || !isFinite(c.lat) || !isFinite(c.lng)) { novy = null; vysledek('Souřadnice se nepodařilo převést.', true); prepocitejUlozit(); return; }
         novy = { lat: c.lat, lng: c.lng, acc: null, vyska: null, zpusob: 'ruc' };
         var kde = maFix() ? (' — od tebe <b>' + cislo(vzdal(userLat, userLng, c.lat, c.lng), 1) + ' m</b>') : '';

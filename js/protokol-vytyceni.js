@@ -77,7 +77,7 @@
     function sjtsk(lat, lng) {
         try {
             if (lat == null || lng == null) return null;
-            if (window.GeoCore && GeoCore.toSJTSK) { var s = GeoCore.toSJTSK(lat, lng); return { y: s.y, x: s.x }; }
+            if (window.GeoCore && GeoCore.toMistni) { var s = GeoCore.toMistni(lat, lng); return { y: s.y, x: s.x }; }
         } catch (e) { swallow(e, 'protvyt:sjtsk'); }
         return null;
     }

@@ -31,8 +31,8 @@
     // S-JTSK pres GeoCore (jediny autoritativni prevod, testovany proti PROJ);
     // premapovani na lokalni {Y,X} + fallback pro pripad bez geo-core.js.
     function toSJTSK(lat, lng) {
-        try { if (window.GeoCore && GeoCore.toSJTSK) { var s = GeoCore.toSJTSK(lat, lng); return { Y: s.y, X: s.x }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmt-volume:toSJTSK'); }
-        try { var r = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]); return { Y: Math.abs(r[0]), X: Math.abs(r[1]) }; }
+        try { if (window.GeoCore && GeoCore.toMistni) { var s = GeoCore.toMistni(lat, lng); return { Y: s.y, X: s.x }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmt-volume:toSJTSK'); }
+        try { var r = window.agMistniPole(lat, lng); return { Y: r[0], X: r[1] }; }
         catch (e) { return null; }
     }
     // cteni cisel pres sdilene agNum() (js/vstupy.js) — desetinna carka, mezery v tisicich

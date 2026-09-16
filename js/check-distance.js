@@ -26,7 +26,7 @@
     // natvrdo — a poradi os je prave to jedine, co GeoCore hlida (_resolveAxis). Pri
     // zmene proj4 by zaloha Y a X TISE prohodila, takze radsi nic nez cislo vedle.
     function toSJTSK(lat, lng) {
-        try { if (window.GeoCore && GeoCore.toSJTSK) { var s = GeoCore.toSJTSK(lat, lng); return { Y: s.y, X: s.x }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'check-distance:toSJTSK'); }
+        try { if (window.GeoCore && GeoCore.toMistni) { var s = GeoCore.toMistni(lat, lng); return { Y: s.y, X: s.x }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'check-distance:toSJTSK'); }
         try { if (window.agErrLog) agErrLog.record('check-distance: chybi GeoCore — S-JTSK se nepocita'); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'check-distance:toSJTSK'); }
         return null;
     }

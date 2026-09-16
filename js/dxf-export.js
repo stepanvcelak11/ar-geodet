@@ -58,15 +58,17 @@
     // Nemenit na kladne — zmenila by se poloha vsech dosud exportovanych vykresu.
     function toSJTSK(lat, lng) {
         try {
-            if (window.GeoCore && GeoCore.toSJTSK) {
-                var s = GeoCore.toSJTSK(lat, lng);
+            // Registr zemí (16. 9. 2026): v ČR záporný Křovák jako dosud, jinde východ/sever CAD.
+            if (window.AGSour) { var c = AGSour.proCad(lat, lng); if (!c || !isFinite(c.x) || !isFinite(c.y)) return null; return { y: c.x, x: c.y }; }
+            if (window.GeoCore && GeoCore.toMistni) {
+                var s = GeoCore.toMistni(lat, lng);
                 if (!s || !isFinite(s.y) || !isFinite(s.x)) return null;
                 return { y: -s.y, x: -s.x };
             }
-            var sj = proj4('EPSG:4326', 'EPSG:5514', [lng, lat]);
+            var sj = window.agMistniPole(lat, lng);   // kladné [Y, X] → do DXF záporný Křovák
             var Y = sj[0], X = sj[1];
             if (!isFinite(Y) || !isFinite(X)) return null;
-            return { y: Y, x: X };
+            return { y: -Y, x: -X };
         } catch (e) { return null; }
     }
 
@@ -88,7 +90,7 @@
         var pts = (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) ? persistentCustomPoints : [];
         var lines = (typeof pointLines !== 'undefined' && Array.isArray(pointLines)) ? pointLines : [];
         if (!pts.length && !lines.length) { alertFail('Není co exportovat', 'V zakázce nejsou žádné vlastní body ani spojnice.'); return; }
-        if (typeof proj4 !== 'function') { alertFail('Export selhal', 'Chybí knihovna proj4 pro převod do S-JTSK.'); return; }
+        if (typeof proj4 !== 'function') { alertFail('Export selhal', 'Chybí knihovna proj4 pro převod do ' + agSys() + '.'); return; }
 
         try {
             var o = [];
@@ -144,7 +146,7 @@
 
             var msg = 'Exportováno: ' + np + ' bodů' + (nl ? ', ' + nl + ' spojnic' : '') + '.'
                 + (skipped ? '\n(' + skipped + ' přeskočeno — chybné souřadnice.)' : '')
-                + '\n\nSouřadnice S-JTSK (sever nahoru), výška v ose Z. Text v UTF-8.';
+                + '\n\nSouřadnice ' + agSys() + ' (sever nahoru), výška v ose Z. Text v UTF-8.';
             _ven.then(function (jak) {
                 if (jak === 'abort' || jak === 'fail') return;
                 try { if (typeof window.quickToast === 'function') window.quickToast('DXF vytvořeno (' + np + ' bodů)'); else alertFail('DXF vytvořeno', msg); }

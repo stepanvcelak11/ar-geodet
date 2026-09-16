@@ -39,12 +39,12 @@
     function projId() { try { return (typeof activeProjectId !== 'undefined') ? activeProjectId : 'default'; } catch (e) { return 'default'; } }
 
     // ---- proj4 svět <-> WGS84 (svět = [záporné Y, záporné X] Křováka) -----------
-    function worldToLatLng(w) { try { var ll = proj4('EPSG:5514', 'EPSG:4326', [w.x, w.y]); return { lat: ll[1], lng: ll[0] }; } catch (e) { return null; } }
+    function worldToLatLng(w) { try { if (window.AGSour) return AGSour.zCad(w.x, w.y); var ll = proj4('EPSG:5514', 'EPSG:4326', [w.x, w.y]); return { lat: ll[1], lng: ll[0] }; } catch (e) { return null; } }
     // S-JTSK počítá GeoCore (jediný autoritativní převod, hlídá pořadí os); vrací
     // KLADNÉ {y,x}, svět tady je záporný Křovák — proto se znaménko vrací ručně,
     // stejně jako to dělá sjtskToWorld() o řádek níž.
-    function latLngToWorld(lat, lng) { try { if (window.GeoCore && GeoCore.toSJTSK) { var s = GeoCore.toSJTSK(lat, lng); return { x: -s.y, y: -s.x }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-overlay:latLngToWorld'); } return null; }
-    function sjtskToWorld(Y, X) { return { x: -Math.abs(Y), y: -Math.abs(X) }; }   // kladné Y,X -> záporný Křovák
+    function latLngToWorld(lat, lng) { try { if (window.AGSour) return AGSour.proCad(lat, lng); if (window.GeoCore && GeoCore.toSJTSK) { var s = GeoCore.toSJTSK(lat, lng); return { x: -s.y, y: -s.x }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-overlay:latLngToWorld'); } return null; }
+    function sjtskToWorld(Y, X) { if (window.AGSour && !AGSour.popisky().krovak) { var w = latLngToWorld(AGSour.zMistnich(Y, X).lat, AGSour.zMistnich(Y, X).lng); if (w) return w; } return { x: -Math.abs(Y), y: -Math.abs(X) }; }   // kladné Y,X -> záporný Křovák
 
     // =====================================================================
     // IndexedDB (obrázek per zakázka)
@@ -274,7 +274,7 @@
         ed.innerHTML =
             '<div style="margin:6px 0;padding:10px;border-radius:10px;background:rgba(255,255,255,0.06);">'
             + '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.8;margin-bottom:6px;">Skutečné souřadnice tohoto bodu:</div>'
-            + '<div style="display:flex;gap:8px;"><input type="text" inputmode="decimal" autocomplete="off" id="aggo-wy" placeholder="Y (S-JTSK)" style="flex:1;"><input type="text" inputmode="decimal" autocomplete="off" id="aggo-wx" placeholder="X (S-JTSK)" style="flex:1;"></div>'
+            + '<div style="display:flex;gap:8px;"><input type="text" inputmode="decimal" autocomplete="off" id="aggo-wy" placeholder="' + agOsy().osaA + ' (' + agSys() + ')" style="flex:1;"><input type="text" inputmode="decimal" autocomplete="off" id="aggo-wx" placeholder="X (S-JTSK)" style="flex:1;"></div>'
             + '<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">'
             + '<button class="btn btn-secondary" id="aggo-gps" style="flex:1;margin:0;">Z GPS</button>'
             + (ptOpts ? '<select id="aggo-pt" style="flex:1;"><option value="">— existující bod —</option>' + ptOpts + '</select>' : '')

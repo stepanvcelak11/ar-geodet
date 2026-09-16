@@ -81,8 +81,8 @@
         var az = num('agof-az'), d = num('agof-dist');
         if (!base || isNaN(az) || isNaN(d)) { if (out) out.innerHTML = '<span style="opacity:.6">Vyplň azimut a délku…</span>'; return null; }
         var t = forward(base.lat, base.lng, az, d);
-        var sj = proj4('EPSG:4326', 'EPSG:5514', [t.lng, t.lat]);
-        var Y = Math.abs(sj[0]).toFixed(2), X = Math.abs(sj[1]).toFixed(2);
+        var sj = window.agMistniPole(t.lat, t.lng);
+        var Y = sj[0].toFixed(2), X = sj[1].toFixed(2);
         if (out) out.innerHTML = '<b>Y</b> ' + Y + ' &nbsp; <b>X</b> ' + X + '<br><span style="opacity:.65;font-size:calc(12px * var(--ag-font-scale, 1))">' + t.lat.toFixed(6) + ', ' + t.lng.toFixed(6) + '</span>';
         return { lat: t.lat, lng: t.lng, Y: Y, X: X };
     }
