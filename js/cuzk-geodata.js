@@ -19,6 +19,7 @@
         if (cat === 'TB') return 'Trigonometrický bod';
         if (cat === 'ZHB') return 'Zhušťovací bod';
         if (cat === 'NIVEL') return 'Nivelační / výškový bod';
+        if (cat === 'TIHA') return 'Tíhový bod';
         if (cat === 'PBPP') return 'Podrobný polohový bod (PPBP)';
         return 'Bod bodového pole';
     }

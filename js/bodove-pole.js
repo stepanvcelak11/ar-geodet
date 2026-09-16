@@ -43,13 +43,15 @@
         TB: { label: 'Trigonometrický', short: 'TB', color: 'var(--color-tb)', q: 1 },
         ZHB: { label: 'Zhušťovací', short: 'ZhB', color: 'var(--color-zhb)', q: 2 },
         PBPP: { label: 'Podrobný (PPBP)', short: 'PBPP', color: 'var(--color-pbpp)', q: 3 },
-        NIVEL: { label: 'Nivelační (výškový)', short: 'NIV', color: 'var(--color-nivel)', q: 4 }
+        NIVEL: { label: 'Nivelační (výškový)', short: 'NIV', color: 'var(--color-nivel)', q: 4 },
+        TIHA: { label: 'Tíhový', short: 'TÍH', color: 'var(--color-tiha, #f97316)', q: 5 }
     };
     var FILTERS = [
         { k: 'all', label: 'Vše' },
         { k: 'best', label: 'TB + ZhB', cats: ['TB', 'ZHB'] },
         { k: 'pbpp', label: 'PBPP', cats: ['PBPP'] },
-        { k: 'nivel', label: 'Nivelační', cats: ['NIVEL'] }
+        { k: 'nivel', label: 'Nivelační', cats: ['NIVEL'] },
+        { k: 'tiha', label: 'Tíhové', cats: ['TIHA'] }
     ];
     var LIMIT = 30;                 // kolik řádků vypsat (dál od 30. bodu už nikdo nejde)
     var REFRESH_MS = 2000;          // přepočet vzdáleností, když se s telefonem jde
@@ -333,9 +335,10 @@
                 + '</div>'
                 + '<div class="agbp-sub">' + esc(c.label) + (s ? ' · Y ' + s.Y.toFixed(2) + ' · X ' + s.X.toFixed(2) : '') + '</div>'
                 + (p.cat === 'NIVEL' ? '<div class="agbp-warn">Výškový bod — na kotvu polohy se nehodí.</div>' : '')
+                + (p.cat === 'TIHA' ? '<div class="agbp-warn">Tíhový bod' + (p.nazevBodu ? ' „' + esc(p.nazevBodu) + '"' : '') + ' — bývá v budově, na kotvu polohy se nehodí.</div>' : '')
                 + '<div class="agbp-acts">'
                 + '  <button type="button" class="btn btn-secondary agbp-act" data-act="nav" data-id="' + esc(p.id) + '">Navést</button>'
-                + '  <button type="button" class="btn btn-secondary agbp-act" data-act="anchor" data-id="' + esc(p.id) + '"' + (p.cat === 'NIVEL' ? ' disabled' : '') + '>Kotva</button>'
+                + '  <button type="button" class="btn btn-secondary agbp-act" data-act="anchor" data-id="' + esc(p.id) + '"' + ((p.cat === 'NIVEL' || p.cat === 'TIHA') ? ' disabled' : '') + '>Kotva</button>'
                 + '</div>'
                 + '</div>';
         }

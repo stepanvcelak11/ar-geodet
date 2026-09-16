@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v338';   // ikony ze sprite misto emoji vsude (Kde co mam, odznaky, PDR, kampan, slunce, radar, zpravodaj...)
+const SHELL_CACHE = 'argeodet-shell-v339';   // tihove body zvlast, cisla pridruzenych bodu, klik do parcely s ochranou, kalibrace po hranici katastru, animace stahovani, web
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=338',
-    './css/style.css?v=338',
-    './css/vylepseni.css?v=338',
+    './css/tokens.css?v=339',
+    './css/style.css?v=339',
+    './css/vylepseni.css?v=339',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -373,13 +373,21 @@ self.addEventListener('install', event => {
         if (!(await vydanoProOstatni())) throw new Error('QTRIG v' + SHELL_VERZE + ' ceka, az ji vlastnik pusti ostatnim');
         const cache = await caches.open(SHELL_CACHE);
         const fontCache = await caches.open(FONT_CACHE);
+        // POSTUP STAHOVANI PRO APPKU (16. 9. 2026): otevrena stranka (jeste ovladana starym
+        // workerem) dostane {agUpdate:{done,total}} po kazdych 8 souborech a na konci —
+        // z toho kresli pilulku „Stahuji novou verzi… 42 %" (js/logika.js agUpdPill).
+        const total = ASSETS_TO_CACHE.length; let done = 0;
+        const hlas = () => { try { if (!self.clients || !self.clients.matchAll) return; self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+            .then(cs => cs.forEach(c => { try { c.postMessage({ agUpdate: { done, total } }); } catch (e) { /* nic */ } }))
+            .catch(() => { /* nic */ }); } catch (e) { /* nic */ } };
+        const krok = () => { done++; if (done % 8 === 0 || done === total) hlas(); };
         // Kazdy soubor zvlast â€” selhani jednoho nesmi zablokovat instalaci (a tim i aktualizaci).
         await Promise.allSettled(ASSETS_TO_CACHE.map(async url => {
             // PISMA: uz je mame z minule verze? Necha se to tak — jsou to ~900 kB, ktere
             // se nemeni, a stahovat je znovu pri kazdem bumpu verze by byla skoda dat.
             const font = isFont(url);
             const target = font ? fontCache : cache;
-            if (font && await target.match(url)) return;
+            if (font && await target.match(url)) { krok(); return; }
             try {
                 // 'no-cache', NE 'reload': obe varianty jdou vzdy na server (takze
                 // se nikdy nevezme zastarala kopie), ale 'reload' si vynuti PLNE
@@ -391,6 +399,7 @@ self.addEventListener('install', event => {
                 const res = await fetch(new Request(url, { cache: 'no-cache' }));
                 if (res && (res.ok || res.type === 'opaque')) await target.put(url, res);
             } catch (e) { /* offline / blokovany CDN â€” preskocit, nevadi */ }
+            krok();
         }));
         // skipWaiting az na vyzadani z appky (po souhlasu uzivatele s obnovou)
     })());

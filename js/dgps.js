@@ -132,13 +132,24 @@
 
     // ROVER: připojení kódem, pravidelné stahování, korekce pro nové body
     function liveOffset(log) {
-        // vážený průměr bloků za posledních LIVE_WIN_MS (podle času základny), jinak null
+        // Korekce = vážený průměr bloků za posledních LIVE_WIN_MS (podle času základny).
+        // 16. 9. 2026 (kvalitnější korekce): 1) ČERSTVÉ BLOKY VÁŽÍ VÍC — atmosféra i
+        // konstelace se za 3 minuty posunou, poslední minuta má váhu 1, ta před třemi
+        // minutami ~0,2 (exp, τ = 2 min); 2) BLOK MIMO ŘADU (odraz, přeběhnutí auta kolem
+        // základny) se vyřadí: dál než 3× MAD + 0,3 m od mediánu ostatních. Jinak null.
         var last = log.buckets.length ? log.buckets[log.buckets.length - 1].t : 0;
         var from = last - LIVE_WIN_MS, sw = 0, sE = 0, sN = 0, sU = 0, nU = 0, n = 0;
         var xs = [], ys = [];
-        log.buckets.forEach(function (b) {
-            if (b.t < from) return;
-            var w = b.n || 1; sw += w; sE += w * b.dE; sN += w * b.dN; n++; xs.push(b.dE); ys.push(b.dN);
+        var okno = log.buckets.filter(function (b) { return b.t >= from; });
+        if (okno.length >= 4) {
+            var mE = median(okno.map(function (b) { return b.dE; })), mN = median(okno.map(function (b) { return b.dN; }));
+            var dev = okno.map(function (b) { return Math.hypot(b.dE - mE, b.dN - mN); });
+            var mad = median(dev) * 1.4826, prah = 3 * mad + 0.3;
+            okno = okno.filter(function (b, i) { return dev[i] <= prah; });
+        }
+        okno.forEach(function (b) {
+            var w = (b.n || 1) * Math.exp(-(last - b.t) / 120000);
+            sw += w; sE += w * b.dE; sN += w * b.dN; n++; xs.push(b.dE); ys.push(b.dN);
             if (b.dU != null) { sU += w * b.dU; nU += w; }
         });
         if (!n) return null;
@@ -216,12 +227,19 @@
     }
 
     // ---- ZÁKLADNA: sběr --------------------------------------------------------
+    // KVALITNĚJŠÍ BLOK (16. 9. 2026, přání „kvalitnější korekce v DGPS"): hodnota bloku
+    // je MEDIÁN fixů (od 5 fixů), ne průměr — jeden odraz od zdi (skok o 5 m na 3 s)
+    // dřív posunul celý minutový blok o půl metru. Pod 5 fixů vážený průměr 1/acc².
+    // Formát bloku {t,dE,dN,dU,n} se nemění (QR, worker ani starší rover nic nepoznají).
+    function median(a) { if (!a.length) return null; var s = a.slice().sort(function (x, y) { return x - y; }), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; }
     function flushBucket() {
         if (!_cur || !_cur.n) { _cur = null; return; }
+        var dE = _cur.sw ? _cur.sE / _cur.sw : _cur.sE / _cur.n, dN = _cur.sw ? _cur.sN / _cur.sw : _cur.sN / _cur.n;
+        if (_cur.n >= 5 && _cur.eS && _cur.eS.length >= 5) { dE = median(_cur.eS); dN = median(_cur.nS); }
         _buckets.push({
             t: _cur.t0 + BUCKET_S * 500,   // střed bloku (ms)
-            dE: _cur.sE / _cur.n, dN: _cur.sN / _cur.n,
-            dU: _cur.nU ? _cur.sU / _cur.nU : null, n: _cur.n
+            dE: dE, dN: dN,
+            dU: _cur.nU ? (_cur.uS && _cur.uS.length >= 5 ? median(_cur.uS) : _cur.sU / _cur.nU) : null, n: _cur.n
         });
         _cur = null;
         saveDraft();
@@ -242,9 +260,11 @@
             try { if (typeof getGeoidUndulation === 'function') und = getGeoidUndulation(_base.lat, _base.lng) || 0; } catch (e) { und = 0; }
             dU = (alt - und) - _base.vyska;
         }
-        if (!_cur || now - _cur.t0 >= BUCKET_S * 1000) { flushBucket(); _cur = { t0: now, sE: 0, sN: 0, sU: 0, nU: 0, n: 0 }; }
-        _cur.sE += dE; _cur.sN += dN; _cur.n++;
-        if (dU != null) { _cur.sU += dU; _cur.nU++; }
+        if (!_cur || now - _cur.t0 >= BUCKET_S * 1000) { flushBucket(); _cur = { t0: now, sE: 0, sN: 0, sU: 0, nU: 0, n: 0, sw: 0, eS: [], nS: [], uS: [] }; }
+        var w = 1 / Math.pow(Math.max(1, acc), 2);   // fix s ±3 m má 9× menší váhu než ±1 m
+        _cur.sE += w * dE; _cur.sN += w * dN; _cur.sw += w; _cur.n++;
+        _cur.eS.push(dE); _cur.nS.push(dN);
+        if (dU != null) { _cur.sU += dU; _cur.nU++; _cur.uS.push(dU); }
         _lastOff = { dE: dE, dN: dN, t: now };
     }
     function startBase(pt) {
@@ -592,6 +612,7 @@
             + '<li>Bez internetu: základnu na konci zastav → <b>ukáže QR</b>; rover ho naskenuje (<b>Korekce z QR</b>) a body opraví zpětně.</li>'
             + '</ol>'
             + '<p>Co čekat: body roveru vůči sobě <b>±0,5 m</b> (do 150 m od základny nejlíp, platí do ~2 km). Poloha celku je tak dobrá, jak dobře znáš bod základny: úřední bod = ±0,5 m, bod z Přesné GPS s kalibrací = ±0,6–1 m, bod bez kalibrace = jen tvar, celek může být posunutý o metry.</p>'
+            + '<p><b>Proč to nejde na centimetry:</b> korekce odečte jen chybu, kterou mají oba telefony <b>společnou</b> (atmosféra, dráhy družic). Odrazy od zdí a stromů, šum přijímače a vyhlazování polohy v telefonu má každý telefon svoje — to zůstává. Appka proto blok základny počítá <b>mediánem</b> s váhou podle hlášené přesnosti a rover bere <b>čerstvé bloky</b> s větší váhou; blok mimo řadu vyřadí. Nejvíc pomůže: základna s <b>volným obzorem</b> (ne u zdi, ne pod stromem), stejný typ telefonu, rover do 150 m.</p>'
             + '</details>'
             + '<p class="agdg-intro">Atmosférická chyba GPS je pro dva telefony do ~2 km stejná. Jeden telefon polož na <b>přesně známý bod</b> jako základnu, druhým měř. Korekce buď chodí <b>živě přes internet</b> (kód základny, body jsou opravené hned při uložení), nebo je přeneseš <b>naskenováním QR</b> z displeje základny (nebo souborem) a body se opraví zpětně.</p>'
             + (_lr ? '<div id="ag-dgps-lr"></div>' : '')

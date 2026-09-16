@@ -2,6 +2,36 @@
 // Vypocty, prevody souradnic, stahovani dat z CUZK, GPS, ukladani, zakazky.
 // Nacita se PRED grafika.js a sdili s ni globalni promenne.
 
+// PILULKA „STAHUJI NOVOU VERZI" (16. 9. 2026): jediný prvek #ag-upd-pill, který se
+// vytvoří až při první potřebě. Stavy: start (0 %), progress (n/celkem → pruh),
+// done (fajfka, zmizí po 6 s), install (nová verze se právě nasazuje — točící
+// se kolečko do reloadu), hide. Styl v css/style.css (#ag-upd-pill).
+function agUpdPill(stav, info) {
+    try {
+        let el = document.getElementById('ag-upd-pill');
+        if (stav === 'hide') { if (el) el.classList.remove('on'); return; }
+        if (!el) {
+            el = document.createElement('div'); el.id = 'ag-upd-pill'; el.setAttribute('role', 'status');
+            el.innerHTML = '<span class="ag-upd-ic"><svg class="icon"><use href="#i-rotate-ccw"/></svg></span><span class="ag-upd-txt"></span><span class="ag-upd-bar"><i></i></span>';
+            document.body.appendChild(el);
+        }
+        const txt = el.querySelector('.ag-upd-txt'), bar = el.querySelector('.ag-upd-bar i');
+        clearTimeout(el._t);
+        el.classList.remove('done', 'spin');
+        if (stav === 'start') { txt.textContent = 'Stahuji novou verzi…'; bar.style.width = '4%'; el.classList.add('spin'); }
+        else if (stav === 'progress' && info && info.total) {
+            const pct = Math.max(4, Math.min(100, Math.round(info.done / info.total * 100)));
+            txt.textContent = 'Stahuji novou verzi… ' + pct + ' %'; bar.style.width = pct + '%'; el.classList.add('spin');
+        }
+        else if (stav === 'install') { txt.textContent = 'Nasazuji novou verzi…'; bar.style.width = '100%'; el.classList.add('spin'); }
+        else if (stav === 'done') {
+            txt.textContent = 'Nová verze stažena — použije se při příštím spuštění'; bar.style.width = '100%'; el.classList.add('done');
+            el._t = setTimeout(() => el.classList.remove('on'), 6000);
+        }
+        el.classList.add('on');
+    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agUpdPill'); }
+}
+
 if ('serviceWorker' in navigator) {
             // UPDATE: novou verzi NEaktivujeme automaticky (rusivy reload uprostred prace);
             // nabidneme listu 'nova verze - klepni pro obnoveni' (showUpdateBanner -> applyUpdate -> SKIP_WAITING).
@@ -46,12 +76,24 @@ if ('serviceWorker' in navigator) {
                             // „Co je nového" se po obnově ukáže samo — viz js/co-je-noveho.js
                             try { localStorage.setItem('agCjnPoAktualizaci', '1'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:selfUpdate2'); }
                             try { reg.waiting.postMessage('SKIP_WAITING'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:selfUpdate3'); }
-                            setTimeout(() => { if (!_swReloaded) showUpdateBanner(); }, 4000);
+                            agUpdPill('install');
+                            setTimeout(() => { if (!_swReloaded) { agUpdPill('hide'); showUpdateBanner(); } }, 4000);
                         }
                     }
                     reg.addEventListener('updatefound', () => {
                         const nw = reg.installing; if (!nw) return;
-                        nw.addEventListener('statechange', () => { if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner(); });
+                        // ANIMACE STAHOVÁNÍ (16. 9. 2026): nový service worker si během install
+                        // tahá ~240 souborů a hlásí postup (sw.js posílá {agUpdate:{done,total}}).
+                        // Bez toho appka mlčela a člověk nevěděl, že se něco děje.
+                        if (navigator.serviceWorker.controller) agUpdPill('start');
+                        nw.addEventListener('statechange', () => {
+                            if (nw.state === 'installed' && navigator.serviceWorker.controller) { agUpdPill('done'); showUpdateBanner(); }
+                            else if (nw.state === 'redundant') agUpdPill('hide');
+                        });
+                    });
+                    navigator.serviceWorker.addEventListener('message', (ev) => {
+                        const d = ev && ev.data;
+                        if (d && d.agUpdate && navigator.serviceWorker.controller) agUpdPill('progress', d.agUpdate);
                     });
                     // PWA se na mobilu většinou jen PROBUDÍ z pozadí (žádná navigace),
                     // takže prohlížeč sám novou verzi sw.js nezkontroluje třeba celý den.
@@ -487,7 +529,7 @@ if ('serviceWorker' in navigator) {
             let ho = getStoredData('arHeadingOffset'); userHeadingOffset = ho ? (parseFloat(ho) || 0) : 0;
 
             arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; persistentCustomPoints = [];
-            let off = getStoredData('arOfflinePoints12'); if(off) { try { var _off = JSON.parse(off); if (Array.isArray(_off)) _off.forEach(p => { if (!p || typeof p.lat !== 'number' || typeof p.lng !== 'number' || !isFinite(p.lat) || !isFinite(p.lng)) return; p.element=null; p.distElement=null; p.ringElement=null; p.bestAccuracy=null; p.hidden=false; arPoints.push(p); }); }catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:loadProjectSettings'); } }
+            let off = getStoredData('arOfflinePoints12'); if(off) { try { var _off = JSON.parse(off); if (Array.isArray(_off)) _off.forEach(p => { if (!p || typeof p.lat !== 'number' || typeof p.lng !== 'number' || !isFinite(p.lat) || !isFinite(p.lng)) return; p.element=null; p.distElement=null; p.ringElement=null; p.bestAccuracy=null; p.hidden=false; agCuzkMigrujBod(p); arPoints.push(p); }); }catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:loadProjectSettings'); } }
             let cust = getStoredData('arCustomPoints12'); if(cust) { try { var _cust = JSON.parse(cust); if (Array.isArray(_cust)) persistentCustomPoints = _cust.filter(p => p && typeof p.lat === 'number' && typeof p.lng === 'number' && isFinite(p.lat) && isFinite(p.lng)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:loadProjectSettings'); } }
             loadLines();
             // OPRAVA: vlastni body musi po startu i do arPoints (AR + mapa), ne jen do seznamu spravy
@@ -1124,7 +1166,20 @@ if ('serviceWorker' in navigator) {
         }
 
 
-        function extractPointNumber(props) { if (!props) return "Bod"; const upperProps = {}; for (let key in props) upperProps[key.toUpperCase()] = props[key]; let name = upperProps['CISLO'] || upperProps['CISLO_BODU'] || upperProps['VLASTNI_CISLO'] || upperProps['OZNACENI'] || upperProps['UPLNE_CISLO'] || upperProps['NAZEV']; if (name && String(name).trim() !== "" && String(name).trim() !== "Null") return String(name).trim(); return "Bod"; }
+        // ČÍSLO BODU z atributů služby. TB/ZhB: CISLO je číslo na triangulačním listu a
+        // PŘIDRUŽENÝ (zajišťovací) bod má TOTÉŽ číslo + pořadové PL → „19.3" (jinak by
+        // v mapě stály tři body „19" vedle sebe — 16. 9. 2026). Prázdné = „Bod".
+        function extractPointNumber(props) {
+            if (!props) return "Bod";
+            const upperProps = {}; for (let key in props) upperProps[key.toUpperCase()] = props[key];
+            const ok = (v) => v != null && String(v).trim() !== "" && String(v).trim() !== "Null";
+            let name = null;
+            for (const k of ['CISLO', 'CISLO_BODU', 'VLASTNI_CISLO', 'OZNACENI', 'UPLNE_CISLO', 'NAZEV']) { if (ok(upperProps[k])) { name = String(upperProps[k]).trim(); break; } }
+            if (name == null) return "Bod";
+            const pl = parseInt(upperProps['PL'], 10);
+            if (ok(upperProps['ZTLTL']) && pl > 0 && name.indexOf('.') < 0) name += '.' + pl;
+            return name;
+        }
         // VZDALENOST — pocita GeoCore (jediny autoritativni prevod, testovany proti
         // geodetice WGS84 v tests/cases-geo.js). Fallback nize je pro pripad bez geo-core.js.
         //
@@ -1449,6 +1504,18 @@ if ('serviceWorker' in navigator) {
         }
         // stabilni ID z polohy bodu -> pri opakovanem fetchi si bod udrzi stejne id (zvyrazneni, detail)
         function stableId(lat, lng) { return 'p_' + lat.toFixed(6) + '_' + lng.toFixed(6); }
+        // BODY ULOŽENÉ STARŠÍ VERZÍ APPKY (16. 9. 2026): tíhový bod měl cat 'TB' a
+        // přidružený bod k TB jméno bez pořadového čísla („19" místo „19.3"). Bez
+        // převodu by se po stažení objevil vedle starého nový bod se správným jménem.
+        function agCuzkMigrujBod(p) {
+            try {
+                if (!p || p.cat === 'CUSTOM' || !p.rawData) return;
+                if (p.vrstva === 48 || /t[íi]hov/i.test(p.druh || '')) { p.cat = 'TIHA'; p.type = 'tihovy'; }
+                // jméno přepočítat jen u TB/ZhB (pořadové číslo přidruženého bodu) — jinde
+                // by se mohlo přepsat jméno, které si uživatel ručně upravil
+                if (p.cat === 'TB' || p.cat === 'ZHB') { const nm = extractPointNumber(p.rawData); if (nm && nm !== 'Bod' && nm !== p.name) p.name = nm; }
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:migrujBod'); }
+        }
 
         // ============================================================================
         // BODOVÁ POLE ČÚZK — CO KTERÁ VRSTVA SLUŽBY ZNAMENÁ (ověřeno 15. 9. 2026
@@ -1466,6 +1533,10 @@ if ('serviceWorker' in navigator) {
         //   cat = kategorie appky (filtry, barvy, ikony), druh = text do karty,
         //   etrs = souřadnice B/L/HEL jsou přímo ETRS89 (kotva pro GNSS),
         //   zrus = zrušený bod (nezobrazuje se), lbl = jen popisky (duplikát).
+        //   ⚠ LICHÉ VRSTVY 3–49 = „Čísla bodů …" (popisky). identify(layers=all) je vrací
+        //   taky — do 16. 9. 2026 tu chyběly, padaly na heuristiku a POPISEK ZRUŠENÉHO
+        //   bodu (11, 13, 15, 17, 31–37) se ukazoval jako platný „PBPP" (ověřeno: TB 39
+        //   na TL 1420, vrstva 10 zrušený + 11 popisek → v mapě bod 39). Doplněné níž.
         const AG_CUZK_VRSTVY = {
             0: { lbl: 1 }, 1: { lbl: 1 },                                   // stanice CZEPOS — na střechách, ne v terénu
             2: { cat: 'TB', druh: 'Trigonometrický bod (ZPBP) — ETRS89 static', etrs: 1 },
@@ -1485,8 +1556,14 @@ if ('serviceWorker' in navigator) {
             42: { cat: 'PBPP', druh: 'Podrobný polohový bod (PPBP)' },
             44: { cat: 'NIVEL', druh: 'Základní nivelační bod (ZVBP)' },
             46: { cat: 'NIVEL', druh: 'Podrobný nivelační bod (PVBP)' },
-            48: { cat: 'TB', druh: 'Tíhový bod (ZTBP)' }
+            // TÍHOVÝ BOD = VLASTNÍ KATEGORIE (16. 9. 2026, uživatel: „ať se mi nezobrazují
+            // jako polohové body"). Dřív cat 'TB' → karta hlásila „Trigonometrický bod",
+            // v mapě fialový trojúhelník. Tíhový bod má jméno (NAZEV_BODU), bývá v budově
+            // a na kotvení polohy se nehodí (poloha v ČÚZK jen orientačně).
+            48: { cat: 'TIHA', druh: 'Tíhový bod (ZTBP)' }
         };
+        // popisky („Čísla bodů …") — liché vrstvy 3–49, každá = duplikát sudé vrstvy pod ní
+        for (let _l = 3; _l <= 49; _l += 2) AG_CUZK_VRSTVY[_l] = { lbl: 1 };
         // Vrstvy s BODY (bez popisků, bez zrušených) — tohle se stahuje dotazem po vrstvách.
         const AG_CUZK_BODOVE_VRSTVY = Object.keys(AG_CUZK_VRSTVY).map(Number).filter(k => AG_CUZK_VRSTVY[k].cat);
         window.AG_CUZK_VRSTVY = AG_CUZK_VRSTVY; window.AG_CUZK_BODOVE_VRSTVY = AG_CUZK_BODOVE_VRSTVY;
@@ -1509,14 +1586,14 @@ if ('serviceWorker' in navigator) {
             const g = (k) => { for (const key in props) if (key.toUpperCase() === k) return props[key]; return null; };
             const pt = {
                 id: stableId(lat, lng), name: cisloBodu, lat: lat, lng: lng, cat: cat,
-                type: (cat === 'NIVEL' ? 'vyskovy' : 'polohovy'), rawData: props, hidden: false,
+                type: (cat === 'NIVEL' ? 'vyskovy' : (cat === 'TIHA' ? 'tihovy' : 'polohovy')), rawData: props, hidden: false,
                 currentDist: (dist == null ? 0 : dist), bestAccuracy: null, vrstva: ln, druh: druh
             };
             // ÚPLNÉ ČÍSLO BODU (12 míst). TB/ZhB: 0009 + list ZTLTL(4) + číslo(3) + pořadové
             // přidruženého PL(1). Appka do karty dřív dávala jen „28" — a takových je
             // na každém triangulačním listu jedno. PPBP: kód k.ú.(6) + 00 + číslo(4).
             const ztltl = _cuzkStr(g('ZTLTL')), cis = _cuzkNum(g('CISLO')), ku = _cuzkNum(g('CISLO_KU'));
-            if (ztltl && cis != null && (cat === 'TB' || cat === 'ZHB') && ln !== 48) {
+            if (ztltl && cis != null && (cat === 'TB' || cat === 'ZHB')) {
                 const pl = _cuzkNum(g('PL')) || 0;
                 pt.cislo12 = '0009' + ('0000' + ztltl).slice(-4) + ('000' + Math.round(cis)).slice(-3) + String(pl).slice(-1);
                 pt.list = ztltl;
@@ -1554,6 +1631,7 @@ if ('serviceWorker' in navigator) {
             const f3 = (n) => n.toFixed(3).replace('.', ',');
             let h = '';
             if (pt.druh) h += row('Druh', esc(pt.druh));
+            if (pt.list && (pt.cat === 'TB' || pt.cat === 'ZHB')) h += row('Triangulační list', esc(pt.list) + ' <span style="opacity:.7;">· bod ' + esc(pt.name) + '</span>');
             if (pt.cislo12) h += row('Úplné číslo', `<span style="font-family:var(--font-mono,monospace);letter-spacing:.04em;">${esc(pt.cislo12)}</span>`);
             if (pt.ku || pt.okres) h += row('Kat. území', esc([pt.ku, pt.okres].filter(Boolean).join(' · ')));
             if (pt.presnost != null) h += row('Třída přesnosti', esc(pt.presnost) + ' <span style="opacity:.7;">(nižší = přesnější)</span>');

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- D — HLEDACEK: rohove zavorky ze stavajici ikony zustavaji, uvnitr je Q -->
+  <defs>
+    <linearGradient id="d-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1c222a"/><stop offset="1" stop-color="#0c1014"/>
+    </linearGradient>
+    <linearGradient id="d-em" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5ce0a8"/><stop offset="1" stop-color="#2a945f"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#d-bg)"/>
+
+  <g fill="none" stroke="url(#d-em)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" opacity="0.55">
+    <path d="M112 172 L112 134 Q112 112 134 112 L172 112"/>
+    <path d="M340 112 L378 112 Q400 112 400 134 L400 172"/>
+    <path d="M400 340 L400 378 Q400 400 378 400 L340 400"/>
+    <path d="M172 400 L134 400 Q112 400 112 378 L112 340"/>
+  </g>
+
+  <g transform="translate(8,14)">
+  <g fill="none" stroke="url(#d-em)" stroke-width="32" stroke-linecap="butt">
+    <path d="M293.9 303.1 A78 78 0 0 1 202.1 303.1"/>
+    <path d="M184.9 285.9 A78 78 0 0 1 184.9 194.1"/>
+    <path d="M202.1 176.9 A78 78 0 0 1 293.9 176.9"/>
+    <path d="M311.1 194.1 A78 78 0 0 1 311.1 285.9"/>
+  </g>
+  <line x1="271" y1="263" x2="325" y2="317" stroke="url(#d-em)" stroke-width="30" stroke-linecap="round"/>
+  <circle cx="248" cy="240" r="15" fill="#ffffff"/>
+  </g>
+</svg>

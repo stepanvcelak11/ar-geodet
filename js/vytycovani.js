@@ -146,6 +146,7 @@ function _stakeTypeLabel(cat) {
     if (cat === 'TB') return 'Trigonometrický bod';
     if (cat === 'ZHB') return 'Zhušťovací bod';
     if (cat === 'NIVEL') return 'Nivelační / Výškový bod';
+    if (cat === 'TIHA') return 'Tíhový bod';
     if (cat === 'CUSTOM') return 'Vlastní bod';
     return 'Podrobný polohový bod';
 }

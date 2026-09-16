@@ -736,11 +736,15 @@
             if (pt.cat === 'ZHB') return visSettings.colZhb;
             if (pt.cat === 'PBPP') return visSettings.colPbpp;
             if (pt.cat === 'NIVEL') return visSettings.colNivel;
+            if (pt.cat === 'TIHA') return AG_TIHA_COL;
             if (pt.cat === 'CUSTOM') return visSettings.colCustom;
             return visSettings.colTb;
         }
+        // Tíhový bod (16. 9. 2026): šestiúhelník s tečkou, oranžový — ať se v mapě ani
+        // v AR neplete s fialovým trojúhelníkem TB. Barva je pevná (bodů je v ČR ~450).
+        const AG_TIHA_COL = '#f97316';
 
-        function getMapMarkerSVG(category, color) { if(category === 'TB') return `<svg viewBox="0 0 24 24"><polygon points="12,2 22,20 2,20" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'ZHB') return `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'PBPP') return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'NIVEL') return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="${color}" stroke-width="3"/><circle cx="12" cy="12" r="3" fill="${color}"/></svg>`; if(category === 'CUSTOM') return `<svg viewBox="0 0 24 24"><path d="M12,2 C7,2 3,6 3,11 C3,18 12,22 12,22 C12,22 21,18 21,11 C21,6 17,2 12,2 Z" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="${color}"/></svg>`; }
+        function getMapMarkerSVG(category, color) { if(category === 'TIHA') return `<svg viewBox="0 0 24 24"><polygon points="12,2 21,7 21,17 12,22 3,17 3,7" fill="${color}" stroke="#fff" stroke-width="1"/><circle cx="12" cy="12" r="2.6" fill="#fff"/></svg>`; if(category === 'TB') return `<svg viewBox="0 0 24 24"><polygon points="12,2 22,20 2,20" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'ZHB') return `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'PBPP') return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; if(category === 'NIVEL') return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="${color}" stroke-width="3"/><circle cx="12" cy="12" r="3" fill="${color}"/></svg>`; if(category === 'CUSTOM') return `<svg viewBox="0 0 24 24"><path d="M12,2 C7,2 3,6 3,11 C3,18 12,22 12,22 C12,22 21,18 21,11 C21,6 17,2 12,2 Z" fill="${color}" stroke="#fff" stroke-width="1"/></svg>`; return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="${color}"/></svg>`; }
 
         // ===== OREZ MARKERU NA VYREZ MAPY =========================================
         // Po stazeni bodoveho pole z CUZK jsou v mape stovky bodu a KAZDY je jeden
@@ -1013,7 +1017,7 @@
         function showClusterList(points) {
             const listDiv = document.getElementById('cluster-list'); listDiv.innerHTML = '';
             points.forEach(pt => {
-                let typBodu = "Podrobný polohový bod"; if(pt.cat === 'TB') typBodu = "Trigonometrický bod"; if(pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if(pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if(pt.cat === 'CUSTOM') typBodu = "Vlastní bod";
+                let typBodu = "Podrobný polohový bod"; if(pt.cat === 'TB') typBodu = "Trigonometrický bod"; if(pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if(pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if(pt.cat === 'TIHA') typBodu = "Tíhový bod"; if(pt.cat === 'CUSTOM') typBodu = "Vlastní bod";
                 if (agZHodinek(pt)) typBodu = "Bod z hodinek";
                 const dist = getDistance(userLat, userLng, pt.lat, pt.lng); const item = document.createElement('div'); item.className = 'cluster-list-item';
                 let col = agBarvaBodu(pt);
@@ -1037,7 +1041,7 @@
             }).map(pt => ({ pt, d: getDistance(userLat, userLng, pt.lat, pt.lng) })).sort((a, b) => a.d - b.d).slice(0, 50);
             if (!pts.length) { listDiv.innerHTML = '<p style="text-align:center; opacity:0.7;">Žádné body v dosahu.</p>'; return; }
             pts.forEach(({ pt, d }) => {
-                let typBodu = "Podrobný polohový bod"; if (pt.cat === 'TB') typBodu = "Trigonometrický bod"; if (pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if (pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if (pt.cat === 'CUSTOM') typBodu = "Vlastní bod";
+                let typBodu = "Podrobný polohový bod"; if (pt.cat === 'TB') typBodu = "Trigonometrický bod"; if (pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if (pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if (pt.cat === 'TIHA') typBodu = "Tíhový bod"; if (pt.cat === 'CUSTOM') typBodu = "Vlastní bod";
                 if (agZHodinek(pt)) typBodu = "Bod z hodinek";
                 let col = agBarvaBodu(pt);
                 const item = document.createElement('div'); item.className = 'cluster-list-item';
@@ -2245,7 +2249,7 @@
                 if (document.getElementById('welcome-screen') && document.getElementById('welcome-screen').style.display !== 'none' && !document.body.classList.contains('app-started')) return;
             } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:showDetails'); }
             activePointIdForModal = pt.id; initARMarkers(); arPoints.forEach(p => { if (p.element) p.element.classList.remove('active-reading'); }); if (pt.element) pt.element.classList.add('active-reading');
-            let typBodu = "Podrobný polohový bod"; if(pt.cat === 'TB') typBodu = "Trigonometrický bod"; if(pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if(pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if(pt.cat === 'CUSTOM') typBodu = "Vlastní zadaný bod";
+            let typBodu = "Podrobný polohový bod"; if(pt.cat === 'TB') typBodu = "Trigonometrický bod"; if(pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if(pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if(pt.cat === 'TIHA') typBodu = "Tíhový bod" + (pt.nazevBodu ? " · " + pt.nazevBodu : ""); if(pt.cat === 'CUSTOM') typBodu = "Vlastní zadaný bod";
             document.getElementById('det-title').innerHTML = `#${_escHtml(pt.name)}`; document.getElementById('det-title').style.color = "var(--accent)"; document.getElementById('det-subtitle').innerHTML = typBodu; 
             const hlBtn = document.getElementById('highlight-btn'); if (highlightedPointId === pt.id) { hlBtn.innerHTML = '<svg class="icon"><use href="#i-star"/></svg><span>Nezvýraznit</span>'; hlBtn.style.background = "#fff"; } else { hlBtn.innerHTML = '<svg class="icon"><use href="#i-star"/></svg><span>Zvýraznit</span>'; hlBtn.style.background = "#fbbf24"; }
             hideBtnLogic = () => { pt.hidden = true; if(pt.element) { pt.element.style.opacity = '0'; setTimeout(() => { if(pt.element && pt.element.parentNode) pt.element.parentNode.removeChild(pt.element); }, 200); } if (highlightedPointId === pt.id) { highlightedPointId = null; document.getElementById('ar-hud').style.display = 'none'; } updateInfoPanel(); drawAllMarkersOnMap(); };
@@ -2932,6 +2936,7 @@
             { t: 'ZhB — zhušťovací bod', d: 'Bod doplňující (zhušťující) síť trigonometrických bodů polohového pole. V aplikaci modrý čtverec.' },
             { t: 'PBPP — podrobný bod polohového pole', d: 'Pomocný měřický bod pro připojení podrobného měření. V aplikaci kruhová značka.' },
             { t: 'Nivelační bod', d: 'Bod výškového bodového pole se známou nadmořskou výškou (Bpv). Stabilizace čepovou nebo hřebovou značkou, např. na budovách a mostech. V aplikaci červené mezikruží.' },
+            { t: 'Tíhový bod', d: 'Bod tíhového bodového pole (ZTBP) — v místě je změřené tíhové zrychlení, ne přesná poloha. Bývá uvnitř budovy (kostel, škola, úřad), má jméno podle obce. V aplikaci oranžový šestiúhelník; na kotvení GPS se nehodí.' },
             { t: 'Bodové pole', d: 'Souhrn geodetických bodů na území státu: polohové (TB, ZhB, PBPP), výškové (nivelační) a tíhové.' },
             { t: 'S-JTSK', d: 'Systém Jednotné trigonometrické sítě katastrální — závazný souřadnicový systém ČR (Křovákovo zobrazení). Souřadnice Y a X v metrech; matematicky jsou záporné, v praxi se píší kladné (Y ~ 430–905 km, X ~ 935–1230 km).' },
             { t: 'Křovákovo zobrazení', d: 'Dvojité kuželové konformní zobrazení v obecné poloze, základ S-JTSK. Navrhl Josef Křovák (1922).' },

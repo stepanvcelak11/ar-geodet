@@ -101,6 +101,8 @@
             '  border-radius:12px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:var(--surface-2,rgba(255,255,255,0.07));',
             '  color:var(--text-color,#eceef2);font:600 11px/1.15 var(--font-ui,system-ui);text-align:center;}',
             '#ag-kb-acts button .icon{width:19px;height:19px;}',
+            '#ag-kb-hint{margin:-8px 0 12px;font-size:calc(11.5px * var(--ag-font-scale, 1));line-height:1.45;color:var(--text-muted,#9aa1ac);}',
+            '#ag-kb-hint b{color:var(--text-color,#eceef2);font-weight:600;}',
             '#ag-kb-acts button.on{background:var(--accent,#2f9e74);border-color:transparent;color:#fff;}',
             'body.ag-glove #ag-kb-acts button{padding:14px 4px;font-size:calc(12px * var(--ag-font-scale, 1));}',
             // hlavička: číslo velké, druh a kód jako štítky; původní řádky grafika.js jen schované
@@ -204,10 +206,13 @@
         // OPRAVIT GPS PODLE BODU (15. 9. 2026 večer): čtvereček rovnou v kartě, ať se nástroj
         // „Posun GPS na známý bod" nemusí hledat v Nástrojích. Upozornění „musíš stát na
         // bodě" a výpočet dělá js/ref-calibration.js (agRefCalibrateFromPoint), i s výškou.
-        if (isFinite(pt.lat) && isFinite(pt.lng)) {
+        // tíhový bod: poloha v ČÚZK jen orientačně (bod bývá v budově) → GPS podle něj neopravovat
+        if (isFinite(pt.lat) && isFinite(pt.lng) && pt.cat !== 'TIHA') {
             h += '<button type="button" data-a="ref" title="Stoupni si na bod a oprav podle něj GPS (polohu i výšku)"><svg class="icon"><use href="#i-locate"/></svg><span>Opravit<br>GPS</span></button>';
         }
-        if (typeof window.toggleStaked === 'function') {
+        // „Vytyčeno" dává smysl jen u VLASTNÍHO bodu (vytyčuju svoje body, ne bodové
+        // pole ČÚZK) — u úředního bodu tlačítko i dlaždice „Stav" zrušeny 16. 9. 2026.
+        if (typeof window.toggleStaked === 'function' && pt.type === 'custom') {
             h += '<button type="button" data-a="staked" class="' + (staked ? 'on' : '') + '">'
                 + '<svg class="icon"><use href="#i-check"/></svg><span>' + (staked ? 'Vytyčeno ✓' : 'Vytyčeno') + '</span></button>';
         }
@@ -286,11 +291,18 @@
         var acts = document.getElementById('ag-kb-acts');
         if (!acts) { acts = document.createElement('div'); acts.id = 'ag-kb-acts'; acts.addEventListener('click', onAct); }
         acts.innerHTML = actsHtml(pt);
+        // Uživatel 16. 9. 2026: „Kontrolní bod a Opravit GPS — v čem se to liší?" → říct to rovnou v kartě.
+        var hint = document.getElementById('ag-kb-hint');
+        if (!hint) { hint = document.createElement('div'); hint.id = 'ag-kb-hint'; }
+        hint.innerHTML = '<b>Kontrolní bod</b> = uloží, kde teď stojím, s odchylkou od tohoto bodu (jen záznam, nic nemění). '
+            + (pt.cat !== 'TIHA' ? '<b>Opravit GPS</b> = stoupni si na bod a další měření se o zjištěnou chybu posunou.' : '');
+        if (window.AGLite && AGLite.lite) hint.style.display = 'none';
         try { hlavicka(pt); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:hlavicka'); }
         try { mozaika(pt, body, dev); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:mozaika'); }
         try { nacrt(pt, body); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:nacrt'); }
         // akce hned nahoře, nad odchylkou i mozaikou — „Doveď mě" musí být na dosah bez rolování
         body.insertBefore(acts, body.firstChild);
+        acts.insertAdjacentElement('afterend', hint);
         fillDev(pt); fillDist(pt);
         start();
     }
@@ -303,7 +315,8 @@
         sub.setAttribute('data-druh', druh);
         var h = '<span class="ag-kb-chip">' + esc(druh) + '</span>';
         if (pt.kod) h += '<span class="ag-kb-chip kod">' + esc(pt.kod) + '</span>';
-        try { if (window.isStaked && isStaked(pt.id)) h += '<span class="ag-kb-chip ok">✓ vytyčeno</span>'; } catch (e) { }
+        if (pt.list && (pt.cat === 'TB' || pt.cat === 'ZHB')) h += '<span class="ag-kb-chip kod" title="triangulační list">TL ' + esc(pt.list) + '</span>';
+        if (pt.cat === 'TIHA' && pt.nazevBodu) h += '<span class="ag-kb-chip kod">' + esc(pt.nazevBodu) + '</span>';
         try { if (typeof agZHodinek === 'function' && agZHodinek(pt)) h += '<span class="ag-kb-chip"><svg class="icon"><use href="#i-watch"/></svg> z hodinek</span>'; } catch (e) { }
         sub.innerHTML = h;
         sub.setAttribute('data-kb', String(pt.id));
@@ -334,7 +347,8 @@
         TB: '<path d="M12 4l9 16H3z"/><circle cx="12" cy="14" r="2"/>',
         ZHB: '<path d="M12 4l9 16H3z"/><path d="M12 10v8M8 18h8"/>',
         PBPP: '<circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/>',
-        NIVEL: '<path d="M4 18h16M6 14h12M8 10h8M10 6h4"/>'
+        NIVEL: '<path d="M4 18h16M6 14h12M8 10h8M10 6h4"/>',
+        TIHA: '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><circle cx="12" cy="12" r="2.2"/>'
     };
     function ikona(pt) {
         var d = DRUH_IKONA[pt.cat] || DRUH_IKONA.CUSTOM;
@@ -357,8 +371,7 @@
         if (pt.acc != null && isFinite(pt.acc)) tile('acc ' + (pt.acc <= 0.5 ? 'ok' : (pt.acc <= 2 ? 'warn' : 'bad')), 'Přesnost', '<b>±' + n2(pt.acc) + ' m</b>');
         else if (pt.type !== 'custom') tile('ok', 'Přesnost', '<b class="t">úřední bod</b>');
         else tile('', 'Přesnost', '<b class="t">neuvedena</b>');
-        var staked = false; try { staked = !!(window.isStaked && isStaked(pt.id)); } catch (e) { }
-        tile(staked ? 'ok' : '', 'Stav', '<b class="t">' + (staked ? '✓ vytyčeno' : 'nevytyčeno') + '</b>');
+        // (dlaždice „Stav: vytyčeno / nevytyčeno" zrušena 16. 9. 2026 na přání — v kartě nemá co dělat)
         var z = ptElev(pt);
         tile('', 'Výška Bpv', '<b>' + (z != null ? n2(z) + ' m' : '—') + '</b>');
         tile('', 'Ode mě', '<b id="ag-kb-dist">— m</b>');

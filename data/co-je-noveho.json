@@ -2,6 +2,23 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 339,
+   "datum": "2026-09-16",
+   "nadpis": "Tíhové body zvlášť, čísla přidružených bodů, klik do parcely s ochranou území, kalibrace chůzí po hranici katastru, animace stahování",
+   "body": [
+    "<b>Tíhové body mají vlastní značku</b> — oranžový šestiúhelník v mapě i v AR, karta říká „Tíhový bod · jméno“. Dřív se tvářily jako trigonometrické body (fialový trojúhelník). Na kotvení GPS se nenabízejí (bývají v budově).",
+    "<b>Přidružené (zajišťovací) body k TB a ZhB mají číslo s pořadím</b>: 19.3, 19.4 — dřív stály v mapě tři body „19“ vedle sebe. V kartě TB je nově řádek s triangulačním listem.",
+    "Oprava: popisky <b>zrušených</b> bodů ze služby ČÚZK se ukazovaly jako platné podrobné body.",
+    "<b>Klik do parcely toho ukáže víc:</b> výměra z grafiky vedle úřední, zdroj hranice (DKM na centimetry / UKM na metry), platnost, nejbližší adresa, výška terénu z DMR 5G, u budovy konstrukce, podlahová plocha a rok dokončení. Nová část <b>Ochrana a omezení</b>: BPEJ (rozepsaný kód), NP / CHKO / rezervace / památka i s ochrannými pásmy, Natura 2000, památný strom, chráněné ložiskové území, dobývací prostor a ochranné pásmo značky bodu základního bodového pole.",
+    "<b>Kalibrace chůzí po hranici katastru:</b> se zapnutou vrstvou Katastr se klepnutí do 4 m od hranice parcely přichytí na nejbližší místo hranice — obrys se stáhne z RÚIAN sám. V území s UKM appka počítá s ±1 m.",
+    "<b>Karta bodu:</b> dlaždice „Stav: nevytyčeno“ je pryč, tlačítko Vytyčeno zůstává jen u vlastních bodů. Pod tlačítky je věta, čím se liší <b>Kontrolní bod</b> (jen záznam, kde stojím) a <b>Opravit GPS</b> (posune další měření).",
+    "<b>Opravit GPS varuje, kde stojíš:</b> pod stromem, u zdi nebo mezi domy má GPS jinou chybu než na volném — když poloha kolísá, appka to napíše a poradí jiný bod nebo delší průměr.",
+    "<b>DGPS přesněji:</b> blok základny je medián fixů s váhou podle hlášené přesnosti, rover váží čerstvé bloky víc a blok mimo řadu vyřadí. V nástroji je nově napsáno, proč to na centimetry nejde.",
+    "<b>Stahování nové verze vidíš:</b> nahoře se objeví „Stahuji novou verzi… 42 %“ s pruhem, po dokončení fajfka. Při nasazení nové verze po startu točící se kolečko.",
+    "Nová <b>webová stránka appky</b>: <a href=\"web/\" target=\"_blank\" rel=\"noopener\">stepanvcelak11.github.io/ar-geodet/web/</a> — co appka umí, ukázky, Základ a Pro, přesnost poctivě, instalace."
+   ]
+  },
+  {
    "v": 338,
    "datum": "2026-09-15",
    "nadpis": "Oprava GPS podle známého bodu i na výšku, nivelační body v nabídce, čtvereček Opravit GPS v kartě bodu",

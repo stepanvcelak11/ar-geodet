@@ -149,12 +149,12 @@
     function officialPts() {
         try {
             if (window.AGBodovePole && typeof AGBodovePole.points === 'function') {
-                return AGBodovePole.points().filter(function (p) { return !!p; });
+                return AGBodovePole.points().filter(function (p) { return !!p && p.cat !== 'TIHA'; });
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:officialPts'); }
         try {
             if (typeof arPoints !== 'undefined' && Array.isArray(arPoints)) {
-                return arPoints.filter(function (p) { return p && p.cat && p.cat !== 'CUSTOM' && isFinite(p.lat) && isFinite(p.lng); });
+                return arPoints.filter(function (p) { return p && p.cat && p.cat !== 'CUSTOM' && p.cat !== 'TIHA' && isFinite(p.lat) && isFinite(p.lng); });
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:officialPts'); }
         return [];
@@ -495,13 +495,29 @@
             + ' a rozdíl proti souřadnicím bodu bude od teď přičítat k nově ukládaným bodům.'
             + (d != null ? '<br><br>Teď jsi podle GPS <b>' + (d < 100 ? d.toFixed(1).replace('.', ',') + ' m' : Math.round(d) + ' m') + '</b> od bodu' + (d > 30 ? ' — <b>to je moc</b>, buď na něm nestojíš, nebo GPS teď hodně lže.' : '.') : '')
             + (H != null ? '<br><br>Bod má výšku <b>' + H.toFixed(2).replace('.', ',') + ' m</b> Bpv' + (hb != null ? ' — opraví se i <b>výška</b>. <b>Polož telefon na značku</b> (nebo ho drž u ní); GPS teď hlásí ' + hb.toFixed(2).replace('.', ',') + ' m.' : ', ale telefon výšku z GPS nehlásí — opraví se jen poloha.') : '<br><br>Bod nemá výšku — opraví se jen poloha.')
-            + (pt.cat === 'NIVEL' ? '<br><br><span style="opacity:.8">Nivelační bod: poloha je v ČÚZK jen na metr, výška na milimetry.</span>' : '');
+            + (pt.cat === 'NIVEL' ? '<br><br><span style="opacity:.8">Nivelační bod: poloha je v ČÚZK jen na metr, výška na milimetry.</span>' : '')
+            + okoliVarovani(a);
         confirmBox('Opravit GPS podle bodu ' + nm, msg, 'Stojím na něm, opravit', 'Zpět').then(function (ok) {
             if (!ok) return;
             zapni(avgGps() || a, pt.lat, pt.lng, H, 0, nm, 'ref', function () { if (_ov && _ov.style.display === 'flex') renderState(); });
         });
     }
     window.agRefCalibrateFromPoint = fromPoint;
+
+    // KDE STOJÍŠ ROZHODUJE (16. 9. 2026, otázka: „nebude to zkreslené, když bod bude pod
+    // stromem či vedle domu?"). Ano: pod korunou / u zdi se signál odráží a tlumí, GPS má
+    // v tu chvíli JINOU chybu než o kus dál na volném — korekce vezme i tenhle místní
+    // kus a na otevřeném prostranství pak posouvá špatným směrem. Prozradí to rozptyl
+    // průměru a hlášená přesnost: na volném nebi má telefon při průměrování ±0,3–0,6 m,
+    // pod stromem ±1–3 m. Bránit se tomu nedá, jen o tom vědět a vybrat lepší bod.
+    function okoliVarovani(a) {
+        var acc = null;
+        try { if (typeof currentGpsAccuracy !== 'undefined' && isFinite(currentGpsAccuracy)) acc = currentGpsAccuracy; } catch (e) { acc = null; }
+        var neklid = (a && isFinite(a.sterr) && a.from === 'avg' && a.sterr > 0.8) || (acc != null && acc > 6);
+        var t = '<br><br><b>Kde stojíš, to rozhoduje.</b> Pod stromem, u zdi nebo mezi domy se signál odráží — GPS má tam jinou chybu než o 30 m dál na volném. Korekce z takového místa platí jen pro stejné podmínky; na otevřeném prostranství pak může posouvat špatně. Vyber bod s volným obzorem a nech GPS 1–2 minuty průměrovat.';
+        if (neklid) t += '<br><span style="color:var(--warning,#fbbf24);font-weight:600;">GPS teď kolísá' + (a && isFinite(a.sterr) && a.from === 'avg' ? ' (rozptyl ±' + a.sterr.toFixed(2).replace('.', ',') + ' m)' : (acc != null ? ' (±' + Math.round(acc) + ' m)' : '')) + ' — typické právě pod stromem či u domu. Korekce by byla spíš náhodná; radši jiný bod nebo delší průměr.</span>';
+        return t;
+    }
 
     function toggle() {
         var s = loadShift();

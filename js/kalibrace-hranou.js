@@ -63,8 +63,8 @@
     var DRIFT_WARN_M = 1.0;    // m — nad to je plavání chyby GPS „neklidný den"
     // Přesnost čáry podle zdroje (m, 1σ). Přičítá se k chybě korekce: kalibrace nikdy
     // není lepší než to, po čem jdeš.
-    var LINE_ACC = { orto: 0.35, osm: 2.0, katastr: 0.3, body: 0.05 };
-    var LINE_LABEL = { orto: 'z ortofota', osm: 'z uliční mapy', katastr: 'z hranice katastru', body: 'z uložených bodů' };
+    var LINE_ACC = { orto: 0.35, osm: 2.0, katastr: 0.3, ukm: 1.0, body: 0.05 };
+    var LINE_LABEL = { orto: 'z ortofota', osm: 'z uliční mapy', katastr: 'z hranice katastru (DKM)', ukm: 'z hranice katastru (UKM — analogová mapa)', body: 'z uložených bodů' };
     var ACC_MAX = 20;          // m — horší fix se nepočítá
     var SPEED_MIN = 0.3;       // m/s — pod tím stojím (fix se hromadí na jednom místě)
     var MOVE_MIN = 0.5;        // m — náhrada rychlosti, když ji telefon nehlásí
@@ -333,6 +333,44 @@
         _katCache = out;
         return out;
     }
+    // HRANICE KATASTRU ŽIVĚ Z RÚIAN (16. 9. 2026, otázka: „co když budu klikat hranice
+    // katastrální mapy?"). Když je zapnutá vrstva Katastr a v zakázce nejsou stažené
+    // parcely, stáhne se obrys parcely pod prstem (RÚIAN vrstva 5, stejný host jako
+    // bodová pole) a klepnutí do 4 m se přichytí na NEJBLIŽŠÍ MÍSTO HRANICE (kolmý
+    // průmět na úsek, ne jen lomový bod). Zdroj geometrie parcely (DKM / UKM) určuje,
+    // jak čáře věřit: DKM ±0,3 m, UKM (přepočtená analogová mapa) ±1 m.
+    var RUIAN_PARC = 'https://ags.cuzk.gov.cz/arcgis/rest/services/RUIAN/Prohlizeci_sluzba_nad_daty_RUIAN/MapServer/5/query';
+    var _katLive = [];          // [{rings:[[{lat,lng}...]], zdroj:1|2}] stažené během klepání
+    function katastrOn() { try { return !!(typeof visSettings !== 'undefined' && visSettings && visSettings.showKatastr); } catch (e) { return false; } }
+    function fetchParcela(ll) {
+        var p = { geometry: JSON.stringify({ x: ll.lng, y: ll.lat, spatialReference: { wkid: 4326 } }), geometryType: 'esriGeometryPoint', inSR: '4326', outSR: '4326',
+            spatialRel: 'esriSpatialRelIntersects', outFields: 'id,zdroj', returnGeometry: 'true', f: 'json' };
+        var url = RUIAN_PARC + '?' + Object.keys(p).map(function (k) { return k + '=' + encodeURIComponent(p[k]); }).join('&');
+        var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+        var t = setTimeout(function () { if (ctrl) ctrl.abort(); }, 8000);
+        return fetch(url, ctrl ? { signal: ctrl.signal } : undefined).then(function (r) { return r.json(); }).then(function (j) {
+            clearTimeout(t);
+            var f = j && j.features && j.features[0]; if (!f || !f.geometry || !f.geometry.rings) return null;
+            var o = { zdroj: (f.attributes && f.attributes.zdroj) || 1, rings: f.geometry.rings.map(function (r) { return r.map(function (c) { return { lat: c[1], lng: c[0] }; }); }) };
+            _katLive.push(o);
+            return o;
+        }).catch(function () { clearTimeout(t); return null; });
+    }
+    // nejbližší místo na hranici (průmět na úseky všech kruhů) do KAT_SNAP_M
+    function snapNaHranici(ll, parc) {
+        var m = mPerDeg(ll.lat), best = null;
+        (parc.rings || []).forEach(function (ring) {
+            for (var i = 0; i + 1 < ring.length; i++) {
+                var ax = (ring[i].lng - ll.lng) * m.lng, ay = (ring[i].lat - ll.lat) * m.lat;
+                var bx = (ring[i + 1].lng - ll.lng) * m.lng, by = (ring[i + 1].lat - ll.lat) * m.lat;
+                var dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy;
+                var tt = L2 > 0 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / L2)) : 0;
+                var px = ax + tt * dx, py = ay + tt * dy, d = Math.hypot(px, py);
+                if (d <= KAT_SNAP_M && (!best || d < best.d)) best = { d: d, lat: ll.lat + py / m.lat, lng: ll.lng + px / m.lng, zdroj: parc.zdroj };
+            }
+        });
+        return best;
+    }
     function snapKatastr(ll) {
         var vs = katVertices(); if (!vs.length) return null;
         var m = mPerDeg(ll.lat), best = null, i;
@@ -367,8 +405,8 @@
         if (!m) { agAlert('Mapa', 'Mapa zatím neběží — přepni na mapu.'); return; }
         if (vm === 'ar') { agAlert('Mapa', 'Přepni na mapu nebo dělené zobrazení, pak klepni do mapy.'); return; }
         _verts = []; drawLine();
-        _katCache = null;
-        var kat = 0, base = baseLayerKind();
+        _katCache = null; _katLive = [];
+        var kat = 0, ukm = 0, base = baseLayerKind();
         _src = { kind: base, acc: LINE_ACC[base] };
         var dlg = byId(DLG_ID); if (dlg) dlg.style.display = 'none';
         _pickOn = true;
@@ -382,7 +420,7 @@
         function isClosed() { return _verts.length >= 4 && new Line(_verts).closed; }
         function txt() {
             var t = byId('ag-hr-bar-txt'), ok = byId('ag-hr-bar-ok'), cl = byId('ag-hr-bar-close'); if (!t) return;
-            if (_verts.length === 0) t.innerHTML = 'Klepni na <b>začátek</b> čáry, po které půjdeš' + (base === 'osm' ? '<br><small style="color:var(--warning,#fbbf24)">Máš uliční mapu — přepni na ortofoto, tam hranu vidíš (±0,3 m místo metrů)</small>' : '');
+            if (_verts.length === 0) t.innerHTML = 'Klepni na <b>začátek</b> čáry, po které půjdeš' + (katastrOn() ? '<br><small>Katastr je zapnutý — klepnutí do 4 m od hranice parcely se na ni přichytí</small>' : (base === 'osm' ? '<br><small style="color:var(--warning,#fbbf24)">Máš uliční mapu — přepni na ortofoto, tam hranu vidíš (±0,3 m místo metrů)</small>' : ''));
             else if (_verts.length === 1) t.innerHTML = 'Teď <b>konec</b> (nebo další lomový bod)';
             else { var ln = new Line(_verts); t.innerHTML = '<b>' + _verts.length + ' body</b> · ' + fmt(ln.len, 0) + ' m · ' + (ln.closed ? 'uzavřený tvar → celý vektor' : (ln.spread() >= ANGLE_2D ? 'lomená → celý vektor' : 'rovná → jen kolmá složka')) + (kat ? ' · ' + kat + '× hranice katastru' : '') + '<br><small>další lom, Uzavřít tvar (obvod, plusko), nebo Hotovo</small>'; }
             if (ok) ok.style.display = _verts.length >= 2 ? '' : 'none';
@@ -392,8 +430,8 @@
             try { m.off('click', onClick); } catch (e) { swallow(e, 'off'); }
             bar.remove(); _pickOn = false;
             if (cancel) { _verts = []; clearLine(); _src = null; }
-            else if (kat) _src = { kind: 'katastr', acc: LINE_ACC.katastr };
-            _katCache = null;
+            else if (kat) _src = ukm ? { kind: 'ukm', acc: LINE_ACC.ukm } : { kind: 'katastr', acc: LINE_ACC.katastr };
+            _katCache = null; _katLive = [];
             if (dlg) dlg.style.display = 'flex';
             render();
         }
@@ -412,8 +450,22 @@
             if (nearFirst(ll)) { closeShape(); return; }  // klepnutí k prvnímu vrcholu = uzavřít
             var sn = snapKatastr(ll);
             if (sn) { ll = { lat: sn.lat, lng: sn.lng }; kat++; }
-            _verts.push({ lat: ll.lat, lng: ll.lng });
+            var v = { lat: ll.lat, lng: ll.lng };
+            _verts.push(v);
             drawLine(); txt();
+            // bez stažených parcel, ale s katastrem na mapě: hranici dotáhnout živě a
+            // vrchol na ni posunout, jakmile odpověď dorazí (vrchol už v čáře je, jen se posune)
+            if (!sn && katastrOn() && navigator.onLine !== false) {
+                var hotovo = function (parc) {
+                    if (!parc || !_pickOn || _verts.indexOf(v) < 0) return;
+                    var s2 = snapNaHranici(ll, parc); if (!s2) return;
+                    v.lat = s2.lat; v.lng = s2.lng; kat++; if (s2.zdroj === 2) ukm++;
+                    drawLine(); txt();
+                };
+                var cached = null;
+                for (var i = 0; i < _katLive.length && !cached; i++) { if (snapNaHranici(ll, _katLive[i])) cached = _katLive[i]; }
+                if (cached) hotovo(cached); else fetchParcela(ll).then(hotovo);
+            }
         }
         bar.querySelector('#ag-hr-bar-x').addEventListener('click', function () { end(true); });
         bar.querySelector('#ag-hr-bar-ok').addEventListener('click', function () { end(false); });
@@ -597,6 +649,7 @@
             + '<p class="hr-p"><b>Uzavřený tvar místo přímky.</b> Na rovné čáře vyjde jen kolmá složka; když obejdeš <b>roh, čtverec, plusko nebo celý obvod pozemku</b> (klepni „Uzavřít tvar" nebo klepni zpátky k prvnímu bodu), úseky míří různými směry a vyjde <b>celý vektor</b>. Appka navíc porovná první a druhou půlku chůze — o kolik se chyba GPS během chůze posunula (u obchůzky je to totéž co uzávěr). Nad 1 m je to neklidný den: kalibruj častěji.</p>'
             + '<p class="hr-p"><b>Kalibrace před a po.</b> Chyba GPS mezi dvěma chůzemi plave (za 20 min typicky 0,5–1 m). Když projdeš hranu <b>před</b> měřením i <b>po</b> něm (do 90 min a 500 m), appka nabídne body uložené mezi tím <b>přepočítat podle času</b>: bod změřený uprostřed dostane půlku rozdílu obou vektorů, bod těsně po první chůzi skoro nic. Chyba neplave lineárně, takže to plavání srazí zhruba na polovinu — ale je to nejlevnější zpřesnění, které tu je. Každý bod si nese, co dostal, takže se vektor nahrazuje, ne sčítá (i u Přesné GPS). Změny jdou do žurnálu.</p>'
             + '<p class="hr-p"><b>Odkud je čára, tak přesná je korekce.</b> Ortofoto ČÚZK ±0,2–0,5 m (ostrá hrana na zemi: obrubník, hrana asfaltu, pata zdi — ne střecha, ta je na fotce posunutá), hranice z katastru v DKM ±0,14–0,3 m (plot na ní často neleží), uložené či importované body ±cm, <b>uliční mapa ±1–5 m = na kalibraci nevhodná</b>. Přesnost čáry se přičítá k odhadu chyby a vidíš ji u výsledku.</p>'
+            + '<p class="hr-p"><b>Hranice z katastru:</b> zapni vrstvu Katastr a klepni do 4 m od hranice — čára se na ni přichytí (obrys parcely se stáhne z RÚIAN, nebo se vezmou parcely uložené v zakázce). Pozor: hranici v terénu nevidíš, jít po ní jde jen tam, kde ji něco vyznačuje (mezník, plot, obrubník — a ten na ní často neleží). V území s <b>UKM</b> (přepočtená analogová mapa) je hranice jen na metry a appka s tím počítá (±1 m).</p>'
             + '<ol>'
             + '<li><b>Vyber čáru</b>: klepni v mapě na začátek a konec (klidně i lomy) hrany, po které opravdu půjdeš — obrubník, hrana chodníku, plot, čára z DXF. Nebo dva uložené body.</li>'
             + '<li>Zadej <b>boční odstup</b>: jdeš-li 0,4 m vpravo od klepnuté hrany, zadej +0,4 (vlevo záporně).</li>'
@@ -687,7 +740,7 @@
     }
 
     // ---- registrace ----------------------------------------------------------------------
-    window.AGHrana = { open: open, _test: { Line: Line, solve: solve, ANGLE_2D: ANGLE_2D, interpShift: interpShift, betweenCandidates: betweenCandidates, reapply: reapply, prevShiftFor: prevShiftFor, pointTime: pointTime, LINE_ACC: LINE_ACC } };
+    window.AGHrana = { open: open, _test: { Line: Line, solve: solve, ANGLE_2D: ANGLE_2D, interpShift: interpShift, betweenCandidates: betweenCandidates, reapply: reapply, prevShiftFor: prevShiftFor, pointTime: pointTime, LINE_ACC: LINE_ACC, snapNaHranici: snapNaHranici, fetchParcela: fetchParcela } };
     function register() {
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'kalibrace-hranou', label: 'Kalibrace chůzí po hraně', icon: ICON, cat: 'AR a kalibrace', onClick: open, order: 71 });

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QTRIG — bodové pole v rozšířené realitě</title>
+<meta name="description" content="QTRIG je terénní pomůcka pro geodety: body bodového pole ČÚZK vidíš přímo v obraze kamery, k tomu mapa, katastr, vlastní body, vytyčování a práce bez signálu. Zdarma, bez reklam.">
+<meta property="og:title" content="QTRIG — bodové pole v rozšířené realitě">
+<meta property="og:description" content="Zvedneš telefon a v kameře vidíš, kde jsou body bodového pole a kam jít. Mapa, katastr, vytyčování, offline.">
+<meta property="og:image" content="img/app-ar.jpg">
+<meta property="og:type" content="website">
+<link rel="icon" href="img/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+@font-face { font-family: "Sora"; font-weight: 300 800; font-display: swap; src: url("../fonts/sora-var-latin-ext.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 300 800; font-display: swap; src: url("../fonts/inter-var-latin-ext.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 300 800; font-display: swap; src: url("../fonts/jetbrains-mono-var-latin-ext.woff2") format("woff2"); }
+:root {
+  --bg: #0b0f13; --bg-2: #11171d; --card: #151c23; --line: rgba(255,255,255,0.09);
+  --text: #eaeef3; --muted: #9aa4b1; --faint: #6b7683;
+  --accent: #34d399; --accent-2: #2f9e74; --accent-soft: rgba(52,211,153,0.12);
+  --gold: #e6bd76; --warn: #fbbf24;
+  --display: "Sora", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --r: 18px;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) { --bg: #f5f7fa; --bg-2: #eef1f5; --card: #ffffff; --line: rgba(0,0,0,0.09); --text: #16202e; --muted: #56606d; --faint: #7d8794; --accent-soft: rgba(47,158,116,0.12); --accent: #2f9e74; }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 var(--ui); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: var(--accent); }
+img { max-width: 100%; display: block; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+header.top { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: color-mix(in srgb, var(--bg) 82%, transparent); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 60px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font: 800 20px/1 var(--display); letter-spacing: 0.02em; }
+.brand img { width: 34px; height: 34px; border-radius: 9px; }
+.brand span b { color: var(--accent); font-weight: 800; }
+nav.menu { display: flex; gap: 4px; }
+nav.menu a { color: var(--muted); text-decoration: none; padding: 8px 10px; border-radius: 10px; font-size: 14px; font-weight: 600; }
+nav.menu a:hover { background: var(--accent-soft); color: var(--text); }
+@media (max-width: 720px) { nav.menu { display: none; } }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; border-radius: 999px; text-decoration: none; font: 700 15px/1 var(--ui); border: 1px solid transparent; transition: transform .15s ease, background .15s ease; min-height: 44px; }
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: linear-gradient(135deg, #5ce0a8, #2a945f); color: #06120c; box-shadow: 0 8px 26px rgba(52,211,153,0.28); }
+.btn-ghost { background: transparent; color: var(--text); border-color: var(--line); }
+.btn-ghost:hover { background: var(--accent-soft); }
+.btn svg { width: 18px; height: 18px; }
+
+/* hero */
+.hero { position: relative; padding: 56px 0 28px; overflow: hidden; }
+.hero::before { content: ""; position: absolute; inset: -40% -20% auto; height: 120%; background: radial-gradient(60% 50% at 30% 30%, rgba(52,211,153,0.16), transparent 70%); pointer-events: none; }
+.hero .wrap { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 36px; align-items: center; position: relative; }
+@media (max-width: 860px) { .hero .wrap { grid-template-columns: 1fr; } .hero { padding-top: 36px; } }
+.kicker { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(52,211,153,0.4); color: var(--accent); font: 700 12px/1 var(--mono); letter-spacing: 0.16em; text-transform: uppercase; }
+.kicker::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+h1 { font: 800 clamp(34px, 6vw, 58px)/1.05 var(--display); letter-spacing: -0.02em; margin: 18px 0 14px; }
+h1 em { font-style: normal; color: var(--accent); }
+.lead { font-size: clamp(16px, 2.2vw, 19px); color: var(--muted); max-width: 52ch; margin: 0 0 24px; }
+.cta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.cta small { color: var(--faint); font-size: 13px; flex-basis: 100%; }
+.phone { position: relative; margin: 0 auto; width: min(320px, 78vw); border-radius: 38px; padding: 10px; background: #1a2027; border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 40px 80px rgba(0,0,0,0.5), inset 0 0 0 2px #0a0d10; }
+.phone img { border-radius: 30px; }
+.phone .tag { position: absolute; left: -24px; bottom: 96px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; box-shadow: 0 16px 40px rgba(0,0,0,0.45); }
+.phone .tag small { display: block; font: 700 10.5px/1 var(--mono); letter-spacing: 0.14em; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; }
+.phone .tag b { font: 700 15px/1.2 var(--display); }
+@media (max-width: 400px) { .phone .tag { left: -8px; } }
+
+/* stats */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 30px 0 0; }
+@media (max-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.stat b { display: block; font: 800 24px/1.1 var(--display); color: var(--accent); }
+.stat span { color: var(--muted); font-size: 13px; }
+
+section { padding: 56px 0; }
+section.alt { background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+h2 { font: 800 clamp(26px, 4vw, 36px)/1.15 var(--display); letter-spacing: -0.015em; margin: 0 0 8px; }
+.sub { color: var(--muted); margin: 0 0 28px; max-width: 64ch; font-size: 17px; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+@media (max-width: 860px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 20px; }
+.card .ic { width: 42px; height: 42px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+.card .ic svg { width: 22px; height: 22px; }
+.card h3 { font: 700 18px/1.25 var(--display); margin: 0 0 8px; }
+.card p { margin: 0; color: var(--muted); font-size: 15px; }
+.card ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); font-size: 14.5px; }
+.card li { margin: 4px 0; }
+
+/* gallery */
+.gallery { display: grid; grid-auto-flow: column; grid-auto-columns: min(260px, 70vw); gap: 14px; overflow-x: auto; padding: 4px 0 14px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.gallery figure { margin: 0; scroll-snap-align: start; }
+.gallery img { border-radius: 22px; border: 1px solid var(--line); box-shadow: 0 18px 40px rgba(0,0,0,0.35); }
+.gallery figcaption { color: var(--muted); font-size: 13.5px; margin-top: 8px; text-align: center; }
+
+/* tiers */
+.tiers { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 720px) { .tiers { grid-template-columns: 1fr; } }
+.tier { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 24px; }
+.tier.pro { border-color: rgba(230,189,118,0.45); background: linear-gradient(180deg, rgba(230,189,118,0.08), transparent 60%), var(--card); }
+.tier .name { font: 800 13px/1 var(--mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); }
+.tier.pro .name { color: var(--gold); }
+.tier .price { font: 800 30px/1.1 var(--display); margin: 10px 0 4px; }
+.tier .note { color: var(--muted); font-size: 14px; margin: 0 0 14px; }
+.tier ul { margin: 0; padding: 0; list-style: none; }
+.tier li { padding: 7px 0 7px 26px; position: relative; border-top: 1px solid var(--line); font-size: 15px; }
+.tier li::before { content: ""; position: absolute; left: 2px; top: 13px; width: 14px; height: 8px; border-left: 2.5px solid var(--accent); border-bottom: 2.5px solid var(--accent); transform: rotate(-45deg); }
+.tier.pro li::before { border-color: var(--gold); }
+
+/* accuracy */
+.acc { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 720px) { .acc { grid-template-columns: 1fr; } }
+.acc table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+.acc th, .acc td { text-align: left; padding: 9px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.acc th { color: var(--faint); font: 700 11.5px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; }
+.acc td b { font-family: var(--mono); color: var(--accent); }
+.callout { border-left: 4px solid var(--warn); background: rgba(251,191,36,0.08); border-radius: 12px; padding: 14px 16px; color: var(--text); font-size: 15px; }
+
+/* install */
+.steps { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 720px) { .steps { grid-template-columns: 1fr; } }
+.steps ol { margin: 8px 0 0; padding-left: 20px; color: var(--muted); font-size: 15px; }
+.steps li { margin: 6px 0; }
+.steps b { color: var(--text); }
+kbd { font: 600 13px/1 var(--mono); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; color: var(--text); }
+
+/* faq */
+details { border-top: 1px solid var(--line); padding: 4px 0; }
+details:last-child { border-bottom: 1px solid var(--line); }
+summary { cursor: pointer; padding: 12px 0; font: 700 16px/1.3 var(--display); list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; color: var(--accent); font-weight: 800; flex: 0 0 auto; }
+details[open] summary::after { content: "–"; }
+details p { margin: 0 0 14px; color: var(--muted); font-size: 15px; }
+
+footer { padding: 36px 0 48px; color: var(--faint); font-size: 13.5px; border-top: 1px solid var(--line); }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 28px; justify-content: space-between; align-items: center; }
+footer a { color: var(--muted); text-decoration: none; margin-right: 14px; }
+footer a:hover { color: var(--accent); }
+.mono { font-family: var(--mono); }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#"><img src="img/icon.svg" alt=""><span><b>Q</b>TRIG</span></a>
+    <nav class="menu">
+      <a href="#co">Co umí</a>
+      <a href="#ukazky">Ukázky</a>
+      <a href="#verze">Základ a Pro</a>
+      <a href="#presnost">Přesnost</a>
+      <a href="#instalace">Instalace</a>
+      <a href="#faq">Otázky</a>
+    </nav>
+    <a class="btn btn-primary" href="../" style="padding:10px 16px;min-height:40px;">Otevřít appku</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <span class="kicker">Pro geodety v terénu</span>
+      <h1>Body bodového pole vidíš <em>v kameře</em> — a šipka tě k nim dovede</h1>
+      <p class="lead">QTRIG je terénní pomůcka pro geodety. Zvedneš telefon, namíříš ho před sebe a v obraze kamery uvidíš, kde jsou trigonometrické, zhušťovací, nivelační i podrobné body ČÚZK a kam máš jít. Bez papírových náčrtů a bez hledání v křoví.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="../">Spustit v prohlížeči</a>
+        <a class="btn btn-ghost" href="#instalace">Přidat na plochu telefonu</a>
+        <small>Funguje na iPhonu i Androidu, bez instalace z obchodu. Data ČÚZK, zdarma, bez reklam.</small>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>5 druhů</b><span>bodů ČÚZK: TB, ZhB, PPBP, nivelační, tíhové</span></div>
+        <div class="stat"><b>offline</b><span>stažené okolí zůstane v telefonu</span></div>
+        <div class="stat"><b>S-JTSK</b><span>souřadnice Y, X a výšky Bpv</span></div>
+        <div class="stat"><b>60+</b><span>nástrojů od oměrných po vytyčení osy</span></div>
+      </div>
+    </div>
+    <div class="phone">
+      <img src="img/app-ar.jpg" alt="Obrazovka QTRIG: body bodového pole v obraze kamery se vzdáleností a směrem" width="600" height="1145">
+      <div class="tag"><small>Bodové pole ČÚZK</small><b>bod 622 · 268,5 m</b></div>
+    </div>
+  </div>
+</section>
+
+<section id="co">
+  <div class="wrap">
+    <h2>Co appka umí</h2>
+    <p class="sub">Jedna appka na dohledání bodu, zápis vlastních bodů, vytyčení a kontrolu — a všechno z ní jde ven v CSV nebo DXF.</p>
+    <div class="grid">
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+        <h3>Vyhledávání bodů v terénu</h3><p>Body bodového pole ČÚZK přímo v obraze kamery se vzdáleností a směrem. Karta bodu s Y, X, výškou Bpv, oficiálním místopisným náčrtem a rádiem, ve kterém bod hledat. Navádění šipkou až na místo.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></div>
+        <h3>Mapa a katastr</h3><p>Základní mapa, ortofoto a katastrální hranice s parcelními čísly. Klepnutí do parcely ukáže číslo, výměru, druh pozemku, budovu, BPEJ a chráněná území z RÚIAN. Okolí zakázky si stáhneš dopředu.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+        <h3>Vlastní body a zakázky</h3><p>Nový bod z průměru GPS, klepnutím do mapy nebo přečtením souřadnic z fotky. Kódy bodů (obruba, šachta, vpusť…) rovnou do CSV a DXF. Import seznamu souřadnic, body řazené do zakázek s poznámkami a fotkami.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
+        <h3>Měření a vytyčování</h3><p>Vytyčování bodů, přímek a lomené osy se staničením a průběžnou odchylkou. Oměrné míry, plochy, protínání, rajón, volné stanovisko, kalkulačka s postupem výpočtu. Metr v kameře a libela.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+        <h3>Přesnost na očích</h3><p>Stav GPS, počet družic a odhad přesnosti pořád na obrazovce. Sekce Přesné měření: oprava GPS podle známého bodu, kalibrace chůzí po hraně, dvoutelefonní DGPS a kontrolní dvojí měření.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <h3>Do terénu</h3><p>Funguje bez signálu, šetří baterii, čitelná i na ostrém slunci, ovládání jednou rukou a v rukavicích. Režim levé ruky, gesta jako zkratky na oblíbené nástroje, režim pro slabší telefon.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="ukazky">
+  <div class="wrap">
+    <h2>Ukázky z appky</h2>
+    <p class="sub">Skutečné snímky z běžící appky — posuň do strany.</p>
+    <div class="gallery">
+      <figure><img src="img/app-ar.jpg" alt="AR pohled s body bodového pole" loading="lazy" width="600" height="1145"><figcaption>Body v kameře, šipka k cíli</figcaption></figure>
+      <figure><img src="img/app-karta-bodu.jpg" alt="Karta bodu se souřadnicemi a náčrtem" loading="lazy" width="600" height="1145"><figcaption>Karta bodu s náčrtem ČÚZK</figcaption></figure>
+      <figure><img src="img/app-katastr.jpg" alt="Katastrální mapa s parcelami" loading="lazy" width="600" height="1145"><figcaption>Katastr a ortofoto</figcaption></figure>
+      <figure><img src="img/app-body.jpg" alt="Seznam bodů v zakázce" loading="lazy" width="600" height="1145"><figcaption>Body a zakázky</figcaption></figure>
+      <figure><img src="img/app-novy-bod.jpg" alt="Nový bod z průměru GPS" loading="lazy" width="600" height="1145"><figcaption>Nový bod z průměru GPS</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section id="verze">
+  <div class="wrap">
+    <h2>Základ a Pro</h2>
+    <p class="sub">Základ je zdarma napořád a stačí na běžné dohledání bodu i práci se zakázkou. Pro přidává nástroje pro firmu a náročnější výpočty.</p>
+    <div class="tiers">
+      <div class="tier">
+        <div class="name">Základ</div>
+        <div class="price">Zdarma</div>
+        <p class="note">Bez reklam, bez limitu bodů, napořád.</p>
+        <ul>
+          <li>Body ČÚZK v kameře a v mapě, navádění</li>
+          <li>Katastrální mapa a klik do parcely</li>
+          <li>Vlastní body, zakázky, kódy bodů, CSV a DXF</li>
+          <li>Oměrné, vytyčení podle seznamu, kalkulačka</li>
+          <li>Stažení okolí pro práci bez signálu</li>
+          <li>Cvičné úlohy a poznávačka pro studenty</li>
+        </ul>
+      </div>
+      <div class="tier pro">
+        <div class="name">Pro</div>
+        <div class="price">Na žádost</div>
+        <p class="note">Do konce roku 2026 zdarma — požádáš přímo z appky.</p>
+        <ul>
+          <li>Protokoly a papíry: vytyčení, kvalita bodu, deník</li>
+          <li>Objemy a vrstvy: kubatury, DMT, kontrola pokládky</li>
+          <li>Přesné určení bodu: protínání, resekce, volné stanovisko, Helmert</li>
+          <li>Katastr do AR, dělení parcel, vlastní podklad</li>
+          <li>Přesné měření: kalibrace chůzí, DGPS, akustický dálkoměr</li>
+          <li>Firma: účty a role, kniha jízd, sdílené zakázky</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="presnost">
+  <div class="wrap">
+    <h2>Přesnost — poctivě</h2>
+    <p class="sub">QTRIG je orientační pomůcka, ne měřicí přístroj. Přesnost odpovídá GPS a kompasu v telefonu, ne geodetické aparatuře. Appka to nikde neschovává — odhad chyby máš pořád na obrazovce.</p>
+    <div class="acc">
+      <div class="card">
+        <table>
+          <tr><th>Situace</th><th>Typická chyba</th></tr>
+          <tr><td>Jeden fix GPS, volný obzor</td><td><b>±3–5 m</b></td></tr>
+          <tr><td>Průměr GPS 1–2 min na místě</td><td><b>±0,5–1 m</b></td></tr>
+          <tr><td>Oprava podle známého bodu / chůze po hraně</td><td><b>±0,3–0,5 m</b> (krátce, v okolí)</td></tr>
+          <tr><td>Dvoutelefonní DGPS (do 150 m)</td><td><b>±0,5 m</b> vůči sobě</td></tr>
+          <tr><td>Pod stromy, u zdí, mezi domy</td><td><b>metry</b> — odrazy signálu</td></tr>
+        </table>
+      </div>
+      <div class="callout">
+        <b>Na co se hodí:</b> dohledání bodu v terénu, orientační zaměření, kontrola „sedí to zhruba“, náčrt situace, evidence bodů se souřadnicemi. <br><br>
+        <b>Na co ne:</b> geometrický plán, vytyčení hranice pozemku, cokoli, kde jde o centimetry — na to je potřeba geodetická GNSS aparatura nebo totální stanice a úředně oprávněný zeměměřický inženýr.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="instalace">
+  <div class="wrap">
+    <h2>Instalace</h2>
+    <p class="sub">QTRIG je webová aplikace (PWA). Nic se nestahuje z obchodu — otevřeš adresu a přidáš si ji na plochu, pak se chová jako běžná appka a funguje i bez signálu.</p>
+    <div class="steps">
+      <div class="card">
+        <h3>iPhone (Safari)</h3>
+        <ol>
+          <li>Otevři <a href="../">appku</a> v <b>Safari</b> (v jiném prohlížeči přidání na plochu nejde).</li>
+          <li>Klepni na <b>Sdílet</b> (čtvereček se šipkou) → <b>Přidat na plochu</b> → <b>Přidat</b>.</li>
+          <li>Spusť ji z plochy a povol <b>kameru</b>, <b>polohu</b> a <b>pohyb a orientaci</b> (kompas).</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3>Android (Chrome)</h3>
+        <ol>
+          <li>Otevři <a href="../">appku</a> v <b>Chromu</b>.</li>
+          <li>Menu <kbd>⋮</kbd> → <b>Instalovat aplikaci</b> (nebo lišta „Přidat na plochu“).</li>
+          <li>Povol <b>kameru</b> a <b>přesnou polohu</b>. Pro nejlepší výsledek zapni v nastavení telefonu polohu s vysokou přesností.</li>
+        </ol>
+      </div>
+    </div>
+    <p class="sub" style="margin-top:18px;">K používání je potřeba účet (jméno a heslo, bez e-mailu) — založíš ho při prvním spuštění. Účet jde kdykoli smazat přímo v appce.</p>
+  </div>
+</section>
+
+<section class="alt" id="faq">
+  <div class="wrap">
+    <h2>Časté otázky</h2>
+    <details><summary>Odkud jsou body a mapy?</summary><p>Z otevřených dat <b>ČÚZK</b> (Český úřad zeměměřický a katastrální): bodová pole, katastrální mapa, ortofoto, RÚIAN a výškopis DMR 5G. Data se stahují přímo z jejich serverů, appka je nikam nekopíruje.</p></details>
+    <details><summary>Funguje to bez signálu?</summary><p>Ano. Okolí zakázky (mapa, katastr, body) si stáhneš dopředu na wi-fi, jde stáhnout i celý okres nebo kraj. Vlastní body a zakázky jsou vždy v telefonu; bez signálu nejde jen dotažení nových dat ČÚZK.</p></details>
+    <details><summary>Proč měří jen na metry?</summary><p>Protože GPS v telefonu měří na metry — jednofrekvenční příjem, malá anténa, odrazy od budov. Appka to poctivě ukazuje a nabízí, jak z toho vytěžit maximum: průměrování, oprava podle známého bodu, kalibrace chůzí po hraně, dvoutelefonní DGPS. Na centimetry to ale není a ani nebude.</p></details>
+    <details><summary>Co se posílá na server?</summary><p>Jen údaje účtu, anonymní záznamy užívání a hlášení chyb. Poloha i obraz kamery se zpracovávají jen v telefonu. Žádná reklama, žádné sledování. Podrobně v <a href="../soukromi.html">zásadách ochrany soukromí</a>.</p></details>
+    <details><summary>Jde to použít i mimo Českou republiku?</summary><p>Mapa, vlastní body, vytyčování a výpočty ano. Bodové pole a katastr jsou data ČÚZK, takže mimo ČR se v kameře ukážou jen tvoje body.</p></details>
+    <details><summary>Jak napsat autorovi?</summary><p>Přímo v appce: <b>Nastavení → Napsat autorovi</b>. Zpráva odejde i s verzí appky a typem telefonu, takže se chyba hledá snáz.</p></details>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>© 2026 QTRIG · data © ČÚZK · <span class="mono">stepanvcelak11.github.io/ar-geodet</span></div>
+    <div><a href="../">Appka</a><a href="../soukromi.html">Soukromí</a><a href="../podminky.html">Podmínky</a><a href="../smazani-uctu.html">Smazání účtu</a></div>
+  </div>
+</footer>
+
+</body>
+</html>
