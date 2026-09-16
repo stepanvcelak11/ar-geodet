@@ -15,6 +15,18 @@ binding = "DB"
 database_name = "ar-geodet-db"
 database_id = "774b47e6-41c0-4e3a-a738-cfbd0a5657ae"
 
+# VLASTNÍ MAPA (16. 9. 2026): data PMTiles (OpenStreetMap přes Protomaps) v R2, worker
+# je servíruje na /mapa/<soubor>.pmtiles s podporou Range. ZAPNUTÍ (ručně, jednou):
+#   1. dash.cloudflare.com → R2 → Create bucket → název „qtrig-mapa" (region EU).
+#   2. Výřez vyrobit skriptem scripts/mapa-vyrez.py (pmtiles extract z Protomaps) a nahrát
+#      do bucketu jako evropa.pmtiles (dashboard zvládne do 300 MB; větší přes
+#      `wrangler r2 object put qtrig-mapa/evropa.pmtiles --file=…` nebo rclone/S3).
+#   3. Odkomentovat tři řádky níže a nasadit (Deploy worker). /health pak hlásí mapa:true.
+# Dokud binding není, worker na /mapa/* vrací 503 s tímhle návodem — nic jiného nerozbije.
+# [[r2_buckets]]
+# binding = "MAPA"
+# bucket_name = "qtrig-mapa"
+
 # Párování plateb z Fio (cloud/worker.js: scheduled → fioZkontroluj).
 # Bez tajemství FIO_TOKEN běh hned skončí, takže je zadarmo i naprázdno.
 [triggers]

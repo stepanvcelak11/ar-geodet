@@ -117,7 +117,7 @@ jobs:
                    test_ucty_prostory test_v283 test_jednoduchy_rezim test_prodej \
                    test_opravy_11_9 test_vlastnik_data test_konzole_2 \
                    test_zpresneni_gps test_akustika test_hrana test_v316 test_v318 test_v329 \
-                   test_presne_mereni test_v332 test_pruchod_15_9 test_v338 test_v339 test_zeme test_android; do
+                   test_presne_mereni test_v332 test_pruchod_15_9 test_v338 test_v339 test_zeme test_android test_mapa_vektor; do
             echo "::group::$t"
             if ! python "scripts/$t.py" > "/tmp/$t.log" 2>&1; then
               cat "/tmp/$t.log"

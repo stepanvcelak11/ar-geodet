@@ -101,8 +101,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=341">
-    <link rel="stylesheet" href="css/style.css?v=341">
+    <link rel="stylesheet" href="css/tokens.css?v=342">
+    <link rel="stylesheet" href="css/style.css?v=342">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -233,7 +233,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=341">
+    <link rel="stylesheet" href="css/vylepseni.css?v=342">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -1079,6 +1079,14 @@
                         <span class="ms-row-t">Parcely (vektor)<em>Přesné hranice jako čáry — i v AR, funguje offline</em></span>
                         <span class="ms-go" aria-hidden="true">›</span>
                     </button>
+                    <!-- VÝKRES (DXF) jako vrstva mapy (16. 9. 2026, M3): řádek odkrývá js/project-import.js,
+                         když je v zakázce načtený návrh; klepnutí výkres schová/ukáže (barvy podle vrstev CADu,
+                         klepnutí na čáru = staničení). -->
+                    <button type="button" class="ms-row" id="ms-dxf" hidden onclick="window.AGProjektDxf && AGProjektDxf.prepni()">
+                        <svg class="icon"><use href="#i-line"/></svg>
+                        <span class="ms-row-t">Výkres (DXF)<em>Osa, hrany a body projektu barvami CADu; klepnutí na čáru = staničení</em></span>
+                        <span class="ms-sw" aria-hidden="true"></span>
+                    </button>
                     <button type="button" class="ms-row" id="ms-overlay" hidden data-ms-pro="1">
                         <svg class="icon"><use href="#i-file-text"/></svg>
                         <span class="ms-row-t">Vlastní podklad<em>Situace, geometrák nebo starý plán nakalibrovaný do mapy</em></span>
@@ -1288,6 +1296,13 @@
          appka pak jede na vzorce pro ČR jako do v338. -->
     <script type="ag/lazy" data-src="js/wmm2025-koef.js"></script>
     <script type="ag/lazy" data-src="js/zeme-svet.js"></script>
+    <!-- VLASTNÍ VEKTOROVÁ MAPA (16. 9. 2026, A1 + M1): styl „stavba" + podkladová vrstva MapLibre
+         uvnitř Leafletu (plugin maplibre-gl-leaflet), data PMTiles po kouskách. Knihovny
+         (js/lib/maplibre-gl-5.24.0.*, pmtiles-4.5.0.js, maplibre-gl-leaflet-0.1.4.js) se
+         stahují AŽ po zapnutí v Nastavení → Vzhled → Nová mapa (vektor, beta) — v předcache
+         záměrně nejsou (1 MB, beta). Odpojitelné: smaž oba řádky + soubory. -->
+    <script type="ag/lazy" data-src="js/mapa-styl.js"></script>
+    <script type="ag/lazy" data-src="js/mapa-vektor.js"></script>
     <!-- PARCELA (odpojitelné: smaž tento řádek + js/parcela.js) — geometrie & dělení parcel; styly injektované z JS -->
     <script type="ag/lazy" data-src="js/parcela.js"></script>
     <!-- REGISTR NÁSTROJŮ (odpojitelné: smaž tento řádek + js/tools-registry.js) — jeden

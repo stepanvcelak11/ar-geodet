@@ -12,6 +12,16 @@
 //   • Georeferencovat RASTR (foto/sken situace) dvěma body → poloprůhledný
 //     podklad nad mapou (posun/otočení/měřítko dopočítané ze 2 bodů).
 //
+// VÝKRES JAKO VRSTVA MAPY (16. 9. 2026, fáze 2 „vlastní mapa" — M3):
+//   • barvy podle vrstev CADu (tabulka LAYER, kód 62 = ACI index; entita může mít vlastní),
+//   • lomené čáry se drží jako ŘETĚZCE (polys), ne jen úseky → klepnutí na čáru řekne
+//     vrstvu, délku a STANIČENÍ v místě klepnutí („km 0,420"),
+//   • OSA: v nástroji vybereš vrstvu jako osu → po 100 m značky staničení podél nejdelší
+//     čáry té vrstvy; staničení se používá i v popupu ostatních prvků (kolmý průmět na osu),
+//   • řádek „Výkres (DXF)" v panelu Vrstvy (index.html #ms-dxf) výkres schová/ukáže,
+//   • window.AGProjektDxf = { design, vrcholy, osa, stanicteni } pro přichycení bodu (P2),
+//     3D pohled (M2) a orientaci mapy podle osy (R4).
+//
 // Návrh se ukládá per zakázka (getStoredData/setStoredData → klíč 'agProjectDesign').
 // Vstup: tlačítko „Import projektu (DXF/situace)" v launcheru (field-tools.js).
 // Odstranění: smaž js/project-import.js + řádek <script> v index.html (a v sw.js).
@@ -51,8 +61,19 @@
             var code = parseInt(lines[i].trim(), 10);
             pairs.push({ c: isNaN(code) ? -1 : code, v: lines[i + 1] });
         }
-        var pts = [], segs = [], texts = [], layers = {};
+        var pts = [], segs = [], texts = [], layers = {}, polys = [];
         var i2 = 0, N = pairs.length;
+        // BARVY VRSTEV: sekce TABLES → LAYER záznamy (kód 2 = název, 62 = ACI barva) — před ENTITIES
+        var lb = 0;
+        while (lb < N && !(pairs[lb].c === 2 && /^ENTITIES$/i.test((pairs[lb].v || '').trim()))) {
+            if (pairs[lb].c === 0 && /^LAYER$/i.test((pairs[lb].v || '').trim())) {
+                var nm = null, col = null, k2 = lb + 1;
+                while (k2 < N && pairs[k2].c !== 0) { if (pairs[k2].c === 2 && nm == null) nm = String(pairs[k2].v).trim(); if (pairs[k2].c === 62) col = parseInt(pairs[k2].v, 10); k2++; }
+                if (nm) { if (!layers[nm]) layers[nm] = { on: true }; if (col != null && !isNaN(col)) layers[nm].aci = Math.abs(col); }
+                lb = k2; continue;
+            }
+            lb++;
+        }
         // přeskoč na ENTITIES
         while (i2 < N && !(pairs[i2].c === 2 && /ENTITIES/i.test(pairs[i2].v))) i2++;
         function addLayer(n) { n = n || '0'; if (!layers[n]) layers[n] = { on: true }; return n; }
@@ -60,12 +81,20 @@
             var A = sj2ll(x1, y1), B = sj2ll(x2, y2);
             segs.push({ layer: la, a: A, b: B });
         }
+        // řetězec lomené čáry (pro staničení a klepnutí) — vedle úseků, které čte zbytek modulu
+        function pushPoly(la, vs, closed, aci) {
+            var chain = []; for (var q = 0; q < vs.length; q++) { if (vs[q].y == null) continue; var ll = sj2ll(vs[q].x, vs[q].y); chain.push({ lat: ll.lat, lng: ll.lng }); }
+            if (closed && chain.length > 2) chain.push(chain[0]);
+            if (chain.length >= 2) polys.push({ layer: la, pts: chain, closed: !!closed, aci: aci });
+        }
         // stav pro starou POLYLINE (vrcholy ve VERTEX entitách až po SEQEND)
         var polyOpen = false, polyVerts = [], polyLayer = '0', polyClosed = false;
+        var polyAci = null;
         function flushPoly() {
             if (polyVerts.length >= 2) {
                 for (var k = 0; k + 1 < polyVerts.length; k++) pushSeg(polyLayer, polyVerts[k].x, polyVerts[k].y, polyVerts[k + 1].x, polyVerts[k + 1].y);
                 if (polyClosed && polyVerts.length > 2) pushSeg(polyLayer, polyVerts[polyVerts.length - 1].x, polyVerts[polyVerts.length - 1].y, polyVerts[0].x, polyVerts[0].y);
+                pushPoly(polyLayer, polyVerts, polyClosed, polyAci);
             }
             polyOpen = false; polyVerts = [];
         }
@@ -88,9 +117,11 @@
                 j++;
             }
             var la = addLayer(ent[8] ? String(ent[8]).trim() : '0');
+            var entAci = (ent[62] != null && !isNaN(parseInt(ent[62], 10))) ? Math.abs(parseInt(ent[62], 10)) : null;   // 0 = ByBlock, 256 = ByLayer
+            if (entAci === 0 || entAci === 256) entAci = null;
             try {
                 if (type === 'POLYLINE') {              // stará polyline — sbírej následující VERTEX entity
-                    polyOpen = true; polyVerts = []; polyLayer = la; polyClosed = !!(ent[70] && (parseInt(ent[70], 10) & 1));
+                    polyOpen = true; polyVerts = []; polyLayer = la; polyClosed = !!(ent[70] && (parseInt(ent[70], 10) & 1)); polyAci = entAci;
                 } else if (type === 'VERTEX' && polyOpen) {
                     if (verts.length && verts[0].y != null) polyVerts.push({ x: verts[0].x, y: verts[0].y });
                 } else if (type === 'SEQEND' && polyOpen) {
@@ -100,6 +131,7 @@
                     pts.push({ layer: la, lat: ll.lat, lng: ll.lng, name: null });
                 } else if (type === 'LINE' && verts.length >= 2 && verts[0].y != null && verts[1].y != null) {
                     pushSeg(la, verts[0].x, verts[0].y, verts[1].x, verts[1].y);
+                    pushPoly(la, verts.slice(0, 2), false, entAci);
                 } else if (type === 'LWPOLYLINE' && verts.length >= 2) {
                     var closed = ent[70] && (parseInt(ent[70], 10) & 1);
                     for (var k = 0; k + 1 < verts.length; k++) {
@@ -107,6 +139,7 @@
                         pushSeg(la, verts[k].x, verts[k].y, verts[k + 1].x, verts[k + 1].y);
                     }
                     if (closed && verts.length > 2) pushSeg(la, verts[verts.length - 1].x, verts[verts.length - 1].y, verts[0].x, verts[0].y);
+                    pushPoly(la, verts, closed, entAci);
                 } else if ((type === 'TEXT' || type === 'MTEXT') && verts.length && ent[1] != null) {
                     var llt = sj2ll(verts[0].x, verts[0].y);
                     texts.push({ layer: la, lat: llt.lat, lng: llt.lng, text: String(ent[1]).replace(/\\[A-Za-z][^;]*;|[{}]/g, '').trim() });
@@ -124,7 +157,7 @@
         }
         // pojmenování bodů: POINT entity → P1.., a lomové body čar
         pts.forEach(function (q, idx) { if (!q.name) q.name = 'P' + (idx + 1); });
-        return { layers: layers, points: pts, segs: segs, texts: texts };
+        return { layers: layers, points: pts, segs: segs, texts: texts, polys: polys };
     }
 
     // ---- vytěžení lomových bodů (pro vytyčení) --------------------------------
@@ -144,22 +177,99 @@
     }
     function layerOn(name) { return !_design || !_design.layers[name] || _design.layers[name].on !== false; }
 
+    // ---- barvy CADu (ACI) ----------------------------------------------------------
+    // Standardních 1–9 přesně, 10–249 podle tabulky AutoCADu (odstín po 10, tón/sytost v řádku),
+    // 250–255 šedi. Bez barvy = výchozí purpurová jako dosud (ať je výkres poznat od mapy).
+    var ACI = { 1: '#ff3b30', 2: '#ffd60a', 3: '#34c759', 4: '#32ade6', 5: '#3a6cff', 6: '#ff2d95', 7: '#f5f5f5', 8: '#8e8e93', 9: '#c7c7cc' };
+    function aciBarva(i) {
+        if (i == null) return null;
+        if (ACI[i]) return ACI[i];
+        if (i >= 250 && i <= 255) { var g = Math.round(51 + (i - 250) * 40); return 'rgb(' + g + ',' + g + ',' + g + ')'; }
+        if (i >= 10 && i <= 249) {
+            var h = Math.floor((i - 10) / 10) * 15, r = (i - 10) % 10, l = [50, 50, 40, 40, 30, 30, 22, 22, 15, 15][r] + 20, s = (r % 2) ? 55 : 95;
+            return 'hsl(' + h + ',' + s + '%,' + l + '%)';
+        }
+        return null;
+    }
+    function barvaVrstvy(name, entAci) {
+        if (entAci != null) { var c = aciBarva(entAci); if (c) return c; }
+        var la = _design && _design.layers[name];
+        if (la && la.aci != null) { var c2 = aciBarva(la.aci); if (c2) return c2; }
+        return COLORS.line;
+    }
+    // ---- staničení -----------------------------------------------------------------
+    function dist(a, b) { try { return GeoCore.getDistance(a.lat, a.lng, b.lat, b.lng); } catch (e) { var m = 111320; return Math.hypot((b.lat - a.lat) * m, (b.lng - a.lng) * m * Math.cos(a.lat * Math.PI / 180)); } }
+    function delkaPoly(p) { var d = 0; for (var i = 1; i < p.pts.length; i++) d += dist(p.pts[i - 1], p.pts[i]); return d; }
+    // kolmý průmět bodu na řetězec → { stan (m od začátku), d (kolmá vzdálenost), i }
+    function prumetNaPoly(p, ll) {
+        var best = null, s0 = 0;
+        for (var i = 1; i < p.pts.length; i++) {
+            var A = p.pts[i - 1], B = p.pts[i];
+            var m = 111320, cs = Math.cos(A.lat * Math.PI / 180);
+            var ax = 0, ay = 0, bx = (B.lng - A.lng) * m * cs, by = (B.lat - A.lat) * m, px = (ll.lng - A.lng) * m * cs, py = (ll.lat - A.lat) * m;
+            var L2 = bx * bx + by * by, t = L2 ? Math.max(0, Math.min(1, (px * bx + py * by) / L2)) : 0;
+            var qx = ax + t * bx, qy = ay + t * by, d = Math.hypot(px - qx, py - qy), segL = Math.sqrt(L2);
+            if (!best || d < best.d) best = { d: d, stan: s0 + t * segL, i: i, bod: { lat: A.lat + (B.lat - A.lat) * t, lng: A.lng + (B.lng - A.lng) * t } };
+            s0 += segL;
+        }
+        return best;
+    }
+    function osaPoly() {
+        if (!_design || !_design.osa || !_design.polys) return null;
+        var best = null, bl = 0;
+        _design.polys.forEach(function (p) { if (p.layer !== _design.osa) return; var l = delkaPoly(p); if (l > bl) { bl = l; best = p; } });
+        return best;
+    }
+    function fmtStan(m) { var km = Math.floor(m / 1000), z = m - km * 1000; return 'km ' + km + ',' + (z < 100 ? (z < 10 ? '00' : '0') : '') + z.toFixed(0); }
+    // staničení libovolného místa vůči ose (kolmý průmět), null bez osy
+    function stanicteni(ll) { var o = osaPoly(); if (!o) return null; var r = prumetNaPoly(o, ll); return r ? { stan: r.stan, d: r.d, text: fmtStan(r.stan), bod: r.bod } : null; }
+
     // ---- render: MAPA ----------------------------------------------------------
+    var _vrstvaViditelna = true;   // řádek Výkres (DXF) v panelu Vrstvy
     function ensureMapGroup() {
         var m = getMap(); if (!m || typeof L === 'undefined') return null;
         if (!_mapGroup) _mapGroup = L.layerGroup().addTo(m);
         return _mapGroup;
     }
+    function popupCary(p, ev) {
+        var r = prumetNaPoly(p, ev.latlng), l = delkaPoly(p);
+        var h = '<b>' + escapeHtml(p.layer) + '</b><br>délka ' + (l >= 1000 ? (l / 1000).toFixed(3) + ' km' : l.toFixed(1) + ' m');
+        if (r) {
+            if (_design.osa === p.layer) h += '<br>staničení <b>' + fmtStan(r.stan) + '</b>';
+            else { var st = stanicteni(ev.latlng); h += '<br>od začátku čáry ' + r.stan.toFixed(1) + ' m' + (st ? '<br>osa: ' + st.text + ' · ' + st.d.toFixed(1) + ' m od osy' : ''); }
+        }
+        L.popup({ closeButton: true, autoPan: false }).setLatLng(r ? r.bod : ev.latlng).setContent(h).openOn(getMap());
+    }
     function drawMap() {
         var g = ensureMapGroup(); if (!g) return; g.clearLayers();
-        if (!_design) return;
-        _design.segs.forEach(function (s) {
-            if (!layerOn(s.layer)) return;
-            L.polyline([[s.a.lat, s.a.lng], [s.b.lat, s.b.lng]], { color: COLORS.line, weight: 3, opacity: 0.9, interactive: false }).addTo(g);
-        });
+        try { var row = document.getElementById('ms-dxf'); if (row) { row.hidden = !_design; row.classList.toggle('ctrl-active', !!_design && _vrstvaViditelna); } } catch (e) { /* nic */ }
+        if (!_design || !_vrstvaViditelna) return;
+        if (_design.polys && _design.polys.length) {
+            // řetězce: barva vrstvy/entity, klepnutí = vrstva + délka + staničení; osa tlustší
+            _design.polys.forEach(function (p) {
+                if (!layerOn(p.layer)) return;
+                var osa = _design.osa === p.layer;
+                L.polyline(p.pts.map(function (q) { return [q.lat, q.lng]; }), { color: barvaVrstvy(p.layer, p.aci), weight: osa ? 4 : 3, opacity: 0.95, interactive: true, bubblingMouseEvents: false })
+                    .on('click', function (ev) { try { popupCary(p, ev); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'project-import:popup'); } }).addTo(g);
+            });
+            var o = osaPoly();
+            if (o) {   // značky staničení po 100 m podél osy (rovnoměrně po délce řetězce)
+                var L0 = delkaPoly(o), krok = L0 > 5000 ? 500 : L0 > 1500 ? 200 : 100;
+                for (var s = 0; s <= L0; s += krok) {
+                    var acc = 0, pos = null;
+                    for (var i = 1; i < o.pts.length && !pos; i++) { var d = dist(o.pts[i - 1], o.pts[i]); if (acc + d >= s) { var t = d ? (s - acc) / d : 0; pos = { lat: o.pts[i - 1].lat + (o.pts[i].lat - o.pts[i - 1].lat) * t, lng: o.pts[i - 1].lng + (o.pts[i].lng - o.pts[i - 1].lng) * t }; } acc += d; }
+                    if (pos) L.marker([pos.lat, pos.lng], { interactive: false, icon: L.divIcon({ className: 'agpi-stan', html: '<span>' + fmtStan(s) + '</span>', iconSize: [0, 0] }) }).addTo(g);
+                }
+            }
+        } else {
+            _design.segs.forEach(function (s) {
+                if (!layerOn(s.layer)) return;
+                L.polyline([[s.a.lat, s.a.lng], [s.b.lat, s.b.lng]], { color: barvaVrstvy(s.layer, null), weight: 3, opacity: 0.9, interactive: false }).addTo(g);
+            });
+        }
         _design.points.forEach(function (q) {
             if (!layerOn(q.layer)) return;
-            L.circleMarker([q.lat, q.lng], { radius: 5, color: '#fff', weight: 1.5, fillColor: COLORS.point, fillOpacity: 1, interactive: true })
+            L.circleMarker([q.lat, q.lng], { radius: 5, color: '#fff', weight: 1.5, fillColor: barvaVrstvy(q.layer, null) === COLORS.line ? COLORS.point : barvaVrstvy(q.layer, null), fillOpacity: 1, interactive: true })
                 .bindTooltip('#' + q.name, { direction: 'top' }).addTo(g);
         });
         _design.texts.forEach(function (t) {
@@ -410,11 +520,16 @@
         var box = document.getElementById('agpi-layers');
         box.innerHTML = Object.keys(_design.layers).map(function (n) {
             var on = _design.layers[n].on !== false;
-            return '<label class="agpi-lay"><input type="checkbox" data-layer="' + escapeHtml(n) + '"' + (on ? ' checked' : '') + '><span>' + escapeHtml(n) + '</span></label>';
-        }).join('');
+            return '<label class="agpi-lay"><input type="checkbox" data-layer="' + escapeHtml(n) + '"' + (on ? ' checked' : '') + '><span style="display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;background:' + barvaVrstvy(n, null) + '"></span><span>' + escapeHtml(n) + '</span></label>';
+        }).join('')
+            // OSA (M3): vrstva, po jejíž nejdelší čáře běží staničení — do popupů i pro orientaci mapy
+            + '<label class="agpi-lay" style="margin-top:8px;display:block;">Osa (staničení): <select id="agpi-osa" class="st-sel" style="display:inline-block;width:auto;"><option value="">— žádná —</option>'
+            + Object.keys(_design.layers).map(function (n) { return '<option value="' + escapeHtml(n) + '"' + (_design.osa === n ? ' selected' : '') + '>' + escapeHtml(n) + '</option>'; }).join('') + '</select></label>';
         box.querySelectorAll('input').forEach(function (cb) {
             cb.addEventListener('change', function () { var n = cb.getAttribute('data-layer'); if (_design.layers[n]) _design.layers[n].on = cb.checked; persist(); drawMap(); renderStakeList(); });
         });
+        var osaSel = box.querySelector('#agpi-osa');
+        if (osaSel) osaSel.addEventListener('change', function () { _design.osa = osaSel.value || null; persist(); drawMap(); });
         toggleStakeUi(true);
         renderStakeList();
     }
@@ -547,6 +662,7 @@
             '.agpi-sd{font-family:var(--font-mono,monospace);font-size:calc(12px * var(--ag-font-scale, 1));opacity:.75;}',
             '.agpi-stk{border:none;border-radius:8px;padding:6px 12px;background:var(--accent,#2f9e74);color:#04110b;font-weight:700;font-size:calc(12.5px * var(--ag-font-scale, 1));cursor:pointer;}',
             '.agpi-txt span{background:rgba(0,0,0,0.5);color:#fde68a;font-size:calc(11px * var(--ag-font-scale, 1));padding:1px 4px;border-radius:4px;white-space:nowrap;transform:translate(-50%,-50%);display:inline-block;}'
+            + '.agpi-stan span{background:rgba(255,255,255,0.85);color:#1b2420;font:600 calc(10px * var(--ag-font-scale, 1))/1.2 system-ui,sans-serif;padding:1px 4px;border:1px solid #1b2420;border-radius:3px;white-space:nowrap;transform:translate(-50%,-50%);display:inline-block;}'
         ].join('\n');
         document.head.appendChild(st);
     }
@@ -570,4 +686,24 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', register);
     else register();
     window.addEventListener('load', function () { setTimeout(register, 380); });
+
+    // ---- veřejné API pro další moduly (M3, 16. 9. 2026) -------------------------------
+    window.AGProjektDxf = {
+        design: function () { return _design; },
+        // všechny lomové body zapnutých vrstev (pro přichycení bodu k rohu z výkresu)
+        vrcholy: function () {
+            var out = [], seen = {};
+            if (!_design) return out;
+            function add(lat, lng, layer, co) { if (!layerOn(layer)) return; var k = lat.toFixed(7) + ',' + lng.toFixed(7); if (seen[k]) return; seen[k] = 1; out.push({ lat: lat, lng: lng, layer: layer, co: co }); }
+            _design.points.forEach(function (q) { add(q.lat, q.lng, q.layer, 'bod ' + q.name); });
+            (_design.polys || []).forEach(function (p) { p.pts.forEach(function (q, i) { add(q.lat, q.lng, p.layer, 'lom čáry ' + p.layer + (p.layer === _design.osa ? ' (osa)' : '')); }); });
+            if (!_design.polys) _design.segs.forEach(function (s) { add(s.a.lat, s.a.lng, s.layer, 'lom čáry'); add(s.b.lat, s.b.lng, s.layer, 'lom čáry'); });
+            return out;
+        },
+        osa: osaPoly, stanicteni: stanicteni, delkaPoly: delkaPoly, prumetNaPoly: prumetNaPoly, barvaVrstvy: barvaVrstvy,
+        viditelna: function () { return _vrstvaViditelna; },
+        prepni: function (stav) { _vrstvaViditelna = (stav == null) ? !_vrstvaViditelna : !!stav; try { localStorage.setItem('agDxfVrstva_v1', _vrstvaViditelna ? '1' : '0'); } catch (e) { /* nic */ } drawMap(); return _vrstvaViditelna; },
+        nacti: function (text) { var d = parseDXF(text); _design = d; persist(); drawMap(); fitMap(); try { renderDxf(); } catch (e) { /* nástroj není otevřený */ } startAr(); return d; }
+    };
+    try { if (localStorage.getItem('agDxfVrstva_v1') === '0') _vrstvaViditelna = false; } catch (e) { /* nic */ }
 })();

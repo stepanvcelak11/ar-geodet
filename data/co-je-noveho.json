@@ -2,6 +2,18 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 342,
+   "datum": "2026-09-16",
+   "nadpis": "Vlastní vektorová mapa (beta): styl „stavba“, výkres DXF jako vrstva se staničením, 3D pohled",
+   "body": [
+    "<b>Nová mapa (vektor, beta)</b> — Nastavení → Vzhled. Podklad už není cizí obrázek, ale naše data OpenStreetMap v jednom souboru, který si telefon tahá po kouskách. Styl „stavba“: budovy s čísly popisnými, hrany silnic, koleje, vodstvo, les a pole, hranice — bez obchodů a reklam. Čtyři varianty z jedněch dat: den, noc (opravdu tmavá), modrotisk, tisk (černobílá do PDF); „podle motivu“ přepíná samo.",
+    "<b>Výkres (DXF) jako vrstva mapy.</b> Import projektu kreslí čáry barvami vrstev CADu, drží lomené čáry jako celky a v nástroji vybereš vrstvu jako <b>osu</b>: podél ní běží značky staničení a klepnutí na kteroukoli čáru řekne vrstvu, délku a staničení („km 0,420“ · 3,2 m od osy). Řádek „Výkres (DXF)“ v panelu Vrstvy ho schová/ukáže.",
+    "<b>3D pohled</b> (Nástroje → Katastr a podklady): budovy vytažené do výšky, terén, body zakázky, výkres a moje poloha šikmo shora. Dva prsty otáčí a naklápí; klepnutí na budovu, bod nebo čáru řekne, co to je. Potřebuje zapnutou vektorovou mapu.",
+    "Data mapy: soubor se nahrává do cloudu QTRIG (Cloudflare R2, návod v cloud/wrangler.toml); do té doby jde v Nastavení zadat vlastní adresu (výřez z scripts/mapa-vyrez.py — Česko má 1,7 GB). Bez signálu vektorová mapa zatím nejede (stahování oblasti přijde); rastr OSM a ortofoto zůstávají jako dřív.",
+    "V režimu slabší telefon se vektorová mapa ani 3D nenabízí (WebGL, 1 MB knihovny)."
+   ]
+  },
+  {
    "v": 341,
    "datum": "2026-09-16",
    "nadpis": "Android: tlačítko Zpět zavírá okna místo appky, nabídka „Přidat na plochu“",

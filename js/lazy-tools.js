@@ -66,6 +66,12 @@
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="7" height="14" rx="2"/><rect x="14" y="5" width="7" height="14" rx="2"/><path d="M10 12h4"/></svg>'
         },
         {
+            // 3D POHLED (M2, 16. 9. 2026): budovy do výšky + terén nad vektorovou mapou (A1)
+            id: 'pohled-3d', src: 'js/pohled-3d.js', label: '3D pohled', cat: 'Katastr a data', order: 9,
+            open: 'agOpenPohled3d', css: 'css/pohled-3d.css',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>'
+        },
+        {
             id: 'vrstvy', src: 'js/vrstvy.js', label: 'Vrstvy / pokládka', order: 7,
             open: 'agOpenVrstvy', icon: '<svg class="icon"><use href="#i-layers"/></svg>'
         },

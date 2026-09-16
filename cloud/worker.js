@@ -26,7 +26,7 @@ const CODE_ABC = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';   // bez O/0, I/1/L
 const CORS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Owner-Key,X-AG-Ver,X-AG-Dev',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Owner-Key,X-AG-Ver,X-AG-Dev,Range,If-Match,If-None-Match',
     'Access-Control-Max-Age': '86400'
 };
 
@@ -1529,7 +1529,37 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 25, nacrt: true, dgps: true, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 26, mapa: !!env.MAPA, nacrt: true, dgps: true, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+
+            // ---------------- VLASTNÍ MAPA: DATA PMTILES Z R2 (16. 9. 2026) ----------------
+            // GET/HEAD /mapa/<soubor>.pmtiles → objekt z R2 bucketu (binding MAPA, viz
+            // wrangler.toml). Klient (js/mapa-vektor.js) čte po kouskách hlavičkou Range —
+            // R2 rozsah umí nativně, tady se jen přeloží hlavička na {offset, length} a
+            // odpoví 206 + Content-Range. Veřejné bez tokenu: jsou to data OpenStreetMap.
+            // Bez bindingu (bucket ještě nezaložen) → 503 s návodem, ne 401 jako zbytek.
+            if ((req.method === 'GET' || req.method === 'HEAD') && path.startsWith('/mapa/')) {
+                const kl = decodeURIComponent(path.slice(6));
+                if (!/^[A-Za-z0-9_.-]+\.pmtiles$/.test(kl)) return json({ error: 'špatný název souboru' }, 400);
+                if (!env.MAPA) return json({ error: 'mapa nenapojena', jak: 'Cloudflare → R2 → bucket „qtrig-mapa" → nahrát ' + kl + '; ve wrangler.toml odkomentovat [[r2_buckets]] a nasadit.' }, 503);
+                const rng = req.headers.get('Range');
+                let opt = {};
+                let m = rng && /^bytes=(\d+)-(\d*)$/.exec(rng.trim());
+                if (m) { const a = +m[1]; opt.range = m[2] ? { offset: a, length: (+m[2]) - a + 1 } : { offset: a }; }
+                const obj = await (req.method === 'HEAD' ? env.MAPA.head(kl) : env.MAPA.get(kl, opt));
+                if (!obj) return json({ error: 'soubor v R2 není: ' + kl }, 404);
+                const h = new Headers(CORS);
+                h.set('Accept-Ranges', 'bytes'); h.set('Content-Type', 'application/octet-stream');
+                h.set('Cache-Control', 'public, max-age=86400'); h.set('ETag', obj.httpEtag || obj.etag || '');
+                h.set('Access-Control-Expose-Headers', 'Content-Range,Content-Length,ETag,Accept-Ranges');
+                if (req.method === 'HEAD') { h.set('Content-Length', String(obj.size)); return new Response(null, { status: 200, headers: h }); }
+                if (m && obj.range) {
+                    const off = obj.range.offset, len = obj.range.length != null ? obj.range.length : (obj.size - off);
+                    h.set('Content-Range', 'bytes ' + off + '-' + (off + len - 1) + '/' + obj.size); h.set('Content-Length', String(len));
+                    return new Response(obj.body, { status: 206, headers: h });
+                }
+                h.set('Content-Length', String(obj.size));
+                return new Response(obj.body, { status: 200, headers: h });
+            }
 
             // ---------------- BRZDA VYDÁNÍ (12. 9. 2026) ---------------------
             // Vlastník vyvíjí a testuje na svém telefonu, ale lidem venku nesmí

@@ -1,0 +1,39 @@
+/* ===== QTRIG — 3D POHLED (odpojitelná vrstva, M2 16. 9. 2026) ====================
+   Celoobrazovkové okno se samostatnou mapou MapLibre (budovy do výšky, terén).
+   Do style.css se nesahá; custom properties appky s fallbacky.
+   Odstranění: smaž css/pohled-3d.css + js/pohled-3d.js a jejich řádky (lazy-tools MANIFEST).
+   ================================================================================== */
+#ag3d {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: var(--app-vh, 100dvh);
+    z-index: 100002; display: none;
+    background: var(--bg-color, #0f1216); color: var(--text-color, #eceef2);
+    font-family: var(--font-display, system-ui), sans-serif;
+}
+#ag3d .ag3d-top {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 3;
+    display: flex; align-items: center; gap: 10px;
+    padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 8px;
+    background: linear-gradient(to bottom, rgba(0,0,0,.55), rgba(0,0,0,0));
+    color: #fff; font-size: calc(14px * var(--ag-font-scale, 1));
+}
+#ag3d .ag3d-top b { font-size: calc(16px * var(--ag-font-scale, 1)); }
+#ag3d .ag3d-top span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: .95; }
+#ag3d .ag3d-x { width: 40px; height: 40px; border-radius: 12px; border: 0; background: rgba(0,0,0,.45); color: #fff; font-size: 18px; }
+#ag3d-mapa { position: absolute; inset: 0; }
+#ag3d .ag3d-bar {
+    position: absolute; left: 0; right: 0; z-index: 3;
+    bottom: calc(30px + env(safe-area-inset-bottom, 0px));
+    display: flex; justify-content: center; gap: 8px; padding: 0 12px; flex-wrap: wrap;
+}
+#ag3d .ag3d-bar button {
+    border: 0; border-radius: 12px; padding: 10px 14px;
+    background: rgba(20,24,28,.82); color: #fff; font: 600 calc(13px * var(--ag-font-scale, 1)) inherit;
+    display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.35);
+}
+#ag3d .ag3d-bar button.on { background: var(--accent, #2f9e74); color: #04110b; }
+#ag3d .ag3d-bar .icon { width: 16px; height: 16px; }
+#ag3d .ag3d-pozn {
+    position: absolute; left: 0; right: 0; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); z-index: 3;
+    text-align: center; font-size: calc(11px * var(--ag-font-scale, 1)); color: #fff; opacity: .75; text-shadow: 0 1px 3px #000;
+}

@@ -41,6 +41,36 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header('Cache-Control', 'no-store')
         super().end_headers()
 
+    # HTTP RANGE (16. 9. 2026, vektorova mapa): PMTiles se ctou po kouskach hlavickou
+    # Range: bytes=a-b. SimpleHTTPRequestHandler ji ignoruje a posle cely soubor, cimz
+    # by knihovna pmtiles dostala spatne bajty. Tady jen pro soubory .pmtiles (zbytek
+    # jako driv), odpoved 206 + Content-Range, jako to dela Cloudflare/R2.
+    def do_GET(self):
+        rng = self.headers.get('Range')
+        if not rng or '.pmtiles' not in self.path:
+            return super().do_GET()
+        path = self.translate_path(self.path.split('?', 1)[0])
+        if not os.path.isfile(path):
+            self.send_error(404); return
+        size = os.path.getsize(path)
+        try:
+            a, b = rng.replace('bytes=', '').split('-')
+            a = int(a); b = int(b) if b else size - 1
+        except Exception:
+            self.send_error(416); return
+        b = min(b, size - 1)
+        if a > b:
+            self.send_error(416); return
+        with open(path, 'rb') as fh:
+            fh.seek(a); data = fh.read(b - a + 1)
+        self.send_response(206)
+        self.send_header('Content-Type', 'application/octet-stream')
+        self.send_header('Content-Range', 'bytes %d-%d/%d' % (a, b, size))
+        self.send_header('Accept-Ranges', 'bytes')
+        self.send_header('Content-Length', str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
 
 def main():
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8099

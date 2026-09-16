@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v341';   // Android: tlacitko Zpet zavira okna, nabidka Pridat na plochu, pruchod v emulaci Androidu
+const SHELL_CACHE = 'argeodet-shell-v342';   // Android: tlacitko Zpet zavira okna, nabidka Pridat na plochu, pruchod v emulaci Androidu
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=341',
-    './css/style.css?v=341',
-    './css/vylepseni.css?v=341',
+    './css/tokens.css?v=342',
+    './css/style.css?v=342',
+    './css/vylepseni.css?v=342',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -149,6 +149,8 @@ const ASSETS_TO_CACHE = [
     './js/dmr-terrain.js',
     './js/wmm2025-koef.js',
     './js/zeme-svet.js',
+    './js/mapa-styl.js',
+    './js/mapa-vektor.js',
     './js/parcela.js',
     './js/tools-registry.js',
     './js/student-start.js',
@@ -250,6 +252,8 @@ const ASSETS_TO_CACHE = [
     './css/pocasi.css',
     './js/zapisnik.js',
     './js/dgps.js',
+    './js/pohled-3d.js',
+    './css/pohled-3d.css',
     './js/vrstvy.js',
     './js/denik-dne.js',
     './js/kniha-jizd.js',
@@ -325,7 +329,7 @@ function isDict(url) { return url.includes('/data/jazyky-') || url.includes('/da
 // tahaji i pisma pro jspdf a wasm/jazykova data pro tesseract — kdyby spadly do
 // SHELL_CACHE, prvni bump verze by je smazal a PDF protokol by v terenu skoncil
 // na pulce.
-function isLib(url) { return url.includes('cdn.jsdelivr.net'); }
+function isLib(url) { return url.includes('cdn.jsdelivr.net') || url.includes('protomaps.github.io/basemaps-assets'); }   // + písma vektorové mapy (glyfy)
 
 // Mapove dlazdice (OSM, CUZK WMS) ukladame do TILE_CACHE, aby prezily update kodu.
 function isTile(url) {
@@ -484,6 +488,9 @@ self.addEventListener('fetch', event => {
     // revalidace umela namichat nekompatibilni verze (index v141 + logika v140).
     // Vyjimka: NAVIGACE (index.html) zustava SWR jako pojistka, kdyby se pri
     // vydani zapomnel bumpnout SHELL_CACHE.
+    // VEKTOROVÁ MAPA (16. 9. 2026): data PMTiles se čtou HTTP Range požadavky — Cache API
+    // rozsahy neumí (vrátila by celý soubor nebo špatné bajty), proto jdou vždy mimo SW.
+    if (url.includes('.pmtiles')) return;
     if (url.startsWith(self.location.origin)) {
         const isNav = event.request.mode === 'navigate' || url === self.location.origin + '/' || url.endsWith('/index.html');
         if (isNav) {

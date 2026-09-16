@@ -327,6 +327,9 @@
           help: { t: 'Import projektu (DXF)' } },
         { k: 'geo-overlay', fn: 'agOpenGeoOverlay', pro: 1, cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Podložit plán do mapy', vh: 'georeference obrázku', keys: 'podklad georeference obrazek plan situace vykres overlay',
           help: { t: 'Vlastní podklad' } },
+        // 3D pohled (M2, 16. 9. 2026): budovy do výšky, terén, body a výkres nad vektorovou mapou
+        { k: 'pohled-3d', fn: 'agOpenPohled3d', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: '3D pohled', vh: 'budovy do výšky, terén, výkres a body šikmo shora', keys: '3d pohled budovy vyska teren naklopeni perspektiva rohy budov osa vykres mapa vektor',
+          help: { t: '3D pohled' } },
         { k: 'utility-networks', fn: 'agOpenUtilityNetworks', pro: 1, hidden: 1, verb: 'Katastr a podklady', vl: 'Podzemní sítě', keys: 'site podzemni vedeni inzenyrske gml kabel plyn voda',
           help: { t: 'Podzemní sítě' } },
         { k: 'job-transfer', w: 1, verb: 'Katastr a podklady', vl: 'Poslat nebo načíst zakázku', vh: 'do druhého telefonu i do kanceláře', keys: 'prenos prenosy zakazky export import argeo sdileni telefon zarizeni', net: 1,
