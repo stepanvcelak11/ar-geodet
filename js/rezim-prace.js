@@ -185,7 +185,7 @@
         'brifink': 'Dnešek v terénu', 'checklist': 'Co s sebou',
         'pocasi': 'Počasí', 'gnss-forecast': 'GNSS předpověď', 'job-transfer': 'Poslat/načíst zakázku',
         'kniha-jizd': 'Kniha jízd', 'pdr-offset': 'Krokový offset', 'dgps': 'Dvoutelefonní DGPS',
-        'akusticky-dalkomer': 'Akustický dálkoměr', 'kalibrace-hranou': 'Kalibrace chůzí po hraně'
+        'akusticky-dalkomer': 'Akustický dálkoměr', 'kalibrace-hranou': 'Kalibrace chůzí po hraně', 'korekce-z-mapy': 'Oprava GPS z mapy za chůze'
     };
 
     function ls(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }

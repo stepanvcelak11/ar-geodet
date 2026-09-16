@@ -44,6 +44,7 @@
     // minutu, takže stáří = „základna neposílá" (6 min), a platí do ~3 km od základny.
     function limity(s) {
         if (s && s.src === 'dgps-live') return { warnAge: 3 * 60000, maxAge: 6 * 60000, warnDist: 2000, maxDist: 3000 };
+        if (s && s.src === 'mapa') return { warnAge: 8 * 60000, maxAge: 10 * 60000, warnDist: 80, maxDist: 100 };   // js/korekce-z-mapy.js: klepnutí do mapy za chůze
         return { warnAge: WARN_AGE_MS, maxAge: MAX_AGE_MS, warnDist: WARN_DIST_M, maxDist: MAX_DIST_M };   // WARN_* níž u hlídače (volá se až za běhu)
     }
     function planarDist(lat1, lng1, lat2, lng2) {
@@ -62,7 +63,7 @@
             if (raw) {
                 var o = JSON.parse(raw);
                 if (o && isFinite(o.dlat) && isFinite(o.dlng)) {
-                    window.agRefShift = { dlat: +o.dlat, dlng: +o.dlng, t: o.t || 0, acc: o.acc, on: !!o.on, lat: (isFinite(o.lat) ? +o.lat : null), lng: (isFinite(o.lng) ? +o.lng : null), src: (o.src === 'hrana' || o.src === 'dgps-live' ? o.src : undefined), mode: o.mode, base: o.base, code: o.code };   // src: kdo korekci vyrobil (js/kalibrace-hranou.js) — pilulka podle toho otevírá správný nástroj
+                    window.agRefShift = { dlat: +o.dlat, dlng: +o.dlng, t: o.t || 0, acc: o.acc, on: !!o.on, lat: (isFinite(o.lat) ? +o.lat : null), lng: (isFinite(o.lng) ? +o.lng : null), src: (o.src === 'hrana' || o.src === 'dgps-live' || o.src === 'mapa' ? o.src : undefined), mode: o.mode, base: o.base, code: o.code, live: !!o.live, ref: o.ref, dh: (isFinite(o.dh) ? +o.dh : undefined) };   // src: kdo korekci vyrobil (js/kalibrace-hranou.js) — pilulka podle toho otevírá správný nástroj
                     return window.agRefShift;
                 }
             }
@@ -227,6 +228,9 @@
                 if (!p || p._agRefShifted) return ret;             // idempotence
                 if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return ret;
 
+                // ŽIVÝ POSUN (src 'mapa' s live): fixy už posunula logika.js, průměr je posunutý →
+                // podruhé NEPŘIČÍTAT, jen zapsat původ (karta důvěry bodu)
+                if (s.live) { p._agRefShifted = true; p.refShift = { dlat: s.dlat, dlng: s.dlng, t: s.t, src: s.src || 'mapa', live: true }; return ret; }
                 p.lat += s.dlat;
                 p.lng += s.dlng;
                 p._agRefShifted = true;
@@ -600,6 +604,7 @@
             var s2 = loadShift();
             if (s2 && s2.src === 'hrana' && window.AGLazyTools && typeof AGLazyTools.open === 'function') AGLazyTools.open('kalibrace-hranou');
             else if (s2 && s2.src === 'dgps-live' && window.AGLazyTools && typeof AGLazyTools.open === 'function') AGLazyTools.open('dgps');
+            else if (s2 && s2.src === 'mapa' && window.AGLazyTools && typeof AGLazyTools.open === 'function') AGLazyTools.open('korekce-z-mapy');
             else open();
         });
         document.body.appendChild(p);
@@ -626,6 +631,22 @@
         return { s: s, age: age, dist: dist, zbyva: zbyva, stav: stav, live: live, text: parts.join(' · '), maxMin: lim.maxAge / 60000, maxM: lim.maxDist, warnMin: lim.warnAge / 60000, warnM: lim.warnDist };
     }
     window.agRefShiftStav = shiftStatus;
+    // ŽIVÝ POSUN pro js/logika.js (watchPosition): korekce z klepnutí do mapy (src 'mapa',
+    // live) se přičítá k surovému fixu, dokud platí — 10 min a 100 m od místa klepnutí
+    // (tvrdý strop 150 m; 100 m hlásí pilulka). Po vypršení se přestane přičítat sama.
+    // Bydlí tady (ne v nástroji), protože nástroj je odložený a po restartu by se
+    // uložená živá korekce jinak tiše neaplikovala, i když by pilulka tvrdila opak.
+    window.agZivyPosun = function () {
+        try {
+            var s = loadShift();
+            if (!s || !s.on || !s.live || !isFinite(s.dlat) || !isFinite(s.dlng)) return null;
+            var lim = limity(s);
+            if (s.t && Date.now() - s.t > lim.maxAge) return null;
+            var f = window.AGFixRaw;
+            if (f && isFinite(s.lat) && isFinite(f.lat) && planarDist(s.lat, s.lng, f.lat + s.dlat, f.lng + s.dlng) > lim.maxDist * 1.5) return null;
+            return { dlat: s.dlat, dlng: s.dlng };
+        } catch (e) { return null; }
+    };
     function watchTick() {
         var st = shiftStatus();
         var p = document.getElementById(PILL_ID);

@@ -192,7 +192,7 @@
         if (r && cislo(r.dlat) != null && cislo(r.dlng) != null) {
             var lat = (p && cislo(p.lat) != null) ? p.lat : 49.8;
             var m = Math.hypot(r.dlng * 111320 * Math.cos(lat * Math.PI / 180), r.dlat * 111320);
-            var KDO = { hrana: 'z chůze po hraně', ref: 'z posunu na známý bod', 'dgps-live': 'DGPS živě ze základny' };
+            var KDO = { hrana: 'z chůze po hraně', ref: 'z posunu na známý bod', 'dgps-live': 'DGPS živě ze základny', mapa: 'z klepnutí do mapy (za chůze)' };
             var kdo = KDO[r.src] || '(kalibrace GPS)';
             out.push('K bodu se přičetla korekce ' + kdo + ': ' + fmt(m) + ' m' + (r.interp ? ', přepočtená podle času mezi dvěma chůzemi (kalibrace před a po)' : '') + '.');
         }

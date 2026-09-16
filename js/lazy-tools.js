@@ -175,6 +175,12 @@
             open: 'AGHrana.open',
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20 21 4"/><path d="M6 21v-2a3 3 0 0 1 3-3h0a3 3 0 0 0 3-3v-2"/><circle cx="14" cy="6" r="2"/><path d="M17 21l2-4-3-2"/></svg>'
         },
+        // 16. 9. 2026 (nápad uživatele): klepnutí do mapy = korekce GPS i za chůze, posouvá i živou polohu
+        {
+            id: 'korekce-z-mapy', src: 'js/korekce-z-mapy.js', label: 'Oprava GPS z mapy za chůze', cat: 'Přesné měření', order: 72,
+            open: 'AGKorekceMapa.open',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/><path d="M3 21l4-4M21 21l-4-4"/></svg>'
+        },
         // 15. 9. 2026: průvodce sekce Přesné měření (jen text + tlačítka, nic neměří)
         {
             id: 'presne-mereni', src: 'js/presne-mereni.js', label: 'Jak měřit přesně', cat: 'Přesné měření', order: 1,

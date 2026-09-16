@@ -25,8 +25,8 @@ function agUpdPill(stav, info) {
         }
         else if (stav === 'install') { txt.textContent = 'Nasazuji novou verzi…'; bar.style.width = '100%'; el.classList.add('spin'); }
         else if (stav === 'done') {
-            txt.textContent = 'Nová verze stažena — použije se při příštím spuštění'; bar.style.width = '100%'; el.classList.add('done');
-            el._t = setTimeout(() => el.classList.remove('on'), 6000);
+            txt.textContent = 'Nová verze stažena — zavři appku a spusť ji znovu, pak se použije'; bar.style.width = '100%'; el.classList.add('done');
+            el._t = setTimeout(() => el.classList.remove('on'), 9000);
         }
         el.classList.add('on');
     } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agUpdPill'); }
@@ -1857,6 +1857,15 @@ if ('serviceWorker' in navigator) {
                     var _mp = window.AGManualPos;
                     if (_mp && _mp.active) _mp.onFix(position.coords.latitude, position.coords.longitude, position.coords.accuracy);
                     if (_mp && _mp.active) { userLat = _mp.lat; userLng = _mp.lng; }
+                    // ŽIVÝ POSUN GPS (js/korekce-z-mapy.js, 16. 9. 2026): oprava z klepnutí do mapy
+                    // se přičítá už k surovému fixu, takže ji vidí AR, navigace i průměr GPS.
+                    // Surový fix zůstává v AGFixRaw (nástroj z něj počítá další korekci). Vrací ho
+                    // window.agZivyPosun (js/ref-calibration.js) jen dokud platí (10 min / 100 m).
+                    window.AGFixRaw = { ts: Date.now(), lat: position.coords.latitude, lng: position.coords.longitude, acc: position.coords.accuracy };
+                    if (!(_mp && _mp.active) && typeof window.agZivyPosun === 'function') {
+                        var _zp = window.agZivyPosun();
+                        if (_zp && isFinite(_zp.dlat) && isFinite(_zp.dlng)) { userLat += _zp.dlat; userLng += _zp.dlng; }
+                    }
                     try { if (window.AGSour) AGSour.poloha(userLat, userLng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:AGSour.poloha'); }
                     magneticDeclination = getDeclination(userLat, userLng);
                     try { if (window.AGPose) window.AGPose.checkDrift(userLat, userLng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agStartGpsWatch'); }   // #1: kotvení se zneplatní, když reálně odejdu ze stanoviska

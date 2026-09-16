@@ -554,7 +554,7 @@
         // lokální kalibrace (P-DGPS) — přičti korekční vektor, pokud je zapnutá
         try {
             var sh = window.agRefShift;
-            if (sh && sh.on && isFinite(sh.dlat) && isFinite(sh.dlng)) {
+            if (sh && sh.on && !sh.live && isFinite(sh.dlat) && isFinite(sh.dlng)) {   // live (z mapy za chůze): fixy už posunula logika.js
                 lat += sh.dlat; lng += sh.dlng;
                 var m = mPerDeg(lat); var mag = Math.hypot(sh.dlng * m.lng, sh.dlat * m.lat);
                 calibTxt = '\nKalibrace aplikována: +' + (mag * 100).toFixed(0) + ' cm';

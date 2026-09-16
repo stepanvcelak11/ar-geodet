@@ -131,7 +131,13 @@
                 '±0,5 m; platí ~20 min a ~300 m.',
                 [{ k: 'ref-calibration', l: '<svg class="icon"><use href="#i-map-pin"/></svg> Otevřít posun na známý bod' }])
 
-            + card(7, 'Kontrolní měření', 'Jediný poctivý důkaz přesnosti: bod změř podruhé (nejlíp za 30–60 min, kdy jsou družice jinde) a rozdíl ti řekne, čemu věřit.',
+            + card(7, 'Oprava GPS z mapy za chůze', 'Nejrychlejší korekce: na ortofotu vidíš, kde přesně stojíš (roh budovy, obruba, kanál) — klepneš tam a appka odečítá chybu GPS <b>i za chůze</b>: v AR, navigaci i u ukládaných bodů. Bez známého bodu, bez chůze po hraně.',
+                ['Postůj 30–60 s na volném místě, ať se GPS zprůměruje (okno ukazuje počet měření).',
+                 'Ortofoto, přiblížit, <b>Klepnout, kde stojím</b> → přesně na své místo → <b>Zapnout</b>.'],
+                '±1,5–2 m místo ±3–5 m; platí 10 min a 100 m od místa klepnutí, pak klepnout znovu.',
+                [{ k: 'korekce-z-mapy', l: '<svg class="icon"><use href="#i-map-pin"/></svg> Otevřít opravu z mapy', primary: true }])
+
+            + card(8, 'Kontrolní měření', 'Jediný poctivý důkaz přesnosti: bod změř podruhé (nejlíp za 30–60 min, kdy jsou družice jinde) a rozdíl ti řekne, čemu věřit.',
                 ['Změř bod znovu stejnou metodou.',
                  'Appka ukáže rozdíl obou měření a zapíše ho k bodu.'],
                 '',

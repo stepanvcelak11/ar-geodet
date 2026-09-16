@@ -3,7 +3,7 @@
 
   S  sekce v registru a v seznamu ukonu (Presna GPS, kalibrace, DGPS, akustika,
      kontrolni mereni + pruvodce), rozcestnik Srovnat jinak uz obe kalibrace nema
-  G  pruvodce „Jak merit presne z mobilu" (js/presne-mereni.js): 7 karet, tlacitka
+  G  pruvodce „Jak merit presne z mobilu" (js/presne-mereni.js): 8 karet, tlacitka
      otevrou nastroj (Presna GPS), obrazek „kam s telefonem" v Presne GPS
   T  kalibrace chuzi (js/kalibrace-hranou.js): uzavreny tvar = cely vektor,
      plavani chyby behem chuze, interpolace pred/po, zpetny prepocet bodu
@@ -132,7 +132,7 @@ async def beh(url):
         ok('G1 průvodce se otevře', await cekej(page, "window.AGPresne && document.getElementById('ag-presne-modal') && getComputedStyle(document.getElementById('ag-presne-modal')).display === 'flex'"), chyby[-3:])
         gi = await page.evaluate("""() => { const b = document.getElementById('ag-presne-body'); return { karet: b.querySelectorAll('.pm-card').length, btn: b.querySelectorAll('button[data-run]').length,
             txt: b.textContent, tab: b.querySelectorAll('.pm-tab').length }; }""")
-        ok('G2 průvodce: 7 karet s postupem, tlačítka, tabulka „co čekat" + „kde jde kalibrovat"', gi['karet'] == 7 and gi['btn'] >= 8 and gi['tab'] >= 2 and 'Kde jde kalibrovat' in gi['txt'] and 'plusko' in gi['txt'] and 'dočasn' in gi['txt'], (gi['karet'], gi['btn'], gi['tab']))
+        ok('G2 průvodce: 8 karet s postupem, tlačítka, tabulka „co čekat" + „kde jde kalibrovat"', gi['karet'] == 8 and gi['btn'] >= 9 and gi['tab'] >= 2 and 'Kde jde kalibrovat' in gi['txt'] and 'plusko' in gi['txt'] and 'dočasn' in gi['txt'], (gi['karet'], gi['btn'], gi['tab']))
         await page.click('#ag-presne-body button[data-run="brutal-gps"]')
         ok('G3 tlačítko v průvodci otevře Přesnou GPS a průvodce se schová', await cekej(page, "document.getElementById('ag-bgps-overlay') && document.getElementById('ag-bgps-overlay').classList.contains('on') && getComputedStyle(document.getElementById('ag-presne-modal')).display === 'none'"), chyby[-3:])
         pl = await page.evaluate("""() => { const p = document.getElementById('bgps-place'); if (!p) return null; const r = p.getBoundingClientRect();

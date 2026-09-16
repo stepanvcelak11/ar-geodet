@@ -187,6 +187,8 @@
           help: { t: 'Přesná GPS (dlouhé průměrování)' } },
         { k: 'kalibrace-hranou', pro: 1, w: 1, cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Opravit posun GPS chůzí po hraně', vh: 'obrubník, obvod pozemku, plusko — kalibrace před a po', keys: 'kalibrace hrana chuze obrubnik chodnik cara posun gps vektor chyba bez zastaveni dxf osa obvod pozemek plusko ctverec uzavreny tvar pred a po zpetne',
           help: { t: 'Kalibrace chůzí po hraně' } },
+        { k: 'korekce-z-mapy', w: 1, cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Opravit GPS z mapy za chůze', vh: 'klepni, kde stojíš — posouvá i živou polohu, 10 min / 100 m', keys: 'oprava korekce gps mapa klepnuti ortofoto chuze ziva poloha posun rychle zpresneni poloha z mapy',
+          help: { t: 'Oprava GPS z mapy za chůze' } },
         { k: 'ref-calibration', w: 1, cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Opravit posun GPS podle známého bodu', vh: 'stoupni si na úřední bod — opravuje POLOHU, ne sever', keys: 'kalibrace referencni bod srovnani ar posun usazeni znamy bod',
           help: { t: 'Posun GPS na známý bod' } },
         { k: 'dgps', pro: 1, w: 1, cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Dvoutelefonní DGPS', vh: 'základna a rover, i dočasná základna z Přesné GPS', keys: 'dgps diferencni korekce zakladna rover druhy telefon presnost oprava bodu docasna zakladna stanice',

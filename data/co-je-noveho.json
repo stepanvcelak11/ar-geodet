@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 343,
+   "datum": "2026-09-16",
+   "nadpis": "Oprava GPS z mapy za chůze, hezčí web, hláška po stažení nové verze",
+   "body": [
+    "<b>Nový nástroj Oprava GPS z mapy za chůze</b> (Přesné měření): postůj 30–60 s, klepni na ortofotu přesně tam, kde stojíš, a appka odečítá chybu GPS <b>i za chůze</b> — v AR, v navigaci, ve vzdálenostech i u ukládaných bodů. Platí 10 min / 100 m, pilulka nahoře hlídá. Statická „Poloha z mapy“ zůstává zvlášť. Karta v průvodci Přesné měření + návod pod „?“.",
+    "Webová stránka appky má nový vzhled (<a href=\"web/\" target=\"_blank\" rel=\"noopener\">stepanvcelak11.github.io/ar-geodet/web/</a>).",
+    "Po stažení nové verze pilulka říká, že je nutné appku zavřít a spustit znovu."
+   ]
+  },
+  {
    "v": 342,
    "datum": "2026-09-16",
    "nadpis": "Vlastní vektorová mapa (beta): styl „stavba“, výkres DXF jako vrstva se staničením, 3D pohled",

@@ -391,7 +391,7 @@
         var rs = pt.refShift || (pt.prov && pt.prov.refShift), korTxt = null;
         if (rs && isFinite(rs.dlat) && isFinite(rs.dlng)) {
             var korM = Math.hypot(rs.dlng * 111320 * Math.cos(((isFinite(pt.lat) ? pt.lat : 49.8)) * Math.PI / 180), rs.dlat * 111320);
-            var KDO = { hrana: 'chůze po hraně', ref: 'známý bod', 'dgps-live': 'DGPS živě' };
+            var KDO = { hrana: 'chůze po hraně', ref: 'známý bod', 'dgps-live': 'DGPS živě', mapa: 'klepnutí do mapy' };
             korTxt = n2(korM) + ' m · ' + (KDO[rs.src] || 'kalibrace GPS') + (rs.interp ? ' · před a po' : '');
         } else if (pt.prov && pt.prov.dgps && isFinite(pt.prov.dgps.mag)) korTxt = n2(pt.prov.dgps.mag) + ' m · DGPS z QR' + (pt.prov.dgps.base ? ' (' + pt.prov.dgps.base + ')' : '');
         if (korTxt) tile('c2', 'Korekce GPS', '<b class="t">' + esc(korTxt) + '</b>');
