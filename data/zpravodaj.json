@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-09-15",
-  "uvodnik": "Vydání 15. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-09-16",
+  "uvodnik": "Vydání 16. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,42 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Přístroje",
+      "top": false,
+      "nadpis": "Trimble Unveils ST30 Smart Target for Optical Surveying",
+      "perex": "New surveying system represents leap forward in field technology to maximize daily output and solve common challenges with confidence Munich and Westminster, Colo., Sept. 15, 2026 — Trimble today anno…",
+      "telo": "New surveying system represents leap forward in field technology to maximize daily output and solve common challenges with confidence Munich and Westminster, Colo., Sept. 15, 2026 — Trimble today announced the launch of the Trimble ® ST30 smart target, a new-generation surveying system. This system breaks new ground by integrating optical and subscription-based GNSS functionality into a single smart target solution. Setting a new standard for traceability, redundancy, versatility and safety, the ST30 introduces key innovations, including tilt compensation and automatic rod height measurements. It is the first smart target on the market to offer fully integrated, high-accuracy GNSS functional",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/15/trimble-unveils-st30-smart-target-for-optical-surveying/?utm_source=rss&utm_medium=rss&utm_campaign=trimble-unveils-st30-smart-target-for-optical-surveying",
+      "datum": "2026-09-15"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "Vexcel Imaging Launches UltraCam Condor 5.0",
+      "perex": "Graz, Austria • September 15, 2026 — Live from Intergeo 2026 in Munich, Vexcel Imaging today announced the UltraCam Condor 5.0 , a new aerial mapping system designed for wide-area and nationwide geosp…",
+      "telo": "Graz, Austria • September 15, 2026 — Live from Intergeo 2026 in Munich, Vexcel Imaging today announced the UltraCam Condor 5.0 , a new aerial mapping system designed for wide-area and nationwide geospatial data collection. With up to 83,000 pixels across the flight strip, the Condor 5.0 captures more ground in a single pass than any aerial mapping system to date. Combined with a new reconstruction approach in UltraMap designed for challenging image geometries, it delivers reliable photogrammetric-grade DSM, DTM, and orthophoto products across the largest aerial footprint ever deployed for mapping. The UltraCam Condor 5.0 will be available in multiple models with cross-track image widths rang",
+      "body": [],
+      "proc": "",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/09/15/vexcel-imaging-launches-ultracam-condor-5-0-with-the-worlds-largest-aerial-camera-footprint/?utm_source=rss&utm_medium=rss&utm_campaign=vexcel-imaging-launches-ultracam-condor-5-0-with-the-worlds-largest-aerial-camera-footprint",
+      "datum": "2026-09-15"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "Vexcel Imaging Launches UltraCam Condor 5.0 with the World’s Largest Aerial Camera Footprint",
+      "perex": "Graz, Austria • September 15, 2026 — Live from Intergeo 2026 in Munich, Vexcel Imaging today announced the UltraCam Condor 5.0 , a new aerial mapping system designed for wide-area and nationwide geosp…",
+      "telo": "Graz, Austria • September 15, 2026 — Live from Intergeo 2026 in Munich, Vexcel Imaging today announced the UltraCam Condor 5.0 , a new aerial mapping system designed for wide-area and nationwide geospatial data collection. With up to 83,000 pixels across the flight strip, the Condor 5.0 captures more ground in a single pass than any aerial mapping system to date. Combined with a new reconstruction approach in UltraMap designed for challenging image geometries, it delivers reliable photogrammetric-grade DSM, DTM, and orthophoto products across the largest aerial footprint ever deployed for mapping. The UltraCam Condor 5.0 will be available in multiple models with cross-track image widths rang",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/15/vexcel-imaging-launches-ultracam-condor-5-0-with-the-worlds-largest-aerial-camera-footprint/?utm_source=rss&utm_medium=rss&utm_campaign=vexcel-imaging-launches-ultracam-condor-5-0-with-the-worlds-largest-aerial-camera-footprint",
+      "datum": "2026-09-15"
     },
     {
       "rubrika": "Z praxe",
@@ -60,42 +96,6 @@
       "proc": "",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/09/14/old-ways-and-new/?utm_source=rss&utm_medium=rss&utm_campaign=old-ways-and-new",
-      "datum": "2026-09-15"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "Alternative Path",
-      "perex": "I live in a state (no – not the State of Confusion) that requires applicants to be “a graduate of a land-surveying curriculum of 4 years or more that is approved by the Board.” That is straight out of…",
-      "telo": "I live in a state (no – not the State of Confusion) that requires applicants to be “a graduate of a land-surveying curriculum of 4 years or more that is approved by the Board.” That is straight out of statute No. 625.270(3). This state, and the organization of Professional Land Surveyors I belong to fought hard for many years to get a bachelor’s degree established within the bounds of our fair state. There are two universities and neither was interested in such a no-profit, low-enrollment program and so they both declined, on multiple occasions. Finally, we found a community college that wanted to up its game and offer Baccalaureate degrees as a way to distinguish itself. We were the second",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/14/alternative-path/?utm_source=rss&utm_medium=rss&utm_campaign=alternative-path",
-      "datum": "2026-09-15"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "Another Dusty Bookshelf",
-      "perex": "Hey there, y’all, it’s me, Lancer Vang, and I’m back with more books from my dusty bookshelf.",
-      "telo": "Hey there, y’all, it’s me, Lancer Vang, and I’m back with more books from my dusty bookshelf. Let’s talk about maps… and mapmaking… and mapmakers. Or more specifically, let’s talk about books about maps, mapmaking, mapmakers, and map stealers, too while we are at it. This is very fertile ground, there are a lot of weighty tomes on these topics, and yeah, I got ‘em all, or most of them anyway. Waldseemüller map. Where to start? This is not a linear journey, so be prepared to double back and do a loop-de-loop once or twice. First up: The Story of Maps by Lloyd A. Brown. Published in 1949 by Bonanza Books. Dear Lloyd starts with the Greek polymath Strabo in 25 B.C. and walks us through the earl",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/14/another-dusty-bookshelf/?utm_source=rss&utm_medium=rss&utm_campaign=another-dusty-bookshelf",
-      "datum": "2026-09-15"
-    },
-    {
-      "rubrika": "Přístroje",
-      "top": false,
-      "nadpis": "Product Review: Carlson Viking RTK",
-      "perex": "The Carlson Viking RTK Receiver is Carlson Software’s next-generation GNSS Smart Antenna, built in Maysville, Kentucky, and engineered to provide professionals in surveying, engineering, and construct…",
-      "telo": "The Carlson Viking RTK Receiver is Carlson Software’s next-generation GNSS Smart Antenna, built in Maysville, Kentucky, and engineered to provide professionals in surveying, engineering, and construction with unmatched accuracy and speed. Designed to excel in environments where traditional receivers often fail—such as dense forests and urban canyons—the Viking ensures reliable performance through a suite of advanced features. Core Technologies and Advantages The Viking’s round top protects an industry-leading antenna element. The Viking stands out by integrating industry-leading hardware with the Carlson GAMA® RTK engine. Key technical highlights include: Triple-Fix RTK: For the first time i",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/14/product-review-carlson-viking-rtk/?utm_source=rss&utm_medium=rss&utm_campaign=product-review-carlson-viking-rtk",
       "datum": "2026-09-15"
     }
   ]
