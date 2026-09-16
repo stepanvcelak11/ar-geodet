@@ -101,8 +101,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=340">
-    <link rel="stylesheet" href="css/style.css?v=340">
+    <link rel="stylesheet" href="css/tokens.css?v=341">
+    <link rel="stylesheet" href="css/style.css?v=341">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -233,7 +233,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=340">
+    <link rel="stylesheet" href="css/vylepseni.css?v=341">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -1339,6 +1339,13 @@
     <!-- ZAVÍRÁNÍ MODÁLŮ (odpojitelné: smaž tento řádek + js/modal-close.js) — křížek
          vpravo nahoře a zavření potáhnutím dolů; tlačítka „Zavřít" zůstávají -->
     <script defer src="js/modal-close.js"></script>
+    <!-- ANDROID (odpojitelné: smaž tyhle dva řádky + js/android.js) — tlačítko Zpět zavře
+         nejvyšší otevřené okno místo ukončení appky (dvojité Zpět na hlavní obrazovce
+         appku zavře, jen PWA) + nabídka „Přidat na plochu" z beforeinstallprompt.
+         Modul je odložený (rozpočet startu); beforeinstallprompt ale Chrome pošle hned
+         po startu, proto ho tenhle řádek odchytí a modul si ho pak vezme z window.__agBip. -->
+    <script>window.addEventListener('beforeinstallprompt', function (e) { try { e.preventDefault(); } catch (x) {} window.__agBip = e; });</script>
+    <script type="ag/lazy" data-src="js/android.js"></script>
     <!-- POZDĚJŠÍ NAČTENÍ NÁSTROJŮ (odpojitelné: smaž tento řádek + js/lazy-load.js
          a všem type="ag/lazy" data-src="…" vrať defer src="…") — doplněk k
          js/lazy-tools.js: ten dotahuje 10 nástrojů AŽ NA KLEPNUTÍ (zástupná

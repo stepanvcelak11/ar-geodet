@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 341,
+   "datum": "2026-09-16",
+   "nadpis": "Android: tlačítko Zpět zavírá okna místo appky, nabídka „Přidat na plochu“",
+   "body": [
+    "<b>Tlačítko Zpět na Androidu</b> zavře nejvyšší otevřené okno (Nástroje, kartu bodu, dialog…) — dřív v appce na ploše rovnou ukončilo appku. Na hlavní obrazovce první Zpět upozorní, druhý do 2,5 s appku zavře, jak je na Androidu zvykem.",
+    "<b>Přidat QTRIG na plochu</b>: Chrome na Androidu po minutě v appce jednou nabídne instalaci (celý displej, vlastní ikona, offline). „Teď ne“ = klid na 14 dní.",
+    "Celá appka prošla emulací Chromu na Androidu (Pixel 7 i 360 px displej, kompas z deviceorientationabsolute bez povolení, relativní události ignorované, 102 dlaždic Nástrojů bez chyby a bez prvku mimo displej) — test běží v CI."
+   ]
+  },
+  {
    "v": 340,
    "datum": "2026-09-16",
    "nadpis": "Měření mimo ČR: souřadnice a výšky podle země, kde stojíš; geoid EGM2008 a deklinace WMM pro celý svět",

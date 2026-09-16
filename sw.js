@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v340';   // tihove body zvlast, cisla pridruzenych bodu, klik do parcely s ochranou, kalibrace po hranici katastru, animace stahovani, web
+const SHELL_CACHE = 'argeodet-shell-v341';   // Android: tlacitko Zpet zavira okna, nabidka Pridat na plochu, pruchod v emulaci Androidu
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=340',
-    './css/style.css?v=340',
-    './css/vylepseni.css?v=340',
+    './css/tokens.css?v=341',
+    './css/style.css?v=341',
+    './css/vylepseni.css?v=341',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -165,6 +165,7 @@ const ASSETS_TO_CACHE = [
     './js/track-log.js',
     './js/tools-back.js',
     './js/modal-close.js',
+    './js/android.js',
     './js/lazy-load.js',
     './js/track-ar.js',
     './js/linalg.js',
