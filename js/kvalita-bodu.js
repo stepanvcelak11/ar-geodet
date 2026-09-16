@@ -122,7 +122,10 @@
         'mapa': 'z mapy',
         'rajon': 'rajón',
         'protinani': 'protínání',
-        'tachy': 'tachymetrie'
+        'tachy': 'tachymetrie',
+        'katastr': 'přichyceno k lomu parcely',
+        'vykres': 'přichyceno k bodu výkresu',
+        'mapa-budova': 'přichyceno k rohu budovy'
     };
     // Co se s bodem po kontrole stalo — do protokolu to patri, protoze to meni
     // vyklad souradnic: „prumer obou" znamena jinou polohu nez ta puvodne zamerena.

@@ -66,6 +66,12 @@
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="7" height="14" rx="2"/><rect x="14" y="5" width="7" height="14" rx="2"/><path d="M10 12h4"/></svg>'
         },
         {
+            // KDE SE DÁ MĚŘIT (P3, 16. 9. 2026): mapa kvality GPS ze stínění budov a lesa
+            id: 'kvalita-gps-mapa', src: 'js/mapa-kvality-gps.js', label: 'Kde se dá měřit', cat: 'Přesné měření', order: 8,
+            open: 'agOpenKvalitaGpsMapa',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5l2.5 2.5L21 15"/></svg>'
+        },
+        {
             // 3D POHLED (M2, 16. 9. 2026): budovy do výšky + terén nad vektorovou mapou (A1)
             id: 'pohled-3d', src: 'js/pohled-3d.js', label: '3D pohled', cat: 'Katastr a data', order: 9,
             open: 'agOpenPohled3d', css: 'css/pohled-3d.css',

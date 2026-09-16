@@ -136,7 +136,14 @@ INDEX = os.path.join(ROOT, 'index.html')
 #     appka bez prihlaseni (viz pojistka v <head> index.html).
 #   Rezerva ~0,5 %. Kandidati na odlozeni zustavaji tíž: js/seznam-souradnic.js
 #   (23 kB) a js/localization-helmert.js (46 kB) — OVERIT SPUSTENIM, ne odhadem.
-LIMIT_JS_KB = 2192
+# ZVYSENO 16.9.2026 (poctvrte): 2192 -> 2216 kB. Duvod:
+#   Mereni mimo CR (v340): js/sour-zeme.js (24 kB) = registr zemi — souradnicovy a
+#   vyskovy system podle toho, kde stojim. MUSI byt eager: karta bodu, seznam a
+#   formular ukazuji souradnice hned po startu a bez registru by se v zahranici
+#   ukazal Krovak (nesmysl). Zbytek dat sveta (geoid, deklinace, obrysy zemi) je
+#   odlozeny (js/zeme-svet.js). K tomu logika.js +3 kB (agMistni/agOsy/zivy posun).
+#   Kandidati na odlozeni zustavaji: js/localization-helmert.js (46 kB) — OVERIT SPUSTENIM.
+LIMIT_JS_KB = 2216
 LIMIT_CSS_KB = 320
 LIMIT_JS_SOUBORU = 76
 

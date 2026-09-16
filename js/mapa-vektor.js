@@ -156,6 +156,22 @@
         try { return m.querySourceFeatures('pm', { sourceLayer: 'buildings' }) || []; } catch (e) { swallow(e, 'budovy'); return []; }
     }
 
+    // Plochy (polygony) z vrstev podle kind — les pro mapu kvality GPS apod.; [[ring:[{lat,lng}]]]
+    function plochy(sourceLayers, kinds) {
+        var m = mapa(); if (!m || !m.isStyleLoaded || !m.isStyleLoaded()) return [];
+        var out = [];
+        (sourceLayers || []).forEach(function (sl) {
+            var fs = []; try { fs = m.querySourceFeatures('pm', { sourceLayer: sl }) || []; } catch (e) { swallow(e, 'plochy'); }
+            fs.forEach(function (f) {
+                if (kinds && kinds.indexOf(f.properties && f.properties.kind) < 0) return;
+                var g = f.geometry; if (!g) return;
+                var polys = g.type === 'Polygon' ? [g.coordinates] : (g.type === 'MultiPolygon' ? g.coordinates : []);
+                polys.forEach(function (poly) { out.push(poly.map(function (ring) { return ring.map(function (c) { return { lat: c[1], lng: c[0] }; }); })); });
+            });
+        });
+        return out;
+    }
+
     // ---- Nastavení → Vzhled → řádek ------------------------------------------------------
     function ui() {
         if (document.getElementById('s-mapa-vektor')) return;
@@ -197,5 +213,5 @@
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
-    window.AGMapaVektor = { nastav: nastav, zapni: zapni, vypni: vypni, stav: function () { return stav; }, chyba: function () { return chybaText; }, posledniChyba: function () { return _posledniChyba; }, mapa: mapa, budovy: budovy, url: url, varianta: varianta, nastaveni: function () { return { zap: st.zap, styl: st.styl, url: st.url }; } };
+    window.AGMapaVektor = { nastav: nastav, zapni: zapni, vypni: vypni, stav: function () { return stav; }, chyba: function () { return chybaText; }, posledniChyba: function () { return _posledniChyba; }, mapa: mapa, budovy: budovy, plochy: plochy, url: url, varianta: varianta, nastaveni: function () { return { zap: st.zap, styl: st.styl, url: st.url }; } };
 })();

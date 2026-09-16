@@ -329,6 +329,9 @@
           help: { t: 'Import projektu (DXF)' } },
         { k: 'geo-overlay', fn: 'agOpenGeoOverlay', pro: 1, cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Podložit plán do mapy', vh: 'georeference obrázku', keys: 'podklad georeference obrazek plan situace vykres overlay',
           help: { t: 'Vlastní podklad' } },
+        // Kde se dá měřit (P3, 16. 9. 2026): mapa kvality GPS ze stínění budov a lesa
+        { k: 'kvalita-gps-mapa', fn: 'agOpenKvalitaGpsMapa', cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Kde se dá měřit', vh: 'mapa stínění oblohy budovami a lesem', keys: 'kvalita gps mapa stineni obloha budovy les kde merit odrazy multipath prijem',
+          help: { t: 'Kde se dá měřit' } },
         // 3D pohled (M2, 16. 9. 2026): budovy do výšky, terén, body a výkres nad vektorovou mapou
         { k: 'pohled-3d', fn: 'agOpenPohled3d', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: '3D pohled', vh: 'budovy do výšky, terén, výkres a body šikmo shora', keys: '3d pohled budovy vyska teren naklopeni perspektiva rohy budov osa vykres mapa vektor',
           help: { t: '3D pohled' } },

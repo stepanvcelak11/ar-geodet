@@ -377,7 +377,7 @@
         tile('', 'Ode mě', '<b id="ag-kb-dist">— m</b>');
         var kdy = (pt.prov && pt.prov.ts) || pt.mts || null, kdyS = null;
         if (kdy) { try { kdyS = new Date(kdy).toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { } }
-        var ZDROJ = { 'gps-avg': 'průměr GPS', gps: 'GPS', import: 'import ze souboru', firma: 'z firmy', foto: 'z fotky', map: 'z mapy', resekce: 'resekce', protinani: 'protínání', argeo: 'přenos zakázky', watch: 'hodinky', ruc: 'ručně' };
+        var ZDROJ = { 'gps-avg': 'průměr GPS', gps: 'GPS', import: 'import ze souboru', firma: 'z firmy', foto: 'z fotky', map: 'z mapy', resekce: 'resekce', protinani: 'protínání', argeo: 'přenos zakázky', watch: 'hodinky', ruc: 'ručně', katastr: 'přichyceno k lomu parcely (katastr)', vykres: 'přichyceno k bodu výkresu', 'mapa-budova': 'přichyceno k rohu budovy (mapa)' };
         var o = pt.prov && pt.prov.origin;
         var odkud = o ? (ZDROJ[o] || o) : (pt.type !== 'custom' ? 'bodové pole ČÚZK' : null);
         var kdo = pt.prov && pt.prov.kdo;

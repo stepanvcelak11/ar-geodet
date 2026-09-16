@@ -101,8 +101,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=343">
-    <link rel="stylesheet" href="css/style.css?v=343">
+    <link rel="stylesheet" href="css/tokens.css?v=344">
+    <link rel="stylesheet" href="css/style.css?v=344">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -233,7 +233,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=343">
+    <link rel="stylesheet" href="css/vylepseni.css?v=344">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -1087,6 +1087,13 @@
                         <span class="ms-row-t">Výkres (DXF)<em>Osa, hrany a body projektu barvami CADu; klepnutí na čáru = staničení</em></span>
                         <span class="ms-sw" aria-hidden="true"></span>
                     </button>
+                    <!-- KVALITA GPS (16. 9. 2026, P3): vrstvu spočítá nástroj „Kde se dá měřit" (js/mapa-kvality-gps.js);
+                         řádek se odkryje, jakmile existuje, klepnutí ji schová/ukáže. -->
+                    <button type="button" class="ms-row" id="ms-kvgps" hidden onclick="window.AGKvalitaGpsMapa && AGKvalitaGpsMapa.prepni()">
+                        <svg class="icon"><use href="#i-grid"/></svg>
+                        <span class="ms-row-t">Kvalita GPS (odhad)<em>Zelená volné nebe, oranžová půl nebe, červená u zdi — ze stínění budov a lesa</em></span>
+                        <span class="ms-sw" aria-hidden="true"></span>
+                    </button>
                     <button type="button" class="ms-row" id="ms-overlay" hidden data-ms-pro="1">
                         <svg class="icon"><use href="#i-file-text"/></svg>
                         <span class="ms-row-t">Vlastní podklad<em>Situace, geometrák nebo starý plán nakalibrovaný do mapy</em></span>
@@ -1303,6 +1310,13 @@
          záměrně nejsou (1 MB, beta). Odpojitelné: smaž oba řádky + soubory. -->
     <script type="ag/lazy" data-src="js/mapa-styl.js"></script>
     <script type="ag/lazy" data-src="js/mapa-vektor.js"></script>
+    <!-- PŘESNOST Z MAPY (16. 9. 2026): js/hrany.js = rohy a hrany z parcel RÚIAN, budov vektorové
+         mapy a výkresu DXF (jen čtení); js/prichyceni.js = nový bod do 0,6 m od rohu → nabídne
+         souřadnice z mapy (P2); js/hrana-auto.js = chůze ≥ 20 m souběžně s hranou → korekce GPS
+         kolmo (P1). Každý samostatně odpojitelný (smaž řádek + soubor). -->
+    <script type="ag/lazy" data-src="js/hrany.js"></script>
+    <script type="ag/lazy" data-src="js/prichyceni.js"></script>
+    <script type="ag/lazy" data-src="js/hrana-auto.js"></script>
     <!-- PARCELA (odpojitelné: smaž tento řádek + js/parcela.js) — geometrie & dělení parcel; styly injektované z JS -->
     <script type="ag/lazy" data-src="js/parcela.js"></script>
     <!-- REGISTR NÁSTROJŮ (odpojitelné: smaž tento řádek + js/tools-registry.js) — jeden

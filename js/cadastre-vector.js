@@ -334,6 +334,8 @@
     function closeModal() { var m = document.getElementById('agcv-modal'); if (m) m.style.display = 'none'; }
     window.agCloseCadastreVector = closeModal;
     window.agOpenCadastreVector = openTool;
+    // parcely pro js/hrany.js (přichycení k lomu, korekce po hraně, 16. 9. 2026) — jen čtení
+    window.AGParcely = { seznam: function () { return _parcels; }, tady: function () { return _here; } };
 
     // periodicky aktualizuj „kde stojím" když je modal otevřený
     var _liveTimer = null;

@@ -16,6 +16,11 @@
   F  3D POHLED (M2): nastroj z MANIFESTu (lazy) otevre celoobrazovkovou mapu MapLibre se stylem
      podkladu + budovy-3d (fill-extrusion s vyskou), body zakazky, vykres DXF (osa tlustsi), moje
      poloha; tlacitka 2D/3D a Teren prepinaji; zavreni uklidi mapu
+  G  PRICHYCENI K ROHU (P2): novy bod 0,3 m od bodu vykresu → dialog „Přichytit…" → souradnice z
+     vykresu, prov.origin vykres, acc 0,05, prov.prichyceni; vypnuto = bez dialogu; roh budovy z mapy
+  H  KOREKCE PODLE HRANY (P1): stopa 8 fixu 1,5 m severne od hrany HRANA (200 m) → navrh posun 1,5 m
+     na jih (zdroj dxf), aplikace = agRefShift src hrana-auto; kolma stopa = zadny navrh; rezim ptat = dialog
+  I  KVALITA GPS (P3): vypocet 220x220 m, vrstva v mape, uvnitr budovy 0, na volnem >0,6, radek ve Vrstvach
 
 Spusteni: python scripts/test_mapa_vektor.py [port]
 """
@@ -225,8 +230,67 @@ async def beh(url):
         ok('F6 tlacitko Teren zapne terrain + hillshade ve stylu', await cekej(page, "AGPohled3d.mapa().getStyle().terrain && AGPohled3d.mapa().getStyle().layers.some(l => l.id === 'stin')", 20))
         await page.click('#ag3d-zavrit'); await page.wait_for_timeout(300)
         ok('F7 zavreni schova okno a uklidi mapu', await page.evaluate("() => document.getElementById('ag3d').style.display === 'none' && !AGPohled3d.mapa()"))
+        # ================= G: prichyceni k rohu (P2) ===================================
+        ok('G0 moduly hrany + prichyceni + hrana-auto nacteny', await cekej(page, "window.AGHrany && window.AGPrichyceni && window.AGHranaAuto", 30))
+        m = 111320.0; ml = m * math.cos(math.radians(LAT))
+        B = (LAT + 100 / m, LNG + 100 / ml)     # 2. vrchol osy z DXF
+        k = await page.evaluate("() => AGPrichyceni.kandidat(%f + 0.3 / 111320, %f)" % B)
+        ok('G1 kandidat 0,3 m od lomu osy vykresu: zdroj dxf, d ~0,3', k and k['zdroj'] == 'dxf' and abs(k['d'] - 0.3) < 0.05 and 'osa' in k['popis'], k)
+        ok('G2 1,0 m od lomu vykresu uz kandidat neni (dosah 0,6)', await page.evaluate("() => AGPrichyceni.kandidat(%f + 1.0 / 111320, %f) === null" % B))
+        r = await page.evaluate("""() => { openNewPointModal(); var mm = agMistni(%f + 0.3 / 111320, %f);
+            document.getElementById('custom-name').value = 'Snap1'; document.getElementById('custom-y').value = mm.y.toFixed(2); document.getElementById('custom-x').value = mm.x.toFixed(2);
+            window._agPointOrigin = 'gps-avg'; var n0 = persistentCustomPoints.length; saveCustomPoint();
+            return { n0: n0, dlg: (document.querySelector('.ag-dlg-title') || {}).textContent || '', pribylHned: persistentCustomPoints.length !== n0 }; }""" % B)
+        ok('G3 saveCustomPoint otevre dialog „Přichytit k bodu výkresu?" a bod jeste neulozi', r and 'Přichytit' in r['dlg'] and not r['pribylHned'], r)
+        await page.click('.ag-dlg-ok'); await page.wait_for_timeout(400)
+        p = await page.evaluate("() => { var p = persistentCustomPoints.find(q => q.name === 'Snap1'); return p ? { d: GeoCore.getDistance(p.lat, p.lng, %f, %f), origin: p.prov && p.prov.origin, acc: p.acc, pri: p.prov && p.prov.prichyceni } : { names: persistentCustomPoints.map(q => q.name), open: !!document.querySelector('.ag-dlg-overlay.open'), t: (document.querySelector('.ag-dlg-title') || {}).textContent, msg: ((document.querySelector('.ag-dlg-msg') || {}).textContent || '').slice(0, 160) }; }" % B)
+        ok('G4 bod ma souradnice lomu (d < 10 cm; pyproj vs proj4js), origin vykres, acc 0,05, prov.prichyceni', p and 'd' in p and p['d'] < 0.1 and p['origin'] == 'vykres' and p['acc'] == 0.05 and p['pri'] and abs(p['pri']['d'] - 0.3) < 0.05, p)
+        await page.evaluate("() => AGPrichyceni.nastav({ zap: false })")
+        r2 = await page.evaluate("""() => { openNewPointModal(); var mm = agMistni(%f + 0.3 / 111320, %f);
+            document.getElementById('custom-name').value = 'Snap2'; document.getElementById('custom-y').value = mm.y.toFixed(2); document.getElementById('custom-x').value = mm.x.toFixed(2);
+            window._agPointOrigin = 'gps-avg'; var n0 = persistentCustomPoints.length; saveCustomPoint();
+            var p = persistentCustomPoints.find(q => q.name === 'Snap2'); return { pribylHned: persistentCustomPoints.length === n0 + 1, dlg: document.querySelector('.ag-dlg-overlay.open') ? (document.querySelector('.ag-dlg-title') || {}).textContent : '', origin: p && p.prov && p.prov.origin }; }""" % B)
+        ok('G5 vypnute prichytavani: bod se ulozi rovnou bez dialogu (origin gps-avg)', r2 and r2['pribylHned'] and 'Přichytit' not in r2['dlg'] and r2['origin'] == 'gps-avg', r2)
+        await page.evaluate("() => AGPrichyceni.nastav({ zap: true })")
+        bud = await page.evaluate("() => { var f = AGMapaVektor.budovy(); if (!f.length) return null; var g = f[0].geometry; var c = (g.type === 'Polygon' ? g.coordinates[0] : g.coordinates[0][0])[0]; var v = AGHrany.nejblizsiVrchol(c[1] + 0.4 / 111320, c[0], 1.2); return v && { zdroj: v.zdroj, d: v.d, popis: v.popis, presnost: v.presnost }; }")
+        ok('G6 roh budovy z vektorove mapy: nejblizsiVrchol do 0,4 m → zdroj budova, presnost 0,5', bud and bud['zdroj'] == 'budova' and bud['d'] <= 0.45 and bud['presnost'] == 0.5, bud)
+
+        # ================= H: korekce podle hrany (P1) =================================
+        await page.evaluate("() => { AGHranaAuto.vymaz(); localStorage.removeItem('agRefShift'); window.agRefShift = null; }")
+        # hrana HRANA: H1 (LAT-20 m, LNG) → H2 (LAT-20 m, LNG+200 m). Stopa: 8 fixu po 5 m, 1,5 m SEVERNE od hrany (+ sum ±0,1 m)
+        await page.evaluate("""() => { var m = 111320, ml = m * Math.cos(%f * Math.PI / 180); var t0 = Date.now() - 60000;
+            for (var i = 0; i < 9; i++) { var e = 40 + i * 5, n = -20 + 1.5 + ((i %% 2) ? 0.1 : -0.1); AGHranaAuto.vlozFix(%f + n / m, %f + e / ml, t0 + i * 5000, 3); } }""" % (LAT, LAT, LNG))
+        nav = await page.evaluate("() => { var n = AGHranaAuto.vyhodnot(); return n && { posun: n.posun, zdroj: n.zdroj, popis: n.popis, n: n.n, delka: n.delka, dN: n.dN, dE: n.dE, rozptyl: n.rozptyl, uhel: n.uhel }; }")
+        ok('H1 vyhodnoceni stopy: navrh posun ~1,5 m, zdroj dxf (HRANA), 9 fixu, 40 m, posun na JIH (dN ~ -1,5, dE ~ 0)',
+           nav and abs(nav['posun'] - 1.5) < 0.15 and nav['zdroj'] == 'dxf' and 'HRANA' in nav['popis'] and nav['n'] == 9 and abs(nav['dN'] + 1.5) < 0.15 and abs(nav['dE']) < 0.1 and nav['rozptyl'] < 0.2 and nav['uhel'] < 3, nav)
+        await page.evaluate("() => AGHranaAuto.aplikuj(AGHranaAuto.vyhodnot())")
+        sh = await page.evaluate("() => { var s = window.agRefShift; return s && { src: s.src, dN: s.dlat * 111320, on: s.on, mode: s.mode, ref: s.ref, ls: !!localStorage.getItem('agRefShift') }; }")
+        ok('H2 aplikace = agRefShift src hrana-auto, 1D, dN ~ -1,5 m, ulozeno', sh and sh['src'] == 'hrana-auto' and abs(sh['dN'] + 1.5) < 0.15 and sh['on'] and sh['mode'] == '1d' and sh['ls'], sh)
+        await page.evaluate("""() => { AGHranaAuto.vymaz(); var m = 111320, ml = m * Math.cos(%f * Math.PI / 180); var t0 = Date.now() - 60000;
+            for (var i = 0; i < 9; i++) { var e = 100, n = -20 + 1.5 + i * 5; AGHranaAuto.vlozFix(%f + n / m, %f + e / ml, t0 + i * 5000, 3); } }""" % (LAT, LAT, LNG))
+        ok('H3 stopa KOLMO k hrane = zadny navrh', await page.evaluate("() => AGHranaAuto.vyhodnot() === null"))
+        await page.evaluate("""() => { AGHranaAuto.vymaz(); window.agRefShift = null; localStorage.removeItem('agRefShift'); AGHranaAuto.nastav({ rezim: 'ptat' });
+            var m = 111320, ml = m * Math.cos(%f * Math.PI / 180); var t0 = Date.now() - 60000;
+            for (var i = 0; i < 9; i++) { var e = 40 + i * 5, n = -20 - 2.0; AGHranaAuto.vlozFix(%f + n / m, %f + e / ml, t0 + i * 5000, 3); }
+            AGHranaAuto.tik._posl = 0; AGHranaAuto.tik(); }""" % (LAT, LAT, LNG))
+        ok('H4 rezim „zeptat se": tik otevre dialog „Srovnat GPS podle hrany?" s 2,0 m', await cekej(page, "document.querySelector('.ag-dlg-title') && /Srovnat GPS podle hrany/.test(document.querySelector('.ag-dlg-title').textContent) && /(1,9[0-9]|2,0[0-9]) m/.test(document.querySelector('.ag-dlg-msg').textContent)", 10),
+           await page.evaluate("() => [(document.querySelector('.ag-dlg-title') || {}).textContent, (document.querySelector('.ag-dlg-msg') || {}).textContent]"))
+        await page.click('.ag-dlg-cancel'); await page.wait_for_timeout(300)
+        ok('H5 „Ne" = bez korekce a hrana umlcena', await page.evaluate("() => !window.agRefShift && !!AGHranaAuto.vyhodnot() && (AGHranaAuto.tik._posl = 0, AGHranaAuto.tik(), !document.querySelector('.ag-dlg-overlay.open'))"))
+
+        # ================= I: mapa kvality GPS (P3) ====================================
+        await page.evaluate("() => AGLazyTools.load('js/mapa-kvality-gps.js')")
+        ok('I0 modul nacteny', await cekej(page, "window.AGKvalitaGpsMapa", 30))
+        v = await page.evaluate("() => { var v = AGKvalitaGpsMapa.spocitej({ lat: %f, lng: %f }); AGKvalitaGpsMapa.prepni(true); var f = AGMapaVektor.budovy().filter(x => x.geometry && (x.geometry.type === 'Polygon' || x.geometry.type === 'MultiPolygon')).map(x => { var g = x.geometry; var ring = (g.type === 'Polygon' ? g.coordinates[0] : g.coordinates[0][0]); var cx = 0, cy = 0; ring.forEach(c => { cx += c[0]; cy += c[1]; }); return { cx: cx / ring.length, cy: cy / ring.length, d: GeoCore.getDistance(cy / ring.length, cx / ring.length, v.stred.lat, v.stred.lng) }; }).sort((a, b) => a.d - b.d)[0]; var cx = f.cx, cy = f.cy; return { budov: v.budov, cells: v.cells, stat: v.stat, ms: v.ms, uvnitr: AGKvalitaGpsMapa.skoreV(cy, cx), radek: !document.getElementById('ms-kvgps').hidden, overlay: !!document.querySelector('.ag-kvgps-overlay') }; }" % (LAT, LNG))
+        ok('I1 vypocet: budovy > 20, mrizka 55x55, vsechny tri tridy zastoupene, vrstva v mape, radek ve Vrstvach', v and v['budov'] > 20 and v['cells'] == 55 and v['stat']['z'] > 0 and v['stat']['c'] > 0 and v['overlay'] and v['radek'], v)
+        ok('I2 uvnitr budovy skore 0 (nemeritelne)', v and v['uvnitr'] == 0, v and v['uvnitr'])
+        mx = await page.evaluate("() => { var p = AGKvalitaGpsMapa.posledni(); var best = 0; for (var i = 0; i < p.mrizka.length; i++) if (p.mrizka[i] > best) best = p.mrizka[i]; return best; }")
+        ok('I3 nekde na volnem je skore ≥ 0,85', mx >= 0.85, mx)
+        await page.evaluate("() => AGKvalitaGpsMapa.prepni(false)")
+        ok('I4 prepnuti radku vrstvu schova', await page.evaluate("() => !document.querySelector('.ag-kvgps-overlay') && !document.getElementById('ms-kvgps').classList.contains('ctrl-active')"))
+
         chyby_a = [c for c in chyby if 'Failed to load resource' not in c and 'WebGL' not in c]
-        ok('A–F bez chyb stranky', not chyby_a, chyby_a[:5])
+        ok('A–I bez chyb stranky', not chyby_a, chyby_a[:5])
         await ctx.close()
 
         chyby = []
