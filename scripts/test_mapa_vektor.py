@@ -114,29 +114,26 @@ async def cekej(page, vyraz, kol=25):
     return False
 
 
-def dxf_test():
-    """Maly DXF v S-JTSK (zaporny Krovak jako z CADu): osa = LWPOLYLINE 3 body ~ 320 m na vrstve OSA
-    (ACI 1 cervena), hrana LINE na vrstve HRANA (ACI 5 modra), bod POINT na vrstve BODY, text."""
-    from pyproj import Transformer
-    t = Transformer.from_crs(4326, 5514, always_xy=True)
-    def yx(lat, lng):
-        x, y = t.transform(lng, lat); return x, y   # proj4 poradi: [-Y, -X] = CAD X, CAD Y
-    m = 111320.0; ml = m * math.cos(math.radians(LAT))
-    A = yx(LAT, LNG); B = yx(LAT + 100 / m, LNG + 100 / ml); C = yx(LAT + 100 / m, LNG + 300 / ml)
-    H1 = yx(LAT - 20 / m, LNG); H2 = yx(LAT - 20 / m, LNG + 200 / ml)
-    P = yx(LAT + 50 / m, LNG + 50 / ml)
-    def p(code, val): return '%d\n%s\n' % (code, val)
-    s = p(0, 'SECTION') + p(2, 'TABLES') + p(0, 'TABLE') + p(2, 'LAYER')
-    for name, aci in (('OSA', 1), ('HRANA', 5), ('BODY', 3)):
-        s += p(0, 'LAYER') + p(2, name) + p(70, 0) + p(62, aci) + p(6, 'CONTINUOUS')
-    s += p(0, 'ENDTAB') + p(0, 'ENDSEC') + p(0, 'SECTION') + p(2, 'ENTITIES')
-    s += p(0, 'LWPOLYLINE') + p(8, 'OSA') + p(90, 3) + p(70, 0)
-    for q in (A, B, C): s += p(10, '%.3f' % q[0]) + p(20, '%.3f' % q[1])
-    s += p(0, 'LINE') + p(8, 'HRANA') + p(10, '%.3f' % H1[0]) + p(20, '%.3f' % H1[1]) + p(11, '%.3f' % H2[0]) + p(21, '%.3f' % H2[1])
-    s += p(0, 'POINT') + p(8, 'BODY') + p(10, '%.3f' % P[0]) + p(20, '%.3f' % P[1])
-    s += p(0, 'TEXT') + p(8, 'BODY') + p(10, '%.3f' % P[0]) + p(20, '%.3f' % P[1]) + p(40, 1) + p(1, 'SACHTA 12')
-    s += p(0, 'ENDSEC') + p(0, 'EOF')
-    return s
+# Maly DXF v S-JTSK (zaporny Krovak jako z CADu) se sklada AZ V PROHLIZECI (proj4 appky —
+# CI nema pyproj): osa = LWPOLYLINE 3 body ~ 341 m na vrstve OSA (ACI 1), hrana LINE na
+# vrstve HRANA (ACI 5), bod POINT + TEXT na vrstve BODY.
+DXF_JS = """(function () {
+    var LAT = %f, LNG = %f, m = 111320, ml = m * Math.cos(LAT * Math.PI / 180);
+    function yx(lat, lng) { var s = GeoCore.toSJTSK(lat, lng); return [-s.y, -s.x]; }   // CAD X = -Y, CAD Y = -X
+    var A = yx(LAT, LNG), B = yx(LAT + 100 / m, LNG + 100 / ml), C = yx(LAT + 100 / m, LNG + 300 / ml);
+    var H1 = yx(LAT - 20 / m, LNG), H2 = yx(LAT - 20 / m, LNG + 200 / ml), P = yx(LAT + 50 / m, LNG + 50 / ml);
+    function p(c, v) { return c + '\\n' + v + '\\n'; }
+    var s = p(0, 'SECTION') + p(2, 'TABLES') + p(0, 'TABLE') + p(2, 'LAYER');
+    [['OSA', 1], ['HRANA', 5], ['BODY', 3]].forEach(function (l) { s += p(0, 'LAYER') + p(2, l[0]) + p(70, 0) + p(62, l[1]) + p(6, 'CONTINUOUS'); });
+    s += p(0, 'ENDTAB') + p(0, 'ENDSEC') + p(0, 'SECTION') + p(2, 'ENTITIES');
+    s += p(0, 'LWPOLYLINE') + p(8, 'OSA') + p(90, 3) + p(70, 0);
+    [A, B, C].forEach(function (q) { s += p(10, q[0].toFixed(3)) + p(20, q[1].toFixed(3)); });
+    s += p(0, 'LINE') + p(8, 'HRANA') + p(10, H1[0].toFixed(3)) + p(20, H1[1].toFixed(3)) + p(11, H2[0].toFixed(3)) + p(21, H2[1].toFixed(3));
+    s += p(0, 'POINT') + p(8, 'BODY') + p(10, P[0].toFixed(3)) + p(20, P[1].toFixed(3));
+    s += p(0, 'TEXT') + p(8, 'BODY') + p(10, P[0].toFixed(3)) + p(20, P[1].toFixed(3)) + p(40, 1) + p(1, 'SACHTA 12');
+    s += p(0, 'ENDSEC') + p(0, 'EOF');
+    return s;
+})()""" % (LAT, LNG)
 
 
 INIT = (boot(tarif='pro') + "localStorage.setItem('agViewMode','map'); localStorage.setItem('agSlabsiTelefon_v1','off'); localStorage.setItem('arLastPos', JSON.stringify({lat:%f,lng:%f}));" % (LAT, LNG)
@@ -199,7 +196,7 @@ async def beh(url):
         ok('D1 vypnuti vrati rastr OSM', d1[0] == 'vypnuto' and 'base-vektor' not in d1[1] and d1[2] and d1[3] == 'function', d1)
         # ================= E: vykres DXF jako vrstva (M3) ============================
         ok('E0 modul importu projektu ma API AGProjektDxf', await cekej(page, "window.AGProjektDxf && AGProjektDxf.nacti", 30))
-        d = await page.evaluate("(txt) => { var d = AGProjektDxf.nacti(txt); return { polys: d.polys.length, vrstvy: Object.keys(d.layers), aci: [d.layers.OSA.aci, d.layers.HRANA.aci], body: d.points.length, texty: d.texts.length, osaPts: d.polys[0].pts.length }; }", dxf_test())
+        d = await page.evaluate("() => { var d = AGProjektDxf.nacti(" + DXF_JS + "); return { polys: d.polys.length, vrstvy: Object.keys(d.layers), aci: [d.layers.OSA.aci, d.layers.HRANA.aci], body: d.points.length, texty: d.texts.length, osaPts: d.polys[0].pts.length }; }")
         ok('E1 parser: 2 retezce (osa 3 body + hrana), barvy vrstev z tabulky LAYER, 1 bod, 1 text', d and d['polys'] == 2 and d['aci'] == [1, 5] and d['body'] == 1 and d['texty'] == 1 and d['osaPts'] == 3, d)
         ok('E2 radek „Výkres (DXF)" ve Vrstvach se odkryl a je aktivni', await cekej(page, "document.getElementById('ms-dxf') && !document.getElementById('ms-dxf').hidden && document.getElementById('ms-dxf').classList.contains('ctrl-active')", 10))
         c = await page.evaluate("() => { var out = []; map.eachLayer(l => { if (l instanceof L.Polyline && !(l instanceof L.Polygon) && l.options && l.options.interactive && l.options.bubblingMouseEvents === false) out.push({ barva: l.options.color, w: l.options.weight, n: l.getLatLngs().length }); }); return out; }")
