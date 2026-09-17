@@ -24,16 +24,23 @@
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 16l3-5 3 3 2-2 2 4"/><circle cx="9" cy="8" r="1.4"/></svg>';
     var KEY = 'agNacrty', R_DATA = 220, SNAP_PX = 14;
+    // ZNAČKY podle zvyklostí účelových map velkých měřítek (ČSN 01 3411, zjednodušeno na obrazovku):
+    // listnatý strom = kružnice s tečkou, jehličnatý = hvězdice, keř = malý kroužek, sloup = kroužek
+    // s tečkou a stopkou, lampa = kroužek s paprsky, šachta = kruh s křížem, hydrant = kruh s H,
+    // vpust = obdélníček, mezník = trojúhelník s tečkou, dopravní značka = terč na stopce.
     var OBJEKTY = {
-        strom: { n: 'Strom', svg: '<circle cx="12" cy="12" r="7" fill="none" stroke="#2f7d32" stroke-width="2"/><path d="M12 5v14M5 12h14" stroke="#2f7d32" stroke-width="1.4"/>' },
-        ker: { n: 'Keř', svg: '<path d="M6 15a4 4 0 0 1 2-7 4 4 0 0 1 8 0 4 4 0 0 1 2 7Z" fill="none" stroke="#5c8f3a" stroke-width="2"/>' },
-        sloup: { n: 'Sloup', svg: '<circle cx="12" cy="12" r="5" fill="none" stroke="#333" stroke-width="2"/><circle cx="12" cy="12" r="1.6" fill="#333"/>' },
-        sachta: { n: 'Šachta', svg: '<rect x="6" y="6" width="12" height="12" fill="none" stroke="#333" stroke-width="2"/><path d="M6 6l12 12" stroke="#333" stroke-width="1.4"/>' },
-        hydrant: { n: 'Hydrant', svg: '<circle cx="12" cy="12" r="7" fill="none" stroke="#c62828" stroke-width="2"/><text x="12" y="16" font-size="10" text-anchor="middle" fill="#c62828" font-weight="700">H</text>' },
-        kamen: { n: 'Kámen / mezník', svg: '<path d="M12 4l7 7-7 9-7-9z" fill="none" stroke="#5d4037" stroke-width="2"/>' },
-        znacka: { n: 'Značka / tabule', svg: '<rect x="7" y="4" width="10" height="8" rx="1" fill="none" stroke="#1565c0" stroke-width="2"/><path d="M12 12v8" stroke="#1565c0" stroke-width="2"/>' }
+        strom: { n: 'Strom listnatý', svg: '<circle cx="12" cy="12" r="7.5" fill="none" stroke="#1b5e20" stroke-width="1.6"/><circle cx="12" cy="12" r="1.7" fill="#1b5e20"/>' },
+        jehlicnan: { n: 'Strom jehličnatý', svg: '<path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9" stroke="#1b5e20" stroke-width="1.6" stroke-linecap="round"/>' },
+        ker: { n: 'Keř', svg: '<circle cx="12" cy="13" r="4.5" fill="none" stroke="#2e7d32" stroke-width="1.6"/><path d="M12 8.5V5M8.8 9.6l-2.3-2.3M15.2 9.6l2.3-2.3" stroke="#2e7d32" stroke-width="1.4" stroke-linecap="round"/>' },
+        sloup: { n: 'Sloup el. vedení', svg: '<circle cx="12" cy="10" r="4.5" fill="none" stroke="#222" stroke-width="1.6"/><circle cx="12" cy="10" r="1.4" fill="#222"/><path d="M12 14.5V21" stroke="#222" stroke-width="1.6"/>' },
+        lampa: { n: 'Lampa (VO)', svg: '<circle cx="12" cy="11" r="3.5" fill="none" stroke="#222" stroke-width="1.6"/><path d="M12 3.5v3M4.5 11h3M16.5 11h3M6.7 5.7l2.1 2.1M17.3 5.7l-2.1 2.1M12 14.5V21" stroke="#222" stroke-width="1.4" stroke-linecap="round"/>' },
+        sachta: { n: 'Šachta (kanalizace)', svg: '<circle cx="12" cy="12" r="7" fill="none" stroke="#222" stroke-width="1.6"/><path d="M12 5v14M5 12h14" stroke="#222" stroke-width="1.4"/>' },
+        hydrant: { n: 'Hydrant', svg: '<circle cx="12" cy="12" r="7" fill="none" stroke="#b71c1c" stroke-width="1.6"/><text x="12" y="16" font-size="10" text-anchor="middle" fill="#b71c1c" font-weight="700" font-family="system-ui,sans-serif">H</text>' },
+        vpust: { n: 'Uliční vpusť', svg: '<rect x="7" y="9" width="10" height="6" fill="none" stroke="#222" stroke-width="1.6"/><path d="M9 12h6" stroke="#222" stroke-width="1.2"/>' },
+        kamen: { n: 'Mezník / hraniční znak', svg: '<path d="M12 4.5l7.5 14h-15z" fill="none" stroke="#4e342e" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="14" r="1.5" fill="#4e342e"/>' },
+        znacka: { n: 'Dopravní značka', svg: '<circle cx="12" cy="8" r="4.5" fill="none" stroke="#0d47a1" stroke-width="1.6"/><path d="M12 12.5V21" stroke="#0d47a1" stroke-width="1.6"/>' }
     };
-    var CARY = { plot: { n: 'Plot', dash: '6,4', col: '#7b1fa2' }, hrana: { n: 'Hrana (obruba, zeď)', dash: null, col: '#37474f' } };
+    var CARY = { plot: { n: 'Plot', dash: '8,3,2,3', col: '#4a148c' }, zed: { n: 'Zeď', dash: null, col: '#3e2723', w: 3.5 }, hrana: { n: 'Obruba / hrana', dash: null, col: '#37474f' }, prikop: { n: 'Příkop / hrana svahu', dash: '2,4', col: '#00695c' } };
 
     var el = null, m = null, pt = null, data = null, rezim = 'vyber', objTyp = 'strom', caraTyp = 'plot', podklad = 'papir';
     var _vrstvy = {}, _prvky = null, _pending = null, _tmp = null, _snapy = [], _undo = [], _bodyObrysu = null;
@@ -122,11 +129,11 @@
                 pl.addTo(g);
                 [x.a, x.b].forEach(function (q) { L.circleMarker([q.lat, q.lng], { radius: 3, color: '#1a237e', fillColor: '#fff', fillOpacity: 1, weight: 1.5, interactive: false }).addTo(g); });
             } else if (x.t === 'obj') {
-                var mk = L.marker([x.p.lat, x.p.lng], { icon: L.divIcon({ className: 'agn-obj', html: ikona(x.k), iconSize: [26, 26], iconAnchor: [13, 13] }), interactive: true });
+                var mk = L.marker([x.p.lat, x.p.lng], { icon: L.divIcon({ className: 'agn-obj' + (x.odhad ? ' odhad' : ''), html: ikona(x.k), iconSize: [26, 26], iconAnchor: [13, 13] }), interactive: true });
                 mk.on('click', function (ev) { L.DomEvent.stop(ev); klikPrvek(i); }); mk.addTo(g);
             } else if (x.t === 'cara') {
                 var c = CARY[x.k] || CARY.plot;
-                var cl = L.polyline(x.pts.map(function (q) { return [q.lat, q.lng]; }), { color: c.col, weight: 2.5, dashArray: c.dash, interactive: true, bubblingMouseEvents: false });
+                var cl = L.polyline(x.pts.map(function (q) { return [q.lat, q.lng]; }), { color: c.col, weight: c.w || 2.5, dashArray: c.dash, interactive: true, bubblingMouseEvents: false });
                 cl.on('click', function (ev) { L.DomEvent.stop(ev); klikPrvek(i); }); cl.addTo(g);
             } else if (x.t === 'text') {
                 var tm = L.marker([x.p.lat, x.p.lng], { icon: L.divIcon({ className: 'agn-text', html: '<span>' + esc(x.s) + '</span>', iconSize: null }), interactive: true });
@@ -169,9 +176,10 @@
         if (rezim === 'cara' && r !== 'cara') hotovoCara();
         rezim = r; _pending = null; kresli();
         el.querySelectorAll('[data-rezim]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-rezim') === r); });
-        var h = { vyber: 'Klepni na kótu nebo text = upravit. Posun mapy prstem.', vzdalenost: 'Klepni odkud, pak kam. Přichytává se k bodům a rohům.', objekt: 'Klepni, kam objekt patří (' + (OBJEKTY[objTyp] || {}).n + ').', cara: 'Klepej body čáry (' + (CARY[caraTyp] || {}).n + '), pak Hotovo.', text: 'Klepni, kam text patří.', smazat: 'Klepni na prvek, který chceš smazat.' };
+        var h = { vyber: 'Posun mapy prstem. Klepnutí na kótu nebo text = upravit.', vzdalenost: 'Klepni odkud, pak kam — přichytává se k bodům a rohům.', objekt: 'Vyber značku dole a klepni, kam patří.', cara: 'Klepej body čáry (' + (CARY[caraTyp] || {}).n + '), pak Hotovo.', text: 'Klepni, kam text patří.', smazat: 'Klepni na prvek, který chceš smazat.' };
         info(h[r] || ''); el.classList.toggle('kresli', r !== 'vyber');
         var ho = el.querySelector('#agn-hotovo'); if (ho) ho.style.display = r === 'cara' ? '' : 'none';
+        var po = el.querySelector('#agn-paleta-obj'), pc = el.querySelector('#agn-paleta-cara'); if (po) po.hidden = r !== 'objekt'; if (pc) pc.hidden = r !== 'cara';
     }
     function info(t) { var i = el && el.querySelector('#agn-info'); if (i) i.textContent = t || ''; }
 
@@ -251,24 +259,103 @@
         _obrazky[k] = img; return img;
     }
 
+    // ---- STROMY Z ORTOFOTA (odhad) — 17. 9. 2026, otázka uživatele „nejde z ortofota vyčíst přibližnou
+    // polohu stromů?" Jde, přibližně: z výřezu ortofota ČÚZK (WMS, 0,35 m/px) se vezmou zelené pixely
+    // (index ExG = 2G − R − B) a z nich ty TMAVÉ nebo TEXTUROVANÉ (koruna má stíny; trávník je světlý a
+    // hladký), spojí se do skvrn; skvrna 4–60 m² = jeden strom v těžišti, větší = stromy po 5 m.
+    // Přesnost ~2–3 m, plete si živé ploty a tmavé záhony — je to NÁVRH, co nesedí, smaž.
+    var ORTO_R = 90, ORTO_PX = 512, BUNKA_PX = 4;
+    function ortoUrl() {
+        var base = 'https://ags.cuzk.gov.cz/arcgis1/services/ORTOFOTO/MapServer/WMSServer', vrstva = '0';
+        try { var o = (typeof baseLayers !== 'undefined') ? baseLayers.ortofoto : null; if (o && o._url && o.wmsParams) { base = o._url; vrstva = o.wmsParams.layers || vrstva; } } catch (e) { /* výchozí ČÚZK */ }
+        var x = pt.lng * 20037508.34 / 180, y = Math.log(Math.tan((90 + pt.lat) * Math.PI / 360)) / (Math.PI / 180) * 20037508.34 / 180;
+        var r = ORTO_R / Math.cos(pt.lat * Math.PI / 180);
+        return { url: base + (base.indexOf('?') >= 0 ? '&' : '?') + 'SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=' + encodeURIComponent(vrstva) + '&STYLES=&CRS=EPSG:3857&BBOX=' + [x - r, y - r, x + r, y + r].map(function (v) { return v.toFixed(2); }).join(',') + '&WIDTH=' + ORTO_PX + '&HEIGHT=' + ORTO_PX + '&FORMAT=image/jpeg', x: x, y: y, r: r };
+    }
+    // rozbor obrázku → [{lat,lng,r}] (čistá funkce, testovatelná: AGNacrt.stromyZObrazku(imageData, geo))
+    function stromyZObrazku(img, geo) {
+        var W = img.width, H = img.height, d = img.data, B = BUNKA_PX, CW = Math.floor(W / B), CH = Math.floor(H / B);
+        var mPx = 2 * geo.r / W * Math.cos(pt.lat * Math.PI / 180), bunkaM = B * mPx;   // metry na pixel / na buňku
+        var strom = new Uint8Array(CW * CH);
+        for (var cy = 0; cy < CH; cy++) for (var cx = 0; cx < CW; cx++) {
+            var veg = 0, n = 0, sum = 0, sum2 = 0;
+            for (var yy = 0; yy < B; yy++) for (var xx = 0; xx < B; xx++) {
+                var i = ((cy * B + yy) * W + cx * B + xx) * 4, R = d[i], G = d[i + 1], Bl = d[i + 2];
+                var Y = 0.299 * R + 0.587 * G + 0.114 * Bl; sum += Y; sum2 += Y * Y; n++;
+                if (2 * G - R - Bl > 15 && G >= R && G >= Bl) veg++;
+            }
+            var my = sum / n, sy = Math.sqrt(Math.max(0, sum2 / n - my * my));
+            if (veg / n > 0.5 && (my < 105 || sy > 22)) strom[cy * CW + cx] = 1;
+        }
+        // spojité skvrny (4-sousedství)
+        var lab = new Int32Array(CW * CH), skvrny = [], q = [];
+        for (var s0 = 0; s0 < CW * CH; s0++) {
+            if (!strom[s0] || lab[s0]) continue;
+            var id = skvrny.length + 1, cells = []; lab[s0] = id; q.length = 0; q.push(s0);
+            while (q.length) { var c = q.pop(); cells.push(c); var x0 = c % CW, y0 = (c - x0) / CW; [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (dd) { var nx = x0 + dd[0], ny = y0 + dd[1]; if (nx < 0 || ny < 0 || nx >= CW || ny >= CH) return; var ni = ny * CW + nx; if (strom[ni] && !lab[ni]) { lab[ni] = id; q.push(ni); } }); }
+            skvrny.push(cells);
+        }
+        function ll(cx2, cy2) { var X = geo.x - geo.r + (cx2 + 0.5) * B / W * 2 * geo.r, Yw = geo.y + geo.r - (cy2 + 0.5) * B / H * 2 * geo.r; return { lng: X / 20037508.34 * 180, lat: Math.atan(Math.exp(Yw / 20037508.34 * Math.PI)) * 360 / Math.PI - 90 }; }
+        var out = [], plochaBunky = bunkaM * bunkaM;
+        skvrny.forEach(function (cells) {
+            var A = cells.length * plochaBunky; if (A < 4 || A > 2500) return;   // > 2500 m² = les, ten je v obrysech z mapy
+            if (A <= 60) { var sx = 0, sy2 = 0; cells.forEach(function (c) { sx += c % CW; sy2 += (c - c % CW) / CW; }); var p0 = ll(sx / cells.length, sy2 / cells.length); out.push({ lat: p0.lat, lng: p0.lng, r: Math.sqrt(A / Math.PI) }); return; }
+            // větší skupina: stromy v mřížce po 5 m (jen v buňkách skvrny)
+            var krok = Math.max(1, Math.round(5 / bunkaM)), set = {}; cells.forEach(function (c) { set[c] = 1; });
+            cells.forEach(function (c) { var x1 = c % CW, y1 = (c - x1) / CW; if (x1 % krok === Math.floor(krok / 2) && y1 % krok === Math.floor(krok / 2)) { var p1 = ll(x1, y1); out.push({ lat: p1.lat, lng: p1.lng, r: 2.5 }); } });
+        });
+        return out;
+    }
+    function stromyZOrtofota() {
+        var g = ortoUrl(); info('Stahuji výřez ortofota (' + 2 * ORTO_R + ' × ' + 2 * ORTO_R + ' m)…');
+        return fetch(g.url, { mode: 'cors' }).then(function (r) { if (!r.ok) throw new Error('ortofoto ' + r.status); return r.blob(); }).then(function (b) {
+            return new Promise(function (res, rej) { var im = new Image(); var u = URL.createObjectURL(b); im.onload = function () { URL.revokeObjectURL(u); res(im); }; im.onerror = function () { URL.revokeObjectURL(u); rej(new Error('obrázek ortofota se nenačetl')); }; im.src = u; });
+        }).then(function (im) {
+            var cv = document.createElement('canvas'); cv.width = ORTO_PX; cv.height = ORTO_PX; var c = cv.getContext('2d', { willReadFrequently: true }); c.drawImage(im, 0, 0, ORTO_PX, ORTO_PX);
+            var nal = stromyZObrazku(c.getImageData(0, 0, ORTO_PX, ORTO_PX), g);
+            // nepřidávat strom tam, kde už (odhadnutý nebo ruční) je do 2,5 m
+            var nove = nal.filter(function (s) { return !(_prvky || []).some(function (x) { return x.t === 'obj' && x.k === 'strom' && dist(x.p, s) < 2.5; }); });
+            if (!nove.length) { info('Z ortofota jsem žádný nový strom nepoznal (' + nal.length + ' nalezeno, všechny už v náčrtu).'); return 0; }
+            _undo.push(JSON.stringify(_prvky));
+            nove.forEach(function (s) { _prvky.push({ t: 'obj', k: 'strom', p: bod(s.lat, s.lng), odhad: true, r: +s.r.toFixed(1) }); });
+            uloz(); kresli();
+            info(nove.length + ' stromů z ortofota (odhad podle barvy a textury — co nesedí, smaž; Zpět vrátí všechny).');
+            return nove.length;
+        }).catch(function (e) { info('Stromy z ortofota se nepovedly: ' + ((e && e.message) || e)); return -1; });
+    }
+
     // ---- okno ---------------------------------------------------------------------------------------
+    var IK = {
+        posun: '<svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M8 7l4-4 4 4M8 17l4 4 4-4M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg>',
+        vzdalenost: '<svg viewBox="0 0 24 24"><path d="M4 12h16M4 8v8M20 8v8M9 10v4M15 10v4"/></svg>',
+        objekt: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>',
+        cara: '<svg viewBox="0 0 24 24"><path d="M3 18l6-9 5 5 7-9"/></svg>',
+        text: '<svg viewBox="0 0 24 24"><path d="M5 6h14M12 6v13M9 19h6"/></svg>',
+        smazat: '<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
+        zpet: '<svg viewBox="0 0 24 24"><path d="M9 14l-5-5 5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>',
+        stromy: '<svg viewBox="0 0 24 24"><path d="M12 3l6 8h-3l4 6H5l4-6H6z"/><path d="M12 17v4"/></svg>',
+        png: '<svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>',
+        hotovo: '<svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></svg>'
+    };
+    function tl(rezimId, popis) { return '<button type="button" data-rezim="' + rezimId + '">' + IK[rezimId] + '<span>' + popis + '</span></button>'; }
     function html() {
-        var ob = Object.keys(OBJEKTY).map(function (k) { return '<option value="' + k + '">' + OBJEKTY[k].n + '</option>'; }).join('');
-        var ca = Object.keys(CARY).map(function (k) { return '<option value="' + k + '">' + CARY[k].n + '</option>'; }).join('');
-        return '<div class="agn-top"><b>Místopisný náčrt</b><span id="agn-bod">' + esc(pt.name) + '</span><button type="button" class="agn-x" id="agn-zavrit" aria-label="Zavřít">✕</button></div>'
+        var pal = Object.keys(OBJEKTY).map(function (k) { return '<button type="button" data-obj="' + k + '" title="' + esc(OBJEKTY[k].n) + '"' + (k === objTyp ? ' class="on"' : '') + '>' + ikona(k, 28) + '<small>' + esc(OBJEKTY[k].n) + '</small></button>'; }).join('');
+        var car = Object.keys(CARY).map(function (k) { var c = CARY[k]; return '<button type="button" data-cara="' + k + '"' + (k === caraTyp ? ' class="on"' : '') + '><i style="border-top:' + (c.w || 2.5) + 'px ' + (c.dash ? 'dashed' : 'solid') + ' ' + c.col + '"></i><small>' + esc(c.n) + '</small></button>'; }).join('');
+        return '<div class="agn-top"><div class="agn-titul"><b>Místopisný náčrt</b><span id="agn-bod">' + esc(pt.name) + (pt.druh ? ' · ' + esc(pt.druh) : '') + '</span></div>'
+            + '<div class="agn-podklad" role="tablist"><button type="button" data-podklad="papir">Papír</button><button type="button" data-podklad="mapa">Mapa</button><button type="button" data-podklad="orto">Ortofoto</button></div>'
+            + '<button type="button" class="agn-x" id="agn-zavrit" aria-label="Zavřít">✕</button></div>'
             + '<div id="agn-mapa"></div>'
-            + '<div class="agn-podklad"><button type="button" data-podklad="papir">Papír</button><button type="button" data-podklad="mapa">Mapa</button><button type="button" data-podklad="orto">Ortofoto</button></div>'
+            + '<div class="agn-sever" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2l5 18-5-4-5 4z"/></svg><b>S</b></div>'
             + '<div class="agn-info" id="agn-info"></div>'
+            + '<div class="agn-paleta" id="agn-paleta-obj" hidden>' + pal + '</div>'
+            + '<div class="agn-paleta" id="agn-paleta-cara" hidden>' + car + '</div>'
             + '<div class="agn-bar">'
-            + '<button type="button" data-rezim="vyber">Posun</button>'
-            + '<button type="button" data-rezim="vzdalenost">Vzdálenost</button>'
-            + '<span class="agn-sel"><button type="button" data-rezim="objekt">Objekt</button><select id="agn-obj">' + ob + '</select></span>'
-            + '<span class="agn-sel"><button type="button" data-rezim="cara">Čára</button><select id="agn-cara">' + ca + '</select></span>'
-            + '<button type="button" data-rezim="text">Text</button>'
-            + '<button type="button" data-rezim="smazat">Smazat</button>'
-            + '<button type="button" id="agn-hotovo" style="display:none">Hotovo</button>'
-            + '<button type="button" id="agn-zpet">Zpět</button>'
-            + '<button type="button" id="agn-png">PNG</button>'
+            + tl('vyber', 'Posun') + tl('vzdalenost', 'Vzdálenost') + tl('objekt', 'Značka') + tl('cara', 'Čára') + tl('text', 'Text') + tl('smazat', 'Smazat')
+            + '<button type="button" id="agn-hotovo" class="agn-ok" style="display:none">' + IK.hotovo + '<span>Hotovo</span></button>'
+            + '<span class="agn-sep"></span>'
+            + '<button type="button" id="agn-stromy">' + IK.stromy + '<span>Stromy z ortofota</span></button>'
+            + '<button type="button" id="agn-zpet">' + IK.zpet + '<span>Zpět</span></button>'
+            + '<button type="button" id="agn-png">' + IK.png + '<span>PNG</span></button>'
             + '</div>';
     }
     function zavri() {
@@ -300,15 +387,17 @@
         el.querySelector('#agn-zavrit').onclick = zavri;
         el.querySelectorAll('[data-podklad]').forEach(function (b) { b.onclick = function () { nastavPodklad(b.getAttribute('data-podklad')); }; });
         el.querySelectorAll('[data-rezim]').forEach(function (b) { b.onclick = function () { nastavRezim(b.getAttribute('data-rezim')); }; });
-        var so = el.querySelector('#agn-obj'); so.value = objTyp; so.onchange = function () { objTyp = so.value; nastavRezim('objekt'); };
-        var sc = el.querySelector('#agn-cara'); sc.value = caraTyp; sc.onchange = function () { caraTyp = sc.value; nastavRezim('cara'); };
+        el.querySelectorAll('#agn-paleta-obj button').forEach(function (b) { b.onclick = function () { objTyp = b.getAttribute('data-obj'); el.querySelectorAll('#agn-paleta-obj button').forEach(function (x) { x.classList.toggle('on', x === b); }); nastavRezim('objekt'); }; });
+        el.querySelectorAll('#agn-paleta-cara button').forEach(function (b) { b.onclick = function () { if (rezim === 'cara' && caraTyp !== b.getAttribute('data-cara')) hotovoCara(); caraTyp = b.getAttribute('data-cara'); el.querySelectorAll('#agn-paleta-cara button').forEach(function (x) { x.classList.toggle('on', x === b); }); nastavRezim('cara'); }; });
+        try { var sv = el.querySelector('.agn-sever'); if (sv) sv.style.transform = 'rotate(0deg)'; } catch (e) { /* nic */ }
         el.querySelector('#agn-hotovo').onclick = function () { hotovoCara(); info('Čára uložena. Další čára: klepej dál, nebo přepni režim.'); };
         el.querySelector('#agn-zpet').onclick = zpet;
+        el.querySelector('#agn-stromy').onclick = function () { stromyZOrtofota(); };
         el.querySelector('#agn-png').onclick = function () { try { exportPng(); } catch (e) { swallow(e, 'png'); } };
         nastavPodklad(podklad); kresli(); nastavRezim('vyber'); nactiData();
     }
     window.agOpenMistopisnyNacrt = otevri;
-    window.AGNacrt = { otevri: otevri, zavri: zavri, prvky: function () { return _prvky; }, data: function () { return vse(); }, mapa: function () { return m; }, klik: klikMapa, rezim: nastavRezim, podklad: nastavPodklad, exportPng: exportPng, OBJEKTY: OBJEKTY, bod: function () { return pt; } };
+    window.AGNacrt = { otevri: otevri, zavri: zavri, prvky: function () { return _prvky; }, data: function () { return vse(); }, mapa: function () { return m; }, klik: klikMapa, rezim: nastavRezim, podklad: nastavPodklad, exportPng: exportPng, OBJEKTY: OBJEKTY, bod: function () { return pt; }, stromyZOrtofota: stromyZOrtofota, stromyZObrazku: stromyZObrazku, ortoUrl: ortoUrl };
 
     function register() {
         try { if (typeof window.agRegisterFieldTool === 'function') window.agRegisterFieldTool({ id: 'mistopisny-nacrt', label: 'Místopisný náčrt', icon: ICON, cat: 'Katastr a data', onClick: function () { otevri(); }, order: 10 }); } catch (e) { swallow(e, 'register'); }

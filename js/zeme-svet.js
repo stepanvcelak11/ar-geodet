@@ -167,7 +167,8 @@
     var MESTA = { CZ: [50.0875, 14.4213, 'Praha'], SK: [48.1486, 17.1077, 'Bratislava'], PL: [52.2297, 21.0122, 'Varšava'], DE: [52.5200, 13.4050, 'Berlín'], AT: [48.2082, 16.3738, 'Vídeň'], HU: [47.4979, 19.0402, 'Budapešť'], SI: [46.0569, 14.5058, 'Lublaň'], HR: [45.8150, 15.9819, 'Záhřeb'], CH: [46.9480, 7.4474, 'Bern'], LI: [47.1410, 9.5209, 'Vaduz'], NL: [52.3676, 4.9041, 'Amsterdam'], BE: [50.8503, 4.3517, 'Brusel'], FR: [48.8566, 2.3522, 'Paříž'], IT: [41.9028, 12.4964, 'Řím'], ES: [40.4168, -3.7038, 'Madrid'], PT: [38.7223, -9.1393, 'Lisabon'], GB: [51.5074, -0.1278, 'Londýn'], IE: [53.3498, -6.2603, 'Dublin'], DK: [55.6761, 12.5683, 'Kodaň'], SE: [59.3293, 18.0686, 'Stockholm'], NO: [59.9139, 10.7522, 'Oslo'], FI: [60.1699, 24.9384, 'Helsinky'], EE: [59.4370, 24.7536, 'Tallinn'], LV: [56.9496, 24.1052, 'Riga'], LT: [54.6872, 25.2797, 'Vilnius'], RO: [44.4268, 26.1025, 'Bukurešť'], BG: [42.6977, 23.3219, 'Sofie'], RS: [44.7866, 20.4489, 'Bělehrad'], UA: [50.4501, 30.5234, 'Kyjev'], GR: [37.9838, 23.7275, 'Athény'], TR: [39.9334, 32.8597, 'Ankara'], US: [38.9072, -77.0369, 'Washington'], CA: [45.4215, -75.6972, 'Ottawa'], AU: [-35.2809, 149.1300, 'Canberra'] };
     function simulace(kod) {
         try {
-            if (window.AGManualPos && AGManualPos.active && simulace._bezi) { AGManualPos.clear(false); simulace._bezi = false; AGSour.nastav('auto'); obnov(); try { window.agInfo && window.agInfo('Simulace ukončena — zpět na GPS a automatickou zemi.'); } catch (e) { /* nic */ } var b0 = document.getElementById('s-zeme-sim-btn'); if (b0) b0.textContent = 'Vyzkoušet'; return; }
+            if (window.AGManualPos && AGManualPos.active && simulace._bezi) { AGManualPos.clear(false); simulace._bezi = false; AGSour.nastav('auto'); obnov();
+                try { for (var i = (arPoints || []).length - 1; i >= 0; i--) if (arPoints[i] && arPoints[i].zkouska && /^zkouska-zeme-/.test(arPoints[i].id)) { if (arPoints[i].element) arPoints[i].element.remove(); arPoints.splice(i, 1); } if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { /* nic */ } try { window.agInfo && window.agInfo('Simulace ukončena — zpět na GPS a automatickou zemi.'); } catch (e) { /* nic */ } var b0 = document.getElementById('s-zeme-sim-btn'); if (b0) b0.textContent = 'Vyzkoušet'; return; }
             if (!kod || kod === 'auto') kod = 'CZ';
             var z = AGSour.ZEME[kod], m = MESTA[kod];
             var lat = m ? m[0] : (z ? (z.bbox[0] + z.bbox[2]) / 2 : 50.0875), lng = m ? m[1] : (z ? (z.bbox[1] + z.bbox[3]) / 2 : 14.4213);
@@ -175,10 +176,19 @@
             AGSour.nastav(kod === 'XX' ? 'XX' : kod);
             AGManualPos.take(lat, lng, 19);
             simulace._bezi = true;
+            // mimo ČR nejsou úřední body (ČÚZK) — ať je co zkoušet (navigace, 3D, náčrt), přidají se
+            // 3 UKÁZKOVÉ vlastní body 25–60 m od místa (jen v paměti, po konci simulace zmizí)
+            try {
+                if (kod !== 'CZ' && typeof arPoints !== 'undefined') {
+                    var m0 = 1 / 111320, ml0 = m0 / Math.cos(lat * Math.PI / 180);
+                    [[25, 10, 'A'], [-40, 30, 'B'], [15, -55, 'C']].forEach(function (q) { arPoints.push({ id: 'zkouska-zeme-' + q[2], name: 'Ukázka ' + q[2], lat: lat + q[1] * m0, lng: lng + q[0] * ml0, type: 'custom', cat: 'CUSTOM', hidden: false, zkouska: true, vyska: null }); });
+                    try { if (typeof initARMarkers === 'function') initARMarkers(); if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { /* nic */ }
+                }
+            } catch (e) { swallow(e, 'ukazky'); }
             try { if (typeof map !== 'undefined' && map) map.setView([lat, lng], 17); } catch (e) { /* nic */ }
             try { document.getElementById('settings-modal').style.display = 'none'; } catch (e) { /* nic */ }
             var b = document.getElementById('s-zeme-sim-btn'); if (b) b.textContent = 'Ukončit simulaci';
-            try { window.agInfo && window.agInfo('Simulace: stojíš v ' + ((m && m[2]) || (z && z.nazev) || kod) + '. Souřadnice ' + (AGSour.popisky().system || '') + '. Zpět: Nastavení → Data → Ukončit simulaci.'); } catch (e) { /* nic */ }
+            try { window.agInfo && window.agInfo('Simulace: stojíš v ' + ((m && m[2]) || (z && z.nazev) || kod) + '. Souřadnice ' + (AGSour.popisky().system || '') + '.' + (kod !== 'CZ' ? ' Úřední body ČÚZK tu nejsou — přidal jsem 3 ukázkové body (A, B, C).' : '') + ' Zpět: Nastavení → Data → Ukončit simulaci.'); } catch (e) { /* nic */ }
             obnov();
         } catch (e) { swallow(e, 'simulace'); }
     }

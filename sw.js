@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v348';   // trasa z dlazdic + vychod z budovy, tihovy bod, 3D prace s body, mistopisny nacrt, prekazky, simulace zeme
+const SHELL_CACHE = 'argeodet-shell-v349';   // 3D karta nad pohledem + chodniky na terenu, prekazka prstem, nacrt 2. kolo + stromy z ortofota, Scrolluj a uc se, trasa diagnostika
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=348',
-    './css/style.css?v=348',
-    './css/vylepseni.css?v=348',
+    './css/tokens.css?v=349',
+    './css/style.css?v=349',
+    './css/vylepseni.css?v=349',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -266,6 +266,8 @@ const ASSETS_TO_CACHE = [
     './css/pohled-3d.css',
     './js/mistopisny-nacrt.js',
     './css/mistopisny-nacrt.css',
+    './js/scroll-uceni.js',
+    './css/scroll-uceni.css',
     './js/vrstvy.js',
     './js/denik-dne.js',
     './js/kniha-jizd.js',

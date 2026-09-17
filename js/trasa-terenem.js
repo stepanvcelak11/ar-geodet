@@ -29,7 +29,7 @@
     function uloz() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { swallow(e, 'save'); } }
 
     var CENA = { open: 1.5, cesta: 1.0, stred: 0.7, louka: 1.3, pole: 1.6, krovi: 2.5, les: 3.0, areal: 4.0, koleje: 6.0, potok: 4.0 };
-    var NEPRUCHOD = 255, OKRAJ = 40, MAX_STRANA = 1500, MAX_BUNEK = 420 * 420;
+    var NEPRUCHOD = 255, OKRAJ = 40, MAX_STRANA = 3000, MAX_BUNEK = 480 * 480;   // do 3 km (mřížka pak až ~6 m); dál přímka
     var LES = ['forest', 'wood'], KROVI = ['scrub', 'heath'], LOUKA = ['grassland', 'grass', 'meadow', 'park', 'garden', 'village_green', 'recreation_ground', 'cemetery', 'golf_course', 'pitch', 'playground'], POLE = ['farmland', 'orchard', 'vineyard', 'allotments', 'farmyard'], AREAL = ['industrial', 'railway', 'quarry', 'military', 'aerodrome', 'landfill', 'naval_base'];
 
     var trasa = null;      // { id, body:[{lat,lng}], delka, ts, profil, lomy }
@@ -120,8 +120,11 @@
         try {
             silnice.forEach(function (l) {
                 var k = l.vlastnosti.kind, kd = l.vlastnosti.kind_detail;
-                // metro a tunely jsou POD zemí — v rastru by přepsaly budovy a otevřely průchod skrz dům
-                if (kd === 'subway' || l.vlastnosti.is_tunnel) return;
+                // metro, železniční tunely a dlouhé silniční tunely jsou POD zemí — v rastru by přepsaly budovy
+                // a otevřely průchod skrz dům. PODCHODY A PRŮCHODY DOMEM (path / minor_road s is_tunnel) se
+                // NECHÁVAJÍ — je to normální veřejná cesta (uživatel 17. 9. 2026).
+                if (k === 'rail' && (kd === 'subway' || kd === 'light_rail' || l.vlastnosti.is_tunnel)) return;
+                if ((k === 'major_road' || k === 'highway') && l.vlastnosti.is_tunnel) return;
                 if (k === 'highway') { cara(l, NEPRUCHOD, 12); return; }
                 if (k === 'rail') { cara(l, CENA.koleje, 4); return; }
                 if (k === 'ferry' || k === 'aerialway') return;
@@ -291,17 +294,26 @@
 
     // ---- řízení -----------------------------------------------------------------------------------
     function pripraveno() { return !!(st.zap && window.AGMapaVektor && AGMapaVektor.stav() === 'zapnuto' && window.AGHrany && AGMapaVektor.mapa() && AGMapaVektor.mapa().isStyleLoaded()); }
+    var _duvod = '';   // proč není trasa (diagnostika: AGTrasa.diag(), hláška při zapnutí cíle)
     function spocitej(od, c) {
-        var r = rastr(od, c); if (!r) return null;
+        _duvod = '';
+        var r = rastr(od, c); if (!r) { _duvod = 'cíl je dál než ' + (MAX_STRANA / 1000) + ' km — vede přímka'; return null; }
         var vy = null; try { vy = vychod(r, od); } catch (e) { swallow(e, 'vychod'); }
         var start = vy ? vy.bod : od;
-        var v = hledej(r, start, c); if (!v || v.body.length < 2) return null;
+        var v = hledej(r, start, c); if (!v || v.body.length < 2) { _duvod = 'z místa, kde stojíš, podle mapy nevede průchod (' + r.zdroj + ')'; return null; }
         var body = v.body; if (vy) body = [{ lat: od.lat, lng: od.lng }].concat(body);
         return { id: c.id, name: c.name, body: body, delka: delka(body), bunka: r.bunka, ts: Date.now(), profil: null, od: od, zdroj: r.zdroj, vychod: vy, nedosazitelne: !!v.nedosazitelne };
     }
+    function pripravenoProc() {
+        if (!st.zap) return 'navigace podle terénu je vypnutá (Nastavení → AR & přesnost)';
+        if (!window.AGMapaVektor || AGMapaVektor.stav() !== 'zapnuto') return 'vektorová mapa není zapnutá (Nastavení → Vzhled → Nová mapa)';
+        if (!window.AGHrany) return 'modul hran se ještě načítá';
+        var m = AGMapaVektor.mapa(); if (!m || !m.isStyleLoaded()) return 'mapa se ještě načítá';
+        return '';
+    }
     function prepocitej(duvod) {
         var me = poloha(), c = cil();
-        if (!me || !c || !pripraveno()) { if (trasa) { trasa = null; kresli(); } return null; }
+        if (!me || !c || !pripraveno()) { _duvod = !c ? '' : (!me ? 'bez polohy GPS' : pripravenoProc()); if (trasa) { trasa = null; kresli(); } return null; }
         if (_pocitam) return trasa; _pocitam = true;
         try {
             var t0 = Date.now(), t = spocitej(me, c);
@@ -311,7 +323,9 @@
                 profil(t.body).then(function (p) { if (trasa === t) { t.profil = p; kresli(); } }).catch(function () { if (trasa === t) t.profilChyba = true; });
             }
             else { trasa = null; kresli(); }
-        } catch (e) { swallow(e, 'prepocitej'); trasa = null; } finally { _pocitam = false; }
+        } catch (e) { swallow(e, 'prepocitej'); trasa = null; _duvod = 'chyba výpočtu: ' + ((e && e.message) || e); } finally { _pocitam = false; }
+        // bez trasy řekni PROČ (jednou na cíl a důvod) — v348 uživatel viděl jen přímku a nevěděl, co se děje
+        try { if (!trasa && _duvod && c && prepocitej._hlaseno !== c.id + '|' + _duvod) { prepocitej._hlaseno = c.id + '|' + _duvod; window.agInfo && window.agInfo('Trasa terénem: ' + _duvod + '.'); } } catch (e) { /* nic */ }
         return trasa;
     }
     // vzdálenost ode mě k trase + index nejbližšího úseku
@@ -384,5 +398,5 @@
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
-    window.AGTrasa = { aktivni: aktivni, smer: smer, zbyva: zbyva, popisek: popisek, body: function () { return trasa ? trasa.body : null; }, trasa: function () { return trasa; }, prepocitej: prepocitej, spocitej: spocitej, rastr: rastr, hledej: hledej, profil: profil, svgProfil: svgProfil, dalsiLom: dalsiLom, nastav: function (o) { if (o && o.zap != null) st.zap = !!o.zap; uloz(); }, zapnuto: function () { return st.zap; }, vyskaFn: null, CENA: CENA };
+    window.AGTrasa = { aktivni: aktivni, smer: smer, zbyva: zbyva, popisek: popisek, body: function () { return trasa ? trasa.body : null; }, trasa: function () { return trasa; }, prepocitej: prepocitej, spocitej: spocitej, rastr: rastr, hledej: hledej, profil: profil, svgProfil: svgProfil, dalsiLom: dalsiLom, nastav: function (o) { if (o && o.zap != null) st.zap = !!o.zap; uloz(); }, zapnuto: function () { return st.zap; }, vyskaFn: null, CENA: CENA, diag: function () { return _duvod; } };
 })();

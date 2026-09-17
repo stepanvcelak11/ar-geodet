@@ -1043,7 +1043,7 @@
                 if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
                 return true;
             }).map(pt => ({ pt, d: getDistance(userLat, userLng, pt.lat, pt.lng) })).sort((a, b) => a.d - b.d).slice(0, 50);
-            if (!pts.length) { listDiv.innerHTML = '<p style="text-align:center; opacity:0.7;">Žádné body v dosahu.</p>'; return; }
+            if (!pts.length) { var _mimoCR = false; try { _mimoCR = !!(window.AGSour && !AGSour.jeCZ()); } catch (e) { _mimoCR = false; } listDiv.innerHTML = '<p style="text-align:center; opacity:0.7;">' + (_mimoCR ? 'Žádné body v dosahu. Mimo Česko nejsou úřední body ČÚZK — zobrazují se jen vlastní body (Nový bod, import).' : 'Žádné body v dosahu.') + '</p>'; return; }
             pts.forEach(({ pt, d }) => {
                 let typBodu = "Podrobný polohový bod"; if (pt.cat === 'TB') typBodu = "Trigonometrický bod"; if (pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if (pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if (pt.cat === 'TIHA') typBodu = "Tíhový bod"; if (pt.cat === 'CUSTOM') typBodu = "Vlastní bod";
                 if (agZHodinek(pt)) typBodu = "Bod z hodinek";
@@ -2996,6 +2996,7 @@
         }
         function deleteDictEntry(idx) { agAsk('Smazat tento vlastní pojem?', { title: 'Smazat pojem', okText: 'Smazat', danger: true }).then(function (ok) { if (!ok) return; const list = getCustomDict(); list.splice(idx, 1); saveCustomDict(list); renderDictList(); }); }
         function _escHtml(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+        window.agGeoDict = GEO_DICT;   // SCROLLUJ A UČ SE (js/scroll-uceni.js) skládá kartičky i z pojmů
         function renderDictList() {
             const listDiv = document.getElementById('dict-list'); if (!listDiv) return;
             const q = (document.getElementById('dict-search').value || '').trim().toLowerCase();

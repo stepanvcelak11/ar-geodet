@@ -15,12 +15,18 @@
 //   • klepnutí na bod = karta dole (jméno, výška, vzdálenost) + tlačítka KARTA BODU (otevře
 //     kartu appky) a NAVIGOVAT (= stejná navigace jako v mapě/AR: highlightedPointId, takže
 //     po zavření 3D běží dál ve splitu); trasa terénem (js/trasa-terenem.js) se kreslí i tady;
-//   • CHODNÍKY VE 3D: chodníky, stezky, přechody a schody z dat mapy jako plochy 12 cm nad
-//     vozovkou (obruba je vidět šikmo shora → bod na chodníku vs. na silnici se pozná);
+//   • CHODNÍKY VE 3D: chodníky, stezky, přechody a schody z dat mapy jako pásy v METRECH (šířka
+//     1,8 / 2,5 / 3,5 m) s tmavou obrubou po obou stranách, položené na terén (line vrstvy se na
+//     terén přimknou a v zatáčkách se spojí kulatě — extruze 12 cm z v348 problikávala, lámala se
+//     po úsecích a na svahu stála nakřivo, uživatel 17. 9. 2026);
 //   • BODY VE VÝŠCE: bod s výškou (Bpv) dostane sloupek od terénu ČÚZK DMR 5G (přesnost
 //     0,2 m) — nivelační značka ve zdi, bod na mostě; pod 0,4 m se nic nekreslí (šum);
 //   • ZELEŇ: les a křoví z mapy jako poloprůhledné objemy (12 m / 2,5 m) — tlačítko Zeleň;
-//   • GLÓBUS: při oddálení se mapa stočí do koule (MapLibre projection globe) — jen na pohled.
+//   • GLÓBUS: při oddálení se mapa stočí do koule — přechod glóbus↔plocha je posunutý na z12–14
+//     (výchozí MapLibre 11–12), takže při pohledu na celé Česko už je koule vidět; větší zakřivení
+//     („tiny planet" jako Insta360) MapLibre neumí, kreslí skutečnou Zemi.
+//   • KARTA BODU: klepnutí na bod otevře KLASICKOU kartu appky (bottom sheet) NAD 3D pohledem
+//     (body.ag-3d-open zvedá z-index karty) — 3D zůstává otevřené, nic nepřepíná do 2D.
 //
 // Vyžaduje zapnutou vektorovou mapu (knihovny + data): bez ní nástroj poradí, kde ji zapnout.
 // V režimu slabší telefon se nenabízí (WebGL). Terén jde vypnout (data navíc ~40 kB/dlaždice).
@@ -38,7 +44,10 @@
     var st = { teren: true, pitch: 60, zelen: true, chodniky: true, globus: true };
     try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s) { ['teren', 'zelen', 'chodniky', 'globus'].forEach(function (k) { if (s[k] != null) st[k] = !!s[k]; }); if (s.pitch != null) st.pitch = +s.pitch; } } catch (e) { swallow(e, 'load'); }
     function uloz() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { swallow(e, 'save'); } }
-    var CHODNIK = { sidewalk: 1.8, footway: 1.8, pedestrian: 3.5, crossing: 2.5, steps: 1.8, path: 1.2, cycleway: 2.0 }, VYSKA_CHODNIKU = 0.12;
+    var CHODNIK = { sidewalk: 1.8, footway: 1.8, pedestrian: 3.5, crossing: 2.5, steps: 1.8, path: 1.2, cycleway: 2.0 };
+    // šířka v METRECH → pixely podle zoomu (exponenciálně, přesně pro 50° s. š.; jinde ±15 %)
+    function metry(vyrazM) { return ['interpolate', ['exponential', 2], ['zoom'], 14, ['*', vyrazM, 0.163], 20, ['*', vyrazM, 10.4]]; }
+    var SIRKA_CHODNIKU = ['match', ['get', 'kind_detail'], 'pedestrian', CHODNIK.pedestrian, 'crossing', CHODNIK.crossing, 'cycleway', CHODNIK.cycleway, 'path', CHODNIK.path, 1.8];
 
     var el = null, m3 = null, _sleduj = null, _vybrany = null, _dmr = {};
 
@@ -112,30 +121,9 @@
         } catch (e) { swallow(e, 'trasa'); }
         return { type: 'FeatureCollection', features: f };
     }
-    // chodníky z dat mapy (dlaždice, které má 3D mapa zrovna načtené) → pásy polygonů pro extruzi
-    function chodnikyGeo() {
-        var f = [];
-        if (!m3 || !st.chodniky) return { type: 'FeatureCollection', features: f };
-        try {
-            var fs = m3.isStyleLoaded() ? (m3.querySourceFeatures('pm', { sourceLayer: 'roads' }) || []) : [];
-            fs.forEach(function (x) {
-                var pr = x.properties || {}; if (pr.kind !== 'path') return;
-                var sir = CHODNIK[pr.kind_detail]; if (!sir) return;
-                var g = x.geometry; if (!g) return;
-                var lines = g.type === 'LineString' ? [g.coordinates] : (g.type === 'MultiLineString' ? g.coordinates : []);
-                lines.forEach(function (l) {
-                    for (var i = 0; i + 1 < l.length; i++) {
-                        var a = l[i], b = l[i + 1], m = mPerDeg(a[1]);
-                        var dx = (b[0] - a[0]) * m.lng, dy = (b[1] - a[1]) * m.lat, L = Math.hypot(dx, dy); if (L < 0.3) continue;
-                        var nx = -dy / L * sir / 2, ny = dx / L * sir / 2;
-                        var q = function (p, sx, sy) { return [p[0] + sx / m.lng, p[1] + sy / m.lat]; };
-                        f.push({ type: 'Feature', geometry: { type: 'Polygon', coordinates: [[q(a, nx, ny), q(b, nx, ny), q(b, -nx, -ny), q(a, -nx, -ny), q(a, nx, ny)]] }, properties: { kd: pr.kind_detail || '' } });
-                    }
-                });
-            });
-        } catch (e) { swallow(e, 'chodniky'); }
-        return { type: 'FeatureCollection', features: f };
-    }
+    // (chodníky se od v349 kreslí přímo ze zdroje 'pm' jako čáry v metrech — viz styl(); tohle zůstává
+    // jen kvůli starému API)
+    function chodnikyGeo() { return { type: 'FeatureCollection', features: [] }; }
 
     // ---- styl: podklad + 3D budovy + terén + naše vrstvy -----------------------------------
     function styl() {
@@ -148,8 +136,7 @@
         S.sources.vykres = { type: 'geojson', data: vykresGeo() };
         S.sources.ja = { type: 'geojson', data: polohaGeo() };
         S.sources.trasa = { type: 'geojson', data: trasaGeo() };
-        S.sources.chodniky = { type: 'geojson', data: { type: 'FeatureCollection', features: [] } };
-        if (st.globus) S.projection = { type: 'globe' };
+        if (st.globus) S.projection = { type: ['interpolate', ['linear'], ['zoom'], 12, 'vertical-perspective', 14, 'mercator'] };
         if (st.teren) {
             S.sources.teren = { type: 'raster-dem', tiles: [TEREN_URL], encoding: 'terrarium', tileSize: 256, maxzoom: 15, attribution: 'Terén: Mapzen/AWS' };
             S.terrain = { source: 'teren', exaggeration: 1.0 };
@@ -162,14 +149,20 @@
                 'fill-extrusion-height': ['coalesce', ['get', 'height'], 8], 'fill-extrusion-base': ['coalesce', ['get', 'min_height'], 0], 'fill-extrusion-vertical-gradient': true } };
         if (iBud >= 0) S.layers.splice(iBud, 1, extruze); else S.layers.push(extruze);
         // zeleň: les 12 m, křoví 2,5 m — poloprůhledně, ať pod tím zůstane vidět terén i body
+        // zeleň je v datech ve DVOU vrstvách: landcover (les, křoví) i landuse (les, sad, park se stromy);
+        // v348 se brala jen landcover → „stromy nikde nevidím" (uživatel 17. 9. 2026)
         if (st.zelen) {
+            var lesK = ['forest', 'wood', 'orchard', 'nature_reserve'], kroviK = ['scrub', 'heath', 'allotments', 'vineyard'];
             S.layers.splice(iBud >= 0 ? iBud : S.layers.length, 0,
-                { id: 'zelen-les', type: 'fill-extrusion', source: 'pm', 'source-layer': 'landcover', minzoom: 13, filter: ['in', ['get', 'kind'], ['literal', ['forest', 'wood']]], paint: { 'fill-extrusion-color': svetly ? '#4f8a3e' : '#2f5a2c', 'fill-extrusion-opacity': 0.45, 'fill-extrusion-height': 12, 'fill-extrusion-vertical-gradient': true } },
-                { id: 'zelen-krovi', type: 'fill-extrusion', source: 'pm', 'source-layer': 'landcover', minzoom: 13, filter: ['in', ['get', 'kind'], ['literal', ['scrub', 'heath']]], paint: { 'fill-extrusion-color': svetly ? '#7fa85a' : '#42633a', 'fill-extrusion-opacity': 0.45, 'fill-extrusion-height': 2.5 } });
+                { id: 'zelen-les', type: 'fill-extrusion', source: 'pm', 'source-layer': 'landcover', minzoom: 11, filter: ['in', ['get', 'kind'], ['literal', lesK]], paint: { 'fill-extrusion-color': svetly ? '#4f8a3e' : '#2f5a2c', 'fill-extrusion-opacity': 0.5, 'fill-extrusion-height': 12, 'fill-extrusion-vertical-gradient': true } },
+                { id: 'zelen-les-uziti', type: 'fill-extrusion', source: 'pm', 'source-layer': 'landuse', minzoom: 11, filter: ['in', ['get', 'kind'], ['literal', lesK]], paint: { 'fill-extrusion-color': svetly ? '#4f8a3e' : '#2f5a2c', 'fill-extrusion-opacity': 0.5, 'fill-extrusion-height': 12, 'fill-extrusion-vertical-gradient': true } },
+                { id: 'zelen-krovi', type: 'fill-extrusion', source: 'pm', 'source-layer': 'landcover', minzoom: 11, filter: ['in', ['get', 'kind'], ['literal', kroviK]], paint: { 'fill-extrusion-color': svetly ? '#7fa85a' : '#42633a', 'fill-extrusion-opacity': 0.5, 'fill-extrusion-height': 2.5 } },
+                { id: 'zelen-krovi-uziti', type: 'fill-extrusion', source: 'pm', 'source-layer': 'landuse', minzoom: 11, filter: ['in', ['get', 'kind'], ['literal', kroviK]], paint: { 'fill-extrusion-color': svetly ? '#7fa85a' : '#42633a', 'fill-extrusion-opacity': 0.5, 'fill-extrusion-height': 2.5 } });
         }
         S.layers.push(
-            // chodníky 12 cm nad vozovkou: světlejší deska + tmavá obruba (hrana extruze)
-            { id: 'chodniky-3d', type: 'fill-extrusion', source: 'chodniky', minzoom: 15, paint: { 'fill-extrusion-color': svetly ? '#f4efe2' : '#5a615e', 'fill-extrusion-opacity': 0.95, 'fill-extrusion-height': VYSKA_CHODNIKU, 'fill-extrusion-vertical-gradient': true } },
+            // chodníky: tmavá obruba (širší čára) + světlá deska (užší) v metrech, na terénu, kulaté spoje
+            { id: 'chodniky-obruba', type: 'line', source: 'pm', 'source-layer': 'roads', minzoom: 15, filter: ['all', ['==', ['get', 'kind'], 'path'], ['in', ['get', 'kind_detail'], ['literal', Object.keys(CHODNIK)]]], layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': st.chodniky ? 'visible' : 'none' }, paint: { 'line-color': svetly ? '#8a8378' : '#2b3230', 'line-width': metry(['+', SIRKA_CHODNIKU, 0.6]) } },
+            { id: 'chodniky', type: 'line', source: 'pm', 'source-layer': 'roads', minzoom: 15, filter: ['all', ['==', ['get', 'kind'], 'path'], ['in', ['get', 'kind_detail'], ['literal', Object.keys(CHODNIK)]]], layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': st.chodniky ? 'visible' : 'none' }, paint: { 'line-color': svetly ? '#f4efe2' : '#6a726e', 'line-width': metry(SIRKA_CHODNIKU), 'line-opacity': 0.95 } },
             { id: 'trasa-cara', type: 'line', source: 'trasa', filter: ['==', ['geometry-type'], 'LineString'], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#fbbf24', 'line-width': 5, 'line-opacity': 0.95 } },
             { id: 'trasa-lomy', type: 'circle', source: 'trasa', filter: ['==', ['geometry-type'], 'Point'], paint: { 'circle-radius': 4, 'circle-color': '#1b2420', 'circle-stroke-color': '#fbbf24', 'circle-stroke-width': 2 } },
             { id: 'vykres-cary', type: 'line', source: 'vykres', filter: ['==', ['geometry-type'], 'LineString'], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': ['get', 'barva'], 'line-width': ['case', ['==', ['get', 'osa'], 1], 5, 3] } },
@@ -223,13 +216,18 @@
         karta(p); obnovTrasu();
         info(cilId() === p.id ? 'Navigace na ' + p.name + ' — běží i po zavření (mapa, AR).' : 'Navigace zrušena.');
     }
+    // klasická karta bodu (bottom sheet) vyjede NAD 3D — 3D zůstává (uživatel: „místo toho, aby se to
+    // vysunulo jako klasicky v mapě, přepne to do 2D a problikne")
+    function otevriKartu(b) {
+        try { if (typeof showDetails === 'function') { var me = poloha(); showDetails(b, me ? GeoCore.getDistance(me.lat, me.lng, b.lat, b.lng) : 0); } } catch (e) { swallow(e, 'karta'); }
+    }
     function obnovTrasu() { try { if (m3 && m3.getSource('trasa')) m3.getSource('trasa').setData(trasaGeo()); } catch (e) { swallow(e, 'trasa-set'); } }
-    var _chodTimer = null;
-    function obnovChodniky() { if (_chodTimer) return; _chodTimer = setTimeout(function () { _chodTimer = null; try { if (m3 && m3.getSource('chodniky')) m3.getSource('chodniky').setData(chodnikyGeo()); } catch (e) { swallow(e, 'chodniky-set'); } }, 350); }
+    function obnovChodniky() { /* čáry ze zdroje pm — nic k obnově */ }
     function zavri() {
         try { if (_sleduj) { clearInterval(_sleduj); _sleduj = null; } } catch (e) { /* nic */ }
         try { if (m3) { m3.remove(); m3 = null; } } catch (e) { swallow(e, 'remove'); }
         _vybrany = null;
+        try { document.body.classList.remove('ag-3d-open'); } catch (e) { /* nic */ }
         if (el) { el.style.display = 'none'; el.innerHTML = ''; }
     }
     function otevri(bod) {
@@ -242,25 +240,28 @@
             if (!document.querySelector('link[href$="css/pohled-3d.css"]')) { var lk = document.createElement('link'); lk.rel = 'stylesheet'; lk.href = 'css/pohled-3d.css'; document.head.appendChild(lk); }
             if (!el) { el = document.createElement('div'); el.id = 'ag3d'; document.body.appendChild(el); }
             el.innerHTML = html(); el.style.display = 'block';
+            try { document.body.classList.add('ag-3d-open'); } catch (e) { /* nic */ }
             var p = (bod && typeof bod.lat === 'number') ? bod : (poloha() || (function () { try { var c = map.getCenter(); return { lat: c.lat, lng: c.lng }; } catch (e) { return { lat: 49.8, lng: 15.5 }; } })());
             m3 = new maplibregl.Map({ container: 'ag3d-mapa', style: styl(), center: [p.lng, p.lat], zoom: 17.5, pitch: st.pitch, bearing: heading(), attributionControl: false, maxPitch: 75, antialias: false });
             m3.touchZoomRotate.enableRotation(); m3.dragRotate.enable();
             m3.on('error', function (ev) { swallow(ev && ev.error, 'maplibre'); });
-            m3.on('idle', obnovChodniky); m3.on('moveend', obnovChodniky); m3.on('load', obnovChodniky);
-            m3.on('data', function (ev) { try { if (ev && ev.sourceId === 'pm' && ev.isSourceLoaded) obnovChodniky(); } catch (e) { /* nic */ } });
             m3.on('click', function (ev) {
                 try {
-                    var f = m3.queryRenderedFeatures(ev.point, { layers: ['body-kruh', 'sloupky-3d', 'trasa-cara', 'vykres-cary', 'vykres-body', 'chodniky-3d', 'budovy-3d'] });
+                    // prst není kurzor: hledat v okolí ±14 px (v348 se bod „skoro nedal trefit", světlý motiv jakbysmet)
+                    var T14 = 14, bb = [[ev.point.x - T14, ev.point.y - T14], [ev.point.x + T14, ev.point.y + T14]];
+                    var f = m3.queryRenderedFeatures(bb, { layers: ['body-kruh', 'sloupky-3d'] });
+                    if (!f.length) f = m3.queryRenderedFeatures(bb, { layers: ['trasa-cara', 'vykres-body', 'vykres-cary'] });
+                    if (!f.length) f = m3.queryRenderedFeatures(ev.point, { layers: ['chodniky', 'budovy-3d'] });
                     if (!f.length) { info(''); karta(null); return; }
                     var q = f[0], pr = q.properties || {};
                     if (q.layer.id === 'body-kruh' || q.layer.id === 'sloupky-3d') {
                         var bod2 = (arPoints || []).find(function (x) { return x.id === pr.id; });
-                        if (bod2) { karta(bod2); info(''); } else info('Bod ' + pr.name);
+                        if (bod2) { karta(bod2); info(''); otevriKartu(bod2); } else info('Bod ' + pr.name);
                     }
                     else if (q.layer.id === 'trasa-cara') { var t = AGTrasa && AGTrasa.trasa(); info(t ? 'Trasa ' + Math.round(t.delka) + ' m po terénu' + (t.profil ? ' · ↑' + Math.round(t.profil.up) + ' ↓' + Math.round(t.profil.down) + ' m' : '') : 'Přímka k cíli'); }
                     else if (q.layer.id === 'vykres-cary') { var stn = window.AGProjektDxf && AGProjektDxf.stanicteni({ lat: ev.lngLat.lat, lng: ev.lngLat.lng }); info('Výkres · ' + pr.vrstva + (stn ? ' · ' + stn.text : '')); }
                     else if (q.layer.id === 'vykres-body') info('Výkres · ' + pr.vrstva + ' · ' + (pr.jmeno || ''));
-                    else if (q.layer.id === 'chodniky-3d') info('Chodník / stezka (' + (pr.kd || 'cesta') + ') · 12 cm nad vozovkou (odhad)');
+                    else if (q.layer.id === 'chodniky') info('Chodník / stezka (' + (pr.kind_detail || 'cesta') + ') · šířka ' + (CHODNIK[pr.kind_detail] || 1.8) + ' m (odhad z mapy)');
                     else info('Budova' + (pr.addr_housenumber ? ' č. ' + pr.addr_housenumber : '') + (pr.height ? ' · výška ' + (+pr.height).toFixed(0) + ' m' : ' · výška odhad 8 m'));
                 } catch (e) { swallow(e, 'click'); }
             });
@@ -271,7 +272,7 @@
             function prepinac(id, klic) { document.getElementById(id).onclick = function () { st[klic] = !st[klic]; uloz(); this.classList.toggle('on', st[klic]); m3.setStyle(styl()); obnovChodniky(); }; }
             prepinac('ag3d-teren', 'teren'); prepinac('ag3d-zelen', 'zelen'); prepinac('ag3d-chodniky', 'chodniky');
             document.getElementById('ag3d-k-x').onclick = function () { karta(null); };
-            document.getElementById('ag3d-k-karta').onclick = function () { if (!_vybrany) return; var b = _vybrany; zavri(); try { if (typeof showDetails === 'function') { var me = poloha(); showDetails(b, me ? GeoCore.getDistance(me.lat, me.lng, b.lat, b.lng) : 0); } } catch (e) { swallow(e, 'karta'); } };
+            document.getElementById('ag3d-k-karta').onclick = function () { if (_vybrany) otevriKartu(_vybrany); };
             document.getElementById('ag3d-k-nav').onclick = function () { if (_vybrany) naviguj(_vybrany); };
             if (bod && bod.id) karta(bod);
             dotahniDmr();

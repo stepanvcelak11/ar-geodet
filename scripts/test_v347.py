@@ -18,6 +18,11 @@
      (~ spravna delka, prichyceni k bodu), objekt strom, cara plot, text, podklad papir/mapa/orto,
      ulozeni per bod (agNacrty), PNG export (blob > 10 kB), Zpet, Smazat
   H  SIMULACE ZEME: AGZemeSimulace('DE') → zeme DE, rucni poloha v Berline, ukonceni = zpet
+  I  SCROLLUJ A UC SE: nastroj v MANIFESTu (Ucit se), karty z pojmu + vzorcu + predpisu + uloh + nastroju + tipu
+     (> 120), feed se scroll-snap, filtr, hvezdicka uklada, otazka odkryje vysledek, videne se pocitaji
+  J  STROMY Z ORTOFOTA (nacrt): mock WMS = syntetický obrazek (3 tmave koruny, svetly travnik, silnice,
+     les 30 m) → 3 stromy do 2,5 m od koruny, zadny na travniku, les = mrizka; odhad se kresli carkovane, Zpet vrati
+  K  PODCHOD: cesta (path) s is_tunnel skrz budovu zustava pruchozi, metro (rail/subway) ne
 
 Spusteni: python scripts/test_v347.py [port]
 """
@@ -43,8 +48,50 @@ def ok(jmeno, podminka, detail=''):
     print(('OK   ' if podminka else 'CHYBA') + ' ' + jmeno + ('' if podminka else '  -- ' + str(detail)[:600]))
 
 
+def png(w, h, pix):
+    """Minimalni PNG (RGB) bez PIL: pix(x, y) → (r, g, b)."""
+    import zlib, struct
+    raw = bytearray()
+    for y in range(h):
+        raw.append(0)
+        for x in range(w):
+            raw.extend(pix(x, y))
+    def chunk(t, d):
+        c = struct.pack('>I', len(d)) + t + d
+        return c + struct.pack('>I', zlib.crc32(t + d) & 0xffffffff)
+    return b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 2, 0, 0, 0)) + chunk(b'IDAT', zlib.compress(bytes(raw), 6)) + chunk(b'IEND', b'')
+
+
+def orto_obrazek():
+    """512 px = 180 m (0,35 m/px), stred = bod. Sedy podklad, bila silnice, svetly travnik (jihozapad), tri tmave
+    texturovane koruny r = 3 m na (+21 E, 0), (-28 E, +14 N), (+10 E, -30 N), les 30×30 m na (+30..+60 E, +30..+60 N); silnice n = -16..-11."""
+    import math
+    mpx = 180.0 / 512
+    def pix(x, y):
+        e = (x - 256) * mpx; n = (256 - y) * mpx
+        if -70 < e < -40 and -60 < n < -35:
+            return (120, 180, 90)                       # travnik: svetly, hladky
+        if -16 < n < -11:
+            return (235, 235, 235)                      # silnice
+        tex = (x + y) % 2
+        if 30 < e < 60 and 30 < n < 60:
+            return (40, 90, 30) if tex else (70, 130, 50)   # les
+        for (ce, cn) in ((21, 0), (-28, 14), (10, -30)):
+            if math.hypot(e - ce, n - cn) < 3:
+                return (35, 85, 28) if tex else (65, 125, 45)   # koruna
+        return (140, 138, 130)
+    return png(512, 512, pix)
+
+
 async def beh(url):
     from playwright.async_api import async_playwright
+    ORTO = orto_obrazek()
+
+    async def route_orto(route, request):
+        try:
+            await route.fulfill(status=200, content_type='image/png', body=ORTO, headers={'Access-Control-Allow-Origin': '*'})
+        except Exception:
+            pass
     fixture = url.replace('/index.html', '/tests/fixtures/mapa-praha.pmtiles')
     async with async_playwright() as pw:
         br = await pw.chromium.launch(args=['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'])
@@ -137,6 +184,15 @@ async def beh(url):
         ok('E1 druhy prekazek (7), popisek v mape „V Jáma u vjezdu", vyber druhu → Stroj → dve klepnuti = prekazka druhu stroj', e1 and e1['druhy'] == 7 and any('Jáma u vjezdu' in t for t in e1['tips']) and e1['btns'] == 8 and e1['armed'] and e1['boxPryc'] and e1['posl'] and e1['posl']['druh'] == 'stroj' and e1['posl']['nazev'] == 'Stroj / bagr', e1)
         e2 = await page.evaluate("() => { window.agPrompt = (o) => Promise.resolve('Bagr Petra'); return new Promise(res => { AGOkoli.prejmenuj(AGOkoli.prekazky().length - 1); setTimeout(() => { var p = AGOkoli.prekazky()[AGOkoli.prekazky().length - 1]; var tips = [].slice.call(document.querySelectorAll('#map .ag-prek-tip')).map(t => t.textContent); res({ nazev: p.nazev, tip: tips.some(t => t.indexOf('Bagr Petra') >= 0) }); }, 100); }); }")
         ok('E2 prejmenovani prekazky se propise do popisku v mape', e2 and e2['nazev'] == 'Bagr Petra' and e2['tip'], e2)
+        e3 = await page.evaluate("""async () => { AGOkoli.kresliNovou(null, 'vykop'); var cont = map.getContainer(), r = cont.getBoundingClientRect(); var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+            var bar = document.getElementById('ag-prekazka-kresli'); var dragOff = !map.dragging.enabled();
+            function ev(t, x, y) { cont.dispatchEvent(new MouseEvent(t, { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0 })); }
+            ev('mousedown', cx + 40, cy); for (var a = 0; a <= 360; a += 10) { ev('mousemove', cx + 40 * Math.cos(a * Math.PI / 180), cy + 40 * Math.sin(a * Math.PI / 180)); } ev('mouseup', cx + 40, cy);
+            await new Promise(res => setTimeout(res, 50));
+            var p = AGOkoli.prekazky()[AGOkoli.prekazky().length - 1]; var c = map.containerPointToLatLng([r.width / 2, r.height / 2]);
+            var uvnitr = AGOkoli.vyhodnot(c.lat, c.lng); var polyg = 0; map.eachLayer(l => { if (l instanceof L.Polygon && !(l instanceof L.Rectangle) && l.options.dashArray === '8,5') polyg++; });
+            return { bar: !!bar, dragOff: dragOff, body: p && p.body && p.body.length, druh: p && p.druh, uvnitr: uvnitr.prekazkaUvnitr, polyg: polyg, armed: AGOkoli.armed, barPryc: !document.getElementById('ag-prekazka-kresli'), dragZpet: map.dragging.enabled() }; }""")
+        ok('E3 prekazka obtazena prstem: lista s napovedou, posun mapy vypnuty, kruh 40 px = polygon (≥ 8 bodu), stred uvnitr, po ulozeni lista pryc a posun zpet', e3 and e3['bar'] and e3['dragOff'] and e3['body'] and e3['body'] >= 8 and e3['druh'] == 'vykop' and e3['uvnitr'] and e3['polyg'] >= 1 and not e3['armed'] and e3['barPryc'], e3)
         await page.evaluate("() => { while (AGOkoli.prekazky().length) AGOkoli.smazPrekazku(0); }")
 
         # ================= F: 3D ==============================================================
@@ -147,14 +203,18 @@ async def beh(url):
         ok('F1 3D okno bezi ve svetlem motivu', await T.cekej(page, "document.getElementById('ag3d') && AGPohled3d.mapa() && AGPohled3d.mapa().isStyleLoaded && AGPohled3d.mapa().isStyleLoaded()", 60))
         await page.wait_for_timeout(2500)
         f2 = await page.evaluate("""() => { var m = AGPohled3d.mapa(); var st = m.getStyle(); var ids = st.layers.map(l => l.id);
-            return { varianta: AGMapaVektor.varianta(), bg: st.layers[0].paint['background-color'], proj: st.projection && st.projection.type, ids: ['chodniky-3d', 'zelen-les', 'zelen-krovi', 'sloupky-3d', 'trasa-cara', 'body-kruh', 'budovy-3d'].filter(i => ids.indexOf(i) < 0),
-                chod: AGPohled3d.chodnikyGeo().features.length, chodZdroj: m.getSource('chodniky') && m.getSource('chodniky').serialize().data.features.length, sloupky: AGPohled3d.sloupkyGeo().features.map(f => [f.properties.name, f.properties.popis]), btns: ['ag3d-zelen', 'ag3d-chodniky'].every(i => document.getElementById(i)) }; }""")
-        ok('F2 svetly motiv = varianta den (svetle pozadi), projekce globe, vsechny nove vrstvy, chodniky z dat > 100, sloupek NIV +2,3 m', f2 and f2['varianta'] == 'den' and f2['bg'] == '#f1f2ee' and f2['proj'] == 'globe' and not f2['ids'] and f2['chod'] > 100 and f2['chodZdroj'] > 100 and ['NIV', '+2,3 m'] in f2['sloupky'] and f2['btns'], f2)
+            return { varianta: AGMapaVektor.varianta(), bg: st.layers[0].paint['background-color'], proj: st.projection && (Array.isArray(st.projection.type) ? st.projection.type.indexOf('vertical-perspective') > 0 && 'globe' : st.projection.type), ids: ['chodniky', 'chodniky-obruba', 'zelen-les', 'zelen-les-uziti', 'zelen-krovi', 'sloupky-3d', 'trasa-cara', 'body-kruh', 'budovy-3d'].filter(i => ids.indexOf(i) < 0),
+                chod: (m.querySourceFeatures('pm', { sourceLayer: 'roads' }) || []).filter(f => f.properties.kind === 'path' && /sidewalk|footway|crossing|steps|pedestrian/.test(f.properties.kind_detail)).length, chodZdroj: ['chodniky', 'chodniky-obruba'].every(i => m.getLayer(i) && m.getLayoutProperty(i, 'visibility') !== 'none'), sloupky: AGPohled3d.sloupkyGeo().features.map(f => [f.properties.name, f.properties.popis]), btns: ['ag3d-zelen', 'ag3d-chodniky'].every(i => document.getElementById(i)) }; }""")
+        ok('F2 svetly motiv = varianta den (svetle pozadi), projekce globe (prechod z12-14), vsechny nove vrstvy, chodniky v datech > 100 a vrstvy viditelne, sloupek NIV +2,3 m', f2 and f2['varianta'] == 'den' and f2['bg'] == '#f1f2ee' and f2['proj'] == 'globe' and not f2['ids'] and f2['chod'] > 30 and f2['chodZdroj'] and ['NIV', '+2,3 m'] in f2['sloupky'] and f2['btns'], f2)
         f3 = await page.evaluate("""() => { var p = arPoints.find(x => x.id === 'vys1'); AGPohled3d.karta(p); var k = document.getElementById('ag3d-karta'); var info = document.getElementById('ag3d-k-info').textContent; document.getElementById('ag3d-k-nav').click();
             return { hidden: k.hidden, jmeno: document.getElementById('ag3d-k-jmeno').textContent, info: info, cil: highlightedPointId, nav: document.getElementById('ag3d-k-nav').textContent, trasa: AGPohled3d.trasaGeo().features.length, cilVeStylu: AGPohled3d.mapa().getSource('body').serialize().data.features.some(f => f.properties.cil === 1) }; }""")
         ok('F3 klepnuti na bod = karta (jmeno, H, nad terenem, vzdalenost), Navigovat = highlightedPointId + trasa v 3D + zvyrazneny cil', f3 and not f3['hidden'] and f3['jmeno'] == 'NIV' and '2,3 m nad terénem' in f3['info'] and 'ode mě' in f3['info'] and f3['cil'] == 'vys1' and 'Zrušit' in f3['nav'] and f3['trasa'] >= 1 and f3['cilVeStylu'], f3)
-        f4 = await page.evaluate("() => { document.getElementById('ag3d-k-karta').click(); return { zavreno: document.getElementById('ag3d').style.display === 'none', karta: document.getElementById('bottom-sheet').classList.contains('open'), titul: document.getElementById('det-title') && document.getElementById('det-title').textContent, cil: highlightedPointId }; }")
-        ok('F4 „Karta bodu" zavre 3D a otevre kartu bodu appky; navigace bezi dal (split)', f4 and f4['zavreno'] and f4['karta'] and f4['cil'] == 'vys1', f4)
+        f4 = await page.evaluate("() => { document.getElementById('ag3d-k-karta').click(); var bs = document.getElementById('bottom-sheet'); return { otevrene3d: document.getElementById('ag3d').style.display === 'block', tridaBody: document.body.classList.contains('ag-3d-open'), karta: bs.classList.contains('open'), z: parseInt(getComputedStyle(bs).zIndex, 10), cil: highlightedPointId }; }")
+        ok('F4 „Karta bodu" vysune klasickou kartu NAD 3D (z-index > 100002), 3D zustava otevrene, navigace bezi dal', f4 and f4['otevrene3d'] and f4['tridaBody'] and f4['karta'] and f4['z'] > 100002 and f4['cil'] == 'vys1', f4)
+        f4b = await page.evaluate("() => { try { closeBottomSheet(); } catch (e) {} var m = AGPohled3d.mapa(); var p = arPoints.find(x => x.id === 'vys1'); var pp = m.project([p.lng, p.lat]); m.fire('click', { point: { x: pp.x + 9, y: pp.y + 9 }, lngLat: m.unproject([pp.x + 9, pp.y + 9]) }); return { karta: document.getElementById('bottom-sheet').classList.contains('open'), mini: !document.getElementById('ag3d-karta').hidden }; }")
+        ok('F4b klepnuti 9 px vedle bodu (tolerance ±14 px) otevre kartu bodu', f4b and f4b['karta'] and f4b['mini'], f4b)
+        await page.evaluate("() => { try { closeBottomSheet(); } catch (e) {} AGPohled3d.zavri(); }")
+        ok('F4c po zavreni 3D trida body zmizi', await page.evaluate("() => !document.body.classList.contains('ag-3d-open')"))
         await page.evaluate("() => { try { closeBottomSheet(); } catch (e) {} highlightedPointId = null; previewMode('dark'); }")
         chyby3d = [c for c in chyby if 'pohled-3d' in c or 'maplibre' in c.lower() and 'Failed to load' not in c]
         ok('F5 zadna chyba stranky z 3D', not [c for c in chyby if c.startswith('pageerror')], [c for c in chyby if c.startswith('pageerror')][:3] or chyby3d[:3])
@@ -189,6 +249,54 @@ async def beh(url):
         ok('H1 simulace DE: zeme DE, rucni poloha v Berline, souradnice UTM', h1 and h1['kod'] == 'DE' and h1['man'] and abs(h1['lat'] - 52.52) < 0.01 and abs(h1['lng'] - 13.405) < 0.01 and 'UTM' in (h1['sys'] or ''), h1)
         h2 = await page.evaluate("() => { AGZemeSimulace('DE'); return { rezim: AGSour.rezim(), man: AGManualPos.active }; }")
         ok('H2 druhe klepnuti = konec simulace (auto, GPS)', h2 and h2['rezim'] == 'auto' and not h2['man'], h2)
+
+        # ================= I: scrolluj a uc se ================================================
+        ok('I0 nastroj v MANIFESTu + registru (Ucit se, bez zamku)', await page.evaluate("() => { var r = AGReg.get('scroll-uceni'); return !!(AGLazyTools.manifest.some(t => t.id === 'scroll-uceni') && r && r.verb === 'Učit se' && !r.pro); }"))
+        await page.evaluate("() => AGLazyTools.load('js/scroll-uceni.js')")
+        ok('I1 modul nacteny', await T.cekej(page, "window.AGScrollUceni && AGScrollUceni.otevri", 30))
+        await page.evaluate("() => { localStorage.removeItem('agScrollUceni_v1'); window.agOpenScrollUceni(); }")
+        ok('I2 feed se naplnil kartami', await T.cekej(page, "AGScrollUceni.karty().length > 120 && document.querySelectorAll('#agsu-feed .agsu-karta[data-id]').length > 120", 40), await page.evaluate("() => AGScrollUceni.karty().length"))
+        i3 = await page.evaluate("""() => { var k = AGScrollUceni.karty(); var typy = {}; k.forEach(x => { typy[x.typ] = (typy[x.typ] || 0) + 1; });
+            var feed = document.getElementById('agsu-feed'); var cs = getComputedStyle(feed); var sec = feed.querySelector('.agsu-karta');
+            return { typy: typy, snap: cs.scrollSnapType, vyska: Math.abs(sec.getBoundingClientRect().height - feed.clientHeight) < 2, pocet: document.getElementById('agsu-pocet').textContent }; }""")
+        ok('I3 karty vsech druhu (pojem, vzorec, predpis, otazka, nastroj, tip), scroll-snap y, karta = cela obrazovka', i3 and all(i3['typy'].get(t, 0) > 3 for t in ('pojem', 'vzorec', 'predpis', 'otazka', 'nastroj', 'tip')) and 'y' in i3['snap'] and i3['vyska'] and 'celkem 0' in i3['pocet'], i3)
+        i4 = await page.evaluate("""() => { AGScrollUceni.filtr('otazka'); var sec = document.querySelector('#agsu-feed .agsu-karta[data-id]'); var jenOtazky = [].every.call(document.querySelectorAll('#agsu-feed .agsu-karta[data-id]'), s => s.classList.contains('t-otazka'));
+            sec.querySelector('[data-akce="odkryt"]').click(); var odp = sec.querySelector('.agsu-odp'); sec.querySelector('[data-akce="ulozit"]').click();
+            var st = AGScrollUceni.stav(); var id = sec.getAttribute('data-id');
+            AGScrollUceni.filtr('ulozene'); var ul = document.querySelectorAll('#agsu-feed .agsu-karta[data-id]').length;
+            return { jenOtazky: jenOtazky, odkryto: odp && !odp.hidden, ulozeno: !!st.ulozene[id], videno: !!st.videne[id], ul: ul, pocet: document.getElementById('agsu-pocet').textContent }; }""")
+        ok('I4 filtr Otazky, Ukazat vysledek odkryje odpoved (= videno), hvezdicka ulozi → filtr Ulozene ma 1 kartu, pocitadlo dnes 1', i4 and i4['jenOtazky'] and i4['odkryto'] and i4['ulozeno'] and i4['videno'] and i4['ul'] == 1 and 'dnes 1' in i4['pocet'], i4)
+        i5 = await page.evaluate("() => { AGScrollUceni.filtr('nastroj'); var b = document.querySelector('#agsu-feed .agsu-karta[data-id] [data-akce=\"tool\"]'); var k = b.getAttribute('data-tool'); b.click(); return { k: k, zavreno: document.getElementById('agsu').style.display === 'none' }; }")
+        ok('I5 karta nastroje: Otevrit zavre feed a spusti nastroj', i5 and i5['k'] and i5['zavreno'], i5)
+        await page.evaluate("() => { try { document.querySelectorAll('.modal-overlay').forEach(m => { if (m.id !== 'settings-modal') m.style.display = 'none'; }); } catch (e) {} }")
+
+        # ================= J: stromy z ortofota ===============================================
+        await page.route('**/ORTOFOTO/**', route_orto)
+        j1 = await page.evaluate("""async () => { var p = arPoints.find(x => x.id === 'vys1'); AGNacrt.otevri(p); await new Promise(r => setTimeout(r, 800));
+            var pred = AGNacrt.prvky().length; var n = await AGNacrt.stromyZOrtofota(); var pr = AGNacrt.prvky().filter(x => x.t === 'obj' && x.k === 'strom' && x.odhad);
+            var k = 1 / 111320, kl = k / Math.cos(p.lat * Math.PI / 180);
+            // koruny v obrazku: stred + (dx, dy) v metrech (vychod, sever)
+            var cek = [[21, 0], [-28, 14], [10, -30]]; var trefy = cek.map(c => pr.some(x => GeoCore.getDistance(x.p.lat, x.p.lng, p.lat + c[1] * k, p.lng + c[0] * kl) < 2.5));
+            var naTravniku = pr.filter(x => { var dE = (x.p.lng - p.lng) / kl, dN = (x.p.lat - p.lat) / k; return dE > -70 && dE < -40 && dN > -60 && dN < -35; }).length;
+            var vLese = pr.filter(x => { var dE = (x.p.lng - p.lng) / kl, dN = (x.p.lat - p.lat) / k; return dE > 30 && dE < 60 && dN > 30 && dN < 60; }).length;
+            var carkovane = document.querySelectorAll('#agn .agn-obj.odhad').length; document.getElementById('agn-zpet').click(); var poZpet = AGNacrt.prvky().length;
+            return { n: n, trefy: trefy, celkem: pr.length, naTravniku: naTravniku, vLese: vLese, carkovane: carkovane, pred: pred, poZpet: poZpet, info: document.getElementById('agn-info').textContent }; }""")
+        ok('J1 3 koruny nalezeny do 2,5 m, travnik bez stromu, les 30×30 m = mrizka (≥ 16), odhad carkovane, Zpet vrati vse', j1 and j1['n'] and all(j1['trefy']) and j1['naTravniku'] == 0 and j1['vLese'] >= 16 and j1['carkovane'] == j1['celkem'] and j1['poZpet'] == j1['pred'], j1)
+        await page.evaluate("() => AGNacrt.zavri()")
+
+        # ================= K: podchod skrz budovu zustava pruchozi ===========================
+        k1 = await page.evaluate("""() => { var me = { lat: %f, lng: %f }, m = 1 / 111320, c = { lat: me.lat + 40 * m, lng: me.lng };
+            var MD = window.AGMapaData, orig = MD.oblastHned;
+            // syntetická data: budova 30×20 m mezi mnou a cílem, skrz ni cesta (path, is_tunnel) na ose; metro paralelně 8 m vedle
+            var bud = [[{ lat: me.lat + 10 * m, lng: me.lng - 15 * m }, { lat: me.lat + 10 * m, lng: me.lng + 15 * m }, { lat: me.lat + 30 * m, lng: me.lng + 15 * m }, { lat: me.lat + 30 * m, lng: me.lng - 15 * m }, { lat: me.lat + 10 * m, lng: me.lng - 15 * m }]];
+            function T(rails) { return { buildings: [{ geom: 'Polygon', polys: [bud], props: {} }], roads: rails, water: [], landuse: [], landcover: [], pois: [] }; }
+            MD.oblastHned = () => T([{ geom: 'LineString', lines: [[{ lat: me.lat, lng: me.lng }, { lat: me.lat + 40 * m, lng: me.lng }]], props: { kind: 'path', kind_detail: 'footway', is_tunnel: true } }]);
+            var t1 = AGTrasa.spocitej(me, { id: 'k', name: 'k', lat: c.lat, lng: c.lng });
+            MD.oblastHned = () => T([{ geom: 'LineString', lines: [[{ lat: me.lat, lng: me.lng }, { lat: me.lat + 40 * m, lng: me.lng }]], props: { kind: 'rail', kind_detail: 'subway', is_tunnel: true } }]);
+            var t2 = AGTrasa.spocitej(me, { id: 'k', name: 'k', lat: c.lat, lng: c.lng });
+            MD.oblastHned = orig;
+            return { podchod: t1 && { delka: t1.delka, nedos: t1.nedosazitelne, lomu: t1.body.length }, metro: t2 && { delka: t2.delka, nedos: t2.nedosazitelne } }; }""" % (LAT, LNG))
+        ok('K1 podchod (path v tunelu) skrz budovu = trasa ~40 m rovne; metro pod budovou = obchazka (> 46 m)', k1 and k1['podchod'] and k1['podchod']['delka'] < 46 and not k1['podchod']['nedos'] and k1['metro'] and k1['metro']['delka'] > 46, k1)
 
         pe = [c for c in chyby if c.startswith('pageerror')]
         ok('Z zadna chyba stranky za cely beh', not pe, pe[:4])

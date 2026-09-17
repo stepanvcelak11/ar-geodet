@@ -2,6 +2,19 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 349,
+   "datum": "2026-09-17",
+   "nadpis": "Podle zpětné vazby z telefonu: 3D karta nad pohledem, chodníky na terénu, překážka prstem, náčrt v novém kabátě, Scrolluj a uč se",
+   "body": [
+    "<b>3D pohled</b>: klepnutí na bod vysune <b>klasickou kartu bodu přes 3D</b> (nic nepřepíná do 2D, neproblikává); bod se trefí i o 14 px vedle. <b>Chodníky</b> už nejsou lámané obdélníky — jsou to pásy ve skutečné šířce s obrubou, položené na terén, bez problikávání a šikmých sklonů. <b>Zeleň</b> se bere i z ploch využití (park se stromy, sad), dřív jen z pokryvu — proto nebyla vidět. <b>Glóbus</b> se ukáže dřív (od pohledu na celé Česko); větší zakřivení než skutečné Země MapLibre neumí.",
+    "<b>Překážka</b>: vybereš druh a <b>obtáhneš tvar jedním prstem</b> v mapě (dva prsty = posun a zoom mapy dál fungují), žádné vyskakovací hlášky; dvě klepnutí = obdélník jako dřív. Zrušit tlačítkem v liště nahoře.",
+    "<b>Trasa terénem</b>: když trasa není a vede přímka, appka řekne proč (cíl dál než 3 km, mapa se načítá, z místa nevede průchod…); dosah zvednut z 1,5 na 3 km. <b>Podchody a průchody domem</b> (cesta v tunelu) zůstávají průchozí — vyhazují se jen metro, železniční a dlouhé silniční tunely.",
+    "<b>Místopisný náčrt</b>: nový vzhled (hlavička s bodem, přepínač podkladu, paleta značek dole, lišta s ikonami, severka, papír s rastrem) a <b>značky podle zvyklostí účelových map</b> (ČSN 01 3411, zjednodušeno): listnatý a jehličnatý strom, keř, sloup, lampa, šachta, hydrant, vpusť, mezník, dopravní značka; čáry plot / zeď / obruba / příkop. <b>Stromy z ortofota</b>: odhad poloh korun z výřezu ortofota ČÚZK (tmavé nebo texturované zelené skvrny) — přidají se čárkovaně, co nesedí, smažeš.",
+    "<b>Scrolluj a uč se</b> (Nástroje → Učit se): kartičky na posouvání — pojmy, vzorce, předpisy, otázky z úloh, co appka umí, tipy z terénu; filtr, hvězdička, počítadlo.",
+    "<b>Mimo Česko</b>: data mapy pro Slovensko, Maďarsko a Rakousko (Rakousko a Slovinsko se dohrávají), simulace země přidá 3 ukázkové body, seznam bodů vysvětlí, že úřední body ČÚZK jsou jen v ČR."
+   ]
+  },
+  {
    "v": 348,
    "datum": "2026-09-17",
    "nadpis": "Navigace už nevede zdmi, tíhový bod správně, práce ve 3D, místopisný náčrt",

@@ -9,6 +9,8 @@ Protomaps (OpenStreetMap, celá planeta ~140 GB) — stáhne se JEN výřez.
     python scripts/mapa-vyrez.py stred       # ČR + SK + PL + AT + DE (pilot, ~6–8 GB)
     python scripts/mapa-vyrez.py evropa      # celá Evropa (~25–35 GB)
     python scripts/mapa-vyrez.py 14.4,50.0,14.6,50.2   # vlastní bbox lon0,lat0,lon1,lat1
+    (u kódu země se místo bboxu bere OBRYS státu z data/zeme-hranice.json — menší soubor; do 2 GB
+     jde jako asset vydání GitHubu „mapa-data": python scripts/mapa-nahrat-github.py <soubor>)
 
 Výstup: <složka>/<název>.pmtiles (složka = 2. argument, jinak %TEMP%/qtrig-mapa).
 Nástroj: go-pmtiles (Go, jeden .exe) — skript ho stáhne z GitHubu curl-em, když chybí
@@ -72,6 +74,32 @@ def posledni_build():
     sys.exit('CHYBA: nenašel jsem žádné sestavení na ' + BUILD_INDEX)
 
 
+def region_zeme(kod, slozka):
+    import json
+    p = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'zeme-hranice.json')
+    try:
+        d = json.load(open(p, encoding='utf-8'))
+    except Exception:
+        return None
+    rings = d.get(kod.upper())
+    if not rings:
+        return None
+    polys = []
+    for ring in rings:
+        if len(ring) < 4:
+            continue
+        cx = sum(q[0] for q in ring) / len(ring); cy = sum(q[1] for q in ring) / len(ring)
+        r = [[cx + (q[0] - cx) * 1.015, cy + (q[1] - cy) * 1.015] for q in ring]
+        if r[0] != r[-1]:
+            r.append(r[0])
+        polys.append([r])
+    gj = {'type': 'MultiPolygon', 'coordinates': polys}
+    out = os.path.join(slozka, kod + '.region.geojson')
+    json.dump(gj, open(out, 'w', encoding='utf-8'))
+    print('Region: obrys', kod.upper(), '(%d částí)' % len(polys))
+    return out
+
+
 def main():
     if len(sys.argv) < 2:
         print(__doc__); return 2
@@ -84,7 +112,15 @@ def main():
     exe = pmtiles_exe(slozka)
     src = posledni_build()
     out = os.path.join(slozka, (co if co in REGIONY else 'vyrez') + '.pmtiles')
-    args = [exe, 'extract', src, out, '--bbox=' + bbox]
+    args = [exe, 'extract', src, out]
+    # OBRYS ZEMĚ MÍSTO BBOXU (17. 9. 2026): bbox Rakouska bere i Mnichov a Bolzano (1,93 GB → GitHub
+    # asset padal na 500). Obrys z data/zeme-hranice.json (Natural Earth 1:50m) roztažený o 1,5 %
+    # kolem těžiště (~3–4 km rezerva na hrubost obrysu); dlaždice, které se obrysu dotknou, jdou dovnitř.
+    region = region_zeme(co, slozka)
+    if region and '--bbox' not in ' '.join(sys.argv):
+        args.append('--region=' + region)
+    else:
+        args.append('--bbox=' + bbox)
     if minz:
         args.append('--minzoom=%d' % minz)
     print('Zdroj:', src); print('Výřez:', bbox, '→', out)

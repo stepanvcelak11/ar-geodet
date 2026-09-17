@@ -1,0 +1,59 @@
+/* ===== QTRIG — SCROLLUJ A UČ SE (odpojitelná vrstva, 17. 9. 2026) ==================
+   Svislý feed kartiček se scroll-snap: jedna karta = jedna obrazovka.
+   Odstranění: smaž css/scroll-uceni.css + js/scroll-uceni.js (lazy-tools MANIFEST).
+   ================================================================================== */
+#agsu {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: var(--app-vh, 100dvh);
+    z-index: 100002; display: none;
+    background: var(--bg-color, #0f1216); color: var(--text-color, #eceef2);
+    font-family: var(--font-display, system-ui), sans-serif;
+}
+#agsu .agsu-top {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 3;
+    display: flex; align-items: center; gap: 10px;
+    padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 6px;
+    background: var(--bg-color, #0f1216);
+}
+#agsu .agsu-top b { font-size: calc(16px * var(--ag-font-scale, 1)); }
+#agsu .agsu-top span { flex: 1; min-width: 0; font-size: calc(12px * var(--ag-font-scale, 1)); color: var(--text-muted, #9aa1ac); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#agsu .agsu-x { width: 40px; height: 40px; border-radius: 12px; border: 0; background: var(--surface-1, rgba(255,255,255,.08)); color: inherit; font-size: 18px; }
+#agsu .agsu-filtry {
+    position: absolute; z-index: 3; left: 0; right: 0; top: calc(52px + env(safe-area-inset-top, 0px));
+    display: flex; gap: 6px; padding: 4px 12px 8px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    background: var(--bg-color, #0f1216); scrollbar-width: none;
+}
+#agsu .agsu-filtry::-webkit-scrollbar { display: none; }
+#agsu .agsu-filtry button { flex: 0 0 auto; border: 1px solid var(--glass-border, rgba(255,255,255,.14)); border-radius: 999px; padding: 7px 12px; background: var(--surface-1, rgba(255,255,255,.05)); color: inherit; font: 600 calc(12px * var(--ag-font-scale, 1)) inherit; }
+#agsu .agsu-filtry button.on { background: var(--accent, #2f9e74); color: #04110b; border-color: transparent; }
+#agsu-feed {
+    position: absolute; left: 0; right: 0; bottom: 0; top: calc(98px + env(safe-area-inset-top, 0px));
+    overflow-y: auto; scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+}
+#agsu .agsu-karta {
+    scroll-snap-align: start; scroll-snap-stop: always;
+    height: 100%; box-sizing: border-box; padding: 14px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+    display: flex; flex-direction: column; gap: 10px; overflow: hidden;
+    border-top: 1px solid var(--glass-border, rgba(255,255,255,.08));
+}
+#agsu .agsu-hl { display: flex; align-items: center; justify-content: space-between; }
+#agsu .agsu-typ { font: 700 calc(11px * var(--ag-font-scale, 1)) inherit; letter-spacing: .06em; text-transform: uppercase; color: var(--accent, #2f9e74); }
+#agsu .t-vzorec .agsu-typ { color: #60a5fa; }
+#agsu .t-predpis .agsu-typ { color: #f59e0b; }
+#agsu .t-otazka .agsu-typ { color: #f472b6; }
+#agsu .t-nastroj .agsu-typ { color: #22d3ee; }
+#agsu .t-tip .agsu-typ { color: #a3e635; }
+#agsu .agsu-star { border: 0; background: transparent; color: var(--text-muted, #9aa1ac); font-size: 24px; line-height: 1; padding: 4px 8px; }
+#agsu .agsu-star.on { color: #fbbf24; }
+#agsu h2 { margin: 0; font-size: calc(22px * var(--ag-font-scale, 1)); line-height: 1.2; }
+#agsu .agsu-telo { flex: 1; min-height: 0; overflow-y: auto; font-size: calc(16px * var(--ag-font-scale, 1)); line-height: 1.5; }
+#agsu .agsu-telo p { margin: 0 0 8px; }
+#agsu .agsu-f { font-size: calc(18px * var(--ag-font-scale, 1)); padding: 10px 12px; border-radius: 12px; background: var(--surface-1, rgba(255,255,255,.06)); margin-bottom: 10px; overflow-x: auto; }
+#agsu .agsu-s { color: var(--text-muted, #9aa1ac); font-size: calc(14px * var(--ag-font-scale, 1)); }
+#agsu .agsu-tab { border-collapse: collapse; width: 100%; font-size: calc(13px * var(--ag-font-scale, 1)); margin-top: 6px; }
+#agsu .agsu-tab th, #agsu .agsu-tab td { border: 1px solid var(--glass-border, rgba(255,255,255,.14)); padding: 4px 6px; text-align: left; }
+#agsu .agsu-odp { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: rgba(244,114,182,.12); border: 1px solid rgba(244,114,182,.4); }
+#agsu .agsu-akce { display: flex; flex-wrap: wrap; gap: 8px; }
+#agsu .agsu-b { border: 0; border-radius: 12px; padding: 11px 14px; background: var(--accent, #2f9e74); color: #04110b; font: 700 calc(13px * var(--ag-font-scale, 1)) inherit; }
+#agsu .agsu-dal { text-align: center; font-size: calc(11px * var(--ag-font-scale, 1)); color: var(--text-muted, #9aa1ac); }
+#agsu .agsu-karta:last-child .agsu-dal { visibility: hidden; }
