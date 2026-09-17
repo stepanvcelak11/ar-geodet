@@ -100,6 +100,24 @@
     }
     function radek() {
         try { var row = document.getElementById('ms-kvgps'); if (row) { row.hidden = !_posledni; row.classList.toggle('ctrl-active', !!_posledni && _viditelna); } } catch (e) { /* nic */ }
+        pilulka();
+    }
+    // PILULKA „SKRÝT" PŘÍMO V MAPĚ (17. 9. 2026, hlášení: „vrstva Kde se dá měřit ať jde i skrýt,
+    // ať se mi to tam stále nezobrazuje") — řádek v panelu Vrstvy uživatel nenašel; tohle je
+    // na jedno klepnutí a vidí to jen, dokud vrstva svítí. Klepnutí = schovat (znovu: dlaždice).
+    function pilulka() {
+        var id = 'ag-kvgps-pill', p = document.getElementById(id);
+        if (!_posledni || !_viditelna) { if (p) p.remove(); return; }
+        if (p) return;
+        try { AG.style('ag-kvgps-pill-style', ['#' + id + '{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:1200;display:flex;align-items:center;gap:8px;padding:6px 8px 6px 12px;border-radius:999px;font:600 12px/1.2 var(--font-ui,system-ui),sans-serif;color:#fff;background:rgba(20,24,28,.86);border:1px solid rgba(255,255,255,.18);box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer;white-space:nowrap;}',
+            '#' + id + ' b{display:inline-block;width:10px;height:10px;border-radius:3px;background:linear-gradient(90deg,#22c55e,#f59e0b,#ef4444);}',
+            '#' + id + ' span{padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.14);}',
+            'body.ag-simple #' + id + '{display:none!important;}'].join('\n')); } catch (e) { swallow(e, 'css'); }
+        p = document.createElement('button'); p.type = 'button'; p.id = id; p.setAttribute('aria-label', 'Skrýt vrstvu Kde se dá měřit');
+        p.innerHTML = '<b></b>Kde se dá měřit<span>Skrýt</span>';
+        p.addEventListener('click', function (ev) { ev.stopPropagation(); prepni(false); try { window.agInfo && window.agInfo('Vrstva schovaná. Znovu: Nástroje → Kde se dá měřit, nebo panel Vrstvy.'); } catch (e) { /* nic */ } });
+        var host = document.getElementById('map-container') || document.body;
+        host.appendChild(p);
     }
     function prepni(stav) { _viditelna = (stav == null) ? !_viditelna : !!stav; vykresli(); return _viditelna; }
 
@@ -118,8 +136,9 @@
         var msg = 'Okolí ' + (2 * R) + ' × ' + (2 * R) + ' m, ' + v.budov + ' budov' + (v.lesu ? ', les' : '') + ' (' + v.ms + ' ms).<br>'
             + '<span style="color:#22c55e">■</span> volné nebe ' + Math.round(100 * v.stat.z / celkem) + ' % · <span style="color:#f59e0b">■</span> půl nebe ' + Math.round(100 * v.stat.o / celkem) + ' % · <span style="color:#ef4444">■</span> stíněno ' + Math.round(100 * v.stat.c / celkem) + ' %'
             + (tady != null ? '<br><b>Tady, kde stojíš: ' + (tady >= 0.85 ? 'volné nebe — dobré' : tady >= 0.6 ? 'půl nebe — měř déle (průměrování)' : 'stíněno — posuň se nebo použij offset') + '</b> (' + Math.round(tady * 100) + ' % oblohy)' : '')
-            + '<br><small>Odhad ze stínění budov a lesa, ne měření: stromy mimo les, auta a odrazy nevidí. Vrstvu schováš v panelu Vrstvy.</small>';
-        agAlert({ title: 'Kde se dá měřit', message: msg });
+            + '<br><small>Odhad ze stínění budov a lesa, ne měření: stromy mimo les, auta a odrazy nevidí. Schovat jde pilulkou „Skrýt" dole v mapě, nebo v panelu Vrstvy.</small>';
+        if (typeof window.agConfirm === 'function') window.agConfirm({ title: 'Kde se dá měřit', message: msg, okText: 'Nechat v mapě', cancelText: 'Skrýt' }).then(function (nechat) { if (nechat === false) prepni(false); });
+        else agAlert({ title: 'Kde se dá měřit', message: msg });
     }
     function agAlert(o) { try { if (typeof window.agAlert === 'function') return window.agAlert(o); } catch (e) { swallow(e, 'alert'); } try { alert(o.message.replace(/<[^>]+>/g, '')); } catch (e) { /* nic */ } }
 

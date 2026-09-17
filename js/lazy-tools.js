@@ -78,6 +78,12 @@
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>'
         },
         {
+            // MÍSTOPISNÝ NÁČRT (17. 9. 2026): obrysy z mapy + kóty + objekty, podklad papír / mapa / ortofoto
+            id: 'mistopisny-nacrt', src: 'js/mistopisny-nacrt.js', label: 'Místopisný náčrt', cat: 'Katastr a data', order: 10,
+            open: 'agOpenMistopisnyNacrt', css: 'css/mistopisny-nacrt.css',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 16l3-5 3 3 2-2 2 4"/><circle cx="9" cy="8" r="1.4"/></svg>'
+        },
+        {
             id: 'vrstvy', src: 'js/vrstvy.js', label: 'Vrstvy / pokládka', order: 7,
             open: 'agOpenVrstvy', icon: '<svg class="icon"><use href="#i-layers"/></svg>'
         },

@@ -1533,8 +1533,9 @@ if ('serviceWorker' in navigator) {
         // převodu by se po stažení objevil vedle starého nový bod se správným jménem.
         function agCuzkMigrujBod(p) {
             try {
-                if (!p || p.cat === 'CUSTOM' || !p.rawData) return;
+                if (!p || p.cat === 'CUSTOM') return;
                 if (p.vrstva === 48 || /t[íi]hov/i.test(p.druh || '')) { p.cat = 'TIHA'; p.type = 'tihovy'; }
+                if (!p.rawData) return;
                 // jméno přepočítat jen u TB/ZhB (pořadové číslo přidruženého bodu) — jinde
                 // by se mohlo přepsat jméno, které si uživatel ručně upravil
                 if (p.cat === 'TB' || p.cat === 'ZHB') { const nm = extractPointNumber(p.rawData); if (nm && nm !== 'Bod' && nm !== p.name) p.name = nm; }
@@ -1709,6 +1710,12 @@ if ('serviceWorker' in navigator) {
                     if (existing.hidden) { existing.hidden = false; n++; }
                     // Dřív stažený bod bez nových polí (starší verze appky) si je doplní.
                     if (existing.druh == null && pt.druh) ['druh', 'cislo12', 'ku', 'okres', 'presnost', 'porad', 'hel', 'geoidN', 'metoda', 'vrstva', 'vyska', 'nazevBodu', 'list', 'zm50', 'smo5'].forEach(k => { if (pt[k] != null) existing[k] = pt[k]; });
+                    // ⚠ KATEGORIE PODLE VRSTVY SLUŽBY, NE PODLE STARÉHO ZÁZNAMU (17. 9. 2026, hlášení:
+                    //   „tíhový bod se zobrazuje jako kolečko, v druhu bodu je Tíhový bod, ale nahoře
+                    //   PPBP"). Bod stažený starší verzí měl cat 'PBPP'; doplnil se mu jen `druh`,
+                    //   kategorie zůstala → kolečko v mapě, špatný nadpis karty. Vrstva ČÚZK je
+                    //   autoritativní; značka v mapě se přestaví sama (klíč id|cat|name), AR prvek zahodit.
+                    if (pt.cat && existing.cat !== pt.cat && existing.cat !== 'CUSTOM') { existing.cat = pt.cat; existing.type = pt.type; if (existing.element) { try { existing.element.remove(); } catch (e) { /* nic */ } existing.element = null; } }
                 }
             });
             return n;

@@ -101,8 +101,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=347">
-    <link rel="stylesheet" href="css/style.css?v=347">
+    <link rel="stylesheet" href="css/tokens.css?v=348">
+    <link rel="stylesheet" href="css/style.css?v=348">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -233,7 +233,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=347">
+    <link rel="stylesheet" href="css/vylepseni.css?v=348">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -651,6 +651,7 @@
          nesmí být — tiše by zahodily všechno, co uživatel zrovna přenastavil. -->
     <div class="modal-overlay" id="settings-modal" data-no-close>
         <div class="modal-content">
+            <div id="ag-safe-top" aria-hidden="true"></div>
             <h2 style="margin-top:0;"><svg class="icon" style="color:var(--accent);"><use href="#i-settings"/></svg> Nastavení</h2>
             <!-- Po přepnutí záložky se roluje NAHORU sám kontejner: u #settings-modal je
                  rolovací vrstvou .modal-content (css/style.css), ne .modal-body. Dřív tu bylo
@@ -1323,6 +1324,9 @@
     <!-- TRASA K BODU PODLE TERÉNU + PROFIL (17. 9. 2026, B1 + B3): A* nad daty vektorové mapy
          a překážek; háčky v cil-navigace.js a grafika.js (AGTrasa) — bez modulu zůstává přímka. -->
     <script type="ag/lazy" data-src="js/trasa-terenem.js"></script>
+    <!-- DATA MAPY BEZ OHLEDU NA VÝŘEZ (17. 9. 2026): dlaždice PMTiles přímo ze souboru + dekodér MVT
+         → trasa terénem má budovy a cesty i mimo obrazovku (oprava „vede mě zdmi domů"). -->
+    <script type="ag/lazy" data-src="js/mapa-data.js"></script>
     <!-- ZDROJE DAT PO ZEMÍCH (17. 9. 2026, C3): mimo ČR katastr a ortofoto z národních WMS (SK, PL, AT,
          NL, FR, CH, SI, BE, HU, ES), jinde Esri World Imagery; přepíná událost ag:zeme. -->
     <script type="ag/lazy" data-src="js/zdroje-zemi.js"></script>

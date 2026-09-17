@@ -157,6 +157,11 @@
             '.ag-cil-znak{position:absolute;top:0;bottom:0;width:2.5px;margin-left:-1.25px;',
             '  background:' + GOLD + ';border-radius:2px;box-shadow:0 0 8px rgba(251,191,36,.7);}',
             '.ag-cil-paska.trefa .ag-cil-znak{background:#34d399;box-shadow:0 0 10px rgba(52,211,153,.8);}',
+            /* DALŠÍ LOM TRASY TERÉNEM (17. 9. 2026, přání: „čárka ať ukazuje hledaný bod, šipka další
+               lom"): ryska = cíl (přímý směr), tahle bílá tečka dole = kam teď jít po trase */
+            '.ag-cil-lom{position:absolute;bottom:1px;width:9px;height:9px;margin-left:-4.5px;border-radius:50%;',
+            '  background:#22d3ee;border:1.5px solid #fff;box-shadow:0 0 6px rgba(34,211,238,.9);display:none;pointer-events:none;}',
+            '.ag-cil-paska.v-delic .ag-cil-lom{bottom:3px;}',
             /* ⚠ CÍL MIMO PÁSKU. Když je odchylka větší než půlka okna, ryska by
                ležela za krajem a uživatel by nevěděl NIC. Místo toho se přilepí
                na kraj, změní se v šipku a připíše, o kolik stupňů jde. Nad 135°
@@ -337,7 +342,7 @@
     var TREFA = 3;               // do kolika stupňů se ryska považuje za trefu
     var VZAD = 135;              // nad kolik stupňů je cíl „za zády"
     var _pas = null, _pasHost = null, _pasW = 0, _pasPx = 0, _pasOkno = 0, _pasHalf = 0;
-    var _pTx = null, _pZnak = null, _pMimoL = null, _pMimoR = null, _pZaber = null;
+    var _pTx = null, _pZnak = null, _pLom = null, _pMimoL = null, _pMimoR = null, _pZaber = null;
     var _pStav = '';             // otisk posledního zápisu do DOM (ať se nepíše 60x/s)
 
     var SIP = '<svg class="m-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 5 8 12 15 19"/></svg>'
@@ -360,6 +365,7 @@
             '<div class="ag-cil-zaber"></div>'
             + '<div class="ag-cil-skala"></div>'
             + '<div class="ag-cil-znak"></div>'
+            + '<div class="ag-cil-lom"></div>'
             + '<div class="ag-cil-hrot"></div>'
             + '<div class="ag-cil-mimo m-l">' + SIP + '<span class="m-t"></span></div>'
             + '<div class="ag-cil-mimo m-r"><span class="m-t"></span>' + SIP + '</div>'
@@ -367,6 +373,7 @@
         _pas = el;
         _pTx = el.querySelector('.ag-cil-skala');
         _pZnak = el.querySelector('.ag-cil-znak');
+        _pLom = el.querySelector('.ag-cil-lom');
         _pMimoL = el.querySelector('.ag-cil-mimo.m-l .m-t');
         _pMimoR = el.querySelector('.ag-cil-mimo.m-r .m-t');
         _pZaber = el.querySelector('.ag-cil-zaber');
@@ -459,8 +466,10 @@
         _pTx.style.transform = 'translate3d(' + tx.toFixed(1) + 'px,0,0)';
 
         var brg = (pt.currentBearing != null) ? pt.currentBearing : getBearing(uLat, uLng, pt.lat, pt.lng);
-        // TRASA TERÉNEM (js/trasa-terenem.js, 17. 9. 2026): páska vede na NEJBLIŽŠÍ LOM trasy, ne na cíl
-        try { if (window.AGTrasa && AGTrasa.aktivni(pt.id)) { var _ts = AGTrasa.smer(); if (_ts != null) brg = _ts; } } catch (e) { /* přímka */ }
+        // TRASA TERÉNEM (js/trasa-terenem.js): ryska zůstává na CÍLI (přímý směr — přání 17. 9. 2026
+        // „v posuvníku ať čárka ukazuje hledaný bod"); další lom trasy = tečka .ag-cil-lom níž
+        var lomBrg = null;
+        try { if (window.AGTrasa && AGTrasa.aktivni(pt.id)) { var _ts = AGTrasa.smer(); if (_ts != null) lomBrg = _ts; } } catch (e) { /* přímka */ }
         var diff = ((brg - hd + 540) % 360) - 180;   // kladné = cíl je vpravo
         var ad = Math.abs(diff);
         var mez = _pasOkno / 2 - 4;                   // rezerva, ať ryska nelepí na kraj
@@ -485,6 +494,15 @@
         var x = w / 2 + Math.max(-mez, Math.min(mez, diff)) * _pasPx;
         _pZnak.style.transform = 'translate3d(' + x.toFixed(1) + 'px,0,0)';
         _pZnak.style.opacity = mimo ? '0' : '1';
+        if (_pLom) {
+            if (lomBrg == null || Math.abs(((lomBrg - brg + 540) % 360) - 180) < 3) { if (_pLom.style.display !== 'none') _pLom.style.display = 'none'; }
+            else {
+                var dl = ((lomBrg - hd + 540) % 360) - 180, xl = w / 2 + Math.max(-mez, Math.min(mez, dl)) * _pasPx;
+                _pLom.style.transform = 'translate3d(' + xl.toFixed(1) + 'px,0,0)';
+                _pLom.style.opacity = Math.abs(dl) > mez ? '0.35' : '1';
+                if (_pLom.style.display !== 'block') _pLom.style.display = 'block';
+            }
+        }
     }
 
     // =================================================================================

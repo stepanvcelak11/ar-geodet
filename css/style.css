@@ -3122,16 +3122,23 @@ body.light-mode #settings-modal .tab-buttons { background: rgb(247, 248, 250); }
    předka ji nepřekreslí — zůstane svítit poslední namalovaná barva. Teď má JEDNU
    deklaraci s custom property: --modal-bg mění hodnotu v obou režimech sám a jeho
    změna vrstvu spolehlivě zneplatní. NEVRACET sem druhé pravidlo pro světlý režim.
-   (Druhá půlka opravy je v previewMode() v js/grafika.js — color-scheme.) */
-#settings-modal .modal-content::before {
-    content: "";
+   (Druhá půlka opravy je v previewMode() v js/grafika.js — color-scheme.)
+
+   ⚠⚠ ZNOVU NAHLÁŠENO 17. 9. 2026 („pruh pod Dynamic Islandem po přepnutí ze světlého
+   do tmavého zůstává světlý"): custom property nestačila. Pseudoprvek nahradil SKUTEČNÝ
+   prvek #ag-safe-top (první dítě .modal-content v index.html) a previewMode() mu barvu
+   píše PŘÍMO do inline stylu — změna vlastního stylu prvku vrstvu zneplatní vždy,
+   změna proměnné u vzdáleného předka ne. Pravidla níže jsou jen výchozí stav. */
+#settings-modal .modal-content::before { content: none; }
+#ag-safe-top {
     position: fixed;
     top: 0; left: 0; right: 0;
     height: env(safe-area-inset-top, 0px);
     z-index: 6;
-    background: var(--modal-bg, rgba(14, 18, 24, 0.97));
+    background: rgb(14, 18, 24);
     pointer-events: none;
 }
+body.light-mode #ag-safe-top { background: rgb(247, 248, 250); }
 
 /* ---- 3) Kompaktnější obsah záložek ------------------------------------- */
 /* Svislé mezery dolů, dotykové cíle NE: řádek s přepínačem má 27px vypínač

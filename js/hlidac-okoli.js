@@ -48,28 +48,70 @@
         var m = getMap(); if (!m) return;
         if (!_grp) _grp = L.layerGroup().addTo(m);
         _grp.clearLayers();
+        try { AG.style('ag-prekazka-style', ['.ag-prek-tip{background:rgba(255,255,255,.95);border:1.5px solid #333;border-radius:999px;padding:2px 8px 2px 3px;color:#111;font:700 11px/1.2 var(--font-ui,system-ui),sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.35);white-space:nowrap;}',
+            '.ag-prek-tip::before{display:none;}', '.ag-prek-tip i{display:inline-flex;width:16px;height:16px;border-radius:50%;align-items:center;justify-content:center;font:800 10px/1 sans-serif;font-style:normal;color:#111;margin-right:4px;vertical-align:-3px;}'].join('\n')); } catch (e) { swallow(e, 'css'); }
+        var esc = function (s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s); };
         prekazky.forEach(function (p, i) {
-            var r = L.rectangle([[p.a.lat, p.a.lng], [p.b.lat, p.b.lng]], { color: '#f97316', weight: 2, dashArray: '6,4', fillColor: '#f97316', fillOpacity: 0.18, interactive: true, bubblingMouseEvents: false });
-            r.bindPopup('<b>' + (window.AG && AG.esc ? AG.esc(p.nazev) : p.nazev) + '</b><br><small>ruční překážka · obchází ji trasa, stíní jako 3 m</small><br><button type="button" class="btn btn-secondary" style="margin-top:6px" onclick="AGOkoli.smazPrekazku(' + i + ')">Smazat</button>');
+            var d = druh(p), sir = AGHrany ? AGHrany.dist({ lat: p.a.lat, lng: p.a.lng }, { lat: p.a.lat, lng: p.b.lng }) : 0, vys = AGHrany ? AGHrany.dist({ lat: p.a.lat, lng: p.a.lng }, { lat: p.b.lat, lng: p.a.lng }) : 0;
+            // rámeček + šrafování (dvě vrstvy: plná výplň slabě, čárkovaný rám sytě) + popisek uprostřed
+            var r = L.rectangle([[p.a.lat, p.a.lng], [p.b.lat, p.b.lng]], { color: d.col, weight: 3, dashArray: '8,5', fillColor: d.col, fillOpacity: 0.28, interactive: true, bubblingMouseEvents: false });
+            r.bindTooltip('<i style="background:' + d.col + '">' + d.zn + '</i>' + esc(p.nazev), { permanent: true, direction: 'center', className: 'ag-prek-tip' });
+            r.bindPopup('<b>' + esc(p.nazev) + '</b><br><small>' + d.n + ' · ' + sir.toFixed(0) + ' × ' + vys.toFixed(0) + ' m · ruční překážka: trasa terénem ji obchází, hlídač před ní varuje, stíní GPS jako 3 m</small><br>'
+                + '<button type="button" class="btn btn-secondary" style="margin-top:6px" onclick="AGOkoli.prejmenuj(' + i + ')">Přejmenovat</button> '
+                + '<button type="button" class="btn btn-secondary" style="margin-top:6px" onclick="AGOkoli.smazPrekazku(' + i + ')">Smazat</button>');
             r.addTo(_grp);
         });
     }
+    // DRUHY PŘEKÁŽEK (17. 9. 2026, hlášení „překážku v mapě lépe zpracuj, ať je jasnější, o co
+    // jde"): každá má barvu, značku a popisek přímo v mapě; vybírá se PŘED kreslením.
+    var DRUHY = {
+        hromada: { n: 'Hromada materiálu', col: '#f97316', zn: 'H' },
+        vykop: { n: 'Výkop / jáma', col: '#dc2626', zn: 'V' },
+        stroj: { n: 'Stroj / bagr', col: '#eab308', zn: 'S' },
+        plot: { n: 'Plot / ohrada', col: '#7c3aed', zn: 'P' },
+        voda: { n: 'Voda / bláto', col: '#2563eb', zn: '~' },
+        sklad: { n: 'Sklad / kontejner', col: '#78716c', zn: 'K' },
+        jine: { n: 'Jiná překážka', col: '#f97316', zn: '!' }
+    };
+    function druh(p) { return DRUHY[p && p.druh] || (p && /výkop|vykop|jáma/i.test(p.nazev) ? DRUHY.vykop : p && /stroj|bagr/i.test(p.nazev) ? DRUHY.stroj : DRUHY.hromada); }
     // dvě klepnutí do mapy = obdélník
     var _sber = null;
-    function kresliNovou(nazev) {
-        _sber = { nazev: nazev || 'Překážka', body: [] };
+    function kresliNovou(nazev, druhKlic) {
+        if (!druhKlic && !nazev) return vyberDruh();
+        var d = DRUHY[druhKlic] || DRUHY[nazev] || druh({ nazev: nazev });
+        _sber = { nazev: (nazev && !DRUHY[nazev]) ? nazev : d.n, druh: druhKlic || (DRUHY[nazev] ? nazev : Object.keys(DRUHY).filter(function (k) { return DRUHY[k] === d; })[0] || 'jine'), body: [] };
         AGOkoli.armed = true;
-        try { window.agInfo && window.agInfo('Klepni do mapy na dva protější rohy překážky (hromada, výkop, stroj).'); } catch (e) { /* nic */ }
+        try { window.agInfo && window.agInfo(d.n + ': klepni do mapy na dva protější rohy.'); } catch (e) { /* nic */ }
+    }
+    function vyberDruh(nazev) {
+        var id = 'ag-prekazka-vyber', old = document.getElementById(id); if (old) old.remove();
+        try { AG.style('ag-prekazka-vyber-style', ['#' + id + '{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 90px);z-index:12000;display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:94vw;padding:10px;border-radius:14px;background:rgba(20,24,28,.94);border:1px solid rgba(255,255,255,.18);box-shadow:0 6px 20px rgba(0,0,0,.5);}',
+            '#' + id + ' b{flex:1 0 100%;text-align:center;color:#fff;font:600 13px/1.3 var(--font-ui,system-ui),sans-serif;margin-bottom:2px;}',
+            '#' + id + ' button{border:0;border-radius:999px;padding:8px 12px;color:#fff;font:600 12px/1.2 var(--font-ui,system-ui),sans-serif;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);}',
+            '#' + id + ' button i{display:inline-flex;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;font:800 11px/1 sans-serif;font-style:normal;color:#111;}',
+            '#' + id + ' button.z{background:transparent;color:#aaa;}'].join('\n')); } catch (e) { swallow(e, 'css'); }
+        var box = document.createElement('div'); box.id = id; box.setAttribute('role', 'dialog');
+        var h = '<b>Co je to za překážku?</b>';
+        Object.keys(DRUHY).forEach(function (k) { h += '<button type="button" data-d="' + k + '"><i style="background:' + DRUHY[k].col + '">' + DRUHY[k].zn + '</i>' + DRUHY[k].n + '</button>'; });
+        h += '<button type="button" class="z" data-d="">Zrušit</button>';
+        box.innerHTML = h;
+        box.addEventListener('click', function (ev) { var b = ev.target.closest('button'); if (!b) return; box.remove(); var k = b.getAttribute('data-d'); if (k) kresliNovou(nazev && nazev !== 'Překážka' && !DRUHY[nazev] ? nazev : null, k); });
+        document.body.appendChild(box);
     }
     function take(lat, lng) {
         if (!_sber) { AGOkoli.armed = false; return; }
         _sber.body.push({ lat: lat, lng: lng });
         if (_sber.body.length < 2) { try { window.agInfo && window.agInfo('První roh mám. Teď protější.'); } catch (e) { /* nic */ } return; }
-        prekazky.push({ a: _sber.body[0], b: _sber.body[1], nazev: _sber.nazev, ts: Date.now() });
+        prekazky.push({ a: _sber.body[0], b: _sber.body[1], nazev: _sber.nazev, druh: _sber.druh, ts: Date.now() });
         _sber = null; AGOkoli.armed = false;
         ulozPrekazky(); kresliPrekazky();
         try { window.agInfo && window.agInfo('Překážka uložena. Trasa terénem ji obejde, hlídač před ní varuje.'); } catch (e) { /* nic */ }
         try { document.dispatchEvent(new CustomEvent('ag:prekazky')); } catch (e) { /* nic */ }
+    }
+    function prejmenuj(i) {
+        var p = prekazky[i]; if (!p) return;
+        var pr = (typeof window.agPrompt === 'function') ? window.agPrompt({ title: 'Název překážky', value: p.nazev, okText: 'Uložit' }) : Promise.resolve(prompt('Název překážky:', p.nazev));
+        pr.then(function (v) { if (v) { p.nazev = v; ulozPrekazky(); kresliPrekazky(); try { getMap().closePopup(); } catch (e) { /* nic */ } } });
     }
     function smazPrekazku(i) { prekazky.splice(i, 1); ulozPrekazky(); kresliPrekazky(); try { getMap().closePopup(); } catch (e) { /* nic */ } try { document.dispatchEvent(new CustomEvent('ag:prekazky')); } catch (e) { /* nic */ } }
 
@@ -193,7 +235,7 @@
             if (stack) {
                 var b = document.createElement('button'); b.type = 'button'; b.id = 'btn-prekazka'; b.className = 'ms-tile'; b.setAttribute('aria-label', 'Překážka');
                 b.innerHTML = '<svg class="icon"><use href="#i-area"/></svg><span>Překážka</span>';
-                b.addEventListener('click', function () { kresliNovou('Překážka'); try { document.getElementById('map-controls').classList.remove('expanded'); } catch (e) { /* nic */ } });
+                b.addEventListener('click', function () { vyberDruh(); try { document.getElementById('map-controls').classList.remove('expanded'); } catch (e) { /* nic */ } });
                 stack.appendChild(b);
             }
         }
@@ -207,8 +249,8 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
     window.AGOkoli = {
-        armed: false, take: take, kresliNovou: kresliNovou, smazPrekazku: smazPrekazku, prekazky: function () { return prekazky; }, prekazkaRings: prekazkaRings,
-        pridejPrekazku: function (a, b, nazev) { prekazky.push({ a: a, b: b, nazev: nazev || 'Překážka', ts: Date.now() }); ulozPrekazky(); kresliPrekazky(); try { document.dispatchEvent(new CustomEvent('ag:prekazky')); } catch (e) { /* nic */ } },
+        armed: false, take: take, kresliNovou: kresliNovou, smazPrekazku: smazPrekazku, prejmenuj: prejmenuj, DRUHY: DRUHY, vyberDruh: vyberDruh, prekazky: function () { return prekazky; }, prekazkaRings: prekazkaRings,
+        pridejPrekazku: function (a, b, nazev, druhKlic) { prekazky.push({ a: a, b: b, nazev: nazev || 'Překážka', druh: druhKlic || null, ts: Date.now() }); ulozPrekazky(); kresliPrekazky(); try { document.dispatchEvent(new CustomEvent('ag:prekazky')); } catch (e) { /* nic */ } },
         vyhodnot: vyhodnot, shrn: shrn, stav: function () { return _stav; }, tik: tik, popisProBod: popisProBod, nastav: function (o) { if (o && o.zap != null) st.zap = !!o.zap; uloz(); }, zapnuto: function () { return st.zap; }, LIMIT: LIMIT
     };
 })();

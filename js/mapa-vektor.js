@@ -248,5 +248,5 @@
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
-    window.AGMapaVektor = { nastav: nastav, zapni: zapni, vypni: vypni, stav: function () { return stav; }, chyba: function () { return chybaText; }, posledniChyba: function () { return _posledniChyba; }, mapa: mapa, budovy: budovy, plochy: plochy, cary: cary, url: url, varianta: varianta, nastaveni: function () { return { zap: st.zap, styl: st.styl, url: st.url }; } };
+    window.AGMapaVektor = { nastav: nastav, zapni: zapni, vypni: vypni, stav: function () { return stav; }, chyba: function () { return chybaText; }, posledniChyba: function () { return _posledniChyba; }, mapa: mapa, budovy: budovy, plochy: plochy, cary: cary, url: url, varianta: varianta, nastaveni: function () { return { zap: st.zap, styl: st.styl, url: st.url }; }, protokol: function () { return knihovny._proto || null; } };
 })();

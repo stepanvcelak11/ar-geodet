@@ -2,6 +2,22 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 348,
+   "datum": "2026-09-17",
+   "nadpis": "Navigace už nevede zdmi, tíhový bod správně, práce ve 3D, místopisný náčrt",
+   "body": [
+    "<b>Trasa terénem</b> bere budovy a cesty přímo z dlaždic mapy pro celý úsek, ne jen to, co má mapa zrovna na obrazovce (oddálená mapa = žádné budovy = trasa skrz domy). Kolem budov drží metr odstup, po cestách jde <b>po jejich ose</b> (ne metr vedle), mřížka 1 m. Když stojíš <b>uvnitř budovy</b>, vede tě nejdřív k <b>východu</b> (vchod z mapy, jinak strana k ulici — ne únikový východ) a teprve odtud terénem. Cíl v uzavřeném dvoře nebo v budově = trasa končí u nejbližšího místa a zbytek ukáže rovně (červeně čárkovaně). Metro a tunely se v trase neberou.",
+    "<b>AR</b>: šipka vede na další lom trasy, <b>ryska v pásku</b> ukazuje hledaný bod (přímý směr) a azurová tečka pod ní další lom.",
+    "<b>Tíhový bod</b> stažený starší verzí (uložený jako PPBP) se po novém stažení přeřadí podle vrstvy ČÚZK — šestiúhelník v mapě a „Tíhový bod“ v hlavičce karty, ne kolečko s PPBP.",
+    "<b>Kde se dá měřit</b>: vrstvu schováš pilulkou „Skrýt“ přímo v mapě (nebo tlačítkem v dialogu výsledku), ne jen v panelu Vrstvy.",
+    "<b>Překážky v mapě</b>: před kreslením vybereš druh (hromada, výkop, stroj, plot, voda, sklad, jiné) — každý má barvu a značku, název je napsaný přímo v mapě, jde přejmenovat; výkop na cestě tu cestu pro trasu zavře.",
+    "<b>3D pohled</b>: klepnutí na bod = karta s tlačítky <b>Karta bodu</b> a <b>Navigovat</b> (trasa se kreslí i ve 3D, po zavření běží dál ve splitu), <b>chodníky 12 cm nad vozovkou</b> (poznáš, jestli je bod na chodníku nebo v silnici), <b>body ve výšce</b> jako sloupek od terénu DMR 5G, <b>zeleň</b> (les, křoví) jako objemy, při oddálení <b>glóbus</b>; světlý motiv funguje.",
+    "<b>Nový nástroj Místopisný náčrt</b> (Katastr a podklady): k vybranému bodu obrysy z mapy (budovy, silnice, cesty, voda, koleje, les), kóty odkud kam dvěma klepnutími (délka ze souřadnic, klepnutím zapíšeš hodnotu z pásma), objekty (strom, keř, sloup, šachta, hydrant, kámen, značka), plot / hrana, text; podklad <b>Papír / Mapa / Ortofoto</b> — co nakreslíš na jednom, vidíš i na ostatních. Ukládá se k bodu, export PNG se severkou, měřítkem a legendou.",
+    "<b>Simulace cizí země</b> (Nastavení → Data → Země měření → Vyzkoušet): postaví tě do hlavního města vybrané země — souřadnice, výšky, katastr a mapa se přepnou jako v terénu.",
+    "Pruh pod stavovým řádkem (Dynamic Island) už po přepnutí ze světlého do tmavého režimu nezůstává světlý."
+   ]
+  },
+  {
    "v": 347,
    "datum": "2026-09-17",
    "nadpis": "Náčrt bodu položený na mapu — na které straně plotu bod je",

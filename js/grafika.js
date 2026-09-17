@@ -3090,7 +3090,10 @@
         // a musim appku restartovat") — WebKit si nektere pevne vrstvy nahore po zmene
         // tridy na <body> sam neprekresli. Viz i #settings-modal .modal-content::before.
         try { document.documentElement.style.colorScheme = light ? 'light' : 'dark'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:previewMode'); }
-        var mc = document.querySelector('meta[name="theme-color"]'); if (mc) mc.setAttribute('content', light ? '#f4f5f7' : '#0f1216'); }
+        var mc = document.querySelector('meta[name="theme-color"]'); if (mc) mc.setAttribute('content', light ? '#f4f5f7' : '#0f1216');
+        // krytka horní safe-area v Nastavení (viz css/style.css u #ag-safe-top): barvu psát PŘÍMO,
+        // WebKit vrstvu s position:fixed uvnitř transformovaného rodiče po změně třídy předka nepřekreslí
+        try { var st = document.getElementById('ag-safe-top'); if (st) { st.style.background = light ? 'rgb(247,248,250)' : 'rgb(14,18,24)'; st.style.display = 'none'; void st.offsetHeight; st.style.display = ''; } } catch (e) { /* nic */ } }
 
         // ===== DUHOVY OKRAJ: zari po celou navigaci na bod, zesili a zrychli pri dohledavani (< 2 m) =====
         let _egEl = null;
