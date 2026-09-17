@@ -40,12 +40,17 @@
     var KEY = 'agMapaVektor_v1';
     var LIBS = ['js/lib/maplibre-gl-5.24.0.js', 'js/lib/pmtiles-4.5.0.js', 'js/lib/maplibre-gl-leaflet-0.1.4.js'];
     var CSS = 'js/lib/maplibre-gl-5.24.0.css';
-    var URL_VYCHOZI = 'https://ar-geodet-api.ar-geodet.workers.dev/mapa/evropa.pmtiles';
+    // Data PO ZEMÍCH (17. 9. 2026): worker /mapa/<kód>.pmtiles — cz.pmtiles = celé Česko (asset
+    // vydání GitHubu „mapa-data", 1,7 GB), další země přibudou stejně (do 2 GB na soubor); až bude
+    // R2 s celou Evropou, worker sáhne tam. Země = registr (AGSour), ruční adresa má přednost.
+    var URL_ZAKLAD = 'https://ar-geodet-api.ar-geodet.workers.dev/mapa/';
+    var URL_VYCHOZI = URL_ZAKLAD + 'cz.pmtiles';
+    function soubor() { try { var k = (window.AGSour && AGSour.kod()) || 'CZ'; return (k === 'XX' ? 'svet' : k.toLowerCase()) + '.pmtiles'; } catch (e) { return 'cz.pmtiles'; } }
 
     var st = { zap: false, styl: 'auto', url: '' };
     try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && typeof s === 'object') { st.zap = !!s.zap; if (s.styl) st.styl = s.styl; if (s.url) st.url = String(s.url); } } catch (e) { swallow(e, 'load'); }
     function uloz() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { swallow(e, 'save'); } }
-    function url() { return st.url || URL_VYCHOZI; }
+    function url() { return st.url || (URL_ZAKLAD + soubor()); }
     function lite() { return !!(window.AGLite && AGLite.lite); }
 
     var vrstva = null;          // L.maplibreGL vrstva
@@ -88,13 +93,15 @@
         return 'den';
     }
     function varianta() { return (st.styl && st.styl !== 'auto') ? st.styl : variantaAuto(); }
-    var _varianta = null;
+    var _varianta = null, _url = null;
     function nastavStyl() {
         if (!vrstva) return;
-        var v = varianta(); if (v === _varianta) return;
-        _varianta = v;
-        try { var m = vrstva.getMaplibreMap(); if (m) m.setStyle(AGMapaStyl.vytvor(v, url())); } catch (e) { swallow(e, 'setStyle'); }
+        var v = varianta(), u = url(); if (v === _varianta && u === _url) return;
+        _varianta = v; _url = u;
+        try { var m = vrstva.getMaplibreMap(); if (m) m.setStyle(AGMapaStyl.vytvor(v, u)); } catch (e) { swallow(e, 'setStyle'); }
     }
+    // jiná země = jiný soubor dat (cz → sk…); když pro ni data nejsou, mapa to řekne
+    document.addEventListener('ag:zeme', function () { if (st.zap && vrstva && !st.url) overData().then(nastavStyl).catch(function (e) { chybaText = (e && e.message) || String(e); try { window.agInfo && window.agInfo('Vektorová mapa: ' + chybaText); } catch (e2) { /* nic */ } }); });
     try { new MutationObserver(function () { nastavStyl(); }).observe(document.body, { attributes: true, attributeFilter: ['class'] }); } catch (e) { swallow(e, 'observer'); }
 
     // ---- zapnutí / vypnutí ---------------------------------------------------------------
@@ -104,7 +111,7 @@
         if (typeof fetch !== 'function') return Promise.resolve(true);
         return fetch(url(), { headers: { Range: 'bytes=0-16383' }, cache: 'no-store' }).then(function (r) {
             if (r.status === 206 || r.status === 200) return true;
-            var t = 'Data mapy nejsou k dispozici (server odpověděl ' + r.status + ').';
+            var t = (r.status === 404 ? (st.url ? 'Data mapy na zadané adrese nejsou (404).' : 'Data mapy pro tuhle zemi (' + soubor() + ') ještě nejsou nahraná.') : 'Data mapy nejsou k dispozici (server odpověděl ' + r.status + ').');
             return r.json().then(function (j) { if (j && j.jak) t += ' ' + j.jak; return t; }).catch(function () { return t; }).then(function (txt) { throw new Error(txt); });
         }, function () { throw new Error('Data mapy se nepodařilo načíst (bez signálu, nebo špatná adresa).'); });
     }
@@ -114,8 +121,8 @@
         stav = 'nacitam';
         return overData().then(knihovny).then(function () {
             if (!vrstva) {
-                _varianta = varianta();
-                vrstva = L.maplibreGL({ style: AGMapaStyl.vytvor(_varianta, url()), interactive: false, attributionControl: false, pane: 'tilePane' });
+                _varianta = varianta(); _url = url();
+                vrstva = L.maplibreGL({ style: AGMapaStyl.vytvor(_varianta, _url), interactive: false, attributionControl: false, pane: 'tilePane' });
                 // chyby MapLibre (dlaždice, glyfy) do protokolu + poslední pro diagnostiku
                 try { vrstva.on('add', function () { var m = vrstva.getMaplibreMap(); if (m && !m._agErr) { m._agErr = 1; m.on('error', function (ev) { _posledniChyba = (ev && ev.error && ev.error.message) || String(ev && ev.error); swallow(ev && ev.error, 'maplibre'); }); } }); } catch (e) { swallow(e, 'on-error'); }
                 vrstva.on('add', function () { try { document.getElementById('map').classList.add('base-vektor'); } catch (e) { /* nic */ } });

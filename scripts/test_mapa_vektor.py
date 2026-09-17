@@ -359,8 +359,28 @@ async def beh(url):
         ok('L6 vypnuti = zase primka', await page.evaluate("() => { var dashed = 0; map.eachLayer(l => { if (l instanceof L.Polyline && l.options.dashArray === '10,8') dashed++; }); return !AGTrasa.aktivni() && dashed >= 1; }"))
         await page.evaluate("() => { AGTrasa.nastav({ zap: true }); highlightedPointId = null; AGTrasa.vyskaFn = null; }")
 
+        # ================= M: docasne tlacitko Zkouska mapy ==============================
+        # po H (rezim „ptat") muze tik znovu otevrit dialog o hrane — vypnout a zavrit, co je otevrene
+        await page.evaluate("() => { AGHranaAuto.nastav({ rezim: 'vyp' }); AGHranaAuto.vymaz(); var d = document.querySelector('.ag-dlg-overlay.open .ag-dlg-cancel'); if (d) d.click(); }")
+        await page.wait_for_timeout(300)
+        ok('M0 tlacitko „Zkouška mapy" je na hlavni obrazovce', await cekej(page, "window.AGZkouskaMapy && document.getElementById('ag-zkouska-btn') && getComputedStyle(document.getElementById('ag-zkouska-btn')).display !== 'none'", 30))
+        prekryv = await page.evaluate("() => { var b = document.getElementById('ag-zkouska-btn'); var r = b.getBoundingClientRect(); var e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return e ? ((e.closest && e.closest('#ag-zkouska-btn')) ? 'ag-zkouska-btn' : (e.id || e.className || e.tagName)) : null; }")
+        ok('M0b tlacitko neni prekryte jinym prvkem', prekryv == 'ag-zkouska-btn' or 'zkouska' in str(prekryv), prekryv)
+        await page.evaluate("() => document.getElementById('ag-zkouska-btn').click()"); await page.wait_for_timeout(300)
+        m1 = await page.evaluate("() => ({ open: document.getElementById('ag-zkouska').classList.contains('open'), radku: document.querySelectorAll('#ag-zkouska .zk-row').length, mapa: document.getElementById('zk-stav-mapy').textContent })")
+        ok('M1 rozcestnik se otevrel: 12 radku, stav mapy zapnuto', m1 and m1['open'] and m1['radku'] == 12 and 'zapnuto' in m1['mapa'], m1)
+        await page.evaluate("() => document.getElementById('zk-dxf').click()"); await page.wait_for_timeout(500)
+        ok('M2 ukazkovy vykres nacten (osa OSA se stanicenim, vrstva SACHTY)', await page.evaluate("() => { var d = AGProjektDxf.design(); return !!(d && d.osa === 'OSA' && d.layers.SACHTY && document.querySelectorAll('.agpi-stan').length >= 3); }"))
+        await page.evaluate("() => { AGZkouskaMapy.otevri(); document.getElementById('zk-cil').click(); }"); await page.wait_for_timeout(1200)
+        ok('M3 zkusebni cil = bod + trasa terenem', await page.evaluate("() => highlightedPointId === 'zkouska-cil' && !!arPoints.find(p => p.id === 'zkouska-cil') && !!(AGTrasa.trasa() && AGTrasa.trasa().id === 'zkouska-cil')"))
+        await page.evaluate("() => AGZkouskaMapy.uklid()"); await page.wait_for_timeout(300)
+        ok('M4 uklid smazal cil, vykres i prekazky', await page.evaluate("() => !arPoints.find(p => p.id === 'zkouska-cil') && !AGProjektDxf.design() && AGOkoli.prekazky().length === 0"))
+        await page.evaluate("() => AGZkouskaMapy.schovej(true)")
+        ok('M5 schovani tlacitka drzi v localStorage', await page.evaluate("() => localStorage.getItem('agZkouskaMapy_v1') === '0' && document.getElementById('ag-zkouska-btn').classList.contains('off')"))
+        await page.evaluate("() => AGZkouskaMapy.schovej(false)")
+
         chyby_a = [c for c in chyby if 'Failed to load resource' not in c and 'WebGL' not in c]
-        ok('A–L bez chyb stranky', not chyby_a, chyby_a[:5])
+        ok('A–M bez chyb stranky', not chyby_a, chyby_a[:5])
         await ctx.close()
 
         # ================= K: data nedostupna ============================================

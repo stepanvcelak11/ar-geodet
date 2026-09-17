@@ -22,7 +22,8 @@ database_id = "774b47e6-41c0-4e3a-a738-cfbd0a5657ae"
 #      do bucketu jako evropa.pmtiles (dashboard zvládne do 300 MB; větší přes
 #      `wrangler r2 object put qtrig-mapa/evropa.pmtiles --file=…` nebo rclone/S3).
 #   3. Odkomentovat tři řádky níže a nasadit (Deploy worker). /health pak hlásí mapa:true.
-# Dokud binding není, worker na /mapa/* vrací 503 s tímhle návodem — nic jiného nerozbije.
+# Dokud binding není, worker /mapa/* PROXUJE assety vydání GitHubu „mapa-data" (cz.pmtiles = ČR,
+# do 2 GB na soubor; Range předá, CORS doplní) — takže mapa jede i bez R2. R2 = až na celou Evropu.
 # [[r2_buckets]]
 # binding = "MAPA"
 # bucket_name = "qtrig-mapa"

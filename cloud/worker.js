@@ -1529,7 +1529,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 26, mapa: !!env.MAPA, nacrt: true, dgps: true, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 27, mapa: !!env.MAPA, mapaGithub: true, nacrt: true, dgps: true, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
 
             // ---------------- VLASTNÍ MAPA: DATA PMTILES Z R2 (16. 9. 2026) ----------------
             // GET/HEAD /mapa/<soubor>.pmtiles → objekt z R2 bucketu (binding MAPA, viz
@@ -1540,8 +1540,24 @@ export default {
             if ((req.method === 'GET' || req.method === 'HEAD') && path.startsWith('/mapa/')) {
                 const kl = decodeURIComponent(path.slice(6));
                 if (!/^[A-Za-z0-9_.-]+\.pmtiles$/.test(kl)) return json({ error: 'špatný název souboru' }, 400);
-                if (!env.MAPA) return json({ error: 'mapa nenapojena', jak: 'Cloudflare → R2 → bucket „qtrig-mapa" → nahrát ' + kl + '; ve wrangler.toml odkomentovat [[r2_buckets]] a nasadit.' }, 503);
                 const rng = req.headers.get('Range');
+                // BEZ R2 (17. 9. 2026): data leží jako asset vydání GitHubu „mapa-data" (do 2 GB na
+                // soubor: cz.pmtiles = celé Česko 1,7 GB). GitHub Range umí, ale neposílá CORS —
+                // proto se čte PŘES worker, který hlavičku Range předá a odpověď vrátí s CORS.
+                // Až bude R2 (celá Evropa), má přednost; GitHub zůstane záloha.
+                if (!env.MAPA) {
+                    const gh = 'https://github.com/stepanvcelak11/ar-geodet/releases/download/mapa-data/' + encodeURIComponent(kl);
+                    const hh = new Headers(); if (rng) hh.set('Range', rng);
+                    let r;
+                    try { r = await fetch(gh, { method: req.method, headers: hh, redirect: 'follow' }); } catch (e) { return json({ error: 'GitHub nedostupný: ' + (e && e.message) }, 502); }
+                    if (r.status === 404) return json({ error: 'soubor ' + kl + ' není ani v R2, ani ve vydání mapa-data', jak: 'python scripts/mapa-vyrez.py → nahrát jako asset vydání „mapa-data" (do 2 GB), nebo R2 bucket qtrig-mapa (cloud/README-mapa.md).' }, 404);
+                    if (!r.ok && r.status !== 206) return json({ error: 'GitHub odpověděl ' + r.status }, 502);
+                    const h2 = new Headers(CORS);
+                    ['Content-Range', 'Content-Length', 'ETag', 'Last-Modified'].forEach(function (k) { const v = r.headers.get(k); if (v) h2.set(k, v); });
+                    h2.set('Accept-Ranges', 'bytes'); h2.set('Content-Type', 'application/octet-stream'); h2.set('Cache-Control', 'public, max-age=86400');
+                    h2.set('Access-Control-Expose-Headers', 'Content-Range,Content-Length,ETag,Accept-Ranges'); h2.set('X-Mapa-Zdroj', 'github');
+                    return new Response(req.method === 'HEAD' ? null : r.body, { status: r.status, headers: h2 });
+                }
                 let opt = {};
                 let m = rng && /^bytes=(\d+)-(\d*)$/.exec(rng.trim());
                 if (m) { const a = +m[1]; opt.range = m[2] ? { offset: a, length: (+m[2]) - a + 1 } : { offset: a }; }

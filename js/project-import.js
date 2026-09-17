@@ -703,7 +703,8 @@
         osa: osaPoly, stanicteni: stanicteni, delkaPoly: delkaPoly, prumetNaPoly: prumetNaPoly, barvaVrstvy: barvaVrstvy,
         viditelna: function () { return _vrstvaViditelna; },
         prepni: function (stav) { _vrstvaViditelna = (stav == null) ? !_vrstvaViditelna : !!stav; try { localStorage.setItem('agDxfVrstva_v1', _vrstvaViditelna ? '1' : '0'); } catch (e) { /* nic */ } drawMap(); return _vrstvaViditelna; },
-        nacti: function (text) { var d = parseDXF(text); _design = d; persist(); drawMap(); fitMap(); try { renderDxf(); } catch (e) { /* nástroj není otevřený */ } startAr(); return d; }
+        nacti: function (text) { var d = parseDXF(text); _design = d; persist(); drawMap(); fitMap(); try { renderDxf(); } catch (e) { /* nástroj není otevřený */ } startAr(); return d; },
+        smaz: function () { _design = null; persist(); drawMap(); stopAr(); try { renderDxf(); } catch (e) { /* nástroj není otevřený */ } }
     };
     try { if (localStorage.getItem('agDxfVrstva_v1') === '0') _vrstvaViditelna = false; } catch (e) { /* nic */ }
 })();

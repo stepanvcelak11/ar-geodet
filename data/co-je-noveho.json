@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 346,
+   "datum": "2026-09-17",
+   "nadpis": "Data vektorové mapy: celé Česko dostupné hned; dočasné tlačítko „Zkouška mapy“",
+   "body": [
+    "<b>Celé Česko jako data mapy</b> (1,7 GB) leží ve vydání GitHubu „mapa-data“ a cloud QTRIG je čte po kouskách — takže <b>Nová mapa (vektor, beta)</b> jde zapnout hned, bez nastavování Cloudflare. Až bude R2 s celou Evropou, worker sáhne tam sám; mimo ČR zatím mapa řekne, že data pro tu zemi ještě nejsou (soubor podle země: sk.pmtiles, at.pmtiles…).",
+    "<b>Tlačítko „Zkouška mapy“</b> vlevo dole na hlavní obrazovce (dočasné): rozcestník všeho, co na vlastní mapě stojí — zapnout mapu a styl, 3D pohled, Kde se dá měřit, ukázkový výkres DXF kolem tebe (osa se staničením), překážka, zkušební cíl za rohem s trasou po terénu, hlídač okolí, korekce po hraně, přichytávání k rohům, země měření, úklid. U každé věci je napsáno, kde ji najdeš natrvalo. Schováš ho křížkem (zpět: Nastavení → Vzhled → Mapa).",
+    "Když data pro zemi nejsou, mapa to řekne rovnou a podklad zůstane rastr."
+   ]
+  },
+  {
    "v": 345,
    "datum": "2026-09-17",
    "nadpis": "Hlídač okolí, trasa k bodu podle terénu s výškovým profilem, ruční překážky, katastr a ortofoto sousedních zemí",
