@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 347,
+   "datum": "2026-09-17",
+   "nadpis": "Náčrt bodu položený na mapu — na které straně plotu bod je",
+   "body": [
+    "<b>Položit náčrt na mapu</b> — tlačítko pod oficiálním náčrtem ČÚZK v kartě úředního bodu. Ťukneš v náčrtu na značku bodu, pak na roh budovy nebo lomový bod hranice, a na týž roh v mapě (do 3 m se přichytí k lomovému bodu katastru). Náčrt se natáhne a otočí na katastr, poloprůhledně — vidíš, na které straně sloupu, plotu nebo rohu bod leží.",
+    "<b>V AR</b> se položený náčrt promítne na zem kolem bodu; pruh dole drží průhlednost, přepínač AR, „Zpřesnit dalším rohem“ (od tří dvojic se ukáže, o kolik se body pobíjejí) a „Sundat“. Položení přežije restart.",
+    "Poctivě: náčrty bývají schematické → okolí sedí na ±0,5–1 m, je to na „která strana“, ne na „kde kopnout“. Roh z DKM má centimetry, z UKM ±1 m. Dlaždice <b>Náčrt bodu na mapě</b> je v Nástrojích → Katastr a podklady, s návodem."
+   ]
+  },
+  {
    "v": 346,
    "datum": "2026-09-17",
    "nadpis": "Data vektorové mapy: celé Česko dostupné hned; dočasné tlačítko „Zkouška mapy“",

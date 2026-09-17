@@ -101,8 +101,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=346">
-    <link rel="stylesheet" href="css/style.css?v=346">
+    <link rel="stylesheet" href="css/tokens.css?v=347">
+    <link rel="stylesheet" href="css/style.css?v=347">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -233,7 +233,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=346">
+    <link rel="stylesheet" href="css/vylepseni.css?v=347">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -1430,6 +1430,9 @@
          Katastrální mapě klik do mapy = karta parcely z RÚIAN + odkaz na vlastníka v Nahlížení do KN.
          Volá ho větev „klik do prázdna" v js/grafika.js (typeof-guard). -->
     <script type="ag/lazy" data-src="js/parcela-klik.js"></script>
+    <!-- NÁČRT NA MAPĚ (odpojitelné: smaž tento řádek + js/nacrt-na-mapu.js) — oficiální náčrt ČÚZK
+         položený dvěma klepnutími na katastr, v mapě i v AR (výběr N2, 17. 9. 2026) -->
+    <script type="ag/lazy" data-src="js/nacrt-na-mapu.js"></script>
     <!-- NOVÝ TUTORIÁL (odpojitelné: smaž tento řádek + js/tutorial-pro.js) — základní + pokročilá prohlídka -->
     <!-- 13. 9. 2026: tutorial-pro, historie-aktualizaci, seznam-souradnic a pruvodce jsou ve fronte
          ag/lazy (start -113 kB): nikdo je pri startu nevola, vsechny si init delaji podle readyState. -->

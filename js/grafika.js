@@ -991,6 +991,8 @@
             // lexikalni globala logika.js, ke ktere se modul sam nedostane.
             // Bez modulu je podminka nepravdiva a vetev je nema.
             if (window.AGManualPos && window.AGManualPos.armed) { window.AGManualPos.take(clickLatLng.lat, clickLatLng.lng, map.getZoom()); return; }
+            // NÁČRT NA MAPĚ (js/nacrt-na-mapu.js): druhé klepnutí dvojice „roh v náčrtu → roh v mapě".
+            if (window.AGNacrtMapa && window.AGNacrtMapa.armed) { window.AGNacrtMapa.take(clickLatLng.lat, clickLatLng.lng); return; }
             // PŘEKÁŽKA V MAPĚ (js/hlidac-okoli.js, 16. 9. 2026): dvě klepnutí = obdélník (hromada, výkop…)
             if (window.AGOkoli && window.AGOkoli.armed) { window.AGOkoli.take(clickLatLng.lat, clickLatLng.lng); return; }
             if (areaMode) { areaVertices.push({ lat: clickLatLng.lat, lng: clickLatLng.lng }); afterAreaChange(); return; }

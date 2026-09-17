@@ -542,6 +542,14 @@
                 of.classList.add('list');
             }
             of.innerHTML = h;
+            // NÁČRT NA MAPĚ (17. 9. 2026, výběr N2): tlačítko pod náčrtem — modul je odložený (ag/lazy),
+            // poprvé se dotáhne; bez něj (odstraněn) tlačítko není.
+            try {
+                var nmUrl = hl ? hl.url : (list ? list.url : ''), nmRole = hl ? 'nacrt' : 'list';
+                var nmMount = function () { if (!window.AGNacrtMapa || seq !== _nacrtSeq || !document.body.contains(sk) || document.getElementById('ag-kb-nm')) return; sk.insertAdjacentElement('afterend', AGNacrtMapa.cardButton(pt, nmUrl, nmRole)); };
+                if (window.AGNacrtMapa) nmMount();
+                else if (window.AGLazy && typeof AGLazy.need === 'function') AGLazy.need('js/nacrt-na-mapu.js', nmMount);
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'karta-bodu:nacrtMapa'); }
             // obrázek nedorazil (ČÚZK bez signálu a nic v zásobě) → náčrt z appky
             var im = of.querySelector('img');
             im.addEventListener('error', function () { if (seq === _nacrtSeq && document.body.contains(sk)) { nacrtSpadni(pt, body, sb, 'Náčrt ČÚZK se nenačetl (bez signálu?)'); } });
