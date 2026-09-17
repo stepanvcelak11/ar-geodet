@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v344';   // oprava GPS z mapy za chuze (zivy posun), web novy vzhled, hlaska po stazeni verze
+const SHELL_CACHE = 'argeodet-shell-v345';   // oprava GPS z mapy za chuze (zivy posun), web novy vzhled, hlaska po stazeni verze
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=344',
-    './css/style.css?v=344',
-    './css/vylepseni.css?v=344',
+    './css/tokens.css?v=345',
+    './css/style.css?v=345',
+    './css/vylepseni.css?v=345',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -154,6 +154,9 @@ const ASSETS_TO_CACHE = [
     './js/hrany.js',
     './js/prichyceni.js',
     './js/hrana-auto.js',
+    './js/hlidac-okoli.js',
+    './js/trasa-terenem.js',
+    './js/zdroje-zemi.js',
     './js/parcela.js',
     './js/tools-registry.js',
     './js/student-start.js',
@@ -344,7 +347,11 @@ function isTile(url) {
         || url.includes('services.cuzk.gov.cz/wms')
         // oficialni mistopisne nacrty bodu (karta bodu, 15. 9. 2026) — obrazky od CUZK
         // maji prezit update kodu stejne jako dlazdice, aby nacrt fungoval i bez signalu
-        || url.includes('dataz.cuzk.gov.cz/') || url.includes('bodovapole.cuzk.gov.cz/');
+        || url.includes('dataz.cuzk.gov.cz/') || url.includes('bodovapole.cuzk.gov.cz/')
+        // zdroje po zemích (js/zdroje-zemi.js, 17. 9. 2026): katastr a ortofoto sousedů + Esri
+        || url.includes('skgeodesy.sk/') || url.includes('gugik.gov.pl/') || url.includes('geoportal.gov.pl/') || url.includes('bev.gv.at/') || url.includes('wien.gv.at/basemap')
+        || url.includes('service.pdok.nl/') || url.includes('data.geopf.fr/') || url.includes('wms.geo.admin.ch/') || url.includes('eprostor.gov.si/') || url.includes('api.vlaanderen.be/')
+        || url.includes('lechnerkozpont.hu/') || url.includes('ign.es/wms') || url.includes('server.arcgisonline.com/');
 }
 
 // Predchozi verze shellu (argeodet-shell-v211 pri instalaci v212). Slouzi jako

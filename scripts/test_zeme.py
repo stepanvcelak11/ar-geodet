@@ -8,6 +8,8 @@
      rucne zadany bod E/N se ulozi na spravne misto, undulace z EGM2008 (~39,5 m), deklinace
      WMM (~4–5° v Berline), Nastaveni → Data ma radek „Země měření"
   C  RUCNI VOLBA: prepnuti na Rakousko v Nastaveni → MGI GK M34 Y/X, GHA; zpet na auto
+  D  ZDROJE PO ZEMICH (C3): AT → katastr BEV (DKM_GST) + ortofoto basemap.at, zpet CZ → CUZK;
+     Berlin → ortofoto Esri (fallback), katastr zustava CUZK (DE nema narodni)
 
 Spusteni: python scripts/test_zeme.py [port]
 """
@@ -154,6 +156,20 @@ async def beh(url):
         await page.evaluate("() => { var s = document.getElementById('s-zeme'); s.value = 'auto'; s.dispatchEvent(new Event('change')); }")
         await page.wait_for_timeout(300)
         ok('C3 zpet na auto = CZ', await page.evaluate("() => AGSour.kod() === 'CZ' && AGSour.rezim() === 'auto'"))
+        # ---- D: zdroje po zemich (C3) --------------------------------------------------------
+        ok('D0 modul zdroju nacteny a v CR nechal CUZK', await cekej(page, "window.AGZdroje && AGZdroje.aktualni() === 'CZ' && katastrLayer._url.indexOf('cuzk') > 0", 30))
+        await page.evaluate("() => { var s = document.getElementById('s-zeme'); s.value = 'AT'; s.dispatchEvent(new Event('change')); }")
+        await page.wait_for_timeout(500)
+        dz = await page.evaluate("() => ({ akt: AGZdroje.aktualni(), kat: katastrLayer._url, lay: katastrLayer.wmsParams.layers, orto: baseLayers.ortofoto._url })")
+        ok('D1 Rakousko: katastr BEV DKM_GST, ortofoto basemap.at', dz and dz['akt'] == 'AT' and 'bev.gv.at' in dz['kat'] and dz['lay'] == 'DKM_GST' and 'wien.gv.at' in dz['orto'], dz)
+        await page.evaluate("() => { agMapSetBase('ortofoto'); }")
+        await page.wait_for_timeout(300)
+        ok('D2 podklad Ortofoto = rakouska vrstva v mape', await page.evaluate("() => map.hasLayer(baseLayers.ortofoto) && baseLayers.ortofoto._url.indexOf('wien.gv.at') > 0"))
+        await page.evaluate("() => { var s = document.getElementById('s-zeme'); s.value = 'auto'; s.dispatchEvent(new Event('change')); }")
+        await page.wait_for_timeout(500)
+        dz2 = await page.evaluate("() => ({ akt: AGZdroje.aktualni(), kat: katastrLayer._url, lay: katastrLayer.wmsParams.layers, orto: baseLayers.ortofoto._url, vMape: map.hasLayer(baseLayers.ortofoto) })")
+        ok('D3 zpet CZ: katastr i ortofoto CUZK, ortofoto zustalo zobrazene', dz2 and dz2['akt'] == 'CZ' and 'cuzk' in dz2['kat'] and dz2['lay'] == 'KN' and 'cuzk' in dz2['orto'] and dz2['vMape'], dz2)
+        await page.evaluate("() => { agMapSetBase('osm'); }")
         chyby = [c for c in chyby if 'Failed to load resource' not in c]
         ok('A/C bez chyb stranky', not chyby, chyby[:5])
         await ctx.close()
@@ -185,6 +201,7 @@ async def beh(url):
         await page.wait_for_timeout(600)
         p2 = await page.evaluate("() => { var p = persistentCustomPoints.find(q => q.name === 'Rucni'); return p ? { lat: p.lat, lng: p.lng, d: GeoCore.getDistance(%f, %f, p.lat, p.lng), b: GeoCore.getBearing(%f, %f, p.lat, p.lng) } : null; }" % (BERLIN + BERLIN))
         ok('B8 rucne zadany bod E+100 m lezi 100 m vychodne (UTM, ne Krovak)', p2 and abs(p2['d'] - 100) < 1 and abs(p2['b'] - 90) < 2.5, p2)
+        ok('D4 Berlin: ortofoto = Esri World Imagery (DE nema narodni), katastr zustava CUZK', await cekej(page, "window.AGZdroje && AGZdroje.aktualni() === 'DE' && baseLayers.ortofoto._url.indexOf('arcgisonline') > 0 && katastrLayer._url.indexOf('cuzk') > 0", 30), await page.evaluate("() => window.AGZdroje && [AGZdroje.aktualni(), baseLayers.ortofoto._url]"))
         chyby = [c for c in chyby if 'Failed to load resource' not in c]
         ok('B bez chyb stranky', not chyby, chyby[:5])
         await ctx.close()

@@ -98,11 +98,21 @@
     try { new MutationObserver(function () { nastavStyl(); }).observe(document.body, { attributes: true, attributeFilter: ['class'] }); } catch (e) { swallow(e, 'observer'); }
 
     // ---- zapnutí / vypnutí ---------------------------------------------------------------
+    // Data opravdu existují? Jeden malý Range požadavek na hlavičku PMTiles (16 kB). Bez toho
+    // se přepínač tvářil jako zapnutý a mapa byla prázdná (worker bez R2 vrací 503 s návodem).
+    function overData() {
+        if (typeof fetch !== 'function') return Promise.resolve(true);
+        return fetch(url(), { headers: { Range: 'bytes=0-16383' }, cache: 'no-store' }).then(function (r) {
+            if (r.status === 206 || r.status === 200) return true;
+            var t = 'Data mapy nejsou k dispozici (server odpověděl ' + r.status + ').';
+            return r.json().then(function (j) { if (j && j.jak) t += ' ' + j.jak; return t; }).catch(function () { return t; }).then(function (txt) { throw new Error(txt); });
+        }, function () { throw new Error('Data mapy se nepodařilo načíst (bez signálu, nebo špatná adresa).'); });
+    }
     function zapni() {
         if (lite()) { stav = 'chyba'; chybaText = 'V režimu slabší telefon vektorová mapa není (WebGL + 1 MB knihovny).'; return Promise.resolve(false); }
         if (typeof baseLayers === 'undefined' || typeof map === 'undefined' || !window.AGMapaStyl) { stav = 'chyba'; chybaText = 'Mapa appky ještě neběží.'; return Promise.resolve(false); }
         stav = 'nacitam';
-        return knihovny().then(function () {
+        return overData().then(knihovny).then(function () {
             if (!vrstva) {
                 _varianta = varianta();
                 vrstva = L.maplibreGL({ style: AGMapaStyl.vytvor(_varianta, url()), interactive: false, attributionControl: false, pane: 'tilePane' });
@@ -119,7 +129,11 @@
             stav = 'zapnuto'; chybaText = '';
             try { document.dispatchEvent(new CustomEvent('ag:mapa-vektor', { detail: { zap: true } })); } catch (e) { /* nic */ }
             return true;
-        }).catch(function (e) { stav = 'chyba'; chybaText = (e && e.message) || String(e); swallow(e, 'zapni'); return false; });
+        }).catch(function (e) {
+            stav = 'chyba'; chybaText = (e && e.message) || String(e); swallow(e, 'zapni');
+            try { if (typeof window.agInfo === 'function' && !zapni._rekl) { zapni._rekl = true; window.agInfo('Vektorová mapa: ' + chybaText); } } catch (e2) { /* nic */ }
+            return false;
+        });
     }
     function vypni() {
         if (!vrstva || !rastr || typeof baseLayers === 'undefined') { stav = 'vypnuto'; return; }
@@ -172,6 +186,20 @@
         return out;
     }
 
+    // Čáry (LineString) z vrstvy podle kind — koleje pro hlídač okolí, silnice pro trasu; [[{lat,lng}]]
+    function cary(sourceLayer, kinds) {
+        var m = mapa(); if (!m || !m.isStyleLoaded || !m.isStyleLoaded()) return [];
+        var out = [];
+        var fs = []; try { fs = m.querySourceFeatures('pm', { sourceLayer: sourceLayer }) || []; } catch (e) { swallow(e, 'cary'); }
+        fs.forEach(function (f) {
+            if (kinds && kinds.indexOf(f.properties && f.properties.kind) < 0) return;
+            var g = f.geometry; if (!g) return;
+            var lines = g.type === 'LineString' ? [g.coordinates] : (g.type === 'MultiLineString' ? g.coordinates : []);
+            lines.forEach(function (line) { var l = line.map(function (c) { return { lat: c[1], lng: c[0] }; }); l.vlastnosti = f.properties || {}; out.push(l); });
+        });
+        return out;
+    }
+
     // ---- Nastavení → Vzhled → řádek ------------------------------------------------------
     function ui() {
         if (document.getElementById('s-mapa-vektor')) return;
@@ -213,5 +241,5 @@
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
-    window.AGMapaVektor = { nastav: nastav, zapni: zapni, vypni: vypni, stav: function () { return stav; }, chyba: function () { return chybaText; }, posledniChyba: function () { return _posledniChyba; }, mapa: mapa, budovy: budovy, plochy: plochy, url: url, varianta: varianta, nastaveni: function () { return { zap: st.zap, styl: st.styl, url: st.url }; } };
+    window.AGMapaVektor = { nastav: nastav, zapni: zapni, vypni: vypni, stav: function () { return stav; }, chyba: function () { return chybaText; }, posledniChyba: function () { return _posledniChyba; }, mapa: mapa, budovy: budovy, plochy: plochy, cary: cary, url: url, varianta: varianta, nastaveni: function () { return { zap: st.zap, styl: st.styl, url: st.url }; } };
 })();

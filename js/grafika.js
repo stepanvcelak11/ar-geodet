@@ -991,6 +991,8 @@
             // lexikalni globala logika.js, ke ktere se modul sam nedostane.
             // Bez modulu je podminka nepravdiva a vetev je nema.
             if (window.AGManualPos && window.AGManualPos.armed) { window.AGManualPos.take(clickLatLng.lat, clickLatLng.lng, map.getZoom()); return; }
+            // PŘEKÁŽKA V MAPĚ (js/hlidac-okoli.js, 16. 9. 2026): dvě klepnutí = obdélník (hromada, výkop…)
+            if (window.AGOkoli && window.AGOkoli.armed) { window.AGOkoli.take(clickLatLng.lat, clickLatLng.lng); return; }
             if (areaMode) { areaVertices.push({ lat: clickLatLng.lat, lng: clickLatLng.lng }); afterAreaChange(); return; }
             if (connectMode) { handleConnectTap(clickLatLng); return; }
             const clickPoint = map.latLngToContainerPoint(clickLatLng); const nearbyPoints = [];
@@ -2520,8 +2522,10 @@
                 // rajon), a `continue` to preskocil -> #ar-hud se schoval CELY: v mape
                 // navigace bezela dal, v AR nebyla ani sipka, ani vzdalenost.
                 if (pt.id === highlightedPointId) {
-                    const _hDist = pt.currentDist || getDistance(_oLat, _oLng, pt.lat, pt.lng);
-                    const _hBear = (pt.currentBearing != null) ? pt.currentBearing : getBearing(_oLat, _oLng, pt.lat, pt.lng);
+                    let _hDist = pt.currentDist || getDistance(_oLat, _oLng, pt.lat, pt.lng);
+                    let _hBear = (pt.currentBearing != null) ? pt.currentBearing : getBearing(_oLat, _oLng, pt.lat, pt.lng);
+                    // TRASA TERÉNEM (js/trasa-terenem.js, 17. 9. 2026): šipka na další lom, vzdálenost po trase
+                    try { if (window.AGTrasa && AGTrasa.aktivni(pt.id)) { const _s = AGTrasa.smer(), _z = AGTrasa.zbyva(); if (_s != null) _hBear = _s; if (_z != null) _hDist = _z; } } catch (e) { /* přímka */ }
                     highlightedPointData = { diff: ((_hBear - heading + 540) % 360) - 180, dist: _hDist, name: pt.name };
                 }
                 if (_beyond && !_keepFar) {

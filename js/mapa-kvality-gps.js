@@ -42,6 +42,7 @@
         var nB = 0, nL = 0;
         try { (window.AGMapaVektor ? AGMapaVektor.plochy(['landcover', 'landuse'], ['forest', 'wood']) : []).forEach(function (rings) { kresli(rings, LES_V); nL++; }); } catch (e) { swallow(e, 'les'); }
         AGHrany.budovyPolygony(stred.lat, stred.lng, R + 40).forEach(function (b) { kresli(b.rings, b.vyska); nB++; });
+        try { if (window.AGOkoli) AGOkoli.prekazky().forEach(function (p) { kresli(AGOkoli.prekazkaRings(p), 3); }); } catch (e) { swallow(e, 'prekazky'); }
         var data = ctx.getImageData(0, 0, n, n).data, v = new Float32Array(n * n);
         for (var i = 0; i < n * n; i++) v[i] = data[i * 4];
         return { v: v, n: n, budov: nB, lesu: nL };

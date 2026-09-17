@@ -39,7 +39,7 @@
     var GOLD = '#fbbf24';
     var navGroup = null;
     var _pt = null, _ptId = null, _ptN = -1;            // cache dohledaného cíle
-    var _mLat = null, _mLng = null, _mTLat = null, _mTLng = null, _mId = null, _mView = null;
+    var _mLat = null, _mLng = null, _mTLat = null, _mTLng = null, _mId = null, _mView = null, _mTrasa = null;
     // (proměnné po pilulce na hraně zmizely s ní — 9. 9. 2026, viz páska níž)
     var _tile = null, _tileOn = null, _holdT = null;
 
@@ -222,18 +222,23 @@
             _mView = vm;
             return;
         }
+        // TRASA TERÉNEM (js/trasa-terenem.js, 17. 9. 2026): když je spočítaná, přímka se nekreslí —
+        // trasu kreslí modul sám; stav je součást dirty-checku (zapnutí/vypnutí = překreslit).
+        var _poTrase = false, _trasaTs = null;
+        try { if (window.AGTrasa && AGTrasa.aktivni(pt.id) && AGTrasa.body()) { _poTrase = true; _trasaTs = AGTrasa.trasa().ts; } } catch (e) { /* přímka */ }
+        var _klicTrasy = _poTrase ? String(_trasaTs) : null;
         // dirty-check: překreslit až při skutečné změně (posun >0,3 m, jiný cíl, návrat z AR)
         if (!force && _mId === pt.id && _mView === vm && _mLat != null
             && Math.abs(uLat - _mLat) < 3e-6 && Math.abs(uLng - _mLng) < 5e-6
-            && _mTLat === pt.lat && _mTLng === pt.lng) return;
-        _mId = pt.id; _mLat = uLat; _mLng = uLng; _mTLat = pt.lat; _mTLng = pt.lng; _mView = vm;
+            && _mTLat === pt.lat && _mTLng === pt.lng && _mTrasa === _klicTrasy) return;
+        _mId = pt.id; _mLat = uLat; _mLng = uLng; _mTLat = pt.lat; _mTLng = pt.lng; _mView = vm; _mTrasa = _klicTrasy;
 
         var grp = ensureGroup(); if (!grp) return;
         grp.clearLayers();
         var A = L.latLng(uLat, uLng), B = L.latLng(pt.lat, pt.lng);
 
-        // spojnice (overlayPane = pod značkami bodů, aby je nepřekrývala)
-        L.polyline([A, B], {
+        // spojnice (overlayPane = pod značkami bodů, aby je nepřekrývala); po trase se nekreslí
+        if (!_poTrase) L.polyline([A, B], {
             color: GOLD, weight: 3, opacity: 0.9, dashArray: '10,8',
             lineCap: 'round', interactive: false
         }).addTo(grp);
@@ -254,12 +259,14 @@
             // vzdálenost se na pásku nekreslí (viz styl výš); je v otisku stavu jen proto,
         // aby se DOM přepsal, když se změní i to, co na pásce vidět JE
         var d = (pt.currentDist != null) ? pt.currentDist : getDistance(uLat, uLng, pt.lat, pt.lng);
+            var _txt = fmtD(d);
+            try { if (_poTrase) { var _pp = AGTrasa.popisek(); if (_pp) _txt = _pp; } } catch (e) { /* přímka */ }
             var pos = labelLatLng(m, A, B);
             if (pos) {
                 var rot = (typeof mapRotation === 'number') ? mapRotation : 0;
                 var html = '<div style="position:relative;width:0;height:0;">'
                     + '<div class="map-label-text ag-cil-lbl" style="left:-30px;top:-20px;transform:rotate(' + rot + 'deg);">'
-                    + fmtD(d) + '</div></div>';
+                    + _txt + '</div></div>';
                 L.marker(pos, {
                     icon: L.divIcon({ className: 'custom-map-marker', html: html, iconSize: [0, 0] }),
                     interactive: false, keyboard: false
@@ -452,11 +459,14 @@
         _pTx.style.transform = 'translate3d(' + tx.toFixed(1) + 'px,0,0)';
 
         var brg = (pt.currentBearing != null) ? pt.currentBearing : getBearing(uLat, uLng, pt.lat, pt.lng);
+        // TRASA TERÉNEM (js/trasa-terenem.js, 17. 9. 2026): páska vede na NEJBLIŽŠÍ LOM trasy, ne na cíl
+        try { if (window.AGTrasa && AGTrasa.aktivni(pt.id)) { var _ts = AGTrasa.smer(); if (_ts != null) brg = _ts; } } catch (e) { /* přímka */ }
         var diff = ((brg - hd + 540) % 360) - 180;   // kladné = cíl je vpravo
         var ad = Math.abs(diff);
         var mez = _pasOkno / 2 - 4;                   // rezerva, ať ryska nelepí na kraj
         var mimo = ad > mez;
         var d = (pt.currentDist != null) ? pt.currentDist : getDistance(uLat, uLng, pt.lat, pt.lng);
+        try { if (window.AGTrasa && AGTrasa.aktivni(pt.id)) { var _tz = AGTrasa.zbyva(); if (_tz != null) d = _tz; } } catch (e) { /* přímka */ }
 
         // DOM píšeme jen při skutečné změně (funkce běží každý snímek kompasu)
         var stav = (mimo ? 'M' : 'I') + (diff < 0 ? 'L' : 'R') + Math.round(ad) + '|'

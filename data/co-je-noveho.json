@@ -2,6 +2,18 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 345,
+   "datum": "2026-09-17",
+   "nadpis": "Hlídač okolí, trasa k bodu podle terénu s výškovým profilem, ruční překážky, katastr a ortofoto sousedních zemí",
+   "body": [
+    "<b>Hlídač okolí.</b> U budovy (do 4 m), uvnitř budovy podle mapy, pod stromy, u kolejí nebo u označené překážky ti pilulka nahoře řekne, co to dělá s GPS a co s tím („odstup 10 m, nebo krokový offset“). K novému bodu z GPS se zapíše, za jakých podmínek vznikl (např. „2,1 m od budovy“). Vypnutí: Nastavení → AR & přesnost.",
+    "<b>Překážka dvěma klepnutími.</b> Hromada materiálu, výkop, bagr — to v žádné mapě není. Vrstvy → Nástroje mapy → <b>Překážka</b>, klepni na dva protější rohy: trasa ji obejde, hlídač před ní varuje, mapa kvality GPS ji stíní. Platí pro zakázku; klepnutím na obdélník ji smažeš.",
+    "<b>Trasa k bodu podle terénu.</b> Místo přímky lomená trasa, která obejde budovy, vodu, dálnice a překážky a dává přednost cestám před polem a lesem (mřížka 2 m, výpočet v telefonu). Páska a šipka v AR vedou na <b>nejbližší lom</b>, vzdálenost je délka po trase; když zboudíš o 15 m, přepočítá se. Klepnutí na trasu ukáže <b>výškový profil</b> (↑ stoupání, ↓ klesání, nejstrmější úsek). Vypnutí: Nastavení → AR & přesnost.",
+    "<b>Katastr a ortofoto mimo ČR.</b> Podle země, kde stojíš, se v mapě přepnou podklady: Slovensko (ESKN, ZBGIS), Polsko (GUGiK), Rakousko (BEV, basemap.at), Nizozemsko (PDOK), Francie (IGN), Švýcarsko (swisstopo), Slovinsko, Belgie (Vlámsko), Maďarsko, Španělsko (ortofoto). Jinde na světě ortofoto Esri. Poctivě: bodová pole cizích států veřejně jako data nejsou — mimo ČR jedeš na vlastní body, katastr a mapu.",
+    "Vektorová mapa teď před zapnutím ověří, že data v cloudu opravdu jsou; když ne, řekne proč, místo aby ukázala prázdnou mapu."
+   ]
+  },
+  {
    "v": 344,
    "datum": "2026-09-16",
    "nadpis": "Přesnost z mapy: přichycení bodu k rohu, samočinná korekce GPS podle hrany, mapa „kde se dá měřit“",

@@ -21,6 +21,12 @@
   H  KOREKCE PODLE HRANY (P1): stopa 8 fixu 1,5 m severne od hrany HRANA (200 m) → navrh posun 1,5 m
      na jih (zdroj dxf), aplikace = agRefShift src hrana-auto; kolma stopa = zadny navrh; rezim ptat = dialog
   I  KVALITA GPS (P3): vypocet 220x220 m, vrstva v mape, uvnitr budovy 0, na volnem >0,6, radek ve Vrstvach
+  J  HLIDAC OKOLI (B2): u budovy (2 m) = varovani + pilulka, uvnitr budovy = bad, rucni prekazka dvema klepnutimi
+     (obdelnik v mape, uvnitr/u ni varovani), novy bod z GPS dostane prov.okoli, vypnuti schova pilulku
+  K  DATA NEDOSTUPNA: adresa, ktera vraci 404 → stav chyba s textem, ne prazdna mapa
+  L  TRASA TERENEM + PROFIL (B1, B3): cil za budovou → trasa obchazi budovy (zadny lom uvnitr), delsi nez
+     primka, primka v mape zmizi, paska/HUD miri na dalsi lom, profil ze vstrikovane vysky (5 % stoupani),
+     rucni prekazka na trase → prepocet, vypnuti = primka
 
 Spusteni: python scripts/test_mapa_vektor.py [port]
 """
@@ -289,8 +295,82 @@ async def beh(url):
         await page.evaluate("() => AGKvalitaGpsMapa.prepni(false)")
         ok('I4 prepnuti radku vrstvu schova', await page.evaluate("() => !document.querySelector('.ag-kvgps-overlay') && !document.getElementById('ms-kvgps').classList.contains('ctrl-active')"))
 
+        # ================= J: hlidac okoli (B2) ========================================
+        ok('J0 modul hlidace nacteny', await cekej(page, "window.AGOkoli && AGOkoli.vyhodnot", 30))
+        # bod 2 m od nejblizsi hrany nejblizsi budovy: vezmi prvni hranu budovy a posun se kolmo o 2 m ven
+        j1 = await page.evaluate("""() => { var s = AGHrany.sber(%f, %f, 60).hrany.filter(h => h.zdroj === 'budova'); if (!s.length) return null;
+            var h = s[0], m = AGHrany.mPerDeg(h.a.lat); var bx = (h.b.lng - h.a.lng) * m.lng, by = (h.b.lat - h.a.lat) * m.lat, L = Math.hypot(bx, by) || 1;
+            var nx = -by / L, ny = bx / L; var mid = { lat: (h.a.lat + h.b.lat) / 2, lng: (h.a.lng + h.b.lng) / 2 };
+            var kand = [1, -1].map(sg => ({ lat: mid.lat + sg * 2 * ny / m.lat, lng: mid.lng + sg * 2 * nx / m.lng }));
+            var venku = kand.map(q => ({ q: q, o: AGOkoli.vyhodnot(q.lat, q.lng) })).find(x => !x.o.uvnitr);
+            if (!venku) return { zadnyVenku: true };
+            var sh = AGOkoli.shrn(venku.o); return { d: venku.o.budova && venku.o.budova.d, kod: sh && sh.kod, trida: sh && sh.trida, text: sh && sh.text, dovnitr: (function () { var qi = { lat: mid.lat - (venku.q.lat - mid.lat) * 1.5, lng: mid.lng - (venku.q.lng - mid.lng) * 1.5 }; var o = AGOkoli.vyhodnot(qi.lat, qi.lng); var s2 = AGOkoli.shrn(o); return s2 && s2.kod; })() }; }""" % (LAT, LNG))
+        ok('J1 2 m od budovy: budova.d ~2, kod budova4/budova2 (warn), 3 m dovnitr = uvnitr (bad)', j1 and not j1.get('zadnyVenku') and j1['d'] is not None and abs(j1['d'] - 2) < 0.6 and j1['kod'] in ('budova4', 'budova2') and j1['dovnitr'] == 'uvnitr', j1)
+        # rucni prekazka: obdelnik 10x10 m 60 m jizne od stanoviska (mimo budovy? nevadi — testujeme prekazku)
+        await page.evaluate("""() => { AGOkoli.pridejPrekazku({ lat: %f - 60 / 111320, lng: %f }, { lat: %f - 70 / 111320, lng: %f + 10 / (111320 * Math.cos(%f * Math.PI / 180)) }, 'hromada'); }""" % (LAT, LNG, LAT, LNG, LAT))
+        j2 = await page.evaluate("""() => { var m = 111320, ml = m * Math.cos(%f * Math.PI / 180); var uv = AGOkoli.vyhodnot(%f - 65 / m, %f + 5 / ml); var u = AGOkoli.vyhodnot(%f - 58 / m, %f + 5 / ml); var n = 0; map.eachLayer(l => { if (l instanceof L.Rectangle) n++; }); return { uvnitr: uv.prekazkaUvnitr, u: u.prekazka && u.prekazka.d, obdelniky: n, ulozeno: !!getStoredData('agPrekazky') }; }""" % (LAT, LAT, LNG, LAT, LNG))
+        ok('J2 prekazka: uvnitr = hromada, 2 m od ni = prekazka.d ~2, obdelnik v mape, ulozena per zakazka', j2 and j2['uvnitr'] == 'hromada' and j2['u'] is not None and abs(j2['u'] - 2) < 0.3 and j2['obdelniky'] >= 1 and j2['ulozeno'], j2)
+        # dve klepnuti do mapy
+        await page.evaluate("() => { AGOkoli.kresliNovou('výkop'); }")
+        await page.evaluate("() => { map.fire('click', { latlng: L.latLng(%f + 0.0003, %f + 0.0003), containerPoint: map.latLngToContainerPoint(L.latLng(%f + 0.0003, %f + 0.0003)), originalEvent: {} }); map.fire('click', { latlng: L.latLng(%f + 0.00035, %f + 0.00035), containerPoint: map.latLngToContainerPoint(L.latLng(%f + 0.00035, %f + 0.00035)), originalEvent: {} }); }" % (LAT, LNG, LAT, LNG, LAT, LNG, LAT, LNG))
+        j3 = await page.evaluate("() => ({ n: AGOkoli.prekazky().length, posl: AGOkoli.prekazky()[AGOkoli.prekazky().length - 1].nazev, armed: AGOkoli.armed })")
+        ok('J3 dve klepnuti do mapy = nova prekazka „výkop", rezim kresleni skoncil', j3 and j3['n'] == 2 and j3['posl'] == 'výkop' and not j3['armed'], j3)
+        await page.evaluate("() => AGOkoli.smazPrekazku(1)")
+        # pilulka + prov.okoli: podstrcit polohu 2 m od budovy pres userLat/userLng? userLat je lexikalni globala — jde prepsat
+        j4 = await page.evaluate("""() => { var s = AGHrany.sber(%f, %f, 60).hrany.filter(h => h.zdroj === 'budova'); var h = s[0], m = AGHrany.mPerDeg(h.a.lat);
+            var bx = (h.b.lng - h.a.lng) * m.lng, by = (h.b.lat - h.a.lat) * m.lat, L = Math.hypot(bx, by) || 1; var nx = -by / L, ny = bx / L; var mid = { lat: (h.a.lat + h.b.lat) / 2, lng: (h.a.lng + h.b.lng) / 2 };
+            var q = [1, -1].map(sg => ({ lat: mid.lat + sg * 1.5 * ny / m.lat, lng: mid.lng + sg * 1.5 * nx / m.lng })).find(q => !AGOkoli.vyhodnot(q.lat, q.lng).uvnitr);
+            userLat = q.lat; userLng = q.lng; AGOkoli.tik(); var st = AGOkoli.stav(); var p = document.getElementById('ag-okoli-pill');
+            return { kod: st && st.kod, pill: p && p.classList.contains('show') && p.textContent, popis: AGOkoli.popisProBod() }; }""" % (LAT, LNG))
+        ok('J4 stanoviste 1,5 m od zdi: stav budova2 (bad), pilulka svítí, popis pro bod „1,5 m od budovy"', j4 and j4['kod'] == 'budova2' and j4['pill'] and 'od budovy' in j4['pill'] and j4['popis'] and 'od budovy' in j4['popis'], j4)
+        j5 = await page.evaluate("""() => { openNewPointModal(); var mm = agMistni(userLat, userLng); document.getElementById('custom-name').value = 'Okoli1'; document.getElementById('custom-y').value = mm.y.toFixed(2); document.getElementById('custom-x').value = mm.x.toFixed(2);
+            AGPrichyceni.nastav({ zap: false }); window._agPointOrigin = 'gps-avg'; saveCustomPoint(); AGPrichyceni.nastav({ zap: true });
+            var p = persistentCustomPoints.find(q => q.name === 'Okoli1'); return p && p.prov && p.prov.okoli; }""")
+        ok('J5 novy bod z GPS dostal prov.okoli', j5 and 'od budovy' in j5, j5)
+        await page.evaluate("() => { AGOkoli.nastav({ zap: false }); AGOkoli.tik(); }")
+        ok('J6 vypnuti hlidace schova pilulku', await page.evaluate("() => !document.getElementById('ag-okoli-pill').classList.contains('show') && !AGOkoli.stav()"))
+        await page.evaluate("() => { AGOkoli.nastav({ zap: true }); userLat = %f; userLng = %f; }" % (LAT, LNG))
+
+        # ================= L: trasa terenem + profil (B1 + B3) ===========================
+        ok('L0 modul trasy nacteny', await cekej(page, "window.AGTrasa && AGTrasa.spocitej", 30))
+        # cil: za nejblizsi budovou (od me pres jeji stred a jeste 25 m dal), profil 5 % stoupani k vychodu
+        l1 = await page.evaluate("""() => { AGTrasa.vyskaFn = (lat, lng) => 250 + (lng - %f) * 111320 * Math.cos(%f * Math.PI / 180) * 0.05;
+            var me = { lat: %f, lng: %f }; var b = AGHrany.budovyPolygony(me.lat, me.lng, 80).map(x => { var r = x.rings[0]; var cx = 0, cy = 0; r.forEach(q => { cx += q.lng; cy += q.lat; }); return { lat: cy / r.length, lng: cx / r.length, d: AGHrany.dist(me, { lat: cy / r.length, lng: cx / r.length }) }; }).filter(x => x.d > 15).sort((a, b) => a.d - b.d)[0];
+            var m = AGHrany.mPerDeg(me.lat); var L = b.d; var ux = (b.lng - me.lng) * m.lng / L, uy = (b.lat - me.lat) * m.lat / L; var c = { lat: b.lat + uy * 25 / m.lat, lng: b.lng + ux * 25 / m.lng };
+            // cil nesmi lezet v budove — posunout, dokud neni venku
+            for (var k = 0; k < 20 && AGOkoli.vyhodnot(c.lat, c.lng).uvnitr; k++) { c = { lat: c.lat + uy * 4 / m.lat, lng: c.lng + ux * 4 / m.lng }; }
+            var p = { id: 'cil-trasa', name: 'Cil', lat: c.lat, lng: c.lng, type: 'custom', cat: 'CUSTOM', hidden: false }; arPoints.push(p); highlightedPointId = 'cil-trasa';
+            var t = AGTrasa.prepocitej('test'); if (!t) return { t: null, primka: AGHrany.dist(me, c) };
+            var uvnitr = 0; for (var i = 1; i < t.body.length; i++) { var a = t.body[i - 1], q = t.body[i]; for (var s = 0.1; s < 1; s += 0.2) { var mid = { lat: a.lat + (q.lat - a.lat) * s, lng: a.lng + (q.lng - a.lng) * s }; if (AGOkoli.vyhodnot(mid.lat, mid.lng).uvnitr) uvnitr++; } }
+            return { lomu: t.body.length, delka: t.delka, primka: AGHrany.dist(me, c), uvnitr: uvnitr, ms: t.ms, bunka: t.bunka, smer: AGTrasa.smer(), primySmer: GeoCore.getBearing(me.lat, me.lng, c.lat, c.lng), zbyva: AGTrasa.zbyva() }; }""" % (LNG, LAT, LAT, LNG))
+        ok('L1 trasa za budovou: ≥ 3 lomy, zadny usek uvnitr budovy, delsi nez primka, spocitano < 3 s', l1 and isinstance(l1.get('lomu'), int) and l1['lomu'] >= 3 and l1['uvnitr'] == 0 and l1['delka'] > l1['primka'] * 1.02 and l1['ms'] < 3000, l1)
+        ok('L2 paska miri na dalsi lom (smer != primy smer o > 5°), zbyva = delka trasy', l1 and isinstance(l1.get('smer'), (int, float)) and abs(((l1['smer'] - l1['primySmer'] + 540) % 360) - 180) > 5 and abs(l1['zbyva'] - l1['delka']) < 1.0, l1)
+        await page.evaluate("() => { try { updateNavGlow && updateNavGlow(true); } catch (e) {} }")
+        await page.wait_for_timeout(500)
+        l3 = await page.evaluate("() => { var n = 0, dashed = 0, popis = ''; map.eachLayer(l => { if (l instanceof L.Polyline && !(l instanceof L.Polygon)) { if (l.options.dashArray === '10,8') dashed++; if (l.options.weight === 4 && l.options.color === '#fbbf24') n++; } }); var lb = document.querySelector('.ag-cil-lbl'); return { trasy: n, primky: dashed, popis: lb && lb.textContent }; }")
+        ok('L3 v mape je cara trasy (plna) a primka k cili zmizela; popisek = delka po trase', l3 and l3['trasy'] >= 1 and l3['primky'] == 0 and l3['popis'] and ' m' in l3['popis'], l3)
+        ok('L4 profil ze vstrikovane vysky: stoupani ~5 % delky k vychodu, popisek ↑/↓', await cekej(page, "AGTrasa.trasa() && AGTrasa.trasa().profil", 20) and await page.evaluate("() => { var t = AGTrasa.trasa(), p = t.profil; var m = AGHrany.mPerDeg(t.od.lat); var dE = (t.body[t.body.length - 1].lng - t.od.lng) * m.lng; var cek = Math.max(0, dE * 0.05); return Math.abs((p.up - p.down) - dE * 0.05) < 1.5 && p.s.length >= 3 && /↑[0-9]+ ↓[0-9]+ m/.test(AGTrasa.popisek()) && AGTrasa.svgProfil(p).indexOf('<svg') === 0; }"),
+           await page.evaluate("() => { var t = AGTrasa.trasa(); return t && t.profil && { up: t.profil.up, down: t.profil.down, n: t.profil.s.length, popisek: AGTrasa.popisek() }; }"))
+        # prekazka na trase → prepocet (udalost ag:prekazky) a trasa ji obejde
+        l5 = await page.evaluate("""() => { var t = AGTrasa.trasa(); var i = Math.floor(t.body.length / 2); var q = t.body[i]; var m = AGHrany.mPerDeg(q.lat);
+            AGOkoli.pridejPrekazku({ lat: q.lat - 4 / m.lat, lng: q.lng - 4 / m.lng }, { lat: q.lat + 4 / m.lat, lng: q.lng + 4 / m.lng }, 'hromada');
+            var t2 = AGTrasa.trasa(); var venku = t2 && t2.body.every(b => !(b.lat > q.lat - 4 / m.lat && b.lat < q.lat + 4 / m.lat && b.lng > q.lng - 4 / m.lng && b.lng < q.lng + 4 / m.lng)); return { nova: t2 !== t, venku: venku, duvod: t2 && t2.duvod }; }""")
+        ok('L5 rucni prekazka na trase → prepocet a trasa ji obejde', l5 and l5['nova'] and l5['venku'] and l5['duvod'] == 'překážka', l5)
+        await page.evaluate("() => { AGTrasa.nastav({ zap: false }); }")
+        await page.evaluate("() => { try { updateNavGlow && updateNavGlow(true); } catch (e) {} }")
+        await page.wait_for_timeout(400)
+        ok('L6 vypnuti = zase primka', await page.evaluate("() => { var dashed = 0; map.eachLayer(l => { if (l instanceof L.Polyline && l.options.dashArray === '10,8') dashed++; }); return !AGTrasa.aktivni() && dashed >= 1; }"))
+        await page.evaluate("() => { AGTrasa.nastav({ zap: true }); highlightedPointId = null; AGTrasa.vyskaFn = null; }")
+
         chyby_a = [c for c in chyby if 'Failed to load resource' not in c and 'WebGL' not in c]
-        ok('A–I bez chyb stranky', not chyby_a, chyby_a[:5])
+        ok('A–L bez chyb stranky', not chyby_a, chyby_a[:5])
+        await ctx.close()
+
+        # ================= K: data nedostupna ============================================
+        chyby = []
+        ctx, page = await stranka(br, url, INIT + "localStorage.setItem('agMapaVektor_v1', JSON.stringify({zap:true, styl:'auto', url:%s}));" % json.dumps(fixture.replace('mapa-praha', 'neexistuje')), chyby)
+        await cekej(page, "document.body.classList.contains('app-started')")
+        ok('K1 neexistujici data → stav chyba s textem, podklad zustal rastr', await cekej(page, "window.AGMapaVektor && AGMapaVektor.stav() === 'chyba' && /404|k dispozici/.test(AGMapaVektor.chyba()) && !document.querySelector('#map .maplibregl-canvas')", 40), await page.evaluate("() => window.AGMapaVektor && [AGMapaVektor.stav(), AGMapaVektor.chyba()]"))
         await ctx.close()
 
         chyby = []
