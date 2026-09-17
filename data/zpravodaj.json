@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-09-16",
-  "uvodnik": "Vydání 16. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-09-17",
+  "uvodnik": "Vydání 17. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,30 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Golden Software Enhances Usability for Faster, More Efficient 3D Visualization in Surfer Surface Mapping Software",
+      "perex": "Golden, Colorado, 16 September 2026 – Golden Software has focused on enhanced usability in the latest version of its Surfer mapping and 3D visualization software package released today.",
+      "telo": "Golden, Colorado, 16 September 2026 – Golden Software has focused on enhanced usability in the latest version of its Surfer mapping and 3D visualization software package released today. New and long-time Surfer users will find it is faster and easier to make high-quality subsurface maps that accurately visualize their 3D data sets. Slice your models along any vector path, generate crisp 2D contour and image profiles in seconds, and export report-ready images or grids with a single click. “We made Surfer easier to use by streamlining the map creation workflow,” said Kari Dickenson, Surfer Product Manager. “Starting with the redesigned ribbon tab on the homepage, the new version of Surfer chan",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/16/golden-software-enhances-usability-for-faster-more-efficient-3d-visualization-in-surfer-surface-mapping-software/?utm_source=rss&utm_medium=rss&utm_campaign=golden-software-enhances-usability-for-faster-more-efficient-3d-visualization-in-surfer-surface-mapping-software",
+      "datum": "2026-09-16"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Merrick & Company and Teledyne Optech Strengthen Strategic Partnership to Advance Geospatial Innovation",
+      "perex": "Colorado – September 15, 2026 – Merrick & Company is strengthening its longstanding strategic partnership with Teledyne Optech (Teledyne), reinforcing a decade-long collaboration focused on advancing…",
+      "telo": "Colorado – September 15, 2026 – Merrick & Company is strengthening its longstanding strategic partnership with Teledyne Optech (Teledyne), reinforcing a decade-long collaboration focused on advancing geospatial technology, improving data collection capabilities, and delivering greater value to clients. Merrick’s latest investment in Teledyne’s next-generation airborne mapping technology represents another milestone in a relationship built on innovation, trust, and a shared commitment to continuous improvement. As part of the continued partnership, Merrick recently integrated Teledyne’s dual Galaxy Edge+ G2 lidar sensor suite and upgraded aerial imaging capabilities into its geospatial operat",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/16/merrick-company-and-teledyne-optech-strengthen-strategic-partnership-to-advance-geospatial-innovation/?utm_source=rss&utm_medium=rss&utm_campaign=merrick-company-and-teledyne-optech-strengthen-strategic-partnership-to-advance-geospatial-innovation",
+      "datum": "2026-09-16"
     },
     {
       "rubrika": "Přístroje",
@@ -72,30 +96,6 @@
       "proc": "",
       "zdroj": "xyHt",
       "odkaz": "https://www.xyht.com/gnsslocation-tech/calian-strengthens-precision-gnss-antenna-portfolio-with-new-survey-and-anti-jamming-antenna-solutions/",
-      "datum": "2026-09-15"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "The Surveyor and Alpha Gal Syndrome",
-      "perex": "About forty years ago, I woke up in the middle of the night, itching.",
-      "telo": "About forty years ago, I woke up in the middle of the night, itching. Now, it wasn’t a normal itch, it was taking over my entire body. When I turned on the lights, I discovered I was covered with whelps or hives. It was in my scalp, inside my ears and even under my eyelids. I looked like the skin of a strawberry. It continued to get worse and lasted about two hours before subsiding. I told a friend about it. Being light skinned and tending toward red hair, John had sensitive skin and was always peeling or raw somewhere because of the sun. The life of the surveyor. John said when things got bad with him, he would take two Benadryl. So, it appeared I had a cure but still no idea what the origi",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/14/the-surveyor-and-alpha-gal-syndrome/?utm_source=rss&utm_medium=rss&utm_campaign=the-surveyor-and-alpha-gal-syndrome",
-      "datum": "2026-09-15"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "Old Ways and New",
-      "perex": "I love the small computer that fits in my pocket.",
-      "telo": "I love the small computer that fits in my pocket. With my smartphone I can conduct hands-free calls, check my calendar to avoid scheduling conflicts, catch up on email between meetings, pay a parking meter from two blocks away. The technology is amazing. This is not to say that new ways are always the best. One big problem with cell phones is that they don’t make a satisfyingly loud and solid bang when I hang up angrily. There definitely was an advantage to those old-fashioned heavy land line phones. The same “old is not always bad” adage applies to surveying. The illustration accompanying this article is from a 1722 edition of William Leybourne’s textbook, “The Compleat Surveyor” 1 , origin",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/14/old-ways-and-new/?utm_source=rss&utm_medium=rss&utm_campaign=old-ways-and-new",
       "datum": "2026-09-15"
     }
   ]
