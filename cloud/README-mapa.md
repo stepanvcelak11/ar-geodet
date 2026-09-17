@@ -1,8 +1,18 @@
-# Data vlastní vektorové mapy (PMTiles v R2)
+# Data vlastní vektorové mapy (PMTiles)
 
-Appka (Nastavení → Vzhled → Nová mapa) čte jeden soubor **`evropa.pmtiles`** přes worker
-`https://ar-geodet-api.ar-geodet.workers.dev/mapa/evropa.pmtiles` (HTTP Range, po kouskách).
-Dokud soubor v R2 není, worker vrací 503 s tímhle návodem a appka řekne „data mapy nejsou k dispozici“.
+Appka (Nastavení → Vzhled → Nová mapa) čte soubor **podle země**, kde stojí: `cz.pmtiles`,
+`sk.pmtiles`, `at.pmtiles`… přes worker `https://ar-geodet-api.ar-geodet.workers.dev/mapa/<soubor>`
+(HTTP Range, po kouskách). Worker bere soubor:
+1. z **R2** (bucket `qtrig-mapa`), když je binding zapnutý — cesta pro celou Evropu (soubory přes 2 GB),
+2. jinak z **vydání GitHubu `mapa-data`** (https://github.com/stepanvcelak11/ar-geodet/releases/tag/mapa-data)
+   — do 2 GB na soubor, funguje bez jakéhokoli nastavení. **Celé Česko (`cz.pmtiles`, 1,79 GB) tam je od 17. 9. 2026.**
+
+## Přidat další zemi (do 2 GB) — bez Cloudflare
+```
+python scripts/mapa-vyrez.py sk       # nebo at, hu, si, pl, de, praha, cr, bbox lon0,lat0,lon1,lat1
+```
+a soubor nahrát jako asset vydání `mapa-data` (web GitHubu → Releases → mapa-data → Edit → přetáhnout
+soubor, název `<kód země malými>.pmtiles`). Přes 2 GB (DE, FR, celá Evropa) → R2 níže.
 
 ## 1. Výřez z OpenStreetMap (Protomaps)
 ```
