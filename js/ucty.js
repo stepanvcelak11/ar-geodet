@@ -3335,7 +3335,6 @@
     }
     function gateCheck() {
         if (_ownerIn) return;                 // vlastník se v tomhle běhu už přihlásil
-        if (getFirm()) return;
         // ⚠⚠ SEZNAM MUSÍ OBSAHOVAT VŠECHNY OBRAZOVKY, KTERÉ BRÁNU ZASTUPUJÍ.
         //   Pojistka běží v tiku po 2 s, takže cokoli, co tu chybí, se po dvou
         //   sekundách překryje bránou — a člověk uprostřed zakládání účtu přijde
@@ -3345,6 +3344,17 @@
             || document.getElementById('ag-reg') || document.getElementById('ag-kod')) return;
         var m = document.getElementById('agfa-modal');
         if (m && m.style.display === 'flex') return;   // běží průvodce založením firmy
+        if (getFirm()) {
+            // ⚠⚠ FIRMA ZALOŽENÁ ZA BĚHU (18. 9. 2026): brána → „Další možnosti" → „Založit jen pro
+            //   toto zařízení" (i cloud) uloží firmu a přihlásí admina, ale appku nikdo nespustí —
+            //   po Zavřít průvodce zůstala ČERNÁ OBRAZOVKA jen s dokem (init() už proběhl, pojistka
+            //   6 s doběhla, dokud byl průvodce otevřený). Firma + účet + appka neběží = spustit.
+            if (!appRunning()) {
+                if (currentUser()) { try { applyPerms(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:gateCheck'); } enterApp(); }
+                else showLogin(false);
+            }
+            return;
+        }
         showGate();
     }
 

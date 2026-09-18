@@ -2,6 +2,17 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 358,
+   "datum": "2026-09-18",
+   "nadpis": "Průchod appkou, 2. kolo: nový uživatel se dostane dovnitř, menu neklepe do prázdna",
+   "body": [
+    "<b>Nový uživatel</b>: brána → Další možnosti → „Založit jen pro toto zařízení“ → po zavření průvodce se appka spustí. Dřív zůstala černá obrazovka jen s dokem (firma byla založená, ale nikdo appku nenastartoval).",
+    "Menu Více: „Průvodce úkolem“ a „Návod a prohlídka“ klepnuté hned po startu (než se stáhnou odložené moduly) se otevřou o chvilku později — dřív klepnutí tiše propadlo (openPruvodce / startTutorial is not defined).",
+    "Karta bodu v cizím jazyce: „Našel jsem ho — ještě 40 m / postůj ještě 5 s / čekám na GPS“ přeloženo (dřív zůstávalo česky).",
+    "Prošlo: brána a založení firmy, všechny položky menu (Pro i Základ), každý přepínač v Nastavení tam a zpět, řádky panelu Mapa, pět jazyků, ležatý displej, rukavice / levá ruka / písmo 130 % / venkovní / jednoduchý režim, 64 nástrojů + 29 položek rozcestníků — bez chyby stránky, bez textu „undefined/NaN“."
+   ]
+  },
+  {
    "v": 357,
    "datum": "2026-09-18",
    "nadpis": "Kontrola dne: Uložit a další zase doplní GPS samo",

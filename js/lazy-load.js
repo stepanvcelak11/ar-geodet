@@ -142,8 +142,9 @@
         (document.body || document.documentElement).appendChild(s);
     }
 
+    var hotovo = {};        // src → skript proběhl (onload/onerror) — viz need()
     function done(src) {
-        if (src) outstanding--;
+        if (src) { outstanding--; hotovo[src] = true; }
         var cbs = pending[src];
         delete pending[src];
         if (cbs) for (var i = 0; i < cbs.length; i++) { try { cbs[i](); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'lazy-load:done'); } }
@@ -193,6 +194,14 @@
                 inject(item);
                 return true;
             }
+        }
+        // ⚠ ROZJETÝ, ALE JEŠTĚ NESPUŠTĚNÝ MODUL (18. 9. 2026): po flush() je fronta prázdná,
+        //   skripty ale teprve letí sítí. Dřív se callback zavolal HNED a menu „Návod a
+        //   prohlídka" spadlo na „startTutorial is not defined" (klepnutí do 1–2 s po otevření
+        //   menu na pomalém telefonu). Teď se počká na onload toho skriptu.
+        for (var k in loaded) if (Object.prototype.hasOwnProperty.call(loaded, k) && !hotovo[k] && (k === src || k.indexOf(src) >= 0)) {
+            if (cb) (pending[k] = pending[k] || []).push(cb);
+            return true;
         }
         if (cb) cb();       // už načtený (nebo tu vůbec není) → nečekat
         return false;
@@ -263,7 +272,9 @@
         }
         document.addEventListener('click', function (e) {
             if (finished) return;
-            var t = e.target && e.target.closest ? e.target.closest('#tools-modal .tool-tile') : null;
+            // dlaždice Nástrojů + tlačítka bočního menu / panelu Mapa / doku s inline onclick
+            // (18. 9. 2026: „Průvodce úkolem" v menu padal na „openPruvodce is not defined")
+            var t = e.target && e.target.closest ? e.target.closest('#tools-modal .tool-tile, #side-menu [onclick], #map-sheet [onclick], #dock [onclick]') : null;
             if (!t || t.hasAttribute(RETRY_ATTR)) return;
             if (!missingFn(t)) return;
             e.preventDefault();
