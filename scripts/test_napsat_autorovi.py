@@ -206,25 +206,24 @@ async def test_druha_vlna(ctx):
     page = await ctx.new_page()
     await nacti(page)
 
-    # F) pruh: Vice + Napsat autorovi vedle sebe
+    # F) pruh: Navod (do 18. 9. 2026 „Vice" = bocni panel; ten se rozpustil do Nastaveni → Aplikace) + Napsat autorovi vedle sebe
     await page.evaluate("() => { if (typeof openSettings === 'function') openSettings(); }")
     await page.wait_for_timeout(1500)
     vice = await page.evaluate(VIDITELNOST, 'ag-set-vice')
-    ok('F1 "Vice" je v pruhu pod zalozkami', not vice.get('chybi'), vice)
+    ok('F1 "Navod" je v pruhu pod zalozkami', not vice.get('chybi'), vice)
     if not vice.get('chybi'):
         ok('F2 host ho vidi bez rolovani', vice['jeVidet'] and vice['vVyrezu'], vice)
         ok('F3 terc ma aspon 44 px', vice['h'] >= 44, vice)
     deti = await page.evaluate("""() => { var s = document.getElementById('ag-set-strip');
         return s ? Array.from(s.children).map(function (c) { return c.id; }) : []; }""")
     ok('F4 v pruhu stoji obe tlacitka', deti == ['ag-set-vice', 'ag-fb-foot-set'], deti)
+    # klepnuti = navod (startTutorial, lazy js/tutorial-pro.js); Nastaveni se pod nim zavrou
+    await page.evaluate("() => { window.__tut = 0; window.startTutorial = function () { window.__tut++; }; }")
     await page.click('#ag-set-vice')
     await page.wait_for_timeout(900)
-    stav = await page.evaluate("""() => { var m = document.getElementById('side-menu');
-        return { open: !!m && m.classList.contains('open'),
-                 zavreno: document.getElementById('settings-modal').style.display === 'none' }; }""")
-    ok('F5 otevre panel "Vice"', stav['open'], stav)
+    stav = await page.evaluate("""() => ({ tut: window.__tut, zavreno: document.getElementById('settings-modal').style.display === 'none' })""")
+    ok('F5 klepnuti spusti navod (startTutorial)', stav['tut'] == 1, stav)
     ok('F6 Nastaveni se pod nim zavrou', stav['zavreno'], stav)
-    await page.evaluate("() => { var m = document.getElementById('side-menu'); if (m) m.classList.remove('open'); }")
     await page.wait_for_timeout(400)
 
     # G) kontext u zpravy - odchytit, co by odeslo (sit se v testu nepusti)

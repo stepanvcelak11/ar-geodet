@@ -37,7 +37,7 @@
         { label: 'Nastavení — Vzhled', keys: 'vzhled barvy motiv tema svetly tmavy rezim rukavice leva ruka', run: tab('tab-vzhled', 0) },
         { label: 'Nastavení — AR a přesnost', keys: 'ar presnost kamera dosah fov filtry rozvrzeni', run: tab('tab-ar', 1) },
         { label: 'Nastavení — Data', keys: 'data zakazka zaloha katastr zdroj offline', run: tab('tab-data', 2) },
-        { label: 'Nastavení — Údržba', keys: 'udrzba oprava reset chyby log vymazat', run: tab('tab-udrzba', 3) },
+        { label: 'Nastavení — Aplikace', keys: 'aplikace udrzba navod o aplikaci zaloha pomoc napsat autorovi misto v telefonu oprava reset chyby log vymazat', run: tab('tab-udrzba', 3) },   // do 18. 9. 2026 „Údržba"
         { label: 'Nastavení — Profily', keys: 'profil profily teren presnost ukazka vlastni rezim prace prednastaveni bez profilu vypnout', run: tab('tab-profily', 4) },
         // Řádek „Mapa a vrstvy" byl z menu „Více" odstraněn (je v liště) — tady zůstává
         // jako jádrový cíl, jinak by přestal být k nalezení hledáním.

@@ -294,7 +294,10 @@
             ukaz(s);
             if (s && kod !== pred) {
                 var now = Date.now();
-                if (!_hlasky[kod] || now - _hlasky[kod] > 60000) { _hlasky[kod] = now; try { window.agInfo && window.agInfo(s.text + '. ' + s.rada); } catch (e) { /* nic */ } }
+                // ⚠ NIKDY MODÁLNĚ (18. 9. 2026): s vektorovou mapou zapnutou pro všechny by dialog „stojíš uvnitř
+                //   budovy — Rozumím" vyskočil každému, kdo vejde do domu nebo k plotu (a v testech ležel přes
+                //   celou obrazovku). Stačí toast; podrobnosti a „co s tím" dává klepnutí na pilulku.
+                if (!_hlasky[kod] || now - _hlasky[kod] > 60000) { _hlasky[kod] = now; try { (window.quickToast || function () {})(s.text + '. ' + s.rada); } catch (e) { /* nic */ } }
             }
         } catch (e) { swallow(e, 'tik'); }
     }

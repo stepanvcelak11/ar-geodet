@@ -677,7 +677,7 @@
         var verze = '';
         try { var l = document.querySelector('link[rel="stylesheet"][href*="css/style.css?v="]'); var mm = l && (l.getAttribute('href') || '').match(/\?v=(\d+)/); if (mm) verze = 'v' + mm[1]; } catch (e) { verze = ''; }
         var vety = [
-            'Díky za zprávu — opraveno' + (verze ? ' ve verzi ' + verze : '') + ', aktualizuj si appku (Nastavení → Údržba).',
+            'Díky za zprávu — opraveno' + (verze ? ' ve verzi ' + verze : '') + ', aktualizuj si appku (Nastavení → Aplikace).',
             'Díky, mám to. Podívám se na to a dám vědět.',
             'Díky za nápad — zapsal jsem si ho, uvidím, kam se vejde.'
         ];

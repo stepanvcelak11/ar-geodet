@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """VLASTNI VEKTOROVA MAPA (16. 9. 2026, faze 2 — A1 + M1): js/mapa-vektor.js + js/mapa-styl.js.
 
-  A  vypnuto (vychozi): podklad je rastr OSM, knihovny MapLibre se NEstahuji, v Nastaveni →
-     Vzhled je prepinac „Nová mapa (vektor, beta)"
+  A  vychozi = ZAPNUTO (18. 9. 2026), ale bez dat (worker odstrizeny) → stav chyba, podklad zustava
+     rastr OSM, knihovny MapLibre se nestahuji (overeni dat je pred nimi), zadny dialog
   B  zapnuti s mistni fixture (tests/fixtures/mapa-praha.pmtiles pres Range na test_server):
      knihovny se dotahnou, v Leafletu je platno MapLibre (#map.base-vektor), styl nacteny,
      v dlazdicich jsou budovy (querySourceFeatures > 0) a vykreslene prvky (queryRenderedFeatures),
@@ -150,8 +150,9 @@ async def beh(url):
         chyby = []
         ctx, page = await stranka(br, url, INIT + "localStorage.removeItem('agMapaVektor_v1');", chyby)
         ok('A0 appka nastartovala', await cekej(page, "document.body.classList.contains('app-started')"))
-        ok('A1 modul je nacteny a vypnuty', await cekej(page, "window.AGMapaVektor && AGMapaVektor.stav() === 'vypnuto'", 60), await page.evaluate("() => window.AGMapaVektor && AGMapaVektor.stav()"))
-        ok('A2 knihovny MapLibre se NEstahuji, dokud je vypnuto', await page.evaluate("() => !window.maplibregl && !document.querySelector('script[src*=\"maplibre-gl-5\"]')"))
+        # 18. 9. 2026: vektor je vychozi ZAPNUTY; bez dat (worker odstrizeny) skonci ve stavu chyba a pod kartou Mapa zustane rastr
+        ok('A1 modul je nacteny, vychozi zapnuto, bez dat = stav chyba (tise, bez dialogu)', await cekej(page, "window.AGMapaVektor && AGMapaVektor.nastaveni().zap === true && AGMapaVektor.stav() === 'chyba' && !document.querySelector('.ag-dlg-overlay.open')", 60), await page.evaluate("() => window.AGMapaVektor && [AGMapaVektor.stav(), AGMapaVektor.nastaveni(), AGMapaVektor.chyba()]"))
+        ok('A2 knihovny MapLibre se NEstahuji, dokud nejsou data (overeni dat je pred knihovnami)', await page.evaluate("() => !window.maplibregl && !document.querySelector('script[src*=\"maplibre-gl-5\"]')"))
         ok('A3 podklad je rastr OSM (.leaflet-tile v mape, zadne platno MapLibre)', await page.evaluate("() => !!document.querySelector('#map .leaflet-tile-pane img, #map .leaflet-tile') && !document.querySelector('#map .maplibregl-canvas')"))
         await page.evaluate("() => { openSettings(); switchTab('tab-data', document.querySelectorAll('.tab-btn')[2]); }")
         # 18. 9. 2026 (N2): prepinac a styl maji JEDNO misto — panel Mapa → Podklad; v Nastavení → Data je jen adresa dat
@@ -367,8 +368,9 @@ async def beh(url):
         ok('M0 modul panelu nacteny, zalozky viditelne, patra schovana krome aktivniho', await cekej(page, "window.AGMapaPanel && document.body.classList.contains('ag-mapa-panel') && document.querySelectorAll('#map-sheet .ms-tab:not([hidden])').length === 1", 30))
         await page.evaluate("() => { document.getElementById('map-controls').classList.add('expanded'); AGMapaPanel.tab('podklad'); }")
         await page.wait_for_timeout(300)
-        m1 = await page.evaluate("() => { var v = document.getElementById('ms-base-vektor'), m = document.getElementById('ms-base-osm'), o = document.getElementById('btn-baselayer'); return { tab: AGMapaPanel.aktualniTab(), vidPod: !document.querySelector('.ms-tab[data-ms-tab=\"podklad\"]').hidden, vidVr: !document.querySelector('.ms-tab[data-ms-tab=\"vrstvy\"]').hidden, on: [m.classList.contains('on'), v.classList.contains('on'), o.classList.contains('on')], styl: !document.getElementById('ms-styl').hidden, stylOn: document.querySelector('#ms-styl .on') && document.querySelector('#ms-styl .on').getAttribute('data-styl'), zeme: document.getElementById('ms-zeme-t').textContent, ind: getComputedStyle(document.querySelector('.ms-tabs-ind')).transform }; }")
-        ok('M1 zalozka Podklad: karta Vektor sviti (mapa zapnuta), styl Podle motivu, radek Zeme mereni', m1 and m1['tab'] == 'podklad' and m1['vidPod'] and not m1['vidVr'] and m1['on'] == [False, True, False] and m1['styl'] and m1['stylOn'] == 'auto' and 'Země měření' in m1['zeme'], m1)
+        # 18. 9. 2026: karty jsou dve (Mapa = vektor, Ortofoto) + Katastr jako prepinac vrstvy; rastr OSM uz karta neni
+        m1 = await page.evaluate("() => { var v = document.getElementById('ms-base-vektor'), m = document.getElementById('ms-base-osm'), o = document.getElementById('btn-baselayer'), k = document.getElementById('btn-katastr'); return { tab: AGMapaPanel.aktualniTab(), vidPod: !document.querySelector('.ms-tab[data-ms-tab=\"podklad\"]').hidden, vidVr: !document.querySelector('.ms-tab[data-ms-tab=\"vrstvy\"]').hidden, rastrKarta: !!m, on: [v.classList.contains('on'), o.classList.contains('on')], katastrVPodkladu: !!(k && k.closest('.ms-tab') && k.closest('.ms-tab').getAttribute('data-ms-tab') === 'podklad'), styl: !document.getElementById('ms-styl').hidden, stylOn: document.querySelector('#ms-styl .on') && document.querySelector('#ms-styl .on').getAttribute('data-styl'), zeme: document.getElementById('ms-zeme-t').textContent, ind: getComputedStyle(document.querySelector('.ms-tabs-ind')).transform }; }")
+        ok('M1 zalozka Podklad: karta Mapa (vektor) sviti, Ortofoto ne, zadna karta rastru, Katastr v Podkladu, styl Podle motivu, Zeme mereni', m1 and m1['tab'] == 'podklad' and m1['vidPod'] and not m1['vidVr'] and not m1['rastrKarta'] and m1['on'] == [True, False] and m1['katastrVPodkladu'] and m1['styl'] and m1['stylOn'] == 'auto' and 'Země měření' in m1['zeme'], m1)
         await page.evaluate("() => document.querySelector('#ms-styl [data-styl=\"noc\"]').click()")
         await page.wait_for_timeout(500)
         ok('M2 styl Noc = setStyle vektorove mapy', await cekej(page, "AGMapaVektor.nastaveni().styl === 'noc' && AGMapaVektor.mapa() && AGMapaVektor.mapa().getStyle() && AGMapaVektor.mapa().getStyle().name.endsWith('noc')", 20),
@@ -377,12 +379,15 @@ async def beh(url):
         await page.wait_for_timeout(300)
         m3 = await page.evaluate("() => ({ orto: document.getElementById('btn-baselayer').classList.contains('on'), vek: document.getElementById('ms-base-vektor').classList.contains('on'), stylSkryt: document.getElementById('ms-styl').hidden })")
         ok('M3 karta Ortofoto: sviti jen ona, styl vektoru schovany', m3 and m3['orto'] and not m3['vek'] and m3['stylSkryt'], m3)
-        await page.evaluate("() => { document.getElementById('ms-base-osm').click(); }")
+        await page.evaluate("() => { AGMapaPanel.mapa(); }")   # API pojistky: rastr pod kartou Mapa (karta sviti dal)
         await page.wait_for_timeout(800)
-        m4 = await page.evaluate("() => ({ mapa: document.getElementById('ms-base-osm').classList.contains('on'), stav: AGMapaVektor.stav(), vek: document.getElementById('ms-base-vektor').classList.contains('on') })")
-        ok('M4 karta Mapa = rastr, vektor vypnuty', m4 and m4['mapa'] and m4['stav'] == 'vypnuto' and not m4['vek'], m4)
+        m4 = await page.evaluate("() => ({ stav: AGMapaVektor.stav(), mapaOn: document.getElementById('ms-base-vektor').classList.contains('on'), rastr: !!document.querySelector('#map .leaflet-tile-pane img, #map .leaflet-tile'), styl: document.getElementById('ms-styl').hidden })")
+        ok('M4 AGMapaPanel.mapa() = rastr pod kartou Mapa: vektor vypnuty, karta Mapa sviti dal, styl schovany', m4 and m4['stav'] == 'vypnuto' and m4['mapaOn'] and m4['rastr'] and m4['styl'], m4)
         await page.evaluate("() => AGMapaPanel.vektor()")
-        ok('M5 karta Vektor mapu zase zapne', await cekej(page, "AGMapaVektor.stav() === 'zapnuto' && document.getElementById('ms-base-vektor').classList.contains('on')", 30))
+        ok('M5 karta Mapa vektor zase zapne', await cekej(page, "AGMapaVektor.stav() === 'zapnuto' && document.getElementById('ms-base-vektor').classList.contains('on')", 30))
+        # karta Katastr = prepinac vrstvy: ctrl-active z grafika.js, vrstva v mape
+        mk = await page.evaluate("() => { var k = document.getElementById('btn-katastr'); var pred = k.classList.contains('ctrl-active'); k.click(); var po = k.classList.contains('ctrl-active'); var vrstva = !!visSettings.showKatastr; k.click(); return { pred: pred, po: po, vrstva: vrstva, zpet: k.classList.contains('ctrl-active') }; }")
+        ok('M5b karta Katastr prepina katastralni vrstvu (ctrl-active, visSettings.showKatastr)', mk and not mk['pred'] and mk['po'] and mk['vrstva'] and not mk['zpet'], mk)
         await page.evaluate("() => { AGMapaVektor.nastav({ styl: 'auto' }); AGMapaPanel.tab('vrstvy'); }")
         await page.wait_for_timeout(200)
         m6 = await page.evaluate("() => { var rt = document.getElementById('ms-trasa'), rp = document.getElementById('ms-prekazky'); var pred = rt.classList.contains('ctrl-active'); rt.click(); var po = AGTrasa.zapnuto(); rt.click(); return { vidTrasa: !rt.hidden, pred: pred, po: po, zpet: AGTrasa.zapnuto(), prekazkyHidden: rp.hidden === !AGOkoli.prekazky().length }; }")

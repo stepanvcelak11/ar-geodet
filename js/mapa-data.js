@@ -9,10 +9,11 @@
 // obdélník, dekóduje Mapbox Vector Tile (protobuf) a vrací geometrie v lat/lng.
 //
 // API (vše bez vedlejších účinků, nic nekreslí):
-//   AGMapaData.oblast({s,w,n,e}) → Promise<{buildings, roads, water, landuse, landcover}>
+//   AGMapaData.oblast({s,w,n,e}[, z]) → Promise<{buildings, roads, water, landuse, landcover}>
 //       každý prvek: { geom:'Polygon'|'LineString'|'Point', polys:[[ring…]], lines:[[{lat,lng}…]],
 //                      pts:[{lat,lng}], props:{…} }   (polygony = pole prstenců, první vnější)
-//   AGMapaData.oblastHned(bbox) → totéž z paměti, nebo null, když dlaždice ještě nejsou stažené
+//   AGMapaData.oblastHned(bbox[, z]) → totéž z paměti, nebo null, když dlaždice ještě nejsou stažené
+//       z = 15 (výchozí, podrobné), 14 nebo 13 pro velké obdélníky (daleká trasa) — viz MAX_DLAZDIC
 //   AGMapaData.dlazdice(z,x,y) → Promise<{vrstvy:{name:[prvky]}}>  (LRU cache 40 dlaždic)
 // Dlaždice: z = 15 (nejpodrobnější v základní mapě Protomaps; fixture testů má z11–15).
 // Vyžaduje zapnutou vektorovou mapu (knihovna pmtiles + adresa dat) — bez ní vrací prázdno.
@@ -22,7 +23,11 @@
     'use strict';
     if (window.AGMapaData) return;
     var swallow = function (e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'mapa-data:' + kde); } catch (e2) { /* nic */ } };
-    var Z = 15, MAX_CACHE = 40, MAX_DLAZDIC = 12;
+    // DALEKÝ CÍL (18. 9. 2026, „k niveláku a k trigonometrickému bodu vede pořád jen přímka"):
+    // do 3 km se čte z15 (do 16 dlaždic), dál z14 (do 25) a nad 6 km z13 (do 64) — hrubší
+    // dlaždice mají hlavní i vedlejší silnice, vodu a plochy, jen bez drobných budov. Cache
+    // musí pojmout celou největší sadu, jinak by se oblastHned() nikdy nesložila.
+    var Z = 15, MAX_CACHE = 100, MAX_DLAZDIC = { 15: 16, 14: 25, 13: 64 };
     var _cache = {}, _poradi = [];
 
     // ---- pmtiles: stejná instance, jakou používá mapa (Protocol drží cache podle adresy) --------
@@ -168,16 +173,17 @@
     // po chybě (data pro zemi nejsou, bez signálu) 60 s nezkoušet znovu — tik trasy by jinak každých 5 s
     // střílel 404 na worker
     var _chybaDo = 0, _chybaText = '';
-    function oblast(bbox) {
-        var t = tilesPro(bbox, Z); if (t.length > MAX_DLAZDIC) return Promise.reject(new Error('oblast příliš velká (' + t.length + ' dlaždic)'));
+    function oblast(bbox, z) {
+        z = z || Z; var max = MAX_DLAZDIC[z] || MAX_DLAZDIC[Z];
+        var t = tilesPro(bbox, z); if (t.length > max) return Promise.reject(new Error('oblast příliš velká (' + t.length + ' dlaždic z' + z + ')'));
         if (Date.now() < _chybaDo) return Promise.reject(new Error(_chybaText || 'data mapy nejsou k dispozici'));
         return Promise.all(t.map(function (q) { return dlazdice(q.z, q.x, q.y); })).then(sloz).catch(function (e) { _chybaDo = Date.now() + 60000; _chybaText = lidsky((e && e.message) || String(e)); throw e; });
     // „Failed to fetch" / „NetworkError" / „Load failed" (Safari) = bez signálu nebo server neodpovídá — uživateli to říct česky (18. 9. 2026)
     function lidsky(t) { return /failed to fetch|networkerror|load failed|network request failed/i.test(t) ? 'bez signálu, nebo server neodpovídá' : t; }
     }
     // synchronně z cache: Promise si ukládá výsledek do .vysledek, ať se nemusí čekat
-    function oblastHned(bbox) {
-        var t = tilesPro(bbox, Z), dl = [];
+    function oblastHned(bbox, z) {
+        var t = tilesPro(bbox, z || Z), dl = [];
         for (var i = 0; i < t.length; i++) { var k = t[i].z + '/' + t[i].x + '/' + t[i].y; var p = _cache[k]; if (!p || !p._vysledek) return null; dl.push(p._vysledek); }
         return sloz(dl);
     }

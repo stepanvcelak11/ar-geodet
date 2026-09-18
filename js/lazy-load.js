@@ -274,7 +274,8 @@
             if (finished) return;
             // dlaždice Nástrojů + tlačítka bočního menu / panelu Mapa / doku s inline onclick
             // (18. 9. 2026: „Průvodce úkolem" v menu padal na „openPruvodce is not defined")
-            var t = e.target && e.target.closest ? e.target.closest('#tools-modal .tool-tile, #side-menu [onclick], #map-sheet [onclick], #dock [onclick]') : null;
+            // + Nastavení → Aplikace (18. 9. 2026: Návod a O aplikaci se tam přestěhovaly z bočního menu)
+            var t = e.target && e.target.closest ? e.target.closest('#tools-modal .tool-tile, #side-menu [onclick], #map-sheet [onclick], #dock [onclick], #tab-udrzba [onclick], #ag-set-strip [onclick]') : null;
             if (!t || t.hasAttribute(RETRY_ATTR)) return;
             if (!missingFn(t)) return;
             e.preventDefault();

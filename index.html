@@ -101,8 +101,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=359">
-    <link rel="stylesheet" href="css/style.css?v=359">
+    <link rel="stylesheet" href="css/tokens.css?v=360">
+    <link rel="stylesheet" href="css/style.css?v=360">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -233,7 +233,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=359">
+    <link rel="stylesheet" href="css/vylepseni.css?v=360">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -430,8 +430,10 @@
         <!-- Scrollovací obsah; tlačítko Zavřít je PEVNÁ patička dole (jako u Nástrojů) -->
         <div class="menu-scroll">
             <!-- ☰ z nadpisu i z tlačítka v Nastavení PRYČ (na přání 9. 8. 2026): tři čárky
-                 znamenaly „hlavní menu" z doby, kdy tenhle panel visel v liště. Dnes se
-                 sem chodí z Nastavení → Údržba → Aplikace a ikona jen mátla. -->
+                 znamenaly „hlavní menu" z doby, kdy tenhle panel visel v liště.
+                 18. 9. 2026: vstup z Nastavení ZRUŠEN — obsah je v Nastavení → Aplikace
+                 (návod, o aplikaci, historie, sdílení; offline je v Data). Panel zůstává jen jako
+                 záložní cesta pro tlačítka, která si sem přisypávají moduly (toggleMenu()). -->
             <div class="menu-head">Více</div>
             <button id="pruv-menu-btn" class="menu-btn" style="background: rgba(47,158,116,0.15); border-color: var(--accent); color: var(--accent);" onclick="openPruvodce(); toggleMenu();"><svg class="icon"><use href="#i-navigation"/></svg> Průvodce úkolem</button>
             <button class="menu-btn" onclick="saveForOffline(); toggleMenu();"><svg class="icon"><use href="#i-download"/></svg> Uložit pro offline</button>
@@ -665,10 +667,10 @@
                 <!-- AR & přesnost je PRVNÍ a výchozí (14. 9. 2026): dosah bodů se mění nejčastěji. Pořadí
                      jen přes CSS `order` (#tabbtn-ar), DOM pořadí 0–4 zůstává pro js/app-search.js a js/ucty.js. -->
                 <div class="tab-btn active" id="tabbtn-ar" onclick="switchTab('tab-ar', this); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-crosshair"/></svg><span class="tb-tx"><b>AR &amp; přesnost</b><small>Body v AR, kompas, senzory</small></span></div>
-                <div class="tab-btn" onclick="switchTab('tab-data', this); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-folder"/></svg><span class="tb-tx"><b>Data</b><small>Zakázka, body ČÚZK, offline</small></span></div>
+                <div class="tab-btn" onclick="switchTab('tab-data', this); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-folder"/></svg><span class="tb-tx"><b>Data</b><small>Zakázka, body ČÚZK, katastr, mapa</small></span></div>
                 <!-- Kompas z dlaždic ODEBRÁN na přání (duplikoval panel Azimut na hlavní obrazovce;
                      kalibrace zůstává klepnutím na Azimut a tlačítkem v AR & přesnost) -->
-                <div class="tab-btn" id="tabbtn-udrzba" onclick="switchTab('tab-udrzba', this); window.agRenderStorageUsage && window.agRenderStorageUsage(); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-wrench"/></svg><span class="tb-tx"><b>Údržba</b><small>Záloha, skryté body</small></span></div>
+                <div class="tab-btn" id="tabbtn-udrzba" onclick="switchTab('tab-udrzba', this); window.agRenderStorageUsage && window.agRenderStorageUsage(); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-wrench"/></svg><span class="tb-tx"><b>Aplikace</b><small>Návod, pomoc, záloha, místo v telefonu</small></span></div>
                 <!-- PROFILY (návrh C): obě „profilové" věci na jednom místě a konečně
                      rozlišené. Dřív ležel pruh profilů NAD záložkami, takže si ho musel
                      projít každý, kdo šel do Nastavení cokoli přepnout. Záložka je
@@ -681,16 +683,14 @@
                      a Úspora baterie z AR). Vizuálně hned za Vzhledem (CSS order), v DOM ZÁMĚRNĚ šestá. -->
                 <div class="tab-btn" id="tabbtn-ovladani" onclick="switchTab('tab-ovladani', this); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-vibrate"/></svg><span class="tb-tx"><b>Ovládání</b><small>Levá ruka, rukavice, gesta, jednoduchý režim, slabší telefon</small></span></div>
             </div>
-            <!-- PRUH POD ZÁLOŽKAMI (5. 9. 2026). Panel „Více" (návod, prohlídka, uložit
-                 pro offline, o aplikaci, historie, sdílení QR, zpravodaj) neměl od přechodu
-                 na dok VIDITELNÝ vstup: #menu-toggle-btn je v css/style.css skrytý a jediná
-                 cesta vedla přes Nastavení → Údržba → předposlední tlačítko. Tady stojí
-                 MIMO záložky, takže ho vidí i host (Údržbu má schovanou oprávněním) a
-                 z každé záložky bez rolování. Tlačítko v Údržbě ZŮSTÁVÁ — kdo si na něj
-                 zvykl, najde ho tam dál. Druhý slot pruhu si doplňuje js/zpetna-vazba.js
-                 (Napsat autorovi); když se ta vrstva odpojí, zbude jen „Více". -->
+            <!-- PRUH POD ZÁLOŽKAMI (5. 9. 2026): stojí MIMO záložky, takže ho vidí i člen firmy, který
+                 má záložku Aplikace schovanou oprávněním (set.tab-udrzba), a z každé záložky bez
+                 rolování. Do 18. 9. 2026 tu bylo „Více" = boční panel #side-menu (návod, offline,
+                 o aplikaci…) — ten se rozpustil do záložky APLIKACE (uživatel: „údržba, více, historie,
+                 napsat autorovi, správa… je toho strašně moc a je to bordel"), tady zůstává jen Návod.
+                 Druhý slot pruhu si doplňuje js/zpetna-vazba.js (Napsat autorovi). -->
             <div class="ag-set-strip" id="ag-set-strip">
-                <button type="button" class="ag-strip-btn" id="ag-set-vice" onclick="document.getElementById('settings-modal').style.display='none'; toggleMenu();"><svg class="icon"><use href="#i-menu"/></svg><span>Více <small>návod, offline, o aplikaci</small></span></button>
+                <button type="button" class="ag-strip-btn" id="ag-set-vice" onclick="document.getElementById('settings-modal').style.display='none'; if (window.startTutorial) startTutorial(); else if (window.AGLazy) AGLazy.need('js/tutorial-pro.js', function () { startTutorial(); });"><svg class="icon"><use href="#i-bulb"/></svg><span>Návod <small>prohlídka appky krok za krokem</small></span></button>
             </div>
             <div class="modal-body">
                 <div id="tab-vzhled" class="settings-tab">
@@ -874,6 +874,8 @@
                          úložiště #ag-quota) se přidává na konec tabu. -->
                     <div class="set-h">Zakázka</div>
                     <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px;"><select id="s-project-select" class="w-proj-select" style="flex:1;" onchange="changeProjectFromSettings()"></select><button class="w-proj-icon" onclick="createNewProject()" aria-label="Nová zakázka"><svg class="icon"><use href="#i-plus"/></svg></button><button class="w-proj-icon danger" onclick="deleteProject()" aria-label="Smazat zakázku"><svg class="icon"><use href="#i-trash"/></svg></button></div>
+                    <!-- Skryté body: do 18. 9. 2026 v Údržbě — jsou to body zakázky, patří sem -->
+                    <button class="btn btn-secondary" id="set-skryte-body" onclick="if (window.agOpenHiddenPoints) { document.getElementById('settings-modal').style.display='none'; window.agOpenHiddenPoints(); } else { restoreHiddenPoints(); }"><svg class="icon"><use href="#i-eye-off"/></svg> Skryté body — zobrazit a obnovit</button>
                     <div class="set-h">Úřední body (ČÚZK)</div>
                     <label>Druh hledaných bodů</label>
                     <div class="st-chips">
@@ -895,27 +897,32 @@
                     </select>
                     <button class="btn btn-blue" onclick="saveForOffline()"><svg class="icon"><use href="#i-download"/></svg> Uložit pro Offline</button>
                 </div>
-                <!-- Údržba — bývalá sbalená sekce „Údržba a záloha" z Data, teď vlastní záložka
-                     (nahradila dlaždici Kompas) -->
+                <!-- APLIKACE (do 18. 9. 2026 „Údržba"): všechno O APLIKACI na jednom místě ve čtyřech
+                     sekcích — Pomoc a návody · O aplikaci · Záloha · Místo v telefonu. Dřív tu ležely
+                     Skryté body, záloha, úklid a pod nadpisem „Aplikace" tlačítko „Více" do bočního
+                     panelu, za kterým byl návod, o aplikaci, offline, sdílení; moduly k tomu přisypaly
+                     Historii, Napsat autorovi, Funguje mi všechno?, Správu aplikace, Uvolnit místo,
+                     Profil zařízení — každý za jiné tlačítko. Uživatel: „je toho strašně moc a je to
+                     bordel naházený, ať je lehce dohledatelné, co kde je."
+                     Kam co patří, řídí LAYOUT['tab-udrzba'] v js/nastaveni-poradek.js (moduly svoje
+                     tlačítka věší dál na konec záložky, pořadí srovná on). Id záložky ZŮSTÁVÁ tab-udrzba:
+                     čte ho oprávnění set.tab-udrzba (js/ucty.js), hledání i testy.
+                     Panel #side-menu („Více") se ZÁMĚRNĚ neruší: přisypává si do něj tlačítka šest modulů
+                     jako záložní cestu (viz komentář u #side-menu); vstup z Nastavení ale už nemá. -->
                 <div id="tab-udrzba" class="settings-tab">
-                    <div class="set-h">Skryté body</div>
-                    <button class="btn btn-secondary" onclick="if (window.agOpenHiddenPoints) { document.getElementById('settings-modal').style.display='none'; window.agOpenHiddenPoints(); } else { restoreHiddenPoints(); }"><svg class="icon"><use href="#i-eye-off"/></svg> Zobrazit a obnovit skryté body</button>
-                    <div class="set-h">Záloha všech zakázek a nastavení</div>
+                    <div class="set-h">Pomoc a návody</div>
+                    <button class="btn btn-secondary" id="set-navod-btn" onclick="document.getElementById('settings-modal').style.display='none'; if (window.startTutorial) startTutorial(); else if (window.AGLazy) AGLazy.need('js/tutorial-pro.js', function () { startTutorial(); });"><svg class="icon"><use href="#i-bulb"/></svg> Návod a prohlídka appky</button>
+                    <div class="set-h">O aplikaci</div>
+                    <button class="btn btn-secondary" id="set-about-btn" onclick="document.getElementById('settings-modal').style.display='none'; openAbout();"><svg class="icon"><use href="#i-file-text"/></svg> O aplikaci — verze, licence, zdroje dat</button>
+                    <!-- Sdílet aplikaci (QR) JEN VLASTNÍK (14. 9. 2026, viz #menu-sdilet-app): odkrývá js/ucty.js -->
+                    <button class="btn btn-secondary" id="set-sdilet-app" hidden onclick="document.getElementById('settings-modal').style.display='none'; if (window.openShareApp) openShareApp();"><svg class="icon"><use href="#i-share"/></svg> Sdílet aplikaci (QR)</button>
+                    <div class="set-h">Záloha</div>
                     <button class="btn btn-secondary" onclick="exportAllData()"><svg class="icon"><use href="#i-download"/></svg> Stáhnout zálohu (vše)</button>
                     <button class="btn btn-blue" onclick="document.getElementById('restore-file').click()"><svg class="icon"><use href="#i-upload"/></svg> Obnovit ze zálohy</button>
                     <input type="file" id="restore-file" style="display:none" accept=".json,application/json" onchange="importAllData(event)">
+                    <div class="set-h">Místo v telefonu</div>
                     <div id="storage-usage" style="margin-top:10px; font-size: calc(12px * var(--ag-font-scale, 1)); color:var(--text-muted); line-height:1.5;"></div>
-                    <div class="set-h">Úklid</div>
                     <button class="btn btn-danger" onclick="clearAllPoints()"><svg class="icon"><use href="#i-trash"/></svg> Vymazat stáhnuté okolí z této zakázky</button>
-                    <!-- „VÍCE" SE PŘESTĚHOVALO SEM z lišty (na přání 8. 8. 2026, v liště je
-                         teď místo něj Vrstvy). Panel #side-menu se ZÁMĚRNĚ neruší a jeho
-                         obsah se nerozpouští do Nastavení: přisypává si do něj tlačítka
-                         šest modulů (cadastre-area, predpisy, ref-calibration,
-                         sky-obstruction, ar-fusion, pruvodce) jako záložní cestu, a kdyby
-                         panel zmizel, jejich nástroje by se staly nedosažitelnými.
-                         Nastavení se před otevřením zavře, jinak by leželo přes sheet. -->
-                    <div class="set-h">Aplikace</div>
-                    <button class="btn btn-secondary" onclick="document.getElementById('settings-modal').style.display='none'; toggleMenu();"><svg class="icon"><use href="#i-file-text"/></svg> Více — návod, o aplikaci, sdílení, offline</button>
                 </div>
                 <!-- PROFILY (návrh C) — panel je ZÁMĚRNĚ skoro prázdný: obsah si sem
                      vloží js/profily.js (pruh „Profil nastavení") a js/rezim-prace.js
@@ -1087,15 +1094,21 @@
             </div>
             <div class="ms-scroll">
                 <section class="ms-tab" data-ms-tab="podklad">
+                    <!-- PODKLAD = DVĚ KARTY + KATASTR (18. 9. 2026, uživatel: „moje nová mapa funguje vizuálně
+                         líp než ta klasická — obyčejnou mapu pryč, nech ortofoto a vedle katastr na zapnutí").
+                         Karta „Mapa" = vlastní vektorová mapa (js/mapa-vektor.js, výchozí ZAPNUTÁ); když se
+                         nedá zapnout (slabší telefon, bez dat), zůstane pod ní tiše rastr OSM — karta svítí
+                         dál, žádná třetí volba. Katastr je VRSTVA přes podklad (přepínač, ne třetí podklad);
+                         id #btn-katastr drží grafika.js (.ctrl-active) i zámek Pro (data-ms-pro). -->
                     <div class="ms-pod" id="ms-base" role="group" aria-label="Podklad mapy">
-                        <button type="button" id="ms-base-osm" class="ms-pod-c" onclick="agMapSetBase('osm')">
-                            <i class="ms-swatch sw-mapa" aria-hidden="true"></i><b>Mapa</b><small>rastr OSM</small>
-                        </button>
                         <button type="button" id="ms-base-vektor" class="ms-pod-c" onclick="window.AGMapaPanel && AGMapaPanel.vektor()">
-                            <i class="ms-swatch sw-vektor" aria-hidden="true"></i><b>Vektor</b><small>budovy, hrany, 3D</small>
+                            <i class="ms-swatch sw-vektor" aria-hidden="true"></i><b>Mapa</b><small>vlastní: budovy, cesty, 3D</small>
                         </button>
                         <button type="button" id="btn-baselayer" class="ms-pod-c" onclick="agMapSetBase('ortofoto')">
                             <i class="ms-swatch sw-orto" aria-hidden="true"></i><b>Ortofoto</b><small>snímek ČÚZK</small>
+                        </button>
+                        <button type="button" id="btn-katastr" class="ms-pod-c ms-pod-vrstva" onclick="toggleKatastr()" data-ms-pro="cadastre-vector">
+                            <i class="ms-swatch sw-katastr" aria-hidden="true"></i><b>Katastr</b><small>parcely přes podklad; klepnutí = vlastník</small>
                         </button>
                     </div>
                     <div class="ms-pod-styl" id="ms-styl" hidden>
@@ -1109,11 +1122,7 @@
 
                 <section class="ms-tab" data-ms-tab="vrstvy">
                 <div class="ms-rows">
-                    <button type="button" class="ms-row" id="btn-katastr" onclick="toggleKatastr()" data-ms-pro="cadastre-vector">
-                        <svg class="icon"><use href="#i-grid"/></svg>
-                        <span class="ms-row-t">Katastrální mapa<em>Hranice a čísla parcel z ČÚZK; klepnutí do parcely = údaje a vlastník — potřebuje signál</em></span>
-                        <span class="ms-sw" aria-hidden="true"></span>
-                    </button>
+                    <!-- Katastrální mapa je od 18. 9. 2026 karta v záložce Podklad (vedle Mapy a Ortofota) -->
                     <!-- Řádek „Terén (DMR 5G)" tu byl do 11. 9. 2026 — terénní AR zrušen
                          (js/dmr-terrain.js zůstává jen jako datová služba výšek). -->
                     <button type="button" class="ms-row" id="ms-parcely" hidden data-ms-pro="cadastre-vector">

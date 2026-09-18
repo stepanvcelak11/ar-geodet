@@ -40,6 +40,12 @@ _SABLONA = u"""
   ]));
   %(tarif_lic)s
   // Zbytek je jen klid na obrazovce: tutorial, brifink a stary hostovsky klic.
+  // VEKTOROVA MAPA VYPNUTA (18. 9. 2026): od v360 je vychozi ZAPNUTA a bez zablokovane site
+  // by si testy tahaly skutecna data CR z workeru — hlidac okoli pak u syntetickych poloh
+  // hlasil „stojis uvnitr budovy" dialogem pres cely test (test_presne_mereni U3). Je to
+  // bezna uzivatelska volba (karta Mapa → rastr), zadna zadni vratka; testy mapy si klic
+  // prepisuji az PO tomhle bootu (test_mapa_vektor, test_v347, test_v360).
+  localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' }));
   localStorage.setItem('agTutProSeen', '1');
   localStorage.setItem('agBrifinkAuto', '0');
   localStorage.setItem('agBrifinkLastShown', new Date().toISOString().slice(0, 10));

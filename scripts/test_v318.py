@@ -52,6 +52,7 @@ def server(port):
 # konzole vlastníka bez serveru: /health ok, /owner/errors = 500 (simulace výpadku)
 BOOT_VL = """
   localStorage.setItem('agTutProSeen','1'); localStorage.setItem('agBrifinkAuto','0');
+  localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' }));   // od v360 vychozi zapnuta; test bez blokovane site
   localStorage.setItem('agVlastnik_v1','1'); localStorage.setItem('agFbKey_v1','klic-na-zkousku');
   (function () { var orig = window.fetch.bind(window); window.fetch = function (u, o) { var s = String((u && u.url) || u || '');
     function od(x, st) { return Promise.resolve(new Response(JSON.stringify(x), { status: st || 200, headers: {'Content-Type': 'application/json'} })); }

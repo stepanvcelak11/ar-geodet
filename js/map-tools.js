@@ -77,12 +77,13 @@
     // ---- zrcadlení stavu do panelu ------------------------------------------------
     function syncBase() {
         var orto = curBase() === 'ortofoto';
-        // třetí karta „Vektor" (js/mapa-panel.js, 17. 9. 2026): rastr Mapa svítí jen bez vektoru
+        // karta „Mapa" = vektor, nebo pod ním tiše rastr (18. 9. 2026): svítí vždy, když není ortofoto;
+        // starší markup se třetí kartou rastru (#ms-base-osm) svítil jen bez vektoru
         var vek = false; try { vek = !orto && !!(window.AGMapaVektor && AGMapaVektor.stav() === 'zapnuto'); } catch (e) { vek = false; }
         var bo = $('btn-baselayer'), bm = $('ms-base-osm'), bv = $('ms-base-vektor');
         if (bo) bo.classList.toggle('on', orto);
         if (bm) bm.classList.toggle('on', !orto && !vek);
-        if (bv) bv.classList.toggle('on', vek);
+        if (bv) bv.classList.toggle('on', bm ? vek : !orto);
     }
     function activeLayers() {
         var n = 0;

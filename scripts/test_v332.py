@@ -235,30 +235,30 @@ async def beh(url):
         await page.evaluate("() => { var h = document.querySelector('#ag-tp-hm'); if (h) h.classList.remove('open'); }")
 
         # ---- C: rozcestník na místě -------------------------------------------------------
-        await page.evaluate("() => AGUkony.go('Srovnat AR', true)")
+        await page.evaluate("() => AGUkony.go('Přesné měření', true)")
         await page.wait_for_timeout(300)
-        c0 = await page.evaluate("""() => { var p = document.querySelector('.ag-uk-page[data-page="Srovnat AR"]');
-            var row = p.querySelector('.ag-uk-i[data-k="srovnat-sever"]'); var sub = p.querySelector('.ag-uk-sub[data-sub="srovnat-sever"]');
+        c0 = await page.evaluate("""() => { var p = document.querySelector('.ag-uk-page[data-page="Přesné měření"]');
+            var row = p.querySelector('.ag-uk-i[data-k="opravit-gps"]'); var sub = p.querySelector('.ag-uk-sub[data-sub="opravit-gps"]');
             return { row: !!row, exp: row && row.getAttribute('aria-expanded'), subRows: sub ? sub.querySelectorAll('.ag-uk-i').length : -1, hidden: sub ? sub.hidden : null,
-                     samostatne: !!p.querySelector('.ag-uk-i[data-k="ar-calib2"]') }; }""")
-        ok('C1 rozcestník „Srovnat jinak" je jeden řádek se šipkou, sbalený bez položek v DOM', c0['row'] and c0['exp'] == 'false' and c0['subRows'] == 0 and c0['hidden'] and not c0['samostatne'], c0)
+                     samostatne: !!p.querySelector('.ag-uk-i[data-k="korekce-z-mapy"]') }; }""")
+        ok('C1 rozcestník „Opravit GPS" je jeden řádek se šipkou, sbalený bez položek v DOM', c0['row'] and c0['exp'] == 'false' and c0['subRows'] == 0 and c0['hidden'] and not c0['samostatne'], c0)
         h_pred = (await stav(page))['vyska']
-        await page.evaluate("() => document.querySelector('.ag-uk-page[data-page=\"Srovnat AR\"] .ag-uk-i[data-k=\"srovnat-sever\"]').click()")
+        await page.evaluate("() => document.querySelector('.ag-uk-page[data-page=\"Přesné měření\"] .ag-uk-i[data-k=\"opravit-gps\"]').click()")
         await page.wait_for_timeout(500)
-        c1 = await page.evaluate("""() => { var p = document.querySelector('.ag-uk-page[data-page="Srovnat AR"]');
-            var row = p.querySelector('.ag-uk-i[data-k="srovnat-sever"]'); var sub = p.querySelector('.ag-uk-sub[data-sub="srovnat-sever"]');
+        c1 = await page.evaluate("""() => { var p = document.querySelector('.ag-uk-page[data-page="Přesné měření"]');
+            var row = p.querySelector('.ag-uk-i[data-k="opravit-gps"]'); var sub = p.querySelector('.ag-uk-sub[data-sub="opravit-gps"]');
             return { exp: row.getAttribute('aria-expanded'), hidden: sub.hidden, klice: Array.from(sub.querySelectorAll('.ag-uk-i')).map(r => r.getAttribute('data-k')),
                      hubOkno: !!document.querySelector('#ag-th-ov.open'), tools: document.getElementById('tools-modal').style.display !== 'none' }; }""")
-        ok('C2 klepnutí rozbalí položky pod řádkem (ne druhé okno), Nástroje zůstávají', c1['exp'] == 'true' and not c1['hidden'] and 'ar-calib2' in c1['klice'] and 'sever-slunce' in c1['klice'] and not c1['hubOkno'] and c1['tools'], c1)
+        ok('C2 klepnutí rozbalí položky pod řádkem (ne druhé okno), Nástroje zůstávají', c1['exp'] == 'true' and not c1['hidden'] and 'korekce-z-mapy' in c1['klice'] and 'ref-calibration' in c1['klice'] and not c1['hubOkno'] and c1['tools'], c1)
         h_po = (await stav(page))['vyska']
         ok('C3 výška pásu se po rozbalení přepočítá', h_po > h_pred + 40, (h_pred, h_po))
         # položka rozbaleného rozcestníku spustí nástroj stejnou cestou (klik na dlaždici)
         # spuštění = klik na PŮVODNÍ dlaždici v mřížce (stejná cesta jako všude) — chytíme ho v capture fázi a zastavíme
         await page.evaluate("""() => { window.__spusteno = []; document.addEventListener('click', function (e) {
             var t = e.target.closest && e.target.closest('#tools-modal .tool-tile'); if (t) { window.__spusteno.push(t.getAttribute('data-tool')); e.stopPropagation(); e.preventDefault(); } }, true); }""")
-        await page.evaluate("() => document.querySelector('.ag-uk-sub[data-sub=\"srovnat-sever\"] .ag-uk-i[data-k=\"sever-slunce\"]').click()")
+        await page.evaluate("() => document.querySelector('.ag-uk-sub[data-sub=\"opravit-gps\"] .ag-uk-i[data-k=\"ref-calibration\"]').click()")
         await page.wait_for_timeout(200)
-        ok('C4 položka rozcestníku spouští klikem na svou dlaždici v mřížce', await page.evaluate("() => window.__spusteno.join(',') === 'sever-slunce'"), await page.evaluate("() => window.__spusteno"))
+        ok('C4 položka rozcestníku spouští klikem na svou dlaždici v mřížce', await page.evaluate("() => window.__spusteno.join(',') === 'ref-calibration'"), await page.evaluate("() => window.__spusteno"))
         if SNIMKY:
             await page.screenshot(path=os.path.join(out_dir, 'pro-rozcestnik.png'))
         # zavřít a znovu otevřít = zase Moje, rozcestník sbalený
@@ -266,7 +266,7 @@ async def beh(url):
         await page.wait_for_timeout(300)
         await page.evaluate("() => { document.getElementById('tools-modal').style.display = 'flex'; }")
         await page.wait_for_timeout(700)
-        c5 = await page.evaluate("""() => ({ cur: AGUkony.page(), exp: (document.querySelector('.ag-uk-i[data-k="srovnat-sever"]') || {}).getAttribute && document.querySelector('.ag-uk-i[data-k="srovnat-sever"]').getAttribute('aria-expanded') })""")
+        c5 = await page.evaluate("""() => ({ cur: AGUkony.page(), exp: (document.querySelector('.ag-uk-i[data-k="opravit-gps"]') || {}).getAttribute && document.querySelector('.ag-uk-i[data-k="opravit-gps"]').getAttribute('aria-expanded') })""")
         ok('C5 po zavření a otevření okna zase Moje, rozcestník sbalený', c5['cur'] == 'moje' and c5['exp'] == 'false', c5)
         await ctx.close()
 
@@ -287,24 +287,25 @@ async def beh(url):
             capy = await page.evaluate("() => Array.from(document.querySelectorAll('.ag-uk-page[data-page=\"pro\"] .ag-uk-cap')).map(c => c.textContent)")
             ok('D4 na Pro jsou nástroje po slovesech (titulky Změřit, Vytyčit…)', 'Změřit' in capy and 'Vytyčit' in capy and len(capy) >= 6, capy)
             ok('D5 hlavička „Ve verzi Pro" + tlačítko „Co všechno umí Pro"', 'VE VERZI PRO' in pro['hlavicka'].upper() and await page.evaluate("() => !!Array.from(document.querySelectorAll('.ag-uk-page[data-page=\"pro\"] button')).find(b => /umí Pro/.test(b.textContent))"))
-            ok('D6 Změřit v Základu má jen volné nástroje (Vzdálenost, Plocha, Oměrné)', set(d['strany']['Změřit']['radky']) >= {'openMeasureModal', 'startAreaMode', 'openCheckDist'} and 'openDmtVolume' not in d['strany']['Změřit']['radky'], d['strany']['Změřit']['radky'])
-            # zamčené položky rozcestníku (ar-calib2, fov-kalib jsou Pro) nejsou v rozbalení, jsou na Pro
-            await page.evaluate("() => AGUkony.go('Srovnat AR', true)")
+            ok('D6 Změřit v Základu má jen volné nástroje (Vzdálenost, Plocha; Oměrné schované 18. 9. 2026)', set(d['strany']['Změřit']['radky']) >= {'openMeasureModal', 'startAreaMode'} and 'openDmtVolume' not in d['strany']['Změřit']['radky'] and 'openCheckDist' not in d['strany']['Změřit']['radky'], d['strany']['Změřit']['radky'])
+            # zamčené položky rozcestníku (kalibrace-hranou je Pro) nejsou v rozbalení, jsou na Pro (18. 9. 2026: rozcestník Opravit GPS, Srovnat jinak je schovaný)
+            await page.evaluate("() => AGUkony.go('Přesné měření', true)")
             await page.wait_for_timeout(300)
-            await page.evaluate("() => document.querySelector('.ag-uk-page[data-page=\"Srovnat AR\"] .ag-uk-i[data-k=\"srovnat-sever\"]').click()")
+            await page.evaluate("() => document.querySelector('.ag-uk-page[data-page=\"Přesné měření\"] .ag-uk-i[data-k=\"opravit-gps\"]').click()")
             await page.wait_for_timeout(400)
-            d8 = await page.evaluate("""() => ({ sub: Array.from(document.querySelectorAll('.ag-uk-sub[data-sub="srovnat-sever"] .ag-uk-i')).map(r => r.getAttribute('data-k')),
-                pod: (document.querySelector('.ag-uk-i[data-k="srovnat-sever"] small') || {}).textContent || '',
+            d8 = await page.evaluate("""() => ({ sub: Array.from(document.querySelectorAll('.ag-uk-sub[data-sub="opravit-gps"] .ag-uk-i')).map(r => r.getAttribute('data-k')),
+                pod: (document.querySelector('.ag-uk-i[data-k="opravit-gps"] small') || {}).textContent || '',
                 pro: Array.from(document.querySelectorAll('.ag-uk-page[data-page="pro"] .ag-uk-i')).map(r => r.getAttribute('data-k')) })""")
-            ok('D8 v Základu rozcestník rozbalí jen volné položky, Pro položky (2 body, FOV) jsou na stránce Pro a podtitulek je neslibuje',
-               'orient-point' in d8['sub'] and 'ar-calib2' not in d8['sub'] and 'fov-kalib' not in d8['sub'] and 'ar-calib2' in d8['pro'] and 'fov-kalib' in d8['pro'] and 'dva body' not in d8['pod'], d8)
+            ok('D8 v Základu rozcestník rozbalí jen volné položky, Pro položka (chůzí po hraně) je na stránce Pro a podtitulek ji neslibuje',
+               'korekce-z-mapy' in d8['sub'] and 'ref-calibration' in d8['sub'] and 'kalibrace-hranou' not in d8['sub'] and 'kalibrace-hranou' in d8['pro'] and 'hraně' not in d8['pod'], d8)
             # klepnutí na zamčený řádek = karta Pro, ne nástroj
             await page.evaluate("() => AGUkony.go('pro', true)")
             await page.wait_for_timeout(300)
-            await page.evaluate("() => document.querySelector('.ag-uk-page[data-page=\"pro\"] .ag-uk-i[data-k=\"openDmtVolume\"]').click()")
+            # 18. 9. 2026: Kubatury (openDmtVolume) jsou schované → zamčený řádek = Výška objektu (Pro)
+            await page.evaluate("() => document.querySelector('.ag-uk-page[data-page=\"pro\"] .ag-uk-i[data-k=\"vyska-objektu\"]').click()")
             await page.wait_for_timeout(700)
             karta = await page.evaluate("() => !!document.querySelector('#ag-pro-karta.on, #ag-pz-modal.on, [id^=ag-pro][class~=on]') || !!Array.from(document.querySelectorAll('[id*=pro]')).find(e => /karta|zamek|zamky/.test(e.id) && e.classList.contains('on'))")
-            dmt = await page.evaluate("() => { var m = document.getElementById('dmt-modal') || document.getElementById('dmt-volume-modal'); return m ? m.style.display : 'none'; }")
+            dmt = await page.evaluate("() => { var m = document.getElementById('vyska-objektu-modal') || document.getElementById('ag-vo-modal') || document.querySelector('[id*=vyska-objektu]'); return m ? (m.style.display || (m.classList.contains('open') ? 'open' : '')) : 'none'; }")
             ok('D7 zamčený řádek na Pro otevře kartu Pro, ne nástroj', karta and dmt in ('none', ''), (karta, dmt))
             if SNIMKY:
                 await page.evaluate("() => { document.querySelectorAll('.on').forEach(function(){}); }")

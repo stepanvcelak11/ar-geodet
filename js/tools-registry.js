@@ -92,6 +92,17 @@
 //   hidden 1 = nástroj se NEUKAZUJE ani v mřížce, ani v seznamu úkonů. Zůstává
 //         celý v appce a spustit ho jde hledáním — „dát pryč“ znamená „ať to
 //         nepřekáží“, ne „smazat“.
+//         ⚠ ÚKLID 18. 9. 2026 (uživatel prošel VŠECHNY nástroje: „dát stranou, co se
+//         používat nebude — nemaž je, třeba je někdy do budoucna použijem"): schováno
+//         17 dalších — metr v kameře, oměrné, kubatury, stopa trasy, protokol kvality,
+//         ověření bodů, průvodce „nevím čím začít", celý rozcestník „Srovnat jinak"
+//         (dva body / podle bodu / Slunce / FOV — Slunce a bod už umí Kompas a Srovnat
+//         sever), vizuální stabilizace, prohlídka okolí, vektorová mapa offline
+//         (nahradila ji vlastní mapa + Stáhnout oblast), predikce signálu (je v mapě
+//         jako Kde se dá měřit), dnešek v terénu. Stejný den: Lovci bodů → Učit se
+//         (hra, ne měření), Vzdálené body do AR → Podklady (je to stahování bodů),
+//         Skryté body → Zaznamenat (k Obnovit smazaný bod), rozcestníky Opravit GPS
+//         a Dvěma telefony v Přesném měření (9 řádků → 6).
 //
 // KDE JSOU TĚLA NÁVODŮ A PROČ NE TADY
 // Návody jsou dlouhé HTML odstavce a bylo jich tu 80 — dvě třetiny objemu celého
@@ -134,9 +145,10 @@
     // v přepínači; `tools` je pořadí dlaždic v sekci „Pro tuto práci“.
     var PROFILES = [
         { id: 'univerzal', label: 'Univerzální', tools: [] },
-        { id: 'vytycovani', label: 'Vytyčování', tools: ['openStakeoutModal', 'stakeout-line', 'protokol-vytyceni', 'offset-point', 'usadit-ar', 'agOpenCalibrate', 'rajon', 'project-import', 'openMeasureModal'] },
+        { id: 'vytycovani', label: 'Vytyčování', tools: ['openStakeoutModal', 'stakeout-line', 'protokol-vytyceni', 'offset-point', 'agOpenCalibrate', 'rajon', 'project-import', 'openMeasureModal'] },   // usadit-ar schovaný 18. 9. 2026
         { id: 'katastr', label: 'Katastr a mapování', tools: ['openKatastr', 'cadastre-vector', 'parcela', 'startAreaMode', 'openTachymetrie', 'project-import', 'openMeasureModal'] },
-        { id: 'kontrola', label: 'Kontrola a monitoring', tools: ['openCheckDist', 'zavady', 'openDmtVolume', 'vyska-objektu', 'track-log', 'zapisnik', 'openMeasureModal'] }
+        // 18. 9. 2026: oměrné, kubatury a stopa trasy schované (hidden) → místo nich kontrolní měření podruhé
+        { id: 'kontrola', label: 'Kontrola a monitoring', tools: ['zavady', 'vyska-objektu', 'dvoji-mereni', 'zapisnik', 'openMeasureModal'] }
     ];
 
     // ---- JEDEN ZÁZNAM NA NÁSTROJ ------------------------------------------------
@@ -144,17 +156,18 @@
         // ── Změřit ──────────────────────────────────────────────────────
         { k: 'openMeasureModal', verb: 'Změřit', vl: 'Vzdálenost a převýšení mezi body', keys: 'vzdalenost delka metry mezi body prevyseni sikma pasmo distance', base: 1,
           help: { t: 'Měření vzdálenosti' } },
-        { k: 'ar-metr', pro: 1, verb: 'Změřit', vl: 'Krátkou délku kamerou', vh: 'telefon plocho nad zemí, bez pásma', keys: 'metr pravitko kamera kratka delka bez pasma meritko svinovaci zmerit rukou',
+        { k: 'ar-metr', pro: 1, hidden: 1, verb: 'Změřit', vl: 'Krátkou délku kamerou', vh: 'telefon plocho nad zemí, bez pásma', keys: 'metr pravitko kamera kratka delka bez pasma meritko svinovaci zmerit rukou',
           help: { t: 'Metr v kameře' } },
         { k: 'startAreaMode', verb: 'Změřit', vl: 'Plochu a obvod pozemku', keys: 'plocha vymera obvod pozemek polygon hektar m2 area', base: 1,
           help: { t: 'Měření plochy' } },
-        { k: 'openCheckDist', verb: 'Změřit', vl: 'Oměrné — kontrolní míry', keys: 'omerne kontrolni miry kontrola delek pasmo overeni',
+        { k: 'openCheckDist', hidden: 1, verb: 'Změřit', vl: 'Oměrné — kontrolní míry', keys: 'omerne kontrolni miry kontrola delek pasmo overeni',
           help: { t: 'Oměrné / kontrola' } },
-        { k: 'openDmtVolume', pro: 1, verb: 'Změřit', vl: 'Kubaturu a vrstevnice', keys: 'kubatura objem vrstevnice dmt teren vykop nasyp hromada',
+        { k: 'openDmtVolume', pro: 1, hidden: 1, verb: 'Změřit', vl: 'Kubaturu a vrstevnice', keys: 'kubatura objem vrstevnice dmt teren vykop nasyp hromada',
           help: { t: 'Kubatury / vrstevnice' } },
         { k: 'vyska-objektu', pro: 1, cat: 'Měření', verb: 'Změřit', vl: 'Výšku objektu', vh: 'budova, stožár, strom', keys: 'vyska objektu budova strom stozar uhel meridlo',
           help: { t: 'Výška objektu' } },
-        { k: 'korekce', pro: 1, verb: 'Změřit', vl: 'S korekcí na teplotu a tlak', vh: 'pásmo, dálkoměr', keys: 'korekce ppm pasmo teplota tlak vlhkost refrakce zakriveni edm dalkomer atmosfericka oprava pruves',
+        // přejmenováno 18. 9. 2026 („korekce na teplotu a tlak — vlastně moc nevíme, o co jde")
+        { k: 'korekce', pro: 1, verb: 'Změřit', vl: 'Skutečnou délku z pásma nebo dálkoměru', vh: 'oprava na teplotu, tlak, průvěs a zakřivení Země', keys: 'korekce ppm pasmo teplota tlak vlhkost refrakce zakriveni edm dalkomer atmosfericka oprava pruves',
           help: { t: 'Korekce měření' } },
         { k: 'obchuzka', pro: 1, hidden: 1, w: 1, verb: 'Změřit', vl: 'Kubaturu obejitím výkopu', vh: 'obvod z GNSS + dno, objem hned na místě', keys: 'obchuzka vykop kubatura objem obejiti obvod dno jama',
           help: { t: 'Obchůzka výkopu' } },
@@ -185,15 +198,24 @@
           help: { t: 'Jak měřit přesně z mobilu' } },
         { k: 'brutal-gps', w: 1, cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Přesnou GPS', vh: 'dlouhé průměrování s otočením, kam s telefonem', keys: 'presne presnou gps mereni prumer prumerovani brutalni poloha bod antena stred telefonu', base: 1,
           help: { t: 'Přesná GPS (dlouhé průměrování)' } },
-        { k: 'kalibrace-hranou', pro: 1, w: 1, cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Opravit posun GPS chůzí po hraně', vh: 'obrubník, obvod pozemku, plusko — kalibrace před a po', keys: 'kalibrace hrana chuze obrubnik chodnik cara posun gps vektor chyba bez zastaveni dxf osa obvod pozemek plusko ctverec uzavreny tvar pred a po zpetne',
+        // ROZCESTNÍK „Opravit GPS" (18. 9. 2026, uživatel: „nástrojů v Přesném měření začíná být dost,
+        // nedají se sjednotit?"): tři opravy posunu GPS = jeden řádek, položky jsou v js/tools-hub.js HUBS.
+        { k: 'opravit-gps', w: 1, cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Opravit GPS', vh: 'chůzí po hraně, z mapy za chůze, podle známého bodu', hub: 1,
+          keys: 'opravit gps posun oprava kalibrace chuze hrana mapa znamy bod ujizdi rozcestnik',
+          help: { t: 'Opravit GPS' } },
+        { k: 'kalibrace-hranou', pro: 1, w: 1, inhub: 'opravit-gps', cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Chůzí po hraně', vh: 'obrubník, obvod pozemku, plusko — kalibrace před a po', keys: 'kalibrace hrana chuze obrubnik chodnik cara posun gps vektor chyba bez zastaveni dxf osa obvod pozemek plusko ctverec uzavreny tvar pred a po zpetne',
           help: { t: 'Kalibrace chůzí po hraně' } },
-        { k: 'korekce-z-mapy', w: 1, cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Opravit GPS z mapy za chůze', vh: 'klepni, kde stojíš — posouvá i živou polohu, 10 min / 100 m', keys: 'oprava korekce gps mapa klepnuti ortofoto chuze ziva poloha posun rychle zpresneni poloha z mapy',
+        { k: 'korekce-z-mapy', w: 1, inhub: 'opravit-gps', cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Z mapy za chůze', vh: 'klepni, kde stojíš — posouvá i živou polohu, 10 min / 100 m', keys: 'oprava korekce gps mapa klepnuti ortofoto chuze ziva poloha posun rychle zpresneni poloha z mapy',
           help: { t: 'Oprava GPS z mapy za chůze' } },
-        { k: 'ref-calibration', w: 1, cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Opravit posun GPS podle známého bodu', vh: 'stoupni si na úřední bod — opravuje POLOHU, ne sever', keys: 'kalibrace referencni bod srovnani ar posun usazeni znamy bod',
+        { k: 'ref-calibration', w: 1, inhub: 'opravit-gps', cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Podle známého bodu', vh: 'stoupni si na úřední bod — opravuje POLOHU, ne sever', keys: 'kalibrace referencni bod srovnani ar posun usazeni znamy bod',
           help: { t: 'Posun GPS na známý bod' } },
-        { k: 'dgps', pro: 1, w: 1, cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Dvoutelefonní DGPS', vh: 'základna a rover, i dočasná základna z Přesné GPS', keys: 'dgps diferencni korekce zakladna rover druhy telefon presnost oprava bodu docasna zakladna stanice',
+        // ROZCESTNÍK „Dvěma telefony" (18. 9. 2026): DGPS a akustický dálkoměr chtějí druhý telefon
+        { k: 'dva-telefony', pro: 1, w: 1, cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Dvěma telefony', vh: 'DGPS, akustický dálkoměr', hub: 1,
+          keys: 'dva telefony druhy telefon dgps akusticky dalkomer zakladna rover rozcestnik',
+          help: { t: 'Dvěma telefony' } },
+        { k: 'dgps', pro: 1, w: 1, inhub: 'dva-telefony', cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Dvoutelefonní DGPS', vh: 'základna a rover, i dočasná základna z Přesné GPS', keys: 'dgps diferencni korekce zakladna rover druhy telefon presnost oprava bodu docasna zakladna stanice',
           help: { t: 'Dvoutelefonní DGPS' } },
-        { k: 'akusticky-dalkomer', pro: 1, w: 1, cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Akustickým dálkoměrem', vh: 'délka mezi telefony na centimetry, protínání z délek', keys: 'akusticky dalkomer zvuk chirp pipnuti delka vzdalenost centimetry dva telefony protinani z delek mikrofon reproduktor',
+        { k: 'akusticky-dalkomer', pro: 1, w: 1, inhub: 'dva-telefony', cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Akustickým dálkoměrem', vh: 'délka mezi telefony na centimetry, protínání z délek', keys: 'akusticky dalkomer zvuk chirp pipnuti delka vzdalenost centimetry dva telefony protinani z delek mikrofon reproduktor',
           help: { t: 'Akustický dálkoměr' } },
         { k: 'dvoji-mereni', fn: 'openDvojiMereni', pro: 1, cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Kontrolní měření bodu podruhé', vh: 'jediná poctivá přesnost z mobilu', keys: 'kontrola dvoji mereni podruhe overeni presnost rozdil delta opakovane zmerit znovu multipath',
           help: { t: 'Kontrolní měření' } },
@@ -227,21 +249,25 @@
           help: { t: 'Deník dne' } },
         { k: 'plakat-dne', fn: 'agOpenPlakatDne', pro: 1, inhub: 'zapis-dne', cat: 'Pomůcky', verb: 'Zaznamenat', vl: 'Plakát dne', vh: 'den jako jeden obrázek ke sdílení', keys: 'plakat obrazek den stopa kresba sdilet png souhrn dne mapa dne co jsem nachodil vysledek dne foto do skupiny',
           help: { t: 'Plakát dne' } },
-        { k: 'track-log', fn: 'agOpenTrackLog', pro: 1, cat: 'Měření', verb: 'Zaznamenat', vl: 'Stopu trasy', keys: 'stopa trasa log gpx zaznam cesty prochazka',
+        { k: 'track-log', fn: 'agOpenTrackLog', pro: 1, hidden: 1, cat: 'Měření', verb: 'Zaznamenat', vl: 'Stopu trasy', keys: 'stopa trasa log gpx zaznam cesty prochazka',
           help: { t: 'Stopa trasy' } },
         { k: 'geo-foto', pro: 1, verb: 'Zaznamenat', vl: 'Fotku s razítkem', vh: 'S-JTSK, výška, čas a azimut ve fotce', keys: 'fotka foto razitko georazitko snimek dokumentace souradnice',
           help: { t: 'Geo-fotka' } },
         { k: 'epochy', fn: 'agOpenEpochy', pro: 1, hidden: 1, w: 1, cat: 'Měření', verb: 'Zaznamenat', vl: 'Epochy — posuny v čase', vh: 'opakované měření bodu', keys: 'epochy monitoring posuny deformace sledovani opakovane',
           help: { t: 'Epochy / monitoring' } },
-        { k: 'kvalita-bodu', fn: 'agOpenKvalitaBodu', pro: 1, verb: 'Zaznamenat', vl: 'Protokol kvality', vh: 'čím byl bod změřen a jak dobře', keys: 'kvalita protokol presnost sigma smerodatna odchylka epochy doklad rozptyl mereni doložit',
+        { k: 'kvalita-bodu', fn: 'agOpenKvalitaBodu', pro: 1, hidden: 1, verb: 'Zaznamenat', vl: 'Protokol kvality', vh: 'čím byl bod změřen a jak dobře', keys: 'kvalita protokol presnost sigma smerodatna odchylka epochy doklad rozptyl mereni doložit',
           help: { t: 'Protokol kvality' } },
-        { k: 'overeni-bodu', pro: 1, verb: 'Zaznamenat', vl: 'Ověření bodů', vh: 'které body mají druhé nezávislé určení', keys: 'overeni overeny bod kontrola druhe urceni kontrolni mereni odchylka mez mezni kod kvality dvakrat prekontrolovat',
+        { k: 'overeni-bodu', pro: 1, hidden: 1, verb: 'Zaznamenat', vl: 'Ověření bodů', vh: 'které body mají druhé nezávislé určení', keys: 'overeni overeny bod kontrola druhe urceni kontrolni mereni odchylka mez mezni kod kvality dvakrat prekontrolovat',
           help: { t: 'Ověření bodů' } },
         { k: 'kos', w: 1, verb: 'Zaznamenat', vl: 'Obnovit smazaný bod', vh: 'koš — body i zakázky, 30 dní', keys: 'kos smazane body obnovit odpadky obnova vratit zpet zakazky',
           help: { t: 'Koš — obnovení smazaného' } },
+        // Skryté body: do 18. 9. 2026 pod „Katastr a podklady" („to do katastru nepatří") — patří ke koši
+        { k: 'hidden-points', pro: 1, verb: 'Zaznamenat', vl: 'Skryté body', vh: 'zobrazit a obnovit, co jsi v mapě schoval', keys: 'skryte body obnovit zobrazit schovane',
+          help: { t: 'Skryté body' } },
 
         // ── Srovnat AR ──────────────────────────────────────────────────
-        { k: 'usadit-ar', verb: 'Srovnat AR', vl: 'Nevím čím začít — průvodce', vh: 'značky nesedí na realitu', keys: 'usadit srovnat kalibrace sever ar pruvodce orientace nesedi posun helmert resekce stanovisko',
+        // Srovnat AR po úklidu 18. 9. 2026 = jen Kompas a Srovnat sever; zbytek schovaný (viz hlavička `hidden`)
+        { k: 'usadit-ar', hidden: 1, verb: 'Srovnat AR', vl: 'Nevím čím začít — průvodce', vh: 'značky nesedí na realitu', keys: 'usadit srovnat kalibrace sever ar pruvodce orientace nesedi posun helmert resekce stanovisko',
           help: { t: 'Usadit AR (průvodce)' } },
         { k: 'kompas', verb: 'Srovnat AR', vl: 'Podívat se na kompas', vh: 'růžice se zeměpisným i magnetickým severem', keys: 'kompas busola ruzice sever magneticky zemepisny pravy azimut deklinace smer strelka gon nula', base: 1,
           help: { t: 'Kompas a sever' } },
@@ -252,28 +278,29 @@
         // za jedním rozcestníkem, kde je u každé volby napsané, KDY se hodí.
         // Definice rozcestníku (ikona, titulek, pořadí voleb) je v js/tools-hub.js
         // v poli HUBS — bez ní by se položky jen skryly a dlaždice by nevznikla.
-        { k: 'srovnat-sever', w: 1, verb: 'Srovnat AR', vl: 'Srovnat jinak', vh: 'dva body, podle bodu, Slunce, FOV', hub: 1,
+        { k: 'srovnat-sever', w: 1, hidden: 1, verb: 'Srovnat AR', vl: 'Srovnat jinak', vh: 'dva body, podle bodu, Slunce, FOV', hub: 1,
           keys: 'srovnat sever ar kalibrace helmert lokalizace posun gps referencni bod slunce dva body zorny uhel fov stabilizace znacky nesedi rozcestnik',
           help: { t: 'Srovnat AR — další způsoby' } },
         { k: 'agOpenCalibrate', verb: 'Srovnat AR', vl: 'Srovnat sever', keys: 'sever kalibrace kompas azimut srovnat smer odchylka', base: 1,
           help: { t: 'Srovnat sever' } },
-        { k: 'ar-calib2', pro: 1, inhub: 'srovnat-sever', verb: 'Srovnat AR', vl: 'Srovnat na dva body', keys: 'srovnat ar dva body kalibrace posun sever usadit znacky nesedi',
+        { k: 'ar-calib2', pro: 1, hidden: 1, inhub: 'srovnat-sever', verb: 'Srovnat AR', vl: 'Srovnat na dva body', keys: 'srovnat ar dva body kalibrace posun sever usadit znacky nesedi',
           help: { t: 'Srovnat AR na 2 body' } },
-        { k: 'orient-point', inhub: 'srovnat-sever', cat: 'AR a kalibrace', verb: 'Srovnat AR', vl: 'Srovnat sever podle bodu', vh: 'opravuje AZIMUT, ne polohu', keys: 'orientace bod sever srovnani smer',
+        { k: 'orient-point', hidden: 1, inhub: 'srovnat-sever', cat: 'AR a kalibrace', verb: 'Srovnat AR', vl: 'Srovnat sever podle bodu', vh: 'opravuje AZIMUT, ne polohu', keys: 'orientace bod sever srovnani smer',
           help: { t: 'Srovnat sever podle bodu' } },
-        { k: 'sever-slunce', inhub: 'srovnat-sever', cat: 'AR a kalibrace', verb: 'Srovnat AR', vl: 'Srovnat sever podle Slunce', vh: 'když kompas lže a není na co orientovat',
+        { k: 'sever-slunce', hidden: 1, inhub: 'srovnat-sever', cat: 'AR a kalibrace', verb: 'Srovnat AR', vl: 'Srovnat sever podle Slunce', vh: 'když kompas lže a není na co orientovat',
           keys: 'slunce sever azimut kompas srovnat stin orientace magnetometr rusi armatura kov bez bodu',
           help: { t: 'Sever podle Slunce' } },
         { k: 'localization-helmert', fn: 'agOpenLocalize', pro: 1, hidden: 1, verb: 'Srovnat AR', vl: 'Lokalizace (Helmert)', vh: 'místní systém', keys: 'helmert lokalizace transformace klic mistni system',
           help: { t: 'Lokalizace (Helmert)' } },
-        { k: 'fov-kalib', pro: 1, inhub: 'srovnat-sever', verb: 'Srovnat AR', vl: 'Změřit zorný úhel kamery', keys: 'zorny uhel kamery fov kalibrace ohnisko sirka zaberu ar presnost',
+        { k: 'fov-kalib', pro: 1, hidden: 1, inhub: 'srovnat-sever', verb: 'Srovnat AR', vl: 'Změřit zorný úhel kamery', keys: 'zorny uhel kamery fov kalibrace ohnisko sirka zaberu ar presnost',
           help: { t: 'Zorný úhel kamery (FOV)' } },
         // ar-visual-track do rozcestníku ZÁMĚRNĚ nejde: uživatel ho 9. 8. 2026 označil
         // za trvale vypnutý (seed v2 v js/moje-aktivita.js) a vstup má v Nastavení →
         // AR & přesnost. Přidat mu druhou cestu by šlo přesně proti tomuhle úklidu.
-        { k: 'ar-dosah', fn: 'agOpenArDosah', pro: 1, verb: 'Srovnat AR', vl: 'Vzdálené body do AR', vh: 'obdélníkem v mapě vyber body, které chceš vidět i z dálky', keys: 'vzdalene body daleko dosah vyrez obdelnik ctverecek 2 km viditelnost ar dalka vybrat oblast uzemi',
+        // Vzdálené body do AR: od 18. 9. 2026 v rozcestníku Podklady („to je stahování bodů, se srovnáním AR nesouvisí")
+        { k: 'ar-dosah', fn: 'agOpenArDosah', pro: 1, inhub: 'podklady-katastr', verb: 'Katastr a podklady', vl: 'Vzdálené body do AR', vh: 'obdélníkem v mapě vyber body, které chceš vidět i z dálky', keys: 'vzdalene body daleko dosah vyrez obdelnik ctverecek 2 km viditelnost ar dalka vybrat oblast uzemi',
           help: { t: 'Vzdálené body do AR' } },
-        { k: 'ar-visual-track', fn: 'agOpenVisualTrack', pro: 1, verb: 'Srovnat AR', vl: 'Vizuální stabilizace', vh: 'beta', keys: 'stabilizace ar obraz kamera drift plavani znacek vizualni beta',
+        { k: 'ar-visual-track', fn: 'agOpenVisualTrack', pro: 1, hidden: 1, verb: 'Srovnat AR', vl: 'Vizuální stabilizace', vh: 'beta', keys: 'stabilizace ar obraz kamera drift plavani znacek vizualni beta',
           help: { t: 'Vizuální stabilizace AR (beta)' } },
 
         // ── Zjistit podmínky ────────────────────────────────────────────
@@ -290,7 +317,7 @@
           help: { t: 'Proč ±4 m?' } },
         { k: 'openSatModal', inhub: 'gnss-signal', verb: 'Zjistit podmínky', vl: 'Družice teď', vh: 'kolik jich vidím a jaká geometrie', keys: 'gnss satelity druzice obloha prekazky signal gps kvalita',
           help: { t: 'GNSS satelity' } },
-        { k: 'sky-obstruction', fn: 'openSkyObstruction', pro: 1, inhub: 'gnss-signal', verb: 'Zjistit podmínky', vl: 'Predikci signálu', vh: 'maska překážek', keys: 'predikce signalu obloha prekazky stromy budovy gnss planovani',
+        { k: 'sky-obstruction', fn: 'openSkyObstruction', pro: 1, hidden: 1, inhub: 'gnss-signal', verb: 'Zjistit podmínky', vl: 'Predikci signálu', vh: 'maska překážek', keys: 'predikce signalu obloha prekazky stromy budovy gnss planovani',
           help: { t: 'Predikce signálu' } },
         { k: 'gnss-forecast', pro: 1, inhub: 'pocasi-svetlo', verb: 'Zjistit podmínky', vl: 'Kdy bude nejlíp měřit', vh: 'GNSS předpověď', keys: 'gnss predpoved kdy merit pdop dop okno planovani ionosfera kp bourka geometrie druzic pocasi pro gps', net: 1,
           help: { t: 'GNSS předpověď' } },
@@ -311,15 +338,16 @@
           help: { t: 'Katastr — parcely' } },
         { k: 'cadastre-area', pro: 1, w: 1, inhub: 'podklady-katastr', verb: 'Katastr a podklady', vl: 'Stáhnout body z výřezu mapy', keys: 'stahnout body vyrez oblast okoli bodove pole import mapa', net: 1,
           help: { t: 'Stáhnout body z výřezu mapy' } },
-        { k: 'prohlidka', pro: 1, inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Prohlídka okolí', vh: 'co je kolem mě — bez zakázky', keys: 'prohlidka okoli kde stojim parcela hranice rozhlednout se zvedni telefon vychazka prochazka soused plot vyska slunce laik ukazat', net: 1,
+        { k: 'prohlidka', pro: 1, hidden: 1, inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Prohlídka okolí', vh: 'co je kolem mě — bez zakázky', keys: 'prohlidka okoli kde stojim parcela hranice rozhlednout se zvedni telefon vychazka prochazka soused plot vyska slunce laik ukazat', net: 1,
           help: { t: 'Prohlídka okolí' } },
-        { k: 'vektor-mapa', pro: 1, inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Vektorová mapa offline', vh: 'sbal výřez z kanceláře, kresli bez signálu', keys: 'vektorova mapa offline podklad osm openstreetmap sbalit vyrez bez signalu budovy silnice cesty voda les kresba',
+        { k: 'vektor-mapa', pro: 1, hidden: 1, inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Vektorová mapa offline', vh: 'sbal výřez z kanceláře, kresli bez signálu', keys: 'vektorova mapa offline podklad osm openstreetmap sbalit vyrez bez signalu budovy silnice cesty voda les kresba',
           help: { t: 'Vektorová mapa offline' } },
         { k: 'balicek-zakazky', fn: 'openBalicekZakazky', pro: 1, inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Sbalit zakázku pro terén', vh: 'mapa, katastr a body kolem ZAKÁZKY, ne kolem mě', keys: 'sbalit balicek offline pred vyjezdem stahnout mapu katastr body zakazka kancelar wifi priprava',
           help: { t: 'Sbalit zakázku' } },
         { k: 'oblasti-offline', fn: 'agOpenOblasti', pro: 1, inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Stáhnout okres, kraj nebo celou ČR', vh: 'všechny úřední body + přehledová mapa v telefonu, bez signálu', keys: 'stahnout okres kraj cela cr republika oblast offline body bodove pole mapa telefon bez signalu plynule nacitani balicek',
           help: { t: 'Stáhnout oblast' } },
-        { k: 'lovci-bodu', fn: 'agOpenLovci', cat: 'Pomůcky', verb: 'Zaznamenat', vl: 'Lovci bodů', vh: 'sbírka objevených úředních bodů, ocenění, lov', keys: 'lovci bodu sbirka objevene body oceneni odznaky lov lovit hra skore kamen dne nasel jsem ho',
+        // Lovci bodů: od 18. 9. 2026 v „Učit se" (uživatel: „s tím se člověk hraje, neměří")
+        { k: 'lovci-bodu', fn: 'agOpenLovci', cat: 'Pomůcky', verb: 'Učit se', vl: 'Lovci bodů', vh: 'sbírka objevených úředních bodů, ocenění, lov', keys: 'lovci bodu sbirka objevene body oceneni odznaky lov lovit hra skore kamen dne nasel jsem ho',
           help: { t: 'Lovci bodů' } },
         { k: 'bodove-pole', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Nejbližší známý bod', vh: 'kam dojít na ověření / kotvu GPS', keys: 'znamy bod bodove pole trigonometricky zhustovaci pbpp nivelacni nejblizsi overeni kotva cuzk kam dojit',
           help: { t: 'Nejbližší známý bod' } },
@@ -344,11 +372,9 @@
           help: { t: 'Podzemní sítě' } },
         { k: 'job-transfer', w: 1, verb: 'Katastr a podklady', vl: 'Poslat nebo načíst zakázku', vh: 'do druhého telefonu i do kanceláře', keys: 'prenos prenosy zakazky export import argeo sdileni telefon zarizeni', net: 1,
           help: { t: 'Poslat/načíst zakázku' } },
-        { k: 'hidden-points', pro: 1, verb: 'Katastr a podklady', vl: 'Skryté body', keys: 'skryte body obnovit zobrazit schovane',
-          help: { t: 'Skryté body' } },
 
         // ── Před výjezdem ───────────────────────────────────────────────
-        { k: 'brifink', fn: 'agOpenBrifink', pro: 1, inhub: 'pocasi-svetlo', verb: 'Před výjezdem', vl: 'Dnešek v terénu', vh: 'souhrn na ráno', keys: 'brifink dnesek souhrn rano prehled dne pocasi svetlo terminy', net: 1,
+        { k: 'brifink', fn: 'agOpenBrifink', pro: 1, hidden: 1, inhub: 'pocasi-svetlo', verb: 'Před výjezdem', vl: 'Dnešek v terénu', vh: 'souhrn na ráno', keys: 'brifink dnesek souhrn rano prehled dne pocasi svetlo terminy', net: 1,
           help: { t: 'Dnešek v terénu' } },
         { k: 'checklist', pro: 1, hidden: 1, verb: 'Před výjezdem', vl: 'Co s sebou', keys: 'checklist co s sebou baleni vybaveni seznam rano nezapomen vzit',
           help: { t: 'Co s sebou' } },
@@ -439,10 +465,24 @@
         for (var j = 0; j < T.length; j++) {
             var m = T[j];
             if (m.inhub !== id || m.hidden) continue;
-            var n = String(m.vl || m.k);
+            var n = liveLabel(m);
             names.push(n.charAt(0).toLowerCase() + n.slice(1));
         }
         return names.join(' · ');
+    }
+    // ŽIVÝ POPISEK (18. 9. 2026): „Proč ±4 m?" — uživatel: „±4 m je jen jedna situace, ať tam je to,
+    // co mám za přesnost teď". Číslo se bere ze živé přesnosti GPS (globální let currentGpsAccuracy
+    // z logika.js); bez polohy zůstává příklad 4 m. Překlad: vzor `re` ve slovníku
+    // (Proč ±N m? — chybový rozpočet). Čte se při každém vykreslení seznamu (groups, label).
+    function liveLabel(r) {
+        var l = String((r && (r.vl || r.k)) || '');
+        if (r && r.k === 'chybovy-rozpocet') {
+            try {
+                var acc = (typeof currentGpsAccuracy === 'number' && isFinite(currentGpsAccuracy) && currentGpsAccuracy > 0) ? currentGpsAccuracy : null;
+                if (acc != null) l = 'Proč ±' + (acc < 10 ? (Math.round(acc * 10) / 10).toString().replace('.', ',') : String(Math.round(acc))) + ' m? — chybový rozpočet';
+            } catch (e) { /* bez polohy */ }
+        }
+        return l;
     }
     function groups() {
         var byVerb = {}, out = [], j;
@@ -462,6 +502,7 @@
             // student-start (13. 9. 2026): student má místo firmy „partu" — jediný popisek,
             // který se podle profilu osoby mění; zbytek registru zůstává statický popis.
             if (r.k === 'ucty-firma') { try { if (window.AGProfilOsoby && AGProfilOsoby.je('student')) { it.l = 'Parta a účty'; it.h = 'kdo je v partě, kód party'; } } catch (e) { /* bez modulu */ } }
+            it.l = liveLabel(r);
             byVerb[r.verb].items.push(it);
         }
         for (j = 0; j < VERBS.length; j++) { if (byVerb[VERBS[j]].items.length) out.push(byVerb[VERBS[j]]); }
@@ -565,10 +606,13 @@
         isNet: function (k) { var r = get(k); return !!(r && r.net); },
         // id rozcestníku, do kterého nástroj spadl ('' = stojí samostatně)
         hubOf: function (k) { var r = get(k); return (r && r.inhub) || ''; },
-        // položky rozcestníku v pořadí, v jakém jsou zapsané v T
+        // popisek do seznamu — živý (viz liveLabel), pro položky rozcestníků v js/nastroje-ukony.js
+        label: function (k) { var r = get(k); return r ? liveLabel(r) : ''; },
+        // položky rozcestníku v pořadí, v jakém jsou zapsané v T — BEZ `hidden` (18. 9. 2026:
+        // schovaný nástroj se nesmí vynořit v okně rozcestníku; hledání ho najde dál)
         hubItems: function (id) {
             var out = [];
-            for (var j = 0; j < T.length; j++) { if (T[j].inhub === id) out.push(T[j].k); }
+            for (var j = 0; j < T.length; j++) { if (T[j].inhub === id && !T[j].hidden) out.push(T[j].k); }
             return out;
         },
         // „nástroj zůstává, jen ať není vidět“ — dlaždice ani řádek v seznamu úkonů

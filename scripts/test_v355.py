@@ -115,7 +115,10 @@ async def beh(url):
         print('--- D) Vzdalene body do AR: plachta bez kolecka Sbalit ---')
         await page.evaluate("() => document.getElementById('dock-nastroje-btn').click()")
         await page.wait_for_timeout(1500)
-        await page.evaluate("() => document.querySelector('#tools-modal .ag-uk-i[data-k=\"ar-dosah\"]').click()")
+        # 18. 9. 2026: Vzdálené body do AR jsou položka rozcestníku Podklady a katastr → napřed rozbalit řádek
+        await page.evaluate("() => { AGUkony.go('Katastr a podklady', true); document.querySelector('#tools-modal .ag-uk-i[data-k=\"podklady-katastr\"]').click(); }")
+        await page.wait_for_timeout(500)
+        await page.evaluate("() => document.querySelector('#tools-modal .ag-uk-sub[data-sub=\"podklady-katastr\"] .ag-uk-i[data-k=\"ar-dosah\"]').click()")
         await page.wait_for_timeout(3500)
         d1 = await page.evaluate("() => ({ vrstva: !!document.getElementById('ag-dosah-vrstva'), fab: Array.from(document.querySelectorAll('.ag-mini-fab')).filter(f => f.parentElement && f.parentElement.id === 'ag-dosah-vrstva').length })")
         ok('D1 plachta vyberu existuje a nema kolecko Sbalit', d1 and d1['vrstva'] and d1['fab'] == 0, d1)

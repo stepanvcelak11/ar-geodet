@@ -241,7 +241,7 @@
             return agConfirm({ title: '3D pohled', message: 'V režimu slabší telefon není 3D pohled (potřebuje WebGL). Vypnout úsporný režim a otevřít 3D?', okText: 'Vypnout a otevřít', cancelText: 'Nechat' })
                 .then(function (ano) { if (!ano) return; AGLite.nastav('off'); setTimeout(function () { if (!AGLite.lite) otevri(bod); }, 300); });
         }
-        if (!window.AGMapaVektor || !window.AGMapaStyl) { return agAlert({ title: '3D pohled', message: 'Vektorová mapa se v této verzi nenačetla — zkus appku znovu otevřít (Nastavení → Údržba → Obnovit aplikaci).' }); }
+        if (!window.AGMapaVektor || !window.AGMapaStyl) { return agAlert({ title: '3D pohled', message: 'Vektorová mapa se v této verzi nenačetla — zkus appku znovu otevřít (Nastavení → Aplikace → Funguje mi všechno?).' }); }
         var zap = AGMapaVektor.stav() === 'zapnuto' ? Promise.resolve(true) : AGMapaVektor.zapni();
         zap.then(function (ok) {
             if (!ok) { agAlert({ title: '3D pohled', message: 'Vektorová mapa se nezapnula: ' + (AGMapaVektor.chyba() || 'neznámá chyba') + '. Až bude signál, klepni na 3D znovu — mapa se zapne sama (ručně: Vrstvy → Podklad → Vektor).' }); return; }

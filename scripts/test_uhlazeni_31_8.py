@@ -53,6 +53,8 @@ URL = None
 # testuje appka a ne prihlasovaci obrazovka.
 BOOT_ADMIN = """
   localStorage.setItem('agTutProSeen','1');
+  // vektorova mapa vypnuta (od v360 vychozi zapnuta) — test nema blokovanou sit, tahal by realna data
+  localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' }));
   localStorage.setItem('agBrifinkAuto','0');
   localStorage.setItem('arSurveyor','Stepan');
   localStorage.setItem('agFirmaBioAsk_v1', String(Date.now()));
@@ -68,6 +70,8 @@ BOOT_ADMIN = """
 # vedla jedina cesta k prepnuti firmy pres adminskou sekci.
 BOOT_ZAM = """
   localStorage.setItem('agTutProSeen','1');
+  // vektorova mapa vypnuta (od v360 vychozi zapnuta) — test nema blokovanou sit, tahal by realna data
+  localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' }));
   localStorage.setItem('agBrifinkAuto','0');
   localStorage.setItem('arSurveyor','Josef');
   localStorage.setItem('agFirmaBioAsk_v1', String(Date.now()));
@@ -87,6 +91,8 @@ BOOT_ZAM = """
 #   by se brana uz nikdy neukazala a appka by ho pustila k mereni bez uctu.
 BOOT_HOST = """
   localStorage.setItem('agTutProSeen','1');
+  // vektorova mapa vypnuta (od v360 vychozi zapnuta) — test nema blokovanou sit, tahal by realna data
+  localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' }));
   localStorage.setItem('agBrifinkAuto','0');
   localStorage.setItem('agGuest_v1','1');
 """

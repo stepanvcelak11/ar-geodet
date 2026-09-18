@@ -70,7 +70,7 @@
         {
             id: 'gnss-signal', label: 'Signál<br>GNSS', title: 'Signál GNSS', cat: 'Měření', order: 7,
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/><circle cx="4" cy="20" r="0.5" fill="currentColor"/></svg>',
-            poradi: ['openSatModal', 'sky-obstruction', 'gps-semafor', 'chybovy-rozpocet'],
+            poradi: ['openSatModal', 'gps-semafor', 'chybovy-rozpocet'],   // sky-obstruction schovaná 18. 9. 2026 (je v mapě jako Kde se dá měřit)
             sub: 'Jak dobré jsou teď (a budou) podmínky pro GPS měření:'
         },
         {
@@ -82,7 +82,7 @@
         {
             id: 'pocasi-svetlo', label: 'Počasí<br>a světlo', title: 'Počasí a světlo', cat: 'Pomůcky', order: 7,
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><path d="M8 2v1.4M8 12.6V14M2 8h1.4M12.6 8H14M3.8 3.8l1 1M11.2 11.2l1 1M12.2 3.8l-1 1M4.8 11.2l-1 1"/><path d="M10.8 20.5h7.4a3 3 0 0 0 .3-6 4.5 4.5 0 0 0-8.5-.8 3.4 3.4 0 0 0 .8 6.8z"/></svg>',
-            poradi: ['pocasi', 'slunce', 'gnss-forecast', 'brifink'],
+            poradi: ['pocasi', 'slunce', 'gnss-forecast'],   // brifink (Dnešek v terénu) schovaný 18. 9. 2026
             sub: 'Co dnes udělá obloha — počasí, denní světlo i podmínky pro družice na jednom místě:'
         },
         {
@@ -100,8 +100,23 @@
         {
             id: 'podklady-katastr', label: 'Podklady<br>a katastr', title: 'Podklady a katastr', cat: 'Katastr a data', order: 5,
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3.5L3 6.5v14l6-3 6 3 6-3v-14l-6 3-6-3z"/><path d="M9 3.5v14M15 6.5v14"/></svg>',
-            poradi: ['prohlidka', 'cadastre-vector', 'cadastre-area', 'vektor-mapa', 'balicek-zakazky', 'oblasti-offline'],
+            // prohlidka a vektor-mapa schované 18. 9. 2026; ar-dosah sem přišel ze „Srovnat AR" (je to stahování bodů)
+            poradi: ['cadastre-vector', 'cadastre-area', 'ar-dosah', 'balicek-zakazky', 'oblasti-offline'],
             sub: 'Co si přitáhneš do mapy a do AR. (Katastr „kde právě stojím" má vlastní dlaždici — to je jedno klepnutí.)'
+        },
+        {
+            // OPRAVIT GPS (18. 9. 2026): tři způsoby, jak srovnat ujetou polohu GPS — jeden řádek v Přesném měření
+            id: 'opravit-gps', label: 'Opravit<br>GPS', title: 'Opravit GPS', cat: 'Přesné měření', order: 5,
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><path d="M16.5 7.5l3-3"/></svg>',
+            poradi: ['kalibrace-hranou', 'korekce-z-mapy', 'ref-calibration'],
+            sub: 'GPS ujíždí o pár metrů. Vyber podle toho, co máš po ruce:'
+        },
+        {
+            // DVĚMA TELEFONY (18. 9. 2026): DGPS a akustický dálkoměr — obojí chce druhý telefon
+            id: 'dva-telefony', label: 'Dvěma<br>telefony', title: 'Dvěma telefony', cat: 'Přesné měření', order: 6,
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="16" rx="1.5"/><rect x="14" y="4" width="7" height="16" rx="1.5"/><path d="M10 12h4"/></svg>',
+            poradi: ['dgps', 'akusticky-dalkomer'],
+            sub: 'Druhý telefon jako základna nebo protějšek — přesnost, na kterou jeden nestačí:'
         },
         {
             // ⚠⚠ PROČ TENHLE ROZCESTNÍK: sloveso „Srovnat AR" mělo DESET řádků — víc než
@@ -145,6 +160,8 @@
         'orient-point': 'Srovnat sever podle bodu',
         'sever-slunce': 'Srovnat sever podle Slunce',
         'ref-calibration': 'Opravit posun GPS podle bodu',
+        'kalibrace-hranou': 'Opravit posun GPS chůzí po hraně',
+        'korekce-z-mapy': 'Opravit GPS z mapy za chůze',
         'localization-helmert': 'Lokalizace (Helmert)',
         'fov-kalib': 'Změřit zorný úhel kamery'
     };

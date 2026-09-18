@@ -90,17 +90,28 @@
             }
         },
         'tab-data': {
-            order: ['Zakázka', 'Úřední body (ČÚZK)', 'Katastr a offline'],
+            order: ['Zakázka', 'Úřední body (ČÚZK)', 'Katastr a offline', 'Země a souřadnice', 'Data mapy (vektor)'],
             put: {
                 'ag-dup-project-btn': { s: 'Zakázka', i: 1 },
-                'ag-csync-sec': { s: 'Zakázka', i: 2 },   // firemní cloud (vlastní nadpis)
+                'set-skryte-body': { s: 'Zakázka', i: 2 },      // skryté body (z Údržby, 18. 9. 2026)
+                'ag-csync-sec': { s: 'Zakázka', i: 3 },   // firemní cloud (vlastní nadpis)
                 'ag-quota': { s: 'Katastr a offline', i: 9 }    // zaplnění úložiště
             }
         },
+        // ZÁLOŽKA APLIKACE (18. 9. 2026; id zůstává tab-udrzba kvůli oprávnění set.tab-udrzba):
+        // čtyři sekce a KAŽDÉ tlačítko modulu má svoje místo — moduly je dál věší na konec záložky
+        // (historie, zpětná vazba, zdraví, správa, uvolnit místo, profil zařízení, auto-záloha).
         'tab-udrzba': {
-            order: ['Skryté body', 'Záloha všech zakázek a nastavení', 'Úklid'],
+            order: ['Pomoc a návody', 'O aplikaci', 'Záloha', 'Místo v telefonu'],
             put: {
-                'ag-dev-box': { s: 'Záloha všech zakázek a nastavení', i: 1 }  // profil zařízení
+                'ag-zdravi-set-btn': { s: 'Pomoc a návody', i: 1 },   // Funguje mi všechno? (js/zdravi-appky.js)
+                'ag-fb-set-btn': { s: 'Pomoc a návody', i: 2 },       // Napsat autorovi (js/zpetna-vazba.js)
+                'ag-fb-inbox-btn': { s: 'Pomoc a návody', i: 3 },     // schránka vzkazů — jen vlastník
+                'hist-set-btn': { s: 'O aplikaci', i: 1 },            // Historie aktualizací (js/historie-aktualizaci.js)
+                'ag-sa-set-btn': { s: 'O aplikaci', i: 9 },           // Správa aplikace — jen vlastník (js/sprava-appky.js)
+                'ag-backup-row': { s: 'Záloha', i: -1 },              // stav automatické zálohy (js/auto-zaloha.js)
+                'ag-dev-box': { s: 'Záloha', i: 5 },                  // profil zařízení (js/profily.js)
+                'ag-uvolnit': { s: 'Místo v telefonu', i: 2 }         // Uvolnit místo (js/uvolnit-misto.js)
             }
         }
     };

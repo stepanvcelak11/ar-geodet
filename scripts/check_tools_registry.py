@@ -247,7 +247,12 @@ def main():
     # nesmazal ani neslouzil. Kazdy dalsi zvetsuje appku (218 modulu, 110 zaznamu) a riziko
     # kolizi id, jake se resily 15. 9. Pravidlo: novy nastroj = jeden stary pryc nebo
     # slouceny. Strop se smi snizit, zvysit jen s duvodem zapsanym sem.
-    HIDDEN_MAX = 13
+    #   18. 9. 2026 → 30: uzivatel prosel VSECHNY nastroje a 17 dalsich dal stranou
+    #   („ty nastroje nemaz, jenom je dej pryc z aplikace, treba je nekdy do budoucna
+    #   pouzijem") — metr v kamere, omerne, kubatury, stopa trasy, protokol kvality, overeni
+    #   bodu, cely rozcestnik Srovnat jinak, vizualni stabilizace, prohlidka okoli, vektorova
+    #   mapa offline, predikce signalu, dnesek v terenu. Seznam je v hlavicce registru u `hidden`.
+    HIDDEN_MAX = 30
     hidden = [r['k'] for r in recs if r.get('hidden')]
     if len(hidden) > HIDDEN_MAX:
         errs.append(u'schovanych nastroju (hidden: 1) je %d, strop je %d — nastroj bud vrat do seznamu, '

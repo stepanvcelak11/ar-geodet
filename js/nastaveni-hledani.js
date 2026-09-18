@@ -40,7 +40,7 @@
         { id: 'tab-vzhled', t: 'Vzhled' },
         { id: 'tab-ar', t: 'AR a přesnost' },
         { id: 'tab-data', t: 'Data' },
-        { id: 'tab-udrzba', t: 'Údržba' },
+        { id: 'tab-udrzba', t: 'Aplikace' },   // do 18. 9. 2026 „Údržba"
         { id: 'tab-profily', t: 'Profily' },
         { id: 'tab-ovladani', t: 'Ovládání' }
     ];
@@ -53,10 +53,10 @@
         'tab-ovladani': ['s-lefthand', 'agl-rezim'],   // levá ruka, jednoduchý režim, slabší telefon (18. 9. 2026)
         'tab-profily': null,
         'tab-data': ['s-project-select', 'f-tb'],
-        'tab-udrzba': null           // null = nekrátit (jsou tam jen 4 tlačítka)
+        'tab-udrzba': null           // null = nekrátit (Aplikace: jen tlačítka ve čtyřech sekcích)
     };
     // Tlačítka, která v krátkém pohledu zůstávají (poznají se podle textu onclicku)
-    var KEEP_BTN = { 'tab-ar': ['openCompassModal'], 'tab-data': ['saveForOffline'] };
+    var KEEP_BTN = { 'tab-ar': ['openCompassModal'], 'tab-data': ['saveForOffline', 'agOpenHiddenPoints'] };   // Skryté body (z Údržby, 18. 9. 2026) ať jsou k nalezení i v krátkém pohledu
 
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function norm(s) {

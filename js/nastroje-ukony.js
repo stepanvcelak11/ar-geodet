@@ -458,7 +458,7 @@
     // (registr skládá výčet bez ohledu na licenci — v Základu by sliboval Pro položky)
     function hubPodtitul(hubId, zaloha) {
         var names = hubPolozky(hubId).map(function (k) {
-            var r = (window.AGReg && AGReg.get(k)) || {}; var n = String(r.vl || k);
+            var r = (window.AGReg && AGReg.get(k)) || {}; var n = String((AGReg.label && AGReg.label(k)) || r.vl || k);   // živý popisek (Proč ±N m?)
             return n.charAt(0).toLowerCase() + n.slice(1);
         });
         return names.length ? names.join(' · ') : (zaloha || '');
@@ -477,10 +477,12 @@
     }
     function toggleHub(row, sub, hubId, force) {
         var open = force === true ? true : row.getAttribute('aria-expanded') !== 'true';
-        if (open && !sub.childNodes.length) {
+        // položky se stavějí při každém rozbalení znovu (pár řádků): popisek „Proč ±N m?" se mění s přesností GPS
+        if (open) {
+            sub.innerHTML = '';
             hubPolozky(hubId).forEach(function (k) {
                 var r = (window.AGReg && AGReg.get(k)) || {};
-                var b = item({ l: r.vl || tileLabel(findTile(k)), h: r.vh || '' }, function () { run(k); }, iconOf(k), k, { fav: 1 });
+                var b = item({ l: (AGReg.label && AGReg.label(k)) || r.vl || tileLabel(findTile(k)), h: r.vh || '' }, function () { run(k); }, iconOf(k), k, { fav: 1 });
                 b.classList.add('ag-uk-sub-i');
                 sub.appendChild(b);
             });

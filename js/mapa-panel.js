@@ -4,9 +4,13 @@
 // Doplněk k markupu #map-sheet v index.html a k js/map-tools.js (stav, zámky Pro, adopce dlaždic):
 //   • ZÁLOŽKY Podklad · Vrstvy · Nástroje (#ms-tabs) — vidět je vždy jen jedno patro; poslední
 //     záložka se pamatuje (localStorage agMapaPanelTab). Bez tohoto modulu jsou patra pod sebou.
-//   • PODKLAD jako tři karty se vzorkem (Mapa · Vektor · Ortofoto): Vektor = zapne vlastní
-//     vektorovou mapu (js/mapa-vektor.js) a podklad „osm"; Mapa = vektor vypne; pod kartami
-//     styl vektorové mapy (Podle motivu · Den · Noc · Modrotisk · Tisk) a řádek „Země měření".
+//   • PODKLAD jako dvě karty se vzorkem (Mapa · Ortofoto) + karta Katastr (přepínač vrstvy):
+//     Mapa = vlastní vektorová mapa (js/mapa-vektor.js) a podklad „osm" — když se vektor nedá
+//     zapnout (slabší telefon, bez dat), zůstává pod kartou tiše rastr OSM, karta svítí dál;
+//     pod kartami styl vektorové mapy (Podle motivu · Den · Noc · Modrotisk · Tisk) a řádek
+//     „Země měření". Karta „Mapa (rastr OSM)" jako samostatná volba ZRUŠENA 18. 9. 2026
+//     (uživatel: „ta moje mapa vizuálně funguje líp, obyčejnou mapu pryč"); mapa() zůstává
+//     jako API pro testy a pojistku.
 //   • VRSTVY: řádky Překážky (schová/ukáže obtažené překážky, AGOkoli.viditelne) a Trasa terénem
 //     (AGTrasa.nastav) — odkryjí se, jakmile moduly existují; stav se zrcadlí do přepínačů.
 //   • NÁSTROJE: dlaždice 3D pohled / Kde se dá měřit / Náčrt / Stáhnout oblast volají otvíráky
@@ -60,9 +64,9 @@
     function base() { try { return (typeof visSettings !== 'undefined' && visSettings && visSettings.baseLayer === 'ortofoto') ? 'ortofoto' : 'osm'; } catch (e) { return 'osm'; } }
     function vektor() {
         var mv = MV();
-        if (!mv) { try { (window.quickToast || window.agInfo)('Vektorová mapa se ještě načítá — zkus to za chvilku.'); } catch (e) { /* nic */ } return; }
-        if (window.AGLite && AGLite.lite) { try { window.agInfo && window.agInfo('V režimu slabší telefon vektorová mapa není (WebGL). Vypnout jde v Nastavení → Ovládání → Slabší telefon.'); } catch (e) { /* nic */ } return; }
         try { if (typeof agMapSetBase === 'function') agMapSetBase('osm'); } catch (e) { swallow(e, 'base'); }
+        // bez modulu / ve slabším telefonu zůstává rastr — karta Mapa platí i tak, nic nehlásit
+        if (!mv || (window.AGLite && AGLite.lite) || vektorZap()) { sync(); return; }
         try { $('ms-base-vektor').classList.add('busy'); } catch (e) { /* nic */ }
         mv.nastav({ zap: true }).then(function (ok) {
             try { $('ms-base-vektor').classList.remove('busy'); } catch (e) { /* nic */ }
@@ -94,11 +98,16 @@
     // ---- zrcadlení stavu -----------------------------------------------------------------------------
     function sync() {
         try {
-            var orto = base() === 'ortofoto', vek = !orto && vektorZap();
+            var orto = base() === 'ortofoto', vek = !orto && vektorZap(), lite = !!(window.AGLite && AGLite.lite);
             var bo = $('btn-baselayer'), bm = $('ms-base-osm'), bv = $('ms-base-vektor');
             if (bo) bo.classList.toggle('on', orto);
-            if (bm) bm.classList.toggle('on', !orto && !vek);
-            if (bv) { bv.classList.toggle('on', vek); bv.hidden = !!(window.AGLite && AGLite.lite); }
+            if (bm) bm.classList.toggle('on', !orto && !vek);   // starší markup se třemi kartami
+            // karta Mapa svítí vždy, když není ortofoto — i když pod ní běží rastr (slabší telefon, bez dat)
+            if (bv) {
+                bv.classList.toggle('on', !orto);
+                var sm = bv.querySelector('small');
+                if (sm) { if (!sm.__cs) sm.__cs = sm.textContent; var chyba = !vek && !orto && MV() && MV().stav() === 'chyba'; sm.textContent = lite ? 'rastr (slabší telefon)' : (chyba ? 'rastr — data mapy nejsou' : sm.__cs); }
+            }
             var st = $('ms-styl'); if (st) { st.hidden = !vek; var cur = (MV() && MV().nastaveni().styl) || 'auto'; st.querySelectorAll('[data-styl]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-styl') === cur); }); }
             var z = $('ms-zeme'); if (z) { var s = window.AGSour; z.hidden = !s; if (s) { var a = s.aktivni(); $('ms-zeme-t').textContent = 'Země měření: ' + (a && a.nazev || 'jinde') + (s.rezim() === 'auto' ? ' (podle GPS)' : ' (ručně)'); } }
             var rp = $('ms-prekazky'); if (rp) { var ok = !!(window.AGOkoli && AGOkoli.viditelne); rp.hidden = !ok || !(AGOkoli.prekazky() || []).length; if (ok) rp.classList.toggle('ctrl-active', !!AGOkoli.viditelne()); }

@@ -134,7 +134,7 @@
         { k: 'tools.Ostatní',              g: 'Kategorie nástrojů', t: 'Ostatní nástroje' },
         { k: 'set.tab-ar',     g: 'Záložky Nastavení', t: 'AR a přesnost' },
         { k: 'set.tab-data',   g: 'Záložky Nastavení', t: 'Data (zakázky, export)' },
-        { k: 'set.tab-udrzba', g: 'Záložky Nastavení', t: 'Údržba (záloha, koš)' },
+        { k: 'set.tab-udrzba', g: 'Záložky Nastavení', t: 'Aplikace (návod, záloha, pomoc)' },
         { k: 'x.dashboard',    g: 'Ostatní', t: 'Přehled užívání (dashboard)' }
     ];
 
@@ -1270,7 +1270,7 @@
     // neví — testeři uzavřeného testu se počítají jen z instalací z Play. Tlačítko
     // má v index.html `hidden`; tady se jen odkryje, když je telefon v režimu vlastníka.
     function sdiletAppJenVlastnik() {
-        try { var b = document.getElementById('menu-sdilet-app'); if (b) b.hidden = !isOwner(); } catch (e) { /* bez menu */ }
+        try { var b = document.getElementById('menu-sdilet-app'); if (b) b.hidden = !isOwner(); var b2 = document.getElementById('set-sdilet-app'); if (b2) b2.hidden = !isOwner(); } catch (e) { /* bez menu */ }   // set-sdilet-app = Nastavení → Aplikace (18. 9. 2026)
     }
 
     // mřížku Nástrojů překreslují field-tools/tools-plus → periodicky srovnat

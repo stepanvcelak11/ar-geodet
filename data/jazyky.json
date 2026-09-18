@@ -163,7 +163,9 @@
     ["^ještě (\\d+) m$", "$1 m to go", "noch $1 m", "jeszcze $1 m", "faltan $1 m", "ancora $1 m"],
     ["^postůj ještě (\\d+) s$", "stand still $1 s more", "noch $1 s stehen bleiben", "postój jeszcze $1 s", "quédate $1 s más", "resta fermo altri $1 s"],
     ["^Průměruji GPS \\((\\d+) měření\\) — stůj chvíli na místě, souřadnice se doplní samy\\.$", "Averaging GPS ($1 readings) — stand still for a moment, the coordinates fill in by themselves.", "Mittle GPS ($1 Messungen) — bleib kurz stehen, die Koordinaten füllen sich von selbst.", "Uśredniam GPS ($1 pomiarów) — postój chwilę w miejscu, współrzędne uzupełnią się same.", "Promediando GPS ($1 mediciones) — quédate quieto un momento, las coordenadas se rellenan solas.", "Sto mediando il GPS ($1 misure) — resta fermo un attimo, le coordinate si compilano da sole."],
-    ["^Odkud je „(.+)\"$", "Where \"$1\" comes from", "Woher „$1“ kommt", "Skąd jest „$1”", "De dónde sale «$1»", "Da dove viene «$1»"]
+    ["^Odkud je „(.+)\"$", "Where \"$1\" comes from", "Woher „$1“ kommt", "Skąd jest „$1”", "De dónde sale «$1»", "Da dove viene «$1»"],
+    ["^Proč ±([\\d,.]+) m\\? — chybový rozpočet$", "Why ±$1 m? — error budget", "Warum ±$1 m? — Fehlerbudget", "Dlaczego ±$1 m? — budżet błędów", "¿Por qué ±$1 m? — presupuesto de error", "Perché ±$1 m? — bilancio degli errori"],
+    ["^Mapa jede z rastru: (.+)$", "Map runs from raster: $1", "Karte läuft aus dem Raster: $1", "Mapa działa z rastra: $1", "El mapa va en ráster: $1", "La mappa gira su raster: $1"]
   ],
   "t": {
     "Body": ["Points", "Punkte", "Punkty", "Puntos", "Punti"],

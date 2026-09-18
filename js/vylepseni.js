@@ -139,7 +139,7 @@
                     message: 'Smaže se <b>' + escapeHtml(nm) + '</b> se vším, co k ní patří.'
                         + '<br><br>Z <b>koše</b> půjde 30 dní vrátit: body, spojnice, zápisníky a nastavení zakázky.'
                         + '<br><b>Nenávratně</b> se smažou: fotky u bodů, hlasovky a podložené plány.'
-                        + '<br><br>Hned po smazání se na pár vteřin objeví „Vrátit zpět". Když fotky potřebuješ, nejdřív si stáhni zálohu (Nastavení → Údržba).',
+                        + '<br><br>Hned po smazání se na pár vteřin objeví „Vrátit zpět". Když fotky potřebuješ, nejdřív si stáhni zálohu (Nastavení → Aplikace).',
                     okText: 'Smazat', cancelText: 'Ponechat', danger: true
                 }).then(function (ok) {
                     if (!ok) return;

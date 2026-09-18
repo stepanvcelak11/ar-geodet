@@ -258,8 +258,8 @@ if ('serviceWorker' in navigator) {
         function _warnStorageWriteFail(savedToFallback) {
             if (_idbWriteWarned) return; _idbWriteWarned = true;
             const msg = savedToFallback
-                ? 'POZOR: databáze telefonu odmítla zápis bodů. Data jsou dočasně zachráněna v záložním úložišti a po restartu se vrátí, ale udělej co nejdřív zálohu (Nastavení → Údržba → Stáhnout zálohu) a uvolni místo v telefonu.'
-                : 'POZOR: bod se nepodařilo trvale uložit (databáze telefonu odmítla zápis — nejspíš plné úložiště). Data se mohou po zavření aplikace ztratit.\n\nUvolni místo a udělej zálohu (Nastavení → Údržba → Stáhnout zálohu).';
+                ? 'POZOR: databáze telefonu odmítla zápis bodů. Data jsou dočasně zachráněna v záložním úložišti a po restartu se vrátí, ale udělej co nejdřív zálohu (Nastavení → Aplikace → Stáhnout zálohu) a uvolni místo v telefonu.'
+                : 'POZOR: bod se nepodařilo trvale uložit (databáze telefonu odmítla zápis — nejspíš plné úložiště). Data se mohou po zavření aplikace ztratit.\n\nUvolni místo a udělej zálohu (Nastavení → Aplikace → Stáhnout zálohu).';
             try { agInfo(msg); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:_warnStorageWriteFail'); }
         }
         // dump/restore celeho kv storu — pro zalohu vsech dat (zaloha.js)
@@ -509,7 +509,7 @@ if ('serviceWorker' in navigator) {
             // Text rika naplno, co se z kose vrati a co uz ne — slib "30 dni v kosi"
             // na fotky, hlasovky ani podlozene plany NEPLATI (leží ve vlastnich
             // databazich, ktere kos neumi zachytit).
-            if(!confirm("Opravdu smazat aktuální zakázku?\n\nZ koše půjde 30 dní vrátit body, spojnice, zápisníky a nastavení zakázky.\nNENÁVRATNĚ se smažou fotky u bodů, hlasovky a podložené plány — pokud je potřebuješ, nejdřív si stáhni zálohu (Nastavení → Údržba).")) return;
+            if(!confirm("Opravdu smazat aktuální zakázku?\n\nZ koše půjde 30 dní vrátit body, spojnice, zápisníky a nastavení zakázky.\nNENÁVRATNĚ se smažou fotky u bodů, hlasovky a podložené plány — pokud je potřebuješ, nejdřív si stáhni zálohu (Nastavení → Aplikace).")) return;
             const pid = activeProjectId;
             // UKLID PODLE PREFIXU, ne rucnim vyctem: VSECHNA per-zakazkova data zacinaji
             // `${pid}_` (getStoreKey). Rucni seznam klicu tu zastaraval — ~13 klicu modulu
@@ -734,7 +734,7 @@ if ('serviceWorker' in navigator) {
             } catch (e) { hideOfflineProgress(); agInfo("Stahování mapy se nezdařilo: " + ((e && e.message) ? e.message : e)); }
         }
 
-        function hideCurrentPoint() { if (hideBtnLogic) hideBtnLogic(); closeBottomSheet(); quickToast('Bod skryt. Obnovíš ho v Nastavení → Údržba → Skryté body.'); } function restoreHiddenPoints() { const n = arPoints.filter(p => p.hidden).length; arPoints.forEach(p => p.hidden = false); initARMarkers(); drawAllMarkersOnMap(); document.getElementById('settings-modal').style.display = 'none'; updateInfoPanel(); if (typeof renderManageList === 'function' && document.getElementById('manage-modal').style.display === 'flex') renderManageList(); quickToast(n ? ('Obnoveno ' + n + ' skrytých bodů.') : 'Žádné body nebyly skryté.'); } function clearAllPoints() {
+        function hideCurrentPoint() { if (hideBtnLogic) hideBtnLogic(); closeBottomSheet(); quickToast('Bod skryt. Obnovíš ho v Nastavení → Data → Skryté body.'); } function restoreHiddenPoints() { const n = arPoints.filter(p => p.hidden).length; arPoints.forEach(p => p.hidden = false); initARMarkers(); drawAllMarkersOnMap(); document.getElementById('settings-modal').style.display = 'none'; updateInfoPanel(); if (typeof renderManageList === 'function' && document.getElementById('manage-modal').style.display === 'flex') renderManageList(); quickToast(n ? ('Obnoveno ' + n + ' skrytých bodů.') : 'Žádné body nebyly skryté.'); } function clearAllPoints() {
             // Destruktivní akce bez záchrany v koši/undo → vždy potvrdit (s počtem bodů).
             const n = arPoints.filter(p => p.cat !== 'CUSTOM').length;
             const msg = 'Opravdu vymazat stažené úřední body této zakázky' + (n ? ' (' + n + ')' : '') + '?\nVlastní body zůstanou. Znovu stáhnout je půjde jen s internetem.';

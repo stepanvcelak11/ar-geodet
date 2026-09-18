@@ -2,6 +2,19 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 360,
+   "datum": "2026-09-18",
+   "nadpis": "Navigace i k dalekému bodu, podklad Mapa · Ortofoto · Katastr, Nástroje prošlé a uklizené, Nastavení → Aplikace",
+   "body": [
+    "<b>Trasa k bodu podle terénu</b> jde i k <b>nivelačnímu a trigonometrickému bodu</b> kilometry daleko: do 3 km podrobně jako dřív, do 20 km po silnicích a cestách z hrubší mapy (nad 20 km přímka). Cíl na zdi budovy (nivelační čep) — trasa dojde až k němu, ne jen „k nejbližšímu místu“.",
+    "<b>Podklad mapy</b> jsou dvě karty: <b>Mapa</b> (vlastní vektorová, teď zapnutá od začátku — když nejsou data nebo je slabší telefon, běží pod ní tiše rastr) a <b>Ortofoto</b>; vedle nich <b>Katastr</b> jako přepínač parcel přes podklad. Obyčejná rastrová mapa jako volba zmizela.",
+    "<b>Nástroje prošlé jeden po druhém:</b> stranou (ne smazáno — najdeš hledáním) šly metr v kameře, oměrné, kubatury, stopa trasy, protokol kvality, ověření bodů, průvodce „nevím čím začít“, rozcestník Srovnat jinak, vizuální stabilizace, prohlídka okolí, vektorová mapa offline, predikce signálu a dnešek v terénu. <b>Srovnat AR</b> = Kompas a Srovnat sever.",
+    "<b>Přesné měření</b> má místo devíti řádků šest: <b>Opravit GPS</b> (chůzí po hraně · z mapy za chůze · podle známého bodu) a <b>Dvěma telefony</b> (DGPS · akustický dálkoměr) jsou rozcestníky. „Proč ±4 m?“ ukazuje <b>tvoji aktuální přesnost</b>. Korekce se jmenuje „Skutečnou délku z pásma nebo dálkoměru“.",
+    "<b>Lovci bodů</b> jsou v Učit se, <b>Skryté body</b> u Obnovit smazaný bod, <b>Vzdálené body do AR</b> v Podkladech.",
+    "<b>Nastavení → Aplikace</b> (dřív Údržba + boční Více): čtyři sekce <b>Pomoc a návody</b> · <b>O aplikaci</b> · <b>Záloha</b> · <b>Místo v telefonu</b> — návod, Funguje mi všechno?, Napsat autorovi, historie, sdílení, správa, záloha, profil zařízení, uvolnit místo. Skryté body jsou v Data u zakázky. Pruh pod záložkami vede rovnou na Návod."
+   ]
+  },
+  {
    "v": 359,
    "datum": "2026-09-18",
    "nadpis": "Překlady dotaženy: návody, Předpisy, Cvičné úlohy a Geo kartičky v pěti jazycích, poslední české zbytky",

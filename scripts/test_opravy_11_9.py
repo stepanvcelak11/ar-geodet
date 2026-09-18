@@ -164,8 +164,9 @@ async def beh(url):
             return out;
         }""")
         ok('F1 seznam úkonů má položky', ukony['vse'] > 20, ukony['vse'])
-        ok('F2 v Základu je zamčená VĚTŠINA úkonů (uživatel: „dostanu se skoro všude")',
-           ukony['zamek'] > ukony['vse'] / 2, ukony)
+        # 18. 9. 2026: 17 (většinou Pro) nástrojů schováno → v seznamu zůstává zamčených ~45 %, ne většina
+        ok('F2 v Základu je zamčená podstatná část úkonů (≥ 40 %; uživatel: „dostanu se skoro všude")',
+           ukony['zamek'] >= ukony['vse'] * 0.4, ukony)
         for k in ('stakeout-line', 'geo-foto', 'ar-metr', 'project-import'):
             ok('F3 nově Pro: %s má zámek' % k, k not in ukony['volne'], ukony['volne'])
         for k in ('openMeasureModal', 'brutal-gps', 'openStakeoutModal', 'kompas', 'openKatastr'):
@@ -191,6 +192,9 @@ async def beh(url):
         ok('G2 Katastrální mapa je v Základu zamčená', vr and vr['katastr'] is True, vr)
         # 12. 9. 2026: v panelu zůstává zdarma JEN podklad a otáčení — „Na mě" je zamčené
         ok('G3 Mapa / Ortofoto zdarma, Na mě zamčené', vr and not vr['orto'] and not vr['osm'] and vr['naMe'] is True, vr)
+        # 18. 9. 2026: Katastr je karta v záložce Podklad (ne řádek ve Vrstvách) → napřed přepnout záložku
+        await page.evaluate("() => { if (window.AGMapaPanel) AGMapaPanel.tab('podklad'); }")
+        await page.wait_for_timeout(300)
         await page.tap('#btn-katastr')
         await page.wait_for_timeout(700)
         kat = await page.evaluate("""() => ({ aktivni: document.getElementById('btn-katastr').classList.contains('ctrl-active'),

@@ -15,9 +15,12 @@
 // zapnutá, nahradí v `baseLayers.osm` rastr OSM — applyMapLayers() z grafika.js ji
 // pak přidává/odebírá jako dřív. Ortofoto ČÚZK zůstává druhý podklad.
 //
-// ZAPÍNÁNÍ: panel Mapa (tlačítko Vrstvy) → Podklad → karta Vektor; adresa vlastních dat v
-// Nastavení → Data. VÝCHOZE VYPNUTO (beta) a
-// v režimu slabší telefon (AGLite) se nenabízí — MapLibre je 1 MB knihovny a WebGL.
+// ZAPÍNÁNÍ: panel Mapa (tlačítko Vrstvy) → Podklad → karta Mapa; adresa vlastních dat v
+// Nastavení → Data. VÝCHOZE ZAPNUTO (od 18. 9. 2026 — uživatel: „moje nová mapa funguje
+// vizuálně líp než klasická, obyčejnou pryč"); do té doby výchozí vypnuto (beta). Když se
+// nedá zapnout (slabší telefon = AGLite, bez signálu, data pro zemi nejsou), zůstává pod
+// kartou rastr OSM a při startu se nic nehlásí (jen tichý toast); ruční zapnutí hlásí dál.
+// V režimu slabší telefon se nenabízí — MapLibre je 1 MB knihovny a WebGL.
 // Knihovny (js/lib/maplibre-gl-5.24.0.js + css, pmtiles-4.5.0.js, maplibre-gl-leaflet)
 // se stahují AŽ při zapnutí, ne při startu.
 //
@@ -48,8 +51,8 @@
     var URL_VYCHOZI = URL_ZAKLAD + 'cz.pmtiles';
     function soubor() { try { var k = (window.AGSour && AGSour.kod()) || 'CZ'; return (k === 'XX' ? 'svet' : k.toLowerCase()) + '.pmtiles'; } catch (e) { return 'cz.pmtiles'; } }
 
-    var st = { zap: false, styl: 'auto', url: '' };
-    try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && typeof s === 'object') { st.zap = !!s.zap; if (s.styl) st.styl = s.styl; if (s.url) st.url = String(s.url); } } catch (e) { swallow(e, 'load'); }
+    var st = { zap: true, styl: 'auto', url: '' };   // zap: výchozí ZAPNUTO (18. 9. 2026), uložená volba má přednost
+    try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && typeof s === 'object') { if (s.zap != null) st.zap = !!s.zap; if (s.styl) st.styl = s.styl; if (s.url) st.url = String(s.url); } } catch (e) { swallow(e, 'load'); }
     function uloz() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { swallow(e, 'save'); } }
     function url() { return st.url || (URL_ZAKLAD + soubor()); }
     function lite() { return !!(window.AGLite && AGLite.lite); }
@@ -116,7 +119,8 @@
             return r.json().then(function (j) { if (j && j.jak) t += ' ' + j.jak; return t; }).catch(function () { return t; }).then(function (txt) { throw new Error(txt); });
         }, function () { throw new Error('Data mapy se nepodařilo načíst (bez signálu, nebo špatná adresa).'); });
     }
-    function zapni() {
+    // tise = automatické zapnutí při startu / po návratu signálu: bez dialogu, jen toast
+    function zapni(tise) {
         if (lite()) { stav = 'chyba'; chybaText = 'V režimu slabší telefon vektorová mapa není (WebGL + 1 MB knihovny).'; return Promise.resolve(false); }
         if (typeof baseLayers === 'undefined' || typeof map === 'undefined' || !window.AGMapaStyl) { stav = 'chyba'; chybaText = 'Mapa appky ještě neběží.'; return Promise.resolve(false); }
         stav = 'nacitam';
@@ -141,7 +145,8 @@
             return true;
         }).catch(function (e) {
             stav = 'chyba'; chybaText = (e && e.message) || String(e); swallow(e, 'zapni');
-            try { if (typeof window.agInfo === 'function' && !zapni._rekl) { zapni._rekl = true; window.agInfo('Vektorová mapa: ' + chybaText); } } catch (e2) { /* nic */ }
+            try { if (!zapni._rekl) { zapni._rekl = true; if (tise) { window.quickToast && window.quickToast('Mapa jede z rastru: ' + chybaText); } else if (typeof window.agInfo === 'function') window.agInfo('Vektorová mapa: ' + chybaText); } } catch (e2) { /* nic */ }
+            try { document.dispatchEvent(new CustomEvent('ag:mapa-vektor', { detail: { zap: false, chyba: chybaText } })); } catch (e3) { /* nic */ }
             return false;
         });
     }
@@ -258,7 +263,9 @@
         if (st.zap && !lite()) {
             // až běží mapa appky (logika.js nastaví `map`), a v nečinnosti — ne před prvním obrazem
             var idle = window.requestIdleCallback || function (f) { return setTimeout(f, 1200); };
-            idle(function () { zapni().then(obnov); });
+            idle(function () { zapni(true).then(obnov); });
+            // bez signálu při startu zůstal rastr — jakmile se signál vrátí, zkusit vektor znovu (tiše)
+            window.addEventListener('online', function () { if (st.zap && stav === 'chyba' && !lite()) { zapni._rekl = false; setTimeout(function () { zapni(true).then(obnov); }, 1500); } });
         }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();

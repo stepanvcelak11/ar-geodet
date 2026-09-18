@@ -36,6 +36,8 @@ URL = None
 # Bezny prihlaseny uzivatel (appka dojede az k obrazovce).
 BOOT = """
   localStorage.setItem('agTutProSeen','1');
+  // vektorova mapa vypnuta (od v360 vychozi zapnuta) — test nema blokovanou sit, tahal by realna data
+  localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' }));
   localStorage.setItem('agBrifinkAuto','0');
   localStorage.setItem('arSurveyor','Stepan');
   localStorage.setItem('agFirmaBioAsk_v1', String(Date.now()));
@@ -50,6 +52,8 @@ BOOT = """
 # Telefon vyvojare: priznak vlastnika i klic uz ulozene, ZADNA firma.
 BOOT_VLASTNIK = """
   localStorage.setItem('agTutProSeen','1');
+  // vektorova mapa vypnuta (od v360 vychozi zapnuta) — test nema blokovanou sit, tahal by realna data
+  localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' }));
   localStorage.setItem('agBrifinkAuto','0');
   localStorage.setItem('agVlastnik_v1','1');
   localStorage.setItem('agFbKey_v1','klic-vlastnika-aspon-24-znaku!!');
