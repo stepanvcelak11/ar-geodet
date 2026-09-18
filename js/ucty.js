@@ -2818,7 +2818,7 @@
             '  <button type="button" class="agl-btn" id="agr-go">Založit účet</button>' +
             '  <button type="button" class="agl-ghost" id="agr-back">Zpět na přihlášení</button>' +
             '</div>' +
-            '<div class="agg-note">Heslo nejde obnovit — nikam se neposílá e-mail. Zapiš si ho. ' +
+            '<div class="agg-note">Heslo jde nastavit znovu jen <b>obnovovacím kódem</b>, který dostaneš hned po založení — ulož si ho mimo telefon, e-mail se nikam neposílá. ' +
             'Zakázky si čas od času stáhni jako zálohu, je to jediná pojistka.</div>' +
             '</div>';
         document.body.appendChild(ov);

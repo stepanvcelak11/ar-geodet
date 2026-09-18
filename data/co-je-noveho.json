@@ -2,6 +2,19 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 367,
+   "datum": "2026-09-18",
+   "nadpis": "Kontrola měsíce: bez planých hlášení, prázdný rozcestník, angličtina bez češtiny",
+   "body": [
+    "<b>Bez signálu bez toastů:</b> nestažená dlaždice mapy, glyf písma nebo výškový dílek terénu ve 3D pohledu už neukazují „Něco se pokazilo“ na každou adresu zvlášť — zapíšou se jen do protokolu chyb.",
+    "<b>Rozcestník „Srovnat jinak“</b> se už nestaví: od v360 má všechny členy schované, přes hledání se otevíralo prázdné okno jen se Zavřít.",
+    "<b>Angličtina a další jazyky:</b> podtitulky rozcestníků v Nástrojích (Opravit GPS, Dvěma telefony, Podmínky) se překládají po jednotlivých nástrojích; doplněno 70 klíčů a vzorů (pilulka „GPS bez fixu N s“, Kde se dá měřit, Nový bod bez výškopisu, karta bodu, Lovci bodů, Vzorce, Sluneční stín…); poznámka u bodu má přeložený nápovědný text.",
+    "<b>Světlý motiv:</b> miniatura karty „Mapa“ v Podkladu už není bílý čtverec.",
+    "<b>Epochy / monitoring:</b> křížek okna neseděl přes pilulku Zavřít v hlavičce.",
+    "<b>Texty:</b> průvodce a checklist „Co s sebou“ už neodkazují na zrušený pás „Co dnes děláš“; registrace říká, že heslo jde nastavit znovu obnovovacím kódem (dřív „heslo nejde obnovit“)."
+   ]
+  },
+  {
    "v": 366,
    "datum": "2026-09-18",
    "nadpis": "Otázka „Kdo jsi?“ zrušena",

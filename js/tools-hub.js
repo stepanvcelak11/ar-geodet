@@ -490,6 +490,12 @@
         injectStyles();
         if (typeof window.agRegisterFieldTool === 'function') {
             HUBS.forEach(function (h) {
+                // ⚠ PRÁZDNÝ ROZCESTNÍK SE NESTAVÍ (18. 9. 2026): v360 schovalo všechny členy „Srovnat
+                //   jinak" (ar-calib2, orient-point, sever-slunce, fov-kalib) a hubItems() schované
+                //   vynechává — dlaždice zůstala, hledání „srovnat" ji našlo a klepnutí otevřelo okno
+                //   jen s tlačítkem Zavřít. Členy najde hledání přímo, rozcestník bez členů nemá co dělat.
+                //   (Bez registru se nic nevynechá — hubItems() by vrátilo [] pro každý rozcestník.)
+                if (window.AGReg && AGReg.hubItems && !hubItems(h).length) return;
                 window.agRegisterFieldTool({
                     id: h.id, label: h.label.replace(/<br>/g, ' '), icon: h.icon, cat: h.cat, order: h.order,
                     onClick: function () { openHub(h); }

@@ -153,8 +153,10 @@ async def brana(browser):
     ok('U3a "Zalozit ucet" otevre registraci', r.get('je'), r)
     ok('U3b ma jmeno, nazev prostoru a heslo dvakrat', r.get('poli') == 4, r)
     # Bez teto vety clovek nezjisti, ze o data prijde - a zjisti to az pozde.
-    ok('U3c rekne, ze heslo nejde obnovit',
-       'nejde obnovit' in (r.get('text') or '').lower(), (r.get('text') or '')[:160])
+    # 18. 9. 2026 vecer: od v354 (R3) existuje obnovovaci kod — registrace uz nerika „heslo nejde obnovit",
+    # ale ze jde nastavit znovu JEN obnovovacim kodem (a ze se nikam neposila e-mail)
+    ok('U3c rekne, ze heslo jde nastavit znovu jen obnovovacim kodem',
+       'obnovovacím kódem' in (r.get('text') or '').lower() and 'e-mail' in (r.get('text') or '').lower(), (r.get('text') or '')[:160])
     # ⚠⚠ REGISTRACE MUSI PREZIT TIK POJISTKY. gateCheck() bezi po 2 s a kdyz
     #   v jeho seznamu "brana uz stoji" chybi obrazovka zalozeni uctu, polozi se
     #   pres ni prihlaseni a clovek prijde o vsechno napsane. Presne to se stalo

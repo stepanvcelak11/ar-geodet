@@ -2,6 +2,19 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 367,
+      "datum": "2026-09-18",
+      "nadpis": "Kontrola miesiąca: bez fałszywych alarmów, pusty drogowskaz, angielski bez czeskich resztek",
+      "body": [
+        "<b>Bez toastów offline:</b> niepobrany kafelek mapy, glif czcionki czy kafelek terenu w widoku 3D nie pokazują już „Coś poszło nie tak” dla każdego adresu osobno — trafiają tylko do dziennika błędów.",
+        "<b>Drogowskaz „Wyrównaj inaczej”</b> nie jest już budowany: od v360 wszystkie jego pozycje są ukryte, a przez wyszukiwanie otwierało się puste okno tylko z Zamknij.",
+        "<b>Angielski i inne języki:</b> podtytuły drogowskazów w Narzędziach (Popraw GPS, Dwa telefony, Warunki) tłumaczą się narzędzie po narzędziu; dodano 70 kluczy i wzorców (pigułka „GPS bez fixu N s”, Gdzie da się mierzyć, Nowy punkt bez modelu terenu, karta punktu, Łowcy punktów, Wzory, cień słoneczny…); pole notatki punktu ma przetłumaczoną podpowiedź.",
+        "<b>Jasny motyw:</b> miniatura karty „Mapa” w Podkładzie nie jest już białym kwadratem.",
+        "<b>Epoki / monitoring:</b> krzyżyk okna nakładał się na pigułkę Zamknij w nagłówku.",
+        "<b>Teksty:</b> przewodnik i lista „Co zabrać” nie odsyłają już do usuniętego paska „Co dziś robisz”; rejestracja mówi, że hasło da się ustawić na nowo kodem odzyskiwania (wcześniej „hasła nie da się odzyskać”)."
+      ]
+    },
+    {
       "v": 366,
       "datum": "2026-09-18",
       "nadpis": "Pytanie „Kim jesteś?” usunięte",

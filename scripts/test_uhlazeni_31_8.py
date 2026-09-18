@@ -246,6 +246,9 @@ async def test_admin(ctx):
         ziji = await page.evaluate("""() => {
             const out = {};
             for (const k of AGReg.hiddenKeys()) {
+                // rozcestnik, jehoz VSICHNI clenove jsou hidden (Srovnat jinak od v360), se nestavi vubec (18. 9. 2026 vecer) —
+                // hledani by otevrelo prazdne okno; jeho cleny hledani najde primo
+                if ((AGReg.get(k) || {}).hub && !(AGReg.hubItems(k) || []).length) continue;
                 // dlazdice modulu ma data-tool, staticka dlazdice z index.html jen onclick s nazvem funkce (18. 9. 2026: Omerne, Kubatury)
                 const t = [...document.querySelectorAll('#tools-modal .tool-tile')]
                     .find(x => (x.getAttribute('data-tool') || '') === k || (x.getAttribute('onclick') || '').indexOf(k + '(') >= 0);

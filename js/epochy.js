@@ -543,6 +543,9 @@
         st.textContent = [
             '#' + MODAL_ID + ' .ag-ep-head{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-bottom:8px;}',
             '#' + MODAL_ID + ' .ag-ep-sm{width:auto;flex:0 0 auto;padding:7px 12px;font-size:calc(12.5px * var(--ag-font-scale, 1));margin:0;}',
+            // křížek z js/modal-close.js sedí v pravém horním rohu PŘES pilulku „Zavřít" v hlavičce (18. 9. 2026) —
+            // kde křížek je, pilulka se schová (bez modal-close zůstává jedinou cestou ven)
+            '#' + MODAL_ID + ':has(> .agmc-x) .ag-ep-head .ag-ep-sm[data-act=close]{display:none;}',
             '#' + MODAL_ID + ' .ag-ep-note{font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.82;line-height:1.45;margin:4px 0 10px;}',
             '#' + MODAL_ID + ' .ag-ep-item{display:block;width:100%;text-align:left;margin:6px 0;padding:10px 12px;border-radius:12px;',
             '  border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:rgba(255,255,255,0.04);color:var(--text-color,#e8edf2);}',

@@ -44,7 +44,11 @@
     function pad2(n) { return (n < 10 ? '0' : '') + n; }
     function todayStr() { var d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
     var DAYS_CS = ['neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota'];
-    function fmtDay(d) { return DAYS_CS[d.getDay()] + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '.'; }
+    function fmtDay(d) {
+        // den slovy podle jazyka appky (18. 9. 2026 vecer: v EN zustavalo „pátek 18. 9. · job")
+        try { if (window.AGJazyk && AGJazyk.get() !== 'cs') return d.toLocaleDateString(AGJazyk.locale(), { weekday: 'long' }) + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '.'; } catch (e) { /* nic */ }
+        return DAYS_CS[d.getDay()] + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '.';
+    }
     function fmtHM(iso) { var m = /T(\d{2}):(\d{2})/.exec(String(iso || '')); return m ? m[1] + ':' + m[2] : ''; }
     function pid() { try { return localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { return 'default'; } }
     function projName() {

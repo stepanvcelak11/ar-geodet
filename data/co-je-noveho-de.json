@@ -2,6 +2,19 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 367,
+      "datum": "2026-09-18",
+      "nadpis": "Monatscheck: keine Fehlalarme, leerer Wegweiser, Englisch ohne tschechische Reste",
+      "body": [
+        "<b>Offline ohne Toasts:</b> eine nicht geladene Kartenkachel, Schriftglyphe oder Geländekachel in der 3D-Ansicht zeigt nicht mehr für jede Adresse „Etwas ist schiefgelaufen“ — sie landen nur im Fehlerprotokoll.",
+        "<b>Der Wegweiser „Anders ausrichten“</b> wird nicht mehr gebaut: seit v360 sind alle seine Einträge ausgeblendet, über die Suche öffnete sich ein leeres Fenster nur mit Schließen.",
+        "<b>Englisch und weitere Sprachen:</b> Untertitel der Wegweiser in Werkzeuge (GPS korrigieren, Zwei Telefone, Bedingungen) werden je Werkzeug übersetzt; 70 Schlüssel und Muster ergänzt (Pille „GPS ohne Fix N s“, Wo man messen kann, Neuer Punkt ohne Höhenmodell, Punktkarte, Punktjäger, Formeln, Sonnenschatten…); das Notizfeld eines Punkts hat einen übersetzten Hinweis.",
+        "<b>Helles Design:</b> die Miniatur der Karte „Karte“ im Kartengrund ist kein weißes Quadrat mehr.",
+        "<b>Epochen / Monitoring:</b> das Schließen-Kreuz lag über der Pille Schließen im Kopf.",
+        "<b>Texte:</b> Anleitung und Checkliste „Was mitnehmen“ verweisen nicht mehr auf den entfernten Streifen „Was du heute machst“; die Registrierung sagt, dass das Passwort mit dem Wiederherstellungscode neu gesetzt werden kann (vorher „Passwort lässt sich nicht wiederherstellen“)."
+      ]
+    },
+    {
       "v": 366,
       "datum": "2026-09-18",
       "nadpis": "Die Frage „Wer bist du?“ ist weg",

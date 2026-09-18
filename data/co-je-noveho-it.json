@@ -2,6 +2,19 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 367,
+      "datum": "2026-09-18",
+      "nadpis": "Controllo del mese: niente falsi avvisi, bivio vuoto, inglese senza residui di ceco",
+      "body": [
+        "<b>Niente toast senza segnale:</b> una tessera della mappa, un glifo del font o una tessera del terreno nella vista 3D non scaricati non mostrano più «Qualcosa è andato storto» per ogni indirizzo — finiscono solo nel registro errori.",
+        "<b>Il bivio «Allinea diversamente»</b> non viene più costruito: da v360 tutte le sue voci sono nascoste e dalla ricerca si apriva una finestra vuota con il solo Chiudi.",
+        "<b>Inglese e altre lingue:</b> i sottotitoli dei bivi in Strumenti (Correggi GPS, Due telefoni, Condizioni) si traducono strumento per strumento; aggiunti 70 chiavi e schemi (pillola «GPS senza fix N s», Dove si può misurare, Nuovo punto senza modello del terreno, scheda del punto, Cacciatori di punti, Formule, ombra del sole…); il campo nota del punto ha il suggerimento tradotto.",
+        "<b>Tema chiaro:</b> la miniatura della scheda «Mappa» in Sfondo non è più un quadrato bianco.",
+        "<b>Epoche / monitoraggio:</b> la croce di chiusura si sovrapponeva alla pillola Chiudi nell’intestazione.",
+        "<b>Testi:</b> la guida e la checklist «Cosa portare» non rimandano più alla striscia rimossa «Cosa fai oggi»; la registrazione dice che la password si può reimpostare con il codice di recupero (prima «la password non si può recuperare»)."
+      ]
+    },
+    {
       "v": 366,
       "datum": "2026-09-18",
       "nadpis": "La domanda «Chi sei?» eliminata",

@@ -323,12 +323,15 @@
         if (!_map || !root) return;
         if (root.nodeType === 3) { _busy = true; try { doText(root); } catch (e) { swallow(e, 'sweep:text'); } _busy = false; return; }
         if (root.nodeType !== 1) return;
-        if (skipEl(root)) return;
+        if (skipEl(root)) { if (root.tagName === 'TEXTAREA') { _busy = true; try { doEl(root); } catch (e) { swallow(e, 'sweep:textarea'); } _busy = false; } return; }
         _busy = true;
         try {
             doEl(root);
             var w = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
                 acceptNode: function (n) {
+                    // TEXTAREA: obsah patří uživateli (přeskočit), ale placeholder je text appky —
+                    // „Stabilizace, popis místa, číslo náčrtu…“ zůstával v EN česky (18. 9. 2026)
+                    if (n.nodeType === 1 && n.tagName === 'TEXTAREA') { doEl(n); return NodeFilter.FILTER_REJECT; }
                     if (n.nodeType === 1) return skipEl(n) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
                     return NodeFilter.FILTER_ACCEPT;
                 }

@@ -13,6 +13,7 @@
     var TOAST_MIN_GAP = 30000; // ms mezi toasty, ať chybová smyčka nespamuje
     var _lastToast = 0;
     var _lastSig = '';
+    var SITOVA = /AJAXError|Failed to fetch|NetworkError|Load failed|net::ERR_|ERR_INTERNET_DISCONNECTED/i;
 
     // VYKON: log se drzi v PAMETI a na disk se zapisuje nejvys jednou za 5 s.
     // Drive delal record() JSON.parse + JSON.stringify celeho klice pri KAZDE
@@ -51,6 +52,13 @@
         if (list.length > MAX) list = list.slice(list.length - MAX);
         save(list);
         var now = Date.now();
+        // ⚠ CHVÍLE BEZ SIGNÁLU NENÍ CHYBA APPKY (18. 9. 2026): MapLibre hlásí každou nestaženou
+        //   dlaždici, glyf nebo výškovou dlaždici terénu (3D pohled, AWS) jako AJAXError „Failed to
+        //   fetch (0)" — a každá má JINOU adresu, takže se toast „Něco se pokazilo" ukázal na každou
+        //   zvlášť (sig se lišil, mezera 30 s neplatila). V terénu bez signálu to byla salva toastů.
+        //   Zapíše se do protokolu (diagnostika), ale uživateli se neukáže — stejně jako IMG dlaždice
+        //   OSM/ČÚZK níže, které se nezapisují vůbec.
+        if (SITOVA.test(String(msg))) return;
         if (now - _lastToast > TOAST_MIN_GAP || sig !== _lastSig) {
             _lastToast = now; _lastSig = sig;
             // toast až po startu (quickToast je v logika.js, která se teprve načte)

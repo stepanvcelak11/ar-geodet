@@ -2,6 +2,19 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 367,
+      "datum": "2026-09-18",
+      "nadpis": "Monthly check: no spurious alerts, empty hub, English without Czech leftovers",
+      "body": [
+        "<b>No toasts when offline:</b> an unloaded map tile, font glyph or terrain tile in the 3D view no longer shows “Something went wrong” for every address — they are only written to the error log.",
+        "<b>The “Align differently” hub</b> is no longer built: since v360 all its members are hidden, and via search it opened an empty window with just Close.",
+        "<b>English and other languages:</b> hub subtitles in Tools (Fix GPS, Two phones, Conditions) are translated tool by tool; 70 keys and patterns added (the “GPS without a fix N s” pill, Where you can measure, New point without an elevation model, the point card, Point hunters, Formulas, Sun shadow…); the note field of a point has a translated hint.",
+        "<b>Light theme:</b> the “Map” card thumbnail in Base map is no longer a white square.",
+        "<b>Epochs / monitoring:</b> the window’s close cross overlapped the Close pill in the header.",
+        "<b>Texts:</b> the guide and the “What to take” checklist no longer refer to the removed “What you do today” strip; sign-up says the password can be reset with the recovery code (previously “the password cannot be recovered”)."
+      ]
+    },
+    {
       "v": 366,
       "datum": "2026-09-18",
       "nadpis": "The “Who are you?” question removed",

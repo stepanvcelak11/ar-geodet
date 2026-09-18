@@ -459,7 +459,10 @@
     function hubPodtitul(hubId, zaloha) {
         var names = hubPolozky(hubId).map(function (k) {
             var r = (window.AGReg && AGReg.get(k)) || {}; var n = String((AGReg.label && AGReg.label(k)) || r.vl || k);   // živý popisek (Proč ±N m?)
-            return n.charAt(0).toLowerCase() + n.slice(1);
+            // každý název zvlášť přes slovník: spojený výčet žádný klíč nemá, v EN/DE… zůstával česky (18. 9. 2026)
+            var cs = true;
+            try { if (window.AGJazyk && typeof AGJazyk.t === 'function') { n = String(AGJazyk.t(n) || n); cs = (AGJazyk.get() || 'cs') === 'cs'; } } catch (e) { /* nic */ }
+            return cs ? n.charAt(0).toLowerCase() + n.slice(1) : n;   // malé písmeno jen česky (německá podstatná jména jsou velká)
         });
         return names.length ? names.join(' · ') : (zaloha || '');
     }

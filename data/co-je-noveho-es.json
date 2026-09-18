@@ -2,6 +2,19 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 367,
+      "datum": "2026-09-18",
+      "nadpis": "Revisión del mes: sin avisos falsos, cruce vacío, inglés sin restos de checo",
+      "body": [
+        "<b>Sin toasts sin señal:</b> una tesela de mapa, un glifo de fuente o una tesela de terreno en la vista 3D que no se descargan ya no muestran «Algo salió mal» por cada dirección — solo se anotan en el registro de errores.",
+        "<b>El cruce «Alinear de otra forma»</b> ya no se construye: desde v360 todos sus miembros están ocultos y por la búsqueda se abría una ventana vacía solo con Cerrar.",
+        "<b>Inglés y otros idiomas:</b> los subtítulos de los cruces en Herramientas (Corregir GPS, Dos teléfonos, Condiciones) se traducen herramienta por herramienta; se añadieron 70 claves y patrones (píldora «GPS sin fix N s», Dónde se puede medir, Nuevo punto sin modelo del terreno, ficha del punto, Cazadores de puntos, Fórmulas, sombra del sol…); el campo de nota del punto tiene la ayuda traducida.",
+        "<b>Tema claro:</b> la miniatura de la tarjeta «Mapa» en Base ya no es un cuadrado blanco.",
+        "<b>Épocas / monitoreo:</b> la cruz de cerrar se superponía a la píldora Cerrar de la cabecera.",
+        "<b>Textos:</b> la guía y la lista «Qué llevar» ya no remiten a la franja eliminada «Qué haces hoy»; el registro dice que la contraseña se puede restablecer con el código de recuperación (antes «la contraseña no se puede recuperar»)."
+      ]
+    },
+    {
       "v": 366,
       "datum": "2026-09-18",
       "nadpis": "La pregunta «¿Quién eres?» eliminada",
