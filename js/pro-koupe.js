@@ -329,7 +329,7 @@
         if (!maPro() && z.dni && !z.pouzita)
             h.push('<button type="button" class="agk-zk" id="agk-zkouska"' + (_busy ? ' disabled' : '') + '>Vyzkoušet Pro na ' + z.dni + ' dny zdarma</button>');
         if (!p.zapnuto) {
-            h.push('<p class="agk-pozn">Platba QR kódem se teprve připravuje. Zatím napiš autorovi (Více → Napsat autorovi) a Pro dostaneš klíčem.</p>');
+            h.push('<p class="agk-pozn">Platba QR kódem se teprve připravuje. Zatím napiš autorovi (Nástroje → Napsat autorovi) a Pro dostaneš klíčem.</p>');
         } else {
             h.push('<label class="agk-souhlas"><input type="checkbox" id="agk-souhlas"><span>Souhlasím s <a href="' + PODMINKY + '" target="_blank" rel="noopener">obchodními podmínkami</a> a s tím, že se Pro zapne hned po připsání platby — tím zaniká právo odstoupit od smlouvy do 14 dnů.</span></label>');
         }

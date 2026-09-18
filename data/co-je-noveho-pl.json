@@ -2,6 +2,19 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 372,
+      "datum": "2026-09-18",
+      "nadpis": "Trzecia runda: start bez sygnału bez „Coś poszło nie tak”, wskazówki prowadzą tam, gdzie to jest, stan połączenia z prawdziwych danych",
+      "body": [
+        "<b>Start bez sygnału nie zgłasza już „Coś poszło nie tak”.</b> Mapa wektorowa jest domyślna, a gdy jej danych nie da się pobrać (brak sygnału), to stan sieci, nie błąd aplikacji — żadnego toastu na ekranie logowania; wiersz Mapa w Ustawieniach mówi, że spróbuje ponownie, gdy wróci sygnał.",
+        "<b>Wskazówki prowadzą tam, gdzie to naprawdę jest.</b> Jedenaście komunikatów odsyłało do ukrytego od sierpnia menu „Więcej”: kosz to <b>Narzędzia → Zapisz → Przywróć usunięty punkt</b>, dziennik błędów <b>Narzędzia → Inne narzędzia</b>, zapis offline <b>Ustawienia → Zlecenie i dane</b>, Napisz do autora to pasek u góry Narzędzi. Zakładka „Inne narzędzia” tak się teraz nazywa (wcześniej tłumaczyła się jako „Dalej”). Na bramce „Więcej opcji” wyjaśnia, jak przestrzeń z rejestracji ma się do firmy.",
+        "<b>Stan połączenia według tego, czy dane naprawdę płyną.</b> Szczegóły GPS nie twierdzą już „Internet jest” tylko dlatego, że telefon ma sieć: liczy się z ostatniej prawdziwej odpowiedzi (ČÚZK, chmura, dane mapy). Przy jednej kresce zgłasza <b>Słaby sygnał</b> z czasem ostatniej odpowiedzi; pastylka „Pobieram dane…” po 15 s bez odpowiedzi mówi, że punkty ČÚZK nie dotarły i próbuje dalej.",
+        "<b>Wygląd:</b> pasek w Szkicu / Tachimetrii zawija się na telefonie w dwa wiersze (Z punktów, Cofnij, podkład i eksport widoczne naraz); etykiety doku przy dużej czcionce nie łamią już słów; cztery akcje w karcie punktu urzędowego są w siatce 2×2, równej wysokości.",
+        "<b>Języki:</b> w angielskim Nowym punkcie zostały cztery czeskie teksty (kod jakości, Dlaczego?, wysokość terenu) — przetłumaczone. Francuski: 169 żywych tekstów z liczbami (pastylka GPS, liczby punktów, miesiące, kierunki…) było omyłkowo po włosku — teraz po francusku.",
+        "<b>Dla rozwoju:</b> testy regresji w CI były czerwone od v368 (trzy kontrole zakładały pięć języków) — naprawione; ostatni stan regresji widać w konsoli właściciela i w podsumowaniu kontroli wydania; nowa kontrola pilnuje, by żaden komunikat nie odsyłał do usuniętego menu."
+      ]
+    },
+    {
       "v": 371,
       "datum": "2026-09-18",
       "nadpis": "Przegląd aplikacji: odnośniki do Ustawień po przebudowie, francuskie teksty z liczbą, przecinek dziesiętny",

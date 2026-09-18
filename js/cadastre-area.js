@@ -318,7 +318,7 @@
             if (typeof viewMode !== 'undefined' && viewMode === 'ar') {
                 alertMsg('Přepni na mapu',
                     'Import bere body z <b>aktuálního výřezu mapy</b>. Přepni zobrazení na <b>Mapa</b> nebo ' +
-                    '<b>Split</b> (přes „Více"), najdi a přibliž místo na mapě a spusť import znovu.');
+                    '<b>Split</b> (tlačítko vpravo dole), najdi a přibliž místo na mapě a spusť import znovu.');
                 return;
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-area:runImport'); }

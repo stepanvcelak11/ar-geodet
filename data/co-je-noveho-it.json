@@ -2,6 +2,19 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 372,
+      "datum": "2026-09-18",
+      "nadpis": "Terzo giro: avvio senza segnale senza «Qualcosa è andato storto», i suggerimenti portano dove sono le cose, stato della connessione dai dati reali",
+      "body": [
+        "<b>L’avvio senza segnale non segnala più «Qualcosa è andato storto».</b> La mappa vettoriale è predefinita e quando i suoi dati non si possono scaricare (nessun segnale) è uno stato di rete, non un errore dell’app — nessun avviso nella schermata di accesso; la riga Mappa nelle Impostazioni dice che riproverà al ritorno del segnale.",
+        "<b>I suggerimenti portano dove le cose sono davvero.</b> Undici messaggi rimandavano al menu «Altro», nascosto da agosto: il cestino è <b>Strumenti → Registra → Ripristina punto eliminato</b>, il registro errori <b>Strumenti → Altri strumenti</b>, il salvataggio offline <b>Impostazioni → Lavoro e dati</b>, Scrivi all’autore è la striscia in alto negli Strumenti. La scheda «Altri strumenti» ora si chiama così (prima si traduceva come «Avanti»). Sulla porta, «Altre opzioni» spiega come lo spazio della registrazione si rapporta a un’azienda.",
+        "<b>Stato della connessione in base a se i dati arrivano davvero.</b> Il dettaglio GPS non afferma più «Internet c’è» solo perché il telefono ha rete: si calcola dall’ultima risposta reale (ČÚZK, cloud, dati della mappa). Con una tacca segnala <b>Segnale debole</b> con l’ora dell’ultima risposta; la pillola «Scarico i dati…» dopo 15 s senza risposta dice che i punti ČÚZK non sono arrivati e continua a provare.",
+        "<b>Aspetto:</b> la barra in Schizzo / Tacheometria sul telefono va a capo su due righe (Da punti, Annulla, sfondo ed esportazione visibili insieme); le etichette del dock con testo grande non spezzano più le parole; le quattro azioni nella scheda di un punto ufficiale stanno in una griglia 2×2, della stessa altezza.",
+        "<b>Lingue:</b> nel Nuovo punto in inglese restavano quattro testi cechi (codice di qualità, Perché?, quota del terreno) — tradotti. Francese: 169 testi vivi con numeri (pillola GPS, conteggi di punti, mesi, direzioni…) erano per errore in italiano — ora in francese.",
+        "<b>Per lo sviluppo:</b> i test di regressione in CI erano rossi dalla v368 (tre controlli presumevano cinque lingue) — corretti; l’ultimo stato della regressione è visibile nella console del proprietario e nel riepilogo del controllo di rilascio; un nuovo controllo verifica che nessun messaggio rimandi al menu rimosso."
+      ]
+    },
+    {
       "v": 371,
       "datum": "2026-09-18",
       "nadpis": "Giro dell’app: collegamenti alle Impostazioni dopo la ristrutturazione, testi francesi con numero, virgola decimale",

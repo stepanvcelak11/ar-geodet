@@ -2,6 +2,19 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 372,
+      "datum": "2026-09-18",
+      "nadpis": "Troisième tour : démarrage sans signal sans « Quelque chose a mal tourné », les indications mènent là où c’est, état de connexion d’après les vraies données",
+      "body": [
+        "<b>Le démarrage sans signal ne signale plus « Quelque chose a mal tourné ».</b> La carte vectorielle est par défaut et quand ses données ne peuvent pas être téléchargées (pas de signal), c’est un état réseau, pas une erreur de l’appli — aucun message sur l’écran de connexion ; la ligne Carte dans les Réglages dit qu’elle réessaiera au retour du signal.",
+        "<b>Les indications mènent là où c’est vraiment.</b> Onze messages renvoyaient au menu « Plus », masqué depuis août : la corbeille est <b>Outils → Enregistrer → Restaurer un point supprimé</b>, le journal des erreurs <b>Outils → Autres outils</b>, l’enregistrement hors ligne <b>Réglages → Chantier et données</b>, Écrire à l’auteur est la bande en haut des Outils. L’onglet « Autres outils » porte maintenant ce nom (il se traduisait par « Suivant »). Sur la porte, « Plus d’options » explique le lien entre l’espace de l’inscription et une entreprise.",
+        "<b>État de connexion selon que les données arrivent vraiment.</b> Le détail GPS n’affirme plus « Internet est là » juste parce que le téléphone a un réseau : il se calcule d’après la dernière vraie réponse (ČÚZK, cloud, données de carte). Avec une barre, il signale <b>Signal faible</b> avec l’heure de la dernière réponse ; la pastille « Téléchargement des données… » dit après 15 s sans réponse que les points ČÚZK ne sont pas arrivés et continue d’essayer.",
+        "<b>Visuel :</b> la barre dans Croquis / Tachéométrie passe sur deux lignes au téléphone (Depuis des points, Annuler, fond et export visibles à la fois) ; les libellés du dock en grand texte ne coupent plus les mots ; les quatre actions de la fiche d’un point officiel sont dans une grille 2×2, de même hauteur.",
+        "<b>Langues :</b> dans le Nouveau point en anglais restaient quatre textes tchèques (code de qualité, Pourquoi ?, altitude du terrain) — traduits. Français : 169 textes vivants avec des nombres (pastille GPS, nombres de points, mois, directions…) étaient par erreur en italien — maintenant en français.",
+        "<b>Pour le développement :</b> les tests de régression du CI étaient rouges depuis la v368 (trois contrôles supposaient cinq langues) — corrigés ; le dernier état de la régression est visible dans la console du propriétaire et dans le résumé du contrôle de version ; un nouveau contrôle veille à ce qu’aucun message ne renvoie au menu supprimé."
+      ]
+    },
+    {
       "v": 371,
       "datum": "2026-09-18",
       "nadpis": "Tour de l’appli : liens vers les Réglages après la refonte, textes français avec nombre, virgule décimale",

@@ -81,26 +81,27 @@
     function render(gpsZ, gpsSig, dmr, state) {
         var box = ensureBox(); if (!box) return;
         var h = '';
-        h += '<div class="agvz-r"><span>Výška z GPS (Bpv)</span><b>' + (gpsZ == null ? '—' : (f2(gpsZ) + ' m'))
+        var T = function (s) { try { return window.AGJazyk ? AGJazyk.t(s) : s; } catch (e) { return s; } };   // živé innerHTML míjí překladač (T6)
+        h += '<div class="agvz-r"><span>' + T('Výška z GPS (Bpv)') + '</span><b>' + (gpsZ == null ? '—' : (f2(gpsZ) + ' m'))
             + (gpsSig != null ? ' <span style="opacity:.7">±' + f2(gpsSig) + '</span>' : '') + '</b></div>';
-        h += '<div class="agvz-r"><span>Výška terénu DMR 5G</span><b>'
-            + (state === 'wait' ? 'zjišťuji…' : (dmr == null ? '—' : (f2(dmr) + ' m <span style="opacity:.7">±' + f2(DMR_SIGMA) + '</span>'))) + '</b></div>';
+        h += '<div class="agvz-r"><span>' + T('Výška terénu DMR 5G') + '</span><b>'
+            + (state === 'wait' ? T('zjišťuji…') : (dmr == null ? '—' : (f2(dmr) + ' m <span style="opacity:.7">±' + f2(DMR_SIGMA) + '</span>'))) + '</b></div>';
         if (gpsZ != null && dmr != null) {
             var d = gpsZ - dmr;
             var big = Math.abs(d) > Math.max(2.5, 2 * (gpsSig || 2));
-            h += '<div class="agvz-r agvz-d"><span>Rozdíl GPS − terén</span><b class="' + (big ? 'agvz-warn' : '') + '">'
+            h += '<div class="agvz-r agvz-d"><span>' + T('Rozdíl GPS − terén') + '</span><b class="' + (big ? 'agvz-warn' : '') + '">'
                 + (d >= 0 ? '+' : '−') + f2(Math.abs(d)) + ' m</b></div>';
             h += '<div class="agvz-btns">'
                 + '<button type="button" id="agvz-use">Vzít výšku z DMR (' + f2(dmr) + ')</button>'
-                + '<button type="button" class="agvz-sec" id="agvz-keep">Nechat GPS</button>'
+                + '<button type="button" class="agvz-sec" id="agvz-keep">' + T('Nechat GPS') + '</button>'
                 + '</div>';
             h += '<div class="agvz-n">DMR 5G je <b>terén z leteckého skenu 2009–2013</b>, ne dnešní povrch. '
                 + 'Na hotové pláni a v otevřeném terénu je o řád přesnější než GPS z mobilu; '
                 + '<b class="agvz-warn">za finišerem, na náspu, mostě nebo zásypu ho neber</b> — tam měří starý terén.'
                 + (big ? ' Rozdíl je velký: buď stojíš na něčem novém, nebo je výška z GPS mimo.' : '') + '</div>';
         } else if (state === 'off') {
-            h += '<div class="agvz-n">Výšku terénu se nepodařilo zjistit (bez internetu a mimo uloženou oblast). '
-                + 'Zůstává výška z GPS. Tip: stažením okolí pro offline se výškopis uloží i pro tenhle bod.</div>';
+            h += '<div class="agvz-n">' + T('Výšku terénu se nepodařilo zjistit (bez internetu a mimo uloženou oblast).') + ' '
+                + T('Zůstává výška z GPS. Tip: stažením okolí pro offline se výškopis uloží i pro tenhle bod.') + '</div>';
         }
         box.innerHTML = h;
         var u = el('agvz-use');

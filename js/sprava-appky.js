@@ -703,7 +703,7 @@
                             txt = (txt == null) ? '' : String(txt).trim();
                             if (!txt) return;
                             var go = function () {
-                                if (!window.AGZpetna || !AGZpetna.poslat) { try { agInfo('Odeslání není k dispozici — použij Nastavení → Více → Napsat autorovi.'); } catch (e) { /* bez dialogu */ } return; }
+                                if (!window.AGZpetna || !AGZpetna.poslat) { try { agInfo('Odeslání není k dispozici — použij Nástroje → Napsat autorovi.'); } catch (e) { /* bez dialogu */ } return; }
                                 AGZpetna.poslat({ kind: 'odpoved', txt: txt, meta: { vzkaz: v.id, na: String(v.txt).slice(0, 160) } }).then(function (n) {
                                     // dismiss() zavolá onDismiss níže = přečteno na serveru + pryč z místní kopie
                                     try { AGNotify.dismiss('ag-vzkaz-' + v.id); } catch (e) { swallow(e, 'odp-dismiss'); }

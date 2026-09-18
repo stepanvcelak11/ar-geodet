@@ -589,7 +589,7 @@
             '<div class="agfa-note"><b>Zaměstnanec</b> používá appku klasicky — jen nástroje pro práci v terénu. ' +
             '<b>Vedení</b> vidí navíc firemní přehled užívání. <b>Admin</b> má sekci <b>Přehled</b> — ' +
             'admin centrum, kde je všechno pohromadě (dnešní čísla, kdo je v práci a co naposledy dělal, vytížení serveru, ' +
-            'poslední zprávy, rychlé akce) — a nikde ho neomezují oprávnění. Administrace je adminovi po ruce i v menu <b>Více</b>.</div>' +
+            'poslední zprávy, rychlé akce) — a nikde ho neomezují oprávnění. Administrace je adminovi po ruce i v <b>Nastavení → Účet a aplikace</b>.</div>' +
             '<div class="agfa-pg">Zámek při spuštění</div>' +
             '<div class="agfa-note">Appka po každém spuštění chce přihlášení (naposledy přihlášený je předvybraný, stačí heslo/PIN). ' +
             'Kdo to nechce, vypne v sekci <b>Firma → Zámek appky</b> — pak appka pokračuje pod posledním přihlášeným.</div>' +
@@ -598,7 +598,7 @@
             'zaměstnanec na svém mobilu zadá kód firmy + své jméno + heslo (účet mu předtím založí admin v sekci Uživatelé). ' +
             'Po prvním přihlášení s internetem funguje přihlášení i <b>offline</b> (heslo se ověří proti otisku uloženému v zařízení). ' +
             'Kdo nemá účet, založí si ho na úvodní obrazovce (jméno, název prostoru, heslo — bez e-mailu) a pracuje ve <b>svém vlastním prostoru</b>; ' +
-            'do firmy se pak připojí pozvacím kódem (Více → Kde pracuju). Bez účtu se appka neotevře.</div>' +
+            'do firmy se pak připojí pozvacím kódem (Nastavení → Účet a aplikace → Kde pracuju). Bez účtu se appka neotevře.</div>' +
             '<div class="agfa-pg">Role a oprávnění</div>' +
             '<div class="agfa-note"><b>Admin</b> vidí a může vše: spravuje uživatele, oprávnění i firmu a vidí přehled užívání. ' +
             '<b>Vedení</b> a <b>zaměstnanec</b> vidí jen to, co jim admin povolí v sekci Oprávnění (vedení může navíc dostat přehled užívání). ' +
@@ -659,6 +659,7 @@
         var body = document.getElementById('agfa-body');
         var k = SK(), stud = (k.n === 'parta');
         body.innerHTML =
+            (stud ? '' : '<div class="agfa-note">Prostor, který dostaneš s účtem, je jen tvůj. <b>Firma</b> je společný prostor pro víc lidí — s kódem, adminem a oprávněními.</div>') +
             (stud
                 ? '<div class="agfa-note"><b>Člen party</b> se jen přihlásí kódem party, který dostal od toho, kdo ji založil — nic nezakládá. ' +
                   'Partu <b>zakládá a vede zakladatel</b> (učitel, vedoucí kroužku, jeden ze spolužáků): vidí body a zápisníky všech, spravuje účty i nastavení.</div>'

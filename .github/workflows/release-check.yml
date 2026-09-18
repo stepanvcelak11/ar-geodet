@@ -128,6 +128,10 @@ jobs:
       - name: Zaklad nesaha na Pro moduly
         run: python scripts/check_zaklad.py
 
+      # 18. 9. 2026 vecer (T2): 11 hlasek posilalo do schovaneho menu „Vice" — hlidat, aby se to nevratilo
+      - name: Hlasky nevedou do zruseneho menu
+        run: python scripts/check_texty.py
+
       - name: Licence Pro (vyroba klice sedi s overenim)
         run: python scripts/test_licence.py
 
@@ -165,3 +169,35 @@ jobs:
       # tiše spadnout pod 4,5:1.
       - name: Tokeny a kontrast
         run: python scripts/check_css_tokens.py
+
+      # 18. 9. 2026 vecer (T3): tri vydani za sebou (v368-v370) sla ven s cervenou regresi
+      # a nikdo si nevsiml — Pages nasazuje po vlastnim smoke testu, „Testy" jsou zvlast.
+      # Tenhle krok se podiva na POSLEDNI DOKONCENY beh Testu nad main (ten z predchoziho
+      # commitu — soucasny jeste bezi) a cervenou napise do souhrnu a jako ::error anotaci.
+      # Vydani neblokuje (rozhodnuti 18. 9.): jen aby to bylo videt tam, kam se kouka.
+      - name: Posledni regrese nad main (informativne)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -u
+          J=$(curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/tests.yml/runs?branch=main&status=completed&per_page=1") || J=""
+          python3 - "$J" <<'PY'
+          import json, os, sys
+          try:
+              d = json.loads(sys.argv[1] or '{}')
+              run = (d.get('workflow_runs') or [None])[0]
+          except Exception:
+              run = None
+          summ = open(os.environ.get('GITHUB_STEP_SUMMARY', '/dev/null'), 'a', encoding='utf-8')
+          if not run:
+              print('Regrese: nezjisteno (API neodpovedelo).'); summ.write('\n**Regresni testy nad main:** nezjisteno\n'); sys.exit(0)
+          ok = run.get('conclusion') == 'success'
+          msg = (run.get('head_commit') or {}).get('message', '').split('\n')[0][:90]
+          line = '%s — %s — %s' % ('ZELENE' if ok else 'CERVENE', run.get('head_sha', '')[:7], msg)
+          print('Posledni dokoncena regrese nad main: ' + line)
+          summ.write('\n**Regresni testy nad main (posledni dokonceny beh):** %s %s — [beh](%s)\n' % ('✅' if ok else '❌', line, run.get('html_url', '')))
+          if not ok:
+              print('::error title=Regrese nad main je CERVENA::%s — %s' % (line, run.get('html_url', '')))
+          PY

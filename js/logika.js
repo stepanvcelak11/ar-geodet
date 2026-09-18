@@ -926,7 +926,7 @@ if ('serviceWorker' in navigator) {
             // Hromadne mazani chodi vzdy se skipConfirm=true (panel Body ma jedno
             // spolecne potvrzeni), takze se tady u davky nikdy neptame.
             if (!skipConfirm) {
-                agAsk('Smazat bod „' + ((_pt && _pt.name) || 'bez názvu') + '"?\nVrátit ho půjde 30 dní z koše (Více → Koš).', { title: 'Smazat bod', okText: 'Smazat', danger: true })
+                agAsk('Smazat bod „' + ((_pt && _pt.name) || 'bez názvu') + '"?\nVrátit ho půjde 30 dní z koše (Nástroje → Zaznamenat → Obnovit smazaný bod).', { title: 'Smazat bod', okText: 'Smazat', danger: true })
                     .then(ok => { if (ok) window.deleteCustomPoint(id, true, batch); });
                 return;
             }
@@ -946,7 +946,8 @@ if ('serviceWorker' in navigator) {
         // „ještě nemám průměr“ jde do řádku #custom-acc-note. Vrací true, když pole vyplnilo.
         function fillAveragedGPS(silent) {
             const _note = function (html) { const n = document.getElementById('custom-acc-note'); if (!n) return; n.style.display = 'block'; n.innerHTML = html; };
-            const _rekni = function (dlouhe, kratke) { if (silent) { _note('<span style="opacity:.8">' + kratke + '</span>'); return false; } agInfo(dlouhe); return false; };
+            // krátká věta se překresluje každou vteřinu (agAutoGpsStart) a překladač DOMu ji míjel → t() (T6)
+            const _rekni = function (dlouhe, kratke) { if (silent) { try { if (window.AGJazyk) kratke = AGJazyk.t(kratke); } catch (e) { /* česky */ } _note('<span style="opacity:.8">' + kratke + '</span>'); return false; } agInfo(dlouhe); return false; };
             // ⚠ #2 POLOHA Z MAPY: odecet prstem do ortofota NENI mereni. Vyplnime ho —
             // je to casto poctivejsi zdroj nez GPS mezi panelaky — ale s VLASTNI
             // presnosti (z meritka mapy) a s vlastni provenienci, at appka netvrdi
@@ -1831,7 +1832,16 @@ if ('serviceWorker' in navigator) {
 
         async function initFetch(lat, lng) {
             document.getElementById('info').innerHTML = `Stahuji data…`;
-            await fetchGeodata(lat, lng, mapRadius, false);
+            // Slabý signál (18. 9. 2026 večer, T5): každý dotaz na ČÚZK má 12 s a tři pokusy, vrstev je víc,
+            // takže „Stahuji data…" umělo svítit minuty. Po 15 s bez odpovědi řekne pilulka, co se děje.
+            var _agSlaby = setTimeout(function () {
+                try {
+                    var sp = window.AGSpojeni ? AGSpojeni.stav() : null;
+                    var info = document.getElementById('info');
+                    if (info && /Stahuji data/.test(info.textContent || '')) info.innerHTML = (sp && sp.k === 'chodi') ? 'Stahuji data… (ČÚZK odpovídá pomalu)' : 'Body z ČÚZK nedošly — slabý signál, zkouším dál';
+                } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:initFetch'); }
+            }, 15000);
+            try { await fetchGeodata(lat, lng, mapRadius, false); } finally { clearTimeout(_agSlaby); }
             const officialCount = arPoints.filter(p => p.cat !== 'CUSTOM').length;
             if ((lastFetchNetworkError || lastFetchServerError) && officialCount === 0) {
                 const why = lastFetchNetworkError ? 'nedostupné / offline' : 'neodpovídá (limit?)';

@@ -97,6 +97,10 @@
             '#ag-kb-dev b{font-family:var(--font-mono,ui-monospace,Menlo,monospace);font-variant-numeric:tabular-nums;}',
             '#ag-kb-dev em{display:block;margin-top:3px;font-style:normal;font-weight:500;color:var(--text-muted,#9aa1ac);font-size:calc(11.5px * var(--ag-font-scale, 1));}',
             '#ag-kb-acts{display:flex;gap:7px;margin:0 0 14px;}',
+            // Čtyři akce (u úředního bodu s „Našel jsem ho") do mřížky 2×2 (18. 9. 2026 večer, T4):
+            // v řadě měl každý ~80 px, „Našel jsem ho / ještě 40 m" šlo na tři řádky a tlačítko bylo
+            // o polovinu vyšší než sousedé. Ve dvou sloupcích má každé ~170 px a všechna jsou stejně vysoká.
+            '#ag-kb-acts:has(> button:nth-child(4)){display:grid;grid-template-columns:1fr 1fr;}',
             '#ag-kb-acts button{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:11px 4px;cursor:pointer;',
             '  border-radius:12px;border:1px solid var(--glass-border,rgba(255,255,255,0.14));background:var(--surface-2,rgba(255,255,255,0.07));',
             '  color:var(--text-color,#eceef2);font:600 11px/1.15 var(--font-ui,system-ui);text-align:center;}',

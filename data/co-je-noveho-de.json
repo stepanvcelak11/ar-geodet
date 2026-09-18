@@ -2,6 +2,19 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 372,
+      "datum": "2026-09-18",
+      "nadpis": "Dritte Runde: Start ohne Signal ohne „Etwas ist schiefgelaufen“, Hinweise führen dorthin, wo es ist, Verbindungsstatus aus echten Daten",
+      "body": [
+        "<b>Der Start ohne Signal meldet nicht mehr „Etwas ist schiefgelaufen“.</b> Die Vektorkarte ist Standard, und wenn ihre Daten nicht geladen werden können (kein Signal), ist das ein Netzzustand, kein App-Fehler — kein Toast auf dem Anmeldebildschirm; die Zeile Karte in den Einstellungen sagt, dass es nach Rückkehr des Signals erneut versucht wird.",
+        "<b>Hinweise führen dorthin, wo es wirklich ist.</b> Elf Meldungen zeigten auf das seit August versteckte Menü „Mehr“: der Papierkorb ist <b>Werkzeuge → Erfassen → Gelöschten Punkt wiederherstellen</b>, das Fehlerprotokoll <b>Werkzeuge → Weitere Werkzeuge</b>, Offline-Speichern <b>Einstellungen → Auftrag und Daten</b>, An den Autor schreiben ist der Streifen oben in den Werkzeugen. Der Reiter „Weitere Werkzeuge“ heißt jetzt so (früher wurde er als „Weiter“ übersetzt). Auf der Anmeldeseite erklärt „Weitere Optionen“, wie der Bereich aus der Registrierung zur Firma steht.",
+        "<b>Verbindungsstatus danach, ob Daten wirklich kommen.</b> Das GPS-Detail behauptet nicht mehr „Internet ist da“, nur weil das Telefon ein Netz hat: es wird aus der letzten echten Antwort berechnet (ČÚZK, Cloud, Kartendaten). Bei einem Balken meldet es <b>Schwaches Signal</b> mit der Zeit der letzten Antwort; die Pille „Lade Daten…“ sagt nach 15 s ohne Antwort, dass ČÚZK-Punkte nicht kamen und weiter versucht wird.",
+        "<b>Optik:</b> die Leiste in Skizze / Tachymetrie bricht auf dem Telefon in zwei Zeilen um (Aus Punkten, Zurück, Hintergrund und Export auf einmal sichtbar); Dock-Beschriftungen brechen bei großer Schrift keine Wörter mehr; die vier Aktionen in der Karte eines amtlichen Punkts stehen in einem 2×2-Raster, gleich hoch.",
+        "<b>Sprachen:</b> im englischen Dialog Neuer Punkt blieben vier tschechische Texte (Qualitätscode, Warum?, Geländehöhe) — übersetzt. Französisch: 169 Live-Texte mit Zahlen (GPS-Pille, Punktzahlen, Monate, Richtungen…) waren versehentlich Italienisch — jetzt Französisch.",
+        "<b>Für die Entwicklung:</b> die Regressionstests im CI waren seit v368 rot (drei Prüfungen gingen von fünf Sprachen aus) — behoben; der letzte Regressionsstand ist in der Besitzerkonsole und in der Zusammenfassung der Freigabeprüfung sichtbar; eine neue Prüfung stellt sicher, dass keine Meldung auf das entfernte Menü zeigt."
+      ]
+    },
+    {
       "v": 371,
       "datum": "2026-09-18",
       "nadpis": "Durchgang: Einstellungs-Links nach dem Umbau, französische Texte mit Zahl, Dezimalkomma",

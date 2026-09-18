@@ -72,13 +72,16 @@
         if (sigma == null || !isFinite(sigma)) return '';
         var v = evaluate(sigma);
         var cls = !v.got ? 'qc-bad' : (v.got.kod <= 3 ? 'qc-ok' : 'qc-warn');
-        var head = '±' + f2(sigma) + ' m → ' + (v.got ? ('<b>kód kvality ' + v.got.kod + '</b>') : '<b>horší než kód 5</b>');
+        // Texty přes AGJazyk.t() (18. 9. 2026 večer, T6): čip se překresluje živě přes innerHTML a
+        // překladač DOMu ho míjel — v EN Novém bodu zůstávalo „horší než kód 5" a „Proč?".
+        var T = function (s) { try { return window.AGJazyk ? AGJazyk.t(s) : s; } catch (e) { return s; } };
+        var head = '±' + f2(sigma) + ' m → ' + (v.got ? ('<b>' + T('kód kvality') + ' ' + v.got.kod + '</b>') : '<b>' + T('horší než kód 5') + '</b>');
         var tail = v.got
-            ? '<span class="qc-tail">mxy ≤ ' + f2(v.got.mxy) + ' m' + (v.got.popis ? ' · ' + v.got.popis : '') + '</span>'
-            : '<span class="qc-tail">pro zaměření v terénu nevyhovuje</span>';
+            ? '<span class="qc-tail">mxy ≤ ' + f2(v.got.mxy) + ' m' + (v.got.popis ? ' · ' + T(v.got.popis) : '') + '</span>'
+            : '<span class="qc-tail">' + T('pro zaměření v terénu nevyhovuje') + '</span>';
         return '<div class="qc-chip ' + cls + '" data-sigma="' + sigma + '">' +
             '<span class="qc-chip-main">' + head + '</span>' + tail +
-            '<button type="button" class="qc-why" aria-label="Proč?">Proč?</button>' +
+            '<button type="button" class="qc-why" aria-label="' + T('Proč?') + '">' + T('Proč?') + '</button>' +
             '</div>';
     }
 

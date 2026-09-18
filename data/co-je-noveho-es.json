@@ -2,6 +2,19 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 372,
+      "datum": "2026-09-18",
+      "nadpis": "Tercera ronda: inicio sin señal sin «Algo salió mal», las pistas llevan donde están las cosas, estado de conexión según datos reales",
+      "body": [
+        "<b>El inicio sin señal ya no avisa «Algo salió mal».</b> El mapa vectorial es el predeterminado y cuando sus datos no se pueden descargar (sin señal) es un estado de red, no un error de la app — sin aviso en la pantalla de acceso; la fila Mapa en Ajustes dice que lo intentará cuando vuelva la señal.",
+        "<b>Las pistas llevan a donde están las cosas de verdad.</b> Once mensajes remitían al menú «Más», oculto desde agosto: la papelera es <b>Herramientas → Registrar → Restaurar punto eliminado</b>, el registro de errores <b>Herramientas → Otras herramientas</b>, guardar sin conexión <b>Ajustes → Trabajo y datos</b>, Escribir al autor es la franja arriba en Herramientas. La pestaña «Otras herramientas» ahora se llama así (antes se traducía como «Siguiente»). En la puerta, «Más opciones» explica cómo se relaciona el espacio del registro con una empresa.",
+        "<b>Estado de conexión según si los datos llegan de verdad.</b> El detalle GPS ya no afirma «Hay internet» solo porque el teléfono tenga red: se calcula con la última respuesta real (ČÚZK, nube, datos del mapa). Con una raya avisa <b>Señal débil</b> con la hora de la última respuesta; la píldora «Descargando datos…» dice a los 15 s sin respuesta que los puntos del ČÚZK no llegaron y sigue intentándolo.",
+        "<b>Visual:</b> la barra en Croquis / Taquimetría se parte en dos filas en el teléfono (Desde puntos, Deshacer, base y exportación visibles a la vez); las etiquetas del dock con letra grande ya no cortan palabras; las cuatro acciones en la ficha de un punto oficial van en una cuadrícula 2×2, de igual altura.",
+        "<b>Idiomas:</b> en el Nuevo punto en inglés quedaban cuatro textos checos (código de calidad, ¿Por qué?, altura del terreno) — traducidos. Francés: 169 textos vivos con números (píldora GPS, recuentos de puntos, meses, direcciones…) estaban por error en italiano — ahora en francés.",
+        "<b>Para el desarrollo:</b> las pruebas de regresión en CI estaban en rojo desde v368 (tres comprobaciones suponían cinco idiomas) — corregido; el último estado de la regresión se ve en la consola del propietario y en el resumen de la comprobación de versión; una nueva comprobación vigila que ningún mensaje remita al menú eliminado."
+      ]
+    },
+    {
       "v": 371,
       "datum": "2026-09-18",
       "nadpis": "Recorrido por la app: enlaces a Ajustes tras la reforma, textos franceses con número, coma decimal",

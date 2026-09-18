@@ -2,6 +2,19 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 372,
+   "datum": "2026-09-18",
+   "nadpis": "Třetí kolo: start bez signálu bez „Něco se pokazilo“, rozcestníky vedou tam, kde to je, stav spojení podle dat",
+   "body": [
+    "<b>Start bez signálu už nehlásí „Něco se pokazilo“.</b> Vektorová mapa je výchozí a když se její data nedají stáhnout (bez signálu), je to síťový stav, ne chyba appky — žádný toast na přihlašovací obrazovce, řádek Mapa v Nastavení říká, že se to zkusí po návratu signálu.",
+    "<b>Hlášky vedou tam, kde to opravdu je.</b> Jedenáct hlášek posílalo do menu „Více“, které je od srpna schované: koš je <b>Nástroje → Zaznamenat → Obnovit smazaný bod</b>, protokol chyb <b>Nástroje → Další nástroje</b>, uložení pro offline <b>Nastavení → Zakázka a data</b>, Napsat autorovi je pruh nahoře v Nástrojích. Záložka „Další“ v Nástrojích se jmenuje „Další nástroje“ (v cizích jazycích se překládala jako „Next“). Na bráně u „Další možnosti“ je věta, jak se má prostor z registrace k firmě.",
+    "<b>Stav spojení podle toho, jestli data opravdu chodí.</b> Detail GPS už netvrdí „Internet je“ jen podle toho, že telefon má síť: počítá se z poslední skutečné odpovědi (ČÚZK, cloud, data mapy). Při jedné čárce hlásí <b>Signál slabý</b> s časem poslední odpovědi; pilulka „Stahuji data…“ po 15 s bez odpovědi řekne, že body z ČÚZK nedošly a zkouší se dál.",
+    "<b>Vizuál:</b> lišta v Náčrtu / Tachymetrii se na telefonu zalomí do dvou řádků (Z bodů, Zpět, podklad i export vidět naráz); popisky doku při velkém písmu už nelámou slova; čtyři akce v kartě úředního bodu jsou v mřížce 2×2, stejně vysoké.",
+    "<b>Jazyky:</b> v anglickém Novém bodu zůstávaly čtyři české texty (kód kvality, Proč?, výška terénu) — přeložené. Francouzština: 169 živých textů s čísly (pilulka GPS, počty bodů, měsíce, směry…) bylo omylem italsky — přeložené do francouzštiny.",
+    "<b>Pro vývoj:</b> regresní testy v CI byly červené od v368 (tři kontroly počítaly s pěti jazyky) — opravené; poslední stav regrese je vidět v konzoli vlastníka a v souhrnu kontroly vydání; nová kontrola hlídá, že žádná hláška neposílá do zrušeného menu."
+   ]
+  },
+  {
    "v": 371,
    "datum": "2026-09-18",
    "nadpis": "Průchod appkou: odkazy do Nastavení po přestavbě, francouzské texty s číslem, čísla s čárkou",

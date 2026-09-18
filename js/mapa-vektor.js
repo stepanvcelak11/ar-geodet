@@ -149,7 +149,7 @@
     // přejezd do jiného DÍLU téže země: každých 20 s porovnat url(); změna → nastavStyl() přepne zdroj
     setInterval(function () { try { if (st.zap && vrstva && !st.url && DILY && url() !== _url) nastavStyl(); } catch (e) { swallow(e, 'dilTik'); } }, 20000);
     // jiná země = jiný soubor dat (cz → sk…); když pro ni data nejsou, mapa to řekne
-    document.addEventListener('ag:zeme', function () { if (st.zap && vrstva && !st.url) overData().then(nastavStyl).catch(function (e) { chybaText = (e && e.message) || String(e); try { window.agInfo && window.agInfo('Vektorová mapa: ' + chybaText); } catch (e2) { /* nic */ } }); });
+    document.addEventListener('ag:zeme', function () { if (st.zap && vrstva && !st.url) overData().then(nastavStyl).catch(function (e) { chybaText = (e && e.message) || String(e); if (e && e.sitova) return; try { window.agInfo && window.agInfo('Vektorová mapa: ' + chybaText); } catch (e2) { /* nic */ } }); });
     try { new MutationObserver(function () { nastavStyl(); }).observe(document.body, { attributes: true, attributeFilter: ['class'] }); } catch (e) { swallow(e, 'observer'); }
 
     // ---- zapnutí / vypnutí ---------------------------------------------------------------
@@ -161,7 +161,13 @@
             if (r.status === 206 || r.status === 200) return true;
             var t = (r.status === 404 ? (st.url ? 'Data mapy na zadané adrese nejsou (404).' : 'Data mapy pro tuhle zemi (' + soubor() + ') ještě nejsou nahraná.') : 'Data mapy nejsou k dispozici (server odpověděl ' + r.status + ').');
             return r.json().then(function (j) { if (j && j.jak) t += ' ' + j.jak; return t; }).catch(function () { return t; }).then(function (txt) { throw new Error(txt); });
-        }, function () { throw new Error('Data mapy se nepodařilo načíst (bez signálu, nebo špatná adresa).'); });
+        }, function () {
+            // ⚠ BEZ SIGNÁLU NENÍ CHYBA APPKY (18. 9. 2026 večer, T1): vektor je od v360 výchozí, takže
+            //   tahle větev běží při KAŽDÉM startu v terénu bez signálu — a přes swallow() končila jako
+            //   „Něco se pokazilo … Více → Protokol chyb" už na přihlašovací obrazovce. Označit jako
+            //   síťový stav: zapni() ji nehlásí toastem, do protokolu jde jen jako NetworkError.
+            var e = new Error('Data mapy se nepodařilo načíst (bez signálu, nebo špatná adresa).'); e.sitova = true; throw e;
+        });
     }
     // tise = automatické zapnutí při startu / po návratu signálu: bez dialogu, jen toast
     function zapni(tise) {
@@ -189,8 +195,16 @@
             try { document.dispatchEvent(new CustomEvent('ag:mapa-vektor', { detail: { zap: true } })); } catch (e) { /* nic */ }
             return true;
         }).catch(function (e) {
-            stav = 'chyba'; chybaText = (e && e.message) || String(e); swallow(e, 'zapni');
-            try { if (!zapni._rekl) { zapni._rekl = true; if (tise) { window.quickToast && window.quickToast('Mapa jede z rastru: ' + chybaText); } else if (typeof window.agInfo === 'function') window.agInfo('Vektorová mapa: ' + chybaText); } } catch (e2) { /* nic */ }
+            stav = 'chyba';
+            if (e && e.sitova) {
+                // síť: bez toastu (stav říká pilulka nahoře a řádek Mapa v Nastavení), do protokolu jen síťově
+                chybaText = 'data mapy teď nejsou dostupná (bez signálu) — zkusím znovu, až se signál vrátí.';
+                swallow(new Error('NetworkError: data mapy (' + soubor() + ') bez signálu'), 'zapni');
+                if (!tise) { try { window.quickToast && window.quickToast('Vektorová mapa: ' + chybaText); } catch (e4) { /* nic */ } }
+            } else {
+                chybaText = (e && e.message) || String(e); swallow(e, 'zapni');
+                try { if (!zapni._rekl) { zapni._rekl = true; if (tise) { window.quickToast && window.quickToast('Mapa jede z rastru: ' + chybaText); } else if (typeof window.agInfo === 'function') window.agInfo('Vektorová mapa: ' + chybaText); } } catch (e2) { /* nic */ }
+            }
             try { document.dispatchEvent(new CustomEvent('ag:mapa-vektor', { detail: { zap: false, chyba: chybaText } })); } catch (e3) { /* nic */ }
             return false;
         });

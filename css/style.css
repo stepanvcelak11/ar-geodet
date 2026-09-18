@@ -2143,7 +2143,8 @@ body.ag-glove #settings-modal .set-cat { min-height: 64px; }
     flex-direction: column;
     align-items: center;
     gap: 3px;
-    width: 56px;
+    /* šířka roste s popiskem (T4): 56 px při 100 %, 67 px při 120 % a víc — viz font-size níž */
+    width: calc(56px * min(1.2, var(--ag-font-scale, 1)));
     padding: 7px 2px;
     background: var(--glass-bg);
     /* VYKON: tohle je PET samostatnych backdrop pruchodu nad ZIVOU kamerou (dok ma 5 chipu)
@@ -2166,7 +2167,10 @@ body.ag-glove #settings-modal .set-cat { min-height: 64px; }
        ne z žebříku velikostí, a token by ji od toho měření odpojil. */
     color: var(--text-color);
     font-family: var(--font-ui);
-    font-size: calc(10px * var(--ag-font-scale, 1));
+    /* Popisek i chip rostou s písmem jen do 1,2× a SPOLEČNĚ (18. 9. 2026 večer, T4): při 130 % měl
+       popisek 13 px a v chipu 56 px se „Nástroje" a „Nastavení" lámaly uprostřed slova („Nástroj|e").
+       10 px je pro 56 px strop (viz měření výše), takže s písmem musí růst i šířka chipu — width níž. */
+    font-size: calc(10px * min(1.2, var(--ag-font-scale, 1)));
     font-weight: 600;
     line-height: 1.15;
     cursor: pointer;
@@ -2188,10 +2192,10 @@ body.ag-glove #settings-modal .set-cat { min-height: 64px; }
 @media (max-height: 640px) {
     #dock { top: calc(50% - 26px); gap: 5px; }
     .dock-btn {
-        width: 50px;
+        width: calc(50px * min(1.2, var(--ag-font-scale, 1)));
         padding: 4px 2px;
         gap: 2px;
-        font-size: calc(9px * var(--ag-font-scale, 1));
+        font-size: calc(9px * min(1.2, var(--ag-font-scale, 1)));
     }
     .dock-btn .icon { width: 19px; height: 19px; }
     .dock-fab { width: 42px; height: 42px; margin-top: -20px; }

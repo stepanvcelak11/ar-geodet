@@ -139,6 +139,14 @@
                v prázdném místě za ním, takže poslední tlačítko zůstává celé — se záporným
                marginem ležel přechod PŘES jeho pravou část a tlačítko vypadalo uříznuté. */
             #tachy-actions::after{content:"";position:sticky;right:0;flex:0 0 28px;align-self:stretch;background:linear-gradient(to right,rgba(11,15,20,0),#0b0f14 70%);pointer-events:none;}
+            /* Na telefonu (≤ 480 px) se lišta ZALOMÍ do dvou řádků místo rolování (18. 9. 2026 večer, T4):
+               v průchodu na 390 px končila u „Bod (GPS)" a „Z bodů", Zpět, podklad i export byly za okrajem —
+               přechod říká „je toho víc", ale kdo to neví, tlačítka nenajde. Dva řádky = všechno vidět naráz. */
+            @media (max-width: 480px){
+              #tachy-actions{flex-wrap:wrap;overflow-x:visible;row-gap:7px;}
+              #tachy-actions::after{display:none;}
+              #tachy-actions .tb-sep{display:none;}
+            }
             .tb-btn{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 13px;border-radius:11px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#e6edf3;font-size:calc(13px * var(--ag-font-scale, 1));font-weight:600;cursor:pointer;white-space:nowrap;}
             .tb-btn .icon{width:17px;height:17px;}
             .tb-btn:active{transform:scale(0.97);}

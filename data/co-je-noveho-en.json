@@ -2,6 +2,19 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 372,
+      "datum": "2026-09-18",
+      "nadpis": "Third round: start without signal without “Something went wrong”, hints lead where things are, connection state from real data",
+      "body": [
+        "<b>Starting without signal no longer reports “Something went wrong”.</b> The vector map is the default and when its data cannot be downloaded (no signal) it is a network state, not an app error — no toast on the sign-in screen; the Map row in Settings says it will retry once the signal returns.",
+        "<b>Hints lead where things really are.</b> Eleven messages pointed to the “More” menu hidden since August: the bin is <b>Tools → Record → Restore a deleted point</b>, the error log <b>Tools → Other tools</b>, saving for offline <b>Settings → Job and data</b>, Write to the author is the strip at the top of Tools. The “Other tools” tab in Tools is now named that way (it used to translate as “Next”). The gate’s “More options” explains how the workspace from registration relates to a company.",
+        "<b>Connection state from whether data really flows.</b> The GPS detail no longer claims “Internet is up” just because the phone has a network: it is computed from the last real reply (ČÚZK, cloud, map data). On one bar it reports <b>Weak signal</b> with the time of the last reply; the “Downloading data…” pill says after 15 s without a reply that ČÚZK points did not arrive and it keeps trying.",
+        "<b>Visual:</b> the toolbar in Sketch / Tacheometry wraps into two rows on a phone (From points, Undo, basemap and export visible at once); dock labels no longer break words with large text; the four actions in the card of an official point sit in a 2×2 grid, equal height.",
+        "<b>Languages:</b> four Czech texts remained in the English New point dialog (quality code, Why?, terrain height) — translated. French: 169 live texts with numbers (GPS pill, point counts, months, directions…) were Italian by mistake — now French.",
+        "<b>For development:</b> the CI regression tests had been red since v368 (three checks assumed five languages) — fixed; the last regression state is shown in the owner console and in the release-check summary; a new check makes sure no message points to the removed menu."
+      ]
+    },
+    {
       "v": 371,
       "datum": "2026-09-18",
       "nadpis": "Walk-through: Settings links after the rebuild, French texts with numbers, decimal commas",

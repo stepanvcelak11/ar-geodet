@@ -163,8 +163,8 @@
    -------------------------------------------------------------------------------- */
 body.ag-glove .btn { min-height: 56px; font-size: calc(17px * var(--ag-font-scale, 1)); }
 body.ag-glove .menu-btn { padding: 16px 16px; font-size: calc(16px * var(--ag-font-scale, 1)); }
-body.ag-glove .dock-btn { padding-top: 10px; padding-bottom: 10px; }
-body.ag-glove .dock-btn span:not(.dock-fab) { font-size: calc(12px * var(--ag-font-scale, 1)); }
+body.ag-glove .dock-btn { padding-top: 10px; padding-bottom: 10px; width: calc(66px * min(1.2, var(--ag-font-scale, 1))); }   /* 12 px „Nastavení" = 58 px → chip 66 (T4) */
+body.ag-glove .dock-btn span:not(.dock-fab) { font-size: calc(12px * min(1.2, var(--ag-font-scale, 1))); }
 body.ag-glove .map-ctrl-btn { width: 52px; height: 52px; }
 body.ag-glove .seg-btn { padding: 12px 16px; font-size: calc(15px * var(--ag-font-scale, 1)); }
 body.ag-glove .ag-dlg-btn { min-height: 56px; font-size: calc(17px * var(--ag-font-scale, 1)); }

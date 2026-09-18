@@ -759,7 +759,9 @@
             return true;
         });
         if (rest.length || dalsiSekce.length) {
-            var rsec = page(PAGE_DALSI, 'Další', 'Další');
+            // „Další nástroje", ne „Další": překladač jde po přesném textu a holé „Další" má v slovníku
+            // význam „Next" (tlačítka průvodců) — záložka pak v EN/DE… říkala „Next" (18. 9. 2026 večer, T2)
+            var rsec = page(PAGE_DALSI, 'Další nástroje', 'Další nástroje');
             // slovesa sloučená pod Další — každé jako sekce s nadpisem (řádky mají stejné chování)
             dalsiSekce.forEach(function (d) {
                 var dsec = section(rsec, d.grp.t, d.volne.length, 'ag-uk-dalsi');

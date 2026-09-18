@@ -163,11 +163,11 @@ async def beh(url):
         await page.evaluate("() => AGLite.nastav('on')")
         await page.wait_for_timeout(400)
         d = await page.evaluate("""() => ({ cls: document.documentElement.classList.contains('ag-lite'), lite: AGLite.lite,
-            karta: !!document.getElementById('agl-card'), vTabu: !!document.querySelector('#tab-ar #agl-card'),
+            karta: !!document.getElementById('agl-card'), vTabu: !!document.querySelector('#tab-vykon #agl-card'),
             sel: (document.getElementById('agl-rezim') || {}).value, stav: (document.getElementById('agl-stav') || {}).textContent,
             ulozeno: localStorage.getItem('agSlabsiTelefon_v1') })""")
         ok('D2 ručně zapnuto → třída ag-lite + AGLite.lite', d['cls'] and d['lite'], d)
-        ok('D3 karta „Slabší telefon" je v Nastavení → AR & přesnost', d['karta'] and d['vTabu'] and d['sel'] == 'on', d)
+        ok('D3 karta „Slabší telefon" je v Nastavení → Výkon a baterie (od v365 nastaveni-poradek MOVE)', d['karta'] and d['vTabu'] and d['sel'] == 'on', d)
         ok('D4 stav hlásí úsporné zobrazení (ručně)', 'úsporné' in (d['stav'] or '') and 'ručně' in (d['stav'] or ''), d)
         ok('D5 volba se ukládá', d['ulozeno'] == 'on', d)
         # sklo pryč v celé appce

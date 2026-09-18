@@ -1587,7 +1587,7 @@
             const box = document.createElement('div'); box.className = 'mng-actions';
             const canHelmert = !!(window.AGLocalize && AGLocalize.active);
             box.innerHTML = '<div class="mng-actions-head">Vybráno: <b id="mng-count">' + _mngSel.size + '</b>&nbsp;<button type="button" class="mng-lnk" id="mng-all">Vybrat vše</button></div>'
-                + '<p class="mng-hint">Ťukni na body v seznamu a použij akci. Smazané drží koš 30 dní (Více → Koš).</p>'
+                + '<p class="mng-hint">Ťukni na body v seznamu a použij akci. Smazané drží koš 30 dní (Nástroje → Zaznamenat → Obnovit smazaný bod).</p>'
                 + '<div class="mng-actions-btns">'
                 + '<button type="button" class="btn btn-danger" id="mng-del"><svg class="icon"><use href="#i-trash"/></svg> Smazat</button>'
                 + '<button type="button" class="btn btn-secondary" id="mng-renum">Přečíslovat</button>'
@@ -1673,10 +1673,10 @@
                 // undo toast umi vratit jen POSLEDNI smazany bod — u hromadneho mazani by mátl; koš má všechny
                 if (ids.length > 1) { const ut = document.getElementById('undo-toast'); if (ut) ut.style.display = 'none'; }
                 renderManageList();
-                quickToast('Smazáno ' + ids.length + ' bodů — obnova: menu Více → Koš (30 dní).');
+                quickToast('Smazáno ' + ids.length + ' bodů — obnova: Nástroje → Zaznamenat → Obnovit smazaný bod (30 dní).');
                 if (typeof window.agVibe === 'function') agVibe(30);
             };
-            const msg = 'Opravdu smazat ' + ids.length + ' vybraných bodů?<br>Obnovit je půjde 30 dní z koše (Více → Koš).';
+            const msg = 'Opravdu smazat ' + ids.length + ' vybraných bodů?<br>Obnovit je půjde 30 dní z koše (Nástroje → Zaznamenat → Obnovit smazaný bod).';
             if (window.agConfirm) agConfirm({ title: 'Smazat vybrané body', message: msg, okText: 'Smazat', danger: true }).then(ok => { if (ok) doIt(); });
             else if (confirm('Opravdu smazat ' + ids.length + ' vybraných bodů?')) doIt();
         }

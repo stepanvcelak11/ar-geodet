@@ -1126,6 +1126,9 @@
         if (otevreno) h.push('</div>');
         h.push('<div class="agv-sec">Server</div>');
         h.push('<div class="agv-st" id="agv-stav">Zjišťuji…</div>');
+        // Poslední regrese v CI (T3, 18. 9. 2026 večer): tři vydání za sebou vyšla s červenými testy
+        // a nikdo si nevšiml — Pages nasazuje po vlastním smoke testu. Tady je to na očích.
+        h.push('<div class="agv-st" id="agv-regrese">Regresní testy: zjišťuji…</div>');
         h.push('<button type="button" class="btn btn-secondary" id="agv-close" style="margin-top:16px;">Zavřít</button>');
         b.innerHTML = h.join('');
         // dlaždice souhrnu nahoře (js/vlastnik-plus.js) — vloží se, až modul dojede; při hledání ne
@@ -1180,9 +1183,33 @@
     // Stav serveru: /health řekne verzi a co má zapnuté, /owner/firms ověří klíč.
     // Tohle je diagnostika, kvůli které modul vznikl — na jednom řádku je vidět,
     // jestli je vada v klíči, ve workeru, nebo v síti.
+    // Poslední DOKONČENÝ běh workflow „Testy" nad main (veřejné repo, GitHub API bez klíče,
+    // 60 dotazů/h na adresu — konzole se otvírá zřídka). Bez signálu tiše „nezjištěno".
+    var REPO_API = 'https://api.github.com/repos/stepanvcelak11/ar-geodet';
+    function regrese() {
+        var el = document.getElementById('agv-regrese'); if (!el) return;
+        if (typeof fetch !== 'function') { el.textContent = ''; return; }
+        fetch(REPO_API + '/actions/workflows/tests.yml/runs?branch=main&status=completed&per_page=1', { cache: 'no-store' })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (j) {
+                var run = j && j.workflow_runs && j.workflow_runs[0];
+                if (!run) { el.innerHTML = 'Regresní testy: <span style="opacity:.7">nezjištěno</span>'; return; }
+                var ok = run.conclusion === 'success';
+                var kdy = ''; try { kdy = new Date(run.updated_at).toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { kdy = ''; }
+                var msg = String((run.head_commit && run.head_commit.message) || '');
+                var ver = (msg.match(/\(v(\d{3})\)/) || [])[1];
+                el.innerHTML = 'Regresní testy: ' + (ok ? '<span class="ok">zelené</span>' : '<span class="bad">ČERVENÉ</span>')
+                    + (ver ? ' · v' + esc(ver) : '') + (kdy ? ' · ' + esc(kdy) : '')
+                    + ' · <a href="' + esc(run.html_url) + '" target="_blank" rel="noopener">běh na GitHubu</a>'
+                    + (ok ? '' : '<br><small>Vydání šlo ven s padlou sadou — otevři běh a podívej se, která.</small>');
+            })
+            .catch(function () { el.innerHTML = 'Regresní testy: <span style="opacity:.7">nezjištěno (bez signálu)</span>'; });
+    }
+
     function stav(hlasite) {
         var el = document.getElementById('agv-stav');
         if (el) el.textContent = 'Zjišťuji…';
+        try { regrese(); } catch (e) { swallow(e, 'regrese'); }
         api('/health').then(function (h) {
             return api('/owner/firms').then(function (o) { return { h: h, o: o }; });
         }).then(function (r) {

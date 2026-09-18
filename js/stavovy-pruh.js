@@ -58,6 +58,52 @@
     var _trim = { txt: '', az: false, acc: false };
 
     function on() { return true; }   // bublina jde vždy; vypínač zrušen 13. 9. 2026 (viz hlavička)
+
+    // ---- SPOJENÍ PODLE TOHO, JESTLI DATA OPRAVDU CHODÍ (18. 9. 2026 večer, T5) -------------
+    // `navigator.onLine` říká jen „telefon má síťové rozhraní". V terénu je běžný stav
+    // „jedna čárka": online je true, ale ČÚZK, worker ani data mapy nedojdou — a řádek Data
+    // tvrdil „Internet je. Katastr i mapy se donačtou." Tady se počítá z posledního SKUTEČNÉHO
+    // výsledku: obal nad window.fetch si pamatuje čas poslední odpovědi z cizí domény a časy
+    // selhání (TypeError / abort po timeoutu). Vlastní soubory appky se nepočítají — ty jdou
+    // z cache service workeru i bez signálu a vypadaly by jako „data chodí".
+    var SPOJ = { lastOk: 0, lastFail: 0, fails: [], n: 0 };
+    var SLABY_OKNO_MS = 60000, SLABY_MIN_SELHANI = 2, DATA_CHODI_MS = 60000;
+    function spojZaznam(ok) {
+        var now = Date.now();
+        SPOJ.n++;
+        if (ok) { SPOJ.lastOk = now; return; }
+        SPOJ.lastFail = now; SPOJ.fails.push(now);
+        while (SPOJ.fails.length && now - SPOJ.fails[0] > SLABY_OKNO_MS) SPOJ.fails.shift();
+    }
+    function spojCizi(u) {
+        try { var s = String(u && u.url ? u.url : u || ''); return /^https?:\/\//i.test(s) && s.indexOf(location.origin + '/') !== 0; } catch (e) { return false; }
+    }
+    (function obalFetch() {
+        if (typeof window.fetch !== 'function' || window.fetch.__agSpoj) return;
+        var puv = window.fetch;
+        var obal = function (u, o) {
+            var cizi = spojCizi(u);
+            var p = puv.apply(this, arguments);
+            if (!cizi) return p;
+            return p.then(function (r) { spojZaznam(true); return r; }, function (e) { spojZaznam(false); throw e; });
+        };
+        obal.__agSpoj = 1;
+        try { window.fetch = obal; } catch (e) { /* nejde přepsat — zůstane navigator.onLine */ }
+    })();
+    // Veřejné pro test i pro jiné moduly: kdy naposled data došla / selhala.
+    window.AGSpojeni = {
+        stav: function () {
+            var now = Date.now();
+            var selhani = SPOJ.fails.filter(function (t) { return now - t <= SLABY_OKNO_MS; }).length;
+            var okPred = SPOJ.lastOk ? now - SPOJ.lastOk : null;
+            if (selhani >= SLABY_MIN_SELHANI && (okPred == null || okPred > 30000)) return { k: 'slaby', selhani: selhani, okPred: okPred };
+            if (okPred != null && okPred <= DATA_CHODI_MS) return { k: 'chodi', selhani: selhani, okPred: okPred };
+            return { k: 'klid', selhani: selhani, okPred: okPred };
+        },
+        zaznam: spojZaznam,
+        _debug: function () { return { n: SPOJ.n, lastOk: SPOJ.lastOk, lastFail: SPOJ.lastFail, fails: SPOJ.fails.length }; }
+    };
+    function pred(ms) { var s = Math.round(ms / 1000); return s < 60 ? s + ' s' : Math.round(s / 60) + ' min'; }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function calInfo() { try { return JSON.parse(localStorage.getItem(CAL_KEY)); } catch (e) { return null; } }
@@ -132,9 +178,15 @@
     }
     function dataState() {
         var onl = (typeof navigator !== 'undefined') ? navigator.onLine : true;
-        if (onl) return { c: 'green', t: 'Online', d: 'Internet je. Katastr i mapy se donačtou.', a: _tilesCached ? 'Offline mapa je uložená — výpadek nevadí.' : 'Tip: před cestou do terénu ulož mapu — menu Více → „Uložit pro offline".' };
+        var tip = _tilesCached ? 'Offline mapa je uložená — výpadek nevadí.' : 'Tip: před cestou do terénu ulož mapu — Nastavení → Zakázka a data → „Uložit pro offline".';
+        if (onl) {
+            var sp = window.AGSpojeni ? AGSpojeni.stav() : { k: 'klid' };
+            if (sp.k === 'slaby') return { c: 'yellow', t: 'Signál slabý', d: 'Telefon hlásí internet, ale data nechodí — ' + (sp.okPred != null ? 'poslední odpověď před ' + pred(sp.okPred) : 'od startu nedošla žádná odpověď') + ', ' + sp.selhani + '× selhání za minutu.', a: 'Body z ČÚZK a mapa se dotáhnou, až signál zesílí; měření a ukládání běží dál. ' + (_tilesCached ? 'Offline mapa je uložená.' : '') };
+            if (sp.k === 'chodi') return { c: 'green', t: 'Data chodí', d: 'Internet je, poslední odpověď před ' + pred(sp.okPred) + '. Katastr i mapy se donačtou.', a: tip };
+            return { c: 'green', t: 'Online', d: 'Internet je. Katastr i mapy se donačtou.', a: tip };
+        }
         if (_tilesCached) return { c: 'yellow', t: 'Offline ✓', d: 'Bez internetu, ale offline mapa je uložená.', a: 'Vše důležité funguje. Katastr online se nedotáhne.' };
-        return { c: 'red', t: 'Offline!', d: 'Bez internetu a bez uložené offline mapy.', a: 'Body a měření fungují dál, ale mapa bude prázdná. Příště: Více → „Uložit pro offline".' };
+        return { c: 'red', t: 'Offline!', d: 'Bez internetu a bez uložené offline mapy.', a: 'Body a měření fungují dál, ale mapa bude prázdná. Příště: Nastavení → Zakázka a data → „Uložit pro offline".' };
     }
     function batState() {
         if (!_bat) return null;

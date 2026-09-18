@@ -63,7 +63,7 @@
             _lastToast = now; _lastSig = sig;
             // toast až po startu (quickToast je v logika.js, která se teprve načte)
             setTimeout(function () {
-                try { if (typeof quickToast === 'function') quickToast('Něco se pokazilo (' + String(msg).slice(0, 60) + '). Detail: Více → Protokol chyb.'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'err-log:record'); }
+                try { if (typeof quickToast === 'function') quickToast('Něco se pokazilo (' + String(msg).slice(0, 60) + '). Detail: Nástroje → Další → Protokol chyb.'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'err-log:record'); }
             }, 800);
         }
     }
