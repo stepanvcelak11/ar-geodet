@@ -83,6 +83,11 @@ async def beh(url):
         await page.wait_for_timeout(1400)
         r1c = await page.evaluate("() => ({ y: document.getElementById('custom-y').value, auto: document.getElementById('custom-y').dataset.agAuto || null })")
         ok('R1 přepsání Y rukou automatiku vypne (hodnota zůstane, data-ag-auto pryč)', r1c['y'] == '600000,00' and r1c['auto'] is None, r1c)
+        # „Uložit a další“ (agPrepNextPoint) automatiku znovu spustí — i po ručním přepsání
+        await page.evaluate("() => { gpsAvgResult.n = 21; agPrepNextPoint(); }")
+        await page.wait_for_timeout(1400)
+        r1e = await page.evaluate("() => ({ auto: document.getElementById('custom-y').dataset.agAuto || null, y: document.getElementById('custom-y').value, note: (document.getElementById('custom-acc-note') || {}).innerText || '' })")
+        ok('R1 po „Uložit a další“ se průměr GPS doplní znovu sám (n = 21)', r1e['auto'] == '1' and r1e['y'] and r1e['y'] != '600000,00' and '21' in r1e['note'], r1e)
         await page.fill('#custom-y', '')   # ručně psaná hodnota by se jinak vrátila z rozdělané práce (draft-store.js)
         await page.evaluate("() => closeCustomModal()")
         # bez průměru: poznámka místo dialogu

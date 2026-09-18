@@ -466,6 +466,8 @@ if ('serviceWorker' in navigator) {
             const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none';
             pendingPointAccuracy = null; window._agPointOrigin = null;
             try { if (typeof resetNewPointExtras === 'function') resetNewPointExtras(null); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agPrepNextPoint'); }
+            // další bod = zase průměr GPS sám (R1) — i když u předchozího bodu uživatel Y/X přepsal rukou
+            try { agAutoGpsStart(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agPrepNextPoint:auto'); }
         }
         let gpsSamples = [], gpsAvgResult = null, _gpsJump = 0;
         let arPoints = [], persistentCustomPoints = [], hideBtnLogic = null, editingCustomPointId = null, highlightedPointId = null, activePointIdForModal = null;

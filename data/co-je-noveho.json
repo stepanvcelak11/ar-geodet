@@ -2,6 +2,14 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 357,
+   "datum": "2026-09-18",
+   "nadpis": "Kontrola dne: Uložit a další zase doplní GPS samo",
+   "body": [
+    "Po „Uložit a další“ se u dalšího bodu souřadnice z průměru GPS doplní znovu samy — i když jsi u předchozího bodu Y/X přepsal rukou. Jinak jen kontrola: všech 45 sad testů zelených, obnova hesla vyzkoušená naživo na serveru (jednorázový účet, po zkoušce smazaný)."
+   ]
+  },
+  {
    "v": 356,
    "datum": "2026-09-18",
    "nadpis": "Nový bod na dvě klepnutí, větší terče v mapě, obnovovací kód účtu",
