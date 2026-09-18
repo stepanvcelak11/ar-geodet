@@ -238,6 +238,9 @@ test('otáčení mapy: sever nahoře zamkne rotaci', async ({ page, context }) =
     // Vstup se hledá stejně jako níž u řádku Terén: kolečko v mapě je výchozím
     // nastavením schované, panel otevírá „Vrstvy" v liště (viz js/map-tools.js).
     await page.locator('#dock-vice-btn:visible, #map-ctrl-toggle:visible').first().click();
+    // od v350 má panel záložky (js/mapa-panel.js) — Otáčení mapy je v patře Podklad
+    const tabPod = page.locator('#ms-tabs [data-ms-tab="podklad"]');
+    if (await tabPod.count()) await tabPod.click();
     const seg = page.locator('#ms-rot');
     await expect(seg).toBeVisible();
 
@@ -361,6 +364,8 @@ test('REGRESE: vstupy modulů a řádek terénu se vloží', async ({ page, cont
     await expect(vstup, 'panel „Mapa a vrstvy" nemá viditelný vstup — ani lišta, ani kolečko v mapě')
         .toBeVisible({ timeout: 10000 });
     await vstup.click();
+    const tabVr = page.locator('#ms-tabs [data-ms-tab="vrstvy"]');
+    if (await tabVr.count()) await tabVr.click();
     await expect(page.locator('#btn-katastr'), 'řádek „Katastrální mapa" v panelu Mapa a vrstvy').toBeVisible();
 
     expect(warns, 'insertBefore selhalo:\n' + warns.join('\n')).toEqual([]);
