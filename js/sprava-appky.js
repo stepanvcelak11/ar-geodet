@@ -519,7 +519,7 @@
             document.body.appendChild(ov);
             var hotovo = function (vys) {
                 var txt = vys.map(function (v) { return '„' + esc(v.nazev) + '": přidáno ' + v.pridano + ' z ' + v.celkem; }).join('<br>');
-                agAlert('Uloženo', txt + '<br><br>Zakázky najdeš v Nastavení → Data → přepínač zakázky.');
+                agAlert('Uloženo', txt + '<br><br>Zakázky najdeš v Nastavení → Zakázka a data → přepínač zakázky.');
             };
             each(ov, '[data-job]', 'click', function (el) {
                 el.disabled = true; el.textContent = 'Ukládám…';

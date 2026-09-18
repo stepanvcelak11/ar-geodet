@@ -2,6 +2,17 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 365,
+   "datum": "2026-09-18",
+   "nadpis": "Nastavení nanovo: to důležité hned, zbytek stranou",
+   "body": [
+    "<b>Nastavení</b> je přestavěné. Po otevření vidíš kartu <b>Časté</b> — dosah bodů v kameře i v mapě, strop bodů v AR, světlý/tmavý, venkovní režim a druhy úředních bodů — a pod ní osm kategorií jako řádky: AR kamera, Mapa a body, Vzhled, Ovládání, Výkon a baterie, Zakázka a data; dole „Méně často“ se zálohou a účtem. Každý řádek má podtitulek s obsahem, stránka má nahoře Zpět.",
+    "Pryč jsou záložky, boční rejstřík, „Krátké nastavení“ i skládací sekce — strukturu drží samo rozdělení. Uvnitř stránek zůstává jen jedno sbalené „Pokročilé“.",
+    "<b>Profily</b> (profil nastavení Terén/Přesnost/Ukázka, profil práce i pás „Co dnes děláš“ v Nástrojích) jsou zrušené. Zůstává jen Profil zařízení (kalibrace telefonu) v Záloze a údržbě.",
+    "Z Nastavení odešly duplicity: Napsat autorovi a Funguje mi všechno? najdeš v Nástrojích; Kde pracuju, Verze Pro, Přepnout uživatele a Administrace firmy mají řádky na stránce Účet a aplikace."
+   ]
+  },
+  {
    "v": 364,
    "datum": "2026-09-18",
    "nadpis": "Trasa neplave přes rybník ani řeku",

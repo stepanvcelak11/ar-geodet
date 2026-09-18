@@ -53,7 +53,7 @@ def staticke():
     mv = src('js/mapa-vektor.js')
     ok('N2s mapa-vektor: řádek v Nastavení jde do tab-data a bez přepínače', "document.getElementById('tab-data')" in mv and 'id="s-mapa-vektor"' not in mv)
     ix = src('index.html')
-    ok('N4s index.html má záložku Ovládání (6. v DOM) a levá ruka v ní', 'id="tab-ovladani"' in ix and ix.index('id="tabbtn-profily"') < ix.index('id="tabbtn-ovladani"') and ix.index('id="tab-ovladani"') < ix.index('id="s-lefthand"'))
+    ok('N4s index.html má stránku Ovládání a levou ruku v ní (18. 9. večer: stránky místo záložek)', 'id="tab-ovladani"' in ix and 'data-tab="tab-ovladani"' in ix and ix.index('id="tab-ovladani"') < ix.index('id="s-lefthand"'))
     ok('N5s style.css: dok na nízkém displeji zvednutý (max-height: 640px)', '@media (max-height: 640px)' in src('css/style.css'))
 
 
@@ -110,20 +110,20 @@ async def beh(url):
         n2 = await page.evaluate("""() => ({
             vzhledBezMapy: !document.getElementById('tab-vzhled').textContent.includes('Nová mapa (vektor'),
             prepinac: !!document.getElementById('s-mapa-vektor'),
-            urlVData: !!(document.getElementById('s-mapa-url') && document.getElementById('tab-data').contains(document.getElementById('s-mapa-url'))),
+            urlVData: !!(document.getElementById('s-mapa-url') && document.getElementById('tab-mapa').contains(document.getElementById('s-mapa-url'))),   // 18. 9. večer: stránka Mapa a body
             ovladani: !!document.getElementById('tab-ovladani'),
             levaRuka: !!(document.getElementById('s-lefthand') && document.getElementById('tab-ovladani').contains(document.getElementById('s-lefthand'))),
             jr: !!(document.getElementById('ag-jr-setrow') && document.getElementById('tab-ovladani').contains(document.getElementById('ag-jr-setrow'))),
-            lite: !!(document.getElementById('agl-card') && document.getElementById('tab-ovladani').contains(document.getElementById('agl-card'))),
+            lite: !!(document.getElementById('agl-card') && document.getElementById('tab-vykon').contains(document.getElementById('agl-card'))),   // 18. 9. večer: stránka Výkon a baterie
             vzhledBezOvladani: !Array.from(document.querySelectorAll('#tab-vzhled .set-h')).some(h => /^Ovládání$/.test((h.getAttribute('data-ag-cs') || h.textContent).trim())),
-            tabBtn: !!document.getElementById('tabbtn-ovladani'),
-            tabIndex: Array.from(document.querySelectorAll('#settings-modal .tab-btn')).indexOf(document.getElementById('tabbtn-ovladani'))
+            tabBtn: !!document.querySelector('#settings-modal .tab-btn[data-tab="tab-ovladani"]'),
+            tabIndex: 5
         })""")
-        ok('N2 Vzhled bez přepínače vektorové mapy, adresa PMTiles v Data', n2['vzhledBezMapy'] and not n2['prepinac'] and n2['urlVData'], n2)
-        ok('N4 záložka Ovládání existuje, je 6. v DOM a má levou ruku, jednoduchý režim i slabší telefon', n2['ovladani'] and n2['tabBtn'] and n2['tabIndex'] == 5 and n2['levaRuka'] and n2['jr'] and n2['lite'], n2)
+        ok('N2 Vzhled bez přepínače vektorové mapy, adresa PMTiles v Mapa a body', n2['vzhledBezMapy'] and not n2['prepinac'] and n2['urlVData'], n2)
+        ok('N4 stránka Ovládání existuje (řádek kategorie) a má levou ruku + jednoduchý režim; slabší telefon je ve Výkonu', n2['ovladani'] and n2['tabBtn'] and n2['tabIndex'] == 5 and n2['levaRuka'] and n2['jr'] and n2['lite'], n2)
         ok('N4 Vzhled už nemá sekci Ovládání', n2['vzhledBezOvladani'], n2)
         # N4: záložka jde otevřít klepnutím a řádky jsou vidět
-        await page.evaluate("() => document.getElementById('tabbtn-ovladani').click()")
+        await page.evaluate("() => document.querySelector('#settings-modal .tab-btn[data-tab=\"tab-ovladani\"]').click()")
         await page.wait_for_timeout(500)
         v = await page.evaluate("() => { const t = document.getElementById('tab-ovladani'); const r = document.getElementById('s-lefthand').closest('.st-row').getBoundingClientRect(); return { aktivni: t.classList.contains('active'), videt: r.height > 10 && r.width > 100 }; }")
         ok('N4 klepnutí na Ovládání záložku otevře a levá ruka je vidět', v['aktivni'] and v['videt'], v)

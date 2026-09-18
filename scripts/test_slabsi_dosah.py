@@ -105,7 +105,7 @@ async def beh(url):
         await page.wait_for_timeout(2500)
         a = await page.evaluate("""() => { var b = document.getElementById('menu-sdilet-app'); return b ? b.hidden : null; }""")
         ok('A1 běžný účet: „Sdílet aplikaci (QR)" je schované', a is True, a)
-        ok('A2 pruh Nastavení už neslibuje sdílení', await page.evaluate("() => !/sdílení/.test(document.getElementById('ag-set-vice').textContent)"))
+        ok('A2 pruh Nastavení (Více) už neexistuje — 18. 9. 2026 večer Nastavení nanovo', await page.evaluate("() => !document.getElementById('ag-set-vice') && !document.getElementById('ag-set-strip')"))
 
         # ---- B: nové výchozí + migrace ---------------------------------------
         r = await page.evaluate("() => ({ mapa: mapRadius, ar: arRadius, w: +document.getElementById('s-map-radius-slider').value, a: +document.getElementById('s-ar-radius-slider').value })")

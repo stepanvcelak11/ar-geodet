@@ -2,6 +2,17 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 365,
+      "datum": "2026-09-18",
+      "nadpis": "Settings rebuilt: what matters first, the rest aside",
+      "body": [
+        "<b>Settings</b> has been rebuilt. When you open it you see the <b>Frequent</b> card — point range in the camera and on the map, the cap on AR points, light/dark, outdoor mode and the types of official points — and below it eight categories as rows: AR camera, Map and points, Appearance, Controls, Performance and battery, Job and data; “Less often” at the bottom with backup and account. Every row has a subtitle with its contents, and a page has Back at the top.",
+        "Tabs, the side index, “Short settings” and collapsible sections are gone — the layout itself keeps the structure. Inside a page there is only one collapsed “Advanced”.",
+        "<b>Profiles</b> (the Field/Precision/Demo settings profile, the work profile and the “What are you doing today” strip in Tools) are removed. Only the device profile (phone calibration) remains under Backup and maintenance.",
+        "Duplicates left Settings: Write to the author and Is everything working? are in Tools; Where I work, Pro version, Switch user and Company administration have rows on the Account and app page."
+      ]
+    },
+    {
       "v": 364,
       "datum": "2026-09-18",
       "nadpis": "The route no longer swims across a pond or a river",

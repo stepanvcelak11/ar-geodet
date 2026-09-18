@@ -1,142 +1,235 @@
 // ===== QTRIG — POŘÁDEK V NASTAVENÍ (ODPOJITELNÁ VRSTVA) ======================
-// PROBLÉM: záložky Nastavení jsou v index.html poskládané do sekcí (.set-h), jenže
+// PROBLÉM: stránky Nastavení jsou v index.html poskládané do sekcí (.set-h), jenže
 // PŮLKA voleb do nich přiletí až za běhu z modulů — a ty skoro všechny končí
 // `tab.appendChild(...)`. Výsledek: přepínače spadnou AŽ POD sbalené „Pokročilé",
 // bez nadpisu, a jejich pořadí se řídí tím, který skript se zrovna načetl dřív.
-// Stejně tak dva prvky nad záložkami (hledání z nastaveni-hledani.js a pruh
-// profilů z profily.js) se oba vkládají před .tab-buttons, takže si pokaždé
-// prohodí pořadí. Okno pak vypadá pokaždé jinak a nahodile.
 //
 // ŘEŠENÍ: jedno místo, které po každém otevření (a po každé změně DOM v okně)
 // srovná obsah do PEVNÉHO pořadí:
-//   • každý známý přisypaný řádek má svoji sekci (LAYOUT.put) — už nespadne na konec,
+//   • každý známý přisypaný řádek má svoji stránku a sekci (MOVE + LAYOUT.put),
+//   • celé přisypané sekce i s nadpisem se stěhují mezi stránkami (MOVE_SEC),
 //   • sekce jdou v daném pořadí (LAYOUT.order), nezávisle na pořadí načtení skriptů,
-//   • „Pokročilé" a „Zobrazit vše" jsou VŽDY úplně dole,
+//   • „Pokročilé" je VŽDY úplně dole,
 //   • co sem přisype modul, o kterém tenhle soubor neví, se nenechá pod „Pokročilé",
-//     ale sesbírá se nad něj do sekce „Další volby" (viz strays) — takže i příští
-//     modul zapadne do struktury, i když o něm nikdo neví.
+//     ale sesbírá se nad něj do sekce „Další volby" (viz strays),
+//   • řádky, které z Nastavení ODEŠLY (HIDE), dostanou třídu .ag-set-drop — modul si
+//     je věší dál (často v časovači), tady je nikdo nevidí.
+//
+// NASTAVENÍ NANOVO (18. 9. 2026 večer, na přání: „složitý, nepřehledný … to důležité
+// vepředu, méně používané stranou"): záložky → první obrazovka (karta Časté + seznam
+// kategorií) a osm stránek. Moduly věší řádky dál do PŮVODNÍCH záložek (tab-vzhled,
+// tab-ar, tab-data, tab-udrzba) — tenhle soubor je jediné místo, které ví, kam patří
+// ve struktuře nové: AR kamera · Mapa a body · Vzhled · Ovládání · Výkon a baterie ·
+// Zakázka a data · Záloha a údržba · Účet a aplikace. Zrušené vrstvy schovávání
+// (skládací sekce z 30. 8., Krátké nastavení, boční rejstřík) tu už nejsou.
 //
 // Nic se nepřejmenovává ani nemaže, jen stěhuje: saveSettings() v grafika.js i
 // moduly čtou prvky podle id, takže přesun mezi sekcemi je pro ně neviditelný.
 //
-// ⚠ 30. 8. 2026 — NA PŘÁNÍ: „Nastavení začíná být znovu plnější, tak ho uhlaď."
-// Přibyly SKLÁDACÍ SEKCE: klepnutí na nadpis sekci sbalí (u nadpisu zůstane počet
-// schovaných řádků) a volba se pamatuje (agSetFold_v1), takže si každý nechá
-// rozbalené jen to, co opravdu přenastavuje. Sbalování je ZÁMĚRNĚ jen vizuální —
-// prvky zůstávají v DOM, takže saveSettings() i hledání v Nastavení fungují dál
-// (js/nastaveni-hledani.js si sekci při skoku na nalezenou volbu sám rozbalí).
-// Je to TŘETÍ vrstva viditelnosti nad „Krátkým nastavením" (.ag-ns-adv) a
-// „Pokročilé" (<details>) — proto vlastní třídy a žádné sahání do inline stylů.
-//
 // Odstranění: smaž js/nastaveni-poradek.js + řádek <script> v index.html
-// (a přegeneruj sw.js). Nastavení pak bude zase v pořadí načtení skriptů.
+// (a přegeneruj sw.js). Nastavení pak bude zase v pořadí načtení skriptů —
+// a přisypané řádky zůstanou ve starých záložkách.
 // ================================================================================
 (function () {
     'use strict';
     if (window.AGSettingsOrder) return;
 
     // ---- co kam patří ------------------------------------------------------------------
-    // order = pořadí sekcí v záložce (podle nadpisu .set-h; sekce, která v HTML není,
+    // order = pořadí sekcí na stránce (podle nadpisu .set-h; sekce, která v HTML není,
     //         se vytvoří teprve když do ní něco spadne)
     // put   = kam patří prvek přisypaný modulem. Klíč je id prvku NEBO id ovládacího
     //         prvku uvnitř řádku (moduly někdy id na řádek nedají, jen na checkbox).
-    //         s = nadpis sekce, after = hned za řádek s tímhle id,
+    //         s = nadpis sekce ('' = bez sekce, jen pořadí), after = hned za řádek s tímhle id,
     //         i < 0 = na začátek sekce, i >= 0 = na konec (menší číslo vždy dřív)
     var LAYOUT = {
-        'tab-vzhled': {
-            order: ['Motiv a barvy', 'Displej a čitelnost', 'Prvky na obrazovce'],
-            put: {
-                's-mapfab': { s: 'Prvky na obrazovce', i: 1 }         // tlačítko vrstev v mapě
-                // 'ag-rp-setrow' se PŘESUNUL do záložky Profily (návrh C) — viz níž
-                // sekce Ovládání + Zjednodušení se 18. 9. 2026 PŘESTĚHOVALY do záložky Ovládání (N4) — viz níž
-            }
-        },
-        // ZÁLOŽKA OVLÁDÁNÍ (18. 9. 2026, N4): všechno, čím se appka OVLÁDÁ (ruka, rukavice, vibrace,
-        // gesta, jednoduchý režim, zjednodušení) a jak šetří telefon. Moduly věší řádky pořád tam,
-        // kam byly zvyklé (Vzhled, AR) — MOVE níž je sem přestěhuje, ať se nemusí měnit každý z nich.
-        'tab-ovladani': {
-            order: ['Ovládání', 'Zjednodušení', 'Telefon a baterie'],
-            put: {
-                'ag-glove-row': { s: 'Ovládání', after: 's-lefthand' },   // rukavice hned k levé ruce
-                'ag-jr-setrow': { s: 'Ovládání', i: 3 },                  // jednoduchý režim
-                'ag-gz-setrow': { s: 'Ovládání', i: 4 },                  // gesta = zkratky na nástroje
-                'ag-kn-setrow': { s: 'Ovládání', i: 5 },                  // kolečko nástrojů (podržení tlačítka Nástroje)
-                's-mapfab': { s: 'Ovládání', i: 6 },                      // tlačítko vrstev v mapě (map-tools.js ho věší k levé ruce)
-                'ag-ns-setrow': { s: 'Zjednodušení', i: 1 },              // krátké nastavení
-                'ag-ts-setrow': { s: 'Zjednodušení', i: 2 },              // jednoduchý panel Nástrojů
-                'ag-ua-simple-row': { s: 'Zjednodušení', i: 3 },          // zjednodušené Nástroje
-                'agl-card': { s: 'Telefon a baterie', i: 1 },             // slabší telefon (js/slabsi-telefon.js)
-                'agp-card': { s: 'Telefon a baterie', i: 2 }              // úspora baterie (js/power-save.js)
-            }
-        },
-        // ZÁLOŽKA PROFILY (návrh C): obě podobně pojmenované věci vedle sebe.
-        // Sekce v panelu nejsou napsané v index.html — vyrobí je makeSec() podle
-        // těchhle pravidel, takže když se modul odpojí, jeho nadpis vůbec nevznikne.
-        'tab-profily': {
-            order: ['Profil práce', 'Profil nastavení'],
-            put: {
-                'ag-prof-adv': { s: 'Profil nastavení', i: 1 },   // js/profily.js (sbalený obal pruhu)
-                'ag-ss-setrow': { s: 'Profil práce', i: 0 },   // js/student-start.js (Kdo jsi)
-                'ag-rp-selrow': { s: 'Profil práce', i: 1 },   // js/rezim-prace.js — select profilu (18. 9. 2026, N3)
-                'ag-rp-setrow': { s: 'Profil práce', i: 2 }    // js/rezim-prace.js — pás i v Nástrojích (přepínač)
-            }
-        },
         'tab-ar': {
-            order: ['Dosah bodů', 'Body v AR kameře', 'Kompas a stabilita směru'],   // Dosah bodů = první sekce (14. 9. 2026)
+            order: ['Body v kameře', 'Kompas'],
             put: {
-                'ag-arfusion-row': { s: 'Kompas a stabilita směru', i: -2 },  // nad tlačítko Kompas
-                'agvt-settings-row': { s: 'Kompas a stabilita směru', i: -1 },
-                // 'agl-card' a 'agp-card' (slabší telefon, úspora baterie) → záložka Ovládání (18. 9. 2026)
+                'ag-arfusion-row': { s: 'Kompas', i: -2 },     // plynulý směr (fúze gyro) nad tlačítko Kompas
+                'agvt-settings-row': { s: 'Kompas', i: -1 }    // vizuální stabilizace (beta)
+            }
+        },
+        // MAPA A BODY (nová stránka): řádky z modulů, které pracují s mapou. Sekce
+        // „Přesnost z mapy" (prichyceni, hrana-auto, hlidac-okoli, trasa-terenem vkládají
+        // do tab-ar), „Země a souřadnice" (zeme-svet) a „Data mapy (vektor)" (mapa-vektor)
+        // sem přijdou CELÉ i s nadpisem přes MOVE_SEC.
+        'tab-mapa': {
+            order: ['Body v mapě', 'Přesnost z mapy', 'Země a souřadnice', 'Data mapy (vektor)'],
+            put: {
+                's-mapfab': { s: 'Body v mapě', i: 5 }         // tlačítko vrstev v mapě (map-tools.js ho věší k levé ruce)
+            }
+        },
+        'tab-vzhled': {
+            order: ['Displej a čitelnost'],
+            put: {
+                'ag-lang-sel': { s: 'Displej a čitelnost', i: 1 }      // jazyk (js/jazyky.js ho věší na začátek Vzhledu)
+                // noční režim (js/motivy-teren.js) leží za odstínem UVNITŘ „Pokročilé" — nestěhovat:
+                // rowOf by vrátil celé <details> a to by se zaseklo doprostřed sekce
+            }
+        },
+        'tab-ovladani': {
+            order: ['Telefon v ruce', 'Zkratky', 'Zjednodušení'],
+            put: {
+                'ag-glove-row': { s: 'Telefon v ruce', after: 's-lefthand' },   // rukavice hned k levé ruce
+                'ag-gz-setrow': { s: 'Zkratky', i: 1 },                         // gesta = zkratky na nástroje
+                'ag-kn-setrow': { s: 'Zkratky', i: 2 },                         // kolečko nástrojů (podržení tlačítka Nástroje)
+                'ag-jr-setrow': { s: 'Zjednodušení', i: 1 }                     // jednoduchý režim
+            }
+        },
+        // VÝKON A BATERIE (nová stránka): karty Slabší telefon a Úspora baterie mají
+        // vlastní nadpisy (.set-h uvnitř karty), takže tu žádná sekce nevzniká — jen pořadí.
+        'tab-vykon': {
+            order: [],
+            put: {
+                'agl-card': { s: '', i: 1 },     // slabší telefon (js/slabsi-telefon.js)
+                'agp-card': { s: '', i: 2 }      // úspora baterie (js/power-save.js)
             }
         },
         'tab-data': {
-            order: ['Zakázka', 'Úřední body (ČÚZK)', 'Katastr a offline', 'Země a souřadnice', 'Data mapy (vektor)'],
+            order: ['Zakázka', 'Firemní cloud', 'Offline'],
             put: {
                 'ag-dup-project-btn': { s: 'Zakázka', i: 1 },
-                'set-skryte-body': { s: 'Zakázka', i: 2 },      // skryté body (z Údržby, 18. 9. 2026)
-                'ag-csync-sec': { s: 'Zakázka', i: 3 },   // firemní cloud (vlastní nadpis)
-                'ag-quota': { s: 'Katastr a offline', i: 9 }    // zaplnění úložiště
+                'ag-quota': { s: 'Offline', i: 9 }            // zaplnění úložiště (vylepseni.js)
             }
         },
-        // ZÁLOŽKA APLIKACE (18. 9. 2026; id zůstává tab-udrzba kvůli oprávnění set.tab-udrzba):
-        // čtyři sekce a KAŽDÉ tlačítko modulu má svoje místo — moduly je dál věší na konec záložky
-        // (historie, zpětná vazba, zdraví, správa, uvolnit místo, profil zařízení, auto-záloha).
         'tab-udrzba': {
-            order: ['Pomoc a návody', 'O aplikaci', 'Záloha', 'Místo v telefonu'],
+            order: ['Záloha', 'Body', 'Místo v telefonu'],
             put: {
-                'ag-zdravi-set-btn': { s: 'Pomoc a návody', i: 1 },   // Funguje mi všechno? (js/zdravi-appky.js)
-                'ag-fb-set-btn': { s: 'Pomoc a návody', i: 2 },       // Napsat autorovi (js/zpetna-vazba.js)
-                'ag-fb-inbox-btn': { s: 'Pomoc a návody', i: 3 },     // schránka vzkazů — jen vlastník
-                'hist-set-btn': { s: 'O aplikaci', i: 1 },            // Historie aktualizací (js/historie-aktualizaci.js)
-                'ag-sa-set-btn': { s: 'O aplikaci', i: 9 },           // Správa aplikace — jen vlastník (js/sprava-appky.js)
-                'ag-backup-row': { s: 'Záloha', i: -1 },              // stav automatické zálohy (js/auto-zaloha.js)
-                'ag-dev-box': { s: 'Záloha', i: 5 },                  // profil zařízení (js/profily.js)
-                'ag-uvolnit': { s: 'Místo v telefonu', i: 2 }         // Uvolnit místo (js/uvolnit-misto.js)
+                'ag-backup-row': { s: 'Záloha', i: -1 },      // stav automatické zálohy (js/auto-zaloha.js)
+                'ag-uvolnit': { s: 'Místo v telefonu', i: 2 }, // Uvolnit místo (js/uvolnit-misto.js) — karta s vlastním nadpisem, až za Vymazat
+                'ag-dev-box': { s: 'Místo v telefonu', i: 9 }  // Profil zařízení (js/profily.js) — karta s vlastním nadpisem, úplně dole
+            }
+        },
+        // ÚČET A APLIKACE (nová stránka): tlačítka modulů z bývalé Aplikace + zrcadlo bočního
+        // panelu (viz mirrorMenu níž).
+        'tab-ucet': {
+            order: ['Účet', 'Aplikace'],
+            put: {
+                'set-about-btn': { s: 'Aplikace', i: 1 },
+                'hist-set-btn': { s: 'Aplikace', i: 2 },      // Co je nového / historie (js/historie-aktualizaci.js)
+                'set-navod-btn': { s: 'Aplikace', i: 3 },
+                'set-sdilet-app': { s: 'Aplikace', i: 4 },
+                'ag-fb-inbox-btn': { s: 'Aplikace', i: 8 },   // schránka vzkazů — jen vlastník (js/zpetna-vazba.js)
+                'ag-sa-set-btn': { s: 'Aplikace', i: 9 },     // Správa aplikace — jen vlastník (js/sprava-appky.js)
+                'agv-set-btn': { s: 'Aplikace', i: 10 }       // konzole vlastníka (js/vlastnik.js)
             }
         }
     };
     var STRAY_H = 'Další volby';     // sběrná sekce pro neznámé přírůstky
-    // STĚHOVÁNÍ MEZI ZÁLOŽKAMI (18. 9. 2026, N4): prvek s tímhle id patří do dané záložky, ať ho
-    // modul vložil kamkoli. Řeší se PŘED srovnáním sekcí: přesun je jen appendChild, o pořadí
-    // uvnitř cílové záložky se postará arrangeTab podle LAYOUT.put.
+    // STĚHOVÁNÍ ŘÁDKŮ MEZI STRÁNKAMI: prvek s tímhle id patří na danou stránku, ať ho modul
+    // vložil kamkoli. Řeší se PŘED srovnáním sekcí: přesun je jen appendChild, o pořadí
+    // uvnitř cílové stránky se postará arrangeTab podle LAYOUT.put.
     var MOVE = {
-        'tab-ovladani': ['ag-glove-row', 'ag-jr-setrow', 'ag-gz-setrow', 'ag-kn-setrow', 'ag-ns-setrow', 'ag-ts-setrow', 'ag-ua-simple-row', 'agl-card', 'agp-card']
+        'tab-ovladani': ['ag-glove-row', 'ag-jr-setrow', 'ag-gz-setrow', 'ag-kn-setrow'],
+        'tab-vykon': ['agl-card', 'agp-card'],
+        'tab-mapa': ['s-mapfab'],
+        'tab-ucet': ['hist-set-btn', 'ag-fb-inbox-btn', 'ag-sa-set-btn', 'agv-set-btn']
     };
+    // STĚHOVÁNÍ CELÝCH SEKCÍ (nadpis .set-h + řádky až po další nadpis / ocas):
+    var MOVE_SEC = {
+        'tab-mapa': ['Přesnost z mapy', 'Země a souřadnice', 'Data mapy (vektor)'],
+        'tab-data': ['Firemní cloud']
+    };
+    // ODEŠLO Z NASTAVENÍ (volba uživatele 18. 9. 2026): moduly si řádek věší dál (často
+    // v časovači, takže smazat ho nejde), tady dostane .ag-set-drop a zmizí.
+    //   ag-ts-setrow / ag-ua-simple-row — Jednoduchý panel Nástrojů, Zjednodušené Nástroje
+    //                                     (Nástroje mají „Zobrazit všechny nástroje")
+    //   ag-fb-set-btn / ag-zdravi-set-btn — Napsat autorovi, Funguje mi všechno? (jsou v Nástrojích)
+    //   ag-ns-setrow — přepínač Krátké nastavení ze starší verze nastaveni-hledani.js
+    var HIDE = ['ag-ts-setrow', 'ag-ua-simple-row', 'ag-fb-set-btn', 'ag-zdravi-set-btn', 'ag-ns-setrow', 'ag-fb-foot-set'];
+
     function relocate() {
-        for (var tabId in MOVE) {
+        var tabId, tab, ids, i, el, src, row;
+        for (tabId in MOVE) {
             if (!Object.prototype.hasOwnProperty.call(MOVE, tabId)) continue;
-            var tab = document.getElementById(tabId);
-            if (!tab) continue;                                   // starší index.html bez záložky — nic se nestěhuje
-            var ids = MOVE[tabId];
-            for (var i = 0; i < ids.length; i++) {
-                var el = document.getElementById(ids[i]);
+            tab = document.getElementById(tabId);
+            if (!tab) continue;                                   // starší index.html bez stránky — nic se nestěhuje
+            ids = MOVE[tabId];
+            for (i = 0; i < ids.length; i++) {
+                el = document.getElementById(ids[i]);
                 if (!el) continue;
-                var src = el.closest ? el.closest('.settings-tab') : null;
+                src = el.closest ? el.closest('.settings-tab') : null;
                 if (!src || src === tab) continue;
-                var row = rowOf(el, src);
+                row = rowOf(el, src);
                 if (row) tab.appendChild(row);
             }
         }
+        for (tabId in MOVE_SEC) {
+            if (!Object.prototype.hasOwnProperty.call(MOVE_SEC, tabId)) continue;
+            tab = document.getElementById(tabId);
+            if (!tab) continue;
+            MOVE_SEC[tabId].forEach(function (title) { moveSection(title, tab); });
+        }
+        for (i = 0; i < HIDE.length; i++) {
+            el = document.getElementById(HIDE[i]);
+            if (!el) continue;
+            src = el.closest ? el.closest('.settings-tab') : null;
+            row = src ? rowOf(el, src) : el;
+            if (row && !row.classList.contains('ag-set-drop')) row.classList.add('ag-set-drop');
+        }
+    }
+    // Najde sekci podle nadpisu na KTERÉKOLI jiné stránce a přenese ji i s řádky.
+    // Nadpis uvnitř karty (např. #ag-uvolnit má .set-h jako své dítě) se nehledá —
+    // karta se stěhuje celá jako řádek přes MOVE.
+    function moveSection(title, tab) {
+        var n = norm(title);
+        var pages = document.querySelectorAll('#settings-modal .settings-tab');
+        for (var p = 0; p < pages.length; p++) {
+            var src = pages[p];
+            if (src === tab) continue;
+            var kids = src.children;
+            for (var i = 0; i < kids.length; i++) {
+                if (!isHead(kids[i]) || norm(headText(kids[i])) !== n) continue;
+                var take = [kids[i]];
+                for (var j = i + 1; j < kids.length; j++) {
+                    if (isHead(kids[j]) || isTail(kids[j])) break;
+                    take.push(kids[j]);
+                }
+                take.forEach(function (e) { tab.appendChild(e); });
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // ---- ÚČET: zrcadlo bočního panelu -------------------------------------------------
+    // Vstupy k účtu (Kde pracuju, Přepnout uživatele / zamknout, Administrace firmy, Verze
+    // Pro, Co je v Pro, klíč Pro) si moduly věší do #side-menu — panel je od 18. 9. skrytý.
+    // Tady se pro každé existující tlačítko udělá stejnojmenné tlačítko na stránce Účet
+    // a aplikace; klepnutí předá klik originálu (jeho handler je jediný zdroj pravdy) a
+    // zavře panel, kdyby ho handler otevřel (ucty-admin volá toggleMenu naslepo).
+    var MIRROR = ['ag-prostory-btn', 'agfa-switch-btn', 'agfa-admin-btn', 'ag-pro-menu-btn', 'ag-prehled-menu-btn', 'ag-pk-menu-btn'];
+    function mirrorMenu() {
+        var host = document.getElementById('set-ucet-proxy'); if (!host) return;
+        var want = [];
+        MIRROR.forEach(function (id) {
+            var src = document.getElementById(id);
+            if (!src || (src.style && src.style.display === 'none') || src.hidden) return;
+            var pid = 'set-mirror-' + id;
+            var b = document.getElementById(pid);
+            if (!b) {
+                b = document.createElement('button');
+                b.type = 'button'; b.id = pid; b.className = 'btn btn-secondary';
+                b.setAttribute('data-mirror', id);
+                b.addEventListener('click', function () {
+                    var o = document.getElementById(id); if (!o) return;
+                    var m = document.getElementById('settings-modal'); if (m) m.style.display = 'none';
+                    try { o.click(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-poradek:mirror'); }
+                    try { var sm = document.getElementById('side-menu'); if (sm) sm.classList.remove('open'); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'nastaveni-poradek:mirror'); }
+                });
+            }
+            var html = src.innerHTML;
+            if (b.innerHTML !== html) b.innerHTML = html;
+            want.push(b);
+        });
+        if (!sameOrder(host, want)) {
+            while (host.firstChild) host.removeChild(host.firstChild);
+            want.forEach(function (b) { host.appendChild(b); });
+        }
+        // bez jediného vstupu nadpis „Účet" nedává smysl
+        var h = host.previousElementSibling;
+        if (h && isHead(h)) h.style.display = want.length ? '' : 'none';
+        host.style.display = want.length ? '' : 'none';
     }
 
     function norm(s) {
@@ -179,6 +272,7 @@
         for (var i = 0; i < kids.length; i++) {
             var el = kids[i];
             if (isTail(el)) { tail.push(el); seenTail = true; continue; }
+            if (el.classList && el.classList.contains('ag-set-drop')) { tail.push(el); continue; }   // schovaný řádek — nikam nepatří
             // cokoli, co skončilo POD „Pokročilé", je přírůstek modulu — vytáhneme ho nahoru
             if (seenTail && !isHead(el)) { strays.push(el); continue; }
             if (isHead(el)) { cur = { h: el, t: norm(headText(el)), items: [] }; secs.push(cur); seenTail = false; continue; }
@@ -223,13 +317,14 @@
         for (var id in spec.put) {
             if (!Object.prototype.hasOwnProperty.call(spec.put, id)) continue;
             var el = rowOf(document.getElementById(id), tab);
-            if (!el) continue;                               // modul odpojený nebo vkládá jinam
+            if (!el || isTail(el)) continue;                 // modul odpojený, vkládá jinam, nebo je to prvek uvnitř „Pokročilé"
             detach(model, el);
             planned.push({ el: el, r: spec.put[id] });
         }
         planned.sort(function (a, b) { return (a.r.i || 0) - (b.r.i || 0); });
         var front = {};                                      // kolik už je nahoře v které sekci
         planned.forEach(function (p) {
+            if (!p.r.s) { model.lead.push(p.el); return; }      // stránka bez sekcí (Výkon a baterie)
             var sec = findSec(model, p.r.s) || makeSec(model, p.r.s);
             if (p.r.after) {                                  // hned za konkrétní řádek
                 for (var i = 0; i < sec.items.length; i++) {
@@ -247,6 +342,11 @@
         });
 
         // 2) přírůstky neznámých modulů (spadly pod „Pokročilé") → sběrná sekce
+        // (řádky s .ag-set-drop jsou schované — ty nadpis „Další volby" nezaslouží, jdou do ocasu)
+        model.strays = model.strays.filter(function (e) {
+            if (e.classList && e.classList.contains('ag-set-drop')) { model.tail.push(e); return false; }
+            return true;
+        });
         if (model.strays.length) {
             var sc = findSec(model, STRAY_H) || makeSec(model, STRAY_H);
             model.strays.forEach(function (e) { sc.items.push(e); });
@@ -277,129 +377,16 @@
         want.forEach(function (e) { tab.appendChild(e); });
     }
 
-    // ---- SKLÁDACÍ SEKCE ---------------------------------------------------------------------
-    // Stav se drží podle NADPISU sekce (ne podle pořadí) — sekce vznikají a zanikají
-    // podle toho, které moduly jsou zapojené, takže index by se rozešel. Klíčem je
-    // ČESKÝ nadpis (headText čte data-ag-cs), aby přepnutí jazyka volbu nezahodilo.
-    var FOLD_KEY = 'agSetFold_v1';
-    var FOLD_CLS = 'ag-sec-fold';    // na nadpisu = sekce je sbalená
-    var HID_CLS = 'ag-sec-hid';      // na řádku = leží ve sbalené sekci
-    var _fold = null;
-    function foldMap() {
-        if (_fold) return _fold;
-        _fold = {};
-        try { var o = JSON.parse(localStorage.getItem(FOLD_KEY) || 'null'); if (o && typeof o === 'object') _fold = o; }
-        catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-poradek:foldMap'); }
-        return _fold;
-    }
-    function foldSave() {
-        try { localStorage.setItem(FOLD_KEY, JSON.stringify(foldMap())); }
-        catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-poradek:foldSave'); }
-    }
-    function foldKey(tabId, head) { return tabId + '|' + norm(headText(head)); }
-    function foldStyles() {
-        if (document.getElementById('ag-sec-fold-style')) return;
-        var st = document.createElement('style');
-        st.id = 'ag-sec-fold-style';
-        st.textContent = [
-            // Terč na celou šířku nadpisu — do samotné šipky se v rukavicích nikdo netrefí.
-            '#settings-modal .settings-tab > .set-h{cursor:pointer;position:relative;padding-right:46px;}',
-            '#settings-modal .settings-tab > .set-h::after{content:"\u25BE";position:absolute;right:2px;top:0;',
-            '  font-size:calc(12px * var(--ag-font-scale, 1));line-height:1.25;opacity:.7;}',
-            '#settings-modal .settings-tab > .set-h.' + FOLD_CLS + '::after{content:"\u25B8";}',
-            // počet schovaných řádků — ať je vidět, že se sbalením nic neztratilo
-            '#settings-modal .settings-tab > .set-h.' + FOLD_CLS + '::before{content:attr(data-ag-n);position:absolute;',
-            '  right:18px;top:0;font-size:calc(10.5px * var(--ag-font-scale, 1));line-height:1.3;',
-            '  font-weight:700;opacity:.6;letter-spacing:0;}',
-            '#settings-modal .settings-tab > .set-h:active{opacity:.65;}',
-            '#settings-modal .settings-tab > .' + HID_CLS + '{display:none !important;}'
-        ].join('\n');
-        (document.head || document.documentElement).appendChild(st);
-    }
-    function wireHead(tab, h) {
-        if (h.__agFold) return;
-        h.__agFold = 1;
-        h.setAttribute('role', 'button');
-        h.setAttribute('tabindex', '0');
-        h.addEventListener('click', function () { toggleSec(tab, h); });
-        h.addEventListener('keydown', function (ev) {
-            if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); toggleSec(tab, h); }
-        });
-    }
-    function toggleSec(tab, h) {
-        var k = foldKey(tab.id, h), m = foldMap();
-        if (m[k]) delete m[k]; else m[k] = 1;
-        foldSave();
-        applyFold(tab);
-    }
-    // Projde PŘÍMÉ potomky záložky a schová řádky, které leží pod sbaleným nadpisem.
-    // „Ocas" (Pokročilé + Zobrazit vše) do žádné sekce nepatří a nesbaluje se nikdy.
-    function applyFold(tab) {
-        if (!tab) return;
-        foldStyles();
-        var kids = tab.children, hide = false, head = null, n = 0, i;
-        function closeSec() { if (head) head.setAttribute('data-ag-n', n ? String(n) : ''); }
-        for (i = 0; i < kids.length; i++) {
-            var el = kids[i];
-            if (isTail(el)) { closeSec(); head = null; hide = false; el.classList.remove(HID_CLS); continue; }
-            if (isHead(el)) {
-                closeSec();
-                head = el; n = 0;
-                wireHead(tab, el);
-                hide = !!foldMap()[foldKey(tab.id, el)];
-                el.classList.toggle(FOLD_CLS, hide);
-                el.classList.remove(HID_CLS);
-                el.setAttribute('aria-expanded', hide ? 'false' : 'true');
-                continue;
-            }
-            if (hide) n++;
-            el.classList.toggle(HID_CLS, hide);
-        }
-        closeSec();
-    }
-    // Rozbalí sekci, ve které leží daný prvek (volá js/nastaveni-hledani.js při skoku
-    // na nalezenou volbu — jinak by hledání ukazovalo na řádek schovaný ve sbalené sekci).
-    function unfold(el) {
-        try {
-            var tab = (el && el.closest) ? el.closest('.settings-tab') : null;
-            if (!tab) return;
-            var row = el;
-            while (row && row.parentNode !== tab) row = row.parentNode;
-            if (!row) return;
-            for (var p = row.previousElementSibling; p; p = p.previousElementSibling) {
-                if (!isHead(p)) continue;
-                var k = foldKey(tab.id, p), m = foldMap();
-                if (m[k]) { delete m[k]; foldSave(); }
-                applyFold(tab);
-                return;
-            }
-        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-poradek:unfold'); }
-    }
-
-    // ---- hlavička okna: nadpis → hledání → pruh záložek -------------------------------------
-    // Pruh profilů se od návrhu C vkládá do ZÁLOŽKY „Profily", ne nad záložky, takže
-    // tady většinou zbyde jen hledání. Větev s #ag-prof-bar zůstává kvůli starším
-    // instalacím (a kdyby ta záložka někdy nebyla): oba prvky se totiž vkládaly
-    // „před .tab-buttons" a bez tohohle si prohodily pořadí podle toho, kdo byl dřív.
-    // ⚠⚠ NEKONEČNÁ SMYČKA (nahlášeno 9. 8. 2026: „kliknu na hledání, vyjede klávesnice
-    // a hned mi spadne zase dolů"). Podmínka se dřív ptala na `(prof || tabs)`, ale
-    // vkládalo se před `prof` jen tehdy, když prof leží v .modal-content. Od návrhu C
-    // ale #ag-prof-bar žije v ZÁLOŽCE Profily — takže `prof` bylo pravdivé, srovnávalo
-    // se s prvkem, který v hlavičce vůbec není, a pole hledání se přesouvalo znovu a
-    // znovu. Každý přesun probudil MutationObserver → schedule → další přesun:
-    // naměřeno 14 přesunů za 3 s. A přesun prvku SEBERE FOKUS, takže klávesnice
-    // spadla dřív, než uživatel stiskl druhou klávesu.
-    // Referenční prvek se proto počítá JEDNOU a použije se jak na porovnání, tak na
-    // vložení — pak je funkce opravdu idempotentní.
+    // ---- hlavička okna: hlavička → hledání → první obrazovka -------------------------
+    // Pole hledání (js/nastaveni-hledani.js) patří mezi .set-head a #set-home. Referenční
+    // prvek se počítá JEDNOU a použije se na porovnání i vložení — jinak přesun sebere
+    // fokus a klávesnice spadne (naměřeno 9. 8. 2026: 14 přesunů za 3 s).
     function arrangeHead() {
         var m = document.getElementById('settings-modal'); if (!m) return;
         var c = m.querySelector('.modal-content'); if (!c) return;
-        var tabs = c.querySelector('.tab-buttons'); if (!tabs) return;
+        var home = document.getElementById('set-home'); if (!home || home.parentNode !== c) return;
         var search = document.getElementById('ag-ns-search');
-        var prof = document.getElementById('ag-prof-bar');
-        var ref = (prof && prof.parentNode === c) ? prof : tabs;
-        if (search && search.parentNode === c && search.nextElementSibling !== ref) c.insertBefore(search, ref);
-        if (prof && prof.parentNode === c && prof.nextElementSibling !== tabs) c.insertBefore(prof, tabs);
+        if (search && search.parentNode === c && search.nextElementSibling !== home) c.insertBefore(search, home);
     }
 
     // ---- život modulu ------------------------------------------------------------------------
@@ -452,10 +439,8 @@
             // ids — nová záložka „Profily" se pak sice do LAYOUT zapsala, ale nikdy
             // se nesrovnala, takže její sekce vůbec nevznikly (8.8.2026).
             var ids = Object.keys(LAYOUT);
-            for (var i = 0; i < ids.length; i++) {
-                arrangeTab(ids[i]);
-                applyFold(document.getElementById(ids[i]));
-            }
+            for (var i = 0; i < ids.length; i++) arrangeTab(ids[i]);
+            mirrorMenu();
         } catch (e) { console.warn('[nastaveni-poradek]', e); }
         _busy = false;
     }
@@ -508,5 +493,5 @@
     else init();
     window.addEventListener('load', function () { setTimeout(arrange, 800); setTimeout(arrange, 2500); });
 
-    window.AGSettingsOrder = { arrange: arrange, layout: LAYOUT, unfold: unfold, applyFold: applyFold };
+    window.AGSettingsOrder = { arrange: arrange, layout: LAYOUT, unfold: function () {}, applyFold: function () {} };
 })();

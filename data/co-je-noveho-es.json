@@ -2,6 +2,17 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 365,
+      "datum": "2026-09-18",
+      "nadpis": "Ajustes de nuevo: lo importante primero, el resto aparte",
+      "body": [
+        "Los <b>Ajustes</b> están rehechos. Al abrirlos ves la tarjeta <b>Frecuentes</b> — alcance de los puntos en la cámara y en el mapa, tope de puntos en RA, claro/oscuro, modo exterior y tipos de puntos oficiales — y debajo ocho categorías como filas: Cámara RA, Mapa y puntos, Apariencia, Controles, Rendimiento y batería, Trabajo y datos; abajo «Menos frecuente» con la copia de seguridad y la cuenta. Cada fila tiene un subtítulo con su contenido y la página tiene Atrás arriba.",
+        "Desaparecen las pestañas, el índice lateral, los «Ajustes cortos» y las secciones plegables: la propia división mantiene la estructura. Dentro de una página solo queda un «Avanzado» plegado.",
+        "Los <b>perfiles</b> (perfil de ajustes Terreno/Precisión/Demo, perfil de trabajo y la franja «Qué haces hoy» en Herramientas) se eliminan. Solo queda el perfil del dispositivo (calibración del teléfono) en Copia de seguridad y mantenimiento.",
+        "De Ajustes se fueron los duplicados: Escribir al autor y ¿Funciona todo? están en Herramientas; Dónde trabajo, Versión Pro, Cambiar de usuario y Administración de la empresa tienen filas en la página Cuenta y aplicación."
+      ]
+    },
+    {
       "v": 364,
       "datum": "2026-09-18",
       "nadpis": "La ruta ya no cruza a nado un estanque ni un río",

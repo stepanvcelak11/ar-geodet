@@ -89,7 +89,7 @@
             if (m.n >= 120 && m.dlouhe / m.n > 0.33) {
                 try { localStorage.setItem(LS_MERENO, '1'); } catch (e) { /* plné úložiště */ }
                 apply(false);
-                try { if (typeof quickToast === 'function') quickToast('Telefon nestíhá — appka přepnula na úsporné zobrazení (Nastavení → AR & přesnost → Slabší telefon).'); } catch (e) { /* bez toastu */ }
+                try { if (typeof quickToast === 'function') quickToast('Telefon nestíhá — appka přepnula na úsporné zobrazení (Nastavení → Výkon a baterie).'); } catch (e) { /* bez toastu */ }
             }
         };
         requestAnimationFrame(krok);

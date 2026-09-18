@@ -1496,13 +1496,13 @@
     }
     function injectVstupy() {
         var on = isOn();
-        // Nastavení: pruh #ag-set-strip stojí MIMO záložky (vidí ho každá záložka);
-        // když pruh chybí (starší index.html), pod pruh záložek.
+        // Nastavení: od 18. 9. 2026 večer stránka Účet a aplikace (#tab-ucet, sekci srovná
+        // js/nastaveni-poradek.js); starší index.html měl pruh #ag-set-strip mimo záložky.
         var sb = document.getElementById('agv-set-btn');
         if (on && !sb) {
             var strip = document.getElementById('ag-set-strip');
             var sm = document.getElementById('settings-modal');
-            var host = strip ? strip.parentNode : (sm && sm.querySelector('.tab-buttons') && sm.querySelector('.tab-buttons').parentNode);
+            var host = document.getElementById('tab-ucet') || (strip ? strip.parentNode : (sm && sm.querySelector('.tab-buttons') && sm.querySelector('.tab-buttons').parentNode));
             if (host) {
                 sb = vstupBtn('agv-set-btn', 'Konzole vlastníka — lidé, firmy, žádosti o Pro');
                 if (strip) host.insertBefore(sb, strip.nextSibling); else host.appendChild(sb);

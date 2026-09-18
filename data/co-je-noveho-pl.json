@@ -2,6 +2,17 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 365,
+      "datum": "2026-09-18",
+      "nadpis": "Ustawienia od nowa: ważne na wierzchu, reszta z boku",
+      "body": [
+        "<b>Ustawienia</b> są przebudowane. Po otwarciu widzisz kartę <b>Częste</b> — zasięg punktów w kamerze i na mapie, limit punktów w AR, jasny/ciemny, tryb zewnętrzny i rodzaje punktów urzędowych — a pod nią osiem kategorii jako wiersze: Kamera AR, Mapa i punkty, Wygląd, Sterowanie, Wydajność i bateria, Zlecenie i dane; na dole „Rzadziej” z kopią zapasową i kontem. Każdy wiersz ma podtytuł z zawartością, strona ma u góry Wstecz.",
+        "Zniknęły zakładki, boczny indeks, „Krótkie ustawienia” i zwijane sekcje — strukturę trzyma sam podział. Na stronie zostaje tylko jedno zwinięte „Zaawansowane”.",
+        "<b>Profile</b> (profil ustawień Teren/Dokładność/Pokaz, profil pracy i pasek „Co dziś robisz” w Narzędziach) są usunięte. Zostaje tylko profil urządzenia (kalibracja telefonu) w Kopii zapasowej i konserwacji.",
+        "Z Ustawień odeszły duplikaty: Napisz do autora i Czy wszystko działa? znajdziesz w Narzędziach; Gdzie pracuję, Wersja Pro, Przełącz użytkownika i Administracja firmy mają wiersze na stronie Konto i aplikacja."
+      ]
+    },
+    {
       "v": 364,
       "datum": "2026-09-18",
       "nadpis": "Trasa nie przepływa przez staw ani rzekę",

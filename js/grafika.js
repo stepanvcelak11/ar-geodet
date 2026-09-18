@@ -122,25 +122,41 @@
                 else quickToast('Tenhle telefon/prohlížeč vibrace neumožňuje (iPhone).');
             } else quickToast('Vibrace vypnuty.');
         }
+        // NASTAVENÍ NANOVO (18. 9. 2026 večer): Nastavení má první obrazovku #set-home (karta
+        // Časté + seznam kategorií) a stránky (.settings-tab). switchTab(tabId) otevře stránku:
+        // schová #set-home, ukáže stránku, do hlavičky dá její název (data-title) a tlačítko Zpět.
+        // btnEl je volitelný (hledání a app-search volají jen s id) — dohledá se přes data-tab.
+        // agSettingsHome() vrací na první obrazovku; openSettings() ji otevírá VŽDY, ať člověk
+        // skončil minule kdekoli. Třída .active na řádku kategorie zůstává kvůli starším
+        // modulům, které se na ni ptají.
         function switchTab(tabId, btnEl) {
-            document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            btnEl.classList.add('active');
-            // Pruh zalozek se od navrhu C roluje do stran (5 zalozek se na telefon
-            // nevejde). Bez tohohle zustala vybrana zalozka za okrajem a nebylo poznat,
-            // ktera plati - zvlast u posledni "Profily", na kterou se prepina z hledani
-            // nebo z odkazu. scrollIntoView jen VODOROVNE, at neposkoci cely modal.
-            try {
-                const strip = btnEl.parentNode;
-                if (strip && strip.scrollWidth > strip.clientWidth) {
-                    const s = strip.getBoundingClientRect(), b = btnEl.getBoundingClientRect();
-                    if (b.left < s.left || b.right > s.right) {
-                        strip.scrollTo({ left: strip.scrollLeft + (b.left - s.left) - 12, behavior: 'smooth' });
-                    }
-                }
-            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:switchTab'); }
+            var page = document.getElementById(tabId); if (!page) return;
+            var m = document.getElementById('settings-modal');
+            document.querySelectorAll('#settings-modal .settings-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('#settings-modal .tab-btn').forEach(b => b.classList.remove('active'));
+            page.classList.add('active');
+            if (!btnEl || !btnEl.classList) btnEl = document.querySelector('#settings-modal .tab-btn[data-tab="' + tabId + '"]');
+            if (btnEl) btnEl.classList.add('active');
+            var home = document.getElementById('set-home'); if (home) home.hidden = true;
+            var back = document.getElementById('set-back'); if (back) back.hidden = false;
+            var tt = document.getElementById('set-title');
+            if (tt) tt.textContent = page.getAttribute('data-title') || (btnEl && btnEl.querySelector('b') ? btnEl.querySelector('b').textContent : 'Nastavení');
+            if (m) m.setAttribute('data-page', tabId);
+            try { var c = m && m.querySelector('.modal-content'); if (c) c.scrollTop = 0; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:switchTab'); }
+            try { document.dispatchEvent(new CustomEvent('ag:nastaveni-strana', { detail: { id: tabId } })); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'grafika:switchTab'); }
         }
+        function agSettingsHome() {
+            var m = document.getElementById('settings-modal');
+            document.querySelectorAll('#settings-modal .settings-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('#settings-modal .tab-btn').forEach(b => b.classList.remove('active'));
+            var home = document.getElementById('set-home'); if (home) home.hidden = false;
+            var back = document.getElementById('set-back'); if (back) back.hidden = true;
+            var tt = document.getElementById('set-title'); if (tt) tt.textContent = 'Nastavení';
+            if (m) m.removeAttribute('data-page');
+            try { var c = m && m.querySelector('.modal-content'); if (c) c.scrollTop = 0; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:agSettingsHome'); }
+            try { document.dispatchEvent(new CustomEvent('ag:nastaveni-strana', { detail: { id: null } })); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'grafika:agSettingsHome'); }
+        }
+        window.agSettingsHome = agSettingsHome;
         function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); } function toggleHudElements() { document.getElementById('info').style.display = document.getElementById('tgl-info').checked ? 'block' : 'none'; document.getElementById('compass-debug').style.display = document.getElementById('tgl-compass').checked ? 'block' : 'none'; updateGpsAvgPanel(); }
         function fixAppLayout() { setTimeout(() => { window.scrollTo(0, 0); document.body.scrollTop = 0; }, 100); } document.querySelectorAll('input').forEach(input => { input.addEventListener('blur', fixAppLayout); });
         
@@ -1058,7 +1074,7 @@
             });
         }
 
-        function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; applyVisualSettings(); syncSettingsControls(); }
+        function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; agSettingsHome(); applyVisualSettings(); syncSettingsControls(); }
 
         // ===== Moderni ovladaci prvky Nastaveni (switch/segment/chips/slider) =====
         // Funkcni ID zustavaji; tyto funkce jen drzi vizual v souladu se stavem.

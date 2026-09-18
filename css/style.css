@@ -1981,86 +1981,103 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
    Chipy se při nedostatku místa zalomí do druhé řádky, nic se neschová.
    Dotykový cíl 44 px (v rukavicích 52 px) zůstává.
    Zpět na dlaždice: vrať grid + min-height 92px + flex-direction column. */
-/* JEDNOŘÁDKOVÉ ZÁLOŽKY (návrh C, 8.8.2026 — navrhy-nastaveni.html).
-   Dřív to byla 2×2 mřížka dlaždic vysokých 44 px: navigace zabírala víc místa
-   než první sekce voleb pod ní, a když firemní oprávnění část záložek skryla
-   (js/ucty.js, hostovský a nižší role), zbyla z mřížky jediná zelená placka přes
-   celou šířku, která už nevypadala jako záložky, ale jako tlačítko.
-   Teď je to vodorovný pruh textových záložek s podtržením aktivní — drží tvar
-   při libovolném počtu viditelných záložek i při jiné velikosti písma a při
-   nedostatku místa se roluje do strany (proto scroll-snap a schovaná lišta).
-   Zpět na dlaždice: vrať grid + min-height 44px + rámeček .active na pozadí. */
-.settings-tiles {
+/* NASTAVENÍ NANOVO (18. 9. 2026 večer): první obrazovka #set-home (karta Časté + seznam
+   kategorií), stránky .settings-tab s hlavičkou .set-head (zpět + název). Do v364 tu byl
+   pruh záložek .settings-tiles (jednořádkový, rolovací, s podtržením) a pruh #ag-set-strip
+   — obojí je pryč i s rejstříkem js/nastaveni-lista.js. Ovládací prvky uvnitř (.st-row,
+   .st-slider, .st-chips, .set-h, details.adv) se nemění. */
+#settings-modal .set-head {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 5;
     display: flex;
-    gap: 2px;
-    padding: 0;
-    margin-bottom: 12px;
-    background: transparent;
-    border-radius: 0;
-    border-bottom: 1px solid var(--glass-border);
-    overflow-x: auto;
-    scroll-snap-type: x proximity;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-    /* Když se záložky nevejdou (naměřeno: 118 px přes okraj), musí být poznat, že
-       pruh pokračuje — jinak uživatel o páté záložce vůbec neví. Maskou se poslední
-       kousek rozpustí do ztracena; scrollování na aktivní řeší switchTab v grafika.js. */
-    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent);
-    mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent);
-}
-.settings-tiles::-webkit-scrollbar { display: none; }
-/* AR & přesnost první (14. 9. 2026) — jen vizuálně, DOM pořadí záložek se nemění */
-.settings-tiles #tabbtn-ar { order: -1; }
-/* Ovládání (18. 9. 2026, N4) je v DOM šesté (indexy 0–4 drží app-search.js a ucty.js), vizuálně za Vzhledem */
-.settings-tiles .tab-btn { order: 1; }
-.settings-tiles .tab-btn:first-child, .settings-tiles #tabbtn-ovladani { order: 0; }
-/* karty Slabší telefon / Úspora baterie mají vlastní nadpis — v Ovládání stojí pod jedním společným */
-#tab-ovladani #agl-card > .set-h, #tab-ovladani #agp-card > .set-h { display: none; }
-.settings-tiles .tab-btn {
-    flex: 0 0 auto;
-    min-width: 0;
-    position: relative;          /* kotva pro vizuálně skrytý popisek */
-    display: flex;
-    flex-direction: row;
     align-items: center;
-    justify-content: center;
-    gap: 6px;
-    scroll-snap-align: start;
-    text-align: center;
-    padding: 10px 12px 9px;
-    min-height: 42px;
-    background: transparent;
+    gap: 8px;
+    margin: 0 calc(-1 * max(20px, env(safe-area-inset-right, 0px))) 10px calc(-1 * max(20px, env(safe-area-inset-left, 0px)));
+    padding: 14px max(20px, env(safe-area-inset-right, 0px)) 10px max(20px, env(safe-area-inset-left, 0px));
+    border-bottom: 1px solid var(--glass-border);
+    /* ÚPLNĚ neprůhledné: přes alfu se pod hlavičkou prorolovávaly řádky */
+    background: rgb(14, 18, 24);
+    box-shadow: 0 8px 14px -12px rgba(0, 0, 0, 0.85);
+}
+body.light-mode #settings-modal .set-head { background: rgb(247, 248, 250); }
+#settings-modal .set-head h2 { margin: 0; font-size: calc(19px * var(--ag-font-scale, 1)); min-width: 0; }
+#settings-modal .set-back {
+    flex: none;
+    width: 40px; height: 40px;
+    margin: -4px 0 -4px -6px;
     border: 0;
-    border-bottom: 2px solid transparent;
+    border-radius: 50%;
+    background: var(--surface-1);
+    color: var(--accent-bright, var(--accent));
+    font: 700 calc(26px * var(--ag-font-scale, 1))/1 var(--font-ui);
+    line-height: 36px;
+    cursor: pointer;
+}
+#settings-modal .set-back:active { background: var(--accent-soft); }
+body.ag-glove #settings-modal .set-back { width: 48px; height: 48px; }
+
+/* karta = skupina řádků s vlastním podkladem (Časté, kategorie) */
+#settings-modal .set-card {
+    padding: 2px 12px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--r-md);
+    background: var(--surface-1);
+}
+#settings-modal .set-card.set-caste { border-color: var(--accent-line, rgba(47, 158, 116, 0.4)); }
+#settings-modal .set-card > .st-slider:first-child { margin-top: 6px; }
+#settings-modal .set-card > .st-slider { padding-bottom: 10px; border-bottom: 1px solid var(--glass-border); }
+#settings-modal .set-card > .st-row { padding: 11px 0; }
+#settings-modal .set-card > label { margin-top: 10px; }
+#settings-modal .set-card > .st-chips { margin: 6px 0 12px; }
+#settings-modal .set-h.set-h-mute { color: var(--text-muted); border-bottom-color: transparent; }
+
+/* řádek kategorie: ikona · název + podtitulek · šipka; třída .tab-btn zůstává kvůli
+   js/ucty.js (schovává řádek podle onclick), vzhled řádku ale řídí .set-cat */
+#settings-modal .set-cats { padding: 0; overflow: hidden; }
+#settings-modal .set-cat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 56px;
+    padding: 9px 12px 9px 12px;
+    border: 0;
+    border-bottom: 1px solid var(--glass-border);
     border-radius: 0;
-}
-.settings-tiles .tab-btn .icon { width: 17px; height: 17px; flex: none; margin: 0; color: var(--accent-bright); }
-.settings-tiles .tab-btn .tb-tx { display: block; min-width: 0; }
-/* název bere plnou barvu textu, ne --text-muted: musí být čitelný na slunci */
-.settings-tiles .tab-btn .tb-tx b { font-size: calc(12.5px * var(--ag-font-scale, 1)); font-weight: 700; color: var(--text-color); white-space: nowrap; }
-/* popisek: vizuálně skrytý, ale čitelný pro čtečky i pro index hledání */
-.settings-tiles .tab-btn .tb-tx small {
-    position: absolute;
-    width: 1px; height: 1px;
-    padding: 0; margin: -1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    clip-path: inset(50%);
-    white-space: nowrap;
-    border: 0;
-}
-.settings-tiles .tab-btn.active {
     background: transparent;
-    border-bottom-color: var(--accent);
-    box-shadow: none;
+    color: var(--text-color);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease;
 }
-.settings-tiles .tab-btn.active .icon { color: var(--accent); }
-.settings-tiles .tab-btn.active .tb-tx b { color: var(--accent-bright); }
-/* neaktivní ztlumit, ať je vybraná záložka poznat i bez barvy (slunce, rukavice) */
-.settings-tiles .tab-btn:not(.active) .icon { opacity: 0.65; }
-.settings-tiles .tab-btn:not(.active) .tb-tx b { color: var(--text-muted); }
-body.ag-glove .settings-tiles .tab-btn { min-height: 52px; padding: 13px 14px 12px; }
-body.ag-glove .settings-tiles .tab-btn .tb-tx b { font-size: calc(14px * var(--ag-font-scale, 1)); }
+#settings-modal .set-cat:last-child { border-bottom: 0; }
+#settings-modal .set-cat:active, #settings-modal .set-cat.active { background: var(--accent-soft); }
+#settings-modal .set-cat .set-ico {
+    flex: none;
+    width: 36px; height: 36px;
+    display: grid; place-items: center;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    color: var(--accent-bright, var(--accent));
+}
+#settings-modal .set-cat .set-ico .icon { width: 18px; height: 18px; margin: 0; }
+#settings-modal .set-cats-mute .set-cat .set-ico { background: var(--surface-2, rgba(255, 255, 255, 0.06)); color: var(--text-muted); }
+#settings-modal .set-cat .tb-tx { display: block; flex: 1; min-width: 0; }
+#settings-modal .set-cat .tb-tx b { display: block; font-size: calc(15px * var(--ag-font-scale, 1)); font-weight: 700; color: var(--text-color); }
+#settings-modal .set-cat .tb-tx small { display: block; margin-top: 1px; font-size: calc(11.5px * var(--ag-font-scale, 1)); line-height: 1.3; color: var(--text-muted); }
+#settings-modal .set-cats-mute .set-cat .tb-tx b { color: var(--text-muted); }
+#settings-modal .set-cat .set-chev { flex: none; font-size: calc(22px * var(--ag-font-scale, 1)); line-height: 1; color: var(--text-muted); opacity: .7; }
+body.ag-glove #settings-modal .set-cat { min-height: 64px; }
+
+/* stránka: první nadpis těsně pod hlavičkou; úvodní odstavec šedý */
+#settings-modal .settings-tab > .set-h:first-child { margin-top: 2px; }
+#settings-modal .settings-tab .st-intro { margin: 6px 0 8px; }
+/* řádky, které z Nastavení odešly (Jednoduchý panel Nástrojů, Zjednodušené Nástroje, Napsat
+   autorovi, Funguje mi všechno?) — moduly je věší dál, poradek je označí a tady zmizí */
+#settings-modal .ag-set-drop { display: none !important; }
+/* stránka Výkon a baterie: karty Slabší telefon a Úspora baterie mají vlastní nadpisy — nechat */
 
 /* =========================================================================
    REDESIGN „Kombinace" 2/2 — oblouk boční lišty, horní HUD pruh,
@@ -2390,12 +2407,6 @@ body.light-mode:not(.cam-live) #info .rdt-l { color: var(--text-color); }
 /* ---- SVĚTLÝ REŽIM: fullscreen modály mají natvrdo tmavé pozadí (rgba(14,18,24))
    → ve světlém režimu přepsat na světlé, jinak je tmavý text nečitelný. ------ */
 body.light-mode .modal-overlay .modal-content { background: rgba(247, 248, 250, 0.98); }
-/* Pruh záložek je teď jeden kontejner s pozadím, chipy uvnitř jsou průhledné.
-   (Dřív tu byla barva jednotlivých dlaždic — přebíjela i tu aktivní.) */
-/* Pruh záložek už není vanička s podkladem (viz „JEDNOŘÁDKOVÉ ZÁLOŽKY" výš),
-   takže ve světlém motivu nesmí dostat tmavé pozadí — jen dělicí linku. */
-body.light-mode .settings-tiles { background: transparent; }
-body.light-mode .settings-tiles .tab-btn:not(.active) { background: transparent; }
 /* Úvodní odstavec záložky (zatím jen Profily) — vysvětluje, čím se dvě podobně
    pojmenované věci liší. Musí zůstat čitelný i na slunci, proto ne --text-muted. */
 .settings-tab .st-intro {
@@ -3132,11 +3143,11 @@ body.ag-glove .mngr-act { padding: 13px 8px; }
    (výřez/stavový řádek) překrývá neprůhledný pruh přes ::before.
 
    POZOR PŘI ÚPRAVÁCH:
-   - .tab-buttons MUSÍ zůstat PŘÍMÝM potomkem .modal-content:
-     profily.js volá content.insertBefore(bar, tabs) a nastaveni-hledani.js
-     tabs.parentNode.insertBefore(...). Obalení do wrapperu by je shodilo.
+   - #set-home a .set-head MUSÍ zůstat PŘÍMÝMI potomky .modal-content:
+     nastaveni-hledani.js vkládá pole hledání před #set-home.
    - #settings-modal má data-no-close (žádné zavírací gesto) — nechat.
-   - Pořadí a počet .tab-btn nesahat: app-search.js na ně sahá přes index.
+   - Řádky kategorií (.set-cat.tab-btn) mají data-tab: app-search.js a hledání
+     podle něj skáčou, js/ucty.js schovává podle onclick.
 
    Odstranění: smaž tenhle blok — Nastavení se vrátí k pevné hlavičce
    a rolování jen uvnitř .modal-body.
@@ -3170,26 +3181,9 @@ body.ag-glove .mngr-act { padding: 13px 8px; }
     padding-right: 0;
 }
 
-/* ---- 2) Pruh záložek přilepený nahoře ---------------------------------- */
-#settings-modal .tab-buttons {
-    position: sticky;
-    top: env(safe-area-inset-top, 0px);
-    z-index: 5;
-    scroll-margin-top: env(safe-area-inset-top, 0px);
-    /* od kraje ke kraji: pod pruhem se nesmí nic prorolovávat */
-    margin-left: calc(-1 * max(20px, env(safe-area-inset-left, 0px)));
-    margin-right: calc(-1 * max(20px, env(safe-area-inset-right, 0px)));
-    padding: 5px max(20px, env(safe-area-inset-right, 0px)) 5px max(20px, env(safe-area-inset-left, 0px));
-    border-radius: 0;
-    border-bottom: 1px solid var(--glass-border);
-    /* ÚPLNĚ neprůhledné (ne --modal-bg s alfou 0.97): přes ta 3 % se pod pruhem
-       prorolovávaly nadpisy sekcí a řádky — vypadalo to jako překreslená obrazovka */
-    background: rgb(14, 18, 24);
-    box-shadow: 0 8px 14px -12px rgba(0, 0, 0, 0.85);
-}
-body.light-mode #settings-modal .tab-buttons { background: rgb(247, 248, 250); }
-/* Krytka horní safe-area: pruh záložek se lepí AŽ POD výřez (jinak by chipy
-   skončily pod stavovým řádkem), takže pás nad ním je potřeba zaslepit.
+/* ---- 2) Hlavička (zpět + název) přilepená nahoře: viz .set-head výš (Nastavení nanovo) ---- */
+/* Krytka horní safe-area: hlavička .set-head se lepí AŽ POD výřez (jinak by
+   skončila pod stavovým řádkem), takže pás nad ním je potřeba zaslepit.
    position:fixed se kotví k .modal-content (má transform) → jede s modálem.
 
    ⚠⚠ NAHLÁŠENO 29. 8. 2026: „když se ze světlého režimu přepnu do tmavého,
@@ -3277,63 +3271,6 @@ body.ag-glove #settings-modal .modal-content .btn { margin-top: 10px; }
     /* jen dotyková plocha — nic nekreslí a nesmí překrýt sousedy */
     background: none;
     pointer-events: auto;
-}
-
-/* =========================================================================
-   PRUH POD ZÁLOŽKAMI NASTAVENÍ (#ag-set-strip)
-   Vstup do panelu „Více" a do „Napsat autorovi" (ten si druhý slot doplňuje
-   js/zpetna-vazba.js). Oboje stálo do 5. 9. 2026 až v záložce Údržba, kterou
-   má host schovanou oprávněním — pruh je proto MIMO záložky a vidí ho každý
-   z každé záložky bez rolování.
-   Terč má 44 px kvůli rukavicím; barvy jdou přes tokeny, aby držel venkovní
-   režim i světlý motiv.
-   ========================================================================= */
-.ag-set-strip {
-    display: flex;
-    gap: 8px;
-    margin: 10px 0 2px;
-    flex-wrap: wrap;
-}
-
-.ag-set-strip .ag-strip-btn,
-.ag-set-strip .ag-fb-foot {
-    flex: 1 1 150px;
-    margin: 0;
-}
-
-.ag-strip-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-height: 44px;
-    padding: 10px 12px;
-    border: 1px dashed var(--glass-border, rgba(255, 255, 255, 0.16));
-    border-radius: 12px;
-    background: transparent;
-    color: var(--text-muted, #9aa1ac);
-    font: 600 calc(12.5px * var(--ag-font-scale, 1))/1.35 var(--font-ui, system-ui);
-    text-align: center;
-    cursor: pointer;
-}
-
-.ag-strip-btn .icon {
-    width: 16px;
-    height: 16px;
-    flex: none;
-    color: var(--accent);
-}
-
-.ag-strip-btn small {
-    display: block;
-    font-weight: 500;
-    font-size: calc(10.5px * var(--ag-font-scale, 1));
-    opacity: 0.8;
-}
-
-.ag-strip-btn:active {
-    border-color: var(--accent);
-    color: var(--accent);
 }
 
 /* Pomocná třída slíbená u --tap-min v css/tokens.css — do 8. 9. 2026 NEEXISTOVALA,

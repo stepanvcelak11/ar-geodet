@@ -25,7 +25,7 @@
 #   E) Gesto: v js/gesta-zkratky.js je akce act:napiste a miri na radek v
 #      Nastaveni (kdyz se vrstva zpetne vazby odpoji, prvek proste neni).
 #
-#   F) PRUH POD ZALOZKAMI (#ag-set-strip, index.html): vedle sebe "Vice" a
+#   F) (18. 9. 2026 vecer) pruh pod zalozkami je PRYC; Navod je na strance Ucet a aplikace; drive: vedle sebe "Vice" a
 #      "Napsat autorovi". Panel Vice (navod, offline, sdileni, zpravodaj) mel do
 #      teto chvile jediny vstup taky az v Udrzbe, tedy pro hosta zadny.
 #   G) KONTEXT U ZPRAVY: druhe zaskrtavatko prilozi, co appka delala (otevrene
@@ -135,36 +135,40 @@ async def test_host(ctx):
     page = await ctx.new_page()
     await nacti(page)
 
-    # A) host otevre Nastaveni (jedina cesta, kterou ma) a radek musi byt hned videt
+    # A) 18. 9. 2026 večer (Nastavení nanovo): „Napsat autorovi" z Nastavení ODEŠLO — je v Nástrojích
+    #    nahoře (C) a v panelu Více (D). V Nastavení nesmí být vidět ani pruh #ag-set-strip.
     await page.evaluate("() => { if (typeof openSettings === 'function') openSettings(); }")
     await page.wait_for_timeout(1500)
-    # Vrstva zpetne vazby je odlozeny modul (ag/lazy) - na pomalem stroji dorazi
-    # o chvili pozdeji. Test se pta, jestli cesta EXISTUJE, ne jak je rychla.
-    for _ in range(20):
-        if await page.evaluate("() => !!document.getElementById('ag-fb-foot-set')"):
+    # vrstva zpetne vazby je odlozeny modul (ag/lazy) — pockat na window.AGZpetna, ne na konkretni tlacitko
+    for _ in range(40):
+        if await page.evaluate("() => !!window.AGZpetna"):
             break
         await page.evaluate("() => window.AGLazy && AGLazy.flush()")
-        await page.wait_for_timeout(300)
+        await page.wait_for_timeout(400)
+    await page.wait_for_timeout(800)
     v = await page.evaluate(VIDITELNOST, 'ag-fb-foot-set')
-    ok('A1 radek "Napsat autorovi" je v Nastaveni', not v.get('chybi'), v)
-    if not v.get('chybi'):
-        ok('A2 host ho vidi bez rolovani', v['jeVidet'] and v['vVyrezu'], v)
-        ok('A3 terc ma aspon 44 px (rukavice)', v['h'] >= 44, v)
-        # kdyby se ocitl uvnitr zalozky (.settings-tab), patril by jedne z nich
-        # a host, ktery ma vetsinu zalozek schovanou opravnenim, by ho neuvidel
-        umisteni = await page.evaluate("""() => { var e = document.getElementById('ag-fb-foot-set');
-            if (!e) return null;
-            return { rodic: e.parentElement.id || e.parentElement.className || '',
-                     vZalozce: !!e.closest('.settings-tab') }; }""")
-        ok('A4 stoji mimo zalozky Nastaveni', umisteni and not umisteni['vZalozce'], umisteni)
+    ok('A1 radek "Napsat autorovi" v Nastaveni NENI (nebo je schovany)', v.get('chybi') or not v['jeVidet'], v)
+    ok('A2 pruh #ag-set-strip v Nastaveni neexistuje', await page.evaluate("() => !document.getElementById('ag-set-strip')"))
+    ok('A3 tlacitko v zalozce (ag-fb-set-btn) je schovane tridou .ag-set-drop', await page.evaluate("() => { var b = document.getElementById('ag-fb-set-btn'); return !b || getComputedStyle(b).display === 'none'; }"))
+    ok('A4 Nastaveni maji prvni obrazovku (Caste + kategorie)', await page.evaluate("() => !!document.getElementById('set-home') && !document.getElementById('set-home').hidden && !!document.getElementById('set-caste')"))
 
     # kontrolni tvrzeni k duvodu, proc radek vznikl: Udrzba je hostovi zavrena
     udrzba = await page.evaluate("() => { var t=document.getElementById('tab-udrzba');"
                                  " return t ? getComputedStyle(t).display : 'CHYBI'; }")
     ok('A5 (kontext) Udrzba je hostovi porad schovana', udrzba == 'none', udrzba)
+    await page.evaluate("() => { document.getElementById('settings-modal').style.display = 'none'; }")
 
-    # B) klepnuti otevre okno a zavre Nastaveni
-    await page.click('#ag-fb-foot-set')
+    # B) klepnuti v Nastrojich otevre okno
+    await page.evaluate("() => { var n=document.getElementById('tools-modal'); if(n) n.style.display='flex'; }")
+    for _ in range(10):
+        if await page.evaluate("() => !!document.getElementById('ag-fb-foot-tools')"):
+            break
+        await page.wait_for_timeout(400)
+    await page.wait_for_timeout(600)
+    if await page.evaluate("() => !!document.getElementById('ag-fb-foot-tools')"):
+        await page.click('#ag-fb-foot-tools')
+    else:
+        await page.evaluate("() => { if (window.AGZpetna) AGZpetna.open(); }")
     await page.wait_for_timeout(1200)
     stav = await page.evaluate("""() => {
       var m = document.getElementById('ag-fb-modal');
@@ -174,7 +178,7 @@ async def test_host(ctx):
                nastaveniZavrena: !s || s.style.display === 'none',
                textarea: !!document.getElementById('ag-fb-txt') }; }""")
     ok('B1 klepnuti otevre okno zpravy', stav['okno'], stav)
-    ok('B2 Nastaveni se pod nim zavrou', stav['nastaveniZavrena'], stav)
+    ok('B2 Nastaveni pod nim nejsou otevrena', stav['nastaveniZavrena'], stav)
     ok('B3 v okne je pole na zpravu', stav['textarea'], stav)
     ok('B4 nadpis rika "Napsat autorovi"', 'Napsat autorovi' in stav['nadpis'], stav['nadpis'])
     await page.evaluate("() => { if (window.AGZpetna) AGZpetna.close(); }")
@@ -206,20 +210,26 @@ async def test_druha_vlna(ctx):
     page = await ctx.new_page()
     await nacti(page)
 
-    # F) pruh: Navod (do 18. 9. 2026 „Vice" = bocni panel; ten se rozpustil do Nastaveni → Aplikace) + Napsat autorovi vedle sebe
+    # F) 18. 9. 2026 večer: pruh pod záložkami je pryč; Návod je na stránce Účet a aplikace (vidí ji i host)
     await page.evaluate("() => { if (typeof openSettings === 'function') openSettings(); }")
     await page.wait_for_timeout(1500)
-    vice = await page.evaluate(VIDITELNOST, 'ag-set-vice')
-    ok('F1 "Navod" je v pruhu pod zalozkami', not vice.get('chybi'), vice)
+    # vrstva zpětné vazby je odložený modul — G) ji potřebuje, dřív na ni čekal pruh v Nastavení
+    for _ in range(20):
+        if await page.evaluate("() => !!window.AGZpetna"):
+            break
+        await page.evaluate("() => window.AGLazy && AGLazy.flush()")
+        await page.wait_for_timeout(300)
+    ok('F1 pruh #ag-set-strip / #ag-set-vice uz neexistuje', await page.evaluate("() => !document.getElementById('ag-set-strip') && !document.getElementById('ag-set-vice')"))
+    await page.evaluate("() => switchTab('tab-ucet')")
+    await page.wait_for_timeout(600)
+    vice = await page.evaluate(VIDITELNOST, 'set-navod-btn')
+    ok('F2 "Navod a prohlidka" je na strance Ucet a aplikace a host ho vidi', not vice.get('chybi') and vice['jeVidet'], vice)
     if not vice.get('chybi'):
-        ok('F2 host ho vidi bez rolovani', vice['jeVidet'] and vice['vVyrezu'], vice)
         ok('F3 terc ma aspon 44 px', vice['h'] >= 44, vice)
-    deti = await page.evaluate("""() => { var s = document.getElementById('ag-set-strip');
-        return s ? Array.from(s.children).map(function (c) { return c.id; }) : []; }""")
-    ok('F4 v pruhu stoji obe tlacitka', deti == ['ag-set-vice', 'ag-fb-foot-set'], deti)
+    ok('F4 hlavicka stranky: nazev + Zpet', await page.evaluate("() => document.getElementById('set-title').textContent.trim() === 'Účet a aplikace' && !document.getElementById('set-back').hidden"))
     # klepnuti = navod (startTutorial, lazy js/tutorial-pro.js); Nastaveni se pod nim zavrou
     await page.evaluate("() => { window.__tut = 0; window.startTutorial = function () { window.__tut++; }; }")
-    await page.click('#ag-set-vice')
+    await page.click('#set-navod-btn')
     await page.wait_for_timeout(900)
     stav = await page.evaluate("""() => ({ tut: window.__tut, zavreno: document.getElementById('settings-modal').style.display === 'none' })""")
     ok('F5 klepnuti spusti navod (startTutorial)', stav['tut'] == 1, stav)
@@ -339,7 +349,7 @@ def test_gesto():
     odpoji, prvek neexistuje a zkratka nic nespusti (stejne jako u schovanych dlazdic)."""
     s = io.open(os.path.join(ROOT, 'js', 'gesta-zkratky.js'), encoding='utf-8').read()
     ok('E1 akce act:napiste je v seznamu', "'act:napiste'" in s)
-    ok('E2 miri na #ag-fb-foot-set', "'#ag-fb-foot-set'" in s)
+    ok('E2 miri na tlacitko v Nastrojich (#ag-fb-foot-tools; radek v Nastaveni od 18. 9. 2026 vecer neni)', "'#ag-fb-foot-tools" in s and "'#ag-fb-foot-set'" not in s)
 
 
 async def main():

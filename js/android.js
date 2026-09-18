@@ -71,6 +71,8 @@
         try {
             if (el.id === 'bottom-sheet') { if (typeof window.closeBottomSheet === 'function') { window.closeBottomSheet(); return; } el.classList.remove('open'); return; }
             if (el.id === 'side-menu') { el.classList.remove('open'); return; }
+            // Nastavení nanovo (18. 9. 2026): na stránce Nastavení vede Zpět napřed na první obrazovku
+            if (el.id === 'settings-modal' && el.getAttribute('data-page') && typeof window.agSettingsHome === 'function') { window.agSettingsHome(); return; }
             if (el.classList.contains('ag-dlg-overlay')) {   // Zpět = „Zpět/Zrušit", ne potvrzení
                 var c = el.querySelector('.ag-dlg-cancel');
                 if (c && shown(c)) { klik(c); return; }

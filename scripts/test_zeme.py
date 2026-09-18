@@ -138,8 +138,8 @@ async def beh(url):
         csv = await page.evaluate("() => { var out = null; var o = window._exportVen; window._exportVen = function (n, t, c) { out = c; }; try { exportPointsCSV(); } finally { window._exportVen = o; } return out; }")
         ok('A8 CSV export v CR: Y;X kladne v rozsahu S-JTSK', csv and ';7' in csv and ';10' in csv and csv.split(';')[1].startswith('74'), csv)
         # Nastaveni → Data → Zeme mereni
-        await page.evaluate("() => { openSettings(); switchTab('tab-data', document.querySelectorAll('.tab-btn')[2]); }")
-        ok('A9 Nastaveni → Data ma radek „Země měření" s volbou Automaticky + zeme',
+        await page.evaluate("() => { openSettings(); switchTab('tab-mapa'); }")   # 18. 9. 2026 večer: Země a souřadnice je na stránce Mapa a body
+        ok('A9 Nastaveni → Mapa a body ma radek „Země měření" s volbou Automaticky + zeme',
            await cekej(page, "document.getElementById('s-zeme') && document.getElementById('s-zeme').options.length > 30 && document.getElementById('s-zeme').value === 'auto'", 20),
            await page.evaluate("() => { var s = document.getElementById('s-zeme'); return s ? [s.options.length, s.value, (document.getElementById('s-zeme-info') || {}).textContent] : null; }"))
         info = await page.evaluate("() => (document.getElementById('s-zeme-info') || {}).textContent || ''")

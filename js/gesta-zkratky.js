@@ -307,10 +307,11 @@
         { k: 'act:slunce', l: 'Vysoký kontrast na slunci', sel: '#s-outdoor', po: outdoorApply },
         // Napsat autorovi: v rukavicích u finišeru je gesto rychlejší než dvě okna,
         // a hlásit se má ve chvíli, kdy se to stalo — ne večer, až si člověk vzpomene.
-        // Míří na řádek v patičce Nastavení (js/zpetna-vazba.js, injectFooters), takže
-        // stačí .click() jako u ostatních akcí: když je vrstva zpětné vazby odpojená,
-        // prvek prostě není a zkratka nic nespustí — stejně jako u schovaných dlaždic.
-        { k: 'act:napiste', l: 'Napsat autorovi', sel: '#ag-fb-foot-set' }
+        // Míří na tlačítko nahoře v Nástrojích (js/zpetna-vazba.js, injectFooters; do 18. 9.
+        // 2026 večer to byl řádek v Nastavení, ten s Nastavením nanovo odešel), takže stačí
+        // .click() jako u ostatních akcí: když je vrstva zpětné vazby odpojená, prvek prostě
+        // není a zkratka nic nespustí — stejně jako u schovaných dlaždic.
+        { k: 'act:napiste', l: 'Napsat autorovi', sel: '#ag-fb-foot-tools, #ag-fb-menu-btn' }
     ];
 
     // Přepnutí venkovního režimu podle stavu políčka. Vrací text do bubliny, ať je

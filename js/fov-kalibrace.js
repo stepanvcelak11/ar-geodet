@@ -370,7 +370,7 @@
             + '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));line-height:1.5;">Když kompas zlobí: postav se kolmo k dlouhé zdi ve <b>známé</b> vzdálenosti D. '
             + 'Označ si na zdi místa, která leží přesně u levé a pravé hrany obrazu, a změř mezi nimi šířku W. Pak platí '
             + '<b>FOV = 2 · arctg(W / 2D)</b>. Například W = 4,00 m při D = 3,00 m dává 67,4°. Hodnotu pak zadej posuvníkem '
-            + 'v Nastavení → AR a přesnost.</p></div></details>';
+            + 'v Nastavení → AR kamera → Pokročilé.</p></div></details>';
 
         b.innerHTML = html;
 

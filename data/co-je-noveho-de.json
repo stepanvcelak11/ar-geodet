@@ -2,6 +2,17 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 365,
+      "datum": "2026-09-18",
+      "nadpis": "Einstellungen neu: das Wichtige zuerst, der Rest zur Seite",
+      "body": [
+        "Die <b>Einstellungen</b> sind neu aufgebaut. Beim Öffnen siehst du die Karte <b>Häufig</b> — Punktreichweite in Kamera und Karte, Obergrenze der AR-Punkte, hell/dunkel, Außenmodus und Arten amtlicher Punkte — und darunter acht Kategorien als Zeilen: AR-Kamera, Karte und Punkte, Darstellung, Bedienung, Leistung und Akku, Auftrag und Daten; unten „Seltener“ mit Sicherung und Konto. Jede Zeile hat einen Untertitel mit Inhalt, eine Seite hat oben Zurück.",
+        "Reiter, Seitenregister, „Kurze Einstellungen“ und einklappbare Abschnitte sind weg — die Aufteilung selbst hält die Struktur. Auf einer Seite bleibt nur ein eingeklapptes „Erweitert“.",
+        "<b>Profile</b> (Einstellungsprofil Gelände/Genauigkeit/Demo, Arbeitsprofil und die Leiste „Was machst du heute“ in den Werkzeugen) sind gestrichen. Es bleibt nur das Geräteprofil (Telefonkalibrierung) unter Sicherung und Wartung.",
+        "Doppelte Einträge haben die Einstellungen verlassen: An den Autor schreiben und Funktioniert alles? findest du in den Werkzeugen; Wo ich arbeite, Pro-Version, Benutzer wechseln und Firmenverwaltung haben Zeilen auf der Seite Konto und App."
+      ]
+    },
+    {
       "v": 364,
       "datum": "2026-09-18",
       "nadpis": "Die Route schwimmt nicht mehr über Teich oder Fluss",

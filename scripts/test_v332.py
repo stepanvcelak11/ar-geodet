@@ -209,9 +209,9 @@ async def beh(url):
                      poradit: !!m.querySelector('.ag-uk-foot'), editbtn: (function () { var b = document.getElementById('ag-tp-editbtn'); return b ? getComputedStyle(b).display : 'none'; })() };
         }""")
         ok('B1 Moje: Pokračovat s naposledy použitým nástrojem nahoře', b and b['pokracovat'] and 'Oměrné' in b['pokrText'], b)
-        # 18. 9. 2026 (N3): pás je výchozím stavem SCHOVANÝ (profil se volí v Nastavení → Profily), v Moje je jen po zapnutí
+        # 18. 9. 2026 večer (Nastavení nanovo, volba 2B): js/rezim-prace.js je ODPOJENÝ — pás ani profil práce v Nastavení nejsou
         ok('B2 Moje: pás „Co dnes děláš" je výchozím stavem schovaný (prvek skrytý nebo mimo Moje)', b and (not b['rp'] or await page.evaluate("() => { var w = document.getElementById('ag-rp-wrap'); return !w || w.hidden; }")), b)
-        ok('B2b Nastavení → Profily má select profilu práce a přepínač pásu', await page.evaluate("() => !!document.getElementById('ag-rp-sel') && document.getElementById('ag-rp-sel').options.length >= 5 && !!document.getElementById('ag-rp-sw') && !document.getElementById('ag-rp-sw').checked"))
+        ok('B2b rezim-prace odpojen: bez pásu, bez selectu profilu, bez záložky Profily', await page.evaluate("() => !window.AGRezimPrace && !document.getElementById('ag-rp-sel') && !document.getElementById('ag-rp-wrap') && !document.getElementById('tab-profily')"))
         ok('B3 Moje: ★ Připnuté = oba připnuté ze seedu, hvězdičky svítí', b and b['favRows'] == ['brutal-gps', 'openStakeoutModal'] and b['hvezdy'] == 2, b)
         ok('B4 Moje: u připnutých je gesto (výchozí ↓→ ↓↑ pro Přesnou GPS) nebo „+ gesto"', b and len(b['gesta']) == 2 and any('↓' in g and '↑' in g for g in b['gesta']) and any('gesto' in g for g in b['gesta']), b and b['gesta'])
         ok('B5 Moje: „Poradit, co použít" v patičce; tlačítko „Upravit oblíbené" schované', b and b['poradit'] and b['editbtn'] == 'none', b)

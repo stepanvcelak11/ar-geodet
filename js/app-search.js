@@ -22,11 +22,12 @@
     function closeMenu() { var m = document.getElementById('side-menu'); if (m) m.classList.remove('open'); }
 
     // ---- jádrové cíle (label se ukáže, keys jen pro hledání) -----------------------
-    function tab(tabId, n) {
+    // Stránka Nastavení (od 18. 9. 2026 večer řádek kategorie s data-tab, ne index záložky)
+    function tab(tabId) {
         return function () {
             if (typeof openSettings === 'function') openSettings();
-            var btns = document.querySelectorAll('#settings-modal .settings-tiles .tab-btn');
-            if (typeof switchTab === 'function' && btns[n]) switchTab(tabId, btns[n]);
+            var btn = document.querySelector('#settings-modal .tab-btn[data-tab="' + tabId + '"]');
+            if (typeof switchTab === 'function' && document.getElementById(tabId)) switchTab(tabId, btn);
         };
     }
     var CORE = [
@@ -34,11 +35,14 @@
         { label: 'Body — správa a seznam bodů', keys: 'body sprava seznam points import export hledat radit trideni hromadne vybrat smazat precislovat posun kod kody vrstva', run: function () { if (typeof openManageModal === 'function') openManageModal(); } },
         { label: 'Nový bod', keys: 'novy bod pridat vlozit new point souradnice', run: function () { if (typeof openNewPointModal === 'function') openNewPointModal(); } },
         { label: 'Nastavení', keys: 'nastaveni settings', run: function () { if (typeof openSettings === 'function') openSettings(); } },
-        { label: 'Nastavení — Vzhled', keys: 'vzhled barvy motiv tema svetly tmavy rezim rukavice leva ruka', run: tab('tab-vzhled', 0) },
-        { label: 'Nastavení — AR a přesnost', keys: 'ar presnost kamera dosah fov filtry rozvrzeni', run: tab('tab-ar', 1) },
-        { label: 'Nastavení — Data', keys: 'data zakazka zaloha katastr zdroj offline', run: tab('tab-data', 2) },
-        { label: 'Nastavení — Aplikace', keys: 'aplikace udrzba navod o aplikaci zaloha pomoc napsat autorovi misto v telefonu oprava reset chyby log vymazat', run: tab('tab-udrzba', 3) },   // do 18. 9. 2026 „Údržba"
-        { label: 'Nastavení — Profily', keys: 'profil profily teren presnost ukazka vlastni rezim prace prednastaveni bez profilu vypnout', run: tab('tab-profily', 4) },
+        { label: 'Nastavení — AR kamera', keys: 'ar kamera stitky sipka kompas kalibrace fov zorny uhel vyska oci objektiv', run: tab('tab-ar') },
+        { label: 'Nastavení — Mapa a body', keys: 'mapa body dosah hledat bod prichytavani hrana hlidac okoli trasa terenem zeme katastr zdroj pmtiles vrstvy', run: tab('tab-mapa') },
+        { label: 'Nastavení — Vzhled', keys: 'vzhled barvy motiv tema svetly tmavy rezim pismo jazyk nocni odstin animace sklo', run: tab('tab-vzhled') },
+        { label: 'Nastavení — Ovládání', keys: 'ovladani leva ruka rukavice vibrace gesta zkratky kolecko jednoduchy rezim', run: tab('tab-ovladani') },
+        { label: 'Nastavení — Výkon a baterie', keys: 'vykon baterie slabsi telefon usporne zobrazeni setrit uspat gps sklo', run: tab('tab-vykon') },
+        { label: 'Nastavení — Zakázka a data', keys: 'data zakazka firemni cloud offline ulozit stahnout oblast uloziste', run: tab('tab-data') },
+        { label: 'Nastavení — Záloha a údržba', keys: 'zaloha obnovit udrzba skryte body misto v telefonu uvolnit vymazat profil zarizeni kalibrace', run: tab('tab-udrzba') },
+        { label: 'Nastavení — Účet a aplikace', keys: 'ucet aplikace prostory pro verze o aplikaci navod prohlidka sdilet qr co je noveho historie zamknout prepnout uzivatele administrace', run: tab('tab-ucet') },
         // Řádek „Mapa a vrstvy" byl z menu „Více" odstraněn (je v liště) — tady zůstává
         // jako jádrový cíl, jinak by přestal být k nalezení hledáním.
         { label: 'Mapa a vrstvy', keys: 'mapa vrstvy podklad ortofoto katastr zobrazeni prepnout', run: function () { if (typeof toggleMapControls === 'function') toggleMapControls(); } },

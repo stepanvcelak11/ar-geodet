@@ -76,7 +76,7 @@ def staticke():
     ok('C0s korekce přejmenovaná', "vl: 'Skutečnou délku z pásma nebo dálkoměru'" in r and "vl: 'S korekcí na teplotu a tlak'" not in r)
     ok('C0s profily práce bez schovaných nástrojů', not any(("'%s'" % k) in r[r.index('var PROFILES'):r.index('var T = [')] for k in SCHOVANE))
     ok('C0s návody rozcestníků ve všech jazycích', all(('"opravit-gps"' in src('data/navody%s.json' % l) and '"dva-telefony"' in src('data/navody%s.json' % l)) for l in ['', '-en', '-de', '-pl', '-es', '-it']))
-    ok('D0s index.html: Aplikace bez „Více" (toggleMenu) v tab-udrzba, Skryté body v tab-data, pruh = Návod', 'toggleMenu' not in ix[ix.index('id="tab-udrzba"'):ix.index('id="tab-profily"')] and ix.index('id="set-skryte-body"') > ix.index('id="tab-data"') and ix.index('id="set-skryte-body"') < ix.index('id="tab-udrzba"') and 'toggleMenu' not in ix[ix.index('id="ag-set-strip"'):ix.index('class="modal-body"')])
+    ok('D0s index.html (18. 9. večer): stránka Záloha a údržba bez „Více", Skryté body v ní, žádný pruh #ag-set-strip', 'toggleMenu' not in ix[ix.index('id="tab-udrzba"'):ix.index('id="tab-ucet"')] and ix.index('id="set-skryte-body"') > ix.index('id="tab-udrzba"') and ix.index('id="set-skryte-body"') < ix.index('id="tab-ucet"') and 'id="ag-set-strip"' not in ix)
 
 
 async def beh(url):
@@ -190,24 +190,30 @@ async def beh(url):
         ok('C7 Lovci bodů v Učit se (stránka Další), Skryté body v Zaznamenat, Vzdálené body v rozcestníku Podklady', c and c['lovci'] == 'Učit se' and c['skryte'] == 'Zaznamenat' and c['dosah'] == 'podklady-katastr' and 'lovci-bodu' in c['strany'].get('dalsi', []) and 'lovci-bodu' not in c['strany'].get('Zaznamenat', []) and 'hidden-points' in c['strany'].get('Zaznamenat', []) and 'hidden-points' not in c['strany'].get('Katastr a podklady', []), c and (c['lovci'], c['skryte'], c['dosah'], c['strany'].get('dalsi')))
         await page.evaluate("() => { document.getElementById('tools-modal').style.display = 'none'; }")
 
-        # ================= D: Nastavení → Aplikace =============================================
-        await page.evaluate("() => { openSettings(); switchTab('tab-udrzba', document.getElementById('tabbtn-udrzba')); }")
+        # ================= D: Nastavení → Záloha a údržba + Účet a aplikace (18. 9. večer: stránky místo záložky Aplikace) ====
+        await page.evaluate("() => { openSettings(); switchTab('tab-udrzba'); }")
         await page.wait_for_timeout(1200)
         d = await page.evaluate("""() => {
-            var tab = document.getElementById('tab-udrzba'); var kids = Array.from(tab.children); var sekce = [], cur = null;
-            kids.forEach(function (el) { if (el.classList.contains('set-h')) { cur = { h: (el.getAttribute('data-ag-cs') || el.textContent).trim(), ids: [] }; sekce.push(cur); } else if (cur) { cur.ids.push(el.id || (el.getAttribute('onclick') || '').slice(0, 30)); } });
-            var lbl = document.querySelector('#tabbtn-udrzba b'); var strip = document.getElementById('ag-set-vice');
+            function sekce(id) { var tab = document.getElementById(id); var out = [], cur = null;
+                Array.from(tab.children).forEach(function (el) { if (el.classList.contains('ag-set-drop') || getComputedStyle(el).display === 'none') return;
+                    if (el.classList.contains('set-h')) { cur = { h: (el.getAttribute('data-ag-cs') || el.textContent).trim(), ids: [] }; out.push(cur); } else if (cur) { cur.ids.push(el.id || (el.getAttribute('onclick') || '').slice(0, 30)); } });
+                return out; }
             var sk = document.getElementById('set-skryte-body');
-            return { sekce: sekce, lbl: lbl && lbl.textContent.trim(), vice: !!tab.querySelector('[onclick*="toggleMenu"]'), strip: strip && (strip.getAttribute('onclick') || ''), skryteVData: !!(sk && sk.closest('#tab-data')), skrytePodZakazka: (function () { if (!sk) return false; var p = sk.previousElementSibling; while (p && !p.classList.contains('set-h')) p = p.previousElementSibling; return !!(p && /Zakázka/.test(p.getAttribute('data-ag-cs') || p.textContent)); })(), hled: (window.AGSettingsSearch || window.AGNastaveniHledani) ? true : null }; }""")
-        nadpisy = [s['h'] for s in d['sekce']] if d else []
-        ok('D1 Aplikace: sekce v pořadí Pomoc a návody · O aplikaci · Záloha · Místo v telefonu', d and nadpisy[:4] == ['Pomoc a návody', 'O aplikaci', 'Záloha', 'Místo v telefonu'], nadpisy)
-        def sek(h):
-            return next((s['ids'] for s in d['sekce'] if s['h'] == h), []) if d else []
-        ok('D2 Pomoc a návody = Návod, Funguje mi všechno?, Napsat autorovi', 'set-navod-btn' in sek('Pomoc a návody') and 'ag-zdravi-set-btn' in sek('Pomoc a návody') and 'ag-fb-set-btn' in sek('Pomoc a návody'), sek('Pomoc a návody'))
-        ok('D3 O aplikaci = O aplikaci + Historie aktualizací', 'set-about-btn' in sek('O aplikaci') and 'hist-set-btn' in sek('O aplikaci'), sek('O aplikaci'))
-        ok('D4 Záloha má tlačítka zálohy a profil zařízení; Místo v telefonu má úklid', any('exportAllData' in x for x in sek('Záloha')) and 'ag-dev-box' in sek('Záloha') and any('clearAllPoints' in x for x in sek('Místo v telefonu')), (sek('Záloha'), sek('Místo v telefonu')))
-        ok('D5 záložka se jmenuje Aplikace, bez „Více", pruh pod záložkami = Návod (startTutorial)', d and d['lbl'] == 'Aplikace' and not d['vice'] and 'startTutorial' in (d['strip'] or '') and 'toggleMenu' not in (d['strip'] or ''), d and (d['lbl'], d['vice'], d['strip']))
-        ok('D6 Skryté body v Data pod sekcí Zakázka', d and d['skryteVData'] and d['skrytePodZakazka'], d)
+            return { udrzba: sekce('tab-udrzba'), ucet: sekce('tab-ucet'), lbl: document.getElementById('set-title').textContent.trim(),
+                     vice: !!document.getElementById('tab-udrzba').querySelector('[onclick*="toggleMenu"]'), strip: !!document.getElementById('ag-set-strip'),
+                     skryteVUdrzbe: !!(sk && sk.closest('#tab-udrzba')), back: !document.getElementById('set-back').hidden,
+                     fb: (function () { var b = document.getElementById('ag-fb-set-btn'); return b ? getComputedStyle(b).display : 'neni'; })(),
+                     zdravi: (function () { var b = document.getElementById('ag-zdravi-set-btn'); return b ? getComputedStyle(b).display : 'neni'; })() };
+        }""")
+        nadpisy = [x['h'] for x in d['udrzba']] if d else []
+        ok('D1 Záloha a údržba: sekce v pořadí Záloha · Body · Místo v telefonu', d and nadpisy[:3] == ['Záloha', 'Body', 'Místo v telefonu'], nadpisy)
+        def sek(h, kde='udrzba'):
+            return next((x['ids'] for x in d[kde] if x['h'] == h), []) if d else []
+        ok('D2 Napsat autorovi a Funguje mi všechno? v Nastavení NEJSOU (jsou v Nástrojích)', d and d['fb'] in ('neni', 'none') and d['zdravi'] in ('neni', 'none'), d and (d['fb'], d['zdravi']))
+        ok('D3 Účet a aplikace: O aplikaci + Historie + Návod pod sekcí Aplikace', 'set-about-btn' in sek('Aplikace', 'ucet') and 'hist-set-btn' in sek('Aplikace', 'ucet') and 'set-navod-btn' in sek('Aplikace', 'ucet'), sek('Aplikace', 'ucet'))
+        ok('D4 Záloha má tlačítka zálohy; Místo v telefonu má úklid, Uvolnit místo a profil zařízení', any('exportAllData' in x for x in sek('Záloha')) and any('clearAllPoints' in x for x in sek('Místo v telefonu')) and 'ag-uvolnit' in sek('Místo v telefonu') and 'ag-dev-box' in sek('Místo v telefonu'), (sek('Záloha'), sek('Místo v telefonu')))
+        ok('D5 stránka se jmenuje Záloha a údržba, má Zpět, bez „Více" a bez pruhu', d and d['lbl'] == 'Záloha a údržba' and d['back'] and not d['vice'] and not d['strip'], d and (d['lbl'], d['back'], d['vice'], d['strip']))
+        ok('D6 Skryté body na stránce Záloha a údržba (sekce Body)', d and d['skryteVUdrzbe'] and 'set-skryte-body' in sek('Body'), d)
         await page.evaluate("() => { document.getElementById('settings-modal').style.display = 'none'; }")
 
         vazne = [x for x in chyby if 'Failed to load resource' not in x and 'WebGL' not in x and 'ERR_FAILED' not in x]

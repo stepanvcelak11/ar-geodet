@@ -1,62 +1,41 @@
-// ===== QTRIG — HLEDÁNÍ V NASTAVENÍ + KRÁTKÝ VÝCHOZÍ POHLED (ODPOJITELNÁ) ====
-// PROBLÉM: záložka „Vzhled" má 10 přepínačů a rozbalovací „Pokročilé" s dalšími
-// dvanácti jezdci a barvami — a moduly do ní ZA BĚHU přisypávají další řádky
-// (stavový pruh, jednoduchý panel Nástrojů, režim rukavic, zjednodušené Nástroje).
-// Každý nový modul záložku o řádek prodlouží a nikdo ji nezkrátí. Volby jako
-// zorný úhel kamery nebo výška očí přitom patří ke kalibraci AR, ne k obecnému
-// nastavení.
+// ===== QTRIG — HLEDÁNÍ V NASTAVENÍ (ODPOJITELNÁ) ================================
+// Pole nahoře v okně Nastavení: napíšeš „rukavice", „sever", „offline" — vypadne seznam
+// voleb i s cestou („Mapa a body → Přesnost z mapy") a k tomu cíle mimo nastavení
+// (js/app-search.js). Klepnutí otevře stránku, rozbalí „Pokročilé", odscrolluje na
+// řádek a na chvíli ho zvýrazní. Index se staví při každém otevření okna, takže najde
+// i řádky, které do nastavení přisypal modul až za běhu.
 //
-// ŘEŠENÍ, dvě věci naráz:
+// Do 18. 9. 2026 večer tu byl i „KRÁTKÝ VÝCHOZÍ POHLED" (každá záložka ukazovala jen
+// vybrané řádky, zbytek za „Zobrazit vše (+N)", přepínač Krátké nastavení). S Nastavením
+// nanovo (první obrazovka Časté + kategorie + stránky) ztratil smysl a je pryč — strukturu
+// drží samo rozdělení na stránky (index.html) a js/nastaveni-poradek.js.
 //
-// 1) HLEDÁNÍ nahoře v okně Nastavení. Napíšeš „rukavice", „sever", „offline" —
-//    vypadne seznam voleb i s cestou („Vzhled → Ovládání"). Klepnutí přepne
-//    záložku, rozbalí „Pokročilé", odscrolluje na řádek a na chvíli ho zvýrazní.
-//    Index se staví při každém otevření okna, takže najde i řádky, které do
-//    nastavení přisypal modul až za běhu.
-//
-// 2) KRÁTKÝ VÝCHOZÍ POHLED. Každá záložka ukazuje jen to, co se v terénu mění
-//    opravdu často (viz KEEP níž); zbytek — VČETNĚ toho, co přisypou moduly —
-//    je pod tlačítkem „Zobrazit vše (+N)". Tím záložka přestane přerůstat: nový
-//    modul si sice řádek přidá, ale výchozí pohled se nezvětší. Přepínač
-//    „Krátké nastavení" ve Vzhledu to celé vypne.
-//
-// Volby patřící jednomu nástroji nechávám tam, kde jsou — saveSettings()
-// v grafika.js je čte podle id a stěhování DOM by bylo zbytečné riziko. Místo
-// toho je nástroj umí ODKÁZAT: window.AGSettings.reveal('s-fovh') otevře
-// Nastavení přesně na tom jezdci. Napojeno na průvodce „Zorný úhel kamery".
+// Volby patřící jednomu nástroji nechávám tam, kde jsou — saveSettings() v grafika.js
+// je čte podle id a stěhování DOM by bylo zbytečné riziko. Místo toho je nástroj umí
+// ODKÁZAT: window.AGSettings.reveal('s-fovh') otevře Nastavení přesně na tom jezdci.
+// Napojeno na průvodce „Zorný úhel kamery".
 //
 // Odstranění: smaž js/nastaveni-hledani.js + řádek <script> v index.html
-// (a přegeneruj sw.js). Nastavení pak vypadá přesně jako dřív.
+// (a přegeneruj sw.js). Nastavení pak bude bez hledání, jinak stejné.
 // ================================================================================
 (function () {
     'use strict';
     if (window.AGSettings) return;
 
     var STYLE_ID = 'ag-ns-style', BOX_ID = 'ag-ns-search', RES_ID = 'ag-ns-res';
-    var SHORT_KEY = 'agShortSettings_v1';    // '0' = krátký pohled vypnut
 
-    // Záložky a jejich lidské názvy (pro cestu ve výsledcích hledání)
+    // Stránky a jejich lidské názvy (pro cestu ve výsledcích hledání) — pořadí jako v #set-home
     var TABS = [
+        { id: 'set-caste', t: 'Časté' },
+        { id: 'tab-ar', t: 'AR kamera' },
+        { id: 'tab-mapa', t: 'Mapa a body' },
         { id: 'tab-vzhled', t: 'Vzhled' },
-        { id: 'tab-ar', t: 'AR a přesnost' },
-        { id: 'tab-data', t: 'Data' },
-        { id: 'tab-udrzba', t: 'Aplikace' },   // do 18. 9. 2026 „Údržba"
-        { id: 'tab-profily', t: 'Profily' },
-        { id: 'tab-ovladani', t: 'Ovládání' }
+        { id: 'tab-ovladani', t: 'Ovládání' },
+        { id: 'tab-vykon', t: 'Výkon a baterie' },
+        { id: 'tab-data', t: 'Zakázka a data' },
+        { id: 'tab-udrzba', t: 'Záloha a údržba' },
+        { id: 'tab-ucet', t: 'Účet a aplikace' }
     ];
-
-    // Co zůstává vidět v krátkém pohledu — id ovládacího prvku uvnitř řádku.
-    // Vybráno podle toho, co geodet mění v terénu, ne podle toho, co existuje.
-    var KEEP = {
-        'tab-vzhled': ['seg-mode', 'v-theme', 's-outdoor'],
-        'tab-ar': ['s-ar-radius-slider', 's-map-radius-slider', 's-max-ar-slider'],   // dosah AR + mapa pohromadě
-        'tab-ovladani': ['s-lefthand', 'agl-rezim'],   // levá ruka, jednoduchý režim, slabší telefon (18. 9. 2026)
-        'tab-profily': null,
-        'tab-data': ['s-project-select', 'f-tb'],
-        'tab-udrzba': null           // null = nekrátit (Aplikace: jen tlačítka ve čtyřech sekcích)
-    };
-    // Tlačítka, která v krátkém pohledu zůstávají (poznají se podle textu onclicku)
-    var KEEP_BTN = { 'tab-ar': ['openCompassModal'], 'tab-data': ['saveForOffline', 'agOpenHiddenPoints'] };   // Skryté body (z Údržby, 18. 9. 2026) ať jsou k nalezení i v krátkém pohledu
 
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function norm(s) {
@@ -64,7 +43,6 @@
         try { s = s.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-hledani:norm'); }
         return s.replace(/\s+/g, ' ').trim();
     }
-    function shortOn() { try { return localStorage.getItem(SHORT_KEY) !== '0'; } catch (e) { return true; } }
     function modal() { return document.getElementById('settings-modal'); }
     function isOpen() { var m = modal(); return !!(m && m.style.display === 'flex'); }
 
@@ -91,15 +69,6 @@
             '.ag-ns-none{padding:12px 13px;font-size:calc(13px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);}',
 
             // krátký pohled
-            'body.ag-ns-short .settings-tab:not(.ag-ns-all) .ag-ns-adv{display:none !important;}',
-            '.ag-ns-more{display:none;width:100%;box-sizing:border-box;margin:14px 0 2px;padding:11px;',
-            '  border-radius:12px;cursor:pointer;border:1px dashed var(--glass-border,rgba(255,255,255,0.2));',
-            '  background:transparent;color:var(--text-muted,#9aa1ac);',
-            '  font:600 12.5px/1 var(--font-ui,system-ui),sans-serif;}',
-            'body.ag-ns-short .ag-ns-more{display:block;}',
-            '.settings-tab.ag-ns-all .ag-ns-more{border-style:solid;color:var(--accent,#2f9e74);',
-            '  border-color:var(--accent-line,rgba(47,158,116,0.4));}',
-
             // zvýraznění nalezeného řádku
             '@keyframes ag-ns-flash{0%,100%{box-shadow:0 0 0 0 rgba(47,158,116,0);}',
             '  25%,75%{box-shadow:0 0 0 3px var(--accent-line,rgba(47,158,116,0.55));}}',
@@ -133,7 +102,7 @@
         for (var i = 0; i < kids.length; i++) {
             var el = kids[i];
             if (el.classList.contains('set-h')) { section = (el.textContent || '').trim(); continue; }
-            if (el.classList.contains('ag-ns-more') || el.id === BOX_ID) continue;
+            if (el.classList.contains('ag-ns-more') || el.classList.contains('ag-set-drop') || el.id === BOX_ID) continue;
             if (el.tagName === 'DETAILS') {
                 var b = el.querySelector('.adv-body');
                 if (b) collect(b, tabTitle, section, out);
@@ -156,7 +125,7 @@
             // i otevřelo volbu ze záložky, na kterou uživatel nemá právo.
             // Index se přestavuje při každém otevření Nastavení, takže po
             // přihlášení / změně role je vždy aktuální.
-            if (host && host.style.display !== 'none') collect(host, tb.t, '', _index);
+            if (host && host.style.display !== 'none') collect(host, tb.t, '', _index);   // #set-caste = karta Časté, ostatní stránky
         });
         // kompas je samostatné okno, ale uživatel ho hledá jako nastavení
         var k = document.getElementById('tab-kompas');
@@ -168,6 +137,7 @@
     function tabOf(el) {
         var t = el.closest ? el.closest('.settings-tab') : null;
         if (t) return t;
+        if (el.closest && el.closest('#set-home')) return document.getElementById('set-home');
         return (el.closest && el.closest('#tab-kompas')) ? document.getElementById('tab-kompas') : null;
     }
     function switchToTab(tabEl) {
@@ -177,14 +147,10 @@
             var cm = document.getElementById('compass-modal'); if (cm) cm.style.display = 'flex';
             return;
         }
-        var btns = document.querySelectorAll('#settings-modal .tab-btn');
-        for (var i = 0; i < btns.length; i++) {
-            if ((btns[i].getAttribute('onclick') || '').indexOf(tabEl.id) !== -1) {
-                try { if (typeof window.switchTab === 'function') return window.switchTab(tabEl.id, btns[i]); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-hledani:switchToTab'); }
-                btns[i].click();
-                return;
-            }
-        }
+        if (tabEl.id === 'set-home') { try { if (typeof window.agSettingsHome === 'function') window.agSettingsHome(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-hledani:switchToTab'); } return; }
+        var btn = document.querySelector('#settings-modal .tab-btn[data-tab="' + tabEl.id + '"]');
+        try { if (typeof window.switchTab === 'function') return window.switchTab(tabEl.id, btn); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'nastaveni-hledani:switchToTab'); }
+        if (btn) btn.click();
     }
     function reveal(target) {
         var el = (typeof target === 'string') ? document.getElementById(target) : target;
@@ -195,7 +161,6 @@
 
         if (!isOpen() && typeof window.openSettings === 'function') { try { window.openSettings(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-hledani:reveal'); } }
         switchToTab(tabEl);
-        if (tabEl) tabEl.classList.add('ag-ns-all');            // ať není schovaný v „Zobrazit vše"
         var d = row.closest ? row.closest('details') : null;
         if (d) d.open = true;
         // Sekce Nastavení se dají sbalit (js/nastaveni-poradek.js). Nalezená volba
@@ -216,7 +181,7 @@
     function ensureBox() {
         if (document.getElementById(BOX_ID)) return;
         var m = modal(); if (!m) return;
-        var tabs = m.querySelector('.tab-buttons'); if (!tabs) return;
+        var home = document.getElementById('set-home'); if (!home || !home.parentNode) return;
         var wrap = document.createElement('div');
         wrap.id = BOX_ID;
         // Od 9. 8. 2026 se odsud hledá i MIMO nastavení (nástroje, Body, Kompas, menu
@@ -224,7 +189,7 @@
         // bylo hledání v appce jedno jediné a na místě, kde ho člověk čeká.
         wrap.innerHTML = '<input type="search" id="ag-ns-q" placeholder="Hledat v nastavení i v aplikaci…" autocomplete="off">'
             + '<div id="' + RES_ID + '" role="listbox"></div>';
-        tabs.parentNode.insertBefore(wrap, tabs);
+        home.parentNode.insertBefore(wrap, home);
         var inp = wrap.querySelector('#ag-ns-q');
         inp.addEventListener('input', function () { runSearch(inp.value); });
         inp.addEventListener('focus', buildIndex);
@@ -294,112 +259,11 @@
         }, 60);
     }
 
-    // ---- krátký pohled -------------------------------------------------------------------
-    function keepEl(el, tabId) {
-        var keep = KEEP[tabId];
-        if (keep === null) return true;                  // záložka se nekrátí
-        // OBECNÁ VÝJIMKA pro přisypané řádky: modul si může říct sám, že se
-        // schovávat nesmí, aniž by se jeho id muselo dopisovat do KEEP výš.
-        // Kvůli tomu to vzniklo: přepínač jazyka (js/jazyky.js) krátký pohled
-        // schoval — a člověk, který neumí česky, ho pak nemá jak najít, protože
-        // i tlačítko „Zobrazit vše" je česky. Takový řádek nesmí pod záhyb.
-        if (el.hasAttribute && el.hasAttribute('data-ns-keep')) return true;
-        if (!keep) keep = [];
-        for (var i = 0; i < keep.length; i++) {
-            if (el.id === keep[i]) return true;
-            if (el.querySelector && el.querySelector('#' + keep[i])) return true;
-        }
-        var kb = KEEP_BTN[tabId] || [];
-        var oc = el.getAttribute ? (el.getAttribute('onclick') || '') : '';
-        for (var j = 0; j < kb.length; j++) { if (oc.indexOf(kb[j]) !== -1) return true; }
-        return false;
-    }
-    function tagTab(tabEl) {
-        var tabId = tabEl.id;
-        if (KEEP[tabId] === null) return 0;
-        var kids = tabEl.children, hidden = 0;
-        var lastHead = null, headHasVisible = false;
-        // Samostatný <label> a jeho ovládací prvek jsou v index.html DVA sourozenci
-        // („Barevný odstín" + <select>). Rozhodnutí se proto odkládá na ten prvek
-        // a pak se použije i na popisek — jinak by zůstal jezdec bez názvu.
-        var pending = [];
-        function flush() { if (lastHead) lastHead.classList.toggle('ag-ns-adv', !headHasVisible); }
-        // popisek sdílí osud svého prvku, ale do počtu „+N" se nepočítá —
-        // uživatel by jinak čekal dvakrát tolik skrytých voleb, než jich je
-        function settle(adv) {
-            for (var p = 0; p < pending.length; p++) pending[p].classList.toggle('ag-ns-adv', adv);
-            pending = [];
-        }
-        for (var i = 0; i < kids.length; i++) {
-            var el = kids[i];
-            if (el.classList.contains('ag-ns-more') || el.id === BOX_ID) continue;
-            if (el.classList.contains('set-h')) { settle(true); flush(); lastHead = el; headHasVisible = false; continue; }
-            if (el.tagName === 'LABEL') { pending.push(el); continue; }
-            if (el.tagName === 'INPUT' && el.type === 'file') continue;
-            if (el.tagName === 'DATALIST') continue;
-            if (el.tagName === 'SELECT' && el.style.display === 'none') continue;
-            // „Pokročilé" zůstává vidět vždy — je to zavedená cesta k detailům
-            if (el.tagName === 'DETAILS') { settle(false); headHasVisible = true; el.classList.remove('ag-ns-adv'); continue; }
-            var adv = !keepEl(el, tabId);
-            el.classList.toggle('ag-ns-adv', adv);
-            settle(adv);                       // popisek sdílí osud svého prvku
-            if (adv) hidden++; else headHasVisible = true;
-        }
-        settle(true);                          // popisek na konci bez prvku = detail
-        flush();
-        return hidden;
-    }
-    function ensureMore(tabEl, hidden) {
-        var btn = tabEl.querySelector(':scope > .ag-ns-more');
-        if (KEEP[tabEl.id] === null || !hidden) { if (btn) btn.remove(); return; }
-        if (!btn) {
-            btn = document.createElement('button');
-            btn.type = 'button'; btn.className = 'ag-ns-more';
-            btn.addEventListener('click', function () {
-                tabEl.classList.toggle('ag-ns-all');
-                syncShort();
-            });
-        }
-        if (tabEl.lastElementChild !== btn) tabEl.appendChild(btn);
-        btn.textContent = tabEl.classList.contains('ag-ns-all')
-            ? '✓ Skrýt méně používané'
-            : 'Zobrazit vše (+' + hidden + ')';
-    }
-    function syncShort() {
-        document.body.classList.toggle('ag-ns-short', shortOn());
-        TABS.forEach(function (tb) {
-            var el = document.getElementById(tb.id);
-            if (!el) return;
-            var hidden = tagTab(el);
-            ensureMore(el, hidden);
-        });
-    }
-
-    // ---- přepínač „Krátké nastavení" ve Vzhledu ---------------------------------------------
-    function injectToggle() {
-        if (document.getElementById('ag-ns-setrow')) return;
-        var tab = document.getElementById('tab-vzhled'); if (!tab) return;
-        var row = document.createElement('div');
-        row.className = 'st-row'; row.id = 'ag-ns-setrow';
-        row.innerHTML = '<span class="st-lab">Krátké nastavení<small>ukázat jen často měněné; zbytek přes „Zobrazit vše" nebo hledání nahoře</small></span>'
-            + '<label class="st-sw"><input type="checkbox" id="ag-ns-short-cb"><span class="st-sw-face"></span></label>';
-        tab.appendChild(row);
-        var cb = row.querySelector('#ag-ns-short-cb');
-        cb.checked = shortOn();
-        cb.addEventListener('change', function () {
-            try { localStorage.setItem(SHORT_KEY, cb.checked ? '1' : '0'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-hledani:injectToggle'); }
-            syncShort();
-        });
-        // vlastní řádek zůstává vidět, jinak by ho krátký pohled schoval sám sebou
-        KEEP['tab-vzhled'].push('ag-ns-short-cb');
-    }
-
     // ---- život modulu -----------------------------------------------------------------------
     var _wasOpen = false;
     function tick() {
         try {
             injectStyles();
-            injectToggle();
             ensureBox();
             var open = isOpen();
             // svěží index při každém otevření. ⚠ NEMAZAT, když už člověk píše (12. 9. 2026):
@@ -407,9 +271,6 @@
             // první tick po otevření mu text z pole tiše smazal.
             if (open && !_wasOpen) { buildIndex(); var q0 = document.getElementById('ag-ns-q'); if (!(q0 && (document.activeElement === q0 || q0.value))) closeResults(); }
             _wasOpen = open;
-            syncShort();
-            var cb = document.getElementById('ag-ns-short-cb');
-            if (cb && cb.checked !== shortOn()) cb.checked = shortOn();
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'nastaveni-hledani:tick'); }
     }
     function init() {

@@ -154,9 +154,9 @@ async def beh(url):
         ok('A1 modul je nacteny, vychozi zapnuto, bez dat = stav chyba (tise, bez dialogu)', await cekej(page, "window.AGMapaVektor && AGMapaVektor.nastaveni().zap === true && AGMapaVektor.stav() === 'chyba' && !document.querySelector('.ag-dlg-overlay.open')", 60), await page.evaluate("() => window.AGMapaVektor && [AGMapaVektor.stav(), AGMapaVektor.nastaveni(), AGMapaVektor.chyba()]"))
         ok('A2 knihovny MapLibre se NEstahuji, dokud nejsou data (overeni dat je pred knihovnami)', await page.evaluate("() => !window.maplibregl && !document.querySelector('script[src*=\"maplibre-gl-5\"]')"))
         ok('A3 podklad je rastr OSM (.leaflet-tile v mape, zadne platno MapLibre)', await page.evaluate("() => !!document.querySelector('#map .leaflet-tile-pane img, #map .leaflet-tile') && !document.querySelector('#map .maplibregl-canvas')"))
-        await page.evaluate("() => { openSettings(); switchTab('tab-data', document.querySelectorAll('.tab-btn')[2]); }")
+        await page.evaluate("() => { openSettings(); switchTab('tab-mapa'); }")   # 18. 9. 2026 večer: Data mapy (vektor) je na stránce Mapa a body
         # 18. 9. 2026 (N2): prepinac a styl maji JEDNO misto — panel Mapa → Podklad; v Nastavení → Data je jen adresa dat
-        ok('A4 Nastaveni: prepinac mapy uz NENI ve Vzhledu, adresa PMTiles je v Data', await cekej(page, "!document.getElementById('s-mapa-vektor') && document.getElementById('s-mapa-url') && document.getElementById('tab-data').contains(document.getElementById('s-mapa-url')) && !document.getElementById('tab-vzhled').textContent.includes('Nová mapa (vektor')", 20))
+        ok('A4 Nastaveni: prepinac mapy uz NENI ve Vzhledu, adresa PMTiles je v Mapa a body', await cekej(page, "!document.getElementById('s-mapa-vektor') && document.getElementById('s-mapa-url') && document.getElementById('tab-mapa').contains(document.getElementById('s-mapa-url')) && !document.getElementById('tab-vzhled').textContent.includes('Nová mapa (vektor')", 20))
 
         # ================= B: zapnuti s fixture ====================================
         await page.evaluate("() => { document.getElementById('s-mapa-url').value = %s; document.getElementById('s-mapa-url').dispatchEvent(new Event('change')); }" % json.dumps(fixture))

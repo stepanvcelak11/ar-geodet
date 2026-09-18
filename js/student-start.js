@@ -71,13 +71,13 @@
         m.className = 'modal-overlay'; m.id = ID; m.style.zIndex = '199500';
         m.innerHTML = '<div class="modal-content">'
             + '<h3 style="color:var(--accent);margin-top:0;">' + t('Kdo jsi?') + '</h3>'
-            + '<p style="font-size:calc(13.5px * var(--ag-font-scale,1));opacity:.8;margin:0;">' + t('Appka se podle toho přerovná. Kdykoli to změníš v Nastavení → Profily.') + '</p>'
+            + '<p style="font-size:calc(13.5px * var(--ag-font-scale,1));opacity:.8;margin:0;">' + t('Appka se podle toho přerovná.') + '</p>'
             + '<div class="ss-grid">'
             + '<button type="button" class="ss-b" data-v="student"><span class="ic">S</span><span><h4>' + t('Student') + '</h4><p>' + t('Učím se geodézii (škola, kroužek). Nahoře dostanu Trenažér, cvičné úlohy, vzorce a poznávačku. Spolužáci a učitel jsou „parta" — přidám se kódem party, nebo ji založím.') + '</p></span></button>'
             + '<button type="button" class="ss-b" data-v="geodet"><span class="ic">G</span><span><h4>' + t('Geodet') + '</h4><p>' + t('Měřím a vytyčuju v terénu — sám, nebo jako zaměstnanec firmy. Tohle je volba pro většinu lidí. Do firmy se pak přihlásím kódem, který mi dá šéf (nic nezakládám).') + '</p></span></button>'
             + '<button type="button" class="ss-b" data-v="firma"><span class="ic">F</span><span><h4>' + t('Firma') + '</h4><p>' + t('Jsem šéf nebo správce: vedu lidi na zakázkách. Založím firmu, dostanu kód firmy pro kolegy, vidím jejich body a řídím účty a oprávnění.') + '</p></span></button>'
             + '</div>'
-            + '<p class="ss-pozn">' + t('Nevíš? Dej Geodet — jde to kdykoli změnit v Nastavení → Profily. Nic z toho nezamyká žádný nástroj, mění se jen pořadí a slova.') + '</p>'
+            + '<p class="ss-pozn">' + t('Nevíš? Dej Geodet. Nic z toho nezamyká žádný nástroj, mění se jen pořadí a slova.') + '</p>'
             + '<button type="button" class="btn btn-secondary" style="margin-top:auto;" id="ag-ss-later">' + t('Teď ne') + '</button>'
             + '</div>';
         document.body.appendChild(m);

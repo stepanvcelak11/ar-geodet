@@ -147,8 +147,8 @@
             close();
             try {
                 if (typeof createNewProject === 'function') createNewProject();
-                else toast('Novou zakázku založíš v Nastavení → Data.');
-            } catch (err) { toast('Novou zakázku založíš v Nastavení → Data.'); }
+                else toast('Novou zakázku založíš v Nastavení → Zakázka a data.');
+            } catch (err) { toast('Novou zakázku založíš v Nastavení → Zakázka a data.'); }
         };
     }
 

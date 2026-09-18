@@ -109,8 +109,10 @@
     // Přehled se skládá až při otevřené záložce Údržba (cache.keys() nad tisíci
     // dlaždicemi není zadarmo) — sleduje se přepnutí záložky, ne tik.
     function init() {
-        var btn = document.getElementById('tabbtn-udrzba');
+        // od 18. 9. 2026 večer: řádek kategorie Záloha a údržba (data-tab), dřív #tabbtn-udrzba
+        var btn = document.getElementById('tabbtn-udrzba') || document.querySelector('#settings-modal .tab-btn[data-tab="tab-udrzba"]');
         if (btn) btn.addEventListener('click', function () { setTimeout(render, 50); });
+        document.addEventListener('ag:nastaveni-strana', function (ev) { if (ev.detail && ev.detail.id === 'tab-udrzba') setTimeout(render, 50); });
         try {
             var tab = document.getElementById('tab-udrzba');
             if (tab && tab.classList.contains('active')) render();
