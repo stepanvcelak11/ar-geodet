@@ -77,9 +77,12 @@
     // ---- zrcadlení stavu do panelu ------------------------------------------------
     function syncBase() {
         var orto = curBase() === 'ortofoto';
-        var bo = $('btn-baselayer'), bm = $('ms-base-osm');
+        // třetí karta „Vektor" (js/mapa-panel.js, 17. 9. 2026): rastr Mapa svítí jen bez vektoru
+        var vek = false; try { vek = !orto && !!(window.AGMapaVektor && AGMapaVektor.stav() === 'zapnuto'); } catch (e) { vek = false; }
+        var bo = $('btn-baselayer'), bm = $('ms-base-osm'), bv = $('ms-base-vektor');
         if (bo) bo.classList.toggle('on', orto);
-        if (bm) bm.classList.toggle('on', !orto);
+        if (bm) bm.classList.toggle('on', !orto && !vek);
+        if (bv) bv.classList.toggle('on', vek);
     }
     function activeLayers() {
         var n = 0;

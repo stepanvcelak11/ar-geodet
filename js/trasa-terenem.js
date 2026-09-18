@@ -79,6 +79,9 @@
         function cara(line, c, sirkaM) { ctx.strokeStyle = barva(c); ctx.lineWidth = Math.max(1, sirkaM / bunka); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.beginPath(); line.forEach(function (q, i) { var p = px(q); if (i) ctx.lineTo(p.x, p.y); else ctx.moveTo(p.x, p.y); }); ctx.stroke(); }
         ctx.fillStyle = barva(CENA.open); ctx.fillRect(0, 0, W, H);
         var bbox = { s: s, w: w, n: n, e: e }, D = data(bbox), T = D.t, MV = window.AGMapaVektor, silnice = [], vchody = [];
+        // bez dlaždic a bez vektorové mapy na obrazovce není z čeho počítat — počkat na data (tik zkouší
+        // po 5 s, dojetí dlaždic spustí přepočet samo), ne kreslit „trasu" přes prázdný rastr
+        if (!T && !mapaNaObrazovce()) { _rastrDuvod = window.AGMapaData ? 'data mapy se stahují (bez signálu to nejde)' : 'data mapy nejsou k dispozici'; return null; }
         if (T) {
             // z dlaždic: plochy (po druzích, dražší přes levnější), voda, budovy, silnice
             try {
@@ -293,11 +296,13 @@
     function popisekProfilu(p) { return p ? ('↑' + Math.round(p.up) + ' ↓' + Math.round(p.down) + ' m' + (p.maxSklon >= 8 ? ' · sklon ' + Math.round(p.maxSklon) + ' %' : '')) : ''; }
 
     // ---- řízení -----------------------------------------------------------------------------------
-    function pripraveno() { return !!(st.zap && window.AGMapaVektor && AGMapaVektor.stav() === 'zapnuto' && window.AGHrany && AGMapaVektor.mapa() && AGMapaVektor.mapa().isStyleLoaded()); }
-    var _duvod = '';   // proč není trasa (diagnostika: AGTrasa.diag(), hláška při zapnutí cíle)
+    // připraveno = zapnuto + hrany + (dlaždice PMTiles nezávisle na podkladu NEBO vektorová mapa na obrazovce)
+    function mapaNaObrazovce() { try { var m = window.AGMapaVektor && AGMapaVektor.stav() === 'zapnuto' && AGMapaVektor.mapa(); return !!(m && m.isStyleLoaded()); } catch (e) { return false; } }
+    function pripraveno() { return !!(st.zap && window.AGHrany && window.AGMapaVektor && (window.AGMapaData || mapaNaObrazovce())); }
+    var _duvod = '', _rastrDuvod = '';   // proč není trasa (diagnostika: AGTrasa.diag(), hláška při zapnutí cíle)
     function spocitej(od, c) {
-        _duvod = '';
-        var r = rastr(od, c); if (!r) { _duvod = 'cíl je dál než ' + (MAX_STRANA / 1000) + ' km — vede přímka'; return null; }
+        _duvod = ''; _rastrDuvod = '';
+        var r = rastr(od, c); if (!r) { _duvod = _rastrDuvod || ('cíl je dál než ' + (MAX_STRANA / 1000) + ' km — vede přímka'); return null; }
         var vy = null; try { vy = vychod(r, od); } catch (e) { swallow(e, 'vychod'); }
         var start = vy ? vy.bod : od;
         var v = hledej(r, start, c); if (!v || v.body.length < 2) { _duvod = 'z místa, kde stojíš, podle mapy nevede průchod (' + r.zdroj + ')'; return null; }
@@ -306,9 +311,8 @@
     }
     function pripravenoProc() {
         if (!st.zap) return 'navigace podle terénu je vypnutá (Nastavení → AR & přesnost)';
-        if (!window.AGMapaVektor || AGMapaVektor.stav() !== 'zapnuto') return 'vektorová mapa není zapnutá (Nastavení → Vzhled → Nová mapa)';
-        if (!window.AGHrany) return 'modul hran se ještě načítá';
-        var m = AGMapaVektor.mapa(); if (!m || !m.isStyleLoaded()) return 'mapa se ještě načítá';
+        if (!window.AGHrany || !window.AGMapaVektor) return 'moduly mapy se ještě načítají';
+        if (!window.AGMapaData && !mapaNaObrazovce()) return 'data mapy se ještě načítají';
         return '';
     }
     function prepocitej(duvod) {

@@ -134,6 +134,8 @@
             baseLayers.osm = vrstva;
             if (bylOsm) vrstva.addTo(map);
             stav = 'zapnuto'; chybaText = '';
+            // zapnutí (i z 3D pohledu / panelu Mapa) = volba uživatele: jinak další nastav({styl}) mapu zase vypnulo (st.zap zůstalo false)
+            if (!st.zap) { st.zap = true; uloz(); }
             try { document.dispatchEvent(new CustomEvent('ag:mapa-vektor', { detail: { zap: true } })); } catch (e) { /* nic */ }
             return true;
         }).catch(function (e) {
@@ -248,5 +250,5 @@
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
-    window.AGMapaVektor = { nastav: nastav, zapni: zapni, vypni: vypni, stav: function () { return stav; }, chyba: function () { return chybaText; }, posledniChyba: function () { return _posledniChyba; }, mapa: mapa, budovy: budovy, plochy: plochy, cary: cary, url: url, varianta: varianta, nastaveni: function () { return { zap: st.zap, styl: st.styl, url: st.url }; }, protokol: function () { return knihovny._proto || null; } };
+    window.AGMapaVektor = { nastav: nastav, zapni: zapni, vypni: vypni, stav: function () { return stav; }, chyba: function () { return chybaText; }, posledniChyba: function () { return _posledniChyba; }, mapa: mapa, budovy: budovy, plochy: plochy, cary: cary, url: url, varianta: varianta, nastaveni: function () { return { zap: st.zap, styl: st.styl, url: st.url }; }, protokol: function () { return knihovny._proto || null; }, knihovny: knihovny, overData: overData };
 })();

@@ -170,6 +170,16 @@ async def beh(url):
             var lom = el.querySelector('.ag-cil-lom'), zn = el.querySelector('.ag-cil-znak'); var smer = AGTrasa.smer(); var me = { lat: userLat, lng: userLng }, c = arPoints.find(x => x.id === 'cil-d'); var primy = GeoCore.getBearing(me.lat, me.lng, c.lat, c.lng);
             return { paska: true, on: el.classList.contains('on'), lom: !!lom, lomZobrazen: lom && lom.style.display, smer: smer, primy: primy, znakTx: zn.style.transform, lomTx: lom && lom.style.transform, hd: currentHeading }; }""")
         ok('D5 paska: tecka dalsiho lomu existuje a je zobrazena, kdyz se lom lisi od primeho smeru', d5 and d5['paska'] and d5['lom'] and (d5['lomZobrazen'] == 'block' or abs(((d5['smer'] - d5['primy'] + 540) % 360) - 180) < 3), d5)
+        # trasa BEZ vektorove mapy na obrazovce (ortofoto / vypnuty vektor) — 17. 9. 2026 „porad primka"
+        d6 = await page.evaluate("""async () => { var origMapa = AGMapaVektor.mapa, origStav = AGMapaVektor.stav; AGMapaVektor.mapa = () => null; AGMapaVektor.stav = () => 'vypnuto';
+            var me = { lat: %f, lng: %f }; var c = { lat: me.lat - 0.0013, lng: me.lng - 0.0014 };
+            var p = { id: 'cil-o', name: 'CilO', lat: c.lat, lng: c.lng, type: 'custom', cat: 'CUSTOM', hidden: false }; arPoints.push(p); highlightedPointId = 'cil-o';
+            var t1 = AGTrasa.prepocitej('test'); var d1 = AGTrasa.diag();
+            for (var i = 0; i < 40 && !AGTrasa.trasa(); i++) await new Promise(r => setTimeout(r, 250));
+            var t2 = AGTrasa.trasa();
+            var out = { mapa: !!AGMapaVektor.mapa(), stav: AGMapaVektor.stav(), hned: !!t1, diag1: d1, po: t2 && { zdroj: t2.zdroj, lomu: t2.body.length, delka: t2.delka }, pripraven: AGMapaData.pripraven() };
+            highlightedPointId = null; arPoints.splice(arPoints.indexOf(p), 1); AGMapaVektor.mapa = origMapa; AGMapaVektor.stav = origStav; return out; }""" % (LAT, LNG))
+        ok('D6 vektorova mapa NENI na obrazovce (stav vypnuto, mapa null = ortofoto/rastr): trasa se presto spocita z dlazdic', d6 and not d6['mapa'] and d6['stav'] == 'vypnuto' and d6['po'] and d6['po']['zdroj'] == 'dlaždice' and d6['po']['lomu'] >= 2 and d6['pripraven'], d6)
         await page.evaluate("() => { viewMode = 'map'; try { applyViewMode(); } catch (e) {} highlightedPointId = null; ['cil-d', 'cil-in'].forEach(id => { var i = arPoints.findIndex(x => x.id === id); if (i >= 0) arPoints.splice(i, 1); }); }")
 
         # ================= E: prekazky =======================================================
@@ -184,15 +194,15 @@ async def beh(url):
         ok('E1 druhy prekazek (7), popisek v mape „V Jáma u vjezdu", vyber druhu → Stroj → dve klepnuti = prekazka druhu stroj', e1 and e1['druhy'] == 7 and any('Jáma u vjezdu' in t for t in e1['tips']) and e1['btns'] == 8 and e1['armed'] and e1['boxPryc'] and e1['posl'] and e1['posl']['druh'] == 'stroj' and e1['posl']['nazev'] == 'Stroj / bagr', e1)
         e2 = await page.evaluate("() => { window.agPrompt = (o) => Promise.resolve('Bagr Petra'); return new Promise(res => { AGOkoli.prejmenuj(AGOkoli.prekazky().length - 1); setTimeout(() => { var p = AGOkoli.prekazky()[AGOkoli.prekazky().length - 1]; var tips = [].slice.call(document.querySelectorAll('#map .ag-prek-tip')).map(t => t.textContent); res({ nazev: p.nazev, tip: tips.some(t => t.indexOf('Bagr Petra') >= 0) }); }, 100); }); }")
         ok('E2 prejmenovani prekazky se propise do popisku v mape', e2 and e2['nazev'] == 'Bagr Petra' and e2['tip'], e2)
-        e3 = await page.evaluate("""async () => { AGOkoli.kresliNovou(null, 'vykop'); var cont = map.getContainer(), r = cont.getBoundingClientRect(); var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-            var bar = document.getElementById('ag-prekazka-kresli'); var dragOff = !map.dragging.enabled();
+        e3 = await page.evaluate("""async () => { AGOkoli.kresliNovou(null, 'vykop'); var cont = document.getElementById('ag-prekazka-platno'), r = map.getContainer().getBoundingClientRect(); var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+            var bar = document.getElementById('ag-prekazka-kresli'); var dragOff = !!cont && cont.parentNode.id === 'map-controls';
             function ev(t, x, y) { cont.dispatchEvent(new MouseEvent(t, { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0 })); }
             ev('mousedown', cx + 40, cy); for (var a = 0; a <= 360; a += 10) { ev('mousemove', cx + 40 * Math.cos(a * Math.PI / 180), cy + 40 * Math.sin(a * Math.PI / 180)); } ev('mouseup', cx + 40, cy);
             await new Promise(res => setTimeout(res, 50));
             var p = AGOkoli.prekazky()[AGOkoli.prekazky().length - 1]; var c = map.containerPointToLatLng([r.width / 2, r.height / 2]);
             var uvnitr = AGOkoli.vyhodnot(c.lat, c.lng); var polyg = 0; map.eachLayer(l => { if (l instanceof L.Polygon && !(l instanceof L.Rectangle) && l.options.dashArray === '8,5') polyg++; });
-            return { bar: !!bar, dragOff: dragOff, body: p && p.body && p.body.length, druh: p && p.druh, uvnitr: uvnitr.prekazkaUvnitr, polyg: polyg, armed: AGOkoli.armed, barPryc: !document.getElementById('ag-prekazka-kresli'), dragZpet: map.dragging.enabled() }; }""")
-        ok('E3 prekazka obtazena prstem: lista s napovedou, posun mapy vypnuty, kruh 40 px = polygon (≥ 8 bodu), stred uvnitr, po ulozeni lista pryc a posun zpet', e3 and e3['bar'] and e3['dragOff'] and e3['body'] and e3['body'] >= 8 and e3['druh'] == 'vykop' and e3['uvnitr'] and e3['polyg'] >= 1 and not e3['armed'] and e3['barPryc'], e3)
+            return { bar: !!bar, dragOff: dragOff, body: p && p.body && p.body.length, druh: p && p.druh, uvnitr: uvnitr.prekazkaUvnitr, polyg: polyg, armed: AGOkoli.armed, barPryc: !document.getElementById('ag-prekazka-kresli'), platnoPryc: !document.getElementById('ag-prekazka-platno') }; }""")
+        ok('E3 prekazka obtazena prstem: lista s napovedou, platno v #map-controls (gesta mapy ho ignoruji), kruh 40 px = polygon (≥ 8 bodu), stred uvnitr, po ulozeni lista i platno pryc', e3 and e3['bar'] and e3['dragOff'] and e3['body'] and e3['body'] >= 8 and e3['druh'] == 'vykop' and e3['uvnitr'] and e3['polyg'] >= 1 and not e3['armed'] and e3['barPryc'] and e3['platnoPryc'], e3)
         await page.evaluate("() => { while (AGOkoli.prekazky().length) AGOkoli.smazPrekazku(0); }")
 
         # ================= F: 3D ==============================================================

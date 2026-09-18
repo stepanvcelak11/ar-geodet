@@ -2,6 +2,17 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 350,
+   "datum": "2026-09-18",
+   "nadpis": "Panel Mapa ve třech patrech, navigace terénem i na ortofotu, překážka na plátně",
+   "body": [
+    "<b>Panel Mapa a vrstvy</b> (tlačítko Vrstvy) má tři záložky: <b>Podklad</b> (karty Mapa · Vektor · Ortofoto se vzorkem, pod nimi otáčení mapy, styl vektorové mapy a země měření), <b>Vrstvy</b> (katastr, parcely, výkres, kvalita GPS, překážky, trasa terénem, vlastní podklad — přepínače) a <b>Nástroje</b> (Podívat se · Nakreslit a změřit · Data v telefonu). Vidět je vždy jen jedno patro, přejetím prstem přepneš vedlejší. Dočasné tlačítko „Zkouška mapy“ tím skončilo — všechno z něj má v panelu své místo.",
+    "<b>Trasa terénem funguje i na ortofotu a na rastru</b> — data budov a cest se berou z dlaždic mapy bez ohledu na to, co je zrovna vidět (dřív jen se zapnutou vektorovou mapou na obrazovce → přímka). Když data ještě nejsou, appka řekne, že se stahují, a trasu dopočítá sama.",
+    "<b>Překážka</b>: kreslí se na vlastní plátno nad mapou, takže se nepere s posunem, přiblížením ani dlouhým podržením (měření); dva prsty v režimu kreslení posouvají a zoomují mapu. Tvar je vidět během tahu i po uložení; zapnutá vrstva Překážky jde schovat.",
+    "Vektorová mapa zapnutá z 3D pohledu nebo z panelu zůstane zapnutá i po změně stylu (dřív se po přepnutí stylu vypnula)."
+   ]
+  },
+  {
    "v": 349,
    "datum": "2026-09-17",
    "nadpis": "Podle zpětné vazby z telefonu: 3D karta nad pohledem, chodníky na terénu, překážka prstem, náčrt v novém kabátě, Scrolluj a uč se",

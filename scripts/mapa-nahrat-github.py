@@ -61,7 +61,8 @@ def main():
             print('Mažu starý asset', name)
             api(tok, 'https://api.github.com/repos/%s/releases/assets/%d' % (REPO, a['id']), 'DELETE')
     print('Nahrávám %s (%.2f GB) jako %s …' % (src, size / 1024 ** 3, name))
-    r = subprocess.run(['curl', '-s', '-X', 'POST', '-H', 'Authorization: Bearer ' + tok, '-H', 'Content-Type: application/octet-stream',
+    # 'Expect:' vypíná 100-continue (17. 9. 2026: 933 MB viselo 9 min na „100" a spadlo); --max-time 40 min
+    r = subprocess.run(['curl', '-s', '-X', 'POST', '-H', 'Authorization: Bearer ' + tok, '-H', 'Content-Type: application/octet-stream', '-H', 'Expect:', '--max-time', '2400',
                         '--data-binary', '@' + src, 'https://uploads.github.com/repos/%s/releases/%d/assets?name=%s' % (REPO, rel['id'], name),
                         '-w', '\n%{http_code} %{time_total}s'], capture_output=True, text=True, encoding='utf-8')
     body, _, stat = r.stdout.rpartition('\n')

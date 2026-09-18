@@ -26,14 +26,27 @@
     var _cache = {}, _poradi = [];
 
     // ---- pmtiles: stejná instance, jakou používá mapa (Protocol drží cache podle adresy) --------
+    // ⚠ NEZÁVISLE NA PODKLADU (17. 9. 2026, uživatel: „navigace je pořád přímka i v základní mapě"):
+    //   dřív se data braly jen při ZAPNUTÉ vektorové mapě. Kdo jede na ortofotu nebo rastru, neměl
+    //   nic → přímka. Teď stačí knihovna pmtiles (dotáhne se sama) a adresa dat; MapLibre mapa
+    //   na obrazovce být nemusí.
+    var _zdroj = null, _zdrojUrl = null;
     function zdroj() {
         try {
-            if (!window.pmtiles || !window.AGMapaVektor || AGMapaVektor.stav() !== 'zapnuto') return null;
-            var url = AGMapaVektor.url(), proto = AGMapaVektor.protokol && AGMapaVektor.protokol();
+            if (!window.pmtiles || !window.AGMapaVektor) return null;
+            var url = AGMapaVektor.url(); if (!url) return null;
+            var proto = AGMapaVektor.protokol && AGMapaVektor.protokol();
             if (proto && proto.get(url)) return proto.get(url);
-            var p = new pmtiles.PMTiles(url); if (proto) proto.add(p);
-            return p;
+            if (_zdroj && _zdrojUrl === url) return _zdroj;
+            _zdroj = new pmtiles.PMTiles(url); _zdrojUrl = url; if (proto) proto.add(_zdroj);
+            return _zdroj;
         } catch (e) { swallow(e, 'zdroj'); return null; }
+    }
+    function zdrojAsync() {
+        var z = zdroj(); if (z) return Promise.resolve(z);
+        if (!window.AGMapaVektor || !AGMapaVektor.knihovny) return Promise.reject(new Error('modul vektorové mapy chybí'));
+        if (window.AGLite && AGLite.lite) return Promise.reject(new Error('režim slabší telefon'));
+        return AGMapaVektor.knihovny().then(function () { var z2 = zdroj(); if (!z2) throw new Error('data mapy nejsou k dispozici'); return z2; });
     }
 
     // ---- protobuf (jen to, co MVT potřebuje) ----------------------------------------------------
@@ -131,8 +144,7 @@
     function dlazdice(z, x, y) {
         var k = z + '/' + x + '/' + y;
         if (_cache[k]) return _cache[k];
-        var src = zdroj(); if (!src) return Promise.reject(new Error('vektorová mapa není zapnutá'));
-        var pr = src.getZxy(z, x, y).then(function (r) {
+        var pr = zdrojAsync().then(function (src) { return src.getZxy(z, x, y); }).then(function (r) {
             var d = (r && r.data) ? dekoduj(r.data, z, x, y) : { vrstvy: {}, z: z, x: x, y: y, prazdna: true };
             d.hotovo = true; return d;
         }).catch(function (e) { delete _cache[k]; throw e; });
@@ -166,5 +178,5 @@
     var _dlazdice = dlazdice;
     dlazdice = function (z, x, y) { var p = _dlazdice(z, x, y); if (!p._vysledek && !p._ceka) { p._ceka = true; p.then(function (d) { p._vysledek = d; }).catch(function () { /* z cache už je pryč */ }); } return p; };
 
-    window.AGMapaData = { oblast: oblast, oblastHned: oblastHned, dlazdice: dlazdice, tilesPro: tilesPro, dekoduj: dekoduj, Z: Z, cache: function () { return Object.keys(_cache).length; } };
+    window.AGMapaData = { oblast: oblast, oblastHned: oblastHned, dlazdice: dlazdice, tilesPro: tilesPro, dekoduj: dekoduj, Z: Z, cache: function () { return Object.keys(_cache).length; }, pripraven: function () { return !!zdroj(); }, zdrojAsync: zdrojAsync };
 })();

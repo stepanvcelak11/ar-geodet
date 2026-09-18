@@ -50,10 +50,13 @@
         prekazky.forEach(function (p) { var ring = prekazkaRings(p)[0]; for (var i = 0; i + 1 < ring.length; i++) { var q = AGHrany.prumet(ring[i], ring[i + 1], { lat: lat, lng: lng }); if (q && (!best || q.d < best.d)) best = { d: q.d, p: p }; } });
         return best;
     }
+    var _vidPrek = true;
+    function viditelne(v) { if (v == null) return _vidPrek; _vidPrek = !!v; kresliPrekazky(); return _vidPrek; }
     function kresliPrekazky() {
         var m = getMap(); if (!m) return;
         if (!_grp) _grp = L.layerGroup().addTo(m);
         _grp.clearLayers();
+        if (!_vidPrek) return;
         try { AG.style('ag-prekazka-style', ['.ag-prek-tip{background:rgba(255,255,255,.95);border:1.5px solid #333;border-radius:999px;padding:2px 8px 2px 3px;color:#111;font:700 11px/1.2 var(--font-ui,system-ui),sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.35);white-space:nowrap;}',
             '.ag-prek-tip::before{display:none;}', '.ag-prek-tip i{display:inline-flex;width:16px;height:16px;border-radius:50%;align-items:center;justify-content:center;font:800 10px/1 sans-serif;font-style:normal;color:#111;margin-right:4px;vertical-align:-3px;}'].join('\n')); } catch (e) { swallow(e, 'css'); }
         var esc = function (s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s); };
@@ -97,46 +100,71 @@
     function zacniKresleni(d) {
         var mp = getMap(); if (!mp) return;
         ukoncitKresleni();
-        var cont = mp.getContainer();
-        _kres = { pts: [], line: null, active: false, multi: false, d: d, cont: cont, drag: mp.dragging.enabled() };
-        try { mp.dragging.disable(); } catch (e) { /* nic */ }
-        try { AG.style('ag-prekazka-kresli-style', ['#ag-prekazka-kresli{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 76px);z-index:11990;display:flex;align-items:center;gap:10px;padding:7px 8px 7px 12px;border-radius:999px;font:600 12px/1.2 var(--font-ui,system-ui),sans-serif;color:#fff;background:rgba(20,24,28,.94);border:1px solid rgba(255,255,255,.2);box-shadow:0 4px 16px rgba(0,0,0,.45);max-width:92vw;}',
+        // PLÁTNO NAD MAPOU uvnitř #map-controls: vlastní gesta appky (posun, pinch, dlouhé podržení =
+        // měření) prvky v #map-controls ignorují, takže se s kreslením neperou (17. 9. 2026: „bojuje to
+        // s gesty a nevidím tvar"). Jeden prst kreslí, dva prsty = posun a zoom mapy (děláme tu sami).
+        var host = document.getElementById('map-controls') || mp.getContainer().parentNode;
+        var platno = document.createElement('div'); platno.id = 'ag-prekazka-platno';
+        try { AG.style('ag-prekazka-kresli-style', ['#ag-prekazka-platno{position:absolute;inset:0;z-index:-1;touch-action:none;cursor:crosshair;pointer-events:auto;}',   /* -1 = pod panelem a tlačítky #map-controls (má vlastní stacking context), nad mapou */
+            '#ag-prekazka-kresli{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 76px);z-index:11990;display:flex;align-items:center;gap:10px;padding:7px 8px 7px 12px;border-radius:999px;font:600 12px/1.2 var(--font-ui,system-ui),sans-serif;color:#fff;background:rgba(20,24,28,.94);border:1px solid rgba(255,255,255,.2);box-shadow:0 4px 16px rgba(0,0,0,.45);max-width:92vw;}',
             '#ag-prekazka-kresli i{display:inline-flex;width:16px;height:16px;border-radius:50%;align-items:center;justify-content:center;font:800 10px/1 sans-serif;font-style:normal;color:#111;}',
-            '#ag-prekazka-kresli button{border:0;border-radius:999px;padding:6px 10px;background:rgba(255,255,255,.14);color:#fff;font:600 12px/1 inherit;}',
-            '#map.ag-kresli-prekazku{cursor:crosshair;}'].join('\n')); } catch (e) { swallow(e, 'css'); }
+            '#ag-prekazka-kresli button{border:0;border-radius:999px;padding:6px 10px;background:rgba(255,255,255,.14);color:#fff;font:600 12px/1 inherit;}'].join('\n')); } catch (e) { swallow(e, 'css'); }
+        host.appendChild(platno);
+        _kres = { pts: [], line: null, active: false, multi: false, d: d, platno: platno, pinch: null };
         var bar = document.createElement('div'); bar.id = 'ag-prekazka-kresli';
-        bar.innerHTML = '<i style="background:' + d.col + '">' + d.zn + '</i><span>Obtáhni tvar jedním prstem (dva prsty = mapa)</span><button type="button" id="ag-prekazka-zrusit">Zrušit</button>';
+        bar.innerHTML = '<i style="background:' + d.col + '">' + d.zn + '</i><span>Obtáhni tvar jedním prstem · dva prsty = mapa</span><button type="button" id="ag-prekazka-zrusit">Zrušit</button>';
         document.body.appendChild(bar);
         bar.querySelector('button').addEventListener('click', function () { ukoncitKresleni(); _sber = null; AGOkoli.armed = false; });
-        cont.classList.add('ag-kresli-prekazku');
-        _kres.h = { s: function (e) { start(e); }, m: function (e) { move(e); }, e: function (e) { end(e); } };
-        cont.addEventListener('touchstart', _kres.h.s, { passive: false }); cont.addEventListener('touchmove', _kres.h.m, { passive: false }); cont.addEventListener('touchend', _kres.h.e, { passive: false }); cont.addEventListener('touchcancel', _kres.h.e, { passive: false });
-        cont.addEventListener('mousedown', _kres.h.s); cont.addEventListener('mousemove', _kres.h.m); cont.addEventListener('mouseup', _kres.h.e);
-        function ll(e) { var t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e; var r = cont.getBoundingClientRect(); return mp.containerPointToLatLng([t.clientX - r.left, t.clientY - r.top]); }
+        function ll(x, y) {
+            try { if (typeof window.agScreenToLatLng === 'function') { var q = window.agScreenToLatLng(x, y); if (q) return q; } } catch (e) { /* níž */ }
+            var r = mp.getContainer().getBoundingClientRect(); return mp.containerPointToLatLng([x - r.left, y - r.top]);
+        }
+        function tk(e) { return e.touches ? e.touches : null; }
+        function xy(e) { var t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e; return { x: t.clientX, y: t.clientY }; }
+        function zrusTah() { _kres.active = false; _kres.pts = []; if (_kres.line) { try { mp.removeLayer(_kres.line); } catch (x) { /* nic */ } _kres.line = null; } }
         function start(e) {
             if (!_kres) return;
-            if (e.touches && e.touches.length > 1) { _kres.multi = true; _kres.active = false; _kres.pts = []; if (_kres.line) { try { mp.removeLayer(_kres.line); } catch (x) { /* nic */ } _kres.line = null; } return; }
+            var t = tk(e);
+            if (t && t.length >= 2) { zrusTah(); _kres.multi = true; _kres.pinch = { d0: Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY), z0: mp.getZoom(), cx: (t[0].clientX + t[1].clientX) / 2, cy: (t[0].clientY + t[1].clientY) / 2 }; e.preventDefault(); return; }
             if (e.type === 'mousedown' && e.button !== 0) return;
-            _kres.active = true; _kres.multi = false; _kres.pts = [ll(e)]; _kres.px0 = { x: (e.touches ? e.touches[0].clientX : e.clientX), y: (e.touches ? e.touches[0].clientY : e.clientY) }; _kres.tah = 0;
+            var p = xy(e);
+            _kres.active = true; _kres.multi = false; _kres.pts = [ll(p.x, p.y)]; _kres.px0 = p; _kres.tah = 0;
+            if (e.cancelable) e.preventDefault();
         }
         function move(e) {
-            if (!_kres || !_kres.active || _kres.multi) return;
-            if (e.touches && e.touches.length > 1) { start(e); return; }
-            var q = ll(e), last = _kres.pts[_kres.pts.length - 1];
-            var cx = e.touches ? e.touches[0].clientX : e.clientX, cy = e.touches ? e.touches[0].clientY : e.clientY;
-            _kres.tah = Math.max(_kres.tah, Math.hypot(cx - _kres.px0.x, cy - _kres.px0.y));
-            if (AGHrany.dist(last, q) >= 0.5) { _kres.pts.push(q); if (!_kres.line) _kres.line = L.polyline([], { color: d.col, weight: 3, dashArray: '6,4', interactive: false }).addTo(mp); _kres.line.setLatLngs(_kres.pts.map(function (x) { return [x.lat, x.lng]; })); }
-            if (_kres.tah > 8) { e.preventDefault(); }
+            if (!_kres) return;
+            var t = tk(e);
+            if (t && t.length >= 2) {
+                if (!_kres.multi) start(e);
+                var pc = _kres.pinch; if (!pc) return;
+                var dd = Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY), cx = (t[0].clientX + t[1].clientX) / 2, cy = (t[0].clientY + t[1].clientY) / 2;
+                try {
+                    var nz = Math.max(mp.getMinZoom(), Math.min(mp.getMaxZoom(), pc.z0 + Math.log2(dd / pc.d0)));
+                    mp.panBy([pc.cx - cx, pc.cy - cy], { animate: false }); pc.cx = cx; pc.cy = cy;
+                    if (Math.abs(nz - mp.getZoom()) > 0.02) mp.setZoomAround(mp.containerPointToLatLng([cx - mp.getContainer().getBoundingClientRect().left, cy - mp.getContainer().getBoundingClientRect().top]), nz, { animate: false });
+                } catch (x) { /* nic */ }
+                e.preventDefault(); return;
+            }
+            if (!_kres.active || _kres.multi) return;
+            var p = xy(e), q = ll(p.x, p.y), last = _kres.pts[_kres.pts.length - 1];
+            _kres.tah = Math.max(_kres.tah, Math.hypot(p.x - _kres.px0.x, p.y - _kres.px0.y));
+            if (AGHrany.dist(last, q) >= 0.3) { _kres.pts.push(q); if (!_kres.line) _kres.line = L.polyline([], { color: d.col, weight: 3, dashArray: '6,4', interactive: false }).addTo(mp); _kres.line.setLatLngs(_kres.pts.map(function (x) { return [x.lat, x.lng]; })); }
+            if (e.cancelable) e.preventDefault();
         }
         function end(e) {
             if (!_kres) return;
-            if (e.touches && e.touches.length > 0) return;
-            if (_kres.multi) { _kres.multi = false; return; }
+            var t = tk(e);
+            if (t && t.length > 0) { if (_kres.multi && t.length < 2) { _kres.multi = false; _kres.pinch = null; } return; }
+            if (_kres.multi) { _kres.multi = false; _kres.pinch = null; return; }
             if (!_kres.active) return;
             _kres.active = false;
             var pts = _kres.pts; if (_kres.line) { try { mp.removeLayer(_kres.line); } catch (x) { /* nic */ } _kres.line = null; }
             var obvod = 0; for (var i = 1; i < pts.length; i++) obvod += AGHrany.dist(pts[i - 1], pts[i]);
-            if (pts.length < 4 || obvod < 3 || _kres.tah < 12) return;   // klepnutí nebo drobný pohyb → nechat starému take()
+            if (pts.length < 4 || obvod < 3 || _kres.tah < 12) {
+                // klepnutí = starý obdélník dvěma klepnutími (take), jinak nic
+                if (_kres.tah < 12 && pts.length) { var q0 = pts[0]; take(q0.lat, q0.lng); }
+                return;
+            }
             _kres.justDrew = Date.now();
             var body = zjednodus(pts, 0.4);
             if (body.length < 3) return;
@@ -146,12 +174,15 @@
             try { window.agInfo && window.agInfo('Překážka uložena — trasa ji obejde, hlídač varuje. Klepnutím na ni ji přejmenuješ nebo smažeš.'); } catch (x) { /* nic */ }
             try { document.dispatchEvent(new CustomEvent('ag:prekazky')); } catch (x) { /* nic */ }
         }
+        _kres.h = { s: start, m: move, e: end };
+        platno.addEventListener('touchstart', start, { passive: false }); platno.addEventListener('touchmove', move, { passive: false }); platno.addEventListener('touchend', end, { passive: false }); platno.addEventListener('touchcancel', end, { passive: false });
+        platno.addEventListener('mousedown', start); platno.addEventListener('mousemove', move); platno.addEventListener('mouseup', end);
     }
     function ukoncitKresleni() {
         if (!_kres) return;
         var k = _kres; _kres = null;
-        try { var mp = getMap(); if (k.line) mp.removeLayer(k.line); if (k.drag) mp.dragging.enable(); } catch (e) { /* nic */ }
-        try { ['touchstart', 'mousedown'].forEach(function (t) { k.cont.removeEventListener(t, k.h.s); }); ['touchmove', 'mousemove'].forEach(function (t) { k.cont.removeEventListener(t, k.h.m); }); ['touchend', 'touchcancel', 'mouseup'].forEach(function (t) { k.cont.removeEventListener(t, k.h.e); }); k.cont.classList.remove('ag-kresli-prekazku'); } catch (e) { /* nic */ }
+        try { var mp = getMap(); if (k.line) mp.removeLayer(k.line); } catch (e) { /* nic */ }
+        try { if (k.platno) k.platno.remove(); } catch (e) { /* nic */ }
         var bar = document.getElementById('ag-prekazka-kresli'); if (bar) bar.remove();
     }
     // Ramer–Douglas–Peucker v metrech (tvar z prstu má stovky bodů)
@@ -328,7 +359,7 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
     window.AGOkoli = {
-        armed: false, take: take, kresliNovou: kresliNovou, smazPrekazku: smazPrekazku, prejmenuj: prejmenuj, DRUHY: DRUHY, vyberDruh: vyberDruh, ukoncitKresleni: ukoncitKresleni, kresleni: function () { return _kres; }, prekazky: function () { return prekazky; }, prekazkaRings: prekazkaRings,
+        armed: false, take: take, kresliNovou: kresliNovou, smazPrekazku: smazPrekazku, prejmenuj: prejmenuj, DRUHY: DRUHY, vyberDruh: vyberDruh, ukoncitKresleni: ukoncitKresleni, kresleni: function () { return _kres; }, viditelne: viditelne, prekazky: function () { return prekazky; }, prekazkaRings: prekazkaRings,
         pridejPrekazku: function (a, b, nazev, druhKlic) { prekazky.push(Array.isArray(a) ? { body: a, nazev: nazev || 'Překážka', druh: druhKlic || null, ts: Date.now() } : { a: a, b: b, nazev: nazev || 'Překážka', druh: druhKlic || null, ts: Date.now() }); ulozPrekazky(); kresliPrekazky(); try { document.dispatchEvent(new CustomEvent('ag:prekazky')); } catch (e) { /* nic */ } },
         vyhodnot: vyhodnot, shrn: shrn, stav: function () { return _stav; }, tik: tik, popisProBod: popisProBod, nastav: function (o) { if (o && o.zap != null) st.zap = !!o.zap; uloz(); }, zapnuto: function () { return st.zap; }, LIMIT: LIMIT
     };

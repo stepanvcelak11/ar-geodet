@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v349';   // 3D karta nad pohledem + chodniky na terenu, prekazka prstem, nacrt 2. kolo + stromy z ortofota, Scrolluj a uc se, trasa diagnostika
+const SHELL_CACHE = 'argeodet-shell-v350';   // panel Mapa ve trech patrech, trasa i bez vektorove mapy na obrazovce, prekazka na platne
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=349',
-    './css/style.css?v=349',
-    './css/vylepseni.css?v=349',
+    './css/tokens.css?v=350',
+    './css/style.css?v=350',
+    './css/vylepseni.css?v=350',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -158,7 +158,7 @@ const ASSETS_TO_CACHE = [
     './js/trasa-terenem.js',
     './js/mapa-data.js',
     './js/zdroje-zemi.js',
-    './js/zkouska-mapy.js',
+    './js/mapa-panel.js',
     './js/parcela.js',
     './js/tools-registry.js',
     './js/student-start.js',
