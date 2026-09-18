@@ -101,8 +101,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=368">
-    <link rel="stylesheet" href="css/style.css?v=368">
+    <link rel="stylesheet" href="css/tokens.css?v=369">
+    <link rel="stylesheet" href="css/style.css?v=369">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -233,7 +233,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=368">
+    <link rel="stylesheet" href="css/vylepseni.css?v=369">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -1405,6 +1405,9 @@
     <!-- ÚŘEDNÍ BODY NA SLOVENSKU (18. 9. 2026): ŠTS / ŠNS / ŠGS / ŠPS z WMS GKÚ SR (GetFeatureInfo geo+json),
          když je země měření SK. Odpojitelné: smaž tento řádek + js/body-sk.js. -->
     <script type="ag/lazy" data-src="js/body-sk.js"></script>
+    <!-- ÚŘEDNÍ BODY V CIZINĚ, KDE JE STÁT ZVEŘEJŇUJE (18. 9. 2026 noc): Švýcarsko (swisstopo identify),
+         Nizozemsko (Kadaster RDinfo přes PDOK WFS). Jinde stát body nedává → jen vlastní body. Odpojitelné: smaž řádek + js/body-svet.js. -->
+    <script type="ag/lazy" data-src="js/body-svet.js"></script>
     <!-- PANEL „MAPA" VE TŘECH PATRECH (17. 9. 2026): záložky Podklad · Vrstvy · Nástroje, karty podkladu,
          přepínače Překážky / Trasa terénem. (Dočasné tlačítko „Zkouška mapy" tím skončilo.) -->
     <script type="ag/lazy" data-src="js/mapa-panel.js"></script>

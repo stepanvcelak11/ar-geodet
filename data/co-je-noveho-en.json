@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 369,
+      "datum": "2026-09-18",
+      "nadpis": "Official points in Switzerland and the Netherlands; the app says where the state publishes points",
+      "body": [
+        "<b>Official points in Switzerland and the Netherlands.</b> Where the state provides geodetic control as open data, the app downloads it around you by itself — besides Czechia (ČÚZK) and Slovakia (GKÚ SR) now <b>Switzerland</b> (swisstopo: Lagefixpunkte LFP1/LFP2, Höhenfixpunkte HFP1/HFP2 with LN02 height, point protocol as PDF) and the <b>Netherlands</b> (Kadaster RDinfo: Rijksdriehoek points with a photo of the point). On the map, in AR and in guidance they behave like the Czech ones; the point card has a Source row.",
+        "<b>Where there are no points, the app says so.</b> Poland, Austria, Germany, France and other states do not publish geodetic control (their geoportals require a key or payment) — after crossing a border the message says directly “The state does not publish official points here — the map shows only your own points” and the Points panel lists the four countries where it is public. So people abroad do not expect points to appear.",
+        "Honestly: in those countries surveying today is done with a rover using corrections from the national network (SAPOS, APOS, ASG-EUPOS…) and the surveyor sets up their own points — the app works there with your own points, the drawing and the calibrations."
+      ]
+    },
+    {
       "v": 368,
       "datum": "2026-09-18",
       "nadpis": "The app speaks French, own map for all of Europe, weather by country",

@@ -40,6 +40,7 @@
 
     var _origOrto = null, _origKat = null, _aktualni = 'CZ', _vrstvaOrto = null;
     function toast(m) { try { if (typeof window.agInfo === 'function') window.agInfo(m); } catch (e) { /* nic */ } }
+    function T(t) { try { return (window.AGJazyk && AGJazyk.t) ? AGJazyk.t(t) : t; } catch (e) { return t; } }
     function vrstvaZ(z) {
         if (z.typ === 'xyz') return L.tileLayer(z.url, { maxZoom: 22, maxNativeZoom: z.maxNativeZoom || 18, zIndex: 1, attribution: z.attribution });
         return L.tileLayer.wms(z.url, { layers: z.layers, format: z.format, version: '1.3.0', transparent: z.format === 'image/png', maxZoom: 22, zIndex: 1, attribution: z.attribution });
@@ -65,7 +66,13 @@
         if (!tise) {
             var zeme = (window.AGSour && AGSour.ZEME[kod]) ? AGSour.ZEME[kod].nazev : kod;
             if (kod === 'CZ') toast('Podklady zpět na ČÚZK (ortofoto, katastr).');
-            else toast('Podklady pro ' + zeme + ': ortofoto ' + (orto.nazev) + (kat ? ', katastr ' + kat.nazev : ' — katastr pro tuhle zemi nemám (parcely ČÚZK tu nejsou)') + '.');
+            else {
+                // úřední body: jen kde je stát zveřejňuje (SK body-sk.js, CH/NL body-svet.js) — ať to lidi
+                // z ciziny vědí a nečekají, že body v mapě naskočí (18. 9. 2026 noc)
+                var uz = (kod === 'SK') ? 'GKÚ SR' : (window.AGBodySvet && AGBodySvet.zdrojPro(kod));
+                toast('Podklady pro ' + zeme + ': ortofoto ' + (orto.nazev) + (kat ? ', katastr ' + kat.nazev : ' — katastr pro tuhle zemi nemám (parcely ČÚZK tu nejsou)') + '. '
+                    + (uz ? T('Úřední body tu stát zveřejňuje') + ' (' + uz + ') — ' + T('appka je stáhne kolem tebe.') : T('Úřední body tu stát nezveřejňuje — v mapě jsou jen tvoje body (Nový bod, import, výkres).')));
+            }
         }
         try { document.dispatchEvent(new CustomEvent('ag:zdroje', { detail: { kod: kod, orto: orto, katastr: kat } })); } catch (e) { /* nic */ }
         return true;

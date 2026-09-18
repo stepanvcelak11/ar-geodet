@@ -12,6 +12,10 @@ u"""Regrese k v368 (18. 9. 2026) — FRANCOUZŠTINA + mapa Evropy po zemích + p
       vrací <kod>-N.pmtiles podle polohy, nerozdělená <kod>.pmtiles; scripts/mapa-evropa.py existuje.
   P1  js/pocasi.js: regionální modely mají 'zeme' a modelyZde() je mimo tu zemi vynechá
       (AROME France se pro Prahu nesmí volat).
+  S1  js/body-svet.js (v369): úřední body ve Švýcarsku (swisstopo identify) a Nizozemsku (PDOK RDinfo)
+      — s podstrčenou odpovědí služby (tvar zachycený 18. 9. 2026) simulace CH/NL vloží body do arPoints
+      se správnou kategorií, polohou (LV95 → WGS84) a zdrojem; panel Body a hláška po přejezdu hranice
+      říkají, kde stát body zveřejňuje (CZ, SK, CH, NL) a kde ne.
 
 Spouští se z kořene repa (vlastní port 9368, vlastní server):
     python scripts/test_v368.py
@@ -116,6 +120,48 @@ async def beh(url):
         ok('P1 Praha: ALADIN ano, AROME France ne', 'chmi_aladin_cz_1km' in pm['cz'] and 'meteofrance_arome_france_hd' not in pm['cz'], pm['cz'])
         ok(u'P1 Paříž: AROME France ano, ALADIN ne', 'meteofrance_arome_france_hd' in pm['fr'] and 'chmi_aladin_cz_1km' not in pm['fr'], pm['fr'])
         ok('P1 Bergen: MET Norway ano, globální modely všude', 'metno_nordic' in pm['no'] and 'ecmwf_ifs025' in pm['no'] and 'ecmwf_ifs025' in pm['fr'], pm['no'])
+        # S1 úřední body CH / NL (podstrčené odpovědi služeb — tvar zachycený naostro 18. 9. 2026)
+        CH_ODP = {'results': [
+            {'featureId': 'CH030000116611667410', 'layerBodId': 'ch.swisstopo.fixpunkte-lfp1', 'geometry': {'x': 2600000.0, 'y': 1200000.0, 'spatialReference': {'wkid': 2056}},
+             'attributes': {'punktname': 'Koordinaten-Ursprung', 'nummer': '11667410', 'n95': 1200000.0, 'e95': 2600000.0, 'h02': 556.68, 'proto_url': 'https://api3.geo.admin.ch/featureattachments/x.pdf', 'ordnung': 'LFP1 3. Ordnung', 'kennzeichnung': 'Granitpfeiler', 'zugang': None}},
+            {'featureId': 'CH030000116611667519', 'layerBodId': 'ch.swisstopo.fixpunkte-lfp2', 'geometry': {'x': 2600057.8, 'y': 1199360.5, 'spatialReference': {'wkid': 2056}},
+             'attributes': {'status': 'verifiziert', 'koordinate': '2600057.843 / 1199360.496', 'hoehe_geom_m': None, 'url_punktprotokoll': 'https://fpds2.ch/protokolle/y.pdf', 'punktzeichen': 'Turm', 'kanton': 'BE', 'label': 'CH030000116611667519'}},
+            {'featureId': 'CH0200000BES_35', 'layerBodId': 'ch.swisstopo.fixpunkte-hfp1', 'geometry': {'x': 2599647.9, 'y': 1198791.8, 'spatialReference': {'wkid': 2056}},
+             'attributes': {'punktname': 'BES 35', 'e95': 2599647.942, 'n95': 1198791.758, 'h02': 521.77, 'proto_url': 'https://api3.geo.admin.ch/featureattachments/z.pdf', 'ordnung': 'HFP1.HFP1', 'kennzeichnung': 'Bolzen l+t, horizontal'}}]}
+        NL_ODP = {'type': 'FeatureCollection', 'features': [
+            {'type': 'Feature', 'id': 'punten.1', 'properties': {'blad': '250', 'punt': 111, 'bladdeel': 'A', 'benaming': 'H.K. Westertoren Amsterdam', 'ingerekend': 'Ja', 'xrd': 120698.0, 'yrd': 487526.0, 'gps': 0, 'afbeelding': 'https://www.nsgi.nl/iv-api/rdinfo/images/250/250111e.jpg'},
+             'geometry': {'type': 'Point', 'coordinates': [4.883482, 52.374535]}},
+            {'type': 'Feature', 'id': 'punten.2', 'properties': {'blad': '250', 'punt': 999, 'benaming': 'GPS kernnet', 'xrd': 121000.0, 'yrd': 487000.0, 'gps': 1},
+             'geometry': {'type': 'Point', 'coordinates': [4.8880, 52.3698]}}]}
+        async def route_ch(route):
+            try: await route.fulfill(status=200, content_type='application/json', body=json.dumps(CH_ODP).encode('utf-8'), headers={'Access-Control-Allow-Origin': '*'})
+            except Exception: pass
+        async def route_nl(route):
+            try: await route.fulfill(status=200, content_type='application/json', body=json.dumps(NL_ODP).encode('utf-8'), headers={'Access-Control-Allow-Origin': '*'})
+            except Exception: pass
+        await page.route('**/api3.geo.admin.ch/**', route_ch)
+        await page.route('**/service.pdok.nl/**', route_nl)
+        await page.evaluate("() => { const sc = document.createElement('script'); sc.src = 'js/body-svet.js?t=' + Date.now(); document.head.appendChild(sc); }")
+        await page.wait_for_timeout(1200)
+        s1 = await page.evaluate("""async () => { if (!window.AGBodySvet) return null; AGZemeSimulace('CH'); await new Promise(r => setTimeout(r, 700)); var n = await AGBodySvet.obnov(true);
+            var ch = arPoints.filter(p => p.zdroj === 'swisstopo'); var tb = ch.find(p => p.name === '11667410'), z = ch.find(p => p.cat === 'ZHB'), h = ch.find(p => p.cat === 'NIVEL');
+            var out = { kod: AGSour.kod(), n: n, ch: ch.length, tb: tb && { lat: tb.lat, lng: tb.lng, cat: tb.cat, druh: tb.druh, vyska: tb.vyska, link: tb.rawData.GEODETICKE_UDAJE, vrstva: tb.vrstva }, z: z && { name: z.name, ku: z.ku, lat: z.lat }, h: h && { name: h.name, vyska: h.vyska, type: h.type },
+                zdrojCH: AGBodySvet.zdrojPro('CH'), zdrojPL: AGBodySvet.zdrojPro('PL'), zdrojSK: AGBodySvet.zdrojPro('SK') };
+            AGZemeSimulace('CH'); return out; }""")
+        ok(u'S1 CH: 3 body swisstopo (LFP1 → TB, LFP2 → ZHB, HFP1 → NIVEL s výškou), poloha z LV95 (počátek LV95 = 46,95108 N, 7,43863 E ve WGS84, ne Bessel lat_0/lon_0)', s1 and s1['kod'] == 'CH' and s1['ch'] == 3 and s1['tb'] and s1['tb']['cat'] == 'TB' and abs(s1['tb']['lat'] - 46.95108) < 0.0003 and abs(s1['tb']['lng'] - 7.43863) < 0.0003
+           and s1['tb']['vyska'] == 556.68 and s1['tb']['link'] and s1['tb']['vrstva'] == 'CH' and s1['z'] and s1['z']['name'] == '11667519' and s1['z']['ku'] == 'BE' and s1['h'] and s1['h']['vyska'] == 521.77 and s1['h']['type'] == 'vyskovy', s1)
+        ok(u'S1 zdrojPro: CH swisstopo, SK GKÚ SR, PL nic', s1 and s1['zdrojCH'] == 'swisstopo' and s1['zdrojSK'] == u'GKÚ SR' and not s1['zdrojPL'], s1 and (s1['zdrojCH'], s1['zdrojPL']))
+        s2 = await page.evaluate("""async () => { AGZemeSimulace('NL'); await new Promise(r => setTimeout(r, 700)); var n = await AGBodySvet.obnov(true);
+            var nl = arPoints.filter(p => p.zdroj === 'Kadaster RDinfo'); var a = nl.find(p => p.name === '250111'), b = nl.find(p => p.name === '250999');
+            var out = { kod: AGSour.kod(), n: n, nl: nl.length, a: a && { cat: a.cat, lat: a.lat, lng: a.lng, nazev: a.nazevBodu, link: Object.values(a.rawData).find(v => /^http/.test(String(v))) }, b: b && b.cat };
+            AGZemeSimulace('NL'); return out; }""")
+        ok(u'S1 NL: 2 body RDinfo (bez GPS → ZHB, GPS kernnet → TB), název a foto bodu', s2 and s2['kod'] == 'NL' and s2['nl'] == 2 and s2['a'] and s2['a']['cat'] == 'ZHB' and abs(s2['a']['lat'] - 52.3745) < 0.001 and s2['a']['nazev'] == 'H.K. Westertoren Amsterdam' and s2['a']['link'] and s2['b'] == 'TB', s2)
+        await page.evaluate("() => { for (var i = arPoints.length - 1; i >= 0; i--) if (arPoints[i].zdroj === 'swisstopo' || arPoints[i].zdroj === 'Kadaster RDinfo') arPoints.splice(i, 1); }")
+        gr = io.open(os.path.join(ROOT, 'js/grafika.js'), encoding='utf-8').read()
+        ok(u'S1 panel Body říká, kde stát body zveřejňuje (CZ, SK, CH, NL)', u'Švýcarsko (swisstopo), Nizozemsko (Kadaster)' in gr)
+        zz = io.open(os.path.join(ROOT, 'js/zdroje-zemi.js'), encoding='utf-8').read()
+        ok(u'S1 hláška po přejezdu hranice: úřední body ano/ne', u'Úřední body tu stát zveřejňuje' in zz and u'Úřední body tu stát nezveřejňuje' in zz and 'AGBodySvet.zdrojPro' in zz)
+        ok('S1 index.html načítá js/body-svet.js', 'js/body-svet.js' in io.open(os.path.join(ROOT, 'index.html'), encoding='utf-8').read())
         ok('F3 bez chyb stránky', not chyby, chyby[:3])
         await br.close()
 

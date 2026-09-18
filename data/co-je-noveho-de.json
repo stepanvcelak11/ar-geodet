@@ -2,6 +2,16 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 369,
+      "datum": "2026-09-18",
+      "nadpis": "Amtliche Punkte in der Schweiz und den Niederlanden; die App sagt, wo der Staat Punkte veröffentlicht",
+      "body": [
+        "<b>Amtliche Punkte in der Schweiz und den Niederlanden.</b> Wo der Staat das Festpunktfeld als offene Daten bereitstellt, lädt die App es um dich herum selbst — neben Tschechien (ČÚZK) und der Slowakei (GKÚ SR) neu die <b>Schweiz</b> (swisstopo: Lagefixpunkte LFP1/LFP2, Höhenfixpunkte HFP1/HFP2 mit Höhe LN02, Punktprotokoll als PDF) und die <b>Niederlande</b> (Kadaster RDinfo: Rijksdriehoekspunkte mit Foto des Punkts). In der Karte, in AR und in der Navigation verhalten sie sich wie die tschechischen; die Punktkarte hat eine Zeile Quelle.",
+        "<b>Wo es keine Punkte gibt, sagt es die App.</b> Polen, Österreich, Deutschland, Frankreich und weitere Staaten veröffentlichen das Festpunktfeld nicht (Geoportale verlangen Schlüssel oder Bezahlung) — nach dem Grenzübertritt sagt die Meldung direkt „Der Staat veröffentlicht hier keine amtlichen Punkte — in der Karte sind nur deine Punkte“ und das Panel Punkte nennt die vier Länder, wo es öffentlich ist. Damit Leute im Ausland nicht erwarten, dass Punkte erscheinen.",
+        "Ehrlich: in diesen Ländern wird heute mit dem Rover und Korrekturen aus dem staatlichen Netz (SAPOS, APOS, ASG-EUPOS…) gemessen und der Vermesser legt seine Punkte selbst an — die App arbeitet dort mit eigenen Punkten, der Zeichnung und den Kalibrierungen."
+      ]
+    },
+    {
       "v": 368,
       "datum": "2026-09-18",
       "nadpis": "Die App spricht Französisch, eigene Karte für ganz Europa, Wetter nach Land",

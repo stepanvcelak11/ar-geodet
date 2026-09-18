@@ -2,6 +2,16 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 369,
+      "datum": "2026-09-18",
+      "nadpis": "Points officiels en Suisse et aux Pays-Bas ; l’appli dit où l’État publie les points",
+      "body": [
+        "<b>Points officiels en Suisse et aux Pays-Bas.</b> Là où l’État fournit le canevas géodésique en données ouvertes, l’appli le télécharge autour de toi toute seule — à côté de la Tchéquie (ČÚZK) et de la Slovaquie (GKÚ SR), désormais la <b>Suisse</b> (swisstopo : Lagefixpunkte LFP1/LFP2, Höhenfixpunkte HFP1/HFP2 avec altitude LN02, protocole du point en PDF) et les <b>Pays-Bas</b> (Kadaster RDinfo : points Rijksdriehoek avec photo du point). Sur la carte, en RA et dans le guidage, ils se comportent comme les tchèques ; la fiche du point a une ligne Source.",
+        "<b>Là où il n’y a pas de points, l’appli le dit.</b> La Pologne, l’Autriche, l’Allemagne, la France et d’autres États ne publient pas le canevas (les géoportails demandent une clé ou un paiement) — après le passage de la frontière, le message dit directement « L’État ne publie pas de points officiels ici — la carte ne montre que tes points » et le panneau Points liste les quatre pays où c’est public. Pour que les gens à l’étranger ne s’attendent pas à voir apparaître des points.",
+        "Honnêtement : dans ces pays, on mesure aujourd’hui au rover avec les corrections du réseau national (SAPOS, APOS, ASG-EUPOS…) et le géomètre crée ses propres points — l’appli y fonctionne avec tes points, le dessin et les calibrages."
+      ]
+    },
+    {
       "v": 368,
       "datum": "2026-09-18",
       "nadpis": "L’appli parle français, carte propre de toute l’Europe, météo par pays",

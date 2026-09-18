@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 369,
+      "datum": "2026-09-18",
+      "nadpis": "Punkty urzędowe w Szwajcarii i Holandii; aplikacja mówi, gdzie państwo publikuje punkty",
+      "body": [
+        "<b>Punkty urzędowe w Szwajcarii i Holandii.</b> Tam, gdzie państwo udostępnia osnowę jako dane otwarte, aplikacja pobiera ją wokół ciebie sama — obok Czech (ČÚZK) i Słowacji (GKÚ SR) teraz <b>Szwajcaria</b> (swisstopo: Lagefixpunkte LFP1/LFP2, Höhenfixpunkte HFP1/HFP2 z wysokością LN02, protokół punktu jako PDF) i <b>Holandia</b> (Kadaster RDinfo: punkty Rijksdriehoek ze zdjęciem punktu). Na mapie, w AR i w nawigacji zachowują się jak czeskie; karta punktu ma wiersz Źródło.",
+        "<b>Gdzie punktów nie ma, aplikacja to powie.</b> Polska, Austria, Niemcy, Francja i inne państwa nie publikują osnowy (geoportale wymagają klucza lub opłaty) — po przekroczeniu granicy komunikat mówi wprost „Państwo nie publikuje tu punktów urzędowych — na mapie są tylko twoje punkty”, a panel Punkty wymienia cztery kraje, gdzie jest to publiczne. Żeby ludzie za granicą nie oczekiwali, że punkty się pojawią.",
+        "Uczciwie: w tych krajach mierzy się dziś roverem z poprawkami z sieci państwowej (SAPOS, APOS, ASG-EUPOS…), a geodeta zakłada punkty sam — aplikacja działa tam z własnymi punktami, rysunkiem i kalibracjami."
+      ]
+    },
+    {
       "v": 368,
       "datum": "2026-09-18",
       "nadpis": "Aplikacja mówi po francusku, własna mapa całej Europy, pogoda według kraju",

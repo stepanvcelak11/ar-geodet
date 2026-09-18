@@ -1686,6 +1686,7 @@ if ('serviceWorker' in navigator) {
             const f3 = (n) => n.toFixed(3).replace('.', ',');
             let h = '';
             if (pt.druh) h += row('Druh', esc(pt.druh));
+            if (pt.zdroj && pt.vrstva && pt.vrstva !== 'CZ') h += row('Zdroj', esc(pt.zdroj));   // cizí bodová pole (SK, CH, NL)
             if (pt.list && (pt.cat === 'TB' || pt.cat === 'ZHB')) h += row('Triangulační list', esc(pt.list) + ' <span style="opacity:.7;">· bod ' + esc(pt.name) + '</span>');
             if (pt.cislo12) h += row('Úplné číslo', `<span style="font-family:var(--font-mono,monospace);letter-spacing:.04em;">${esc(pt.cislo12)}</span>`);
             if (pt.ku || pt.okres) h += row('Kat. území', esc([pt.ku, pt.okres].filter(Boolean).join(' · ')));

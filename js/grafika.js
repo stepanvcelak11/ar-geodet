@@ -1062,7 +1062,7 @@
                 if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
                 return true;
             }).map(pt => ({ pt, d: getDistance(userLat, userLng, pt.lat, pt.lng) })).sort((a, b) => a.d - b.d).slice(0, 50);
-            if (!pts.length) { var _mimoCR = false; try { _mimoCR = !!(window.AGSour && !AGSour.jeCZ()); } catch (e) { _mimoCR = false; } listDiv.innerHTML = '<p style="text-align:center; opacity:0.7;">' + (_mimoCR ? 'Žádné body v dosahu. Mimo Česko nejsou úřední body ČÚZK — na Slovensku se stahují body GKÚ SR (ŠTS, ŠNS, ŠGS), jinde jen vlastní body (Nový bod, import).' : 'Žádné body v dosahu.') + '</p>'; return; }
+            if (!pts.length) { var _mimoCR = false; try { _mimoCR = !!(window.AGSour && !AGSour.jeCZ()); } catch (e) { _mimoCR = false; } listDiv.innerHTML = '<p style="text-align:center; opacity:0.7;">' + (_mimoCR ? 'Žádné body v dosahu. Úřední body se stahují jen tam, kde je stát zveřejňuje jako data: Česko (ČÚZK), Slovensko (GKÚ SR), Švýcarsko (swisstopo), Nizozemsko (Kadaster). Jinde jsou v mapě jen vlastní body (Nový bod, import, výkres).' : 'Žádné body v dosahu.') + '</p>'; return; }
             pts.forEach(({ pt, d }) => {
                 let typBodu = "Podrobný polohový bod"; if (pt.cat === 'TB') typBodu = "Trigonometrický bod"; if (pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if (pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if (pt.cat === 'TIHA') typBodu = "Tíhový bod"; if (pt.cat === 'CUSTOM') typBodu = "Vlastní bod";
                 if (agZHodinek(pt)) typBodu = "Bod z hodinek";

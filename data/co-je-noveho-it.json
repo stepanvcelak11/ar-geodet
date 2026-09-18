@@ -2,6 +2,16 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 369,
+      "datum": "2026-09-18",
+      "nadpis": "Punti ufficiali in Svizzera e Paesi Bassi; l’app dice dove lo stato pubblica i punti",
+      "body": [
+        "<b>Punti ufficiali in Svizzera e Paesi Bassi.</b> Dove lo stato fornisce la rete geodetica come dati aperti, l’app la scarica da sola intorno a te — oltre a Cechia (ČÚZK) e Slovacchia (GKÚ SR), ora <b>Svizzera</b> (swisstopo: Lagefixpunkte LFP1/LFP2, Höhenfixpunkte HFP1/HFP2 con quota LN02, protocollo del punto in PDF) e <b>Paesi Bassi</b> (Kadaster RDinfo: punti Rijksdriehoek con foto del punto). Sulla mappa, in RA e nella navigazione si comportano come quelli cechi; la scheda del punto ha una riga Fonte.",
+        "<b>Dove i punti non ci sono, l’app lo dice.</b> Polonia, Austria, Germania, Francia e altri stati non pubblicano la rete geodetica (i geoportali chiedono chiave o pagamento) — dopo il confine il messaggio dice subito «Lo stato non pubblica qui punti ufficiali — sulla mappa ci sono solo i tuoi punti» e il pannello Punti elenca i quattro paesi dove è pubblica. Così chi è all’estero non si aspetta che i punti compaiano.",
+        "Onestamente: in quei paesi oggi si misura con il rover e le correzioni della rete statale (SAPOS, APOS, ASG-EUPOS…) e il geometra crea i propri punti — l’app lì funziona con i tuoi punti, il disegno e le calibrazioni."
+      ]
+    },
+    {
       "v": 368,
       "datum": "2026-09-18",
       "nadpis": "L’app parla francese, mappa propria di tutta l’Europa, meteo per paese",

@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 369,
+   "datum": "2026-09-18",
+   "nadpis": "Úřední body ve Švýcarsku a Nizozemsku; appka říká, kde stát body zveřejňuje",
+   "body": [
+    "<b>Úřední body ve Švýcarsku a Nizozemsku.</b> Kde stát bodové pole dává jako otevřená data, appka si ho kolem tebe stáhne sama — vedle Česka (ČÚZK) a Slovenska (GKÚ SR) nově <b>Švýcarsko</b> (swisstopo: Lagefixpunkte LFP1/LFP2, Höhenfixpunkte HFP1/HFP2 s výškou LN02, protokol bodu jako PDF) a <b>Nizozemsko</b> (Kadaster RDinfo: Rijksdriehoekspunty s fotkou bodu). V mapě, v AR i v navigaci se chovají jako české; karta bodu má řádek Zdroj.",
+    "<b>Kde body nejsou, appka to řekne.</b> Polsko, Rakousko, Německo, Francie a další státy bodové pole nezveřejňují (geoportály chtějí klíč nebo platbu) — po přejezdu hranice hláška rovnou říká „Úřední body tu stát nezveřejňuje — v mapě jsou jen tvoje body“ a panel Body vypíše čtyři země, kde je to veřejné. Ať lidi z ciziny nečekají, že body naskočí.",
+    "Poctivě: v těch zemích se dnes měří roverem s korekcemi ze státní sítě (SAPOS, APOS, ASG-EUPOS…) a body si geodet zakládá sám — appka tam funguje s vlastními body, výkresem a kalibracemi."
+   ]
+  },
+  {
    "v": 368,
    "datum": "2026-09-18",
    "nadpis": "Appka umí francouzsky, vlastní mapa pro celou Evropu, počasí po zemích",
