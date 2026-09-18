@@ -2,6 +2,16 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 370,
+      "datum": "2026-09-18",
+      "nadpis": "Fiche « Tu mesures en » : dès le démarrage à l’étranger, pas seulement après la frontière",
+      "body": [
+        "<b>Qui télécharge l’appli à l’étranger le sait tout de suite.</b> Après un démarrage dans un pays autre que la Tchéquie (une fois par pays), la fiche <b>Tu mesures en : …</b> apparaît — système de coordonnées et altitudes du pays, si l’État <b>publie ici des points officiels</b> (oui : Tchéquie, Slovaquie, Suisse, Pays-Bas — l’appli les télécharge ; non : la carte ne montre que tes points), s’il y a un cadastre et quelle orthophoto. Avant, le pays n’était annoncé qu’après la frontière, par deux messages à la suite — maintenant c’est une seule fiche, aussi au passage.",
+        "La fiche attend que l’appli tourne et que rien ne la recouvre (porte, guide de la première mesure, autre dialogue). Tu la rouvres à tout moment dans <b>Réglages → Chantier et données → Pays de mesure → Ce que l’appli sait faire ici</b> ; sous le choix du pays, une phrase dit où le canevas est public.",
+        "La simulation d’un pays étranger signale par une bulle, pas un dialogue (il recouvrait la fiche), et n’affirme plus qu’« il n’y a pas de points ČÚZK ici » — en Suisse et aux Pays-Bas, il y en a."
+      ]
+    },
+    {
       "v": 369,
       "datum": "2026-09-18",
       "nadpis": "Points officiels en Suisse et aux Pays-Bas ; l’appli dit où l’État publie les points",

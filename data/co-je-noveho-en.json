@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 370,
+      "datum": "2026-09-18",
+      "nadpis": "“You are measuring in” card: right after the start abroad, not only after crossing a border",
+      "body": [
+        "<b>Whoever downloads the app abroad learns it right away.</b> After starting in a country other than Czechia (once per country) the card <b>You are measuring in: …</b> pops up — the coordinate system and heights of that country, whether the state <b>publishes official points</b> here (yes: Czechia, Slovakia, Switzerland, Netherlands — the app downloads them; no: the map shows only your own points), whether there is a cadastre and which orthophoto. Before, the country was announced only after crossing a border, with two messages in a row — now it is one card, also when crossing.",
+        "The card waits until the app is running and nothing covers it (gate, first-measurement guide, another dialog). You can open it again any time in <b>Settings → Job and data → Measurement country → What the app can do here</b>; under the country picker there is a line saying where geodetic control is public.",
+        "The foreign-country simulation reports with a toast, not a dialog (it overrode the card), and no longer claims that “there are no ČÚZK points here” — in Switzerland and the Netherlands there are."
+      ]
+    },
+    {
       "v": 369,
       "datum": "2026-09-18",
       "nadpis": "Official points in Switzerland and the Netherlands; the app says where the state publishes points",

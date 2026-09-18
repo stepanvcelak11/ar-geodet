@@ -2,6 +2,16 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 370,
+      "datum": "2026-09-18",
+      "nadpis": "Karte „Du misst in“: gleich nach dem Start im Ausland, nicht erst nach dem Grenzübertritt",
+      "body": [
+        "<b>Wer die App im Ausland lädt, erfährt es sofort.</b> Nach dem Start in einem anderen Land als Tschechien (einmal pro Land) erscheint die Karte <b>Du misst in: …</b> — Koordinatensystem und Höhen des Landes, ob der Staat hier <b>amtliche Punkte veröffentlicht</b> (ja: Tschechien, Slowakei, Schweiz, Niederlande — die App lädt sie; nein: in der Karte sind nur deine Punkte), ob es Kataster gibt und welches Orthofoto. Vorher wurde das Land nur nach dem Grenzübertritt gemeldet, mit zwei Meldungen hintereinander — jetzt ist es eine Karte, auch beim Übertritt.",
+        "Die Karte wartet, bis die App läuft und nichts sie verdeckt (Tor, Anleitung zur ersten Messung, anderer Dialog). Jederzeit wieder zu öffnen unter <b>Einstellungen → Auftrag und Daten → Messland → Was die App hier kann</b>; unter der Länderauswahl steht ein Satz, wo das Festpunktfeld öffentlich ist.",
+        "Die Simulation eines fremden Landes meldet per Bubble statt Dialog (der überdeckte die Karte) und behauptet nicht mehr, dass es „hier keine ČÚZK-Punkte gibt“ — in der Schweiz und den Niederlanden gibt es welche."
+      ]
+    },
+    {
       "v": 369,
       "datum": "2026-09-18",
       "nadpis": "Amtliche Punkte in der Schweiz und den Niederlanden; die App sagt, wo der Staat Punkte veröffentlicht",

@@ -64,23 +64,72 @@
         } catch (e) { swallow(e, 'katastr'); }
         _aktualni = kod;
         if (!tise) {
-            var zeme = (window.AGSour && AGSour.ZEME[kod]) ? AGSour.ZEME[kod].nazev : kod;
             if (kod === 'CZ') toast('Podklady zpět na ČÚZK (ortofoto, katastr).');
-            else {
-                // úřední body: jen kde je stát zveřejňuje (SK body-sk.js, CH/NL body-svet.js) — ať to lidi
-                // z ciziny vědí a nečekají, že body v mapě naskočí (18. 9. 2026 noc)
-                var uz = (kod === 'SK') ? 'GKÚ SR' : (window.AGBodySvet && AGBodySvet.zdrojPro(kod));
-                toast('Podklady pro ' + zeme + ': ortofoto ' + (orto.nazev) + (kat ? ', katastr ' + kat.nazev : ' — katastr pro tuhle zemi nemám (parcely ČÚZK tu nejsou)') + '. '
-                    + (uz ? T('Úřední body tu stát zveřejňuje') + ' (' + uz + ') — ' + T('appka je stáhne kolem tebe.') : T('Úřední body tu stát nezveřejňuje — v mapě jsou jen tvoje body (Nový bod, import, výkres).')));
-            }
+            else uvod(kod, true);   // karta „Měříš v zemi" místo dvou hlášek (18. 9. 2026 noc)
         }
+        if (tise && kod !== 'CZ') naplanujUvod(kod);   // start appky rovnou v cizině: ukázat jednou na zemi
         try { document.dispatchEvent(new CustomEvent('ag:zdroje', { detail: { kod: kod, orto: orto, katastr: kat } })); } catch (e) { /* nic */ }
         return true;
+    }
+    // ---- KARTA „MĚŘÍŠ V ZEMI X" (18. 9. 2026 noc) ----------------------------------------------
+    // Uživatel: „chci tu aplikaci mít po celé Evropě — když si ji stáhnou v cizině, ať o tom vědí,
+    // aniž by museli jet přes hranice." Dřív se o zemi říkalo jen PO PŘEJEZDU hranice (dvě hlášky
+    // za sebou); kdo appku spustil poprvé v Polsku, nedozvěděl se nic. Teď se po startu v cizí zemi
+    // (jednou na zemi, klíč agZemeUvod_v1) i při každém přejezdu ukáže jedna karta: souřadnice a výšky
+    // té země, jestli tu stát ZVEŘEJŇUJE ÚŘEDNÍ BODY (CZ ČÚZK, SK GKÚ, CH swisstopo, NL Kadaster —
+    // jinde ne: v mapě jsou jen vlastní body), jestli mám katastr a jaké ortofoto. Čeká, až appka
+    // běží (body.app-started) a není otevřený jiný dialog, ať nepřekryje bránu nebo průvodce.
+    var UVOD_KLIC = 'agZemeUvod_v1', _uvodTik = null;
+    function uvodVideno() { try { return JSON.parse(localStorage.getItem(UVOD_KLIC) || '{}') || {}; } catch (e) { return {}; } }
+    function uvodZapis(kod) { try { var v = uvodVideno(); v[kod] = Date.now(); localStorage.setItem(UVOD_KLIC, JSON.stringify(v)); } catch (e) { /* nic */ } }
+    function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
+    function uvodHtml(kod) {
+        var z = (window.AGSour && AGSour.ZEME[kod]) || null, jm = z ? z.nazev : kod;
+        var c = null; try { c = window.AGSour && AGSour.crs ? AGSour.crs() : null; } catch (e) { c = null; }
+        var zd = ZDROJE[kod] || {}, orto = zd.orto || ESRI, kat = zd.katastr || null;
+        var uz = (kod === 'SK') ? 'GKÚ SR' : (window.AGBodySvet && AGBodySvet.zdrojPro(kod));
+        var row = function (l, v, ok) { return '<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid rgba(128,128,128,.18);"><span style="opacity:.75;min-width:96px;">' + esc(l) + '</span><span' + (ok === false ? ' style="color:var(--warning,#e6a100);"' : (ok === true ? ' style="color:var(--accent);"' : '')) + '>' + v + '</span></div>'; };
+        var h = '<div style="text-align:left;">';
+        if (c) h += row(T('Souřadnice'), esc(c.nazev) + (c.osy ? ' <span style="opacity:.7;">(' + esc(c.osy.join(', ')) + ')</span>' : ''));
+        if (z && z.vyska) h += row(T('Výšky'), esc(z.vyska.nazev));
+        h += row(T('Úřední body'), uz ? esc(T('ano') + ' — ' + uz) + '<br><span style="opacity:.8;font-size:.92em;">' + esc(T('appka je stáhne kolem tebe.')) + '</span>'
+            : esc(T('ne')) + '<br><span style="opacity:.8;font-size:.92em;">' + esc(T('Úřední body tu stát nezveřejňuje — v mapě jsou jen tvoje body (Nový bod, import, výkres).')) + '</span>', !!uz);
+        h += row(T('Katastr'), kat ? esc(T('ano') + ' — ' + kat.nazev) : esc(T('ne — parcely tu nemám')), !!kat);
+        h += row(T('Ortofoto'), esc(orto.nazev));
+        h += '</div><p style="margin:10px 0 0;font-size:.92em;opacity:.85;">' + esc(T('Úřední body zveřejňují jako data jen Česko, Slovensko, Švýcarsko a Nizozemsko. Jinde se dnes měří roverem ze státní sítě a body si geodet zakládá sám — appka tu pracuje s tvými body, výkresem a kalibracemi.')) + '</p>';
+        h += '<p style="margin:8px 0 0;font-size:.85em;opacity:.65;">' + esc(T('Zemi změníš v Nastavení → Zakázka a data → Země měření.')) + '</p>';
+        return { title: T('Měříš v zemi') + ': ' + jm, html: h };
+    }
+    function uvod(kod, vzdy) {
+        if (!kod || kod === 'CZ') return false;
+        if (!vzdy && uvodVideno()[kod]) return false;
+        var k = uvodHtml(kod);
+        uvodZapis(kod);
+        try {
+            if (typeof window.agAlert === 'function') window.agAlert({ title: k.title, message: k.html, okText: T('Rozumím') });
+            else toast(k.title + '. ' + k.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
+        } catch (e) { swallow(e, 'uvod'); }
+        return true;
+    }
+    // po startu: počkat, až appka běží a nic jiného neleží přes obrazovku (brána, průvodce, dialog)
+    function naplanujUvod(kod) {
+        if (!kod || kod === 'CZ' || uvodVideno()[kod] || _uvodTik) return;
+        var od = Date.now();
+        _uvodTik = setInterval(function () {
+            try {
+                var k2 = window.AGSour ? AGSour.kod() : kod;
+                if (k2 === 'CZ' || uvodVideno()[k2]) { clearInterval(_uvodTik); _uvodTik = null; return; }
+                var bezi = document.body && document.body.classList.contains('app-started');
+                var prekryv = document.querySelector('.ag-dlg-overlay.open, .modal-overlay.open, .modal.open, #ag-gate, #ag-login, #ag-pm, #agtp-block, #agtp-card');
+                if (bezi && !prekryv) { clearInterval(_uvodTik); _uvodTik = null; uvod(k2, false); }
+                else if (Date.now() - od > 180000) { clearInterval(_uvodTik); _uvodTik = null; }   // do 3 min, jinak příště
+            } catch (e) { swallow(e, 'uvodTik'); }
+        }, 2000);
     }
     function podleZeme(tise) { try { var k = window.AGSour ? AGSour.kod() : 'CZ'; if (k !== _aktualni) prepni(k, tise); } catch (e) { swallow(e, 'podleZeme'); } }
     document.addEventListener('ag:zeme', function () { podleZeme(false); });
     function start() { var idle = window.requestIdleCallback || function (f) { return setTimeout(f, 1200); }; idle(function () { podleZeme(true); }); }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
-    window.AGZdroje = { ZDROJE: ZDROJE, ESRI: ESRI, prepni: prepni, podleZeme: podleZeme, aktualni: function () { return _aktualni; }, ma: function (kod) { return !!ZDROJE[kod]; } };
+    window.AGZdroje = { ZDROJE: ZDROJE, ESRI: ESRI, prepni: prepni, podleZeme: podleZeme, aktualni: function () { return _aktualni; }, ma: function (kod) { return !!ZDROJE[kod]; }, uvod: uvod, uvodHtml: uvodHtml, naplanujUvod: naplanujUvod, UVOD_KLIC: UVOD_KLIC };
 })();

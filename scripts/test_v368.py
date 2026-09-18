@@ -16,6 +16,9 @@ u"""Regrese k v368 (18. 9. 2026) — FRANCOUZŠTINA + mapa Evropy po zemích + p
       — s podstrčenou odpovědí služby (tvar zachycený 18. 9. 2026) simulace CH/NL vloží body do arPoints
       se správnou kategorií, polohou (LV95 → WGS84) a zdrojem; panel Body a hláška po přejezdu hranice
       říkají, kde stát body zveřejňuje (CZ, SK, CH, NL) a kde ne.
+  S2  Karta „Měříš v zemi X" (zdroje-zemi.js uvod/naplanujUvod): po přejezdu hranice jedna karta místo dvou
+      hlášek (souřadnice, výšky, úřední body ano/ne, katastr, ortofoto); po startu appky rovnou v cizině
+      se ukáže jednou na zemi (agZemeUvod_v1), až appka běží a nic ji nepřekrývá.
 
 Spouští se z kořene repa (vlastní port 9368, vlastní server):
     python scripts/test_v368.py
@@ -160,8 +163,31 @@ async def beh(url):
         gr = io.open(os.path.join(ROOT, 'js/grafika.js'), encoding='utf-8').read()
         ok(u'S1 panel Body říká, kde stát body zveřejňuje (CZ, SK, CH, NL)', u'Švýcarsko (swisstopo), Nizozemsko (Kadaster)' in gr)
         zz = io.open(os.path.join(ROOT, 'js/zdroje-zemi.js'), encoding='utf-8').read()
-        ok(u'S1 hláška po přejezdu hranice: úřední body ano/ne', u'Úřední body tu stát zveřejňuje' in zz and u'Úřední body tu stát nezveřejňuje' in zz and 'AGBodySvet.zdrojPro' in zz)
+        ok(u'S1 hláška po přejezdu hranice: úřední body ano/ne', 'function uvodHtml' in zz and u'Úřední body tu stát nezveřejňuje' in zz and 'AGBodySvet.zdrojPro' in zz and 'naplanujUvod' in zz)
         ok('S1 index.html načítá js/body-svet.js', 'js/body-svet.js' in io.open(os.path.join(ROOT, 'index.html'), encoding='utf-8').read())
+        # S2 karta „Měříš v zemi" — přejezd (simulace PL) a start v cizině (naplanujUvod)
+        s3 = await page.evaluate("""async () => { localStorage.removeItem(AGZdroje.UVOD_KLIC); AGZemeSimulace('PL'); await new Promise(r => setTimeout(r, 900));
+            var ov = document.querySelector('.ag-dlg-overlay.open'); var t = ov && ov.querySelector('.ag-dlg-title').textContent, m = ov && ov.querySelector('.ag-dlg-msg').textContent;
+            var videno = JSON.parse(localStorage.getItem(AGZdroje.UVOD_KLIC) || '{}');
+            if (ov) ov.querySelector('.ag-dlg-ok').click(); await new Promise(r => setTimeout(r, 300));
+            AGZemeSimulace('PL'); await new Promise(r => setTimeout(r, 500));
+            var ov2 = document.querySelector('.ag-dlg-overlay.open'); if (ov2) ov2.querySelector('.ag-dlg-ok').click();
+            return { t: t, m: (m || '').slice(0, 400), pl: !!videno.PL, kod: AGSour.kod() }; }""")
+        ok(u'S2 přejezd do Polska: jedna karta „Měříš v zemi: Polsko" s úředními body NE, souřadnicemi a katastrem', s3 and s3['t'] and u'Polsko' in s3['t'] and u'nezveřejňuje' in s3['m'] and 'PL-2000' in s3['m'] and 'KIEG' in s3['m'] and s3['pl'], s3)
+        s4 = await page.evaluate("""async () => { localStorage.removeItem(AGZdroje.UVOD_KLIC); AGZemeSimulace('CH'); await new Promise(r => setTimeout(r, 900));
+            var ov = document.querySelector('.ag-dlg-overlay.open'); var m = ov && ov.querySelector('.ag-dlg-msg').textContent; if (ov) ov.querySelector('.ag-dlg-ok').click(); await new Promise(r => setTimeout(r, 300));
+            AGZemeSimulace('CH'); await new Promise(r => setTimeout(r, 500)); var ov2 = document.querySelector('.ag-dlg-overlay.open'); if (ov2) ov2.querySelector('.ag-dlg-ok').click();
+            return (m || '').slice(0, 300); }""")
+        ok(u'S2 přejezd do Švýcarska: karta říká úřední body ANO — swisstopo, LV95', s4 and 'swisstopo' in s4 and 'LV95' in s4 and u'nezveřejňuje' not in s4, s4)
+        s5 = await page.evaluate("""async () => { localStorage.removeItem(AGZdroje.UVOD_KLIC); AGZemeSimulace('DE'); await new Promise(r => setTimeout(r, 900));
+            var ov = document.querySelector('.ag-dlg-overlay.open'); if (ov) ov.querySelector('.ag-dlg-ok').click(); await new Promise(r => setTimeout(r, 300));
+            localStorage.removeItem(AGZdroje.UVOD_KLIC);   // jako čerstvá instalace v Německu
+            AGZdroje.naplanujUvod('DE'); await new Promise(r => setTimeout(r, 2600));
+            var ov2 = document.querySelector('.ag-dlg-overlay.open'); var t = ov2 && ov2.querySelector('.ag-dlg-title').textContent; if (ov2) ov2.querySelector('.ag-dlg-ok').click();
+            await new Promise(r => setTimeout(r, 300)); AGZdroje.naplanujUvod('DE'); await new Promise(r => setTimeout(r, 2600)); var ov3 = document.querySelector('.ag-dlg-overlay.open');
+            AGZemeSimulace('DE'); await new Promise(r => setTimeout(r, 400)); var ov4 = document.querySelector('.ag-dlg-overlay.open'); if (ov4) ov4.querySelector('.ag-dlg-ok').click();
+            return { t: t, znovu: !!ov3, kod: AGSour.kod() }; }""")
+        ok(u'S2 start appky v Německu: karta se ukáže sama (bez přejezdu), podruhé už ne', s5 and s5['t'] and u'Německo' in s5['t'] and not s5['znovu'], s5)
         ok('F3 bez chyb stránky', not chyby, chyby[:3])
         await br.close()
 

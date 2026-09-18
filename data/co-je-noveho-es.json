@@ -2,6 +2,16 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 370,
+      "datum": "2026-09-18",
+      "nadpis": "Tarjeta «Estás midiendo en»: nada más arrancar en el extranjero, no solo al cruzar la frontera",
+      "body": [
+        "<b>Quien descarga la app en el extranjero lo sabe enseguida.</b> Tras arrancar en un país distinto de Chequia (una vez por país) aparece la tarjeta <b>Estás midiendo en: …</b> — sistema de coordenadas y alturas de ese país, si el estado <b>publica aquí puntos oficiales</b> (sí: Chequia, Eslovaquia, Suiza, Países Bajos — la app los descarga; no: en el mapa solo están tus puntos), si hay catastro y qué ortofoto. Antes el país se anunciaba solo al cruzar la frontera, con dos avisos seguidos — ahora es una sola tarjeta, también al cruzar.",
+        "La tarjeta espera a que la app esté en marcha y nada la tape (puerta, guía de la primera medición, otro diálogo). Puedes abrirla de nuevo en <b>Ajustes → Trabajo y datos → País de medición → Qué puede hacer la app aquí</b>; bajo el selector de país hay una frase con los países donde la red geodésica es pública.",
+        "La simulación de país extranjero avisa con burbuja, no con diálogo (tapaba la tarjeta), y ya no afirma que «aquí no hay puntos ČÚZK» — en Suiza y Países Bajos los hay."
+      ]
+    },
+    {
       "v": 369,
       "datum": "2026-09-18",
       "nadpis": "Puntos oficiales en Suiza y Países Bajos; la app dice dónde publica el estado los puntos",

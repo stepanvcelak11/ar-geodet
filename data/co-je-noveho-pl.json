@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 370,
+      "datum": "2026-09-18",
+      "nadpis": "Karta „Mierzysz w kraju”: zaraz po starcie za granicą, nie dopiero po przekroczeniu granicy",
+      "body": [
+        "<b>Kto pobierze aplikację za granicą, dowie się od razu.</b> Po starcie w kraju innym niż Czechy (raz na kraj) pojawia się karta <b>Mierzysz w kraju: …</b> — układ współrzędnych i wysokości tego kraju, czy państwo <b>publikuje tu punkty urzędowe</b> (tak: Czechy, Słowacja, Szwajcaria, Holandia — aplikacja je pobierze; nie: na mapie są tylko twoje punkty), czy jest kataster i jakie ortofoto. Wcześniej o kraju mówiło się dopiero po przekroczeniu granicy, dwoma komunikatami po sobie — teraz to jedna karta, także przy przekroczeniu.",
+        "Karta czeka, aż aplikacja działa i nic jej nie zasłania (brama, przewodnik pierwszego pomiaru, inne okno). W każdej chwili otworzysz ją ponownie w <b>Ustawienia → Zlecenie i dane → Kraj pomiaru → Co aplikacja tu potrafi</b>; pod wyborem kraju jest zdanie, gdzie osnowa jest publiczna.",
+        "Symulacja obcego kraju zgłasza dymkiem, nie oknem (przykrywało kartę), i nie twierdzi już, że „punktów ČÚZK tu nie ma” — w Szwajcarii i Holandii są."
+      ]
+    },
+    {
       "v": 369,
       "datum": "2026-09-18",
       "nadpis": "Punkty urzędowe w Szwajcarii i Holandii; aplikacja mówi, gdzie państwo publikuje punkty",

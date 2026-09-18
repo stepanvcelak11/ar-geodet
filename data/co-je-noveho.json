@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 370,
+   "datum": "2026-09-18",
+   "nadpis": "Karta „Měříš v zemi“: hned po startu v cizině, ne až po přejezdu hranice",
+   "body": [
+    "<b>Kdo si appku stáhne v cizině, dozví se to hned.</b> Po startu v jiné zemi než Česku (jednou na zemi) naskočí karta <b>Měříš v zemi: …</b> — souřadnicový systém a výšky té země, jestli tu stát <b>zveřejňuje úřední body</b> (ano: Česko, Slovensko, Švýcarsko, Nizozemsko — appka je stáhne; ne: v mapě jsou jen tvoje body), jestli mám katastr a jaké ortofoto. Dřív se o zemi říkalo jen po přejezdu hranice, a to dvěma hláškami za sebou — teď je to jedna karta i při přejezdu.",
+    "Karta počká, až appka běží a nic ji nepřekrývá (brána, průvodce prvním měřením, jiný dialog). Kdykoli ji otevřeš znovu v <b>Nastavení → Zakázka a data → Země měření → Co tu appka umí</b>; pod výběrem země stojí věta, kde je bodové pole veřejné.",
+    "Simulace cizí země hlásí bublinou, ne dialogem (ten kartu přebíjel), a už netvrdí, že „úřední body ČÚZK tu nejsou“ — ve Švýcarsku a Nizozemsku jsou."
+   ]
+  },
+  {
    "v": 369,
    "datum": "2026-09-18",
    "nadpis": "Úřední body ve Švýcarsku a Nizozemsku; appka říká, kde stát body zveřejňuje",

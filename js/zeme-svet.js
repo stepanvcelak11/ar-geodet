@@ -154,6 +154,19 @@
         var pozn = document.createElement('div'); pozn.className = 'st-note'; pozn.id = 's-zeme-pozn';
         pozn.style.cssText = 'font-size:calc(12px * var(--ag-font-scale,1));opacity:.7;margin:-4px 2px 8px;';
         pozn.textContent = 'U hranic přepni zemi ručně — obrysy jsou přesné na ~1 km. Souřadnice ČÚZK, RÚIAN a VFK zůstávají v S-JTSK vždy.';
+        // (18. 9. 2026 noc) co appka v té zemi umí — úřední body jen CZ/SK/CH/NL, katastr a ortofoto po zemích;
+        // stejná karta, jaká naskočí sama po startu v cizině (js/zdroje-zemi.js uvod)
+        var co = document.createElement('div'); co.className = 'st-note'; co.id = 's-zeme-co';
+        co.style.cssText = 'font-size:calc(12px * var(--ag-font-scale,1));opacity:.85;margin:-2px 2px 8px;';
+        co.innerHTML = '<span></span> <button type="button" class="ag-btn-mini" style="margin-left:6px;"></button>';
+        co.querySelector('span').textContent = 'Úřední body zveřejňují jako data jen Česko, Slovensko, Švýcarsko a Nizozemsko; jinde jsou v mapě jen tvoje body.';
+        var coBtn = co.querySelector('button'); coBtn.textContent = 'Co tu appka umí';
+        coBtn.addEventListener('click', function () {
+            var k = sel.value === 'auto' ? AGSour.kod() : sel.value;
+            if (k === 'CZ' || k === 'XX') { try { (window.quickToast || window.agInfo)(k === 'CZ' ? 'V Česku je všechno: body ČÚZK, katastr RÚIAN, ortofoto ČÚZK.' : 'Mimo evidované země: souřadnice UTM, ortofoto Esri, bez katastru a bez úředních bodů.'); } catch (e) { /* nic */ } return; }
+            var go = function () { try { AGZdroje.uvod(k, true); } catch (e) { /* nic */ } };
+            if (window.AGZdroje) go(); else if (window.AGLazy && AGLazy.need) AGLazy.need('js/zdroje-zemi.js', go);
+        });
         // SIMULACE CIZÍ ZEMĚ (17. 9. 2026, přání: „abych mohl otestovat, jak to funguje u nich"):
         // vybranou zemi zapne ručně a postaví mě (ruční poloha z js/poloha-z-mapy.js) do jejího
         // hlavního města — souřadnice, výšky, katastr a mapa se přepnou jako v terénu. Zpět = GPS.
@@ -161,7 +174,7 @@
         sim.innerHTML = '<span class="st-lab">Simulace: postav mě do vybrané země<small>ruční poloha v hlavním městě země ze seznamu výš (Automaticky = Česko); zruší se sama po 25 m chůze, nebo tlačítkem</small></span><button type="button" class="btn btn-secondary" id="s-zeme-sim-btn">Vyzkoušet</button>';
         sim.querySelector('button').addEventListener('click', function () { simulace(sel.value); });
         if (kotva) { tab.insertBefore(h, kotva); tab.insertBefore(row, kotva); tab.insertBefore(pozn, kotva); tab.insertBefore(sim, kotva); }
-        else { tab.appendChild(h); tab.appendChild(row); tab.appendChild(pozn); tab.appendChild(sim); }
+        else { tab.appendChild(h); tab.appendChild(row); tab.appendChild(pozn); tab.appendChild(co); tab.appendChild(sim); }
         obnov();
     }
     var MESTA = { CZ: [50.0875, 14.4213, 'Praha'], SK: [48.1486, 17.1077, 'Bratislava'], PL: [52.2297, 21.0122, 'Varšava'], DE: [52.5200, 13.4050, 'Berlín'], AT: [48.2082, 16.3738, 'Vídeň'], HU: [47.4979, 19.0402, 'Budapešť'], SI: [46.0569, 14.5058, 'Lublaň'], HR: [45.8150, 15.9819, 'Záhřeb'], CH: [46.9480, 7.4474, 'Bern'], LI: [47.1410, 9.5209, 'Vaduz'], NL: [52.3676, 4.9041, 'Amsterdam'], BE: [50.8503, 4.3517, 'Brusel'], FR: [48.8566, 2.3522, 'Paříž'], IT: [41.9028, 12.4964, 'Řím'], ES: [40.4168, -3.7038, 'Madrid'], PT: [38.7223, -9.1393, 'Lisabon'], GB: [51.5074, -0.1278, 'Londýn'], IE: [53.3498, -6.2603, 'Dublin'], DK: [55.6761, 12.5683, 'Kodaň'], SE: [59.3293, 18.0686, 'Stockholm'], NO: [59.9139, 10.7522, 'Oslo'], FI: [60.1699, 24.9384, 'Helsinky'], EE: [59.4370, 24.7536, 'Tallinn'], LV: [56.9496, 24.1052, 'Riga'], LT: [54.6872, 25.2797, 'Vilnius'], RO: [44.4268, 26.1025, 'Bukurešť'], BG: [42.6977, 23.3219, 'Sofie'], RS: [44.7866, 20.4489, 'Bělehrad'], UA: [50.4501, 30.5234, 'Kyjev'], GR: [37.9838, 23.7275, 'Athény'], TR: [39.9334, 32.8597, 'Ankara'], US: [38.9072, -77.0369, 'Washington'], CA: [45.4215, -75.6972, 'Ottawa'], AU: [-35.2809, 149.1300, 'Canberra'] };
@@ -188,7 +201,8 @@
             try { if (typeof map !== 'undefined' && map) map.setView([lat, lng], 17); } catch (e) { /* nic */ }
             try { document.getElementById('settings-modal').style.display = 'none'; } catch (e) { /* nic */ }
             var b = document.getElementById('s-zeme-sim-btn'); if (b) b.textContent = 'Ukončit simulaci';
-            try { window.agInfo && window.agInfo('Simulace: stojíš v ' + ((m && m[2]) || (z && z.nazev) || kod) + '. Souřadnice ' + (AGSour.popisky().system || '') + '.' + (kod !== 'CZ' ? ' Úřední body ČÚZK tu nejsou — přidal jsem 3 ukázkové body (A, B, C).' : '') + ' Zpět: Nastavení → Data → Ukončit simulaci.'); } catch (e) { /* nic */ }
+            // bublina, ne dialog: dialog by přebil kartu „Měříš v zemi" (zdroje-zemi.js), která o bodech a podkladech říká všechno (18. 9. 2026 noc)
+            try { (window.quickToast || window.agInfo)('Simulace: stojíš v ' + ((m && m[2]) || (z && z.nazev) || kod) + '. Souřadnice ' + (AGSour.popisky().system || '') + '.' + (kod !== 'CZ' ? ' Přidal jsem 3 ukázkové body (A, B, C).' : '') + ' Zpět: Nastavení → Data → Ukončit simulaci.'); } catch (e) { /* nic */ }
             obnov();
         } catch (e) { swallow(e, 'simulace'); }
     }
