@@ -172,7 +172,9 @@ async def beh(url):
             print('   ročenka:', await page.evaluate("() => { var m = document.getElementById('ag-roc-modal'); return m ? [m.style.display, m.textContent.replace(/\s+/g, ' ').slice(0, 200)] : 'neni'; }"))
         ok('D2 Ročenka: měsíce led…pro bez duplicity', d[:2] == ['led', 'úno'] and d[-1:] == ['pro'] and len(d) == 12, d)
 
-        vazne = [x for x in chyby if 'favicon' not in x and 'net::ERR' not in x and '404' not in x and 'Failed to fetch' not in x and 'ERR_FAILED' not in x and 'Failed to load resource' not in x]
+        # 'blocked by CORS policy' = celestrak.org (zaloha TLE pro GNSS predpoved) odpovedel bez CORS hlavicky —
+        # vnejsi sit, ne chyba appky (CI 18. 9. 2026 vecer padlo jen na tom, lokalne proslo)
+        vazne = [x for x in chyby if 'favicon' not in x and 'net::ERR' not in x and '404' not in x and 'Failed to fetch' not in x and 'ERR_FAILED' not in x and 'Failed to load resource' not in x and 'blocked by CORS policy' not in x]
         ok('Z bez chyb stránky', not vazne, vazne[:5])
         await ctx.close()
         await br.close()
