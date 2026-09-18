@@ -2,6 +2,14 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 366,
+      "datum": "2026-09-18",
+      "nadpis": "The “Who are you?” question removed",
+      "body": [
+        "The Student / Surveyor / Company question after the first launch is gone (together with the profiles from the previous release). The app behaves the same for everyone; the “Learn” group in Tools stays, just not at the top."
+      ]
+    },
+    {
       "v": 365,
       "datum": "2026-09-18",
       "nadpis": "Settings rebuilt: what matters first, the rest aside",

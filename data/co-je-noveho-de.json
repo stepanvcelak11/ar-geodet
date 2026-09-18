@@ -2,6 +2,14 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 366,
+      "datum": "2026-09-18",
+      "nadpis": "Die Frage „Wer bist du?“ ist weg",
+      "body": [
+        "Die Frage Student / Vermesser / Firma nach dem ersten Start ist entfernt (zusammen mit den Profilen aus dem vorigen Release). Die App verhält sich für alle gleich; die Gruppe „Lernen“ in den Werkzeugen bleibt, nur nicht oben."
+      ]
+    },
+    {
       "v": 365,
       "datum": "2026-09-18",
       "nadpis": "Einstellungen neu: das Wichtige zuerst, der Rest zur Seite",

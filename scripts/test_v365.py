@@ -69,7 +69,7 @@ def staticke():
     ok('S6 bez pruhu záložek, bez #ag-set-strip, hlavička se Zpět', 'class="tab-buttons' not in m and 'ag-set-strip' not in m and 'id="set-back"' in m and 'id="set-title"' in m)
     ok('S7 ids ovládacích prvků zůstaly (saveSettings čte podle id)', all(('id="%s"' % i) in m for i in ['v-font-scale', 's-auto-outdoor', 's-wakelock', 'v-theme', 's-anim', 'v-adaptive-glass', 'v-dock-arc', 'col-tb', 'v-marker-scale', 'col-arrow', 'v-arrow-shape', 'v-hud-scale', 'v-panel-opacity', 's-auto-compass', 's-tilt-comp', 's-heading-smooth', 's-fovh', 's-fovv', 's-eyeh', 's-camera-select', 's-project-select', 's-search-name', 's-katastr-source', 'restore-file', 'storage-usage', 's-lefthand', 's-vibration', 'set-skryte-body', 'set-about-btn', 'set-navod-btn', 'set-sdilet-app', 'v-mode', 'tgl-info', 'v-ar-height-slider']))
     skripty = re.findall(r'<script[^>]+(?:src|data-src)="js/([a-z0-9-]+\.js)"', ix)
-    ok('S8 rezim-prace.js a nastaveni-lista.js odpojené z index.html', 'rezim-prace.js' not in skripty and 'nastaveni-lista.js' not in skripty and 'nastaveni-poradek.js' in skripty and 'nastaveni-hledani.js' in skripty and 'profily.js' in skripty)
+    ok('S8 rezim-prace.js, nastaveni-lista.js a student-start.js odpojené z index.html', 'rezim-prace.js' not in skripty and 'nastaveni-lista.js' not in skripty and 'student-start.js' not in skripty and 'nastaveni-poradek.js' in skripty and 'nastaveni-hledani.js' in skripty and 'profily.js' in skripty)
     sw = src('sw.js')
     ok('S9 sw.js bez odpojených modulů', "'./js/rezim-prace.js'" not in sw and "'./js/nastaveni-lista.js'" not in sw)
     d = json.load(io.open(os.path.join(ROOT, 'data', 'jazyky.json'), encoding='utf-8'))
@@ -224,6 +224,23 @@ async def beh(url):
         ok('G2 nadpisy Frequenti / Categorie / Meno spesso, karta Časté bez češtiny', g['sh'][:3] == ['Frequenti', 'Categorie', 'Meno spesso'] and not cesky, (g['sh'], cesky))
         ok('G3 nadpis otevřené stránky italsky', g['title'] == 'Fotocamera AR', g['title'])
         await ctx.close()
+
+        print('--- H) jazyk systému bez uložené volby ---')
+        # (na přání 18. 9. večer: „ať se aplikace zapíná v jazyce systému, pokud ho má, jinak anglicky")
+        for loc, want, slovo in [('de-DE', 'de', 'AR-Kamera'), ('fr-FR', 'en', 'AR camera'), ('cs-CZ', 'cs', 'AR kamera'), ('sk-SK', 'cs', 'AR kamera')]:
+            ctx = await br.new_context(locale=loc, viewport={'width': 390, 'height': 844}, has_touch=True, is_mobile=True,
+                                       geolocation={'latitude': LAT, 'longitude': LNG, 'accuracy': 3}, permissions=['geolocation'], service_workers='block')
+            page = await ctx.new_page()
+            await page.route('**/*', T.route_vse)
+            await page.add_init_script(boot(tarif='pro') + T.SEED + "localStorage.setItem('agViewMode','map'); localStorage.setItem('agVektor_v1','0'); localStorage.removeItem('agJazyk_v1');")
+            await page.goto(url, wait_until='domcontentloaded', timeout=45000)
+            await T.cekej(page, "document.body.classList.contains('app-started')")
+            await page.wait_for_timeout(2500)
+            await page.evaluate("() => openSettings()")
+            await page.wait_for_timeout(1200)
+            h = await page.evaluate("() => ({ lang: document.documentElement.getAttribute('lang'), ls: localStorage.getItem('agJazyk_v1'), ar: document.querySelector('#set-home .set-cat[data-tab=\"tab-ar\"] b').textContent.trim() })")
+            ok('H %s → appka v „%s" (kategorie „%s")' % (loc, want, slovo), h['lang'] == want and h['ls'] == want and h['ar'] == slovo, h)
+            await ctx.close()
         await br.close()
 
 

@@ -101,8 +101,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=365">
-    <link rel="stylesheet" href="css/style.css?v=365">
+    <link rel="stylesheet" href="css/tokens.css?v=366">
+    <link rel="stylesheet" href="css/style.css?v=366">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -233,7 +233,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=365">
+    <link rel="stylesheet" href="css/vylepseni.css?v=366">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -671,8 +671,7 @@
          (nastaveni-hledani.js) a app-search.js skáčou přes data-tab.
          Záložka PROFILY JE PRYČ (profil nastavení Terén/Přesnost/Ukázka i profil práce; volba 2B):
          js/profily.js zůstává jen kvůli Profilu zařízení (svůj pruh nevyrobí, protože už není
-         .tab-buttons), js/rezim-prace.js je odpojený, řádek „Kdo jsi" z js/student-start.js
-         nemá kam (tab-profily není) — otázka po prvním spuštění zůstává. -->
+         .tab-buttons), js/rezim-prace.js i js/student-start.js („Kdo jsi") jsou odpojené. -->
     <div class="modal-overlay" id="settings-modal" data-no-close>
         <div class="modal-content">
             <div id="ag-safe-top" aria-hidden="true"></div>
@@ -1417,10 +1416,11 @@
          nastroje-ukony.js, tools-plus.js, tools-simple.js a offline-sbal.js, takže MUSÍ
          být před nimi. Jen data, žádný DOM — proto ne lazy. -->
     <script defer src="js/tools-registry.js"></script>
-    <!-- KDO JSI? Student / Geodet / Firma (odpojitelne: smaz tento radek a js/student-start.js;
-         hak v js/tutorial-pro.js, js/nastroje-ukony.js a js/ucty-admin.js maji zalozni chovani).
-         Eager, protoze jeho slova („parta" misto „firma") a poradi skupin ctou moduly pri vykresleni. -->
-    <script defer src="js/student-start.js"></script>
+    <!-- KDO JSI? Student / Geodet / Firma (js/student-start.js) ODPOJEN 18. 9. 2026 vecer na prani
+         (Nastaveni nanovo, volba 2B: „oboji pryc uplne" — i otazka na uvodni obrazovce). Haky v
+         js/tutorial-pro.js, js/nastroje-ukony.js, js/tools-registry.js a js/ucty-admin.js maji zalozni
+         chovani (bez modulu = geodet). Soubor zustava; navrat = vratit sem znacku script defer
+         s js/student-start.js (eager, hned za tools-registry.js) a radek v sw.js. -->
     <!-- LICENCE PRO VERZE (odpojitelne: smaz radek, js/licence.js a zaznam v sw.js)
          — odpoved na jedinou otazku: ma tenhle telefon Pro? Klic se overuje
          v telefonu bez serveru (geodet ho odemkne i v lese). MUSI byt pred

@@ -2,6 +2,14 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 366,
+      "datum": "2026-09-18",
+      "nadpis": "La domanda «Chi sei?» eliminata",
+      "body": [
+        "La domanda Studente / Geometra / Azienda dopo il primo avvio non c’è più (insieme ai profili della versione precedente). L’app si comporta allo stesso modo per tutti; il gruppo «Imparare» negli Strumenti resta, solo non in cima."
+      ]
+    },
+    {
       "v": 365,
       "datum": "2026-09-18",
       "nadpis": "Impostazioni rifatte: prima l’importante, il resto da parte",

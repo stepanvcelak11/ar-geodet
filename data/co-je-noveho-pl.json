@@ -2,6 +2,14 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 366,
+      "datum": "2026-09-18",
+      "nadpis": "Pytanie „Kim jesteś?” usunięte",
+      "body": [
+        "Pytanie Student / Geodeta / Firma po pierwszym uruchomieniu zniknęło (razem z profilami z poprzedniego wydania). Aplikacja zachowuje się tak samo dla wszystkich; grupa „Uczyć się” w Narzędziach zostaje, tylko nie na górze."
+      ]
+    },
+    {
       "v": 365,
       "datum": "2026-09-18",
       "nadpis": "Ustawienia od nowa: ważne na wierzchu, reszta z boku",

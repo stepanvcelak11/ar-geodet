@@ -2,6 +2,14 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 366,
+   "datum": "2026-09-18",
+   "nadpis": "Otázka „Kdo jsi?“ zrušena",
+   "body": [
+    "Úvodní otázka Student / Geodet / Firma po prvním spuštění je pryč (spolu s profily z minulého vydání). Appka se chová pro všechny stejně; skupina „Učit se“ v Nástrojích zůstává, jen není nahoře."
+   ]
+  },
+  {
    "v": 365,
    "datum": "2026-09-18",
    "nadpis": "Nastavení nanovo: to důležité hned, zbytek stranou",

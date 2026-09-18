@@ -78,7 +78,7 @@ def staticke():
     ok('E4 Poznávačka: popisek mimo SVG', 'pz-cap' in src('js/poznavacka.js'))
     ok('E5 Parcela: vlastní ✕ schovaný, místo pro křížek modal-close', '#agpc-close{display:none;}' in src('js/parcela.js'))
     ok('E6 Slunce: štítek řádku na vlastním řádku', 'flex:1 1 100%' in src('js/slunce.js'))
-    ok('E7 Profily: select bez fit-content', 'width:auto;min-width:150px' in src('js/student-start.js'))
+    ok('E7 student-start.js (Kdo jsi) je od 18. 9. 2026 večer odpojený', 'src="js/student-start.js"' not in src('index.html'))
     # F — žlutá natvrdo jako barva textu (mimo popisek nad ortofotem v kartě bodu)
     zle = []
     for f in sorted(os.listdir(os.path.join(ROOT, 'js'))):
