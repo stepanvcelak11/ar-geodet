@@ -1,5 +1,6 @@
-/* ===== QTRIG — SCROLLUJ A UČ SE (odpojitelná vrstva, 17. 9. 2026) ==================
-   Svislý feed kartiček se scroll-snap: jedna karta = jedna obrazovka.
+/* ===== QTRIG — GEO KARTIČKY (odpojitelná vrstva, 17.–18. 9. 2026) ==================
+   Svislý feed kartiček se scroll-snap: jedna karta = jedna obrazovka. Každý druh má
+   vlastní barvu, velkou čárovou ikonu v rohu a jemný vzor; obsah leží na „papíru".
    Odstranění: smaž css/scroll-uceni.css + js/scroll-uceni.js (lazy-tools MANIFEST).
    ================================================================================== */
 #agsu {
@@ -8,7 +9,16 @@
     z-index: 100002; display: none;
     background: var(--bg-color, #0f1216); color: var(--text-color, #eceef2);
     font-family: var(--font-display, system-ui), sans-serif;
+    /* barvy druhů (sytá / světlá) */
+    --k-pojem: #1f6f5a; --k-pojem-2: #2f9e74;
+    --k-vzorec: #1e4f8f; --k-vzorec-2: #3b82f6;
+    --k-predpis: #8a4b0a; --k-predpis-2: #f59e0b;
+    --k-otazka: #8b2660; --k-otazka-2: #ec4899;
+    --k-nastroj: #0b6b7c; --k-nastroj-2: #22d3ee;
+    --k-tip: #4b6b12; --k-tip-2: #a3e635;
+    --papir: rgba(255, 255, 255, 0.92); --papir-ink: #1b1f1d; --papir-muted: #5b625e;
 }
+body.light-mode #agsu { --papir: rgba(255, 255, 255, 0.96); }
 #agsu .agsu-top {
     position: absolute; top: 0; left: 0; right: 0; z-index: 3;
     display: flex; align-items: center; gap: 10px;
@@ -30,30 +40,52 @@
     position: absolute; left: 0; right: 0; bottom: 0; top: calc(98px + env(safe-area-inset-top, 0px));
     overflow-y: auto; scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
 }
+/* slot = jedna obrazovka; karta uvnitř s okrajem, ať je vidět, že je to karta */
+#agsu .agsu-slot { scroll-snap-align: start; scroll-snap-stop: always; height: 100%; box-sizing: border-box; padding: 6px 12px calc(12px + env(safe-area-inset-bottom, 0px)); }
 #agsu .agsu-karta {
-    scroll-snap-align: start; scroll-snap-stop: always;
-    height: 100%; box-sizing: border-box; padding: 14px 18px calc(18px + env(safe-area-inset-bottom, 0px));
-    display: flex; flex-direction: column; gap: 10px; overflow: hidden;
-    border-top: 1px solid var(--glass-border, rgba(255,255,255,.08));
+    position: relative; height: 100%; box-sizing: border-box; overflow: hidden;
+    padding: 16px 16px 12px; border-radius: 22px;
+    display: flex; flex-direction: column; gap: 10px; color: #fff;
+    background: linear-gradient(160deg, var(--k2, #2f9e74) 0%, var(--k, #1f6f5a) 60%, #10201a 100%);
+    background: linear-gradient(160deg, var(--k2, #2f9e74) 0%, var(--k, #1f6f5a) 55%, color-mix(in srgb, var(--k, #1f6f5a) 70%, #000) 100%);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .18);
 }
-#agsu .agsu-hl { display: flex; align-items: center; justify-content: space-between; }
-#agsu .agsu-typ { font: 700 calc(11px * var(--ag-font-scale, 1)) inherit; letter-spacing: .06em; text-transform: uppercase; color: var(--accent, #2f9e74); }
-#agsu .t-vzorec .agsu-typ { color: #60a5fa; }
-#agsu .t-predpis .agsu-typ { color: #f59e0b; }
-#agsu .t-otazka .agsu-typ { color: #f472b6; }
-#agsu .t-nastroj .agsu-typ { color: #22d3ee; }
-#agsu .t-tip .agsu-typ { color: #a3e635; }
-#agsu .agsu-star { border: 0; background: transparent; color: var(--text-muted, #9aa1ac); font-size: 24px; line-height: 1; padding: 4px 8px; }
-#agsu .agsu-star.on { color: #fbbf24; }
-#agsu h2 { margin: 0; font-size: calc(22px * var(--ag-font-scale, 1)); line-height: 1.2; }
-#agsu .agsu-telo { flex: 1; min-height: 0; overflow-y: auto; font-size: calc(16px * var(--ag-font-scale, 1)); line-height: 1.5; }
+#agsu .agsu-karta::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .18;
+    background-image: radial-gradient(rgba(255,255,255,.9) 1px, transparent 1.4px);
+    background-size: 18px 18px;
+    mask-image: linear-gradient(180deg, #000 0%, transparent 60%); -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 60%);
+}
+#agsu .t-pojem { --k: var(--k-pojem); --k2: var(--k-pojem-2); }
+#agsu .t-vzorec { --k: var(--k-vzorec); --k2: var(--k-vzorec-2); }
+#agsu .t-predpis { --k: var(--k-predpis); --k2: var(--k-predpis-2); }
+#agsu .t-otazka { --k: var(--k-otazka); --k2: var(--k-otazka-2); }
+#agsu .t-nastroj { --k: var(--k-nastroj); --k2: var(--k-nastroj-2); }
+#agsu .t-tip { --k: var(--k-tip); --k2: var(--k-tip-2); }
+#agsu .t-prazdno { --k: #3a3f3d; --k2: #6b7370; }
+#agsu .agsu-ik { position: absolute; right: -18px; top: 6px; width: 150px; height: 150px; fill: none; stroke: rgba(255,255,255,.22); stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+#agsu .agsu-hl { position: relative; display: flex; align-items: center; justify-content: space-between; }
+#agsu .agsu-typ { font: 800 calc(11px * var(--ag-font-scale, 1)) inherit; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.85); background: rgba(0,0,0,.22); padding: 5px 10px; border-radius: 999px; }
+#agsu .agsu-star { border: 0; background: rgba(0,0,0,.22); color: rgba(255,255,255,.7); font-size: 20px; line-height: 1; width: 38px; height: 38px; border-radius: 50%; }
+#agsu .agsu-star.on { color: #fde047; background: rgba(0,0,0,.32); }
+#agsu h2 { position: relative; margin: 6px 0 0; font-size: calc(24px * var(--ag-font-scale, 1)); line-height: 1.15; text-wrap: balance; text-shadow: 0 1px 2px rgba(0,0,0,.25); padding-right: 40px; }
+#agsu .agsu-telo {
+    position: relative; flex: 0 1 auto; min-height: 0; overflow-y: auto;
+    background: var(--papir); color: var(--papir-ink); border-radius: 14px; padding: 12px 14px;
+    font-size: calc(16px * var(--ag-font-scale, 1)); line-height: 1.5;
+    box-shadow: 0 2px 6px rgba(0,0,0,.18);
+}
 #agsu .agsu-telo p { margin: 0 0 8px; }
-#agsu .agsu-f { font-size: calc(18px * var(--ag-font-scale, 1)); padding: 10px 12px; border-radius: 12px; background: var(--surface-1, rgba(255,255,255,.06)); margin-bottom: 10px; overflow-x: auto; }
-#agsu .agsu-s { color: var(--text-muted, #9aa1ac); font-size: calc(14px * var(--ag-font-scale, 1)); }
+#agsu .agsu-f { font-size: calc(18px * var(--ag-font-scale, 1)); padding: 10px 12px; border-radius: 10px; background: rgba(0,0,0,.05); margin-bottom: 10px; overflow-x: auto; font-variant-numeric: tabular-nums; }
+#agsu .agsu-s { color: var(--papir-muted); font-size: calc(14px * var(--ag-font-scale, 1)); }
 #agsu .agsu-tab { border-collapse: collapse; width: 100%; font-size: calc(13px * var(--ag-font-scale, 1)); margin-top: 6px; }
-#agsu .agsu-tab th, #agsu .agsu-tab td { border: 1px solid var(--glass-border, rgba(255,255,255,.14)); padding: 4px 6px; text-align: left; }
-#agsu .agsu-odp { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: rgba(244,114,182,.12); border: 1px solid rgba(244,114,182,.4); }
-#agsu .agsu-akce { display: flex; flex-wrap: wrap; gap: 8px; }
-#agsu .agsu-b { border: 0; border-radius: 12px; padding: 11px 14px; background: var(--accent, #2f9e74); color: #04110b; font: 700 calc(13px * var(--ag-font-scale, 1)) inherit; }
-#agsu .agsu-dal { text-align: center; font-size: calc(11px * var(--ag-font-scale, 1)); color: var(--text-muted, #9aa1ac); }
-#agsu .agsu-karta:last-child .agsu-dal { visibility: hidden; }
+#agsu .agsu-tab th, #agsu .agsu-tab td { border: 1px solid rgba(0,0,0,.12); padding: 4px 6px; text-align: left; }
+#agsu .agsu-odp { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: #f3f6f4; background: color-mix(in srgb, var(--k2) 14%, #fff); border: 1px solid var(--k2); }
+#agsu .agsu-akce { position: relative; display: flex; flex-wrap: wrap; gap: 8px; }
+#agsu .agsu-b { border: 0; border-radius: 12px; padding: 11px 14px; background: #fff; color: var(--k); font: 700 calc(13px * var(--ag-font-scale, 1)) inherit; box-shadow: 0 2px 6px rgba(0,0,0,.2); }
+#agsu .agsu-dal { position: relative; margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 8px; font: 600 calc(11px * var(--ag-font-scale, 1)) inherit; color: rgba(255,255,255,.7); }
+#agsu .agsu-dal i { display: block; width: 34px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.35); }
+#agsu .agsu-slot:last-child .agsu-dal i { visibility: hidden; }
+@media (prefers-reduced-motion: no-preference) {
+    #agsu .agsu-karta { transition: transform .25s ease; }
+}

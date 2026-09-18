@@ -166,7 +166,7 @@ async def beh(url):
         await page.evaluate("() => { map.setView([%f, %f], 17, { animate: false }); }" % (LAT, LNG))
         ok('B4 dlazdice obsahuji budovy (querySourceFeatures > 50)', await cekej(page, "AGMapaVektor.budovy().length > 50", 60), await page.evaluate("() => AGMapaVektor.budovy().length"))
         await cekej(page, "AGMapaVektor.budovy().length > 50", 30)
-        b = await page.evaluate("() => { var f = AGMapaVektor.budovy(); var s = f.filter(x => x.properties && x.properties.height != null).length; var g = f[0] && f[0].geometry && f[0].geometry.type; return { n: f.length, sVyskou: s, typ: g, priklad: f[0] && f[0].geometry && f[0].geometry.coordinates && f[0].geometry.coordinates[0] && f[0].geometry.coordinates[0][0] }; }")
+        b = await page.evaluate("() => { var f = AGMapaVektor.budovy(); var s = f.filter(x => x.properties && x.properties.height != null).length; var g = f[0] && f[0].geometry && f[0].geometry.type; return { n: f.length, sVyskou: s, typ: g, priklad: (function () { var c = f[0] && f[0].geometry && f[0].geometry.coordinates; while (c && Array.isArray(c[0])) c = c[0]; return c; })() }; }")
         ok('B5 budovy jsou polygony v lng/lat, cast ma vysku', b and b['typ'] in ('Polygon', 'MultiPolygon') and b['priklad'] and 14.3 < b['priklad'][0] < 14.6 and 50.0 < b['priklad'][1] < 50.2, b)
         r = await page.evaluate("() => { var m = AGMapaVektor.mapa(); return { budovy: m.queryRenderedFeatures({ layers: ['budovy'] }).length, silnice: m.queryRenderedFeatures({ layers: ['silnice'] }).length, vrstvy: m.getStyle().layers.length }; }")
         ok('B6 vykreslene prvky: budovy i silnice (WebGL bezi)', r and r['budovy'] > 0 and r['silnice'] > 0, r)

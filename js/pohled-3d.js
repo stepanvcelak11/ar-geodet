@@ -127,7 +127,11 @@
 
     // ---- styl: podklad + 3D budovy + terén + naše vrstvy -----------------------------------
     function styl() {
+        // 3D jde podle MOTIVU APPKY (tmavý = noc, světlý = den), ne podle ručně zvoleného stylu 2D mapy —
+        // uživatel 18. 9. 2026: „i když mám motiv tmavý, 3D se zobrazuje světlé" (měl u mapy styl Den).
+        // Výjimka: modrotisk a tisk jsou záměrné „papírové" pohledy, ty se drží i ve 3D.
         var v = (window.AGMapaVektor && AGMapaVektor.varianta()) || 'den';
+        try { if (v !== 'modrotisk' && v !== 'tisk') { var b = document.body.classList; v = b.contains('theme-blueprint') ? 'modrotisk' : (b.contains('light-mode') && !b.contains('theme-night')) ? 'den' : 'noc'; } } catch (e) { /* nechat */ }
         var S = AGMapaStyl.vytvor(v, AGMapaVektor.url());
         var P = AGMapaStyl.PALETY[v] || AGMapaStyl.PALETY.den;
         var svetly = v === 'den' || v === 'tisk';

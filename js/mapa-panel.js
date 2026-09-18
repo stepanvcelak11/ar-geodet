@@ -76,14 +76,19 @@
         if (mv && vektorZap()) mv.nastav({ zap: false }).then(sync); else sync();
     }
     function styl(v) { var mv = MV(); if (!mv) return; mv.nastav({ styl: v }).then(sync); }
+    // ve splitu (nízká mapa, .ms-compact) panel zakrývá celou mapu — po volbě podkladu se zavře, ať je
+    // vidět, že se něco stalo (18. 9. 2026: „ve splitu se mi vektor ani ortofoto nezapíná")
+    function poVolbePodkladu() { try { var sh = sheet(); if (sh && sh.classList.contains('ms-compact')) setTimeout(function () { var mc = $('map-controls'); if (mc) mc.classList.remove('expanded'); }, 250); } catch (e) { /* nic */ } }
     function podkladUi() {
-        var bm = $('ms-base-osm'); if (bm && !bm.__wired) { bm.__wired = true; bm.addEventListener('click', function () { setTimeout(mapa, 0); }); }
-        var bo = $('btn-baselayer'); if (bo && !bo.__wired) { bo.__wired = true; bo.addEventListener('click', function () { setTimeout(sync, 0); }); }
+        var bm = $('ms-base-osm'); if (bm && !bm.__wired) { bm.__wired = true; bm.addEventListener('click', function () { setTimeout(mapa, 0); poVolbePodkladu(); }); }
+        var bo = $('btn-baselayer'); if (bo && !bo.__wired) { bo.__wired = true; bo.addEventListener('click', function () { setTimeout(sync, 0); poVolbePodkladu(); }); }
+        var bv = $('ms-base-vektor'); if (bv && !bv.__wired) { bv.__wired = true; bv.addEventListener('click', function () { poVolbePodkladu(); }); }
         var st = $('ms-styl'); if (st && !st.__wired) { st.__wired = true; st.addEventListener('click', function (ev) { var b = ev.target.closest('[data-styl]'); if (b) styl(b.getAttribute('data-styl')); }); }
     }
 
     // ---- vrstvy: překážky, trasa ---------------------------------------------------------------------
     function prekazky() { try { if (window.AGOkoli && AGOkoli.viditelne) AGOkoli.viditelne(!AGOkoli.viditelne()); } catch (e) { swallow(e, 'prekazky'); } sync(); }
+    function hlidac() { try { if (window.AGOkoli && AGOkoli.nastav) AGOkoli.nastav({ zap: !AGOkoli.zapnuto() }); } catch (e) { swallow(e, 'hlidac'); } sync(); }
     function trasa() { try { if (window.AGTrasa) { AGTrasa.nastav({ zap: !AGTrasa.zapnuto() }); if (AGTrasa.zapnuto()) AGTrasa.prepocitej('panel'); } } catch (e) { swallow(e, 'trasa'); } sync(); }
 
     // ---- zrcadlení stavu -----------------------------------------------------------------------------
@@ -98,6 +103,7 @@
             var z = $('ms-zeme'); if (z) { var s = window.AGSour; z.hidden = !s; if (s) { var a = s.aktivni(); $('ms-zeme-t').textContent = 'Země měření: ' + (a && a.nazev || 'jinde') + (s.rezim() === 'auto' ? ' (podle GPS)' : ' (ručně)'); } }
             var rp = $('ms-prekazky'); if (rp) { var ok = !!(window.AGOkoli && AGOkoli.viditelne); rp.hidden = !ok || !(AGOkoli.prekazky() || []).length; if (ok) rp.classList.toggle('ctrl-active', !!AGOkoli.viditelne()); }
             var rt = $('ms-trasa'); if (rt) { rt.hidden = !window.AGTrasa; if (window.AGTrasa) rt.classList.toggle('ctrl-active', !!AGTrasa.zapnuto()); }
+            var rh = $('ms-hlidac'); if (rh) { rh.hidden = !(window.AGOkoli && AGOkoli.zapnuto); if (!rh.hidden) rh.classList.toggle('ctrl-active', !!AGOkoli.zapnuto()); }
             var t3 = $('ms-t-3d'); if (t3) t3.hidden = !!(window.AGLite && AGLite.lite);
         } catch (e) { swallow(e, 'sync'); }
     }
@@ -109,5 +115,5 @@
         ['ag:mapa-vektor', 'ag:zeme', 'ag:prekazky'].forEach(function (ev) { document.addEventListener(ev, function () { setTimeout(sync, 50); }); });
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
-    window.AGMapaPanel = { vektor: vektor, mapa: mapa, styl: styl, prekazky: prekazky, trasa: trasa, sync: sync, tab: ukazTab, aktualniTab: function () { return tab; } };
+    window.AGMapaPanel = { vektor: vektor, mapa: mapa, styl: styl, prekazky: prekazky, trasa: trasa, hlidac: hlidac, sync: sync, tab: ukazTab, aktualniTab: function () { return tab; } };
 })();

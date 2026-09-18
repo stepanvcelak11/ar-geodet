@@ -2,6 +2,19 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 352,
+   "datum": "2026-09-18",
+   "nadpis": "Slovenské úřední body, Geo kartičky v novém, panel Mapa vzdušnější, 3D podle motivu, čísla domů rovně",
+   "body": [
+    "<b>Slovensko má úřední body</b>: když je země měření SK, stáhnou se body GKÚ SR v okolí 1,2 km — Štátna trigonometrická sieť (I.–V. rád, orientačné a zhusťovacie body), nivelačná sieť, gravimetrická a priestorová sieť — s označením, k. ú., druhem značky a výškou Bpv. V mapě, v AR i v navigaci se chovají jako české (oficiální náčrt ČÚZK samozřejmě nemají). Poloha se převádí z S-JTSK (±1 m).",
+    "<b>Geo kartičky</b> (dřív „Scrolluj a uč se“): každý druh má vlastní barvu, velkou ikonu a jemný vzor, obsah leží na papíru; dole je počítadlo karty.",
+    "<b>Panel Mapa</b>: hubenější hlavička, záložky s dechem; v záložce Vrstvy přibyl přepínač <b>Hlídač okolí</b> (stojíš v domě, u zdi, pod stromy…) a odkaz na nastavení korekcí (kalibrace chůzí, korekce z mapy, přichycení k rohům). Ve splitu se panel po volbě podkladu zavře, ať je vidět, že se mapa přepnula.",
+    "<b>3D pohled</b> jde podle motivu appky (tmavý = noční mapa), ne podle ručně zvoleného stylu 2D mapy; modrotisk a tisk zůstávají.",
+    "<b>Čísla domů, názvy sídel a vrcholů</b> ve vektorové mapě se při otáčení mapy po směru drží rovně — nečteš je hlavou dolů (názvy ulic jdou podél ulice jako na papíře).",
+    "Data mapy: nahráno Rakousko (z obrysu státu, 1,0 GB) a Maďarsko."
+   ]
+  },
+  {
    "v": 351,
    "datum": "2026-09-18",
    "nadpis": "Appka umí španělsky a italsky",

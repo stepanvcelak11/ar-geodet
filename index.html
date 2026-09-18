@@ -101,8 +101,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=351">
-    <link rel="stylesheet" href="css/style.css?v=351">
+    <link rel="stylesheet" href="css/tokens.css?v=352">
+    <link rel="stylesheet" href="css/style.css?v=352">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -233,7 +233,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=351">
+    <link rel="stylesheet" href="css/vylepseni.css?v=352">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -1133,12 +1133,20 @@
                         <span class="ms-row-t">Trasa terénem<em>Navigace obchází budovy, vodu, dálnice a překážky; vypnuto = přímka</em></span>
                         <span class="ms-sw" aria-hidden="true"></span>
                     </button>
+                    <!-- HLÍDAČ OKOLÍ (18. 9. 2026, „nevím, kde je nastavení upozornění, že jsem v domě"): přepínač tady,
+                         podrobnosti dál v Nastavení → AR & přesnost -->
+                    <button type="button" class="ms-row" id="ms-hlidac" hidden onclick="window.AGMapaPanel && AGMapaPanel.hlidac()">
+                        <svg class="icon"><use href="#i-eye-off"/></svg>
+                        <span class="ms-row-t">Hlídač okolí<em>Hlásí, že stojíš v domě, u zdi, pod stromy nebo u kolejí — a co s tím</em></span>
+                        <span class="ms-sw" aria-hidden="true"></span>
+                    </button>
                     <button type="button" class="ms-row" id="ms-overlay" hidden data-ms-pro="1">
                         <svg class="icon"><use href="#i-file-text"/></svg>
                         <span class="ms-row-t">Vlastní podklad<em>Situace, geometrák nebo starý plán nakalibrovaný do mapy</em></span>
                         <span class="ms-go" aria-hidden="true">›</span>
                     </button>
                 </div>
+                <div class="ms-zeme" id="ms-presnost"><svg class="icon"><use href="#i-sliders"/></svg><span>Korekce GPS z mapy, kalibrace chůzí po hraně, přichycení k rohům</span><button type="button" onclick="try{openSettings();switchTab('tab-ar',document.querySelector('.tab-btn[onclick*=\'tab-ar\']')||document.querySelectorAll('.tab-btn')[1]);}catch(e){openSettings();}">Nastavení</button></div>
                 </section>
 
                 <section class="ms-tab" data-ms-tab="nastroje">
@@ -1381,6 +1389,9 @@
     <!-- ZDROJE DAT PO ZEMÍCH (17. 9. 2026, C3): mimo ČR katastr a ortofoto z národních WMS (SK, PL, AT,
          NL, FR, CH, SI, BE, HU, ES), jinde Esri World Imagery; přepíná událost ag:zeme. -->
     <script type="ag/lazy" data-src="js/zdroje-zemi.js"></script>
+    <!-- ÚŘEDNÍ BODY NA SLOVENSKU (18. 9. 2026): ŠTS / ŠNS / ŠGS / ŠPS z WMS GKÚ SR (GetFeatureInfo geo+json),
+         když je země měření SK. Odpojitelné: smaž tento řádek + js/body-sk.js. -->
+    <script type="ag/lazy" data-src="js/body-sk.js"></script>
     <!-- PANEL „MAPA" VE TŘECH PATRECH (17. 9. 2026): záložky Podklad · Vrstvy · Nástroje, karty podkladu,
          přepínače Překážky / Trasa terénem. (Dočasné tlačítko „Zkouška mapy" tím skončilo.) -->
     <script type="ag/lazy" data-src="js/mapa-panel.js"></script>

@@ -1,4 +1,4 @@
-// ===== QTRIG — SCROLLUJ A UČ SE: kartičky na posouvání (ODPOJITELNÁ, lazy nástroj) ===========
+// ===== QTRIG — GEO KARTIČKY (dřív Scrolluj a uč se): kartičky na posouvání (ODPOJITELNÁ, lazy nástroj) ====
 // (17. 9. 2026, přání uživatele: „scrollovací vzdělání — narážka na dnešní dobu, kdy se prostě
 // scrolluje: informační kartičky, které se posouvají scrollováním")
 //
@@ -86,6 +86,15 @@
 
     // ---- vykreslení ------------------------------------------------------------------------------------
     var TYPY = { pojem: 'Pojem', vzorec: 'Vzorec', predpis: 'Předpis', otazka: 'Otázka', nastroj: 'Nástroj', tip: 'Tip z terénu' };
+    // velká ikona druhu v rohu karty (čárová, jednobarevná — bere barvu druhu z CSS)
+    var IKONY = {
+        pojem: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/><path d="M8 7h7M8 11h7"/>',
+        vzorec: '<path d="M17 4H7l6 8-6 8h10"/>',
+        predpis: '<path d="M12 3v18M5 7l7-4 7 4M4 12l3-5 3 5a3 3 0 0 1-6 0zM14 12l3-5 3 5a3 3 0 0 1-6 0z"/>',
+        otazka: '<path d="M9 9a3 3 0 1 1 4.5 2.6c-1 .6-1.5 1.4-1.5 2.4"/><circle cx="12" cy="18" r=".8"/><circle cx="12" cy="12" r="9.5"/>',
+        nastroj: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.4 2.4-2-2z"/>',
+        tip: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5.9 1 1 1.6l.2 1h4.6l.2-1c.1-.6.4-1.1 1-1.6A6 6 0 0 0 12 3z"/>'
+    };
     function tabulka(t) {
         if (!t || !t.hlavicka) return '';
         var h = '<table class="agsu-tab"><tr>' + t.hlavicka.map(function (x) { return '<th>' + esc(x) + '</th>'; }).join('') + '</tr>';
@@ -100,16 +109,17 @@
         var telo = k.html ? k.html : '<p>' + esc(k.d) + '</p>';
         if (k.tabulka) telo += tabulka(k.tabulka);
         if (k.typ === 'otazka' && k.odpovedi) telo += '<div class="agsu-odp" hidden>' + k.odpovedi.map(function (o) { return '<div>' + o.l + ' = <b>' + esc(String(o.v)) + '</b></div>'; }).join('') + '</div>';
-        return '<section class="agsu-karta t-' + k.typ + '" data-id="' + esc(k.id) + '" data-i="' + i + '">'
+        return '<section class="agsu-slot" data-id="' + esc(k.id) + '" data-i="' + i + '"><div class="agsu-karta t-' + k.typ + '">'
+            + '<svg class="agsu-ik" viewBox="0 0 24 24" aria-hidden="true">' + (IKONY[k.typ] || IKONY.pojem) + '</svg>'
             + '<div class="agsu-hl"><span class="agsu-typ">' + TYPY[k.typ] + (k.sekce ? ' · ' + esc(k.sekce) : '') + '</span><button type="button" class="agsu-star' + (st.ulozene[k.id] ? ' on' : '') + '" data-akce="ulozit" aria-label="Uložit">★</button></div>'
             + '<h2>' + esc(k.n) + '</h2><div class="agsu-telo">' + telo + '</div>'
             + (akce ? '<div class="agsu-akce">' + akce + '</div>' : '')
-            + '<div class="agsu-dal">Posuň nahoru = další</div></section>';
+            + '<div class="agsu-dal"><i></i>' + (i + 1) + ' / ' + zobrazene.length + '</div></div></section>';
     }
     function vykresli() {
         var feed = el.querySelector('#agsu-feed');
         var l = vyber();
-        feed.innerHTML = l.length ? l.map(karta).join('') : '<section class="agsu-karta t-prazdno"><h2>' + (filtr === 'ulozene' ? 'Nic uloženého' : 'Žádné karty') + '</h2><p>' + (filtr === 'ulozene' ? 'Hvězdička na kartě ji uloží sem.' : 'Zkus jiný filtr.') + '</p></section>';
+        feed.innerHTML = l.length ? l.map(karta).join('') : '<section class="agsu-slot"><div class="agsu-karta t-prazdno"><h2>' + (filtr === 'ulozene' ? 'Nic uloženého' : 'Žádné karty') + '</h2><p>' + (filtr === 'ulozene' ? 'Hvězdička na kartě ji uloží sem.' : 'Zkus jiný filtr.') + '</p></div></section>';
         feed.scrollTop = 0;
         pocitadlo();
         sleduj();
@@ -131,12 +141,12 @@
                 else if (casovace[id]) { clearTimeout(casovace[id]); delete casovace[id]; }
             });
         }, { root: el.querySelector('#agsu-feed'), threshold: [0.6] });
-        el.querySelectorAll('.agsu-karta[data-id]').forEach(function (s) { _io.observe(s); });
+        el.querySelectorAll('.agsu-slot[data-id]').forEach(function (s) { _io.observe(s); });
     }
     function videno(id) { if (st.videne[id]) return; st.videne[id] = Date.now(); st.dny[dnes()] = (st.dny[dnes()] || 0) + 1; uloz(); pocitadlo(); }
     function akce(ev) {
         var b = ev.target.closest('[data-akce]'); if (!b) return;
-        var sec = b.closest('.agsu-karta'), id = sec && sec.getAttribute('data-id'), a = b.getAttribute('data-akce');
+        var sec = b.closest('.agsu-slot'), id = sec && sec.getAttribute('data-id'), a = b.getAttribute('data-akce');
         if (a === 'ulozit') { if (st.ulozene[id]) delete st.ulozene[id]; else st.ulozene[id] = Date.now(); uloz(); b.classList.toggle('on', !!st.ulozene[id]); }
         else if (a === 'odkryt') { var o = sec.querySelector('.agsu-odp'); if (o) { o.hidden = !o.hidden; b.textContent = o.hidden ? 'Ukázat výsledek' : 'Skrýt výsledek'; } videno(id); }
         else if (a === 'tool') { var k = b.getAttribute('data-tool'); otevriNastroj(k); }
@@ -156,9 +166,9 @@
     // ---- okno -------------------------------------------------------------------------------------------
     var FILTRY = [['vse', 'Vše'], ['pojem', 'Pojmy'], ['vzorec', 'Vzorce'], ['predpis', 'Předpisy'], ['otazka', 'Otázky'], ['nastroj', 'Nástroje'], ['tip', 'Tipy'], ['ulozene', '★ Uložené']];
     function html() {
-        return '<div class="agsu-top"><b>Scrolluj a uč se</b><span id="agsu-pocet"></span><button type="button" class="agsu-x" id="agsu-zavrit" aria-label="Zavřít">✕</button></div>'
+        return '<div class="agsu-top"><b>Geo kartičky</b><span id="agsu-pocet"></span><button type="button" class="agsu-x" id="agsu-zavrit" aria-label="Zavřít">✕</button></div>'
             + '<div class="agsu-filtry">' + FILTRY.map(function (f) { return '<button type="button" data-f="' + f[0] + '"' + (f[0] === filtr ? ' class="on"' : '') + '>' + f[1] + '</button>'; }).join('') + '</div>'
-            + '<div id="agsu-feed"><section class="agsu-karta"><h2>Načítám kartičky…</h2></section></div>';
+            + '<div id="agsu-feed"><section class="agsu-slot"><div class="agsu-karta t-tip"><h2>Načítám kartičky…</h2></div></section></div>';
     }
     function zavri() { try { if (_io) _io.disconnect(); } catch (e) { /* nic */ } if (el) { el.style.display = 'none'; el.innerHTML = ''; } }
     function otevri() {
@@ -171,10 +181,10 @@
         p.then(vykresli).catch(function (e) { swallow(e, 'sestav'); vykresli(); });
     }
     window.agOpenScrollUceni = otevri;
-    window.AGScrollUceni = { otevri: otevri, zavri: zavri, karty: function () { return karty; }, zobrazene: function () { return zobrazene; }, sestav: sestav, filtr: function (f) { filtr = f; if (el && el.style.display === 'block') vykresli(); }, stav: function () { return st; }, videno: videno, TIPY: TIPY };
+    window.AGScrollUceni = { otevri: otevri, zavri: zavri, karty: function () { return karty; }, zobrazene: function () { return zobrazene; }, sestav: sestav, filtr: function (f) { filtr = f; if (el) el.querySelectorAll('.agsu-filtry button').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-f') === f); }); if (el && el.style.display === 'block') vykresli(); }, stav: function () { return st; }, videno: videno, TIPY: TIPY };
 
     function register() {
-        try { if (typeof window.agRegisterFieldTool === 'function') window.agRegisterFieldTool({ id: 'scroll-uceni', label: 'Scrolluj a uč se', icon: ICON, cat: 'Pomůcky', onClick: otevri, order: 2 }); } catch (e) { swallow(e, 'register'); }
+        try { if (typeof window.agRegisterFieldTool === 'function') window.agRegisterFieldTool({ id: 'scroll-uceni', label: 'Geo kartičky', icon: ICON, cat: 'Pomůcky', onClick: otevri, order: 2 }); } catch (e) { swallow(e, 'register'); }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', register); else register();
 })();

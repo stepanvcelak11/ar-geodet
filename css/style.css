@@ -2596,10 +2596,17 @@ body.left-hand #map-sheet {
    Záložky Podklad · Vrstvy · Nástroje: vidět je jedno patro, ostatní jsou [hidden].
    Bez modulu (body bez .ag-mapa-panel) záložky nejsou a patra jdou pod sebou. */
 #map-sheet .ms-tabs { display: none; }
+/* hlavička hubenější a bez spodní linky, záložky s dechem pod ní (18. 9. 2026: „vrchní část je namačkaná,
+   lišta s názvem strašně tlustá") */
+body.ag-mapa-panel #map-sheet .ms-head { padding: 6px 10px 4px 12px; border-bottom: 0; }
+body.ag-mapa-panel #map-sheet .ms-title { font-size: calc(12.5px * var(--ag-font-scale, 1)); color: var(--text-muted); }
+body.ag-mapa-panel #map-sheet .ms-title .icon { width: 14px; height: 14px; }
+body.ag-mapa-panel #map-sheet .ms-close { width: 28px; height: 28px; border: 0; }
 body.ag-mapa-panel #map-sheet .ms-tabs {
-    position: relative; flex: none; display: flex; margin: 0 12px 2px; padding: 3px;
+    position: relative; flex: none; display: flex; margin: 2px 12px 12px; padding: 3px;
     border-radius: 12px; background: var(--surface-1, rgba(255, 255, 255, 0.06));
 }
+body.ag-mapa-panel #map-sheet .ms-scroll { padding-top: 2px; }
 #map-sheet .ms-tabs button {
     flex: 1; position: relative; z-index: 1; border: 0; background: transparent; color: var(--text-muted);
     padding: 8px 4px; border-radius: 10px; font: 700 calc(12.5px * var(--ag-font-scale, 1)) / 1.2 var(--font-ui, system-ui), sans-serif;

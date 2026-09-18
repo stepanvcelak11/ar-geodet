@@ -97,7 +97,7 @@
     function nastavStyl() {
         if (!vrstva) return;
         var v = varianta(), u = url(); if (v === _varianta && u === _url) return;
-        _varianta = v; _url = u;
+        _varianta = v; _url = u; _rotPosl = null;
         try { var m = vrstva.getMaplibreMap(); if (m) m.setStyle(AGMapaStyl.vytvor(v, u)); } catch (e) { swallow(e, 'setStyle'); }
     }
     // jiná země = jiný soubor dat (cz → sk…); když pro ni data nejsou, mapa to řekne
@@ -239,8 +239,22 @@
             : 'vlastní podklad z OpenStreetMap: budovy, hrany, koleje, bez reklam; styl podle motivu';
     }
 
+    // POPISKY NEVZHŮRU NOHAMA (18. 9. 2026, přání: „čísla domů ať se otáčejí, ať je nečtu hlavou dolů"):
+    // mapa se v režimu „po směru" otáčí CSS transformem #map-wrapper a plátno MapLibre se otočí s ní.
+    // Bodové popisky (čísla popisná, sídla, vrcholy) dostanou text-rotate = opačný úhel, takže stojí
+    // rovně jako popisky bodů appky. Názvy ulic jdou podél čáry — ty se otáčejí s ulicí (jako na papíře).
+    var _rotPosl = null, _rotTik = null, ROT_VRSTVY = ['cisla-popisna', 'sidla', 'poi-vrcholy'];
+    function otoceniMapy() { try { var mm = /rotate\((-?[\d.]+)deg\)/.exec(document.getElementById('map-wrapper').style.transform || ''); return mm ? parseFloat(mm[1]) : 0; } catch (e) { return 0; } }
+    function srovnejPopisky(nasilim) {
+        var m = mapa(); if (!m || !m.isStyleLoaded || !m.isStyleLoaded()) return;
+        var r = otoceniMapy(); if (!nasilim && _rotPosl != null && Math.abs(((r - _rotPosl + 540) % 360) - 180) < 2) return;
+        _rotPosl = r;
+        ROT_VRSTVY.forEach(function (id) { try { if (m.getLayer(id)) m.setLayoutProperty(id, 'text-rotate', -r); } catch (e) { /* vrstva chybí */ } });
+    }
     function start() {
         try { ui(); } catch (e) { swallow(e, 'ui'); }
+        if (!_rotTik) _rotTik = setInterval(function () { try { if (vrstva && typeof map !== 'undefined' && map.hasLayer(vrstva)) srovnejPopisky(false); } catch (e) { /* nic */ } }, 400);
+        document.addEventListener('ag:mapa-vektor', function () { _rotPosl = null; setTimeout(function () { srovnejPopisky(true); }, 800); });
         document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"]')) setTimeout(ui, 50); } catch (e) { /* nic */ } }, true);
         if (st.zap && !lite()) {
             // až běží mapa appky (logika.js nastaví `map`), a v nečinnosti — ne před prvním obrazem
@@ -250,5 +264,5 @@
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
-    window.AGMapaVektor = { nastav: nastav, zapni: zapni, vypni: vypni, stav: function () { return stav; }, chyba: function () { return chybaText; }, posledniChyba: function () { return _posledniChyba; }, mapa: mapa, budovy: budovy, plochy: plochy, cary: cary, url: url, varianta: varianta, nastaveni: function () { return { zap: st.zap, styl: st.styl, url: st.url }; }, protokol: function () { return knihovny._proto || null; }, knihovny: knihovny, overData: overData };
+    window.AGMapaVektor = { nastav: nastav, zapni: zapni, vypni: vypni, stav: function () { return stav; }, chyba: function () { return chybaText; }, posledniChyba: function () { return _posledniChyba; }, mapa: mapa, budovy: budovy, plochy: plochy, cary: cary, url: url, varianta: varianta, nastaveni: function () { return { zap: st.zap, styl: st.styl, url: st.url }; }, protokol: function () { return knihovny._proto || null; }, knihovny: knihovny, overData: overData, srovnejPopisky: srovnejPopisky, otoceniMapy: otoceniMapy };
 })();

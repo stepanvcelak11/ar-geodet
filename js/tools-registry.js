@@ -397,8 +397,8 @@
           keys: 'odhad odhadni cviceni cviciste hra trenink vzdalenost azimut oko krok skore serie zabava',
           help: { t: 'Odhadni to' } },
         // ---- Učit se (13. 9. 2026, hodnocení pro studenty) — v Základu, bez zámku ----
-        { k: 'scroll-uceni', fn: 'agOpenScrollUceni', cat: 'Pomůcky', verb: 'Učit se', vl: 'Scrolluj a uč se', vh: 'kartičky na posouvání: pojmy, vzorce, předpisy, otázky, co appka umí', keys: 'scroll scrolluj kartičky karticky feed uceni vzdelavani pojmy vzorce predpisy otazky tipy student kratke',
-          help: { t: 'Scrolluj a uč se' } },
+        { k: 'scroll-uceni', fn: 'agOpenScrollUceni', cat: 'Pomůcky', verb: 'Učit se', vl: 'Geo kartičky', vh: 'kartičky na posouvání: pojmy, vzorce, předpisy, otázky, co appka umí', keys: 'geo karticky kartičky scroll scrolluj feed uceni vzdelavani pojmy vzorce predpisy otazky tipy student kratke listovani',
+          help: { t: 'Geo kartičky' } },
         { k: 'cvicne-ulohy', fn: 'agOpenCvicneUlohy', cat: 'Pomůcky', verb: 'Učit se', vl: 'Cvičné úlohy s klíčem', vh: 'rajón, protínání, polygon, nivelace — spočítej a nech si zkontrolovat',
           keys: 'cvicne ulohy priklady zadani klic vysledek kontrola zapocet zkouska cviceni rajon protinani polygon nivelace student uceni domaci ukol',
           help: { t: 'Cvičné úlohy' } },

@@ -259,24 +259,44 @@ async def beh(url):
         ok('H1 simulace DE: zeme DE, rucni poloha v Berline, souradnice UTM', h1 and h1['kod'] == 'DE' and h1['man'] and abs(h1['lat'] - 52.52) < 0.01 and abs(h1['lng'] - 13.405) < 0.01 and 'UTM' in (h1['sys'] or ''), h1)
         h2 = await page.evaluate("() => { AGZemeSimulace('DE'); return { rezim: AGSour.rezim(), man: AGManualPos.active }; }")
         ok('H2 druhe klepnuti = konec simulace (auto, GPS)', h2 and h2['rezim'] == 'auto' and not h2['man'], h2)
+        # Slovensko: body GKÚ SR pres WMS GetFeatureInfo (mock) — TB z S-JTSK, nivelace s vyskou
+        gku = {'type': 'FeatureCollection', 'features': [
+            {'type': 'Feature', 'geometry': None, 'properties': {'OBJECTID': '1', 'Úplné označenie bodu': '6514-17.5', 'X S-JTSK (JTSK)': '1281011,48 m', 'Y S-JTSK (JTSK)': '573075,38 m', 'Výška (Bpv)': 'Null', 'Názov k. ú.': 'Staré Mesto', 'Názov okresu': 'Bratislava I', 'Druh značky': 'čapová'}, 'layerName': 'Štátna trigonometrická sieť (ŠTS - ZB)'},
+            {'type': 'Feature', 'geometry': None, 'properties': {'OBJECTID': '1', 'Úplné označenie bodu': '6514-17.5', 'X S-JTSK (JTSK)': '1281011,48 m', 'Y S-JTSK (JTSK)': '573075,38 m'}, 'layerName': 'Štátna trigonometrická sieť (ŠTS)'},
+            {'type': 'Feature', 'geometry': None, 'properties': {'OBJECTID': '2', 'Úplné označenie bodu': 'JM-023-45', 'X S-JTSK (JTSK)': '1280549,42 m', 'Y S-JTSK (JTSK)': '572695,98 m', 'Výška (Bpv)': '139,412 m', 'Názov k. ú.': 'Staré Mesto'}, 'layerName': 'Štátna nivelačná sieť (ŠNS - 1. rád)'},
+            {'type': 'Feature', 'geometry': None, 'properties': {'OBJECTID': '3', 'Úplné označenie bodu': 'G-12', 'X S-JTSK (JTSK)': '1280800,00 m', 'Y S-JTSK (JTSK)': '572900,00 m'}, 'layerName': 'Štátna gravimetrická sieť (ŠGS - 2. rád)'}]}
+
+        async def route_gku(route, request):
+            try:
+                await route.fulfill(status=200, content_type='application/json', body=json.dumps(gku, ensure_ascii=False).encode('utf-8'), headers={'Access-Control-Allow-Origin': '*'})
+            except Exception:
+                pass
+        await page.route('**/zbgis_referencny_geodeticky_bod_wms_featureinfo/**', route_gku)
+        ok('H3 modul body-sk nacteny', await T.cekej(page, "window.AGBodySK", 30))
+        h4 = await page.evaluate("""async () => { AGZemeSimulace('SK'); await new Promise(r => setTimeout(r, 600)); var n = await AGBodySK.obnov(true);
+            var sk = arPoints.filter(p => p.zdroj === 'GKÚ SR'); var tb = sk.find(p => p.name === '6514-17.5'), niv = sk.find(p => p.name === 'JM-023-45'), g = sk.find(p => p.name === 'G-12');
+            var out = { kod: AGSour.kod(), n: n, sk: sk.length, tb: tb && { cat: tb.cat, druh: tb.druh, lat: tb.lat, lng: tb.lng, ku: tb.ku, znacka: tb.znacka }, niv: niv && { cat: niv.cat, vyska: niv.vyska }, g: g && g.cat, dBa: tb && GeoCore.getDistance(tb.lat, tb.lng, 48.1486, 17.1077) };
+            AGZemeSimulace('SK'); return out; }""")
+        ok('H4 Slovensko: body GKÚ SR z WMS — 3 body bez duplicit (ŠTS-ZB → ZHB s druhem, ŠNS → NIVEL s vyskou, ŠGS → TIHA), poloha z S-JTSK v Bratislave (< 3 km od stredu)', h4 and h4['kod'] == 'SK' and h4['sk'] == 3 and h4['tb'] and h4['tb']['cat'] == 'ZHB' and 'ZB' in h4['tb']['druh'] and h4['tb']['ku'] == 'Staré Mesto' and h4['tb']['znacka'] == 'čapová' and h4['niv'] and h4['niv']['cat'] == 'NIVEL' and abs(h4['niv']['vyska'] - 139.412) < 0.001 and h4['g'] == 'TIHA' and h4['dBa'] < 3000, h4)
+        await page.evaluate("() => { for (var i = arPoints.length - 1; i >= 0; i--) if (arPoints[i].zdroj === 'GKÚ SR') arPoints.splice(i, 1); }")
 
         # ================= I: scrolluj a uc se ================================================
         ok('I0 nastroj v MANIFESTu + registru (Ucit se, bez zamku)', await page.evaluate("() => { var r = AGReg.get('scroll-uceni'); return !!(AGLazyTools.manifest.some(t => t.id === 'scroll-uceni') && r && r.verb === 'Učit se' && !r.pro); }"))
         await page.evaluate("() => AGLazyTools.load('js/scroll-uceni.js')")
         ok('I1 modul nacteny', await T.cekej(page, "window.AGScrollUceni && AGScrollUceni.otevri", 30))
         await page.evaluate("() => { localStorage.removeItem('agScrollUceni_v1'); window.agOpenScrollUceni(); }")
-        ok('I2 feed se naplnil kartami', await T.cekej(page, "AGScrollUceni.karty().length > 120 && document.querySelectorAll('#agsu-feed .agsu-karta[data-id]').length > 120", 40), await page.evaluate("() => AGScrollUceni.karty().length"))
+        ok('I2 feed se naplnil kartami', await T.cekej(page, "AGScrollUceni.karty().length > 120 && document.querySelectorAll('#agsu-feed .agsu-slot[data-id]').length > 120", 40), await page.evaluate("() => AGScrollUceni.karty().length"))
         i3 = await page.evaluate("""() => { var k = AGScrollUceni.karty(); var typy = {}; k.forEach(x => { typy[x.typ] = (typy[x.typ] || 0) + 1; });
-            var feed = document.getElementById('agsu-feed'); var cs = getComputedStyle(feed); var sec = feed.querySelector('.agsu-karta');
+            var feed = document.getElementById('agsu-feed'); var cs = getComputedStyle(feed); var sec = feed.querySelector('.agsu-slot');
             return { typy: typy, snap: cs.scrollSnapType, vyska: Math.abs(sec.getBoundingClientRect().height - feed.clientHeight) < 2, pocet: document.getElementById('agsu-pocet').textContent }; }""")
         ok('I3 karty vsech druhu (pojem, vzorec, predpis, otazka, nastroj, tip), scroll-snap y, karta = cela obrazovka', i3 and all(i3['typy'].get(t, 0) > 3 for t in ('pojem', 'vzorec', 'predpis', 'otazka', 'nastroj', 'tip')) and 'y' in i3['snap'] and i3['vyska'] and 'celkem 0' in i3['pocet'], i3)
-        i4 = await page.evaluate("""() => { AGScrollUceni.filtr('otazka'); var sec = document.querySelector('#agsu-feed .agsu-karta[data-id]'); var jenOtazky = [].every.call(document.querySelectorAll('#agsu-feed .agsu-karta[data-id]'), s => s.classList.contains('t-otazka'));
+        i4 = await page.evaluate("""() => { AGScrollUceni.filtr('otazka'); var sec = document.querySelector('#agsu-feed .agsu-slot[data-id]'); var jenOtazky = [].every.call(document.querySelectorAll('#agsu-feed .agsu-slot[data-id]'), s => !!s.querySelector('.agsu-karta.t-otazka'));
             sec.querySelector('[data-akce="odkryt"]').click(); var odp = sec.querySelector('.agsu-odp'); sec.querySelector('[data-akce="ulozit"]').click();
             var st = AGScrollUceni.stav(); var id = sec.getAttribute('data-id');
-            AGScrollUceni.filtr('ulozene'); var ul = document.querySelectorAll('#agsu-feed .agsu-karta[data-id]').length;
+            AGScrollUceni.filtr('ulozene'); var ul = document.querySelectorAll('#agsu-feed .agsu-slot[data-id]').length;
             return { jenOtazky: jenOtazky, odkryto: odp && !odp.hidden, ulozeno: !!st.ulozene[id], videno: !!st.videne[id], ul: ul, pocet: document.getElementById('agsu-pocet').textContent }; }""")
         ok('I4 filtr Otazky, Ukazat vysledek odkryje odpoved (= videno), hvezdicka ulozi → filtr Ulozene ma 1 kartu, pocitadlo dnes 1', i4 and i4['jenOtazky'] and i4['odkryto'] and i4['ulozeno'] and i4['videno'] and i4['ul'] == 1 and 'dnes 1' in i4['pocet'], i4)
-        i5 = await page.evaluate("() => { AGScrollUceni.filtr('nastroj'); var b = document.querySelector('#agsu-feed .agsu-karta[data-id] [data-akce=\"tool\"]'); var k = b.getAttribute('data-tool'); b.click(); return { k: k, zavreno: document.getElementById('agsu').style.display === 'none' }; }")
+        i5 = await page.evaluate("() => { AGScrollUceni.filtr('nastroj'); var b = document.querySelector('#agsu-feed .agsu-slot[data-id] [data-akce=\"tool\"]'); var k = b.getAttribute('data-tool'); b.click(); return { k: k, zavreno: document.getElementById('agsu').style.display === 'none' }; }")
         ok('I5 karta nastroje: Otevrit zavre feed a spusti nastroj', i5 and i5['k'] and i5['zavreno'], i5)
         await page.evaluate("() => { try { document.querySelectorAll('.modal-overlay').forEach(m => { if (m.id !== 'settings-modal') m.style.display = 'none'; }); } catch (e) {} }")
 

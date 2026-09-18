@@ -85,7 +85,7 @@
         },
         {
             // SCROLLUJ A UČ SE (17. 9. 2026): kartičky z pojmů, vzorců, předpisů, úloh a nástrojů; svislý feed
-            id: 'scroll-uceni', src: 'js/scroll-uceni.js', label: 'Scrolluj a uč se', cat: 'Pomůcky', order: 2,
+            id: 'scroll-uceni', src: 'js/scroll-uceni.js', label: 'Geo kartičky', cat: 'Pomůcky', order: 2,
             open: 'agOpenScrollUceni', css: 'css/scroll-uceni.css',
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/><path d="M12 1v2M12 21v2"/></svg>'
         },
