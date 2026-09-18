@@ -4,7 +4,8 @@ u"""Regrese k úklidu 18. 9. 2026 (v360): navigace k dalekému bodu, podklad map
   A  TRASA K DALEKÉMU CÍLI (hlášení „k niveláku a k TB vede pořád jen přímka"): do 18. 9. se nad 3 km trasa
      nepočítala. Teď 4,4 km → trasa z dlaždic z14, 9 km → z13, 18 km → trasa (hrubá mřížka), 25 km → přímka
      s důvodem „dál než 20 km". Cíl na zdi budovy (nivelační čep) → trasa dojde AŽ K NĚMU (oprava: `b`
-     se v hledej() četlo před deklarací, uvolnění políčka cíle nikdy neproběhlo).
+     se v hledej() četlo před deklarací, uvolnění políčka cíle nikdy neproběhlo). Rybník širší než lem 40 m →
+     trasa ho obejde (širší lem 250/800 m, v363), ne rovně přes vodu.
   B  PODKLAD MAPY: karta rastru (#ms-base-osm) je pryč; v Podkladu jsou Mapa (vektor), Ortofoto a Katastr
      (přepínač vrstvy, #btn-katastr); ve Vrstvách řádek Katastrální mapa už není; vektor je VÝCHOZÍ zapnutý
      (bez uložené volby + fixture → stav zapnuto); hlídač okolí hlásí toastem, ne dialogem.
@@ -145,6 +146,23 @@ async def beh(url):
             var t = AGTrasa.prepocitej('test'); var out = { t: !!t, nedos: t && t.nedosazitelne, lomu: t && t.body.length, konecNaCili: t && Math.abs(t.body[t.body.length - 1].lat - zed.lat) < 1e-9, zdroj: t && t.zdroj, diag: AGTrasa.diag() };
             highlightedPointId = null; arPoints.splice(arPoints.indexOf(p), 1); return out; }""" % (T.LAT, T.LNG))
         ok('A5 nivelační čep NA ZDI budovy: trasa dojde až k němu (ne „nedosažitelné")', a5 and a5['t'] and not a5['nedos'] and a5['konecNaCili'], a5)
+        # A6 (v363, uživatel: „rybník nebo řeku to přeplave"): rybník širší než lem 40 m → dřív cíl „nedosažitelný"
+        # a zbytek rovně přes vodu; teď širší lem (250/800 m) najde obchvat — trasa delší než přímka, bez vody
+        a6 = await page.evaluate("""async () => {
+            await AGMapaData.oblast({ s: 50.060, w: 14.425, n: 50.072, e: 14.440 });
+            var d = await AGMapaData.oblast({ s: 50.0640, w: 14.4290, n: 50.0685, e: 14.4355 });
+            var jez = d.water.filter(f => f.geom === 'Polygon' && f.props.kind === 'water').map(f => f.polys[0][0]);
+            function vRingu(ring, q) { var ins = false; for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) { var yi = ring[i].lat, xi = ring[i].lng, yj = ring[j].lat, xj = ring[j].lng; if (((yi > q.lat) !== (yj > q.lat)) && (q.lng < (xj - xi) * (q.lat - yi) / (yj - yi) + xi)) ins = !ins; } return ins; }
+            function veVode(q) { return jez.some(r => vRingu(r, q)); }
+            var me = { lat: 50.0652, lng: 14.4322 }, cil = { lat: 50.0672, lng: 14.4322 }; userLat = me.lat; userLng = me.lng;
+            var p = { id: 'p_voda', name: 'zaVodou', lat: cil.lat, lng: cil.lng, type: 'polohovy', cat: 'PBPP', hidden: false }; arPoints.push(p); highlightedPointId = p.id;
+            var t = AGTrasa.prepocitej('test');
+            for (var k = 0; k < 40 && (!t || t.zdroj !== 'dlaždice'); k++) { await new Promise(r => setTimeout(r, 500)); t = AGTrasa.trasa(); }
+            var veVodeN = 0, N = 0;
+            if (t) for (var i = 1; i < t.body.length; i++) { var a = t.body[i - 1], b = t.body[i], L = AGHrany.dist(a, b); for (var s = 0; s <= L; s += 2) { var q = { lat: a.lat + (b.lat - a.lat) * s / L, lng: a.lng + (b.lng - a.lng) * s / L }; N++; if (veVode(q)) veVodeN++; } }
+            highlightedPointId = null; arPoints.splice(arPoints.indexOf(p), 1);
+            return { jezer: jez.length, primkaVeVode: (function () { var n = 0; for (var s = 0; s <= 1; s += 0.01) if (veVode({ lat: me.lat + (cil.lat - me.lat) * s, lng: me.lng + (cil.lng - me.lng) * s })) n++; return n; })(), t: !!t, nedos: t && t.nedosazitelne, delka: t && Math.round(t.delka), primka: Math.round(AGHrany.dist(me, cil)), veVode: veVodeN, vzorku: N, okraj: t && t.okraj }; }""")
+        ok('A6 překážka širší než lem 40 m (voda + zástavba): přímka jde vodou, trasa najde obchvat širším lemem (dosažitelný cíl, ≤ 2 % vzorků ve vodě)', a6 and a6['primkaVeVode'] >= 1 and a6['t'] and not a6['nedos'] and a6['okraj'] and a6['okraj'] > 40 and a6['delka'] > a6['primka'] * 1.2 and a6['veVode'] <= a6['vzorku'] * 0.02, a6)
 
         # ================= C: nástroje =========================================================
         await page.evaluate("() => { document.getElementById('map-controls').classList.remove('expanded'); }")

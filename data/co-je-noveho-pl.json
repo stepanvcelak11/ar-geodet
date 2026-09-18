@@ -2,6 +2,14 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 364,
+      "datum": "2026-09-18",
+      "nadpis": "Trasa nie przepływa przez staw ani rzekę",
+      "body": [
+        "<b>Trasa do punktu</b> nie prowadzi już prosto przez wodę: gdy staw lub rzeka zagrodzą drogę, a most lub grobla są dalej, niż aplikacja patrzyła (40 m wokół), rozgląda się do 250 m, a potem do 800 m i znajduje objazd. Strumień lub rów nadal przekracza — mała woda jest w porządku. Jeśli do 800 m nie ma przejścia, zatrzyma się przy wodzie i resztę pokaże przerywaną linią jak dotąd."
+      ]
+    },
+    {
       "v": 363,
       "datum": "2026-09-18",
       "nadpis": "Geo biuletyn wyłączony",

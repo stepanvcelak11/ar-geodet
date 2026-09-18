@@ -65,10 +65,13 @@
     }
     function ll(c) { return { lat: c[1], lng: c[0] }; }
     // ---- rastr cen -----------------------------------------------------------------------------
-    function rastr(od, kam) {
+    // okraj = lem kolem obdélníku start–cíl (výchozí OKRAJ 40 m); jenDlazdice = počítat JEN z dlaždic
+    // (širší lem se z výřezu mapy na obrazovce poskládat nedá — za okrajem displeje by „nic nebylo")
+    function rastr(od, kam, okraj, jenDlazdice) {
+        okraj = okraj || OKRAJ;
         var m = AGHrany.mPerDeg((od.lat + kam.lat) / 2);
-        var s = Math.min(od.lat, kam.lat) - OKRAJ / m.lat, n = Math.max(od.lat, kam.lat) + OKRAJ / m.lat;
-        var w = Math.min(od.lng, kam.lng) - OKRAJ / m.lng, e = Math.max(od.lng, kam.lng) + OKRAJ / m.lng;
+        var s = Math.min(od.lat, kam.lat) - okraj / m.lat, n = Math.max(od.lat, kam.lat) + okraj / m.lat;
+        var w = Math.min(od.lng, kam.lng) - okraj / m.lng, e = Math.max(od.lng, kam.lng) + okraj / m.lng;
         var sirka = (e - w) * m.lng, vyska = (n - s) * m.lat, strana = Math.max(sirka, vyska);
         if (strana > MAX_STRANA + 2 * OKRAJ) return null;
         // mřížka 1 m, dokud se vejde do rozpočtu buněk (do ~400 m trasy) — na cestě 3 m široké
@@ -90,6 +93,7 @@
         var bbox = { s: s, w: w, n: n, e: e }, D = data(bbox, strana), T = D.t, MV = window.AGMapaVektor, silnice = [], vchody = [];
         // bez dlaždic a bez vektorové mapy na obrazovce není z čeho počítat — počkat na data (tik zkouší
         // po 5 s, dojetí dlaždic spustí přepočet samo), ne kreslit „trasu" přes prázdný rastr
+        if (!T && jenDlazdice) return null;   // širší lem čeká na dlaždice (po dojetí přijde prepocitej('data'))
         if (!T && !mapaNaObrazovce()) { var chD = window.AGMapaData && AGMapaData.chyba && AGMapaData.chyba(); _rastrDuvod = chD ? ('data mapy nejdou stáhnout — ' + chD) : (window.AGMapaData ? 'data mapy se stahují (bez signálu to nejde)' : 'data mapy nejsou k dispozici'); return null; }
         if (T) {
             // z dlaždic: plochy (po druzích, dražší přes levnější), voda, budovy, silnice
@@ -149,7 +153,7 @@
         try { if (window.AGOkoli) AGOkoli.prekazky().forEach(function (p) { plocha(AGOkoli.prekazkaRings(p), NEPRUCHOD); }); } catch (e) { swallow(e, 'prekazky'); }
         var data8 = ctx.getImageData(0, 0, W, H).data, cost = new Float32Array(W * H);
         for (var i = 0; i < W * H; i++) { var r = data8[i * 4]; cost[i] = r >= 230 ? Infinity : Math.max(0.5, r / 10); }   // ≥ 230 = hrana neprůchodného rozmazaná vyhlazováním plátna
-        return { cost: cost, W: W, H: H, bunka: bunka, w: w, n: n, m: m, zdroj: D.zdroj, z: D.z, osy: osy, budovy: budovy, vchody: vchody, px: function (p) { return { x: Math.min(W - 1, Math.max(0, Math.floor((p.lng - w) * m.lng / bunka))), y: Math.min(H - 1, Math.max(0, Math.floor((n - p.lat) * m.lat / bunka))) }; }, ll: function (x, y) { return { lat: n - (y + 0.5) * bunka / m.lat, lng: w + (x + 0.5) * bunka / m.lng }; } };
+        return { cost: cost, W: W, H: H, bunka: bunka, okraj: okraj, w: w, n: n, m: m, zdroj: D.zdroj, z: D.z, osy: osy, budovy: budovy, vchody: vchody, px: function (p) { return { x: Math.min(W - 1, Math.max(0, Math.floor((p.lng - w) * m.lng / bunka))), y: Math.min(H - 1, Math.max(0, Math.floor((n - p.lat) * m.lat / bunka))) }; }, ll: function (x, y) { return { lat: n - (y + 0.5) * bunka / m.lat, lng: w + (x + 0.5) * bunka / m.lng }; } };
     }
     // lomy ležící na cestě přitáhnout na její osu (do půl šířky + 1 m) — čára v mapě pak leží
     // NA cestě, ne metr vedle (hlášení 17. 9. 2026)
@@ -316,8 +320,26 @@
         var vy = null; try { vy = vychod(r, od); } catch (e) { swallow(e, 'vychod'); }
         var start = vy ? vy.bod : od;
         var v = hledej(r, start, c); if (!v || v.body.length < 2) { _duvod = 'z místa, kde stojíš, podle mapy nevede průchod (' + r.zdroj + ')'; return null; }
+        // PŘES VODU NEPLAVAT (18. 9. 2026, uživatel: „když je tam řeka nebo rybník, přeplave to skrz"):
+        // rybník širší než lem 40 m nebo řeka, jejíž most je mimo výřez, dělaly cíl „nedosažitelným" a zbytek
+        // trasy se táhl rovně — přes vodu. Když trasa skončila DALEKO od cíle (> 15 m = ne u zdi domu),
+        // zkusí se širší lem (250 m, pak 800 m), ať se najde most, hráz nebo obchvat. Jen z dlaždic; když
+        // ještě nedojely, zůstane zatím kratší výsledek a po dojetí se počítá znovu. Potok (kind stream/ditch)
+        // je průchodný dál — malá voda se přejde, to uživatel chce.
+        if (v.nedosazitelne && v.body.length >= 2 && dist(v.body[v.body.length - 2], c) > 15) {
+            var LEMY = [250, 800];
+            for (var li = 0; li < LEMY.length; li++) {
+                var r2 = null, v2 = null;
+                try { r2 = rastr(od, c, LEMY[li], true); } catch (e2) { swallow(e2, 'rastr-lem'); }
+                if (!r2) continue;
+                var start2 = start;
+                if (vy && !(vy.jak === 'vchod')) { try { var vy2 = vychod(r2, od); if (vy2) start2 = vy2.bod; } catch (e3) { /* původní východ */ } }
+                try { v2 = hledej(r2, start2, c); } catch (e4) { swallow(e4, 'hledej-lem'); }
+                if (v2 && v2.body.length >= 2 && !v2.nedosazitelne) { r = r2; v = v2; break; }
+            }
+        }
         var body = v.body; if (vy) body = [{ lat: od.lat, lng: od.lng }].concat(body);
-        return { id: c.id, name: c.name, body: body, delka: delka(body), bunka: r.bunka, z: r.z, ts: Date.now(), profil: null, od: od, zdroj: r.zdroj, vychod: vy, nedosazitelne: !!v.nedosazitelne };
+        return { id: c.id, name: c.name, body: body, delka: delka(body), bunka: r.bunka, okraj: r.okraj, z: r.z, ts: Date.now(), profil: null, od: od, zdroj: r.zdroj, vychod: vy, nedosazitelne: !!v.nedosazitelne };
     }
     function pripravenoProc() {
         if (!st.zap) return 'navigace podle terénu je vypnutá (zapni ji: Vrstvy → Trasa terénem)';
@@ -392,7 +414,7 @@
             _grp.clearLayers();
             if (!trasa) return;
             var pl = L.polyline(trasa.body.map(function (q) { return [q.lat, q.lng]; }), { color: '#fbbf24', weight: 4, opacity: 0.95, lineJoin: 'round', interactive: true, bubblingMouseEvents: false, pane: 'overlayPane' });
-            pl.bindPopup(function () { var p = trasa && trasa.profil; return '<b>Trasa k ' + (window.AG && AG.esc ? AG.esc(String(trasa.name)) : trasa.name) + '</b><br>' + Math.round(trasa.delka) + ' m po terénu' + (p ? ' · ' + popisekProfilu(p) : (trasa.profilChyba ? ' · profil bez signálu' : ' · profil se načítá…')) + (p ? '<div style="margin-top:6px">' + svgProfil(p) + '</div>' : '') + (trasa.nedosazitelne ? '<br><small>⚠ K cíli podle mapy nevede průchod (uzavřený dvůr, budova, oplocený areál) — trasa končí u nejbližšího místa, zbytek rovně.</small>' : '') + (trasa.vychod ? '<br><small>Stojíš v budově: nejdřív k východu (' + (trasa.vychod.jak === 'vchod' ? 'vchod z mapy' : 'odhad — strana k ulici') + ', ' + Math.round(trasa.vychod.d) + ' m), pak po terénu.</small>' : '') + '<small>obchází budovy, vodu, dálnice a překážky; ' + trasa.ms + ' ms, mřížka ' + trasa.bunka + ' m, data: ' + (trasa.zdroj || '?') + (trasa.z && trasa.z !== 15 ? ' z' + trasa.z + ' (daleký cíl — hrubší mapa)' : '') + '</small>'; }, { maxWidth: 320 });
+            pl.bindPopup(function () { var p = trasa && trasa.profil; return '<b>Trasa k ' + (window.AG && AG.esc ? AG.esc(String(trasa.name)) : trasa.name) + '</b><br>' + Math.round(trasa.delka) + ' m po terénu' + (p ? ' · ' + popisekProfilu(p) : (trasa.profilChyba ? ' · profil bez signálu' : ' · profil se načítá…')) + (p ? '<div style="margin-top:6px">' + svgProfil(p) + '</div>' : '') + (trasa.nedosazitelne ? '<br><small>⚠ K cíli podle mapy nevede průchod (uzavřený dvůr, budova, oplocený areál, voda bez mostu do 800 m) — trasa končí u nejbližšího místa, zbytek rovně.</small>' : '') + (trasa.vychod ? '<br><small>Stojíš v budově: nejdřív k východu (' + (trasa.vychod.jak === 'vchod' ? 'vchod z mapy' : 'odhad — strana k ulici') + ', ' + Math.round(trasa.vychod.d) + ' m), pak po terénu.</small>' : '') + '<small>obchází budovy, vodu, dálnice a překážky; ' + trasa.ms + ' ms, mřížka ' + trasa.bunka + ' m' + (trasa.okraj && trasa.okraj > OKRAJ ? ', hledáno ' + trasa.okraj + ' m kolem' : '') + ', data: ' + (trasa.zdroj || '?') + (trasa.z && trasa.z !== 15 ? ' z' + trasa.z + ' (daleký cíl — hrubší mapa)' : '') + '</small>'; }, { maxWidth: 320 });
             pl.addTo(_grp);
             if (trasa.nedosazitelne && trasa.body.length >= 2) {
                 var pk = trasa.body[trasa.body.length - 2], pc = trasa.body[trasa.body.length - 1];

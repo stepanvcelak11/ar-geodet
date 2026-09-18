@@ -2,6 +2,14 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 364,
+      "datum": "2026-09-18",
+      "nadpis": "La ruta ya no cruza a nado un estanque ni un río",
+      "body": [
+        "<b>La ruta al punto</b> ya no va en línea recta por el agua: cuando un estanque o un río cierran el paso y el puente o la presa están más lejos de lo que la app miraba (40 m alrededor), busca hasta 250 m y luego hasta 800 m y encuentra un rodeo. Un arroyo o una zanja los sigue cruzando: el agua pequeña está bien. Si no hay paso en 800 m, se queda junto al agua y muestra el resto en línea discontinua como antes."
+      ]
+    },
+    {
       "v": 363,
       "datum": "2026-09-18",
       "nadpis": "Geo boletín desactivado",

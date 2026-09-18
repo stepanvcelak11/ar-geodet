@@ -2,6 +2,14 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 364,
+      "datum": "2026-09-18",
+      "nadpis": "Il percorso non attraversa più a nuoto stagni o fiumi",
+      "body": [
+        "<b>Il percorso verso il punto</b> non va più dritto sull'acqua: quando uno stagno o un fiume sbarrano la strada e il ponte o la diga sono più lontani di quanto l'app guardasse (40 m intorno), cerca fino a 250 m e poi fino a 800 m e trova una deviazione. Un ruscello o un fosso li attraversa ancora: l'acqua piccola va bene. Se entro 800 m non c'è un passaggio, si ferma all'acqua e mostra il resto tratteggiato come prima."
+      ]
+    },
+    {
       "v": 363,
       "datum": "2026-09-18",
       "nadpis": "Geo notiziario disattivato",

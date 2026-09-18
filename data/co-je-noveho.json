@@ -2,6 +2,14 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 364,
+   "datum": "2026-09-18",
+   "nadpis": "Trasa neplave přes rybník ani řeku",
+   "body": [
+    "<b>Trasa k bodu</b> už nevede rovně přes vodu: když rybník nebo řeka zablokují cestu a most či hráz jsou dál, než kam appka koukala (40 m kolem), rozhlédne se do 250 m a pak do 800 m a najde obchvat. Potok nebo strouhu dál přejde — malá voda je v pořádku. Když do 800 m žádný přechod není, zůstane u vody a zbytek ukáže čárkovaně jako dřív."
+   ]
+  },
+  {
    "v": 363,
    "datum": "2026-09-18",
    "nadpis": "Geo zpravodaj vypnutý",

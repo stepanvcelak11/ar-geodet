@@ -2,6 +2,14 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 364,
+      "datum": "2026-09-18",
+      "nadpis": "The route no longer swims across a pond or a river",
+      "body": [
+        "<b>The route to a point</b> no longer runs straight across water: when a pond or a river blocks the way and the bridge or dam is further than the app looked (40 m around), it looks up to 250 m and then 800 m and finds a way around. It still crosses a brook or a ditch — small water is fine. If there is no crossing within 800 m, it stops at the water and shows the rest dashed as before."
+      ]
+    },
+    {
       "v": 363,
       "datum": "2026-09-18",
       "nadpis": "Geo newsletter switched off",

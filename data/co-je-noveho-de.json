@@ -2,6 +2,14 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 364,
+      "datum": "2026-09-18",
+      "nadpis": "Die Route schwimmt nicht mehr über Teich oder Fluss",
+      "body": [
+        "<b>Die Route zum Punkt</b> führt nicht mehr gerade über Wasser: Wenn ein Teich oder Fluss den Weg versperrt und Brücke oder Damm weiter weg sind, als die App geschaut hat (40 m Umkreis), sucht sie bis 250 m und dann bis 800 m und findet einen Umweg. Bach oder Graben überquert sie weiterhin — kleines Wasser ist in Ordnung. Gibt es bis 800 m keinen Übergang, bleibt sie am Wasser und zeigt den Rest gestrichelt wie bisher."
+      ]
+    },
+    {
       "v": 363,
       "datum": "2026-09-18",
       "nadpis": "Geo-Newsletter abgeschaltet",
