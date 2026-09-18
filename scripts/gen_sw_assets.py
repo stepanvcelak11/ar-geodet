@@ -44,7 +44,7 @@ MARKER_END = '// <<< KONEC GENEROVANEHO SEZNAMU'
 # Sem patri i externi CDN URL a soubory nacitane az za behu (fetch/lazy load).
 # ---------------------------------------------------------------------------
 EXTRA_ASSETS = [
-    './data/zpravodaj.json',       # cte js/zpravodaj.js pres fetch
+    # './data/zpravodaj.json' — zpravodaj vypnuty 18. 9. 2026 (index.html), po navratu vratit
     './data/predpisy.json',        # cte js/predpisy.js pres fetch
     './data/co-je-noveho.json',    # cte js/co-je-noveho.js pres fetch (s razitkem ?t=)
     './data/jazyky.json',          # cte js/jazyky.js pres fetch (jen kdyz nekdo prepne jazyk;

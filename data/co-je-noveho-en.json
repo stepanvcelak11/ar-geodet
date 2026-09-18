@@ -2,6 +2,22 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 363,
+      "datum": "2026-09-18",
+      "nadpis": "Geo newsletter switched off",
+      "body": [
+        "<b>The Geo newsletter</b> is gone from the app (the item in the More menu, the daily issue and the line in the \"Today in the field\" briefing). Nothing is deleted — the code, data and daily build stay in the repository in case it comes back."
+      ]
+    },
+    {
+      "v": 362,
+      "datum": "2026-09-18",
+      "nadpis": "Route from a building without the \"Exit\" ring",
+      "body": [
+        "When you're standing inside a building, the route to the point is still computed via the exit, but the ring with the label \"Exit (estimate: street side)\" no longer shows in the map — only the dashed stretch to the exit remains."
+      ]
+    },
+    {
       "v": 361,
       "datum": "2026-09-18",
       "nadpis": "Everything translated: release notes and Update history in five languages, Newsletter per language",

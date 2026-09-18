@@ -101,8 +101,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=362">
-    <link rel="stylesheet" href="css/style.css?v=362">
+    <link rel="stylesheet" href="css/tokens.css?v=363">
+    <link rel="stylesheet" href="css/style.css?v=363">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -233,7 +233,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=362">
+    <link rel="stylesheet" href="css/vylepseni.css?v=363">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -1333,8 +1333,11 @@
     <script type="ag/lazy" data-src="js/pruvodce.js"></script>
     <script type="ag/lazy" data-src="js/sdileni.js"></script>
     <script type="ag/lazy" data-src="js/tachymetrie.js"></script>
-    <!-- ZPRAVODAJ (odpojitelné: smaž tento řádek + js/zpravodaj.js + css/zpravodaj.css + data/zpravodaj.json) -->
-    <script type="ag/lazy" data-src="js/zpravodaj.js" data-css="css/zpravodaj.css"></script>
+    <!-- ZPRAVODAJ — VYPNUTÝ 18. 9. 2026 na přání uživatele („dej pryč z aplikace, ale nemaž ho").
+         Kód zůstává (js/zpravodaj.js, css/zpravodaj.css, data/zpravodaj*.json, scripts/build-zpravodaj.mjs
+         + denní workflow zpravodaj.yml dál plní data). Zpět = odkomentovat řádek níže a vrátit
+         './data/zpravodaj.json' do EXTRA_ASSETS v scripts/gen_sw_assets.py + sekci v js/brifink.js.
+    <script type="ag/lazy" data-src="js/zpravodaj.js" data-css="css/zpravodaj.css"></script> -->
     <!-- PŘEDPISY (odpojitelné: smaž tento řádek + js/predpisy.js + css/predpisy.css + data/predpisy.json) -->
     <script type="ag/lazy" data-src="js/predpisy.js" data-css="css/predpisy.css"></script>
     <!-- MODULY (workflow) — odpojitelné -->

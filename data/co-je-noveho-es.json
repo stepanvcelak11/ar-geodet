@@ -2,6 +2,22 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 363,
+      "datum": "2026-09-18",
+      "nadpis": "Geo boletín desactivado",
+      "body": [
+        "<b>El Geo boletín</b> ha desaparecido de la app (la entrada del menú Más, la edición diaria y la línea del briefing «Hoy en campo»). No se borra nada — el código, los datos y la construcción diaria siguen en el repositorio por si vuelve."
+      ]
+    },
+    {
+      "v": 362,
+      "datum": "2026-09-18",
+      "nadpis": "Ruta desde el edificio sin el círculo «Salida»",
+      "body": [
+        "Cuando estás dentro de un edificio, la ruta al punto se sigue calculando por la salida, pero en el mapa ya no aparece el círculo con la etiqueta «Salida (estimación: lado de la calle)» — queda solo el tramo discontinuo hasta la salida."
+      ]
+    },
+    {
       "v": 361,
       "datum": "2026-09-18",
       "nadpis": "Todo traducido: notas de versión e Historial de actualizaciones en cinco idiomas, Boletín por idioma",

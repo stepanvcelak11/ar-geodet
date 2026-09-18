@@ -2,6 +2,22 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 363,
+      "datum": "2026-09-18",
+      "nadpis": "Geo-Newsletter abgeschaltet",
+      "body": [
+        "<b>Der Geo-Newsletter</b> ist aus der App verschwunden (Eintrag im Menü Mehr, die tägliche Ausgabe und die Zeile im Briefing „Heute im Gelände“). Nichts wird gelöscht — Code, Daten und der tägliche Build bleiben im Repository für eine mögliche Rückkehr."
+      ]
+    },
+    {
+      "v": 362,
+      "datum": "2026-09-18",
+      "nadpis": "Route aus dem Gebäude ohne den Kreis „Ausgang“",
+      "body": [
+        "Wenn du in einem Haus stehst, wird die Route zum Punkt weiter über den Ausgang gerechnet, aber in der Karte leuchtet kein Kreis mit der Beschriftung „Ausgang (Schätzung: Straßenseite)“ mehr — es bleibt nur das gestrichelte Stück zum Ausgang."
+      ]
+    },
+    {
       "v": 361,
       "datum": "2026-09-18",
       "nadpis": "Alles übersetzt: Versionshinweise und Aktualisierungshistorie in fünf Sprachen, Newsletter pro Sprache",

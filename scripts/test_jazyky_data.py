@@ -18,7 +18,7 @@ u"""Regrese k překladům 18. 9. 2026 (v356) — DATOVÉ soubory po jazyce a slo
       ANTHROPIC_API_KEY vyrobit data/zpravodaj-xx.json (bez klíče zastaralé smaže), workflow je commituje;
       když soubory po jazyce zrovna existují, mají stejný počet položek/odkazů jako české vydání.
   B2  V prohlížeči (it): Historie aktualizací bez češtiny (dny slovy italsky, italské nadpisy vydání),
-      Zpravodaj bez češtiny (úvodník přes vzor / soubor po jazyce, „Leggi l'originale…").
+      Zpravodaj je od 18. 9. 2026 vypnutý (kód zůstal) → hlídá se, že se NEnačte.
 
 Spuštění:  python scripts/test_jazyky_data.py [port]
 """
@@ -237,16 +237,9 @@ async def beh(url):
            and any(' giorni · ' in t and 'versione' in t for t in hist), [t for t in hist if 'giorn' in t][:2])
         ok('B2 Historie: italský nadpis vydání (Navigazione anche verso un punto lontano)', any('Navigazione anche verso un punto lontano' in t for t in hist))
         await page.evaluate("() => AGHistorie.close()")
-        await page.evaluate("() => new Promise(res => AGLazy.need('js/zpravodaj.js', () => { openZpravodaj(); res(); }))")
-        await page.wait_for_timeout(3500)
-        zpr = await page.evaluate(DUMP, '.zpr-overlay') or []
-        # články z ČÚZK jsou česky jen bez souboru po jazyce (bot bez klíče) — kontrolují se jen texty appky
-        ui = [t for t in zpr if not t.startswith('Vážení') and len(t) < 400]
-        zb = sorted(set(w for t in ui for w in ceska_slova(t)))
-        ok('B2 Zpravodaj: bez češtiny v textech appky (%d uzlů)' % len(zpr), zpr and not zb, zb[:10])
-        ok('B2 Zpravodaj: úvodník italsky (Edizione del …)', any(t.startswith('Edizione del') for t in zpr), zpr[:5])
-        ok(u'B2 Zpravodaj: „Leggi l\'originale alla fonte (…)"', any(t.startswith(u"Leggi l'originale alla fonte (") for t in zpr))
-        await page.evaluate("() => { const x = document.querySelector('.zpr-x'); if (x) x.click(); }")
+        # Zpravodaj je od 18. 9. 2026 v appce VYPNUTÝ (index.html) — modul se nesmí načíst ani tlačítko do menu
+        ok('B2 Zpravodaj vypnutý: bez #zpr-menu-btn a bez window.openZpravodaj',
+           await page.evaluate("() => !document.getElementById('zpr-menu-btn') && typeof window.openZpravodaj !== 'function'"))
         # přepnutí zpět na cs → návod česky
         await page.evaluate("() => AGJazyk.set('cs')")
         await page.wait_for_timeout(1500)

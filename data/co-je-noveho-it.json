@@ -2,6 +2,22 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 363,
+      "datum": "2026-09-18",
+      "nadpis": "Geo notiziario disattivato",
+      "body": [
+        "<b>Il Geo notiziario</b> è sparito dall'app (la voce nel menu Altro, l'edizione giornaliera e la riga nel briefing «Oggi in campo»). Non si cancella nulla — codice, dati e costruzione giornaliera restano nel repository per un eventuale ritorno."
+      ]
+    },
+    {
+      "v": 362,
+      "datum": "2026-09-18",
+      "nadpis": "Percorso dall'edificio senza il cerchio «Uscita»",
+      "body": [
+        "Quando sei dentro un edificio, il percorso al punto si calcola ancora attraverso l'uscita, ma nella mappa non compare più il cerchio con l'etichetta «Uscita (stima: lato strada)» — resta solo il tratto tratteggiato fino all'uscita."
+      ]
+    },
+    {
       "v": 361,
       "datum": "2026-09-18",
       "nadpis": "Tutto tradotto: note di versione e Cronologia degli aggiornamenti in cinque lingue, Notiziario per lingua",

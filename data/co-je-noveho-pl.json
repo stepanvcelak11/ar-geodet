@@ -2,6 +2,22 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 363,
+      "datum": "2026-09-18",
+      "nadpis": "Geo biuletyn wyłączony",
+      "body": [
+        "<b>Geo biuletyn</b> zniknął z aplikacji (pozycja w menu Więcej, dzienne wydanie i wiersz w odprawie „Dziś w terenie”). Nic nie jest usuwane — kod, dane i codzienne budowanie zostają w repozytorium na wypadek powrotu."
+      ]
+    },
+    {
+      "v": 362,
+      "datum": "2026-09-18",
+      "nadpis": "Trasa z budynku bez kółka „Wyjście”",
+      "body": [
+        "Gdy stoisz w budynku, trasa do punktu nadal liczy się przez wyjście, ale na mapie nie świeci już kółko z podpisem „Wyjście (szacunek: strona od ulicy)” — zostaje tylko kreskowany odcinek do wyjścia."
+      ]
+    },
+    {
       "v": 361,
       "datum": "2026-09-18",
       "nadpis": "Wszystko przetłumaczone: lista zmian i Historia aktualizacji w pięciu językach, Biuletyn według języka",

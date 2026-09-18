@@ -10,7 +10,7 @@
 //     Kp ≥ 5 = geomagnetická bouře, GNSS ten den může zlobit.
 //   • MONITORING: body po termínu přeměření (čte klíče modulu epochy-pripominky
 //     'agEpochyRemind::<pid>' + data 'agEpochy_v1') s tlačítkem Otevřít.
-//   • ZPRAVODAJ: titulek dnešního vydání (data/zpravodaj.json, drží ho SW cache).
+//   • ZPRAVODAJ: titulek dnešního vydání — VYPNUTO 18. 9. 2026 (modul odpojen v index.html).
 // Automaticky se otevře jen JEDNOU denně po startu appky (body.app-started) a AŽ
 // po přihlášení — dokud je na obrazovce #ag-login/#ag-gate, čeká (klíč
 // 'agBrifinkLastShown' se zapíše teprve ve chvíli otevření, takže se den
@@ -336,7 +336,6 @@
             secHtml('ag-bf-wx', 'Počasí dnes', 'wait') +
             secHtml('ag-bf-gnss', 'GNSS dnes', 'wait') +
             secHtml('ag-bf-mon', 'Monitoring', 'wait') +
-            secHtml('ag-bf-news', 'Zpravodaj', 'wait') +
             '    <label class="ag-bf-auto"><input type="checkbox" id="ag-bf-autochk"' + (auto ? ' checked' : '') + '> Ukazovat sám 1× denně po přihlášení (jinak jen dlaždicí „Dnešek v terénu")</label>' +
             '  </div>' +
             '  <div class="ag-bf-foot">' +
@@ -359,9 +358,7 @@
         var mon = monitoringRows();
         fillSec('ag-bf-mon', mon ? mon.map(esc) : null,
             mon && typeof window.agOpenEpochy === 'function' ? '<button type="button" class="mini" data-open="agOpenEpochy">Otevřít Epochy</button>' : '');
-        getZpravodaj().then(function (z) {
-            fillSec('ag-bf-news', z ? ['<b>' + esc(z.nadpis) + '</b>' + (z.rubrika ? ' <span style="opacity:.75">(' + esc(z.rubrika) + ')</span>' : '')] : null);
-        });
+        // Zpravodaj: sekce vypnutá 18. 9. 2026 spolu s modulem (index.html); getZpravodaj() zůstává pro návrat.
     }
 
     // ---- auto-otevření 1× denně po startu appky ------------------------------------

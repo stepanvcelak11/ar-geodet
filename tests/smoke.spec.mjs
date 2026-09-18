@@ -345,7 +345,8 @@ test('REGRESE: vstupy modulů a řádek terénu se vloží', async ({ page, cont
     //   Dvě cesty do appky = jedna z nich zaostane; ať je tedy jedna.
     await bootApp(page, context);
 
-    await expect(page.locator('#zpr-menu-btn'), 'tlačítko Geo zpravodaj v bočním menu').toHaveCount(1);
+    // Geo zpravodaj je od 18. 9. 2026 VYPNUTÝ (modul odpojen v index.html, kód zůstává) → tlačítko #zpr-menu-btn NESMÍ být.
+    await expect(page.locator('#zpr-menu-btn'), 'tlačítko Geo zpravodaj v bočním menu (vypnuto)').toHaveCount(0);
     await expect.poll(() => page.evaluate(
         () => document.querySelectorAll('#tools-modal [data-tool="predpisy"]').length
     ), { timeout: 20000 }).toBe(1);
