@@ -60,7 +60,10 @@ BOOT_VLASTNIK = """
 """
 
 GEO = {'latitude': 50.0800, 'longitude': 14.4300, 'accuracy': 2.5}
-MAX_KAT = 14          # vic dlazdic pod jednim nadpisem uz je "nahozene"
+MAX_KAT = 16          # vic dlazdic pod jednim nadpisem uz je "nahozene"
+# 18. 9. 2026 vecer: 14 → 16. Mrizka .tool-grid je od v331 jen schovany klikaci cil (skutecny pohled je
+# seznam ukonu po stranach, ktery roluje); v371 se do „Katastr a podklady" vratila chybejici dlazdice
+# Nacrt bodu na mape (15.) a CI zcervenalo na strop, ktery uz nic viditelneho nehlida.
 
 vysledky = []
 
