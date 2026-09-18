@@ -40,7 +40,7 @@ from ag_boot import boot  # noqa: E402
 import test_v329 as V  # noqa: E402
 
 PORT = next((int(a) for a in sys.argv[1:] if a.isdigit()), 9187)
-LANGS = ['en', 'de', 'pl', 'es', 'it']
+LANGS = ['en', 'de', 'pl', 'es', 'it', 'fr']
 vysledky = []
 CZ = re.compile(u'[ěščřžůňťď]')
 # vlastní jména, která zůstávají česky i v překladu
@@ -165,11 +165,11 @@ def staticke():
     for k in (u'Z domova', u'Technologie', u'Z praxe', u'Akce', u'Geo zpravodaj', u'Nová verze je připravená.', u'tady jsi'):
         ok('D5 slovník má klíč %s' % k, all(k in nacti('data/jazyky-%s.json' % l)['t'] for l in LANGS))
     sady = {l: set(nacti('data/jazyky-%s.json' % l)['t']) for l in LANGS}
-    ok('D2 všech 5 rozšíření slovníku má stejné klíče', all(sady[l] == sady['en'] for l in LANGS),
+    ok('D2 všech %d rozšíření slovníku má stejné klíče' % len(LANGS), all(sady[l] == sady['en'] for l in LANGS),
        {l: len(sady[l] ^ sady['en']) for l in LANGS})
     core = nacti('data/jazyky.json')
-    ok('D2 jádro: 5 překladů u každého klíče', all(len(v) == 5 and all(v) for v in core['t'].values()))
-    ok('D2 jádro: vzory re mají 6 sloupců', all(len(r) == 6 for r in core['re']))
+    ok('D2 jádro: %d překladů u každého klíče' % len(LANGS), all(len(v) == len(LANGS) and all(v) for v in core['t'].values()))
+    ok('D2 jádro: vzory re mají %d sloupců' % (len(LANGS) + 1), all(len(r) == len(LANGS) + 1 for r in core['re']))
     sw = io.open(os.path.join(ROOT, 'sw.js'), encoding='utf-8').read()
     ok('D3 sw.js: isLangData + stale-while-revalidate do DICT_CACHE', 'function isLangData(url)' in sw and 'if (isLangData(url)) {' in sw
        and sw.index('if (isLangData(url)) {') < sw.index('caches.open(isFont(url) ? FONT_CACHE : (isDict(url) ? DICT_CACHE : SHELL_CACHE))'))

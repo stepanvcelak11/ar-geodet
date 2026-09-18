@@ -2,6 +2,17 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 368,
+      "datum": "2026-09-18",
+      "nadpis": "The app speaks French, own map for all of Europe, weather by country",
+      "body": [
+        "<b>French.</b> The sixth language after English, German, Polish, Spanish and Italian — the core and the whole extension (6,600 texts), the “?” guides of the tools, Regulations, Exercises, Geo cards and this changelog (all 120 releases). A phone set to French picks it by itself; otherwise Settings → Appearance.",
+        "<b>Own vector map for all of Europe.</b> Map data (buildings, roads, water, rails, forest) are uploaded country by country to the GitHub release “mapa-data” — today already Slovakia, Austria, Hungary, Slovenia, Croatia, the Baltics, the Balkans and the small states; large countries (Germany, France, Poland, Italy, Spain…) are being added in parts, because one file may be at most 2 GB. The app picks the right part by your position itself (data/mapa-dily.json), nothing to set up. Where data are not there yet, the raster keeps running.",
+        "<b>Weather by country.</b> Regional models (ČHMÚ ALADIN, GeoSphere AROME, Météo-France AROME, KNMI HARMONIE, MET Norway, ItaliaMeteo, UK Met Office, MeteoSwiss) are called only in the country they compute for — before, AROME France was asked even for Prague and returned numbers from the edge of its grid. Global models and ensembles run everywhere, so the forecast outside Czechia also comes from 20+ sources.",
+        "Honestly: <b>official points (geodetic control) are publicly available as data only in Czechia and Slovakia</b> — elsewhere the states do not publish them (Poland, Austria, Germany have only map services or sell them). Cadastre via map is in SK, PL, AT, NL, FR, CH, SI, BE, HU; orthophoto everywhere (national where it exists, Esri elsewhere)."
+      ]
+    },
+    {
       "v": 367,
       "datum": "2026-09-18",
       "nadpis": "Monthly check: no spurious alerts, empty hub, English without Czech leftovers",

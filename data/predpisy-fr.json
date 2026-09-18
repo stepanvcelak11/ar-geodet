@@ -1,0 +1,839 @@
+{
+ "aktualizovano": "2026-06-14",
+ "disclaimer": "Aide-mémoire indicatif, pas une interprétation juridique. Vérifie les valeurs dans le texte intégral à la source — la réglementation change.",
+ "kategorie": [
+  {
+   "id": "odchylky",
+   "nazev": "Écarts limites et précision",
+   "zkratka": "Écarts",
+   "zaznamy": [
+    {
+     "nazev": "Code de qualité des points de détail (mxy et écarts limites)",
+     "tagy": [
+      "écart",
+      "écarts",
+      "précision",
+      "code de qualité",
+      "mxy",
+      "uxy",
+      "limite",
+      "erreur en coordonnées",
+      "point de détail"
+     ],
+     "telo": "La précision des coordonnées d’un point de détail en S-JTSK est exprimée par un code de qualité de 3 à 8. À chaque code correspond une erreur moyenne de base en coordonnées mxy. On en déduit l’erreur limite en coordonnées uxy = 2·mxy et l’écart limite en position = 2·√2·mxy. Les codes 3–5 sont des points levés sur le terrain, les codes 6–8 proviennent de la numérisation d’anciennes cartes.",
+     "tabulka": {
+      "hlavicka": [
+       "Code",
+       "Origine",
+       "mxy [m]",
+       "uxy = 2·mxy [m]",
+       "Limite en position [m]"
+      ],
+      "radky": [
+       [
+        "3",
+        "levé sur le terrain",
+        "0,14",
+        "0,28",
+        "0,39"
+       ],
+       [
+        "4",
+        "levé sur le terrain",
+        "0,26",
+        "0,52",
+        "0,74"
+       ],
+       [
+        "5",
+        "levé sur le terrain",
+        "0,50",
+        "1,00",
+        "1,41"
+       ],
+       [
+        "6",
+        "numérisation",
+        "0,21",
+        "0,42",
+        "0,59"
+       ],
+       [
+        "7",
+        "numérisation",
+        "0,50",
+        "1,00",
+        "1,41"
+       ],
+       [
+        "8",
+        "numérisation",
+        "1,00",
+        "2,00",
+        "2,82"
+       ]
+      ]
+     },
+     "pozn": "uxy = 2·mxy · écart limite en position = 2·√2·mxy. Les plus précis sont les points de code 3 (nouvellement levés géodésiquement).",
+     "zdroj": "Décret cadastral tchèque n° 357/2013 Sb., annexe point 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Écart limite de superficie d’une parcelle",
+     "tagy": [
+      "superficie",
+      "écart limite",
+      "écart de superficie",
+      "parcelle",
+      "tolérance",
+      "m2"
+     ],
+     "telo": "L’écart limite de superficie dit de combien peuvent différer deux superficies de la même parcelle (par ex. nouvelle et enregistrée) sans que la superficie au cadastre change. Il dépend du code de qualité des sommets et de la superficie P (la plus grande des superficies comparées en m²) :",
+     "tabulka": {
+      "hlavicka": [
+       "Code de qualité",
+       "Écart limite de superficie [m²]"
+      ],
+      "radky": [
+       [
+        "3",
+        "2"
+       ],
+       [
+        "4",
+        "0,4·√P + 4"
+       ],
+       [
+        "5",
+        "1,2·√P + 12"
+       ],
+       [
+        "6",
+        "0,3·√P + 3"
+       ],
+       [
+        "7",
+        "0,8·√P + 8"
+       ],
+       [
+        "8",
+        "2,0·√P + 20"
+       ]
+      ]
+     },
+     "pozn": "P = la plus grande des superficies comparées [m²]. Pour un groupe de parcelles / code de mode de détermination 0 ou une combinaison, on prend le double. Exemple : parcelle de 1000 m² avec code 8 → 2,0·√1000 + 20 ≈ 83 m². Vérifie la formulation exacte des formules dans l’annexe.",
+     "zdroj": "Décret cadastral tchèque n° 357/2013 Sb., annexe (écarts limites de superficie)",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Couleurs des points dans la consultation du cadastre (contrôle de précision)",
+     "tagy": [
+      "consultation",
+      "couleur",
+      "vert",
+      "rouge",
+      "code de qualité",
+      "précision",
+      "limite"
+     ],
+     "telo": "Dans l’application de consultation du cadastre (Nahlížení do KN), la couche « Limites de parcelles avec indication de précision » / « Points de détail avec indication de précision » affiche les points en couleur selon le code de qualité : en VERT les points de code de qualité 3 (les plus précis, levés géodésiquement), en ROUGE les points de code de qualité 4 à 8. Contrôle visuel rapide de la fiabilité d’une limite.",
+     "zdroj": "ČÚZK — Nahlížení do KN",
+     "odkaz": "https://nahlizenidokn.cuzk.gov.cz",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Mode de détermination de la superficie vs code de qualité",
+     "tagy": [
+      "superficie",
+      "mode de détermination de la superficie",
+      "code de qualité",
+      "parcelle"
+     ],
+     "telo": "Le mode de détermination de la superficie d’une parcelle est noté par un code : code 2 = d’après les coordonnées en S-JTSK avec code de qualité 3 ou 4 (le plus précis) ; code 1 = d’après des mesures directes ou des coordonnées en système local ; code 0 = d’après des coordonnées en S-JTSK dont au moins un sommet a un code de qualité 5 à 8, OU graphiquement (planimétrage, mesures relevées sur la carte, coordonnées relevées sur la carte).",
+     "pozn": "Une précision plus élevée des sommets (code 3–4) = superficie de parcelle plus précise et « plus forte ».",
+     "zdroj": "Décret cadastral tchèque n° 357/2013 Sb., annexe",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "kontrola",
+   "nazev": "Précision et contrôle des mesures",
+   "zkratka": "Contrôle",
+   "zaznamy": [
+    {
+     "nazev": "Double détermination (indépendante) du point + rattachement aux points",
+     "tagy": [
+      "mesure",
+      "double détermination",
+      "indépendante",
+      "contrôle",
+      "rattachement",
+      "méthode",
+      "procédure"
+     ],
+     "telo": "Le levé de chaque point de détail se fait indépendamment au moins deux fois. La mesure doit être rattachée à des points d’une précision au moins égale à celle à atteindre pour les nouveaux points (on ne peut pas obtenir un point plus précis en s’appuyant sur des points moins précis). Cela vaut quelle que soit la méthode (GNSS, méthode polaire, etc.) — c’est la précision atteinte et vérifiée qui décide.",
+     "pozn": "De la double détermination se calcule le contrôle de précision (voir l’erreur moyenne empirique ci-dessous).",
+     "zdroj": "Décret cadastral tchèque n° 357/2013 Sb., annexe point 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Vérification de la précision par mesure de contrôle de distances",
+     "tagy": [
+      "vérification",
+      "mesure de contrôle",
+      "cotes",
+      "distance",
+      "différence limite",
+      "ud",
+      "contrôle"
+     ],
+     "telo": "L’atteinte de la précision se vérifie par des cotes ou par une mesure de contrôle des distances directes entre d’autres paires choisies de points de détail et leur comparaison avec les distances calculées d’après les coordonnées. C’est conforme quand la différence entre la distance mesurée en contrôle et la distance d’après les coordonnées est inférieure à la différence limite de distance ud = 2·md (md = erreur moyenne de base de la distance).",
+     "pozn": "Pour un ensemble de plus de 20 différences s’applique en plus un critère statistique (proportion des différences inférieures à md) — voir le point 13 de l’annexe.",
+     "zdroj": "Décret cadastral tchèque n° 357/2013 Sb., annexe point 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Erreur moyenne empirique en coordonnées (test de position)",
+     "tagy": [
+      "erreur moyenne empirique",
+      "sxy",
+      "uxy",
+      "détermination de contrôle",
+      "vérification",
+      "limite",
+      "coefficient k"
+     ],
+     "telo": "Lors de la vérification par une détermination de contrôle (seconde) des coordonnées du même point, on calcule l’erreur moyenne empirique en coordonnées sxy = √(0,5·(Δx² + Δy²)), où Δx, Δy sont les différences de coordonnées entre la première détermination et celle de contrôle. La précision est conforme quand sxy ne dépasse pas l’erreur limite en coordonnées uxy = 2·mxy du code de qualité correspondant (par ex. code 3 → uxy = 0,28 m).",
+     "pozn": "Coefficient k = 2 si la détermination de contrôle a la même précision que le levé de détail ; k = 1 si le contrôle est nettement plus précis (mxy < 0,10 m). Valeurs limites uxy : voir le tableau des codes de qualité.",
+     "zdroj": "Décret cadastral tchèque n° 357/2013 Sb., annexe point 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "metody",
+   "nazev": "Méthodes de mesure planimétrique",
+   "zkratka": "Méthodes",
+   "zaznamy": [
+    {
+     "nazev": "Méthodes de mesure pour les points de détail",
+     "tagy": [
+      "méthode",
+      "polaire",
+      "orthogonale",
+      "cotes",
+      "intersection",
+      "mesure",
+      "point de détail"
+     ],
+     "telo": "Les points de détail planimétriques se lèvent en général par la méthode POLAIRE (angle horizontal depuis la direction d’orientation + distance depuis la station). Méthodes complémentaires (quand la polaire est impossible ou inopportune) : ORTHOGONALE (coordonnées rectangulaires par rapport à une ligne de mesure — abscisses et perpendiculaires ; adaptée en zone bâtie étroite), méthode des COTES DE CONSTRUCTION et INTERSECTION par directions ou par distances.",
+     "pozn": "Quelle que soit la méthode, la précision requise (code de qualité) doit être atteinte et vérifiée — voir double détermination et contrôle ci-dessus.",
+     "zdroj": "Décret cadastral tchèque n° 357/2013 Sb., annexe ; décret n° 31/1995 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Mesure GNSS / RTK au cadastre",
+     "tagy": [
+      "GNSS",
+      "RTK",
+      "GPS",
+      "station permanente",
+      "VRS",
+      "CZEPOS",
+      "mesure",
+      "méthode"
+     ],
+     "telo": "Les coordonnées peuvent être déterminées par la technologie GNSS, en pratique par la méthode RTK. Outre sa propre station de référence, on peut utiliser les réseaux de stations permanentes (par ex. CZEPOS) — corrections d’une station concrète ou d’une station de référence virtuelle (VRS). Chaque point est déterminé indépendamment au moins deux fois et les résultats sont contrôlés. Les procédures techniques GNSS sont réglées par le point 9 de l’annexe du décret n° 31/1995 Sb.",
+     "pozn": "Rattachement/orientation sur des points d’une précision au moins égale à celle à atteindre. Deux déterminations GNSS indépendantes devraient être espacées dans le temps (autre constellation de satellites).",
+     "zdroj": "Décret n° 31/1995 Sb., annexe point 9 ; décret cadastral n° 357/2013 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/1995-31",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Base géométrique et orientation des mesures",
+     "tagy": [
+      "base géométrique",
+      "orientation",
+      "rattachement",
+      "réseau de mesure",
+      "cheminement polygonal",
+      "rayonnement",
+      "canevas géodésique"
+     ],
+     "telo": "La base géométrique du levé de détail est constituée par les points des canevas géodésiques et du réseau de mesure : points déterminés par RTK, cheminements polygonaux et rayonnements selon les besoins. La mesure doit être rattachée et orientée sur des points d’une précision au moins égale à celle à atteindre pour les nouveaux points — on ne peut pas obtenir un point plus précis en s’appuyant sur des points moins précis.",
+     "zdroj": "Décret cadastral tchèque n° 357/2013 Sb., annexe",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Cheminement polygonal — conditions géométriques",
+     "tagy": [
+      "cheminement polygonal",
+      "polygonale",
+      "côté",
+      "rapport des côtés",
+      "fermeture angulaire",
+      "sommets",
+      "réseau de mesure"
+     ],
+     "telo": "Lors du choix des points d’un cheminement polygonal, on respecte des paramètres géométriques (indicatifs, selon la classe de précision / la norme) :",
+     "tabulka": {
+      "hlavicka": [
+       "Paramètre",
+       "En général"
+      ],
+      "radky": [
+       [
+        "Longueur limite (max.) d’un côté",
+        "300 m"
+       ],
+       [
+        "Rapport des longueurs de côtés voisins",
+        "jusqu’à 1:2 (ailleurs 1:3)"
+       ],
+       [
+        "Rapport du côté le plus long au plus court du cheminement",
+        "jusqu’à 1:3"
+       ],
+       [
+        "Somme max. des longueurs (cheminement principal)",
+        "2000–2500 m"
+       ],
+       [
+        "Somme max. des longueurs (cheminement secondaire)",
+        "1200–1600 m"
+       ],
+       [
+        "Nombre max. de sommets",
+        "17–25"
+       ]
+      ]
+     },
+     "pozn": "Cheminement ouvert (rattaché d’un seul côté) : max 3 nouveaux sommets, longueur jusqu’à 250 m. Écart limite de fermeture angulaire Δω = c·√n (n = nombre d’angles ; c selon la classe/norme). Les valeurs concrètes diffèrent selon les sources/normes — vérifie dans la ČSN 73 0415.",
+     "zdroj": "ČSN 73 0415 (Points géodésiques) ; supports de cours VUT/ZČU",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch07s04.html",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Rayonnement — conditions de détermination d’un point auxiliaire",
+     "tagy": [
+      "rayonnement",
+      "rayonnement",
+      "point auxiliaire",
+      "longueur du rayonnement",
+      "orientation",
+      "réseau de mesure"
+     ],
+     "telo": "Rayonnement = détermination d’un nouveau point depuis un point connu par gisement mesuré et distance (cheminement ouvert à un seul côté). Pour les points de station auxiliaires (selon l’Instruction de rénovation du cadastre) : longueur max 1500 m et pas plus que la distance de l’orientation la plus éloignée. Orientation soit sur le point donné vers 2 points du canevas (mxy ≤ 0,04 m), soit sur le point à déterminer vers ≥3 points — angle entre la direction avec distance mesurée et les autres de 30–170 gon.",
+     "pozn": "Longueur > 800 m → angles en deux séries. Point de départ avec erreur de 0,04–0,06 m → max 300 m. Points sur ouvrages techniques en général jusqu’à 50 m. Un point ne doit pas être déterminé par un seul rayonnement (contrôle nécessaire).",
+     "zdroj": "ČÚZK — Instruction de rénovation du cadastre et de conversion",
+     "odkaz": "https://cuzk.gov.cz/Predpisy/Resortni-predpisy-a-opatreni/Navody-CUZK/Navod_150150022.aspx",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Station libre et orientation",
+     "tagy": [
+      "station libre",
+      "orientation",
+      "station",
+      "rattachement",
+      "intersection",
+      "gon"
+     ],
+     "telo": "Station libre : l’instrument est sur un point quelconque, sa position se détermine par des mesures vers des points donnés. L’orientation à la station se fait toujours sur au moins 2 points des canevas / points auxiliaires et sur au moins l’un d’eux on mesure aussi la distance. Pour une détermination univoque, 2 points suffisent (direction + distance) ou 3 points (directions seules) ; pour le contrôle et la compensation (moindres carrés), on choisit des points surabondants.",
+     "pozn": "L’angle au point à déterminer entre les directions vers deux points donnés doit être dans la plage 30–170 gon. Les angles se mesurent/enregistrent avec une précision d’au moins 0,001 gon.",
+     "zdroj": "ČÚZK — Instruction de rénovation du cadastre ; décret cadastral n° 357/2013 Sb.",
+     "odkaz": "https://cuzk.gov.cz/Predpisy/Resortni-predpisy-a-opatreni/Navody-CUZK/Navod_150150022.aspx",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Intersection (avant / relèvement / par distances)",
+     "tagy": [
+      "intersection",
+      "avant",
+      "relèvement",
+      "par distances",
+      "relèvement",
+      "cercle dangereux",
+      "angle d’intersection"
+     ],
+     "telo": "Intersection AVANT : la position du nouveau point comme intersection des directions (ou distances) depuis les points donnés. RELÈVEMENT (intersection arrière) : la station se détermine par des visées sur ≥3 points donnés. Intersection par distances : d’après des distances mesurées vers/depuis des points connus. L’angle d’intersection au point à déterminer doit être de 30–170 gon (ni trop aigu ni trop obtus).",
+     "pozn": "Relèvement : ATTENTION au « cercle dangereux » — si la station se trouve près du cercle passant par les trois points donnés, le problème n’a pas de solution fiable.",
+     "zdroj": "Décret cadastral tchèque n° 357/2013 Sb. ; supports de cours ČVUT/ZČU",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch07s03.html",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Tachéométrie (points de détail à la station totale)",
+     "tagy": [
+      "tachéométrie",
+      "points de détail",
+      "station totale",
+      "polaire",
+      "cartographie",
+      "altimétrie",
+      "précision"
+     ],
+     "telo": "Tachéométrie = détermination simultanée de la position (en polaire : angle horizontal + distance) et de l’altitude (trigonométriquement d’après l’angle zénithal et la distance) des points de détail depuis une station — base de la cartographie planimétrique et altimétrique. Station totale moderne : erreur moyenne du point de l’ordre de 0,02–0,05 m, distances même au-delà de 200 m (la précision décroît avec la distance).",
+     "pozn": "Contrôle : avant de quitter la station, vise en contrôle au moins un point donné (vérification que l’orientation / le cercle horizontal n’a pas changé pendant la collecte). Précision requise des points de détail selon le code de qualité (cadastre) / ČSN 01 3410 pour les cartes à grande échelle.",
+     "zdroj": "Supports de cours ČVUT/ZČU ; ČSN 01 3410 ; décret cadastral n° 357/2013 Sb.",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch15.html",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "vysky",
+   "nazev": "Mesure altimétrique (nivellement)",
+   "zkratka": "Altitudes",
+   "zaznamy": [
+    {
+     "nazev": "Nivellement — types et conditions de mesure",
+     "tagy": [
+      "nivellement",
+      "nivellement technique",
+      "de précision",
+      "de haute précision",
+      "visée",
+      "portée de visée",
+      "hauteur de visée",
+      "fermeture",
+      "dénivelé"
+     ],
+     "telo": "Le nivellement géométrique se divise selon la précision en technique (TN), de précision (PN), de haute précision (VPN) et de très haute précision (ZPN). Ils diffèrent par la portée de visée, la hauteur minimale de visée au-dessus du terrain (à cause de la réfraction près du sol) et l’écart limite de fermeture du cheminement (R = longueur du cheminement en km, résultat en mm) :",
+     "tabulka": {
+      "hlavicka": [
+       "Type",
+       "Portée max. de visée",
+       "Hauteur min. au-dessus du terrain",
+       "Écart limite de fermeture"
+      ],
+      "radky": [
+       [
+        "Technique (normal)",
+        "120 m",
+        "0,5 m",
+        "40·√R mm"
+       ],
+       [
+        "Technique (renforcé)",
+        "80 m (opt. 40–50)",
+        "0,3 m",
+        "20·√R mm"
+       ],
+       [
+        "Haute / très haute précision",
+        "50 m (souvent ≤40)",
+        "0,5 m",
+        "aller-retour, selon ČSN"
+       ]
+      ]
+     },
+     "pozn": "TN : pars toujours de deux repères de nivellement vérifiés ; longueur max du cheminement 3–5 km. VPN/ZPN : mesure aller et retour (dans les deux sens), mires à double graduation, rattachement à deux repères distants d’au moins 1 km. Valeurs des supports de cours ČVUT/VUT — vérifie la version contraignante dans la ČSN.",
+     "zdroj": "ČSN 73 0415 (Points géodésiques) et règlements associés ; supports de cours ČVUT/VUT",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch11s05.html",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Nivellement trigonométrique (détermination des altitudes)",
+     "tagy": [
+      "nivellement trigonométrique",
+      "altitude",
+      "dénivelé",
+      "angle zénithal",
+      "réfraction",
+      "station totale"
+     ],
+     "telo": "Le dénivelé se détermine d’après la distance zénithale (verticale) et la distance inclinée — typiquement à la station totale. Convient pour les altitudes de points inaccessibles et à plus grande distance, là où le nivellement est impossible. Sur les longues visées, l’influence de la réfraction et de la courbure de la Terre croît — il faut les corriger ; la mesure aller et retour (dans les deux sens) et des visées plus courtes augmentent la fiabilité.",
+     "pozn": "La précision dépend de la portée de visée et de la précision de l’angle zénithal — elle s’évalue séparément (loi de propagation des erreurs). Pour des altitudes précises, choisir des visées plus courtes et une mesure dans les deux sens.",
+     "zdroj": "Supports de cours ČVUT/VUT/école de géomètres ; ČSN pour les mesures altimétriques",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch11s05.html",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "vytyceni",
+   "nazev": "Implantation",
+   "zkratka": "Implantation",
+   "zaznamy": [
+    {
+     "nazev": "Implantation des limites de terrains",
+     "tagy": [
+      "implantation",
+      "implanter",
+      "limite",
+      "documentation",
+      "procès-verbal",
+      "croquis d’implantation",
+      "ÚOZI",
+      "écart limite"
+     ],
+     "telo": "L’implantation d’une limite est une activité géodésique d’intérêt public (§ 80–90 du décret + points 16.28–16.32 de l’annexe). La précision de l’implantation dépend des documents : s’il y a des données numériques, les sommets s’implantent avec une erreur moyenne en coordonnées de ±0,14 m (code 3) ; s’il n’y a qu’une carte graphique au 1:2880 (ou numérisée à partir d’elle), seulement ±1,00 m. Une DOCUMENTATION est établie sur l’implantation (croquis d’implantation + procès-verbal d’implantation) certifiée par un géomètre agréé (ÚOZI) ; les propriétaires concernés sont invités à en prendre connaissance.",
+     "pozn": "Délais : exemplaire au commanditaire sous 30 jours, copies aux propriétaires concernés ; sous 90 jours copie au bureau du cadastre. Le bureau ne modifie pas la limite sur la carte, il ne fait qu’ajouter les repères de matérialisation permanente (en l’absence de désaccord). L’implantation ne modifie pas les rapports juridiques ; les propriétaires n’ont pas à respecter l’implantation et peuvent préciser le tracé dans les écarts limites.",
+     "zdroj": "Décret cadastral tchèque n° 357/2013 Sb., § 80–90 + annexe points 16.28–16.32 ; loi sur la géodésie n° 200/1994 Sb. § 12",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Implantation d’ouvrages (ČSN 73 0420)",
+     "tagy": [
+      "implantation d’ouvrages",
+      "ČSN 73 0420",
+      "écart d’implantation",
+      "limite",
+      "tolérance de construction",
+      "ouvrage"
+     ],
+     "telo": "La précision de l’implantation des ouvrages de construction est réglée par la ČSN 73 0420 : partie 1 (Exigences fondamentales) — principes et calcul des critères de précision d’implantation ; partie 2 (Écarts d’implantation) — valeurs concrètes des écarts limites d’implantation pour les ouvrages linéaires, surfaciques et spatiaux. L’écart limite d’implantation se déduit de la tolérance de construction (écart-type d’après la tolérance de construction).",
+     "pozn": "Les valeurs numériques concrètes sont dans la ČSN 73 0420-2 payante (ici seulement une référence). En rapport : ČSN ISO 4463 (méthodes de mesure dans la construction).",
+     "zdroj": "ČSN 73 0420-1 et ČSN 73 0420-2 (Précision de l’implantation des ouvrages)",
+     "odkaz": "https://www.technicke-normy-csn.cz/csn-73-0420-1-730420-221530.html",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "ciselniky",
+   "nazev": "Codes et nomenclatures",
+   "zkratka": "Nomenclatures",
+   "zaznamy": [
+    {
+     "nazev": "Natures de terrain (codes)",
+     "tagy": [
+      "nature du terrain",
+      "code",
+      "nomenclature",
+      "arable",
+      "jardin",
+      "prairie permanente",
+      "forestier",
+      "eau",
+      "bâtie",
+      "autre"
+     ],
+     "telo": "La nature du terrain est une caractéristique contraignante enregistrée au cadastre. Codes de nature du terrain :",
+     "tabulka": {
+      "hlavicka": [
+       "Code",
+       "Nature du terrain"
+      ],
+      "radky": [
+       [
+        "2",
+        "terre arable"
+       ],
+       [
+        "3",
+        "houblonnière"
+       ],
+       [
+        "4",
+        "vigne"
+       ],
+       [
+        "5",
+        "jardin"
+       ],
+       [
+        "6",
+        "verger"
+       ],
+       [
+        "7",
+        "prairie permanente"
+       ],
+       [
+        "10",
+        "terrain forestier"
+       ],
+       [
+        "11",
+        "plan d’eau"
+       ],
+       [
+        "13",
+        "surface bâtie et cour"
+       ],
+       [
+        "14",
+        "autre surface"
+       ]
+      ]
+     },
+     "pozn": "Les codes 2–7 sont des terrains agricoles (ZPF). La nature du terrain au cadastre ≠ possibilité de construire (c’est le plan d’urbanisme qui en décide).",
+     "zdroj": "Loi n° 256/2013 Sb. (loi cadastrale) § 3 ; décret n° 357/2013 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Types de canevas géodésiques",
+     "tagy": [
+      "canevas géodésique",
+      "TB",
+      "ZhB",
+      "PBPP",
+      "trigonométrique",
+      "de densification",
+      "nivellement",
+      "planimétrique",
+      "altimétrique",
+      "gravimétrique"
+     ],
+     "telo": "Les canevas se divisent en planimétrique, altimétrique et gravimétrique. Le canevas planimétrique comprend les points trigonométriques (TB), de densification (ZhB) et le canevas planimétrique de détail (PBPP) — des plus précis/clairsemés aux plus denses et moins précis. Le canevas altimétrique est formé par les repères de nivellement, le canevas gravimétrique par les points gravimétriques.",
+     "pozn": "Les précisions et classes concrètes sont fixées par les règlements sur les canevas (loi sur la géodésie et décret d’application).",
+     "zdroj": "Loi n° 200/1994 Sb. sur la géodésie et décret d’application n° 31/1995 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/1995-31",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Code du mode de détermination de la superficie",
+     "tagy": [
+      "code",
+      "mode de détermination de la superficie",
+      "superficie",
+      "0",
+      "1",
+      "2",
+      "nomenclature"
+     ],
+     "telo": "Le code indique comment la superficie de la parcelle a été déterminée (et donc sa fiabilité) :",
+     "tabulka": {
+      "hlavicka": [
+       "Code",
+       "Mode de détermination de la superficie"
+      ],
+      "radky": [
+       [
+        "2",
+        "d’après les coordonnées en S-JTSK, code de qualité 3 ou 4 (le plus précis)"
+       ],
+       [
+        "1",
+        "d’après des mesures directes ou des coordonnées en système local"
+       ],
+       [
+        "0",
+        "d’après des coordonnées en S-JTSK avec au moins un point de qualité 5–8, ou graphiquement"
+       ]
+      ]
+     },
+     "pozn": "Code 2 = précision la plus élevée. Une superficie déterminée graphiquement relève du code 0.",
+     "zdroj": "Décret cadastral tchèque n° 357/2013 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Mode d’utilisation du terrain",
+     "tagy": [
+      "mode d’utilisation",
+      "terrain",
+      "nomenclature",
+      "serre",
+      "aire de manutention",
+      "décharge"
+     ],
+     "telo": "Caractéristique complémentaire de la nature du terrain — précise à quoi sert le terrain. Exemples : serre / couche, aire de manutention, terrain avec ruine, autoroute / route, cimetière et jardin du souvenir, décharge, centrale photovoltaïque, plan d’eau avec bâtiment. La nomenclature est vaste.",
+     "pozn": "La nomenclature complète est tenue par le ČÚZK (Nomenclatures ISKN → Mode d’utilisation du terrain).",
+     "zdroj": "Décret cadastral tchèque n° 357/2013 Sb., annexe ; nomenclature ČÚZK",
+     "odkaz": "https://cuzk.gov.cz/Katastr-nemovitosti/Poskytovani-udaju-z-KN/Ciselniky-ISKN/Ciselniky-k-nemovitosti/Zpusob-vyuziti-pozemku.aspx",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Mode de protection du bien immobilier",
+     "tagy": [
+      "mode de protection",
+      "protection",
+      "nomenclature",
+      "monument culturel",
+      "ZPF",
+      "zone protégée",
+      "zone de protection"
+     ],
+     "telo": "Enregistre si et comment le bien immobilier est protégé selon des règlements particuliers. Exemples : monument culturel immobilier (protection patrimoniale), protection du fonds agricole (ZPF), protection de la nature et du paysage, zone protégée ou zone de protection.",
+     "pozn": "La nomenclature complète est tenue par le ČÚZK. Attention : sur un terrain avec protection ZPF, un retrait du ZPF est nécessaire avant de construire.",
+     "zdroj": "Nomenclature ČÚZK (ISKN)",
+     "odkaz": "https://cuzk.gov.cz/Katastr-nemovitosti/Poskytovani-udaju-z-KN/Ciselniky-ISKN/Ciselniky-k-nemovitosti/Zpusob-ochrany-nemovitosti.aspx",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "gp-zpmz",
+   "nazev": "Contenu du plan de bornage (GP) et du ZPMZ",
+   "zkratka": "GP / ZPMZ",
+   "zaznamy": [
+    {
+     "nazev": "Plan de bornage — quand et que contient-il",
+     "tagy": [
+      "plan de bornage",
+      "GP",
+      "contenu",
+      "cartouche",
+      "état",
+      "ÚOZI",
+      "confirmation"
+     ],
+     "telo": "Le plan de bornage (geometrický plán) est le document technique pour l’inscription d’une modification au cadastre (division/réunion de parcelles, report d’un bâtiment, servitude sur une partie de terrain, etc.). Il contient notamment le cartouche, la représentation graphique de l’état actuel et du nouvel état et l’état comparatif des données cadastrales actuelles et nouvelles (éventuellement liste de coordonnées et état des BPEJ). Il doit être certifié par un géomètre agréé (ÚOZI) et confirmé par le bureau du cadastre.",
+     "pozn": "Réglementation : § 79–86 du décret et annexes n° 17 et 18. Le bureau du cadastre confirme le GP dans un délai de 10 jours.",
+     "zdroj": "Décret cadastral tchèque n° 357/2013 Sb., § 79–86 + annexes 17 et 18",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Procès-verbal de levé de détail des modifications (ZPMZ)",
+     "tagy": [
+      "ZPMZ",
+      "procès-verbal de levé de détail des modifications",
+      "croquis",
+      "carnet",
+      "documentation de mesure",
+      "coordonnées"
+     ],
+     "telo": "Le ZPMZ est la documentation de mesure déposée au bureau du cadastre — résultat des activités géodésiques pour une modification (entre autres la partie mesure du plan de bornage). Il contient notamment le cartouche, le croquis de mesure (points de la base géométrique, points identiques, réseau de mesure ; le nouvel état se dessine en ROUGE), le carnet des données mesurées, le procès-verbal des calculs et la liste de coordonnées.",
+     "pozn": "Le contenu est réglé par le point 16 de l’annexe. Un ZPMZ peut servir de base à plusieurs plans de bornage liés.",
+     "zdroj": "Décret cadastral tchèque n° 357/2013 Sb., annexe point 16",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Quand établir un plan de bornage (§ 79)",
+     "tagy": [
+      "plan de bornage",
+      "GP",
+      "quand",
+      "objet",
+      "division de terrain",
+      "bâtiment",
+      "servitude"
+     ],
+     "telo": "Le GP s’établit pour : a) une modification de limite de commune cadastrale, b) une division de terrain, c) une modification de limite de terrain, d) le report/la modification du contour d’un bâtiment (construction principale) et d’un ouvrage hydraulique, e) la détermination des limites lors de remembrements, f) le complément d’un terrain enregistré de manière simplifiée, g) la correction de la détermination géométrique et de position, h) la précision/reconstruction selon une procédure d’attribution, i) le tracé d’une limite implantée ou précisée par les propriétaires, j) le tracé d’une limite fixée par un tribunal, k) la délimitation d’une servitude sur une partie de terrain.",
+     "pozn": "Le GP ne s’établit PAS quand la modification concerne tout le terrain sans modification de limite. Servitude : GP seulement pour une partie du terrain, pas pour le tout.",
+     "zdroj": "Décret cadastral tchèque n° 357/2013 Sb., § 79 al. 1",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Matérialisation des limites (§ 91)",
+     "tagy": [
+      "limite",
+      "marquage",
+      "matérialisation",
+      "repère de limite",
+      "borne",
+      "pierre",
+      "plastique"
+     ],
+     "telo": "Les sommets des limites se matérialisent durablement : pierres à tête taillée, repères en plastique ou en béton armé (au moins 80×80×500 mm) ; un tube en fer ø 20–40 mm ou une armature en acier ø 10–40 mm scellés dans le béton sont aussi admis. Le centre du repère coïncide avec le sommet de la limite. La limite se matérialise de sorte que depuis chaque repère on voie les deux voisins et que sur les tronçons droits les repères ne soient pas à plus de 200 m.",
+     "pozn": "On peut aussi matérialiser d’une autre manière durable (par ex. un mur). Les limites fusionnées en ensembles plus grands ne sont pas matérialisées. Si le propriétaire ne matérialise pas les limites, le bureau du cadastre peut le faire à ses frais et infliger une amende (§ 37 al. 2 de la loi cadastrale).",
+     "zdroj": "Décret cadastral tchèque n° 357/2013 Sb., § 91",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Numérotation des points de détail et des ZPMZ",
+     "tagy": [
+      "numérotation",
+      "numéro de point",
+      "ZPMZ",
+      "point de détail",
+      "commune cadastrale"
+     ],
+     "telo": "Le numéro d’un point de détail a douze chiffres et se compose de trois parties : numéro d’ordre de la commune cadastrale, numéro du ZPMZ et numéro propre du point (le code de qualité s’indique sous le point). L’unité de numérotation des ZPMZ est la commune cadastrale. Les points existants ne sont pas renumérotés — dans le croquis de mesure, on n’indique pour eux que le numéro du ZPMZ ; les points de contrôle et identiques nouvellement levés sont indiqués avec leurs numéros d’origine.",
+     "zdroj": "Décret cadastral tchèque n° 357/2013 Sb., annexe",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "lhuty",
+   "nazev": "Délais et procédures",
+   "zkratka": "Délais",
+   "zaznamy": [
+    {
+     "nazev": "Délai de protection lors de l’inscription (20 jours)",
+     "tagy": [
+      "délai",
+      "délai de protection",
+      "inscription",
+      "20 jours",
+      "plombage",
+      "procédure"
+     ],
+     "telo": "Après le dépôt d’une demande d’inscription court un délai de protection de 20 jours. Le bureau du cadastre informe le propriétaire que son bien est concerné (plombage) et ne peut pas autoriser l’inscription avant l’expiration de 20 jours à compter de cette notification. Le délai donne la possibilité de se défendre contre un transfert frauduleux — il est préclusif (après expiration, l’objection ne peut plus être déposée).",
+     "pozn": "Après le délai de protection, le bureau a en général un autre délai (jusqu’à ~30 jours) pour décider ; toute la procédure peut ainsi durer de l’ordre de 50 jours.",
+     "zdroj": "Loi n° 256/2013 Sb. (loi cadastrale) § 18",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Plombage (mention d’une procédure en cours)",
+     "tagy": [
+      "plombage",
+      "P",
+      "titre de propriété",
+      "procédure",
+      "délai"
+     ],
+     "telo": "Le plombage (lettre « P » près du bien, en pratique dans la partie D / près des données concernées) signale qu’une procédure touchant les droits inscrits est en cours. Il est apposé au plus tard le jour ouvrable suivant la réception de la demande ; le bureau envoie la notification au propriétaire sous un jour. Le plombage disparaît après l’exécution de l’inscription, l’arrêt ou le rejet de la procédure.",
+     "zdroj": "Loi n° 256/2013 Sb. (loi cadastrale)",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Confirmation du plan de bornage par le bureau du cadastre",
+     "tagy": [
+      "délai",
+      "plan de bornage",
+      "confirmation",
+      "10 jours",
+      "bureau du cadastre"
+     ],
+     "telo": "Le bureau du cadastre examine le plan de bornage (s’il a le contenu requis par le décret et une numérotation correcte des parcelles) et le confirme dans un délai en général de 10 jours.",
+     "zdroj": "Décret cadastral tchèque n° 357/2013 Sb. ; code de procédure administrative",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Correction d’erreur au cadastre (§ 36)",
+     "tagy": [
+      "correction d’erreur",
+      "délai",
+      "30 jours",
+      "60 jours",
+      "désaccord",
+      "documentation cadastrale"
+     ],
+     "telo": "La correction d’erreur met en conformité l’inscription au cadastre avec les actes (elle ne sert pas à remédier à une discordance avec l’état juridique réel). Le bureau effectue la correction sur demande sous 30 jours, dans des cas particulièrement motivés sous 60 jours à compter de la réception de la demande (aussi sans demande, d’office). Il notifie le résultat ; si le propriétaire/l’ayant droit n’est pas d’accord dans les 30 jours de la notification, le bureau rend une décision sur l’affaire (susceptible d’appel).",
+     "zdroj": "Loi n° 256/2013 Sb. (loi cadastrale) § 36",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Types d’inscriptions (vklad / záznam / poznámka)",
+     "tagy": [
+      "inscription",
+      "inscription constitutive",
+      "enregistrement",
+      "mention",
+      "droit réel",
+      "litige"
+     ],
+     "telo": "On inscrit au cadastre de trois manières : par INSCRIPTION CONSTITUTIVE (vklad) s’inscrivent les droits réels (propriété, hypothèque, servitude…), les droits convenus comme réels, le bail et le fermage — procédure d’inscription avec délai de protection de 20 jours. Par ENREGISTREMENT (záznam) s’inscrivent les droits dérivés du droit de propriété (typiquement sur la base de décisions/actes d’autorités). Par MENTION (poznámka) s’inscrivent des informations importantes (par ex. exécution forcée, mention de litige).",
+     "zdroj": "Loi n° 256/2013 Sb. (loi cadastrale)",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    }
+   ]
+  }
+ ]
+}

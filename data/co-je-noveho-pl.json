@@ -2,6 +2,17 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 368,
+      "datum": "2026-09-18",
+      "nadpis": "Aplikacja mówi po francusku, własna mapa całej Europy, pogoda według kraju",
+      "body": [
+        "<b>Francuski.</b> Szósty język obok angielskiego, niemieckiego, polskiego, hiszpańskiego i włoskiego — rdzeń i całe rozszerzenie (6 600 tekstów), instrukcje „?” przy narzędziach, Przepisy, Zadania ćwiczeniowe, Karty geo i ta lista zmian (wszystkie 120 wydań). Telefon ustawiony po francusku wybierze go sam; inaczej Ustawienia → Wygląd.",
+        "<b>Własna mapa wektorowa całej Europy.</b> Dane mapy (budynki, drogi, woda, tory, las) są wgrywane kraj po kraju do wydania GitHub „mapa-data” — dziś już Słowacja, Austria, Węgry, Słowenia, Chorwacja, kraje bałtyckie, Bałkany i małe państwa; duże kraje (Niemcy, Francja, Polska, Włochy, Hiszpania…) dochodzą w częściach, bo jeden plik może mieć najwyżej 2 GB. Aplikacja sama wybiera właściwą część według pozycji (data/mapa-dily.json), nic nie trzeba ustawiać. Tam, gdzie danych jeszcze nie ma, dalej działa raster.",
+        "<b>Pogoda według kraju.</b> Modele regionalne (ČHMÚ ALADIN, GeoSphere AROME, Météo-France AROME, KNMI HARMONIE, MET Norway, ItaliaMeteo, UK Met Office, MeteoSwiss) są wywoływane tylko w kraju, dla którego liczą — wcześniej AROME France pytano nawet dla Pragi i zwracał liczby z krawędzi swojej siatki. Modele globalne i ensemble działają wszędzie, więc prognoza poza Czechami też pochodzi z 20+ źródeł.",
+        "Uczciwie: <b>punkty urzędowe (osnowa) są publicznie dostępne jako dane tylko w Czechach i na Słowacji</b> — gdzie indziej państwa ich nie publikują (Polska, Austria, Niemcy mają tylko usługi mapowe albo je sprzedają). Kataster przez mapę jest w SK, PL, AT, NL, FR, CH, SI, BE, HU; ortofoto wszędzie (krajowe tam, gdzie jest, gdzie indziej Esri)."
+      ]
+    },
+    {
       "v": 367,
       "datum": "2026-09-18",
       "nadpis": "Kontrola miesiąca: bez fałszywych alarmów, pusty drogowskaz, angielski bez czeskich resztek",

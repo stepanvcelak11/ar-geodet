@@ -2,6 +2,17 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 368,
+      "datum": "2026-09-18",
+      "nadpis": "La app habla francés, mapa propio de toda Europa, tiempo por país",
+      "body": [
+        "<b>Francés.</b> El sexto idioma junto al inglés, alemán, polaco, español e italiano — el núcleo y toda la ampliación (6 600 textos), las guías «?» de las herramientas, Normativa, Ejercicios, Tarjetas geo y esta lista de cambios (las 120 versiones). Un teléfono configurado en francés lo elige solo; si no, Ajustes → Aspecto.",
+        "<b>Mapa vectorial propio de toda Europa.</b> Los datos del mapa (edificios, caminos, agua, vías, bosque) se suben país por país a la publicación de GitHub «mapa-data» — hoy ya Eslovaquia, Austria, Hungría, Eslovenia, Croacia, los bálticos, los Balcanes y los estados pequeños; los países grandes (Alemania, Francia, Polonia, Italia, España…) van llegando por partes, porque un archivo puede tener como máximo 2 GB. La app elige sola la parte correcta según la posición (data/mapa-dily.json), no hay que configurar nada. Donde aún no hay datos, sigue el ráster.",
+        "<b>Tiempo por país.</b> Los modelos regionales (ČHMÚ ALADIN, GeoSphere AROME, Météo-France AROME, KNMI HARMONIE, MET Norway, ItaliaMeteo, UK Met Office, MeteoSwiss) se consultan solo en el país para el que calculan — antes se preguntaba a AROME France incluso para Praga y devolvía números del borde de su malla. Los modelos globales y los conjuntos funcionan en todas partes, así que la previsión fuera de Chequia también viene de 20+ fuentes.",
+        "Con franqueza: <b>los puntos oficiales (redes geodésicas) están públicamente como datos solo en Chequia y Eslovaquia</b> — en otros países los estados no los publican (Polonia, Austria, Alemania solo tienen servicios de mapas o los venden). Catastro por mapa en SK, PL, AT, NL, FR, CH, SI, BE, HU; ortofoto en todas partes (nacional donde existe, Esri en el resto)."
+      ]
+    },
+    {
       "v": 367,
       "datum": "2026-09-18",
       "nadpis": "Revisión del mes: sin avisos falsos, cruce vacío, inglés sin restos de checo",

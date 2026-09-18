@@ -2,6 +2,17 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 368,
+   "datum": "2026-09-18",
+   "nadpis": "Appka umí francouzsky, vlastní mapa pro celou Evropu, počasí po zemích",
+   "body": [
+    "<b>Francouzština.</b> Šestý jazyk vedle angličtiny, němčiny, polštiny, španělštiny a italštiny — jádro i celé rozšíření (6 600 textů), návody „?“ u nástrojů, Předpisy, Cvičné úlohy, Geo kartičky i tenhle soupis změn (všech 120 vydání). Telefon nastavený francouzsky si ji vybere sám; jinak Nastavení → Vzhled.",
+    "<b>Vlastní vektorová mapa pro celou Evropu.</b> Data mapy (budovy, cesty, voda, koleje, les) se nahrávají po zemích do vydání GitHubu „mapa-data“ — dnes už Slovensko, Rakousko, Maďarsko, Slovinsko, Chorvatsko, Pobaltí, Balkán a menší státy; velké země (Německo, Francie, Polsko, Itálie, Španělsko…) se dohrávají v dílech, protože jeden soubor smí mít nejvýš 2 GB. Appka si podle polohy vybere správný díl sama (data/mapa-dily.json), nastavovat nic nemusíš. Kde data ještě nejsou, běží dál rastr.",
+    "<b>Počasí po zemích.</b> Regionální modely (ČHMÚ ALADIN, GeoSphere AROME, Météo-France AROME, KNMI HARMONIE, MET Norway, ItaliaMeteo, UK Met Office, MeteoSwiss) se volají jen v zemi, pro kterou počítají — dřív se AROME France ptalo i pro Prahu a vracelo čísla z okraje své sítě. Globální modely a ensembly jedou všude, takže předpověď je i mimo ČR z 20+ zdrojů.",
+    "Poctivě: <b>úřední body (bodová pole) jsou veřejně jako data jen v ČR a na Slovensku</b> — jinde je státy nezveřejňují (Polsko, Rakousko, Německo mají jen mapové služby nebo je dávají za peníze). Katastr přes mapu je v SK, PL, AT, NL, FR, CH, SI, BE, HU; ortofoto všude (národní tam, kde je, jinde Esri)."
+   ]
+  },
+  {
    "v": 367,
    "datum": "2026-09-18",
    "nadpis": "Kontrola měsíce: bez planých hlášení, prázdný rozcestník, angličtina bez češtiny",

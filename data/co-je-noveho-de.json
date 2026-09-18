@@ -2,6 +2,17 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 368,
+      "datum": "2026-09-18",
+      "nadpis": "Die App spricht Französisch, eigene Karte für ganz Europa, Wetter nach Land",
+      "body": [
+        "<b>Französisch.</b> Die sechste Sprache neben Englisch, Deutsch, Polnisch, Spanisch und Italienisch — Kern und gesamte Erweiterung (6 600 Texte), die „?“-Anleitungen der Werkzeuge, Vorschriften, Übungsaufgaben, Geo-Karten und diese Änderungsliste (alle 120 Ausgaben). Ein französisch eingestelltes Telefon wählt sie selbst; sonst Einstellungen → Aussehen.",
+        "<b>Eigene Vektorkarte für ganz Europa.</b> Kartendaten (Gebäude, Wege, Wasser, Gleise, Wald) werden Land für Land in die GitHub-Ausgabe „mapa-data“ hochgeladen — heute schon Slowakei, Österreich, Ungarn, Slowenien, Kroatien, Baltikum, Balkan und die kleinen Staaten; große Länder (Deutschland, Frankreich, Polen, Italien, Spanien…) folgen in Teilen, weil eine Datei höchstens 2 GB haben darf. Die App wählt den richtigen Teil nach der Position selbst (data/mapa-dily.json), nichts einzustellen. Wo Daten noch fehlen, läuft weiter das Raster.",
+        "<b>Wetter nach Land.</b> Regionale Modelle (ČHMÚ ALADIN, GeoSphere AROME, Météo-France AROME, KNMI HARMONIE, MET Norway, ItaliaMeteo, UK Met Office, MeteoSwiss) werden nur im Land abgefragt, für das sie rechnen — vorher wurde AROME France auch für Prag gefragt und lieferte Zahlen vom Rand seines Gitters. Globale Modelle und Ensembles laufen überall, die Vorhersage außerhalb Tschechiens kommt also aus 20+ Quellen.",
+        "Ehrlich: <b>amtliche Punkte (Festpunktfelder) gibt es öffentlich als Daten nur in Tschechien und der Slowakei</b> — anderswo veröffentlichen die Staaten sie nicht (Polen, Österreich, Deutschland haben nur Kartendienste oder verkaufen sie). Kataster über die Karte in SK, PL, AT, NL, FR, CH, SI, BE, HU; Orthofoto überall (national, wo vorhanden, sonst Esri)."
+      ]
+    },
+    {
       "v": 367,
       "datum": "2026-09-18",
       "nadpis": "Monatscheck: keine Fehlalarme, leerer Wegweiser, Englisch ohne tschechische Reste",

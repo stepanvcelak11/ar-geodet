@@ -93,6 +93,19 @@
         { id: 'ecmwf_aifs025',                 label: 'ECMWF AIFS (AI)',    w: 1.00 },
         { id: 'gfs_graphcast025',              label: 'GraphCast (AI)',     w: 0.85 },
         { id: 'jma_seamless',                  label: 'JMA (Japonsko)',     w: 0.80 },
+        // NÁRODNÍ MODELY PO EVROPĚ (18. 9. 2026 večer, „to samé počasí pro celou Evropu"): jemné
+        // modely národních služeb se do dotazu přidají JEN v zemích, které pokrývají (`zeme`, kód
+        // z registru AGSour) — ověřeno 18. 9. 2026: Open-Meteo model mimo doménu z odpovědi vynechá,
+        // ale AROME France vrací i pro Prahu hodnotu z okraje domény (22 °C proti 20 °C ostatních),
+        // takže bez filtru by cizí model kazil průměr. Váhy jako u ICON-D2 (podobné rozlišení).
+        { id: 'chmi_aladin_cz_1km',            label: 'ČHMÚ ALADIN 1 km',   w: 1.40, zeme: ['CZ', 'SK'] },
+        { id: 'geosphere_arome_austria',       label: 'GeoSphere AROME',    w: 1.30, zeme: ['AT', 'CZ', 'SK', 'SI', 'HU', 'LI', 'CH'] },
+        { id: 'meteofrance_arome_france_hd',   label: 'Météo-France AROME 1,3 km', w: 1.35, zeme: ['FR', 'BE', 'LU', 'CH', 'AD', 'MC'] },
+        { id: 'knmi_harmonie_arome_netherlands', label: 'KNMI HARMONIE NL', w: 1.30, zeme: ['NL', 'BE'] },
+        { id: 'metno_nordic',                  label: 'MET Norway 1 km',    w: 1.35, zeme: ['NO', 'SE', 'FI', 'DK'] },
+        { id: 'italia_meteo_arpae_icon_2i',    label: 'ItaliaMeteo ICON-2I', w: 1.30, zeme: ['IT', 'SM', 'MT', 'SI', 'HR'] },
+        { id: 'ukmo_uk_deterministic_2km',     label: 'UK Met Office 2 km', w: 1.30, zeme: ['GB', 'IE'] },
+        { id: 'meteoswiss_icon_ch1',           label: 'MeteoSwiss ICON-CH1', w: 1.35, zeme: ['CH', 'LI'] },
         { id: 'cma_grapes_global',             label: 'CMA (Čína)',         w: 0.70 },
         { id: 'bom_access_global',             label: 'BOM (Austrálie)',    w: 0.70 },
         { id: 'arpege_world',                  label: 'ARPEGE svět',        w: 0.75 },
@@ -107,11 +120,9 @@
         // dotaz kvůli tomu NESPADNE (ověřeno na Paříži), proto tu smí být i pro zahraničí.
         // `chmi_aladin_seamless` se ZÁMĚRNĚ nepoužívá: za 3. dnem dolepuje ECMWF IFS,
         // takže by rodina ECMWF hlasovala dvakrát.
-        { id: 'chmi_aladin_cz_1km',             label: 'ČHMÚ ALADIN 1 km',   w: 1.40 },
-        { id: 'chmi_aladin_central_europe_2km', label: 'ČHMÚ ALADIN 2,3 km', w: 1.30 },
-        // AROME rakouské GeoSphere — vlastní asimilace, a nad Moravou i Čechami vrací
-        // data (ověřeno na Ostravě), takže je to další nezávislý jemný model pro ČR
-        { id: 'geosphere_arome_austria',        label: 'GeoSphere AROME',    w: 1.15 }
+        // (ALADIN 1 km a GeoSphere AROME jsou v seznamu výš, s `zeme`; tady jen ALADIN 2,3 km
+        // pro střední Evropu — od 18. 9. 2026 taky jen tam, kde má doménu.)
+        { id: 'chmi_aladin_central_europe_2km', label: 'ČHMÚ ALADIN 2,3 km', w: 1.30, zeme: ['CZ', 'SK', 'AT', 'HU', 'PL', 'DE', 'SI', 'HR'] }
     ];
     var METNO_W = 1.10;
     var BRIGHTSKY_W = 1.05;   // DWD MOSMIX (statisticky doladěné výstupy stanic)
@@ -237,11 +248,24 @@
     }
 
     // ---- URL zdrojů ---------------------------------------------------------------
+    // modely pro zemi, kde stojím (bez `zeme` = globální/evropské, vždy); země z registru AGSour
+    // (lat, lon) = místo předpovědi — špendlík může být v jiné zemi, než kde telefon stojí;
+    // bez souřadnic (nebo mimo hranice) země z registru, bez registru ČR
+    function zemeKod(lat, lon) {
+        try {
+            var k = (lat != null && window.AGSour && AGSour.urciZemi) ? AGSour.urciZemi(lat, lon) : null;
+            return k || (window.AGSour && AGSour.kod && AGSour.kod()) || 'CZ';
+        } catch (e) { return 'CZ'; }
+    }
+    function modelyZde(list, lat, lon) {
+        var k = zemeKod(lat, lon);
+        return list.filter(function (m) { return !m.zeme || m.zeme.indexOf(k) !== -1; });
+    }
     function omUrl(lat, lon) {
         // hodinová řada jen na 48 h (UI ukazuje 24 h) — s deseti modely by sedmidenní
         // hodinovka byla zbytečně velká stahovka do mobilních dat
         return 'https://api.open-meteo.com/v1/forecast?latitude=' + lat.toFixed(5) + '&longitude=' + lon.toFixed(5) +
-            '&models=' + OM_MODELS.map(function (m) { return m.id; }).join(',') +
+            '&models=' + modelyZde(OM_MODELS, lat, lon).map(function (m) { return m.id; }).join(',') +
             '&forecast_hours=48' +
             '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,cloud_cover,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m' +
             '&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation_probability,precipitation,weather_code,cloud_cover,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m' +
@@ -934,7 +958,12 @@
     var NOWCAST_WET = 0.1;      // od kolika mm/h se to počítá jako „prší"
     var RADARPT_MS = 20000;
     var M15_STEPS = 24;         // 6 h po 15 minutách
-    var M15_MODELS = ['icon_d2', 'chmi_aladin_cz_1km', 'geosphere_arome_austria'];
+    // 15minutové modely: ICON-D2 (střední Evropa) + národní podle země (viz OM_MODELS.zeme)
+    var M15_VSE = [{ id: 'icon_d2' }, { id: 'chmi_aladin_cz_1km', zeme: ['CZ', 'SK'] }, { id: 'geosphere_arome_austria', zeme: ['AT', 'CZ', 'SK', 'SI', 'HU', 'LI', 'CH'] },
+        { id: 'meteofrance_arome_france_hd', zeme: ['FR', 'BE', 'LU', 'CH', 'AD', 'MC'] }, { id: 'knmi_harmonie_arome_netherlands', zeme: ['NL', 'BE'] },
+        { id: 'metno_nordic', zeme: ['NO', 'SE', 'FI', 'DK'] }, { id: 'italia_meteo_arpae_icon_2i', zeme: ['IT', 'SM', 'MT', 'SI', 'HR'] },
+        { id: 'ukmo_uk_deterministic_2km', zeme: ['GB', 'IE'] }, { id: 'meteoswiss_icon_ch1', zeme: ['CH', 'LI'] }];
+    var M15_MODELS = M15_VSE.map(function (m) { return m.id; });   // seznam pro čtení odpovědi (chybějící model se přeskočí)
     var OM_W = {};
     (function () { for (var i = 0; i < OM_MODELS.length; i++) OM_W[OM_MODELS[i].id] = OM_MODELS[i].w; }());
 
@@ -984,7 +1013,7 @@
     }
     function m15Url(lat, lon) {
         return 'https://api.open-meteo.com/v1/forecast?latitude=' + lat.toFixed(5) + '&longitude=' + lon.toFixed(5) +
-            '&models=' + M15_MODELS.join(',') +
+            '&models=' + modelyZde(M15_VSE, lat, lon).map(function (m) { return m.id; }).join(',') +
             '&minutely_15=precipitation,weather_code' +
             '&forecast_minutely_15=' + M15_STEPS +
             '&timezone=auto&timeformat=unixtime';
@@ -1315,7 +1344,7 @@
         _bfBusy = true;
         var ll = 'latitude=' + lat.toFixed(4) + '&longitude=' + lon.toFixed(4);
         var uPrev = 'https://previous-runs-api.open-meteo.com/v1/forecast?' + ll +
-            '&hourly=temperature_2m_previous_day1,precipitation_previous_day1&models=' + OM_MODELS.map(function (m) { return m.id; }).join(',') +
+            '&hourly=temperature_2m_previous_day1,precipitation_previous_day1&models=' + modelyZde(OM_MODELS, lat, lon).map(function (m) { return m.id; }).join(',') +
             '&past_days=' + BF_DAYS + '&forecast_days=1&timeformat=unixtime';
         var uArch = 'https://archive-api.open-meteo.com/v1/archive?' + ll +
             '&start_date=' + bfDate(BF_DAYS + 1) + '&end_date=' + bfDate(1) +
@@ -3653,4 +3682,6 @@
     window.addEventListener('load', function () { setTimeout(register, 350); });
 
     window.agOpenPocasi = open;
+    // pro testy (test_v368 P1): které modely se pro dané místo zavolají
+    window.agPocasiModely = function (lat, lon) { return modelyZde(OM_MODELS, lat, lon).map(function (m) { return m.id; }); };
 })();

@@ -49,7 +49,49 @@
     // R2 s celou Evropou, worker sáhne tam. Země = registr (AGSour), ruční adresa má přednost.
     var URL_ZAKLAD = 'https://ar-geodet-api.ar-geodet.workers.dev/mapa/';
     var URL_VYCHOZI = URL_ZAKLAD + 'cz.pmtiles';
-    function soubor() { try { var k = (window.AGSour && AGSour.kod()) || 'CZ'; return (k === 'XX' ? 'svet' : k.toLowerCase()) + '.pmtiles'; } catch (e) { return 'cz.pmtiles'; } }
+    // DÍLY VELKÝCH ZEMÍ (18. 9. 2026 večer, „mapa pro celou Evropu"): asset vydání GitHubu smí 2 GB,
+    // Německo nebo Francie mají 5–8 GB → scripts/mapa-evropa.py je rozřeže na díly de-1, de-2… a bboxy
+    // zapíše do data/mapa-dily.json. Tady se podle polohy (GPS, jinak střed mapy) vybere díl; země bez
+    // záznamu má jeden soubor <kód>.pmtiles. Přejezd do jiného dílu hlídá tik níž (url() se změní →
+    // nastavStyl() přepne zdroj; mapa-data.js si zdroj přebuduje podle url() sám).
+    var DILY = null;            // { CZ: [{f, bbox:[lon0,lat0,lon1,lat1]}], … } nebo {} když soubor chybí
+    function nactiDily() {
+        if (DILY || typeof fetch !== 'function') return;
+        DILY = {};
+        fetch('data/mapa-dily.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (j) { if (j && j.dily) { DILY = j.dily; nastavStyl(); } })
+            .catch(function (e) { swallow(e, 'dily'); });
+    }
+    function poloha() {
+        try { if (typeof userLat === 'number' && typeof userLng === 'number' && isFinite(userLat) && isFinite(userLng) && userLat) return { lat: userLat, lng: userLng }; } catch (e) { /* nic */ }
+        try { if (typeof map !== 'undefined' && map && map.getCenter) { var c = map.getCenter(); return { lat: c.lat, lng: c.lng }; } } catch (e2) { /* nic */ }
+        return null;
+    }
+    function dil(kod) {
+        var d = DILY && DILY[kod]; if (!d || !d.length) return null;
+        var p = poloha();
+        if (p) {
+            for (var i = 0; i < d.length; i++) {
+                var b = d[i].bbox;
+                if (p.lng >= b[0] && p.lng <= b[2] && p.lat >= b[1] && p.lat <= b[3]) return d[i].f;
+            }
+            // mimo všechny bboxy (roztažení obrysu) → nejbližší střed dílu
+            var best = d[0], bd = Infinity;
+            for (var j = 0; j < d.length; j++) {
+                var bb = d[j].bbox, dx = p.lng - (bb[0] + bb[2]) / 2, dy = p.lat - (bb[1] + bb[3]) / 2, dd = dx * dx + dy * dy;
+                if (dd < bd) { bd = dd; best = d[j]; }
+            }
+            return best.f;
+        }
+        return d[0].f;
+    }
+    function soubor() {
+        try {
+            var k = (window.AGSour && AGSour.kod()) || 'CZ';
+            if (k === 'XX') return 'svet.pmtiles';
+            return (dil(k) || k.toLowerCase()) + '.pmtiles';
+        } catch (e) { return 'cz.pmtiles'; }
+    }
 
     var st = { zap: true, styl: 'auto', url: '' };   // zap: výchozí ZAPNUTO (18. 9. 2026), uložená volba má přednost
     try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && typeof s === 'object') { if (s.zap != null) st.zap = !!s.zap; if (s.styl) st.styl = s.styl; if (s.url) st.url = String(s.url); } } catch (e) { swallow(e, 'load'); }
@@ -104,6 +146,8 @@
         _varianta = v; _url = u; _rotPosl = null;
         try { var m = vrstva.getMaplibreMap(); if (m) m.setStyle(AGMapaStyl.vytvor(v, u)); } catch (e) { swallow(e, 'setStyle'); }
     }
+    // přejezd do jiného DÍLU téže země: každých 20 s porovnat url(); změna → nastavStyl() přepne zdroj
+    setInterval(function () { try { if (st.zap && vrstva && !st.url && DILY && url() !== _url) nastavStyl(); } catch (e) { swallow(e, 'dilTik'); } }, 20000);
     // jiná země = jiný soubor dat (cz → sk…); když pro ni data nejsou, mapa to řekne
     document.addEventListener('ag:zeme', function () { if (st.zap && vrstva && !st.url) overData().then(nastavStyl).catch(function (e) { chybaText = (e && e.message) || String(e); try { window.agInfo && window.agInfo('Vektorová mapa: ' + chybaText); } catch (e2) { /* nic */ } }); });
     try { new MutationObserver(function () { nastavStyl(); }).observe(document.body, { attributes: true, attributeFilter: ['class'] }); } catch (e) { swallow(e, 'observer'); }
@@ -124,6 +168,7 @@
         if (lite()) { stav = 'chyba'; chybaText = 'V režimu slabší telefon vektorová mapa není (WebGL + 1 MB knihovny).'; return Promise.resolve(false); }
         if (typeof baseLayers === 'undefined' || typeof map === 'undefined' || !window.AGMapaStyl) { stav = 'chyba'; chybaText = 'Mapa appky ještě neběží.'; return Promise.resolve(false); }
         stav = 'nacitam';
+        nactiDily();
         return overData().then(knihovny).then(function () {
             if (!vrstva) {
                 _varianta = varianta(); _url = url();

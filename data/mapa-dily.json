@@ -1,0 +1,5 @@
+{
+ "_": "Díly vektorové mapy po zemích (generuje scripts/mapa-evropa.py): kód země → seznam {f: soubor bez .pmtiles, bbox: [lon0, lat0, lon1, lat1]}. Země, která tu není, má jeden soubor <kód>.pmtiles. Čte js/mapa-vektor.js.",
+ "dily": {
+ }
+}

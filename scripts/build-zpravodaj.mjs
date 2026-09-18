@@ -38,7 +38,7 @@ const OUT = 'data/zpravodaj.json';
 // je čte přes AGJazyk.fetchData, český soubor je záloha). Vznikají JEN s klíčem
 // k modelu — pravidlově se překládat nedá. Bez klíče se staré verze smažou, ať
 // cizojazyčná appka neukazuje včerejší zprávy vedle dnešního českého vydání.
-const JAZYKY = { en: 'angličtiny', de: 'němčiny', pl: 'polštiny', es: 'španělštiny', it: 'italštiny' };
+const JAZYKY = { en: 'angličtiny', de: 'němčiny', pl: 'polštiny', es: 'španělštiny', it: 'italštiny', fr: 'francouzštiny' };
 const outLang = (l) => 'data/zpravodaj-' + l + '.json';
 
 // --- Zdroje (RSS/Atom). Klidně přidávej/odebírej; neexistující se přeskočí. -----
