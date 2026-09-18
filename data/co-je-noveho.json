@@ -2,6 +2,14 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 362,
+   "datum": "2026-09-18",
+   "nadpis": "Trasa z budovy bez kroužku „Východ“",
+   "body": [
+    "Když stojíš v domě, trasa k bodu se dál počítá přes východ, ale v mapě už nesvítí kroužek s popiskem „Východ (odhad: strana k ulici)“ — zůstává jen čárkovaný kousek k východu."
+   ]
+  },
+  {
    "v": 361,
    "datum": "2026-09-18",
    "nadpis": "Všechno přeloženo: soupis změn a Historie aktualizací v pěti jazycích, Zpravodaj po jazyce",

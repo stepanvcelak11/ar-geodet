@@ -399,10 +399,9 @@
                 L.polyline([[pk.lat, pk.lng], [pc.lat, pc.lng]], { color: '#f87171', weight: 4, opacity: 0.95, dashArray: '4,7', interactive: false }).addTo(_grp);
             }
             if (trasa.vychod) {
-                // uvnitř budovy: k východu čárkovaně, východ = kroužek s popiskem
+                // uvnitř budovy: k východu jen čárkovaně. Kroužek s popiskem „Východ (odhad: strana k ulici)"
+                // ZRUŠEN 18. 9. 2026 na přání uživatele („to tam nechci vidět") — trasa se přes východ počítá dál.
                 L.polyline([[trasa.body[0].lat, trasa.body[0].lng], [trasa.vychod.bod.lat, trasa.vychod.bod.lng]], { color: '#fbbf24', weight: 4, opacity: 0.95, dashArray: '4,7', interactive: false }).addTo(_grp);
-                L.circleMarker([trasa.vychod.bod.lat, trasa.vychod.bod.lng], { radius: 6, color: '#fff', fillColor: '#fbbf24', fillOpacity: 1, weight: 2, interactive: false })
-                    .bindTooltip(trasa.vychod.jak === 'vchod' ? 'Východ (vchod z OSM)' : 'Východ (odhad: strana k ulici)', { permanent: true, direction: 'top', offset: [0, -6], className: 'ag-trasa-tip' }).addTo(_grp);
             }
             trasa.body.slice(1, -1).forEach(function (q) { L.circleMarker([q.lat, q.lng], { radius: 3, color: '#fbbf24', fillColor: '#1b2420', fillOpacity: 1, weight: 2, interactive: false }).addTo(_grp); });
         } catch (e) { swallow(e, 'kresli'); }
