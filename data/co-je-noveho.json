@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 353,
+   "datum": "2026-09-18",
+   "nadpis": "Kontrola po dvou dnech změn: hlášky nezdržují, data mapy neútočí",
+   "body": [
+    "Hlášky „Trasa terénem: …“, „Překážka uložena“, „Slovensko: N bodů“ a „Vrstva schovaná“ jsou teď krátké bubliny, ne okna, která musíš odklepnout (blokovala i tažení děliče ve splitu).",
+    "Když data mapy pro zemi nejsou nebo není signál, appka to zkusí znovu až za minutu (dřív každých 5 s) a v hlášce řekne skutečný důvod.",
+    "Prošly všechny sady testů: panel Mapa, trasa terénem, 3D, náčrt, Geo kartičky, slovenské body, země, Android, průchod appkou."
+   ]
+  },
+  {
    "v": 352,
    "datum": "2026-09-18",
    "nadpis": "Slovenské úřední body, Geo kartičky v novém, panel Mapa vzdušnější, 3D podle motivu, čísla domů rovně",

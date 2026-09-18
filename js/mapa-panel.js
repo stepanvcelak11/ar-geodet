@@ -60,7 +60,7 @@
     function base() { try { return (typeof visSettings !== 'undefined' && visSettings && visSettings.baseLayer === 'ortofoto') ? 'ortofoto' : 'osm'; } catch (e) { return 'osm'; } }
     function vektor() {
         var mv = MV();
-        if (!mv) { try { window.agInfo && window.agInfo('Vektorová mapa se ještě načítá — zkus to za chvilku.'); } catch (e) { /* nic */ } return; }
+        if (!mv) { try { (window.quickToast || window.agInfo)('Vektorová mapa se ještě načítá — zkus to za chvilku.'); } catch (e) { /* nic */ } return; }
         if (window.AGLite && AGLite.lite) { try { window.agInfo && window.agInfo('V režimu slabší telefon vektorová mapa není (WebGL). Vypni ho v Nastavení → AR & přesnost.'); } catch (e) { /* nic */ } return; }
         try { if (typeof agMapSetBase === 'function') agMapSetBase('osm'); } catch (e) { swallow(e, 'base'); }
         try { $('ms-base-vektor').classList.add('busy'); } catch (e) { /* nic */ }

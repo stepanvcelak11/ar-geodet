@@ -171,7 +171,7 @@
             prekazky.push({ body: body.map(function (q) { return { lat: +q.lat.toFixed(7), lng: +q.lng.toFixed(7) }; }), nazev: _sber ? _sber.nazev : d.n, druh: _sber ? _sber.druh : null, ts: Date.now() });
             _sber = null; AGOkoli.armed = false; ukoncitKresleni();
             ulozPrekazky(); kresliPrekazky();
-            try { window.agInfo && window.agInfo('Překážka uložena — trasa ji obejde, hlídač varuje. Klepnutím na ni ji přejmenuješ nebo smažeš.'); } catch (x) { /* nic */ }
+            try { (window.quickToast || window.agInfo)('Překážka uložena — trasa ji obejde, hlídač varuje. Klepnutím na ni ji přejmenuješ nebo smažeš.'); } catch (x) { /* nic */ }
             try { document.dispatchEvent(new CustomEvent('ag:prekazky')); } catch (x) { /* nic */ }
         }
         _kres.h = { s: start, m: move, e: end };
@@ -215,7 +215,7 @@
         prekazky.push({ a: _sber.body[0], b: _sber.body[1], nazev: _sber.nazev, druh: _sber.druh, ts: Date.now() });
         _sber = null; AGOkoli.armed = false; ukoncitKresleni();
         ulozPrekazky(); kresliPrekazky();
-        try { window.agInfo && window.agInfo('Překážka uložena. Trasa terénem ji obejde, hlídač před ní varuje.'); } catch (e) { /* nic */ }
+        try { (window.quickToast || window.agInfo)('Překážka uložena. Trasa terénem ji obejde, hlídač před ní varuje.'); } catch (e) { /* nic */ }
         try { document.dispatchEvent(new CustomEvent('ag:prekazky')); } catch (e) { /* nic */ }
     }
     function prejmenuj(i) {

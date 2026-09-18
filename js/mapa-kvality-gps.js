@@ -115,7 +115,7 @@
             'body.ag-simple #' + id + '{display:none!important;}'].join('\n')); } catch (e) { swallow(e, 'css'); }
         p = document.createElement('button'); p.type = 'button'; p.id = id; p.setAttribute('aria-label', 'Skrýt vrstvu Kde se dá měřit');
         p.innerHTML = '<b></b>Kde se dá měřit<span>Skrýt</span>';
-        p.addEventListener('click', function (ev) { ev.stopPropagation(); prepni(false); try { window.agInfo && window.agInfo('Vrstva schovaná. Znovu: Nástroje → Kde se dá měřit, nebo panel Vrstvy.'); } catch (e) { /* nic */ } });
+        p.addEventListener('click', function (ev) { ev.stopPropagation(); prepni(false); try { (window.quickToast || window.agInfo)('Vrstva schovaná. Znovu: Nástroje → Kde se dá měřit, nebo panel Vrstvy.'); } catch (e) { /* nic */ } });
         var host = document.getElementById('map-container') || document.body;
         host.appendChild(p);
     }

@@ -165,9 +165,13 @@
         dl.forEach(function (d) { Object.keys(out).forEach(function (k) { if (d.vrstvy && d.vrstvy[k]) out[k] = out[k].concat(d.vrstvy[k]); }); });
         return out;
     }
+    // po chybě (data pro zemi nejsou, bez signálu) 60 s nezkoušet znovu — tik trasy by jinak každých 5 s
+    // střílel 404 na worker
+    var _chybaDo = 0, _chybaText = '';
     function oblast(bbox) {
         var t = tilesPro(bbox, Z); if (t.length > MAX_DLAZDIC) return Promise.reject(new Error('oblast příliš velká (' + t.length + ' dlaždic)'));
-        return Promise.all(t.map(function (q) { return dlazdice(q.z, q.x, q.y); })).then(sloz);
+        if (Date.now() < _chybaDo) return Promise.reject(new Error(_chybaText || 'data mapy nejsou k dispozici'));
+        return Promise.all(t.map(function (q) { return dlazdice(q.z, q.x, q.y); })).then(sloz).catch(function (e) { _chybaDo = Date.now() + 60000; _chybaText = (e && e.message) || String(e); throw e; });
     }
     // synchronně z cache: Promise si ukládá výsledek do .vysledek, ať se nemusí čekat
     function oblastHned(bbox) {
@@ -178,5 +182,5 @@
     var _dlazdice = dlazdice;
     dlazdice = function (z, x, y) { var p = _dlazdice(z, x, y); if (!p._vysledek && !p._ceka) { p._ceka = true; p.then(function (d) { p._vysledek = d; }).catch(function () { /* z cache už je pryč */ }); } return p; };
 
-    window.AGMapaData = { oblast: oblast, oblastHned: oblastHned, dlazdice: dlazdice, tilesPro: tilesPro, dekoduj: dekoduj, Z: Z, cache: function () { return Object.keys(_cache).length; }, pripraven: function () { return !!zdroj(); }, zdrojAsync: zdrojAsync };
+    window.AGMapaData = { oblast: oblast, oblastHned: oblastHned, dlazdice: dlazdice, tilesPro: tilesPro, dekoduj: dekoduj, Z: Z, cache: function () { return Object.keys(_cache).length; }, pripraven: function () { return !!zdroj(); }, zdrojAsync: zdrojAsync, chyba: function () { return Date.now() < _chybaDo ? _chybaText : ''; } };
 })();

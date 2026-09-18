@@ -84,9 +84,9 @@
         _bezi = true; var stred = { lat: me.lat, lng: me.lng };
         return stahni(stred.lat, stred.lng).then(function (body) {
             _posl = stred; _pocet = body.length; var n = vloz(body);
-            if (n) { try { window.agInfo && window.agInfo('Slovensko: ' + body.length + ' bodů GKÚ SR v okolí (ŠTS, ŠNS, ŠGS). Poloha z S-JTSK, ±1 m.'); } catch (e) { /* nic */ } }
+            if (n) { try { (window.quickToast || window.agInfo)('Slovensko: ' + body.length + ' bodů GKÚ SR v okolí (ŠTS, ŠNS, ŠGS). Poloha z S-JTSK, ±1 m.'); } catch (e) { /* nic */ } }
             return n;
-        }).catch(function (e) { _posl = stred; try { window.agInfo && window.agInfo('Body GKÚ SR se nepodařilo stáhnout: ' + ((e && e.message) || e)); } catch (e2) { /* nic */ } return 0; }).finally(function () { _bezi = false; });
+        }).catch(function (e) { _posl = stred; try { (window.quickToast || window.agInfo)('Body GKÚ SR se nepodařilo stáhnout: ' + ((e && e.message) || e)); } catch (e2) { /* nic */ } return 0; }).finally(function () { _bezi = false; });
     }
     function start() {
         document.addEventListener('ag:zeme', function () { _posl = null; setTimeout(function () { obnov(true); }, 300); });

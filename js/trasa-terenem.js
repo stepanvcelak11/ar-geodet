@@ -81,7 +81,7 @@
         var bbox = { s: s, w: w, n: n, e: e }, D = data(bbox), T = D.t, MV = window.AGMapaVektor, silnice = [], vchody = [];
         // bez dlaždic a bez vektorové mapy na obrazovce není z čeho počítat — počkat na data (tik zkouší
         // po 5 s, dojetí dlaždic spustí přepočet samo), ne kreslit „trasu" přes prázdný rastr
-        if (!T && !mapaNaObrazovce()) { _rastrDuvod = window.AGMapaData ? 'data mapy se stahují (bez signálu to nejde)' : 'data mapy nejsou k dispozici'; return null; }
+        if (!T && !mapaNaObrazovce()) { var chD = window.AGMapaData && AGMapaData.chyba && AGMapaData.chyba(); _rastrDuvod = chD ? ('data mapy nejdou stáhnout — ' + chD) : (window.AGMapaData ? 'data mapy se stahují (bez signálu to nejde)' : 'data mapy nejsou k dispozici'); return null; }
         if (T) {
             // z dlaždic: plochy (po druzích, dražší přes levnější), voda, budovy, silnice
             try {
@@ -329,7 +329,7 @@
             else { trasa = null; kresli(); }
         } catch (e) { swallow(e, 'prepocitej'); trasa = null; _duvod = 'chyba výpočtu: ' + ((e && e.message) || e); } finally { _pocitam = false; }
         // bez trasy řekni PROČ (jednou na cíl a důvod) — v348 uživatel viděl jen přímku a nevěděl, co se děje
-        try { if (!trasa && _duvod && c && prepocitej._hlaseno !== c.id + '|' + _duvod) { prepocitej._hlaseno = c.id + '|' + _duvod; window.agInfo && window.agInfo('Trasa terénem: ' + _duvod + '.'); } } catch (e) { /* nic */ }
+        try { if (!trasa && _duvod && c && prepocitej._hlaseno !== c.id + '|' + _duvod) { prepocitej._hlaseno = c.id + '|' + _duvod; (window.quickToast || window.agInfo)('Trasa terénem: ' + _duvod + '.'); } } catch (e) { /* nic */ }
         return trasa;
     }
     // vzdálenost ode mě k trase + index nejbližšího úseku
