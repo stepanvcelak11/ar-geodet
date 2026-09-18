@@ -24,6 +24,7 @@
 
     function U() { return window.AGUcty || null; }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function TJ(cs) { try { return (window.AGJazyk && typeof AGJazyk.t === 'function') ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } }   // překlad kousku slepence (18. 9. 2026)
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function agConfirm(opts) {
         try { if (typeof window.agConfirm === 'function') return window.agConfirm(opts); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:agConfirm'); }
@@ -359,7 +360,7 @@
             bar.innerHTML =
                 '<span class="agfa-fb-ico">' + (NAV_ICO.firma || '') + '</span>' +
                 '<span class="agfa-fb-txt"><b>' + esc(f.firmName || 'Moje firma') + '</b>' +
-                '<span>' + (f.cloud ? 'cloud · kód ' + esc(f.code || '?') : 'jen toto zařízení') +
+                '<span>' + (f.cloud ? TJ('cloud · kód') + ' ' + esc(f.code || '?') : TJ('jen toto zařízení')) +
                 (me ? ' · ' + esc(me.name) + ' (' + roleTxt(me.role).toLowerCase() + ')' : ' · nepřihlášen') + '</span></span>' +
                 '<button type="button" class="agfa-mini" id="agfa-fb-switch">Přihlásit / přepnout</button>';
         }
@@ -458,7 +459,7 @@
                 var kk = String(ev.k || '').split('|')[0];
                 lastBy[ev.u] = ev.t === 'pt-add' ? 'přidal bod'
                     : (ev.t === 'pt-edit' ? 'upravil bod'
-                    : (ev.t === 'tool' ? 'nástroj ' + kk.slice(0, 18)
+                    : (ev.t === 'tool' ? TJ('nástroj') + ' ' + kk.slice(0, 18)
                     : (ev.t === 'shift' ? (kk === 'in' ? 'příchod' : 'odchod')
                     : (ev.t === 'login' ? 'přihlášení' : 'aktivita'))));
                 if (ev.t === 'shift') inWork[ev.u] = (kk === 'in');
@@ -489,8 +490,8 @@
                 var initials = (us.name || '?').trim().split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join('').toUpperCase();
                 var chipCls = us.role === 'admin' ? ' c-admin' : (us.role === 'vedeni' ? ' c-vedeni' : '');
                 var sub = lastTsBy[us.name]
-                    ? 'naposledy ' + new Date(lastTsBy[us.name]).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + ' — ' + lastBy[us.name]
-                    : 'dnes bez aktivity';
+                    ? TJ('naposledy') + ' ' + new Date(lastTsBy[us.name]).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }) + ' — ' + TJ(lastBy[us.name])
+                    : TJ('dnes bez aktivity');
                 html += '<div class="agfa-row">' +
                     (u.avatarHtml ? u.avatarHtml(us.name, 'agfa-av')
                         : '<span class="agfa-av" style="' + (u.avatarStyle ? u.avatarStyle(us.name) : '') + '">' + esc(initials) + '</span>') +

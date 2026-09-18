@@ -46,7 +46,9 @@
     var karty = [], zobrazene = [], filtr = 'vse', el = null, _io = null;
 
     // ---- sběr karet ------------------------------------------------------------------------------------
-    function nactiJson(u) { return fetch(u, { cache: 'force-cache' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
+    // Datové soubory po jazyce (data/ulohy-en.json…) — bere je AGJazyk.fetchData, cizí jazyk bez
+    // souboru spadne na češtinu; bez modulu jazyků obyčejný fetch.
+    function nactiJson(u) { var f = (window.AGJazyk && AGJazyk.fetchData) ? AGJazyk.fetchData : fetch; return f(u, { cache: 'force-cache' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
     function sestav() {
         karty = [];
         try { (window.agGeoDict || []).forEach(function (p, i) { karty.push({ id: 'pojem:' + i, typ: 'pojem', n: p.t, d: p.d }); }); } catch (e) { swallow(e, 'pojmy'); }
@@ -60,12 +62,12 @@
             try { ((d && d.kategorie) || []).forEach(function (k) { (k.zaznamy || []).forEach(function (z, i) { karty.push({ id: 'predpis:' + k.id + ':' + i, typ: 'predpis', n: z.nazev, d: z.telo, sekce: k.nazev, tabulka: z.tabulka, tool: 'predpisy' }); }); }); } catch (e) { swallow(e, 'predpisy'); }
         });
         sl = sl.then(function () { return nactiJson('data/ulohy.json'); }).then(function (d) {
-            try { ((d && d.ulohy) || []).forEach(function (u) { karty.push({ id: 'otazka:' + u.id, typ: 'otazka', n: 'Úloha: ' + (u.typ || '') + ' (obtížnost ' + (u.obtiznost || 1) + ')', html: u.zadani, odpovedi: u.odpovedi, tool: 'cvicne-ulohy' }); }); } catch (e) { swallow(e, 'ulohy'); }
+            try { ((d && d.ulohy) || []).forEach(function (u) { karty.push({ id: 'otazka:' + u.id, typ: 'otazka', nh: '<span>Úloha:</span> ' + esc(u.typ || '') + ' <span>(obtížnost ' + esc(String(u.obtiznost || 1)) + ')</span>', html: u.zadani, odpovedi: u.odpovedi, tool: 'cvicne-ulohy' }); }); } catch (e) { swallow(e, 'ulohy'); }
         });
         sl = sl.then(function () {
             try {
                 var T = (window.AGReg && AGReg.all()) || [];
-                T.forEach(function (r) { if (!r || r.hidden || !r.vl || !r.vh) return; karty.push({ id: 'nastroj:' + r.k, typ: 'nastroj', n: 'Věděl jsi, že appka umí: ' + r.vl, d: r.vh + (r.verb ? ' · najdeš v Nástroje → ' + r.verb : ''), tool: r.k, pro: !!r.pro }); });
+                T.forEach(function (r) { if (!r || r.hidden || !r.vl || !r.vh) return; karty.push({ id: 'nastroj:' + r.k, typ: 'nastroj', nh: '<span>Věděl jsi, že appka umí:</span> <span>' + esc(r.vl) + '</span>', html: '<p><span>' + esc(r.vh) + '</span>' + (r.verb ? '<span> · najdeš v Nástroje → </span><span>' + esc(r.verb) + '</span>' : '') + '</p>', tool: r.k, pro: !!r.pro }); });
             } catch (e) { swallow(e, 'nastroje'); }
         });
         return sl;
@@ -111,8 +113,8 @@
         if (k.typ === 'otazka' && k.odpovedi) telo += '<div class="agsu-odp" hidden>' + k.odpovedi.map(function (o) { return '<div>' + o.l + ' = <b>' + esc(String(o.v)) + '</b></div>'; }).join('') + '</div>';
         return '<section class="agsu-slot" data-id="' + esc(k.id) + '" data-i="' + i + '"><div class="agsu-karta t-' + k.typ + '">'
             + '<svg class="agsu-ik" viewBox="0 0 24 24" aria-hidden="true">' + (IKONY[k.typ] || IKONY.pojem) + '</svg>'
-            + '<div class="agsu-hl"><span class="agsu-typ">' + TYPY[k.typ] + (k.sekce ? ' · ' + esc(k.sekce) : '') + '</span><button type="button" class="agsu-star' + (st.ulozene[k.id] ? ' on' : '') + '" data-akce="ulozit" aria-label="Uložit">★</button></div>'
-            + '<h2>' + esc(k.n) + '</h2><div class="agsu-telo">' + telo + '</div>'
+            + '<div class="agsu-hl"><span class="agsu-typ"><span>' + TYPY[k.typ] + '</span>' + (k.sekce ? ' · <span>' + esc(k.sekce) + '</span>' : '') + '</span><button type="button" class="agsu-star' + (st.ulozene[k.id] ? ' on' : '') + '" data-akce="ulozit" aria-label="Uložit">★</button></div>'
+            + '<h2>' + (k.nh || esc(k.n)) + '</h2><div class="agsu-telo">' + telo + '</div>'
             + (akce ? '<div class="agsu-akce">' + akce + '</div>' : '')
             + '<div class="agsu-dal"><i></i>' + (i + 1) + ' / ' + zobrazene.length + '</div></div></section>';
     }

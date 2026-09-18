@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v358';   // pruchod 2. kolo: brana → lokalni firma spusti appku, lazy need() ceka na letici modul, preklady karty
+const SHELL_CACHE = 'argeodet-shell-v359';   // preklady dotazeny: navody/predpisy/ulohy po jazyce, 1000+ textu, SWR pro slovniky v DICT_CACHE
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=358',
-    './css/style.css?v=358',
-    './css/vylepseni.css?v=358',
+    './css/tokens.css?v=359',
+    './css/style.css?v=359',
+    './css/vylepseni.css?v=359',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -339,7 +339,14 @@ function isFont(url) { return url.includes('/fonts/') || url.endsWith('.woff2');
 // obnovovat, do DICT_CACHE smi jen rozsireni data/jazyky-xx.json.
 // + data registru zemí (geoid EGM2008 ~740 kB, obrysy zemí ~170 kB; 16. 9. 2026): stejný
 // princip — stahují se jednou, s verzí kódu se nemění, nesmí je smazat bump SHELL_CACHE.
-function isDict(url) { return url.includes('/data/jazyky-') || url.includes('/data/egm2008') || url.includes('/data/zeme-'); }
+function isDict(url) { return isLangData(url) || url.includes('/data/egm2008') || url.includes('/data/zeme-'); }
+// Soubory PO JAZYCE (18. 9. 2026): rozšíření slovníku data/jazyky-xx.json a lokalizované kopie
+// data/navody-xx.json, predpisy-xx.json, ulohy-xx.json. Mění se s každým vydáním (nové překlady),
+// ale v předcache nejsou (stahuje se jen zvolený jazyk) a DICT_CACHE se s verzí nemaže — čistý
+// cache-first by tedy cizojazyčnou appku navždy držel na prvním staženém slovníku. Proto
+// stale-while-revalidate: odpoví se z cache hned (offline funguje), na pozadí se stáhne čerstvá
+// kopie do DICT_CACHE (GitHub Pages vrací 304, když se soubor nezměnil). Projeví se od dalšího startu.
+function isLangData(url) { return /\/data\/(jazyky|navody|predpisy|ulohy)-[a-z]{2}\.json/.test(url); }
 
 // Knihovny z CDN. Zamerne se matchuje CELA DOMENA, ne jen *.js: z jsdelivr se
 // tahaji i pisma pro jspdf a wasm/jazykova data pro tesseract — kdyby spadly do
@@ -527,6 +534,21 @@ self.addEventListener('fetch', event => {
                             const clone = response.clone();
                             // klic BEZ query, at se v cache nekupi ./index.html?firma=XXXX
                             caches.open(SHELL_CACHE).then(cache => cache.put('./index.html', clone));
+                        }
+                        return response;
+                    }).catch(() => cached);
+                    return cached || network;
+                })
+            );
+            return;
+        }
+        if (isLangData(url)) {
+            event.respondWith(
+                caches.match(event.request).then(cached => {
+                    const network = fetch(event.request).then(response => {
+                        if (response && response.ok) {
+                            const clone = response.clone();
+                            caches.open(DICT_CACHE).then(cache => cache.put(event.request, clone));
                         }
                         return response;
                     }).catch(() => cached);

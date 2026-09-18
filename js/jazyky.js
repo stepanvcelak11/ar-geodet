@@ -586,8 +586,26 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
 
+    // ---- datové soubory po jazyce -----------------------------------------------
+    // Dlouhé texty (návody pod „?“, Předpisy, Cvičné úlohy) nejdou přes slovník
+    // po textových uzlech — jsou to celé odstavce s HTML. Mají proto vlastní soubor
+    // na jazyk vedle českého: data/navody.json → data/navody-en.json. fetchData()
+    // zkusí lokalizovaný a když není (404, offline), vrátí český — modul o tom neví.
+    function dataUrl(url) {
+        if (_lang === 'cs') return url;
+        return String(url).replace(/\.json(\?.*)?$/, '-' + _lang + '.json$1');
+    }
+    function fetchData(url, opts) {
+        var u = dataUrl(url);
+        if (u === url || typeof fetch !== 'function') return fetch(url, opts);
+        return fetch(u, opts).then(function (r) { return r.ok ? r : fetch(url, opts); })
+            .catch(function () { return fetch(url, opts); });
+    }
+
     window.AGJazyk = {
         get: function () { return _lang; },
+        dataUrl: dataUrl,
+        fetchData: fetchData,
         set: set,
         list: function () { return _langs.slice(); },
         // překlad jednoho českého řetězce (pro moduly, které si text staví samy)

@@ -64,6 +64,7 @@
     }
     function colorFor(score) { return score >= 70 ? 'good' : (score >= 40 ? 'warn' : 'bad'); }
     function labelFor(score) { return score >= 70 ? 'Kompas klidný' : (score >= 40 ? 'Kompas kolísá' : 'Kompas neklidný'); }
+    function TJ(cs) { try { return (window.AGJazyk && typeof AGJazyk.t === 'function') ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } }   // překlad kousku slepence (18. 9. 2026)
 
     // ---- uložení/aplikace polohy a velikosti ----------------------------------
     function loadUI() {
@@ -258,7 +259,7 @@
             }
             if (_lastShown !== score) {
                 var v = el.querySelector('.ag-cstab-val'); if (v) v.textContent = score + '%';
-                el.title = labelFor(score) + ' · ' + score + '% (rozkmit ±' + st.spread.toFixed(1) + '°) · dlouhý stisk = úpravy';
+                el.title = TJ(labelFor(score)) + ' · ' + score + '% (' + TJ('rozkmit') + ' ±' + st.spread.toFixed(1) + '°) · ' + TJ('dlouhý stisk = úpravy');
                 _lastShown = score;
             }
         } catch (e) { /* fail-silent */ }

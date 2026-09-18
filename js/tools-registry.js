@@ -488,12 +488,17 @@
     var URL_NAVODY = './data/navody.json';
     var NAV = null;          // { k: '<html>' } až po načtení
     var NAV_P = null;        // rozjetý Promise (aby se nestahovalo dvakrát)
+    var NAV_LANG = 'cs';     // pro který jazyk NAV platí (data/navody-<jazyk>.json přes AGJazyk)
 
+    function curLang() { try { return (typeof window !== 'undefined' && window.AGJazyk && AGJazyk.get()) || 'cs'; } catch (e) { return 'cs'; } }
     function helpLoad() {
+        var lang = curLang();
+        if (lang !== NAV_LANG) { NAV = null; NAV_P = null; NAV_LANG = lang; }
         if (NAV) return Promise.resolve(NAV);
         if (NAV_P) return NAV_P;
         if (typeof fetch !== 'function') { NAV = {}; return Promise.resolve(NAV); }
-        NAV_P = fetch(URL_NAVODY)
+        var f = (typeof window !== 'undefined' && window.AGJazyk && AGJazyk.fetchData) ? AGJazyk.fetchData : fetch;
+        NAV_P = f(URL_NAVODY)
             .then(function (r) { return r.ok ? r.json() : {}; })
             .then(function (j) { NAV = j || {}; return NAV; })
             .catch(function () { NAV = {}; return NAV; });   // bez návodů, ale appka jede

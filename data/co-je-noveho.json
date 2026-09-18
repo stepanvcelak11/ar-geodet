@@ -2,6 +2,18 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 359,
+   "datum": "2026-09-18",
+   "nadpis": "Překlady dotaženy: návody, Předpisy, Cvičné úlohy a Geo kartičky v pěti jazycích, poslední české zbytky",
+   "body": [
+    "<b>Návody „?“ u nástrojů</b> (110 textů), <b>Předpisy a odchylky</b>, <b>Cvičné úlohy</b> a <b>Geo kartičky</b> jsou v angličtině, němčině, polštině, španělštině a italštině — nejsou to doslovné překlady, ale texty psané podle toho, co nástroj dělá. České originály zůstávají beze změny (data/navody-xx.json, predpisy-xx.json, ulohy-xx.json).",
+    "Přeloženo přes 1 000 dalších textů z obrazovek, které dřív v cizím jazyce zůstávaly česky: Přesná GPS, Kalibrace chůzí po hraně, Korekce z mapy, Akustický dálkoměr, Osa, Vrstvy, Poznávačka, Ročenka, Moje aktivita, GNSS předpověď, Počasí (vysvětlivky k vahám a měření ČHMÚ), firemní panel, brífink. Slepené věty s čísly („38,6 m na severovýchod“, „září 2026“, „Týden: 6 min v appce…“) přes vzory.",
+    "Španělština a italština dohnaly zbylých 27 textů (účet, přihlášení, Katastr), všech pět jazyků má teď stejnou sadu 6 539 klíčů.",
+    "<b>Cizojazyčná appka se už drží na starém slovníku</b>: rozšíření slovníku a lokalizované soubory se v telefonu obnovují na pozadí při každém startu (dřív je service worker držel navždy v první stažené podobě — nové překlady se k tobě nedostaly).",
+    "Nový test test_jazyky_data (53 kontrol: soubory po jazyce, stejná struktura a HTML, italský návod v okně „?“, Předpisy, úlohy, kartičky) v CI."
+   ]
+  },
+  {
    "v": 358,
    "datum": "2026-09-18",
    "nadpis": "Průchod appkou, 2. kolo: nový uživatel se dostane dovnitř, menu neklepe do prázdna",

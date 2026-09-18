@@ -80,7 +80,7 @@
             var b = el.querySelector('.modal-close, [data-close], [id$="-close"], [id$="-zavrit"], button.agp-x, button.ag-x');
             if (b && klik(b)) return;
             var btns = el.querySelectorAll('button');
-            for (var i = btns.length - 1; i >= 0; i--) { if (/^\s*(Zavřít|Zpět|Hotovo|OK)\s*$/i.test(btns[i].textContent || '')) { klik(btns[i]); return; } }
+            for (var i = btns.length - 1; i >= 0; i--) { if (/^\s*(Zavřít|Zpět|Hotovo|OK)\s*$/i.test(btns[i].getAttribute('data-ag-cs') || btns[i].textContent || '')) { klik(btns[i]); return; } }   // data-ag-cs = český originál po překladu (js/jazyky.js)
             el.style.display = 'none';
             el.classList.remove('open', 'on');
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'android-zpet:zavri'); }

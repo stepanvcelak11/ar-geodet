@@ -28,18 +28,21 @@
         return s2.replace(new RegExp('[\\u0300-\\u036f]', 'g'), '');
     }
 
-    function getCached() { var r = lsGet(K_DATA); if (!r) return null; try { return JSON.parse(r); } catch (e) { return null; } }
+    // cache je po jazyce (data/predpisy-en.json…), jinak by po přepnutí zůstal starý jazyk
+    function kData() { var l = (window.AGJazyk && AGJazyk.get()) || 'cs'; return l === 'cs' ? K_DATA : K_DATA + '_' + l; }
+    function getCached() { var r = lsGet(kData()); if (!r) return null; try { return JSON.parse(r); } catch (e) { return null; } }
 
     function load() {
         var c = getCached();
-        if (c) _data = c;
+        _data = c || null;
         var online = (typeof navigator === 'undefined') || navigator.onLine !== false;
         if (!online) return;
-        fetch(DATA_URL, { cache: 'no-cache' })
+        var f = (window.AGJazyk && AGJazyk.fetchData) ? AGJazyk.fetchData : fetch;
+        f(DATA_URL, { cache: 'no-cache' })
             .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
             .then(function (j) {
                 if (!j || !Array.isArray(j.kategorie)) throw new Error('bad json');
-                _data = j; lsSet(K_DATA, JSON.stringify(j));
+                _data = j; lsSet(kData(), JSON.stringify(j));
                 if (_ov && _ov.classList.contains('open')) { renderChips(); render(currentQuery()); }
             })
             .catch(function () { /* zůstaneme u cache */ });
@@ -225,4 +228,5 @@
         setTimeout(function () { try { injectMenuButton(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'predpisy:init'); } try { injectWelcomeButton(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'predpisy:init'); } }, 400);
     });
     window.addEventListener('online', function () { try { load(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'predpisy:init'); } });
+    window.addEventListener('ag:jazyk', function () { try { load(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'predpisy:jazyk'); } });
 })();

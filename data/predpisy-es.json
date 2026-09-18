@@ -1,0 +1,839 @@
+{
+ "aktualizovano": "2026-06-14",
+ "disclaimer": "Chuleta orientativa, no interpretación jurídica. Verifica los valores en el texto completo de la fuente — la normativa cambia.",
+ "kategorie": [
+  {
+   "id": "odchylky",
+   "nazev": "Tolerancias y precisión",
+   "zkratka": "Tolerancias",
+   "zaznamy": [
+    {
+     "nazev": "Código de calidad de los puntos de detalle (mxy y tolerancias)",
+     "tagy": [
+      "desviación",
+      "desviaciones",
+      "precisión",
+      "código de calidad",
+      "mxy",
+      "uxy",
+      "límite",
+      "error de coordenadas",
+      "punto de detalle"
+     ],
+     "telo": "La precisión de las coordenadas de un punto de detalle en S-JTSK se expresa con un código de calidad de 3 a 8. A cada código corresponde un error medio básico de coordenadas mxy. De él se derivan el error límite de coordenadas uxy = 2·mxy y la desviación posicional límite = 2·√2·mxy. Los códigos 3–5 son puntos medidos en campo; los códigos 6–8 provienen de la digitalización de mapas antiguos.",
+     "tabulka": {
+      "hlavicka": [
+       "Código",
+       "Origen",
+       "mxy [m]",
+       "uxy = 2·mxy [m]",
+       "Posicional límite [m]"
+      ],
+      "radky": [
+       [
+        "3",
+        "levantamiento en campo",
+        "0,14",
+        "0,28",
+        "0,39"
+       ],
+       [
+        "4",
+        "levantamiento en campo",
+        "0,26",
+        "0,52",
+        "0,74"
+       ],
+       [
+        "5",
+        "levantamiento en campo",
+        "0,50",
+        "1,00",
+        "1,41"
+       ],
+       [
+        "6",
+        "digitalización",
+        "0,21",
+        "0,42",
+        "0,59"
+       ],
+       [
+        "7",
+        "digitalización",
+        "0,50",
+        "1,00",
+        "1,41"
+       ],
+       [
+        "8",
+        "digitalización",
+        "1,00",
+        "2,00",
+        "2,82"
+       ]
+      ]
+     },
+     "pozn": "uxy = 2·mxy · desviación posicional límite = 2·√2·mxy. Los más precisos son los puntos con código 3 (medidos geodésicamente de nuevo).",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Tolerancia de la superficie de la parcela",
+     "tagy": [
+      "superficie",
+      "tolerancia",
+      "desviación de superficie",
+      "parcela",
+      "tolerancia",
+      "m2"
+     ],
+     "telo": "La tolerancia de superficie dice cuánto pueden diferir dos superficies de la misma parcela (p. ej. la nueva y la registrada) sin que cambie la superficie en el catastro. Depende del código de calidad de los vértices y de la superficie P (la mayor de las superficies comparadas en m²):",
+     "tabulka": {
+      "hlavicka": [
+       "Código de calidad",
+       "Tolerancia de superficie [m²]"
+      ],
+      "radky": [
+       [
+        "3",
+        "2"
+       ],
+       [
+        "4",
+        "0,4·√P + 4"
+       ],
+       [
+        "5",
+        "1,2·√P + 12"
+       ],
+       [
+        "6",
+        "0,3·√P + 3"
+       ],
+       [
+        "7",
+        "0,8·√P + 8"
+       ],
+       [
+        "8",
+        "2,0·√P + 20"
+       ]
+      ]
+     },
+     "pozn": "P = la mayor de las superficies comparadas [m²]. Para un grupo de parcelas / código de determinación 0 o una combinación se toma el doble. Ejemplo: parcela de 1000 m² con código 8 → 2,0·√1000 + 20 ≈ 83 m². Verifica la redacción exacta de las fórmulas en el anexo.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha (mezní odchylky výměr)",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Colores de los puntos en Nahlížení do KN (control de precisión)",
+     "tagy": [
+      "visor",
+      "color",
+      "verde",
+      "rojo",
+      "código de calidad",
+      "precisión",
+      "lindero"
+     ],
+     "telo": "En la aplicación Nahlížení do KN, en la capa «Linderos de parcelas con expresión de precisión» / «Puntos de detalle con expresión de precisión», los puntos se colorean según el código de calidad: en VERDE los puntos con código de calidad 3 (los más precisos, medidos geodésicamente), en ROJO los puntos con código de calidad 4 a 8. Un control visual rápido de la fiabilidad de un lindero.",
+     "zdroj": "ČÚZK — Nahlížení do KN",
+     "odkaz": "https://nahlizenidokn.cuzk.gov.cz",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Método de determinación de la superficie de la parcela vs. código de calidad",
+     "tagy": [
+      "superficie",
+      "método de determinación de la superficie",
+      "código de calidad",
+      "parcela"
+     ],
+     "telo": "El método de determinación de la superficie de una parcela se indica con un código: código 2 = de coordenadas en S-JTSK con código de calidad 3 o 4 (el más preciso); código 1 = de medidas tomadas directamente o de coordenadas en un sistema local; código 0 = de coordenadas en S-JTSK en las que al menos un vértice tiene código de calidad 5 a 8, O gráficamente (planimetrado, medidas tomadas sobre el mapa, coordenadas tomadas sobre el mapa).",
+     "pozn": "Mayor precisión de los vértices (código 3–4) = superficie de parcela más precisa y «más fuerte».",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "kontrola",
+   "nazev": "Precisión y control de la medición",
+   "zkratka": "Control",
+   "zaznamy": [
+    {
+     "nazev": "Doble determinación (independiente) del punto + enlace a puntos",
+     "tagy": [
+      "medición",
+      "doble determinación",
+      "independiente",
+      "control",
+      "enlace",
+      "método",
+      "procedimiento"
+     ],
+     "telo": "Cada punto de detalle se mide de forma independiente al menos dos veces. La medición debe enlazarse a puntos de al menos la precisión que se pretende alcanzar en los nuevos puntos (es decir, no se puede obtener un punto más preciso apoyándose en puntos menos precisos). Vale sin importar el método (GNSS, método polar, etc.) — lo decisivo es la precisión alcanzada y verificada.",
+     "pozn": "De la doble determinación se calcula el control de precisión (véase el error medio muestral más abajo).",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Verificación de la precisión con medición de control de distancias",
+     "tagy": [
+      "verificación",
+      "medición de control",
+      "distancias de control",
+      "distancia",
+      "diferencia límite",
+      "ud",
+      "control"
+     ],
+     "telo": "El logro de la precisión se verifica con distancias de control o con la medición de control de las distancias en línea recta de otros pares seleccionados de puntos de detalle y su comparación con las distancias calculadas de las coordenadas. Es correcto cuando la diferencia entre la distancia de control y la distancia de coordenadas es menor que la diferencia límite de distancia ud = 2·md (md = error medio básico de la distancia).",
+     "pozn": "Para un conjunto con más de 20 diferencias se aplica además un criterio estadístico (proporción de diferencias menores que md) — véase el punto 13 del anexo.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Error medio muestral de coordenadas (prueba de posición)",
+     "tagy": [
+      "error medio muestral",
+      "sxy",
+      "uxy",
+      "determinación de control",
+      "verificación",
+      "límite",
+      "coeficiente k"
+     ],
+     "telo": "Al verificar con una determinación de control (segunda) de las coordenadas del mismo punto se calcula el error medio muestral de coordenadas sxy = √(0,5·(Δx² + Δy²)), donde Δx, Δy son las diferencias de coordenadas entre la primera determinación y la de control. La precisión es correcta cuando sxy no supera el error límite de coordenadas uxy = 2·mxy del código de calidad correspondiente (p. ej. código 3 → uxy = 0,28 m).",
+     "pozn": "Coeficiente k = 2 si la determinación de control tiene la misma precisión que la medición de detalle; k = 1 si el control es sustancialmente más preciso (mxy < 0,10 m). Los valores límite uxy, véase la tabla de códigos de calidad.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "metody",
+   "nazev": "Métodos de medición planimétrica",
+   "zkratka": "Métodos",
+   "zaznamy": [
+    {
+     "nazev": "Métodos de medición de puntos de detalle",
+     "tagy": [
+      "método",
+      "polar",
+      "ortogonal",
+      "distancias de control",
+      "intersección",
+      "medición",
+      "punto de detalle"
+     ],
+     "telo": "Los puntos de detalle de la planimetría se miden por regla general con el método POLAR (ángulo horizontal desde la dirección de orientación + distancia desde la estación). Métodos complementarios (cuando el polar no es posible o práctico): ORTOGONAL (coordenadas rectangulares respecto a una línea de medición — abscisa y ordenada; adecuado en zonas urbanas densas), método de DISTANCIAS DE CONSTRUCCIÓN e INTERSECCIÓN por direcciones o por distancias.",
+     "pozn": "Sea cual sea el método, la precisión requerida (código de calidad) debe alcanzarse y verificarse — véase la doble determinación y el control más arriba.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha; vyhláška č. 31/1995 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Medición GNSS / RTK en el catastro",
+     "tagy": [
+      "GNSS",
+      "RTK",
+      "GPS",
+      "estación permanente",
+      "VRS",
+      "CZEPOS",
+      "medición",
+      "método"
+     ],
+     "telo": "Las coordenadas se pueden determinar con tecnología GNSS, en la práctica con el método RTK. Además de una estación de referencia propia, se pueden usar redes de estaciones permanentes (p. ej. CZEPOS) — correcciones de una estación de referencia concreta o virtual (VRS). Cada punto se determina de forma independiente al menos dos veces y los resultados se controlan. Los procedimientos técnicos GNSS los regula el punto 9 del anexo del decreto n.º 31/1995 Sb.",
+     "pozn": "Enlace/orientación a puntos de al menos la precisión que se pretende alcanzar. Dos determinaciones GNSS independientes deben tener un intervalo de tiempo (otra constelación de satélites).",
+     "zdroj": "Vyhláška č. 31/1995 Sb., příloha bod 9; katastrální vyhláška č. 357/2013 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/1995-31",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Base geométrica y orientación de la medición",
+     "tagy": [
+      "base geométrica",
+      "orientación",
+      "enlace",
+      "red de medición",
+      "poligonal",
+      "radiación",
+      "red de puntos"
+     ],
+     "telo": "La base geométrica de la medición de detalle son los puntos de la red y la red de medición: puntos determinados por RTK, poligonales y radiaciones según necesidad. La medición debe enlazarse y orientarse a puntos de al menos la precisión que se pretende alcanzar en los nuevos puntos — no se obtiene un punto más preciso apoyándose en puntos menos precisos.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Poligonal — condiciones geométricas",
+     "tagy": [
+      "poligonal",
+      "polígono",
+      "lado",
+      "relación de lados",
+      "cierre angular",
+      "vértices",
+      "red de medición"
+     ],
+     "telo": "Al elegir los puntos de la poligonal se respetan parámetros geométricos (orientativos, según clase de precisión / norma):",
+     "tabulka": {
+      "hlavicka": [
+       "Parámetro",
+       "Normalmente"
+      ],
+      "radky": [
+       [
+        "Longitud límite (máx.) del lado",
+        "300 m"
+       ],
+       [
+        "Relación de longitudes de lados contiguos",
+        "hasta 1:2 (en otros 1:3)"
+       ],
+       [
+        "Relación entre el lado más largo y el más corto de la poligonal",
+        "hasta 1:3"
+       ],
+       [
+        "Longitud total máx. (poligonal principal)",
+        "2000–2500 m"
+       ],
+       [
+        "Longitud total máx. (poligonal secundaria)",
+        "1200–1600 m"
+       ],
+       [
+        "N.º máx. de vértices",
+        "17–25"
+       ]
+      ]
+     },
+     "pozn": "Poligonal abierta (enlazada por un solo extremo): máx. 3 vértices nuevos, longitud hasta 250 m. Tolerancia del cierre angular Δω = c·√n (n = número de ángulos; c según clase/norma). Los valores concretos difieren entre fuentes/normas — verifica en ČSN 73 0415.",
+     "zdroj": "ČSN 73 0415 (Geodetické body); výukové materiály VUT/ZČU",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch07s04.html",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Radiación — condiciones para determinar un punto auxiliar",
+     "tagy": [
+      "radiación",
+      "radiación",
+      "punto auxiliar",
+      "distancia de radiación",
+      "orientación",
+      "red de medición"
+     ],
+     "telo": "Radiación = determinación de un punto nuevo desde un punto conocido mediante rumbo y distancia medidos (poligonal abierta de un solo lado). Para puntos auxiliares de medición (según el manual de renovación del catastro): longitud máx. 1500 m y no mayor que la longitud de la orientación más lejana. Orientación bien en el punto dado a 2 puntos de la red (mxy ≤ 0,04 m), bien en el punto determinado a ≥3 puntos — ángulo entre la dirección con distancia medida y las demás de 30–170 gon.",
+     "pozn": "Longitud > 800 m → ángulos en dos series. Punto de partida con error de 0,04–0,06 m → máx. 300 m. Puntos sobre estructuras técnicas normalmente hasta 50 m. Un punto no puede determinarse con una sola radiación (se requiere control).",
+     "zdroj": "ČÚZK — Návod pro obnovu katastrálního operátu a převod",
+     "odkaz": "https://cuzk.gov.cz/Predpisy/Resortni-predpisy-a-opatreni/Navody-CUZK/Navod_150150022.aspx",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Estación libre y orientación",
+     "tagy": [
+      "estación libre",
+      "orientación",
+      "estación",
+      "enlace",
+      "intersección",
+      "gon"
+     ],
+     "telo": "Estación libre: el instrumento se sitúa en un punto cualquiera y su posición se determina midiendo a puntos dados. La orientación en la estación se hace siempre al menos a 2 puntos de la red / auxiliares y a uno de ellos al menos se mide también la distancia. Para una determinación unívoca bastan 2 puntos (dirección + distancia) o 3 puntos (solo direcciones); para control y ajuste (mínimos cuadrados) se eligen puntos redundantes.",
+     "pozn": "El ángulo en el punto determinado entre las direcciones a dos puntos dados debe estar entre 30 y 170 gon. Los ángulos se miden/registran con una precisión de al menos 0,001 gon.",
+     "zdroj": "ČÚZK — Návod pro obnovu KO; katastrální vyhláška č. 357/2013 Sb.",
+     "odkaz": "https://cuzk.gov.cz/Predpisy/Resortni-predpisy-a-opatreni/Navody-CUZK/Navod_150150022.aspx",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Intersección (directa / inversa / por distancias)",
+     "tagy": [
+      "intersección",
+      "directa",
+      "inversa",
+      "por distancias",
+      "trisección",
+      "círculo peligroso",
+      "ángulo de intersección"
+     ],
+     "telo": "Intersección DIRECTA: la posición de un punto nuevo como intersección de direcciones (o distancias) desde puntos dados. Intersección INVERSA (trisección): la estación se determina visando ≥3 puntos dados. Intersección por distancias: a partir de distancias medidas a/desde puntos conocidos. El ángulo de intersección en el punto determinado debe ser de 30–170 gon (ni demasiado agudo ni demasiado obtuso).",
+     "pozn": "Intersección inversa: CUIDADO con el «círculo peligroso» — si la estación está cerca del círculo que pasa por los tres puntos dados, el problema no tiene solución fiable.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb.; výukové materiály ČVUT/ZČU",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch07s03.html",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Taquimetría (puntos de detalle con estación total)",
+     "tagy": [
+      "taquimetría",
+      "puntos de detalle",
+      "estación total",
+      "polar",
+      "cartografía",
+      "altimetría",
+      "precisión"
+     ],
+     "telo": "Taquimetría = determinación simultánea de posición (polar: ángulo horizontal + distancia) y altura (trigonométricamente a partir del ángulo cenital y la distancia) de los puntos de detalle desde una estación — base de la cartografía planimétrica y altimétrica. Estaciones totales modernas: error medio del punto del orden de 0,02–0,05 m, distancias incluso de más de 200 m (la precisión disminuye con la distancia).",
+     "pozn": "Control: antes de abandonar la estación, mide de control al menos un punto dado (comprobación de que durante la toma no cambió la orientación / el círculo horizontal). Precisión requerida de los puntos de detalle según código de calidad (catastro) / ČSN 01 3410 para mapas a gran escala.",
+     "zdroj": "Výukové materiály ČVUT/ZČU; ČSN 01 3410; katastrální vyhláška č. 357/2013 Sb.",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch15.html",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "vysky",
+   "nazev": "Medición altimétrica (nivelación)",
+   "zkratka": "Alturas",
+   "zaznamy": [
+    {
+     "nazev": "Nivelación — tipos y condiciones de medición",
+     "tagy": [
+      "nivelación",
+      "nivelación técnica",
+      "de precisión",
+      "de alta precisión",
+      "visual",
+      "longitud de visual",
+      "altura de visual",
+      "cierre",
+      "desnivel"
+     ],
+     "telo": "La nivelación geométrica se divide por precisión en técnica (TN), de precisión (PN), de alta precisión (VPN) y de muy alta precisión (ZPN). Se diferencian en la longitud de visual, la altura mínima de la visual sobre el terreno (por la refracción junto al suelo) y la tolerancia del cierre de la línea (R = longitud de la línea en km, resultado en mm):",
+     "tabulka": {
+      "hlavicka": [
+       "Tipo",
+       "Longitud máx. de visual",
+       "Altura mín. sobre el terreno",
+       "Tolerancia del cierre"
+      ],
+      "radky": [
+       [
+        "Técnica (normal)",
+        "120 m",
+        "0,5 m",
+        "40·√R mm"
+       ],
+       [
+        "Técnica (aumentada)",
+        "80 m (ópt. 40–50)",
+        "0,3 m",
+        "20·√R mm"
+       ],
+       [
+        "Alta / muy alta precisión",
+        "50 m (a menudo ≤40)",
+        "0,5 m",
+        "en ambos sentidos, según ČSN"
+       ]
+      ]
+     },
+     "pozn": "TN: parte siempre de dos puntos de nivelación verificados; longitud máx. de la línea 3–5 km. VPN/ZPN: se mide ida y vuelta (ambos sentidos), miras de doble escala, enlace a dos puntos separados al menos 1 km. Valores de materiales docentes de la ČVUT/VUT — verifica la redacción vinculante en ČSN.",
+     "zdroj": "ČSN 73 0415 (Geodetické body) a navazující předpisy; výukové materiály ČVUT/VUT",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch11s05.html",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Nivelación trigonométrica (determinación de alturas)",
+     "tagy": [
+      "nivelación trigonométrica",
+      "altura",
+      "desnivel",
+      "ángulo cenital",
+      "refracción",
+      "estación total"
+     ],
+     "telo": "El desnivel se determina a partir del ángulo cenital (vertical) y la distancia inclinada — típicamente con estación total. Adecuado para alturas de puntos inaccesibles y a mayores distancias, donde no es posible nivelar. En visuales más largas crece la influencia de la refracción y la curvatura terrestre — hay que corregirlas; la fiabilidad aumenta midiendo ida y vuelta (recíprocamente) y con visuales más cortas.",
+     "pozn": "La precisión depende de la longitud de la visual y de la precisión del ángulo cenital — se evalúa por separado (ley de propagación de errores). Para alturas precisas, visuales más cortas y medición recíproca.",
+     "zdroj": "Výukové materiály ČVUT/VUT/SPŠ zeměměřická; ČSN pro výšková měření",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch11s05.html",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "vytyceni",
+   "nazev": "Replanteo",
+   "zkratka": "Replanteo",
+   "zaznamy": [
+    {
+     "nazev": "Replanteo de linderos",
+     "tagy": [
+      "replanteo",
+      "replanteo",
+      "lindero",
+      "documentación",
+      "acta",
+      "croquis de replanteo",
+      "ÚOZI",
+      "tolerancia"
+     ],
+     "telo": "El replanteo de un lindero es una actividad topográfica de interés público (§ 80–90 del decreto + puntos 16.28–16.32 del anexo). La precisión del replanteo depende de los datos de partida: si hay datos numéricos, los vértices se replantean con un error medio de coordenadas de ±0,14 m (código 3); si solo hay un mapa gráfico 1:2880 (o digitalizado de él), solo ±1,00 m. Del replanteo se elabora DOCUMENTACIÓN (croquis de replanteo + acta de replanteo) verificada por un ÚOZI; se invita a los propietarios afectados a conocerla.",
+     "pozn": "Plazos: copia al cliente en 30 días, copias a los propietarios afectados; en 90 días copia a la oficina catastral. La oficina no cambia el lindero en el mapa, solo añade los signos de la señalización permanente (si no hay desacuerdo). El replanteo no modifica las relaciones jurídicas; los propietarios no tienen que respetarlo y pueden precisar el trazado dentro de las tolerancias.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 80–90 + příloha body 16.28–16.32; zeměměřický zákon č. 200/1994 Sb. § 12",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Replanteo de obras (ČSN 73 0420)",
+     "tagy": [
+      "replanteo de obras",
+      "ČSN 73 0420",
+      "desviación de replanteo",
+      "límite",
+      "tolerancia de construcción",
+      "obra"
+     ],
+     "telo": "La precisión del replanteo de obras la regula la ČSN 73 0420: parte 1 (Requisitos básicos) — principios y cálculo de los criterios de precisión del replanteo; parte 2 (Desviaciones de replanteo) — valores concretos de las desviaciones límite de replanteo para obras lineales, superficiales y espaciales. La desviación límite de replanteo se deriva de la tolerancia de construcción (desviación típica a partir de la tolerancia de construcción).",
+     "pozn": "Los valores numéricos concretos están en la ČSN 73 0420-2 de pago (aquí solo referencia). Relacionada: ČSN ISO 4463 (métodos de medición en construcción).",
+     "zdroj": "ČSN 73 0420-1 a ČSN 73 0420-2 (Přesnost vytyčování staveb)",
+     "odkaz": "https://www.technicke-normy-csn.cz/csn-73-0420-1-730420-221530.html",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "ciselniky",
+   "nazev": "Códigos y catálogos",
+   "zkratka": "Catálogos",
+   "zaznamy": [
+    {
+     "nazev": "Tipos de terreno (códigos)",
+     "tagy": [
+      "tipo de terreno",
+      "código",
+      "catálogo",
+      "labor",
+      "huerto",
+      "pasto permanente",
+      "forestal",
+      "agua",
+      "edificada",
+      "otros"
+     ],
+     "telo": "El tipo de terreno es una característica vinculante registrada en el catastro. Códigos de tipo de terreno:",
+     "tabulka": {
+      "hlavicka": [
+       "Código",
+       "Tipo de terreno"
+      ],
+      "radky": [
+       [
+        "2",
+        "tierra de labor"
+       ],
+       [
+        "3",
+        "lupular"
+       ],
+       [
+        "4",
+        "viñedo"
+       ],
+       [
+        "5",
+        "huerto"
+       ],
+       [
+        "6",
+        "frutal"
+       ],
+       [
+        "7",
+        "pasto permanente"
+       ],
+       [
+        "10",
+        "terreno forestal"
+       ],
+       [
+        "11",
+        "superficie de agua"
+       ],
+       [
+        "13",
+        "superficie edificada y patio"
+       ],
+       [
+        "14",
+        "otra superficie"
+       ]
+      ]
+     },
+     "pozn": "Los códigos 2–7 son suelos agrícolas (ZPF). El tipo de terreno en el catastro ≠ posibilidad de edificar (eso lo decide el plan urbanístico).",
+     "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon) § 3; vyhláška č. 357/2013 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Tipos de redes geodésicas",
+     "tagy": [
+      "red de puntos",
+      "TB",
+      "ZhB",
+      "PBPP",
+      "trigonométrico",
+      "de densificación",
+      "de nivelación",
+      "planimétrica",
+      "altimétrica",
+      "gravimétrica"
+     ],
+     "telo": "Las redes se dividen en planimétrica, altimétrica y gravimétrica. En la red planimétrica hay vértices trigonométricos (TB), puntos de densificación (ZhB) y la red planimétrica de detalle (PBPP) — de los más precisos/dispersos a los más densos y menos precisos. La red altimétrica la forman los puntos de nivelación; la gravimétrica, los puntos gravimétricos.",
+     "pozn": "Las precisiones y clases concretas las fijan las normas sobre redes geodésicas (ley de geodesia y decreto de aplicación).",
+     "zdroj": "Zákon č. 200/1994 Sb. o zeměměřictví a prováděcí vyhláška č. 31/1995 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/1995-31",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Código del método de determinación de la superficie",
+     "tagy": [
+      "código",
+      "método de determinación de la superficie",
+      "superficie",
+      "0",
+      "1",
+      "2",
+      "catálogo"
+     ],
+     "telo": "El código indica cómo se determinó la superficie de la parcela (y con ello su fiabilidad):",
+     "tabulka": {
+      "hlavicka": [
+       "Código",
+       "Método de determinación de la superficie"
+      ],
+      "radky": [
+       [
+        "2",
+        "de coordenadas en S-JTSK, código de calidad 3 o 4 (el más preciso)"
+       ],
+       [
+        "1",
+        "de medidas tomadas directamente o de coordenadas en un sistema local"
+       ],
+       [
+        "0",
+        "de coordenadas en S-JTSK con al menos un punto de calidad 5–8, o gráficamente"
+       ]
+      ]
+     },
+     "pozn": "Código 2 = la máxima precisión. Una superficie determinada gráficamente cae bajo el código 0.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Uso del terreno",
+     "tagy": [
+      "uso",
+      "terreno",
+      "catálogo",
+      "invernadero",
+      "superficie de maniobra",
+      "vertedero"
+     ],
+     "telo": "Característica complementaria al tipo de terreno — precisa para qué sirve el terreno. Ejemplos: invernadero / semillero, superficie de maniobra, terreno con ruinas, autopista / carretera, cementerio y bosque de urnas, vertedero de residuos, planta fotovoltaica, terreno de agua con edificio. El catálogo es extenso.",
+     "pozn": "El catálogo completo lo mantiene el ČÚZK (Catálogos ISKN → Uso del terreno).",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha; číselník ČÚZK",
+     "odkaz": "https://cuzk.gov.cz/Katastr-nemovitosti/Poskytovani-udaju-z-KN/Ciselniky-ISKN/Ciselniky-k-nemovitosti/Zpusob-vyuziti-pozemku.aspx",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Tipo de protección del inmueble",
+     "tagy": [
+      "tipo de protección",
+      "protección",
+      "catálogo",
+      "monumento cultural",
+      "ZPF",
+      "espacio protegido",
+      "zona de protección"
+     ],
+     "telo": "Registra si el inmueble está protegido y cómo según normas especiales. Ejemplos: monumento cultural inmueble (protección del patrimonio), protección del fondo de suelo agrícola (ZPF), protección de la naturaleza y el paisaje, espacio protegido o zona de protección.",
+     "pozn": "El catálogo completo lo mantiene el ČÚZK. Ojo: en un terreno con protección ZPF es necesaria la exclusión del ZPF antes de construir.",
+     "zdroj": "Číselník ČÚZK (ISKN)",
+     "odkaz": "https://cuzk.gov.cz/Katastr-nemovitosti/Poskytovani-udaju-z-KN/Ciselniky-ISKN/Ciselniky-k-nemovitosti/Zpusob-ochrany-nemovitosti.aspx",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "gp-zpmz",
+   "nazev": "Requisitos del GP y del ZPMZ",
+   "zkratka": "GP / ZPMZ",
+   "zaznamy": [
+    {
+     "nazev": "Plano geométrico (GP) — cuándo y qué contiene",
+     "tagy": [
+      "plano geométrico",
+      "GP",
+      "requisitos",
+      "cajetín",
+      "relación",
+      "ÚOZI",
+      "confirmación"
+     ],
+     "telo": "El plano geométrico (GP) es la base técnica para inscribir un cambio en el catastro (división/agrupación de parcelas, señalización de un edificio, servidumbre sobre parte de una parcela, etc.). Contiene sobre todo el cajetín, la representación gráfica del estado anterior y nuevo y la relación del estado anterior y nuevo de los datos catastrales (en su caso, lista de coordenadas y relación de BPEJ). Debe ser verificado por un topógrafo habilitado (ÚOZI) y confirmado por la oficina catastral.",
+     "pozn": "Regulación: § 79–86 del decreto y anexos n.º 17 y 18. La oficina catastral confirma el GP en un plazo de 10 días.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 79–86 + přílohy 17 a 18",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Registro de la medición de detalle de cambios (ZPMZ)",
+     "tagy": [
+      "ZPMZ",
+      "registro de la medición de detalle de cambios",
+      "croquis",
+      "libreta",
+      "documentación de medición",
+      "coordenadas"
+     ],
+     "telo": "El ZPMZ es la documentación de medición depositada en la oficina catastral — resultado de las actividades topográficas para un cambio (entre otras, la parte de medición del plano geométrico). Contiene sobre todo el cajetín, el croquis de medición (puntos de la base geométrica, puntos comunes, red de medición; el estado nuevo se dibuja en ROJO), la libreta de datos medidos, el informe de cálculos y la lista de coordenadas.",
+     "pozn": "Los requisitos los regula el punto 16 del anexo. Un ZPMZ puede servir de base para varios planos geométricos relacionados.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 16",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Cuándo se elabora un plano geométrico (§ 79)",
+     "tagy": [
+      "plano geométrico",
+      "GP",
+      "cuándo",
+      "finalidad",
+      "división de terreno",
+      "edificio",
+      "servidumbre"
+     ],
+     "telo": "Un GP se elabora para: a) cambio del límite de una unidad catastral, b) división de terreno, c) cambio del lindero de un terreno, d) señalización/cambio del contorno de un edificio (construcción principal) y de una obra hidráulica, e) determinación de linderos en concentración parcelaria, f) complemento de un terreno registrado de forma simplificada, g) corrección de la determinación geométrica y posicional, h) precisión/reconstrucción según un procedimiento de adjudicación, i) trazado de un lindero replanteado o precisado por los propietarios, j) trazado de un lindero fijado por un tribunal, k) delimitación de una servidumbre sobre parte de una parcela.",
+     "pozn": "NO se elabora GP cuando el cambio afecta a toda la parcela sin cambio de lindero. Servidumbre: GP solo para parte de la parcela, no para la totalidad.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 79 odst. 1",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Señalización y amojonamiento de linderos (§ 91)",
+     "tagy": [
+      "lindero",
+      "señalización",
+      "amojonamiento",
+      "hito",
+      "mojón",
+      "piedra",
+      "plástico"
+     ],
+     "telo": "Los vértices de los linderos se señalizan de forma permanente: piedras con cabeza labrada, hitos de plástico o de hormigón armado (al menos 80×80×500 mm); también se admite un tubo de hierro hormigonado ø 20–40 mm o una barra de acero ø 10–40 mm. El centro del hito coincide con el vértice del lindero. El lindero se señaliza de modo que desde cada hito se vean los dos vecinos y en los tramos rectos los hitos no disten más de 200 m.",
+     "pozn": "También se puede señalizar de otra forma permanente (p. ej. con un muro). No se señalizan los linderos fusionados en unidades mayores. Si el propietario no señaliza los linderos, la oficina catastral puede hacerlo a su costa e imponer una multa (§ 37 apdo. 2 de la ley catastral).",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 91",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Numeración de los puntos de detalle y del ZPMZ",
+     "tagy": [
+      "numeración",
+      "número de punto",
+      "ZPMZ",
+      "punto de detalle",
+      "unidad catastral"
+     ],
+     "telo": "El número de un punto de detalle tiene doce cifras y consta de tres partes: número de orden de la unidad catastral, número de ZPMZ y número propio del punto (el código de calidad se indica debajo del punto). La unidad de numeración de los ZPMZ es la unidad catastral. Los puntos existentes no se renumeran — en el croquis de medición solo se indica para ellos el número de ZPMZ; los puntos de control y comunes medidos de nuevo se indican con sus números originales.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "lhuty",
+   "nazev": "Plazos y procedimientos",
+   "zkratka": "Plazos",
+   "zaznamy": [
+    {
+     "nazev": "Plazo de protección en la inscripción (20 días)",
+     "tagy": [
+      "plazo",
+      "plazo de protección",
+      "inscripción",
+      "20 días",
+      "sello",
+      "procedimiento"
+     ],
+     "telo": "Tras presentar la solicitud de inscripción corre un plazo de protección de 20 días. La oficina catastral informa al propietario de que su inmueble está afectado (sello) y no puede autorizar la inscripción antes de que pasen 20 días desde esa notificación. El plazo da margen para defenderse de una transmisión fraudulenta — es preclusivo (una vez vencido ya no se puede presentar objeción).",
+     "pozn": "Tras el plazo de protección la oficina suele tener otro plazo (hasta ~30 días) para decidir; todo el procedimiento puede durar así del orden de 50 días.",
+     "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon) § 18",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Sello (anotación de procedimiento en curso)",
+     "tagy": [
+      "sello",
+      "P",
+      "folio registral",
+      "procedimiento",
+      "plazo"
+     ],
+     "telo": "El sello (la letra «P» junto al inmueble, en la práctica en la parte D / junto a los datos correspondientes) indica que hay un procedimiento en curso que afecta a derechos inscritos. Se anota como muy tarde el siguiente día hábil tras la entrega de la solicitud; la oficina envía la notificación al propietario en un día. El sello se extingue al practicarse la inscripción o al suspenderse o denegarse el procedimiento.",
+     "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon)",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Confirmación del plano geométrico por la oficina catastral",
+     "tagy": [
+      "plazo",
+      "plano geométrico",
+      "confirmación",
+      "10 días",
+      "oficina catastral"
+     ],
+     "telo": "La oficina catastral revisa el plano geométrico (si cumple los requisitos del decreto y la numeración correcta de parcelas) y lo confirma normalmente en un plazo de 10 días.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb.; správní řád",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Corrección de un error en el catastro (§ 36)",
+     "tagy": [
+      "corrección de error",
+      "plazo",
+      "30 días",
+      "60 días",
+      "desacuerdo",
+      "documentación catastral"
+     ],
+     "telo": "La corrección de error pone la inscripción catastral en concordancia con los documentos (no sirve para remediar una discrepancia con el estado jurídico real). La oficina catastral hace la corrección a solicitud en 30 días, en casos especialmente justificados en 60 días desde la entrega de la solicitud (también sin solicitud, de oficio). Comunica el resultado; si el propietario/titular no está de acuerdo en 30 días desde la entrega de la comunicación, la oficina dicta una resolución sobre el asunto (cabe recurso).",
+     "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon) § 36",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Tipos de asientos (inscripción / anotación / nota)",
+     "tagy": [
+      "asiento",
+      "inscripción",
+      "anotación",
+      "nota",
+      "derecho real",
+      "litigiosidad"
+     ],
+     "telo": "En el catastro se inscribe de tres formas: por INSCRIPCIÓN (vklad) se inscriben los derechos reales (propiedad, hipoteca, servidumbre…), los derechos pactados como reales, el arrendamiento y la aparcería — procedimiento de inscripción con plazo de protección de 20 días. Por ANOTACIÓN (záznam) se inscriben los derechos derivados del derecho de propiedad (típicamente en virtud de resoluciones/documentos de autoridades). Por NOTA (poznámka) se inscriben informaciones relevantes (p. ej. ejecución, nota de litigiosidad).",
+     "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon)",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    }
+   ]
+  }
+ ]
+}

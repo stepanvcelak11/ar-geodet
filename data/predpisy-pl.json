@@ -1,0 +1,839 @@
+{
+ "aktualizovano": "2026-06-14",
+ "disclaimer": "Orientacyjna ściąga, nie wykładnia prawna. Wartości sprawdzaj w pełnym brzmieniu u źródła — przepisy się zmieniają.",
+ "kategorie": [
+  {
+   "id": "odchylky",
+   "nazev": "Odchyłki graniczne i dokładność",
+   "zkratka": "Odchyłki",
+   "zaznamy": [
+    {
+     "nazev": "Kod jakości punktów szczegółowych (mxy i odchyłki graniczne)",
+     "tagy": [
+      "odchyłka",
+      "odchyłki",
+      "dokładność",
+      "kod jakości",
+      "mxy",
+      "uxy",
+      "graniczna",
+      "błąd współrzędnych",
+      "punkt szczegółowy"
+     ],
+     "telo": "Dokładność współrzędnych punktu szczegółowego w S-JTSK wyraża kod jakości 3–8. Każdemu kodowi odpowiada podstawowy błąd średni współrzędnych mxy. Z niego wyprowadza się graniczny błąd współrzędnych uxy = 2·mxy i graniczną odchyłkę położenia = 2·√2·mxy. Kody 3–5 to punkty pomierzone w terenie, kody 6–8 pochodzą z digitalizacji dawnych map.",
+     "tabulka": {
+      "hlavicka": [
+       "Kod",
+       "Pochodzenie",
+       "mxy [m]",
+       "uxy = 2·mxy [m]",
+       "Graniczna położenia [m]"
+      ],
+      "radky": [
+       [
+        "3",
+        "pomiar w terenie",
+        "0,14",
+        "0,28",
+        "0,39"
+       ],
+       [
+        "4",
+        "pomiar w terenie",
+        "0,26",
+        "0,52",
+        "0,74"
+       ],
+       [
+        "5",
+        "pomiar w terenie",
+        "0,50",
+        "1,00",
+        "1,41"
+       ],
+       [
+        "6",
+        "digitalizacja",
+        "0,21",
+        "0,42",
+        "0,59"
+       ],
+       [
+        "7",
+        "digitalizacja",
+        "0,50",
+        "1,00",
+        "1,41"
+       ],
+       [
+        "8",
+        "digitalizacja",
+        "1,00",
+        "2,00",
+        "2,82"
+       ]
+      ]
+     },
+     "pozn": "uxy = 2·mxy · graniczna odchyłka położenia = 2·√2·mxy. Najdokładniejsze są punkty z kodem 3 (nowo pomierzone geodezyjnie).",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Odchyłka graniczna powierzchni działki",
+     "tagy": [
+      "powierzchnia",
+      "odchyłka graniczna",
+      "odchyłka powierzchni",
+      "działka",
+      "tolerancja",
+      "m2"
+     ],
+     "telo": "Odchyłka graniczna powierzchni mówi, o ile mogą się różnić dwie powierzchnie tej samej działki (np. nowa i ewidencyjna), aby powierzchnia w katastrze się nie zmieniła. Zależy od kodu jakości punktów załamania i od powierzchni P (większej z porównywanych powierzchni w m²):",
+     "tabulka": {
+      "hlavicka": [
+       "Kod jakości",
+       "Odchyłka graniczna powierzchni [m²]"
+      ],
+      "radky": [
+       [
+        "3",
+        "2"
+       ],
+       [
+        "4",
+        "0,4·√P + 4"
+       ],
+       [
+        "5",
+        "1,2·√P + 12"
+       ],
+       [
+        "6",
+        "0,3·√P + 3"
+       ],
+       [
+        "7",
+        "0,8·√P + 8"
+       ],
+       [
+        "8",
+        "2,0·√P + 20"
+       ]
+      ]
+     },
+     "pozn": "P = większa z porównywanych powierzchni [m²]. Dla grupy działek / kodu sposobu określenia 0 albo kombinacji bierze się podwójną wartość. Przykład: działka 1000 m² z kodem 8 → 2,0·√1000 + 20 ≈ 83 m². Dokładne brzmienie wzorów sprawdź w załączniku.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha (mezní odchylky výměr)",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Kolory punktów w Nahlížení do KN (kontrola dokładności)",
+     "tagy": [
+      "przeglądarka KN",
+      "kolor",
+      "zielony",
+      "czerwony",
+      "kod jakości",
+      "dokładność",
+      "granica"
+     ],
+     "telo": "W aplikacji Nahlížení do KN w warstwie „Granice działek z określeniem dokładności” / „Punkty szczegółowe z określeniem dokładności” punkty są kolorowane według kodu jakości: ZIELONE punkty z kodem jakości 3 (najdokładniejsze, pomierzone geodezyjnie), CZERWONE punkty z kodem jakości 4–8. Szybka kontrola wzrokowa, jak wiarygodna jest granica.",
+     "zdroj": "ČÚZK — Nahlížení do KN",
+     "odkaz": "https://nahlizenidokn.cuzk.gov.cz",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Sposób określenia powierzchni działki a kod jakości",
+     "tagy": [
+      "powierzchnia",
+      "sposób określenia powierzchni",
+      "kod jakości",
+      "działka"
+     ],
+     "telo": "Sposób określenia powierzchni działki oznacza się kodem: kod 2 = ze współrzędnych w S-JTSK z kodem jakości 3 lub 4 (najdokładniejszy); kod 1 = z bezpośrednio pomierzonych miar lub ze współrzędnych w układzie lokalnym; kod 0 = ze współrzędnych w S-JTSK, z których co najmniej jeden punkt załamania ma kod jakości 5–8, ALBO graficznie (planimetrowanie, z miar odczytanych z mapy, ze współrzędnych odczytanych z mapy).",
+     "pozn": "Wyższa dokładność punktów załamania (kod 3–4) = dokładniejsza i „mocniejsza” powierzchnia działki.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "kontrola",
+   "nazev": "Dokładność i kontrola pomiaru",
+   "zkratka": "Kontrola",
+   "zaznamy": [
+    {
+     "nazev": "Dwukrotne (niezależne) wyznaczenie punktu + nawiązanie do punktów",
+     "tagy": [
+      "pomiar",
+      "dwukrotne wyznaczenie",
+      "niezależne",
+      "kontrola",
+      "nawiązanie",
+      "metoda",
+      "procedura"
+     ],
+     "telo": "Każdy punkt szczegółowy mierzy się niezależnie co najmniej dwa razy. Pomiar musi być nawiązany do punktów o dokładności co najmniej takiej, jaka ma być osiągnięta dla nowo wyznaczanych punktów (tzn. nie da się uzyskać dokładniejszego punktu, opierając się o mniej dokładne). Obowiązuje to niezależnie od metody (GNSS, metoda biegunowa itp.) — decyduje osiągnięta i sprawdzona dokładność.",
+     "pozn": "Z dwukrotnego wyznaczenia liczy się kontrolę dokładności (patrz błąd średni z próby poniżej).",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Sprawdzenie dokładności pomiarem kontrolnym długości",
+     "tagy": [
+      "sprawdzenie",
+      "pomiar kontrolny",
+      "czołówki",
+      "długość",
+      "różnica graniczna",
+      "ud",
+      "kontrola"
+     ],
+     "telo": "Osiągnięcie dokładności sprawdza się czołówkami albo pomiarem kontrolnym długości prostych odcinków między innymi wybranymi parami punktów szczegółowych i porównaniem z długościami obliczonymi ze współrzędnych. Wynik jest w porządku, gdy różnica długości pomierzonej kontrolnie i długości ze współrzędnych jest mniejsza niż graniczna różnica długości ud = 2·md (md = podstawowy błąd średni długości).",
+     "pozn": "Dla zbioru z więcej niż 20 różnicami obowiązuje dodatkowo kryterium statystyczne (udział różnic mniejszych niż md) — patrz pkt 13 załącznika.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Błąd średni współrzędnych z próby (test położenia)",
+     "tagy": [
+      "błąd średni z próby",
+      "sxy",
+      "uxy",
+      "wyznaczenie kontrolne",
+      "sprawdzenie",
+      "graniczna",
+      "współczynnik k"
+     ],
+     "telo": "Przy sprawdzeniu kontrolnym (drugim) wyznaczeniem współrzędnych tego samego punktu liczy się błąd średni współrzędnych z próby sxy = √(0,5·(Δx² + Δy²)), gdzie Δx, Δy to różnice współrzędnych z pierwszego i kontrolnego wyznaczenia. Dokładność jest w porządku, gdy sxy nie przekracza granicznego błędu współrzędnych uxy = 2·mxy danego kodu jakości (np. kod 3 → uxy = 0,28 m).",
+     "pozn": "Współczynnik k = 2, gdy wyznaczenie kontrolne ma tę samą dokładność co pomiar szczegółowy; k = 1, gdy kontrola jest istotnie dokładniejsza (mxy < 0,10 m). Wartości graniczne uxy patrz tabela kodów jakości.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "metody",
+   "nazev": "Metody pomiaru sytuacyjnego",
+   "zkratka": "Metody",
+   "zaznamy": [
+    {
+     "nazev": "Metody pomiaru punktów szczegółowych",
+     "tagy": [
+      "metoda",
+      "biegunowa",
+      "ortogonalna",
+      "czołówki",
+      "wcięcie",
+      "pomiar",
+      "punkt szczegółowy"
+     ],
+     "telo": "Punkty szczegółowe sytuacji mierzy się z reguły metodą BIEGUNOWĄ (kąt poziomy od kierunku orientacji + długość ze stanowiska). Metody uzupełniające (gdy biegunowa nie jest możliwa lub celowa): ORTOGONALNA (współrzędne prostokątne względem linii pomiarowej — domiar i rzędna; odpowiednia w gęstej zabudowie), metoda CZOŁÓWEK KONSTRUKCYJNYCH i WCIĘCIE z kierunków lub z długości.",
+     "pozn": "Niezależnie od metody wymagana dokładność (kod jakości) musi być osiągnięta i sprawdzona — patrz dwukrotne wyznaczenie i kontrola wyżej.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha; vyhláška č. 31/1995 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Pomiar GNSS / RTK w katastrze",
+     "tagy": [
+      "GNSS",
+      "RTK",
+      "GPS",
+      "stacja permanentna",
+      "VRS",
+      "CZEPOS",
+      "pomiar",
+      "metoda"
+     ],
+     "telo": "Współrzędne można wyznaczać technologią GNSS, w praktyce metodą RTK. Oprócz własnej stacji referencyjnej można korzystać z sieci stacji permanentnych (np. CZEPOS) — poprawki z konkretnej lub wirtualnej stacji referencyjnej (VRS). Każdy punkt wyznacza się niezależnie co najmniej dwa razy i wyniki się kontroluje. Procedury techniczne GNSS reguluje pkt 9 załącznika do rozporządzenia nr 31/1995 Sb.",
+     "pozn": "Nawiązanie/orientacja do punktów o dokładności co najmniej takiej, jaka ma być osiągnięta. Dwa niezależne wyznaczenia GNSS powinny mieć odstęp czasowy (inna konstelacja satelitów).",
+     "zdroj": "Vyhláška č. 31/1995 Sb., příloha bod 9; katastrální vyhláška č. 357/2013 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/1995-31",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Podstawa geometryczna i orientacja pomiaru",
+     "tagy": [
+      "podstawa geometryczna",
+      "orientacja",
+      "nawiązanie",
+      "sieć pomiarowa",
+      "ciąg poligonowy",
+      "domiar biegunowy",
+      "osnowa"
+     ],
+     "telo": "Podstawą geometryczną pomiaru szczegółowego są punkty osnowy i sieci pomiarowej: punkty wyznaczone metodą RTK, ciągi poligonowe i domiary biegunowe według potrzeby. Pomiar musi być nawiązany i zorientowany do punktów o dokładności co najmniej takiej, jaka ma być osiągnięta dla nowo wyznaczanych punktów — dokładniejszego punktu nie da się uzyskać, opierając się o mniej dokładne.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Ciąg poligonowy — warunki geometryczne",
+     "tagy": [
+      "ciąg poligonowy",
+      "poligon",
+      "bok",
+      "stosunek boków",
+      "zamknięcie kątowe",
+      "wierzchołki",
+      "sieć pomiarowa"
+     ],
+     "telo": "Przy wyborze punktów ciągu poligonowego przestrzega się parametrów geometrycznych (orientacyjnie, według klasy dokładności / normy):",
+     "tabulka": {
+      "hlavicka": [
+       "Parametr",
+       "Z reguły"
+      ],
+      "radky": [
+       [
+        "Graniczna (maks.) długość boku",
+        "300 m"
+       ],
+       [
+        "Stosunek długości sąsiednich boków",
+        "do 1:2 (gdzie indziej 1:3)"
+       ],
+       [
+        "Stosunek najdłuższego i najkrótszego boku w ciągu",
+        "do 1:3"
+       ],
+       [
+        "Maks. suma długości (ciąg główny)",
+        "2000–2500 m"
+       ],
+       [
+        "Maks. suma długości (ciąg boczny)",
+        "1200–1600 m"
+       ],
+       [
+        "Maks. liczba wierzchołków",
+        "17–25"
+       ]
+      ]
+     },
+     "pozn": "Ciąg swobodny (nawiązany jednostronnie): maks. 3 nowe wierzchołki, długość do 250 m. Odchyłka graniczna zamknięcia kątowego Δω = c·√n (n = liczba kątów; c według klasy/normy). Konkretne wartości różnią się między źródłami/normami — sprawdź w ČSN 73 0415.",
+     "zdroj": "ČSN 73 0415 (Geodetické body); výukové materiály VUT/ZČU",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch07s04.html",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Domiar biegunowy — warunki wyznaczenia punktu pomocniczego",
+     "tagy": [
+      "domiar biegunowy",
+      "domiar biegunowy",
+      "punkt pomocniczy",
+      "długość domiaru",
+      "orientacja",
+      "sieć pomiarowa"
+     ],
+     "telo": "Domiar biegunowy = wyznaczenie nowego punktu ze znanego punktu pomierzonym azymutem i długością (ciąg swobodny o jednym boku). Dla pomocniczych punktów pomiarowych (według instrukcji odnowienia operatu katastralnego): maks. długość 1500 m i nie więcej niż długość najdalszej orientacji. Orientacja albo na danym punkcie na 2 punkty osnowy (mxy ≤ 0,04 m), albo na wyznaczanym punkcie na ≥3 punkty — kąt między kierunkiem z mierzoną długością a pozostałymi 30–170 gon.",
+     "pozn": "Długość > 800 m → kąty w dwóch seriach. Punkt wyjściowy z błędem 0,04–0,06 m → maks. 300 m. Punkty na obiektach technicznych z reguły do 50 m. Punkt nie może być wyznaczony tylko jednym domiarem biegunowym (konieczna kontrola).",
+     "zdroj": "ČÚZK — Návod pro obnovu katastrálního operátu a převod",
+     "odkaz": "https://cuzk.gov.cz/Predpisy/Resortni-predpisy-a-opatreni/Navody-CUZK/Navod_150150022.aspx",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Stanowisko swobodne i orientacja",
+     "tagy": [
+      "stanowisko swobodne",
+      "orientacja",
+      "stanowisko",
+      "nawiązanie",
+      "wcięcie",
+      "gon"
+     ],
+     "telo": "Stanowisko swobodne: instrument stoi na dowolnym punkcie, jego pozycję wyznacza się pomiarem na dane punkty. Orientację na stanowisku wykonuje się zawsze co najmniej na 2 punkty osnowy / punkty pomocnicze, a przynajmniej do jednego z nich mierzy się też długość. Do jednoznacznego wyznaczenia wystarczą 2 punkty (kierunek + długość) albo 3 punkty (tylko kierunki); do kontroli i wyrównania (MNK) wybiera się punkty nadliczbowe.",
+     "pozn": "Kąt na wyznaczanym punkcie między kierunkami na dwa dane punkty powinien mieścić się w przedziale 30–170 gon. Kąty mierzy się/rejestruje z dokładnością co najmniej 0,001 gon.",
+     "zdroj": "ČÚZK — Návod pro obnovu KO; katastrální vyhláška č. 357/2013 Sb.",
+     "odkaz": "https://cuzk.gov.cz/Predpisy/Resortni-predpisy-a-opatreni/Navody-CUZK/Navod_150150022.aspx",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Wcięcie (w przód / wstecz / z długości)",
+     "tagy": [
+      "wcięcie",
+      "w przód",
+      "wstecz",
+      "z długości",
+      "wcięcie wstecz",
+      "okrąg niebezpieczny",
+      "kąt przecięcia"
+     ],
+     "telo": "Wcięcie W PRZÓD: położenie nowego punktu jako przecięcie kierunków (lub długości) z danych punktów. Wcięcie WSTECZ: stanowisko wyznacza się przez celowanie na ≥3 dane punkty. Wcięcie z długości: z pomierzonych długości do/ze znanych punktów. Kąt przecięcia na wyznaczanym punkcie powinien wynosić 30–170 gon (ani zbyt ostry, ani zbyt rozwarty).",
+     "pozn": "Wcięcie wstecz: UWAGA na „okrąg niebezpieczny” — gdy stanowisko leży blisko okręgu przechodzącego przez trzy dane punkty, zadanie nie ma wiarygodnego rozwiązania.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb.; výukové materiály ČVUT/ZČU",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch07s03.html",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Tachimetria (punkty szczegółowe tachimetrem)",
+     "tagy": [
+      "tachimetria",
+      "punkty szczegółowe",
+      "tachimetr",
+      "biegunowa",
+      "kartowanie",
+      "rzeźba terenu",
+      "dokładność"
+     ],
+     "telo": "Tachimetria = jednoczesne wyznaczenie położenia (biegunowo: kąt poziomy + długość) i wysokości (trygonometrycznie z kąta zenitalnego i długości) punktów szczegółowych z jednego stanowiska — podstawa kartowania sytuacyjnego i wysokościowego. Nowoczesne tachimetry: błąd średni punktu rzędu 0,02–0,05 m, długości nawet ponad 200 m (dokładność spada z odległością).",
+     "pozn": "Kontrola: przed opuszczeniem stanowiska pomierz kontrolnie przynajmniej jeden dany punkt (sprawdzenie, że podczas zbierania nie zmieniła się orientacja / koło poziome). Wymagana dokładność punktów szczegółowych według kodu jakości (kataster) / ČSN 01 3410 dla map wielkoskalowych.",
+     "zdroj": "Výukové materiály ČVUT/ZČU; ČSN 01 3410; katastrální vyhláška č. 357/2013 Sb.",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch15.html",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "vysky",
+   "nazev": "Pomiar wysokościowy (niwelacja)",
+   "zkratka": "Wysokości",
+   "zaznamy": [
+    {
+     "nazev": "Niwelacja — rodzaje i warunki pomiaru",
+     "tagy": [
+      "niwelacja",
+      "niwelacja techniczna",
+      "precyzyjna",
+      "bardzo precyzyjna",
+      "celowa",
+      "długość celowej",
+      "wysokość celowej",
+      "zamknięcie",
+      "przewyższenie"
+     ],
+     "telo": "Niwelację geometryczną dzieli się według dokładności na techniczną (TN), precyzyjną (PN), bardzo precyzyjną (VPN) i szczególnie precyzyjną (ZPN). Różnią się długością celowej, minimalną wysokością celowej nad terenem (z powodu refrakcji przy gruncie) i graniczną odchyłką zamknięcia ciągu (R = długość ciągu w km, wynik w mm):",
+     "tabulka": {
+      "hlavicka": [
+       "Rodzaj",
+       "Maks. długość celowej",
+       "Min. wysokość nad terenem",
+       "Odchyłka graniczna zamknięcia"
+      ],
+      "radky": [
+       [
+        "Techniczna (zwykła)",
+        "120 m",
+        "0,5 m",
+        "40·√R mm"
+       ],
+       [
+        "Techniczna (podwyższona)",
+        "80 m (opt. 40–50)",
+        "0,3 m",
+        "20·√R mm"
+       ],
+       [
+        "Bardzo precyzyjna / szczególnie precyzyjna",
+        "50 m (często ≤40)",
+        "0,5 m",
+        "dwukierunkowo, wg ČSN"
+       ]
+      ]
+     },
+     "pozn": "TN: zawsze wychodź z dwóch sprawdzonych reperów; maks. długość ciągu 3–5 km. VPN/ZPN: mierzy się tam i z powrotem (dwukierunkowo), łaty dwuskalowe, nawiązanie do dwóch punktów odległych o min. 1 km. Wartości z materiałów dydaktycznych ČVUT/VUT — wiążące brzmienie sprawdź w ČSN.",
+     "zdroj": "ČSN 73 0415 (Geodetické body) a navazující předpisy; výukové materiály ČVUT/VUT",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch11s05.html",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Niwelacja trygonometryczna (wyznaczanie wysokości)",
+     "tagy": [
+      "niwelacja trygonometryczna",
+      "wysokość",
+      "przewyższenie",
+      "kąt zenitalny",
+      "refrakcja",
+      "tachimetr"
+     ],
+     "telo": "Przewyższenie wyznacza się z kąta zenitalnego (pionowego) i długości skośnej — typowo tachimetrem. Nadaje się do wysokości punktów niedostępnych i na większe odległości, gdzie niwelacja nie jest możliwa. Na dłuższych celowych rośnie wpływ refrakcji i krzywizny Ziemi — trzeba je poprawić; wiarygodność zwiększa pomiar tam i z powrotem (dwustronnie) oraz krótsze celowe.",
+     "pozn": "Dokładność zależy od długości celowej i dokładności kąta zenitalnego — ocenia się osobno (prawo przenoszenia błędów). Dla dokładnych wysokości wybieraj krótsze celowe i pomiar dwustronny.",
+     "zdroj": "Výukové materiály ČVUT/VUT/SPŠ zeměměřická; ČSN pro výšková měření",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch11s05.html",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "vytyceni",
+   "nazev": "Tyczenie",
+   "zkratka": "Tyczenie",
+   "zaznamy": [
+    {
+     "nazev": "Tyczenie granic nieruchomości",
+     "tagy": [
+      "wytyczenie",
+      "tyczenie",
+      "granica",
+      "dokumentacja",
+      "protokół",
+      "szkic tyczenia",
+      "ÚOZI",
+      "odchyłka graniczna"
+     ],
+     "telo": "Wytyczenie granicy to czynność geodezyjna w interesie publicznym (§ 80–90 rozporządzenia + pkt 16.28–16.32 załącznika). Dokładność wytyczenia zależy od podkładów: gdy są dane numeryczne, punkty załamania wytycza się z błędem średnim współrzędnych ±0,14 m (kod 3); gdy jest tylko mapa graficzna 1:2880 (lub z niej zdigitalizowana), tylko ±1,00 m. Z wytyczenia sporządza się DOKUMENTACJĘ (szkic tyczenia + protokół wytyczenia) poświadczoną przez ÚOZI; zainteresowanych właścicieli zaprasza się do zapoznania.",
+     "pozn": "Terminy: egzemplarz zamawiającemu do 30 dni, kopie zainteresowanym właścicielom; do 90 dni kopia do urzędu katastralnego. Urząd granicy na mapie nie zmienia, tylko uzupełnia znaki trwałej stabilizacji (jeśli nie ma sprzeciwu). Wytyczenie nie zmienia stosunków prawnych; właściciele nie muszą go respektować i mogą przebieg w ramach odchyłek granicznych doprecyzować.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 80–90 + příloha body 16.28–16.32; zeměměřický zákon č. 200/1994 Sb. § 12",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Tyczenie obiektów budowlanych (ČSN 73 0420)",
+     "tagy": [
+      "tyczenie budowli",
+      "ČSN 73 0420",
+      "odchyłka tyczenia",
+      "graniczna",
+      "tolerancja budowlana",
+      "budowla"
+     ],
+     "telo": "Dokładność tyczenia obiektów budowlanych reguluje ČSN 73 0420: część 1 (Wymagania podstawowe) — zasady i obliczanie kryteriów dokładności tyczenia; część 2 (Odchyłki tyczenia) — konkretne wartości granicznych odchyłek tyczenia dla budowli liniowych, powierzchniowych i przestrzennych. Graniczną odchyłkę tyczenia wyprowadza się z tolerancji budowlanej (odchylenie standardowe z tolerancji budowlanej).",
+     "pozn": "Konkretne wartości liczbowe są w płatnej ČSN 73 0420-2 (tu tylko odniesienie). Powiązana: ČSN ISO 4463 (metody pomiarowe w budownictwie).",
+     "zdroj": "ČSN 73 0420-1 a ČSN 73 0420-2 (Přesnost vytyčování staveb)",
+     "odkaz": "https://www.technicke-normy-csn.cz/csn-73-0420-1-730420-221530.html",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "ciselniky",
+   "nazev": "Kody i słowniki",
+   "zkratka": "Słowniki",
+   "zaznamy": [
+    {
+     "nazev": "Rodzaje gruntów (kody)",
+     "tagy": [
+      "rodzaj gruntu",
+      "kod",
+      "słownik",
+      "orna",
+      "ogród",
+      "trwały użytek zielony",
+      "leśny",
+      "wodny",
+      "zabudowana",
+      "pozostałe"
+     ],
+     "telo": "Rodzaj gruntu to wiążąca cecha ewidencjonowana w katastrze. Kody rodzaju gruntu:",
+     "tabulka": {
+      "hlavicka": [
+       "Kod",
+       "Rodzaj gruntu"
+      ],
+      "radky": [
+       [
+        "2",
+        "grunt orny"
+       ],
+       [
+        "3",
+        "chmielnik"
+       ],
+       [
+        "4",
+        "winnica"
+       ],
+       [
+        "5",
+        "ogród"
+       ],
+       [
+        "6",
+        "sad"
+       ],
+       [
+        "7",
+        "trwały użytek zielony"
+       ],
+       [
+        "10",
+        "grunt leśny"
+       ],
+       [
+        "11",
+        "powierzchnia wodna"
+       ],
+       [
+        "13",
+        "powierzchnia zabudowana i podwórze"
+       ],
+       [
+        "14",
+        "pozostała powierzchnia"
+       ]
+      ]
+     },
+     "pozn": "Kody 2–7 to grunty rolne (ZPF). Rodzaj gruntu w katastrze ≠ możliwość zabudowy (o tym decyduje plan miejscowy).",
+     "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon) § 3; vyhláška č. 357/2013 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Rodzaje geodezyjnych osnów",
+     "tagy": [
+      "osnowa",
+      "TB",
+      "ZhB",
+      "PBPP",
+      "triangulacyjny",
+      "zagęszczający",
+      "niwelacyjny",
+      "sytuacyjna",
+      "wysokościowa",
+      "grawimetryczna"
+     ],
+     "telo": "Osnowy dzielą się na sytuacyjną, wysokościową i grawimetryczną. W osnowie sytuacyjnej są punkty triangulacyjne (TB), zagęszczające (ZhB) i szczegółowa osnowa sytuacyjna (PBPP) — od najdokładniejszych/rzadkich do gęstszych i mniej dokładnych. Osnowę wysokościową tworzą repery, grawimetryczną punkty grawimetryczne.",
+     "pozn": "Konkretne dokładności i klasy określają przepisy o osnowach (ustawa o geodezji i rozporządzenie wykonawcze).",
+     "zdroj": "Zákon č. 200/1994 Sb. o zeměměřictví a prováděcí vyhláška č. 31/1995 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/1995-31",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Kod sposobu określenia powierzchni",
+     "tagy": [
+      "kod",
+      "sposób określenia powierzchni",
+      "powierzchnia",
+      "0",
+      "1",
+      "2",
+      "słownik"
+     ],
+     "telo": "Kod podaje, jak została określona powierzchnia działki (a tym samym jej wiarygodność):",
+     "tabulka": {
+      "hlavicka": [
+       "Kod",
+       "Sposób określenia powierzchni"
+      ],
+      "radky": [
+       [
+        "2",
+        "ze współrzędnych w S-JTSK, kod jakości 3 lub 4 (najdokładniejszy)"
+       ],
+       [
+        "1",
+        "z bezpośrednio pomierzonych miar lub ze współrzędnych w układzie lokalnym"
+       ],
+       [
+        "0",
+        "ze współrzędnych w S-JTSK z co najmniej jednym punktem o jakości 5–8, albo graficznie"
+       ]
+      ]
+     },
+     "pozn": "Kod 2 = najwyższa dokładność. Powierzchnia określona graficznie podpada pod kod 0.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Sposób użytkowania gruntu",
+     "tagy": [
+      "sposób użytkowania",
+      "grunt",
+      "słownik",
+      "szklarnia",
+      "plac manipulacyjny",
+      "składowisko"
+     ],
+     "telo": "Cecha uzupełniająca do rodzaju gruntu — doprecyzowuje, czemu grunt służy. Przykłady: szklarnia / inspekt, plac manipulacyjny, grunt z ruiną, autostrada / droga, cmentarz i gaj urnowy, składowisko odpadów, elektrownia fotowoltaiczna, grunt wodny z budynkiem. Słownik jest obszerny.",
+     "pozn": "Kompletny słownik prowadzi ČÚZK (Słowniki ISKN → Sposób użytkowania gruntu).",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha; číselník ČÚZK",
+     "odkaz": "https://cuzk.gov.cz/Katastr-nemovitosti/Poskytovani-udaju-z-KN/Ciselniky-ISKN/Ciselniky-k-nemovitosti/Zpusob-vyuziti-pozemku.aspx",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Sposób ochrony nieruchomości",
+     "tagy": [
+      "sposób ochrony",
+      "ochrona",
+      "słownik",
+      "zabytek kultury",
+      "ZPF",
+      "obszar chroniony",
+      "strefa ochronna"
+     ],
+     "telo": "Ewidencjonuje, czy i jak nieruchomość jest chroniona na podstawie przepisów szczególnych. Przykłady: zabytek nieruchomy (ochrona zabytków), ochrona rolniczego zasobu gruntów (ZPF), ochrona przyrody i krajobrazu, obszar chroniony lub strefa ochronna.",
+     "pozn": "Kompletny słownik prowadzi ČÚZK. Uwaga: na gruncie z ochroną ZPF przed budową konieczne jest wyłączenie z ZPF.",
+     "zdroj": "Číselník ČÚZK (ISKN)",
+     "odkaz": "https://cuzk.gov.cz/Katastr-nemovitosti/Poskytovani-udaju-z-KN/Ciselniky-ISKN/Ciselniky-k-nemovitosti/Zpusob-ochrany-nemovitosti.aspx",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "gp-zpmz",
+   "nazev": "Wymogi GP i ZPMZ",
+   "zkratka": "GP / ZPMZ",
+   "zaznamy": [
+    {
+     "nazev": "Plan geodezyjny (GP) — kiedy i co zawiera",
+     "tagy": [
+      "plan geodezyjny",
+      "GP",
+      "wymogi",
+      "pole opisowe",
+      "wykaz",
+      "ÚOZI",
+      "potwierdzenie"
+     ],
+     "telo": "Plan geodezyjny (GP) to podkład techniczny do wpisu zmiany w katastrze (podział/scalenie działek, oznaczenie budynku, służebność na części gruntu itd.). Zawiera w szczególności pole opisowe, graficzne przedstawienie stanu dotychczasowego i nowego oraz wykaz dotychczasowego i nowego stanu danych katastru (ewentualnie wykaz współrzędnych i wykaz BPEJ). Musi być poświadczony przez uprawnionego geodetę (ÚOZI) i potwierdzony przez urząd katastralny.",
+     "pozn": "Regulacja: § 79–86 rozporządzenia i załączniki nr 17 i 18. Urząd katastralny potwierdza GP w terminie 10 dni.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 79–86 + přílohy 17 a 18",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Zapis pomiaru szczegółowego zmian (ZPMZ)",
+     "tagy": [
+      "ZPMZ",
+      "zapis pomiaru szczegółowego zmian",
+      "szkic",
+      "dziennik",
+      "dokumentacja pomiarowa",
+      "współrzędne"
+     ],
+     "telo": "ZPMZ to dokumentacja pomiarowa składana w urzędzie katastralnym — wynik czynności geodezyjnych dla zmiany (m.in. część pomiarowa planu geodezyjnego). Zawiera w szczególności pole opisowe, szkic pomiarowy (punkty podstawy geometrycznej, punkty łączne, sieć pomiarową; nowy stan rysuje się na CZERWONO), dziennik pomiarowy, protokół obliczeń i wykaz współrzędnych.",
+     "pozn": "Wymogi reguluje pkt 16 załącznika. Jeden ZPMZ można wykorzystać jako podkład dla kilku powiązanych planów geodezyjnych.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 16",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Kiedy sporządza się plan geodezyjny (§ 79)",
+     "tagy": [
+      "plan geodezyjny",
+      "GP",
+      "kiedy",
+      "cel",
+      "podział gruntu",
+      "budynek",
+      "służebność"
+     ],
+     "telo": "GP sporządza się dla: a) zmiany granicy obrębu, b) podziału gruntu, c) zmiany granicy gruntu, d) oznaczenia/zmiany obrysu budynku (obiektu głównego) i budowli wodnej, e) określenia granic przy scalaniu gruntów, f) uzupełnienia gruntu ewidencjonowanego w sposób uproszczony, g) poprawy określenia geometrycznego i położenia, h) doprecyzowania/rekonstrukcji według postępowania przydziałowego, i) przebiegu granicy wytyczonej lub doprecyzowanej przez właścicieli, j) przebiegu granicy określonej przez sąd, k) wyznaczenia służebności na części gruntu.",
+     "pozn": "GP NIE sporządza się, gdy zmiana dotyczy całego gruntu bez zmiany granicy. Służebność: GP tylko dla części gruntu, nie dla całego.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 79 odst. 1",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Oznaczanie i stabilizacja granic (§ 91)",
+     "tagy": [
+      "granica",
+      "oznaczenie",
+      "stabilizacja",
+      "znak graniczny",
+      "kamień graniczny",
+      "kamień",
+      "plastik"
+     ],
+     "telo": "Punkty załamania granic oznacza się trwale: kamieniami z obrobioną głowicą, znakami z plastiku lub żelbetu (co najmniej 80×80×500 mm); dopuszczalna jest też zabetonowana rura żelazna ø 20–40 mm albo pręt stalowy ø 10–40 mm. Środek znaku pokrywa się z punktem załamania granicy. Granicę oznacza się tak, żeby z każdego znaku było widać oba sąsiednie, a na odcinkach prostych znaki nie były dalej niż 200 m.",
+     "pozn": "Można oznaczyć też w inny trwały sposób (np. murem). Nie oznacza się granic scalonych w większe całości. Jeśli właściciel granic nie oznaczy, urząd katastralny może je oznaczyć na jego koszt i nałożyć grzywnę (§ 37 ust. 2 ustawy katastralnej).",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 91",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Numeracja punktów szczegółowych i ZPMZ",
+     "tagy": [
+      "numeracja",
+      "numer punktu",
+      "ZPMZ",
+      "punkt szczegółowy",
+      "obręb"
+     ],
+     "telo": "Numer punktu szczegółowego jest dwunastocyfrowy i składa się z trzech części: numeru porządkowego obrębu, numeru ZPMZ i właściwego numeru punktu (kod jakości podaje się pod punktem). Jednostką numeracji ZPMZ jest obręb. Istniejących punktów się nie przenumerowuje — w szkicu pomiarowym podaje się przy nich tylko numer ZPMZ; nowo pomierzone punkty kontrolne i łączne podaje się z pierwotnymi numerami.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "lhuty",
+   "nazev": "Terminy i procedury",
+   "zkratka": "Terminy",
+   "zaznamy": [
+    {
+     "nazev": "Okres ochronny przy wpisie (20 dni)",
+     "tagy": [
+      "termin",
+      "okres ochronny",
+      "wpis",
+      "20 dni",
+      "plomba",
+      "postępowanie"
+     ],
+     "telo": "Po złożeniu wniosku o wpis biegnie okres ochronny 20 dni. Urząd katastralny informuje właściciela o dotknięciu jego nieruchomości (plomba) i nie może zezwolić na wpis wcześniej niż po upływie 20 dni od tego zawiadomienia. Okres daje możliwość obrony przed oszukańczym przeniesieniem — jest prekluzyjny (po upływie sprzeciwu już nie można wnieść).",
+     "pozn": "Po okresie ochronnym urząd ma zwykle kolejny termin (do ~30 dni) na decyzję; całe postępowanie może więc trwać rzędu 50 dni.",
+     "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon) § 18",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Plomba (adnotacja o toczącym się postępowaniu)",
+     "tagy": [
+      "plomba",
+      "P",
+      "księga wieczysta",
+      "postępowanie",
+      "termin"
+     ],
+     "telo": "Plomba (litera „P” przy nieruchomości, w praktyce w części D / przy odpowiednich danych) oznacza, że toczy się postępowanie dotyczące wpisanych praw. Zaznacza się ją najpóźniej następnego dnia roboczego po doręczeniu wniosku; zawiadomienie właścicielowi urząd wysyła w ciągu jednego dnia. Plomba wygasa po dokonaniu wpisu, umorzeniu lub odrzuceniu postępowania.",
+     "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon)",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Potwierdzenie planu geodezyjnego przez urząd katastralny",
+     "tagy": [
+      "termin",
+      "plan geodezyjny",
+      "potwierdzenie",
+      "10 dni",
+      "urząd katastralny"
+     ],
+     "telo": "Urząd katastralny sprawdza plan geodezyjny (czy ma wymogi według rozporządzenia i prawidłową numerację działek) i potwierdza go z reguły w terminie 10 dni.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb.; správní řád",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Sprostowanie błędu w katastrze (§ 36)",
+     "tagy": [
+      "sprostowanie błędu",
+      "termin",
+      "30 dni",
+      "60 dni",
+      "sprzeciw",
+      "operat katastralny"
+     ],
+     "telo": "Sprostowanie błędu doprowadza wpis w katastrze do zgodności z dokumentami (nie służy naprawie niezgodności z faktycznym stanem prawnym). Urząd katastralny dokonuje sprostowania na wniosek w ciągu 30 dni, w szczególnie uzasadnionych przypadkach w ciągu 60 dni od doręczenia wniosku (może też bez wniosku, z urzędu). Wynik ogłasza; jeśli właściciel/uprawniony nie zgadza się w ciągu 30 dni od doręczenia zawiadomienia, urząd wydaje decyzję w sprawie (można się odwołać).",
+     "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon) § 36",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Rodzaje wpisów (wpis / zapis / adnotacja)",
+     "tagy": [
+      "wpis",
+      "wpis",
+      "zapis",
+      "adnotacja",
+      "prawo rzeczowe",
+      "sporność"
+     ],
+     "telo": "Do katastru wpisuje się na trzy sposoby: WPISEM (vklad) wpisuje się prawa rzeczowe (własność, zastaw, służebność…), prawa umówione jako rzeczowe, najem i dzierżawę — postępowanie wpisowe z 20-dniowym okresem ochronnym. ZAPISEM (záznam) wpisuje się prawa wywodzące się z prawa własności (typowo na podstawie decyzji/dokumentów organów). ADNOTACJĄ (poznámka) wpisuje się istotne informacje (np. egzekucja, adnotacja o sporności).",
+     "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon)",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    }
+   ]
+  }
+ ]
+}

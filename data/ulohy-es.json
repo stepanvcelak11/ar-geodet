@@ -1,0 +1,750 @@
+{
+ "_": "Localized copy of ulohy.json (es): ids, inputs and keys identical, only zadani and answer labels translated.",
+ "ulohy": [
+  {
+   "id": "smer-1",
+   "typ": "smer",
+   "obtiznost": 1,
+   "zadani": "A partir de las coordenadas de los puntos A (Y = 741676.39, X = 1043322.89) y B (Y = 741521.28, X = 1043189.25) determina el rumbo σ<sub>AB</sub> en gonios y la distancia horizontal s<sub>AB</sub>.",
+   "vstupy": {
+    "sm-a-y": 741676.39,
+    "sm-a-x": 1043322.89,
+    "sm-b-y": 741521.28,
+    "sm-b-x": 1043189.25
+   },
+   "odpovedi": [
+    {
+     "k": "sm",
+     "l": "σ<sub>AB</sub> [gon]",
+     "v": 254.7249,
+     "tol": 0.0005
+    },
+    {
+     "k": "s",
+     "l": "s<sub>AB</sub> [m]",
+     "v": 204.741,
+     "tol": 0.002
+    }
+   ]
+  },
+  {
+   "id": "smer-2",
+   "typ": "smer",
+   "obtiznost": 1,
+   "zadani": "A partir de las coordenadas de los puntos A (Y = 742315.14, X = 1043231.59) y B (Y = 742251.27, X = 1043191.82) determina el rumbo σ<sub>AB</sub> en gonios y la distancia horizontal s<sub>AB</sub>.",
+   "vstupy": {
+    "sm-a-y": 742315.14,
+    "sm-a-x": 1043231.59,
+    "sm-b-y": 742251.27,
+    "sm-b-x": 1043191.82
+   },
+   "odpovedi": [
+    {
+     "k": "sm",
+     "l": "σ<sub>AB</sub> [gon]",
+     "v": 264.5452,
+     "tol": 0.0005
+    },
+    {
+     "k": "s",
+     "l": "s<sub>AB</sub> [m]",
+     "v": 75.24,
+     "tol": 0.002
+    }
+   ]
+  },
+  {
+   "id": "smer-3",
+   "typ": "smer",
+   "obtiznost": 1,
+   "zadani": "A partir de las coordenadas de los puntos A (Y = 741640.63, X = 1042916.74) y B (Y = 741495.10, X = 1042937.85) determina el rumbo σ<sub>AB</sub> en gonios y la distancia horizontal s<sub>AB</sub>.",
+   "vstupy": {
+    "sm-a-y": 741640.63,
+    "sm-a-x": 1042916.74,
+    "sm-b-y": 741495.1,
+    "sm-b-x": 1042937.85
+   },
+   "odpovedi": [
+    {
+     "k": "sm",
+     "l": "σ<sub>AB</sub> [gon]",
+     "v": 309.1706,
+     "tol": 0.0005
+    },
+    {
+     "k": "s",
+     "l": "s<sub>AB</sub> [m]",
+     "v": 147.053,
+     "tol": 0.002
+    }
+   ]
+  },
+  {
+   "id": "smer-4",
+   "typ": "smer",
+   "obtiznost": 1,
+   "zadani": "A partir de las coordenadas de los puntos A (Y = 741707.31, X = 1043342.10) y B (Y = 741803.80, X = 1043338.75) determina el rumbo σ<sub>AB</sub> en gonios y la distancia horizontal s<sub>AB</sub>.",
+   "vstupy": {
+    "sm-a-y": 741707.31,
+    "sm-a-x": 1043342.1,
+    "sm-b-y": 741803.8,
+    "sm-b-x": 1043338.75
+   },
+   "odpovedi": [
+    {
+     "k": "sm",
+     "l": "σ<sub>AB</sub> [gon]",
+     "v": 102.2094,
+     "tol": 0.0005
+    },
+    {
+     "k": "s",
+     "l": "s<sub>AB</sub> [m]",
+     "v": 96.548,
+     "tol": 0.002
+    }
+   ]
+  },
+  {
+   "id": "rajon-1",
+   "typ": "rajon",
+   "obtiznost": 2,
+   "zadani": "En la estación S (Y = 741712.86, X = 1042924.16) la orientación fue al punto O (Y = 741684.66, X = 1043007.71) con lectura 287.5400 gon. Al punto P a determinar la lectura fue 337.2484 gon y la distancia horizontal 66.542 m. Determina las coordenadas de P.",
+   "vstupy": {
+    "rj-st-y": 741712.86,
+    "rj-st-x": 1042924.16,
+    "rj-or-y": 741684.66,
+    "rj-or-x": 1043007.71,
+    "rj-cteni-or": 287.54,
+    "rj-cteni": 337.2484,
+    "rj-d": 66.542
+   },
+   "odpovedi": [
+    {
+     "k": "y",
+     "l": "Y<sub>P</sub> [m]",
+     "v": 741742.12,
+     "tol": 0.02
+    },
+    {
+     "k": "x",
+     "l": "X<sub>P</sub> [m]",
+     "v": 1042983.92,
+     "tol": 0.02
+    }
+   ]
+  },
+  {
+   "id": "rajon-2",
+   "typ": "rajon",
+   "obtiznost": 2,
+   "zadani": "En la estación S (Y = 742021.03, X = 1042770.50) la orientación fue al punto O (Y = 742168.63, X = 1042818.89) con lectura 204.9286 gon. Al punto P a determinar la lectura fue 239.6081 gon y la distancia horizontal 63.488 m. Determina las coordenadas de P.",
+   "vstupy": {
+    "rj-st-y": 742021.03,
+    "rj-st-x": 1042770.5,
+    "rj-or-y": 742168.63,
+    "rj-or-x": 1042818.89,
+    "rj-cteni-or": 204.9286,
+    "rj-cteni": 239.6081,
+    "rj-d": 63.488
+   },
+   "odpovedi": [
+    {
+     "k": "y",
+     "l": "Y<sub>P</sub> [m]",
+     "v": 742082.88,
+     "tol": 0.02
+    },
+    {
+     "k": "x",
+     "l": "X<sub>P</sub> [m]",
+     "v": 1042756.15,
+     "tol": 0.02
+    }
+   ]
+  },
+  {
+   "id": "rajon-3",
+   "typ": "rajon",
+   "obtiznost": 2,
+   "zadani": "En la estación S (Y = 741879.17, X = 1042985.26) la orientación fue al punto O (Y = 742051.68, X = 1043131.26) con lectura 132.0753 gon. Al punto P a determinar la lectura fue 57.4795 gon y la distancia horizontal 102.464 m. Determina las coordenadas de P.",
+   "vstupy": {
+    "rj-st-y": 741879.17,
+    "rj-st-x": 1042985.26,
+    "rj-or-y": 742051.68,
+    "rj-or-x": 1043131.26,
+    "rj-cteni-or": 132.0753,
+    "rj-cteni": 57.4795,
+    "rj-d": 102.464
+   },
+   "odpovedi": [
+    {
+     "k": "y",
+     "l": "Y<sub>P</sub> [m]",
+     "v": 741848.57,
+     "tol": 0.02
+    },
+    {
+     "k": "x",
+     "l": "X<sub>P</sub> [m]",
+     "v": 1043083.05,
+     "tol": 0.02
+    }
+   ]
+  },
+  {
+   "id": "rajon-4",
+   "typ": "rajon",
+   "obtiznost": 2,
+   "zadani": "En la estación S (Y = 742324.68, X = 1042804.61) la orientación fue al punto O (Y = 742479.77, X = 1042895.86) con lectura 382.9180 gon. Al punto P a determinar la lectura fue 161.2776 gon y la distancia horizontal 96.360 m. Determina las coordenadas de P.",
+   "vstupy": {
+    "rj-st-y": 742324.68,
+    "rj-st-x": 1042804.61,
+    "rj-or-y": 742479.77,
+    "rj-or-x": 1042895.86,
+    "rj-cteni-or": 382.918,
+    "rj-cteni": 161.2776,
+    "rj-d": 96.36
+   },
+   "odpovedi": [
+    {
+     "k": "y",
+     "l": "Y<sub>P</sub> [m]",
+     "v": 742262.67,
+     "tol": 0.02
+    },
+    {
+     "k": "x",
+     "l": "X<sub>P</sub> [m]",
+     "v": 1042730.85,
+     "tol": 0.02
+    }
+   ]
+  },
+  {
+   "id": "rajon-5",
+   "typ": "rajon",
+   "obtiznost": 2,
+   "zadani": "En la estación S (Y = 741871.37, X = 1043353.13) la orientación fue al punto O (Y = 741914.39, X = 1043293.36) con lectura 273.8231 gon. Al punto P a determinar la lectura fue 294.9298 gon y la distancia horizontal 36.154 m. Determina las coordenadas de P.",
+   "vstupy": {
+    "rj-st-y": 741871.37,
+    "rj-st-x": 1043353.13,
+    "rj-or-y": 741914.39,
+    "rj-or-x": 1043293.36,
+    "rj-cteni-or": 273.8231,
+    "rj-cteni": 294.9298,
+    "rj-d": 36.154
+   },
+   "odpovedi": [
+    {
+     "k": "y",
+     "l": "Y<sub>P</sub> [m]",
+     "v": 741881.79,
+     "tol": 0.02
+    },
+    {
+     "k": "x",
+     "l": "X<sub>P</sub> [m]",
+     "v": 1043318.51,
+     "tol": 0.02
+    }
+   ]
+  },
+  {
+   "id": "orto-1",
+   "typ": "orto",
+   "obtiznost": 2,
+   "zadani": "Línea de medición A (Y = 741854.63, X = 1043227.35) → B (Y = 741920.43, X = 1043124.09). El punto P tiene abscisa 110.763 m desde A y ordenada 26.349 m (a la izquierda). Determina las coordenadas de P.",
+   "vstupy": {
+    "or-a-y": 741854.63,
+    "or-a-x": 1043227.35,
+    "or-b-y": 741920.43,
+    "or-b-x": 1043124.09,
+    "or-s": 110.763,
+    "or-k": -26.349
+   },
+   "odpovedi": [
+    {
+     "k": "y",
+     "l": "Y<sub>P</sub> [m]",
+     "v": 741936.37,
+     "tol": 0.02
+    },
+    {
+     "k": "x",
+     "l": "X<sub>P</sub> [m]",
+     "v": 1043148.1,
+     "tol": 0.02
+    }
+   ]
+  },
+  {
+   "id": "orto-2",
+   "typ": "orto",
+   "obtiznost": 2,
+   "zadani": "Línea de medición A (Y = 741831.97, X = 1043186.69) → B (Y = 741928.73, X = 1043113.27). El punto P tiene abscisa 106.679 m desde A y ordenada 25.532 m (a la izquierda). Determina las coordenadas de P.",
+   "vstupy": {
+    "or-a-y": 741831.97,
+    "or-a-x": 1043186.69,
+    "or-b-y": 741928.73,
+    "or-b-x": 1043113.27,
+    "or-s": 106.679,
+    "or-k": -25.532
+   },
+   "odpovedi": [
+    {
+     "k": "y",
+     "l": "Y<sub>P</sub> [m]",
+     "v": 741932.39,
+     "tol": 0.02
+    },
+    {
+     "k": "x",
+     "l": "X<sub>P</sub> [m]",
+     "v": 1043142.55,
+     "tol": 0.02
+    }
+   ]
+  },
+  {
+   "id": "orto-3",
+   "typ": "orto",
+   "obtiznost": 2,
+   "zadani": "Línea de medición A (Y = 742312.63, X = 1042612.93) → B (Y = 742226.31, X = 1042659.70). El punto P tiene abscisa 56.184 m desde A y ordenada 5.289 m (a la izquierda). Determina las coordenadas de P.",
+   "vstupy": {
+    "or-a-y": 742312.63,
+    "or-a-x": 1042612.93,
+    "or-b-y": 742226.31,
+    "or-b-x": 1042659.7,
+    "or-s": 56.184,
+    "or-k": -5.289
+   },
+   "odpovedi": [
+    {
+     "k": "y",
+     "l": "Y<sub>P</sub> [m]",
+     "v": 742260.71,
+     "tol": 0.02
+    },
+    {
+     "k": "x",
+     "l": "X<sub>P</sub> [m]",
+     "v": 1042635.05,
+     "tol": 0.02
+    }
+   ]
+  },
+  {
+   "id": "protuhel-1",
+   "typ": "protuhel",
+   "obtiznost": 3,
+   "zadani": "Intersección directa por ángulos: estaciones A (Y = 742389.91, X = 1043247.53) y B (Y = 742433.90, X = 1043289.00). En A el ángulo desde la dirección A→B al objetivo es 100.3586 gon, en B el ángulo desde la dirección B→A al objetivo es -69.4928 gon. Determina las coordenadas de P.",
+   "vstupy": {
+    "pu-a-y": 742389.91,
+    "pu-a-x": 1043247.53,
+    "pu-b-y": 742433.9,
+    "pu-b-x": 1043289.0,
+    "pu-ua": 100.3586,
+    "pu-ub": -69.4928
+   },
+   "odpovedi": [
+    {
+     "k": "y",
+     "l": "Y<sub>P</sub> [m]",
+     "v": 742470.11,
+     "tol": 0.02
+    },
+    {
+     "k": "x",
+     "l": "X<sub>P</sub> [m]",
+     "v": 1043161.49,
+     "tol": 0.02
+    }
+   ]
+  },
+  {
+   "id": "protuhel-2",
+   "typ": "protuhel",
+   "obtiznost": 3,
+   "zadani": "Intersección directa por ángulos: estaciones A (Y = 741824.00, X = 1042815.99) y B (Y = 741664.23, X = 1042692.08). En A el ángulo desde la dirección A→B al objetivo es 49.2746 gon, en B el ángulo desde la dirección B→A al objetivo es -78.1932 gon. Determina las coordenadas de P.",
+   "vstupy": {
+    "pu-a-y": 741824.0,
+    "pu-a-x": 1042815.99,
+    "pu-b-y": 741664.23,
+    "pu-b-x": 1042692.08,
+    "pu-ua": 49.2746,
+    "pu-ub": -78.1932
+   },
+   "odpovedi": [
+    {
+     "k": "y",
+     "l": "Y<sub>P</sub> [m]",
+     "v": 741615.71,
+     "tol": 0.02
+    },
+    {
+     "k": "x",
+     "l": "X<sub>P</sub> [m]",
+     "v": 1042839.91,
+     "tol": 0.02
+    }
+   ]
+  },
+  {
+   "id": "protuhel-3",
+   "typ": "protuhel",
+   "obtiznost": 3,
+   "zadani": "Intersección directa por ángulos: estaciones A (Y = 741791.82, X = 1042608.38) y B (Y = 741836.74, X = 1042589.26). En A el ángulo desde la dirección A→B al objetivo es 87.1892 gon, en B el ángulo desde la dirección B→A al objetivo es -41.2127 gon. Determina las coordenadas de P.",
+   "vstupy": {
+    "pu-a-y": 741791.82,
+    "pu-a-x": 1042608.38,
+    "pu-b-y": 741836.74,
+    "pu-b-x": 1042589.26,
+    "pu-ua": 87.1892,
+    "pu-ub": -41.2127
+   },
+   "odpovedi": [
+    {
+     "k": "y",
+     "l": "Y<sub>P</sub> [m]",
+     "v": 741785.3,
+     "tol": 0.02
+    },
+    {
+     "k": "x",
+     "l": "X<sub>P</sub> [m]",
+     "v": 1042576.4,
+     "tol": 0.02
+    }
+   ]
+  },
+  {
+   "id": "protdelka-1",
+   "typ": "protdelka",
+   "obtiznost": 3,
+   "zadani": "Intersección por distancias: puntos A (Y = 742398.21, X = 1043031.03) y B (Y = 742292.81, X = 1042946.42). Desde A la distancia a P es 142.644 m, desde B 117.616 m; el punto P está a la izquierda de la dirección A→B. Determina las coordenadas de P.",
+   "vstupy": {
+    "pd-a-y": 742398.21,
+    "pd-a-x": 1043031.03,
+    "pd-b-y": 742292.81,
+    "pd-b-x": 1042946.42,
+    "pd-da": 142.644,
+    "pd-db": 117.616,
+    "pd-side": "L"
+   },
+   "odpovedi": [
+    {
+     "k": "y",
+     "l": "Y<sub>P</sub> [m]",
+     "v": 742395.13,
+     "tol": 0.02
+    },
+    {
+     "k": "x",
+     "l": "X<sub>P</sub> [m]",
+     "v": 1042888.42,
+     "tol": 0.02
+    }
+   ]
+  },
+  {
+   "id": "protdelka-2",
+   "typ": "protdelka",
+   "obtiznost": 3,
+   "zadani": "Intersección por distancias: puntos A (Y = 741835.02, X = 1043041.76) y B (Y = 741888.64, X = 1043161.38). Desde A la distancia a P es 122.059 m, desde B 146.537 m; el punto P está a la derecha de la dirección A→B. Determina las coordenadas de P.",
+   "vstupy": {
+    "pd-a-y": 741835.02,
+    "pd-a-x": 1043041.76,
+    "pd-b-y": 741888.64,
+    "pd-b-x": 1043161.38,
+    "pd-da": 122.059,
+    "pd-db": 146.537,
+    "pd-side": "R"
+   },
+   "odpovedi": [
+    {
+     "k": "y",
+     "l": "Y<sub>P</sub> [m]",
+     "v": 741956.65,
+     "tol": 0.02
+    },
+    {
+     "k": "x",
+     "l": "X<sub>P</sub> [m]",
+     "v": 1043031.58,
+     "tol": 0.02
+    }
+   ]
+  },
+  {
+   "id": "polygon-1",
+   "typ": "polygon",
+   "obtiznost": 4,
+   "zadani": "Poligonal enlazada y orientada en ambos extremos: orientación al inicio O1 (Y = 741697.60, X = 1043319.73), punto inicial P1 (Y = 741613.11, X = 1043377.80), punto final PK (Y = 741485.39, X = 1043422.84), orientación al final O2 (Y = 741468.89, X = 1043448.91). Ángulos de vértice a la izquierda: ω<sub>1</sub> = 159.6161, ω<sub>2</sub> = 241.4086, ω<sub>3</sub> = 376.7154, ω<sub>K</sub> = 48.0031 gon; longitudes de los lados s<sub>1</sub> = 86.786, s<sub>2</sub> = 100.858, s<sub>3</sub> = 42.554 m. Determina el cierre angular y las coordenadas compensadas de los puntos intermedios PB1 y PB2.",
+   "vstupy": {
+    "pg-o1-y": 741697.6,
+    "pg-o1-x": 1043319.73,
+    "pg-p1-y": 741613.11,
+    "pg-p1-x": 1043377.8,
+    "pg-pk-y": 741485.39,
+    "pg-pk-x": 1043422.84,
+    "pg-o2-y": 741468.89,
+    "pg-o2-x": 1043448.91,
+    "pg-w1": 159.6161,
+    "pg-wk": 48.0031,
+    "pg-dlast": 42.554,
+    "_pg-rows": [
+     {
+      "d": 86.786,
+      "w": 241.4086,
+      "n": "PB1"
+     },
+     {
+      "d": 100.858,
+      "w": 376.7154,
+      "n": "PB2"
+     }
+    ]
+   },
+   "odpovedi": [
+    {
+     "k": "ow",
+     "l": "O<sub>ω</sub> [cc]",
+     "v": 2,
+     "tol": 1.5
+    },
+    {
+     "k": "y1",
+     "l": "Y<sub>PB1</sub> [m]",
+     "v": 741526.37,
+     "tol": 0.02
+    },
+    {
+     "k": "x1",
+     "l": "X<sub>PB1</sub> [m]",
+     "v": 1043375.01,
+     "tol": 0.02
+    },
+    {
+     "k": "y2",
+     "l": "Y<sub>PB2</sub> [m]",
+     "v": 741444.18,
+     "tol": 0.02
+    },
+    {
+     "k": "x2",
+     "l": "X<sub>PB2</sub> [m]",
+     "v": 1043433.47,
+     "tol": 0.02
+    }
+   ]
+  },
+  {
+   "id": "polygon-2",
+   "typ": "polygon",
+   "obtiznost": 4,
+   "zadani": "Poligonal enlazada y orientada en ambos extremos: orientación al inicio O1 (Y = 741614.22, X = 1043198.56), punto inicial P1 (Y = 741573.67, X = 1043090.44), punto final PK (Y = 741561.13, X = 1043185.41), orientación al final O2 (Y = 741648.44, X = 1043123.86). Ángulos de vértice a la izquierda: ω<sub>1</sub> = 365.3525, ω<sub>2</sub> = 88.8751, ω<sub>3</sub> = 13.5977, ω<sub>K</sub> = 248.4255 gon; longitudes de los lados s<sub>1</sub> = 114.245, s<sub>2</sub> = 86.713, s<sub>3</sub> = 90.639 m. Determina el cierre angular y las coordenadas compensadas de los puntos intermedios PB1 y PB2.",
+   "vstupy": {
+    "pg-o1-y": 741614.22,
+    "pg-o1-x": 1043198.56,
+    "pg-p1-y": 741573.67,
+    "pg-p1-x": 1043090.44,
+    "pg-pk-y": 741561.13,
+    "pg-pk-x": 1043185.41,
+    "pg-o2-y": 741648.44,
+    "pg-o2-x": 1043123.86,
+    "pg-w1": 365.3525,
+    "pg-wk": 248.4255,
+    "pg-dlast": 90.639,
+    "_pg-rows": [
+     {
+      "d": 114.245,
+      "w": 88.8751,
+      "n": "PB1"
+     },
+     {
+      "d": 86.713,
+      "w": 13.5977,
+      "n": "PB2"
+     }
+    ]
+   },
+   "odpovedi": [
+    {
+     "k": "ow",
+     "l": "O<sub>ω</sub> [cc]",
+     "v": -20,
+     "tol": 1.5
+    },
+    {
+     "k": "y1",
+     "l": "Y<sub>PB1</sub> [m]",
+     "v": 741552.61,
+     "tol": 0.02
+    },
+    {
+     "k": "x1",
+     "l": "X<sub>PB1</sub> [m]",
+     "v": 1043202.73,
+     "tol": 0.02
+    },
+    {
+     "k": "y2",
+     "l": "Y<sub>PB2</sub> [m]",
+     "v": 741471.46,
+     "tol": 0.02
+    },
+    {
+     "k": "x2",
+     "l": "X<sub>PB2</sub> [m]",
+     "v": 1043172.17,
+     "tol": 0.02
+    }
+   ]
+  },
+  {
+   "id": "nivel-1",
+   "typ": "nivel",
+   "obtiznost": 2,
+   "zadani": "Nivelación técnica desde el punto A (H<sub>A</sub> = 258.204 m) al punto B (H<sub>B</sub> = 258.754 m) en 3 estaciones. Lecturas atrás / adelante [m]: 1.348 / 1.289, 1.146 / 0.834, 1.700 / 1.525. Determina el desnivel medido A→B, el cierre altimétrico y la cota compensada de B.",
+   "vstupy": {
+    "nv-ha": 258.204,
+    "nv-hb": 258.754,
+    "_nv-rows": [
+     {
+      "b": 1.348,
+      "f": 1.289
+     },
+     {
+      "b": 1.146,
+      "f": 0.834
+     },
+     {
+      "b": 1.7,
+      "f": 1.525
+     }
+    ]
+   },
+   "odpovedi": [
+    {
+     "k": "dh",
+     "l": "Δh medido [m]",
+     "v": 0.546,
+     "tol": 0.0015
+    },
+    {
+     "k": "uz",
+     "l": "cierre [mm]",
+     "v": 4.0,
+     "tol": 0.6
+    },
+    {
+     "k": "hb",
+     "l": "H<sub>B</sub> compensada [m]",
+     "v": 258.754,
+     "tol": 0.0015
+    }
+   ]
+  },
+  {
+   "id": "nivel-2",
+   "typ": "nivel",
+   "obtiznost": 2,
+   "zadani": "Nivelación técnica desde el punto A (H<sub>A</sub> = 350.004 m) al punto B (H<sub>B</sub> = 352.707 m) en 5 estaciones. Lecturas atrás / adelante [m]: 2.535 / 1.935, 2.127 / 1.603, 2.308 / 0.915, 1.325 / 1.447, 1.481 / 1.175. Determina el desnivel medido A→B, el cierre altimétrico y la cota compensada de B.",
+   "vstupy": {
+    "nv-ha": 350.004,
+    "nv-hb": 352.707,
+    "_nv-rows": [
+     {
+      "b": 2.535,
+      "f": 1.935
+     },
+     {
+      "b": 2.127,
+      "f": 1.603
+     },
+     {
+      "b": 2.308,
+      "f": 0.915
+     },
+     {
+      "b": 1.325,
+      "f": 1.447
+     },
+     {
+      "b": 1.481,
+      "f": 1.175
+     }
+    ]
+   },
+   "odpovedi": [
+    {
+     "k": "dh",
+     "l": "Δh medido [m]",
+     "v": 2.701,
+     "tol": 0.0015
+    },
+    {
+     "k": "uz",
+     "l": "cierre [mm]",
+     "v": 2.0,
+     "tol": 0.6
+    },
+    {
+     "k": "hb",
+     "l": "H<sub>B</sub> compensada [m]",
+     "v": 352.707,
+     "tol": 0.0015
+    }
+   ]
+  },
+  {
+   "id": "nivel-3",
+   "typ": "nivel",
+   "obtiznost": 2,
+   "zadani": "Nivelación técnica desde el punto A (H<sub>A</sub> = 430.199 m) al punto B (H<sub>B</sub> = 430.317 m) en 4 estaciones. Lecturas atrás / adelante [m]: 2.448 / 2.556, 0.393 / 0.619, 2.050 / 1.350, 1.549 / 1.801. Determina el desnivel medido A→B, el cierre altimétrico y la cota compensada de B.",
+   "vstupy": {
+    "nv-ha": 430.199,
+    "nv-hb": 430.317,
+    "_nv-rows": [
+     {
+      "b": 2.448,
+      "f": 2.556
+     },
+     {
+      "b": 0.393,
+      "f": 0.619
+     },
+     {
+      "b": 2.05,
+      "f": 1.35
+     },
+     {
+      "b": 1.549,
+      "f": 1.801
+     }
+    ]
+   },
+   "odpovedi": [
+    {
+     "k": "dh",
+     "l": "Δh medido [m]",
+     "v": 0.114,
+     "tol": 0.0015
+    },
+    {
+     "k": "uz",
+     "l": "cierre [mm]",
+     "v": 4.0,
+     "tol": 0.6
+    },
+    {
+     "k": "hb",
+     "l": "H<sub>B</sub> compensada [m]",
+     "v": 430.317,
+     "tol": 0.0015
+    }
+   ]
+  }
+ ]
+}

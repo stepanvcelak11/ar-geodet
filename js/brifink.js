@@ -40,6 +40,7 @@
 
     // ---- pomocné -------------------------------------------------------------
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function TJ(cs) { try { return (window.AGJazyk && typeof AGJazyk.t === 'function') ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } }   // překlad kousku slepence (18. 9. 2026)
     function pad2(n) { return (n < 10 ? '0' : '') + n; }
     function todayStr() { var d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
     var DAYS_CS = ['neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota'];
@@ -117,9 +118,9 @@
     function wxRows(res) {
         var w = res.w, d = w.daily, rows = [];
         var line1 = [];
-        if (Array.isArray(d.weather_code)) { var t = wmoTxt(d.weather_code[0]); if (t) line1.push(t); }
-        if (d.temperature_2m_min && d.temperature_2m_max) line1.push(Math.round(d.temperature_2m_min[0]) + ' až ' + Math.round(d.temperature_2m_max[0]) + ' °C');
-        if (d.wind_speed_10m_max) line1.push('vítr do ' + Math.round(d.wind_speed_10m_max[0]) + (d.wind_gusts_10m_max ? ' (nárazy ' + Math.round(d.wind_gusts_10m_max[0]) + ')' : '') + ' m/s');
+        if (Array.isArray(d.weather_code)) { var t = wmoTxt(d.weather_code[0]); if (t) line1.push(TJ(t)); }
+        if (d.temperature_2m_min && d.temperature_2m_max) line1.push(Math.round(d.temperature_2m_min[0]) + ' ' + TJ('až') + ' ' + Math.round(d.temperature_2m_max[0]) + ' °C');
+        if (d.wind_speed_10m_max) line1.push(TJ('vítr do') + ' ' + Math.round(d.wind_speed_10m_max[0]) + (d.wind_gusts_10m_max ? ' (' + TJ('nárazy') + ' ' + Math.round(d.wind_gusts_10m_max[0]) + ')' : '') + ' m/s');
         if (line1.length) rows.push(line1.join(' · '));
         var sum = d.precipitation_sum ? d.precipitation_sum[0] : null;
         var prob = d.precipitation_probability_max ? d.precipitation_probability_max[0] : null;

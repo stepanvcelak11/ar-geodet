@@ -190,6 +190,7 @@
     function num(v) { return (typeof v === 'number' && isFinite(v)) ? v : null; }
     function at(arr, i) { if (!arr || !arr.length || i == null || i < 0 || i >= arr.length) return null; return num(arr[i]); }
     function pad2(n) { return (n < 10 ? '0' : '') + n; }
+    function TJ(cs) { try { return (window.AGJazyk && typeof AGJazyk.t === 'function') ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } }   // překlad kousku slepence (18. 9. 2026)
     function nf(v, dec) {
         if (v == null || !isFinite(v)) return '–';
         return Number(v).toFixed(dec == null ? 0 : dec).replace('.', ',');
@@ -2909,7 +2910,7 @@
         // vědět. U oblačnosti se to nepřipisuje: tak se kategorie počítá vždycky
         // a procento je vidět v dlaždici Vlhkost.
         byId('ag-wx-desc').textContent = c
-            ? (wmoText(c.code) + (data.nowFix && data.nowFix.kind === 'wet' ? ' · ' + data.nowFix.src : ''))
+            ? (TJ(wmoText(c.code)) + (data.nowFix && data.nowFix.kind === 'wet' ? ' · ' + data.nowFix.src : ''))
             : '';
         var mm = '';
         if (data.daily && data.daily.length) {
@@ -2952,12 +2953,12 @@
             var fk = ps[fi].fam || ps[fi].id;
             if (!famSet[fk]) { famSet[fk] = 1; famN++; }
         }
-        var head = 'Vážený průměr ' + ps.length + ' zdrojů, které tvoří ' + famN + ' NEZÁVISLÝCH rodin. '
-            + 'Sourozenci z jedné rodiny (ICON-D2, ICON-EU a jejich ensembly jsou pořád jeden model DWD) se nejdřív zprůměrují mezi sebou a teprve pak vstupují do celku jedním hlasem — jinak by měl jeden ústav několikanásobnou váhu a „Shoda zdrojů" by hlásila falešnou jistotu. '
-            + '„Trefnost“ = jak blízko byla předpověď tohoto modelu na den dopředu skutečnosti — zvlášť pro TEPLOTU (±°C) a zvlášť pro SRÁŽKY (v kolika % hodin správně řekl prší/neprší)';
+        var head = TJ('Vážený průměr') + ' ' + ps.length + ' ' + TJ('zdrojů, které tvoří') + ' ' + famN + ' ' + TJ('NEZÁVISLÝCH rodin.') + ' '
+            + TJ('Sourozenci z jedné rodiny (ICON-D2, ICON-EU a jejich ensembly jsou pořád jeden model DWD) se nejdřív zprůměrují mezi sebou a teprve pak vstupují do celku jedním hlasem — jinak by měl jeden ústav několikanásobnou váhu a „Shoda zdrojů" by hlásila falešnou jistotu.') + ' '
+            + TJ('„Trefnost“ = jak blízko byla předpověď tohoto modelu na den dopředu skutečnosti — zvlášť pro TEPLOTU (±°C) a zvlášť pro SRÁŽKY (v kolika % hodin správně řekl prší/neprší)');
         head += bf && bf.days
-            ? ', spočítaná z archivu za posledních ' + bf.days + ' dní (skutečnost = reanalýza ERA5). Podle teploty se váží teplota, tlak, vlhkost a vítr; podle srážek milimetry, pravděpodobnost deště a ikona počasí. Appka se dál doučuje i za provozu.'
-            : ' — dohledává se z archivu za poslední měsíc, mezitím se učí za provozu.';
+            ? ', ' + TJ('spočítaná z archivu za posledních') + ' ' + bf.days + ' ' + TJ('dní (skutečnost = reanalýza ERA5). Podle teploty se váží teplota, tlak, vlhkost a vítr; podle srážek milimetry, pravděpodobnost deště a ikona počasí. Appka se dál doučuje i za provozu.')
+            : ' ' + TJ('— dohledává se z archivu za poslední měsíc, mezitím se učí za provozu.');
         box.appendChild(el('div', 'wx-src-h', head));
         // měření napřed, pak předpovědi podle váhy
         var sorted = ps.slice().sort(function (a, b) {
@@ -2967,7 +2968,7 @@
         for (var i = 0; i < sorted.length; i++) {
             var s = sorted[i];
             var row = el('div', 'wx-src' + (s.meas ? ' wx-src-meas' : ''));
-            var txt = s.label + ' · váha ' + nf(s.w, 2);
+            var txt = TJ(s.label) + ' · váha ' + nf(s.w, 2);
             if (s.meas) {
                 txt += ' · MĚŘENÍ, ne předpověď';
             } else {
@@ -3257,9 +3258,9 @@
             // víc stanic (návrh ②) — ať je vidět, že do odhadu nejde jen ta nejbližší
             if (ms.multiN > 1 && ms.multiNames && ms.multiNames.length) {
                 dm.appendChild(el('div', 'wx-tile-sub',
-                    'Do celkového odhadu jde vážená směs ' + ms.multiN + ' stanic přepočtená na tvou výšku: '
-                    + ms.multiNames.join(', ') + '. Blíž = větší váha; velký výškový rozdíl váhu snižuje. '
-                    + 'Číslo nahoře je ale pořád surové měření té nejbližší, ne směs.'));
+                    TJ('Do celkového odhadu jde vážená směs') + ' ' + ms.multiN + ' ' + TJ('stanic přepočtená na tvou výšku:') + ' '
+                    + ms.multiNames.join(', ') + '. ' + TJ('Blíž = větší váha; velký výškový rozdíl váhu snižuje.') + ' '
+                    + TJ('Číslo nahoře je ale pořád surové měření té nejbližší, ne směs.')));
             }
             // když je stanice v jiné výšce než bod, ať je vidět i přepočet
             if (ms.raw != null && ms.temp != null && Math.abs(ms.temp - ms.raw) >= 0.15 && data.elevReal != null) {
@@ -3316,7 +3317,7 @@
         if (c.cloud != null) {
             // Nahlášeno 29. 8. 2026: „ukazuje zataženo a přitom praží sluníčko."
             // Ať je vidět, z čeho ta jedna slovní kategorie nahoře vlastně je.
-            detail(th, 'cloud', 'Odkud je „' + wmoText(c.code) + '"')
+            detail(th, 'cloud', 'Odkud je „' + TJ(wmoText(c.code)) + '"')
                 .appendChild(el('div', 'wx-tile-sub',
                     'Slovní stav nahoře vychází z tohohle procenta zakrytí oblohy (vážený průměr všech modelů): '
                     + 'do 12 % jasno, do 50 % skoro jasno, do 88 % polojasno, výš zataženo. '
@@ -3387,15 +3388,14 @@
         if (data.anchor && data.anchor.dt != null) {
             var a = data.anchor;
             dq.appendChild(el('div', 'wx-tile-sub',
-                'Nejbližší hodiny jsou ukotvené na měření: v době posledního odečtu'
-                + (a.ageMin != null ? ' (před ' + nf(a.ageMin, 0) + ' min)' : '')
-                + ' se modely proti '
-                + (a.multiN > 1 ? (a.multiN + ' stanicím ČHMÚ') : ('stanici ' + a.station))
-                + ' mýlily o ' + (a.dt > 0 ? '+' : '−') + nf(Math.abs(a.dt), 1)
-                + ' °C. O tolik se hodinová předpověď posouvá a rozdíl doznívá do '
-                + a.hours + ' h — na teď z něj zbývá ' + (a.now > 0 ? '+' : '−') + nf(Math.abs(a.now), 1)
-                + ' °C. Chyba předpovědi se v čase mění pomalu, takže „teď je to jinak" platí i za '
-                + 'hodinu — ale ne zítra, proto se posun nedrží.'));
+                TJ('Nejbližší hodiny jsou ukotvené na měření: v době posledního odečtu')
+                + (a.ageMin != null ? ' (' + TJ('před') + ' ' + nf(a.ageMin, 0) + ' min)' : '')
+                + ' ' + TJ('se modely proti') + ' '
+                + (a.multiN > 1 ? (a.multiN + ' ' + TJ('stanicím ČHMÚ')) : (TJ('stanici') + ' ' + a.station))
+                + ' ' + TJ('mýlily o') + ' ' + (a.dt > 0 ? '+' : '−') + nf(Math.abs(a.dt), 1)
+                + ' °C. ' + TJ('O tolik se hodinová předpověď posouvá a rozdíl doznívá do') + ' '
+                + a.hours + ' h — ' + TJ('na teď z něj zbývá') + ' ' + (a.now > 0 ? '+' : '−') + nf(Math.abs(a.now), 1)
+                + ' °C. ' + TJ('Chyba předpovědi se v čase mění pomalu, takže „teď je to jinak" platí i za hodinu — ale ne zítra, proto se posun nedrží.')));
         }
         // výšková korekce — ať je vidět, že se s čísly něco stalo, a proč
         if (data.elevReal != null && data.lapseDT != null && Math.abs(data.lapseDT) >= 0.1) {

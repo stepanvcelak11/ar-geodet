@@ -40,10 +40,13 @@
 
     var _data = null, _open = null;   // _open = id rozbalené úlohy
 
+    var _dataLang = 'cs';
     function nacti(cb) {
-        if (_data) { cb(_data); return; }
-        fetch(SRC, { cache: 'no-cache' }).then(function (r) { return r.json(); }).then(function (j) {
-            _data = (j && j.ulohy) || []; cb(_data);
+        var lang = (window.AGJazyk && AGJazyk.get()) || 'cs';
+        if (_data && _dataLang === lang) { cb(_data); return; }
+        var f = (window.AGJazyk && AGJazyk.fetchData) ? AGJazyk.fetchData : fetch;   // data/ulohy-en.json…
+        f(SRC, { cache: 'no-cache' }).then(function (r) { return r.json(); }).then(function (j) {
+            _data = (j && j.ulohy) || []; _dataLang = lang; cb(_data);
         }).catch(function (e) { swallow(e, 'fetch'); cb([]); });
     }
 

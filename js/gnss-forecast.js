@@ -64,6 +64,7 @@
 
     function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:toast'); } }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function TJ(cs) { try { return (window.AGJazyk && typeof AGJazyk.t === 'function') ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } }   // překlad kousku slepence (18. 9. 2026)
     function pad2(n) { return ('0' + n).slice(-2); }
     function num1(v) { return (v == null || !isFinite(v)) ? '–' : v.toFixed(1).replace('.', ','); }
     function r1(v) { return Math.round(v * 10) / 10; }
@@ -502,7 +503,7 @@
             if (line) { line.setAttribute('x1', x); line.setAttribute('x2', x); }
             if (dot) { dot.setAttribute('cx', x); dot.setAttribute('cy', r.pdop != null ? yv(r.pdop) : -20); }
             if (out) out.innerHTML = '<b>' + pad2(r.t.getHours()) + ':00</b> · PDOP ' + num1(r.pdop) +
-                ' · ' + (r.nsat || 0) + ' družic · ' + esc(r.label) +
+                ' · ' + (r.nsat || 0) + ' ' + TJ('družic') + ' · ' + esc(TJ(r.label)) +
                 (r.kp != null && r.kp >= 5 ? ' · Kp ' + num1(r.kp) : '') +
                 (r.note ? ' · ' + esc(r.note.txt) : '');
         }
@@ -586,15 +587,15 @@
                 '<span class="ag-gp-dot"></span>' +
                 '<span class="ag-gp-v">PDOP ' + num1(r.pdop) + '</span>' +
                 '<span class="ag-gp-v">' + r.nsat + ' druž.' + (r.kp != null && r.kp >= 5 ? ' · Kp' + Math.round(r.kp) : '') + '</span>' +
-                '<span class="ag-gp-lb">' + esc(r.label) + (r.note ? ' <span class="ag-gp-note">' + esc(r.note.txt) + '</span>' : '') + '</span>' +
+                '<span class="ag-gp-lb">' + esc(TJ(r.label)) + (r.note ? ' <span class="ag-gp-note">' + esc(r.note.txt) + '</span>' : '') + '</span>' +
                 '</div>';
         });
         h += '</details>';
 
-        h += '<div class="ag-gp-foot">Geometrie z drah TLE' + (model.tleAge != null ? ' (stáří ' + Math.round(model.tleAge) + ' h)' : '') +
-            ', ionosféra z Kp indexu NOAA SWPC. ' + (ch && ch.clipped ? 'Špičky nad PDOP ' + num1(ch.vmax) + ' jsou v grafu uříznuté (přesná čísla v podrobnostech). ' : '') +
-            'Předpověď platí pro otevřený obzor — stínění stromy/budovami posoudí nástroj „Predikce signálu". ' +
-            'Bouřková značka je bezpečnostní (výtyčka = hromosvod), s přesností GNSS nesouvisí.</div>';
+        h += '<div class="ag-gp-foot"><span>Geometrie z drah TLE</span>' + (model.tleAge != null ? ' (<span>stáří</span> ' + Math.round(model.tleAge) + ' h)' : '') +
+            '<span>, ionosféra z Kp indexu NOAA SWPC.</span> ' + (ch && ch.clipped ? '<span>Špičky nad PDOP ' + num1(ch.vmax) + ' jsou v grafu uříznuté (přesná čísla v podrobnostech).</span> ' : '') +
+            '<span>Předpověď platí pro otevřený obzor — stínění stromy/budovami posoudí nástroj „Predikce signálu".</span> ' +
+            '<span>Bouřková značka je bezpečnostní (výtyčka = hromosvod), s přesností GNSS nesouvisí.</span></div>';
         body.innerHTML = h;
         attachProbe();
     }

@@ -172,7 +172,7 @@
         var dict = '<p>Jak číst zkratky asfaltů: <b>AC</b> = asfaltový beton, třetí písmeno <b>O/L/P</b> = Obrusná / Ložná / Podkladní vrstva, číslo = největší zrno kameniva v mm (ACO 11 = obrusný asfalt se zrnem do 11 mm). Vrstvy jdou shora: obrusná → ložná → podkladní asfalt → stmelený či štěrkový podklad → ochranná vrstva.</p>' +
             CATALOG.map(function (it) {
                 if (it.sec) return '';
-                return '<p><b>' + esc(it.c) + '</b> — ' + esc(it.nm) + '. ' + esc(it.d) + ' Typicky ' + fmt(it.t) + ' cm.</p>';
+                return '<p><b>' + esc(it.c) + '</b> — <span>' + esc(it.nm) + '</span>. <span>' + esc(it.d) + '</span> <span>Typicky ' + fmt(it.t) + ' cm.</span></p>';   // spany = překlad po částech (js/jazyky.js)
             }).join('');
         var ov = document.createElement('div');
         ov.className = 'modal-overlay';
@@ -398,7 +398,7 @@
         box.innerHTML =
             '<div class="vr-total"><span>Do tabletu</span><b>' + sign(total) + ' cm</b></div>' +
             '<div class="vr-line"><span>Odsazení od modelu (' + dir + ')</span><span>' + sign(offset) + ' cm</span></div>' +
-            '<div class="vr-line"><span>Nadvýšení na hutnění (' + fmt(num(L.p, 0)) + ' % z ' + fmt(num(L.t, 0)) + ' cm)</span><span>' + sign(extra) + ' cm</span></div>';
+            '<div class="vr-line"><span><span>Nadvýšení na hutnění</span> (' + fmt(num(L.p, 0)) + ' % <span>z</span> ' + fmt(num(L.t, 0)) + ' cm)</span><span>' + sign(extra) + ' cm</span></div>';
     }
 
     // ---- ŘEZ SKLADBOU (SVG, tažení hranic mezi vrstvami) -----------------------

@@ -1,0 +1,839 @@
+{
+ "aktualizovano": "2026-06-14",
+ "disclaimer": "An indicative cheat sheet, not legal advice. Verify the values in the full text at the source — regulations change.",
+ "kategorie": [
+  {
+   "id": "odchylky",
+   "nazev": "Limit deviations and accuracy",
+   "zkratka": "Deviations",
+   "zaznamy": [
+    {
+     "nazev": "Quality code of detail points (mxy and limit deviations)",
+     "tagy": [
+      "deviation",
+      "deviations",
+      "accuracy",
+      "quality code",
+      "mxy",
+      "uxy",
+      "limit",
+      "coordinate error",
+      "detail point"
+     ],
+     "telo": "The accuracy of a detail point's coordinates in S-JTSK is expressed by a quality code 3 to 8. Each code corresponds to a basic mean coordinate error mxy. From it the limit coordinate error uxy = 2·mxy and the limit positional deviation = 2·√2·mxy are derived. Codes 3–5 are points surveyed in the field, codes 6–8 come from digitising earlier maps.",
+     "tabulka": {
+      "hlavicka": [
+       "Code",
+       "Origin",
+       "mxy [m]",
+       "uxy = 2·mxy [m]",
+       "Limit positional [m]"
+      ],
+      "radky": [
+       [
+        "3",
+        "field survey",
+        "0,14",
+        "0,28",
+        "0,39"
+       ],
+       [
+        "4",
+        "field survey",
+        "0,26",
+        "0,52",
+        "0,74"
+       ],
+       [
+        "5",
+        "field survey",
+        "0,50",
+        "1,00",
+        "1,41"
+       ],
+       [
+        "6",
+        "digitisation",
+        "0,21",
+        "0,42",
+        "0,59"
+       ],
+       [
+        "7",
+        "digitisation",
+        "0,50",
+        "1,00",
+        "1,41"
+       ],
+       [
+        "8",
+        "digitisation",
+        "1,00",
+        "2,00",
+        "2,82"
+       ]
+      ]
+     },
+     "pozn": "uxy = 2·mxy · limit positional deviation = 2·√2·mxy. The most accurate are points with code 3 (newly surveyed geodetically).",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Limit deviation of parcel area",
+     "tagy": [
+      "area",
+      "limit deviation",
+      "area deviation",
+      "parcel",
+      "tolerance",
+      "m2"
+     ],
+     "telo": "The limit area deviation says by how much two areas of the same parcel (e.g. new and registered) may differ without the area in the cadastre changing. It depends on the quality code of the vertices and on the area P (the larger of the compared areas in m²):",
+     "tabulka": {
+      "hlavicka": [
+       "Quality code",
+       "Limit area deviation [m²]"
+      ],
+      "radky": [
+       [
+        "3",
+        "2"
+       ],
+       [
+        "4",
+        "0,4·√P + 4"
+       ],
+       [
+        "5",
+        "1,2·√P + 12"
+       ],
+       [
+        "6",
+        "0,3·√P + 3"
+       ],
+       [
+        "7",
+        "0,8·√P + 8"
+       ],
+       [
+        "8",
+        "2,0·√P + 20"
+       ]
+      ]
+     },
+     "pozn": "P = the larger of the compared areas [m²]. For a group of parcels / area determination code 0 or a combination, double is taken. Example: a 1000 m² parcel with code 8 → 2.0·√1000 + 20 ≈ 83 m². Verify the exact wording of the formulas in the annex.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha (mezní odchylky výměr)",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Point colours in the cadastre viewer (accuracy check)",
+     "tagy": [
+      "viewer",
+      "colour",
+      "green",
+      "red",
+      "quality code",
+      "accuracy",
+      "boundary"
+     ],
+     "telo": "In the Nahlížení do KN application, in the layer \"Parcel boundaries with accuracy\" / \"Detail points with accuracy\", points are coloured by quality code: GREEN points with quality code 3 (most accurate, geodetically surveyed), RED points with quality code 4 to 8. A quick visual check of how reliable a boundary is.",
+     "zdroj": "ČÚZK — Nahlížení do KN",
+     "odkaz": "https://nahlizenidokn.cuzk.gov.cz",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Parcel area determination method vs. quality code",
+     "tagy": [
+      "area",
+      "area determination method",
+      "quality code",
+      "parcel"
+     ],
+     "telo": "The method of determining a parcel's area is marked by a code: code 2 = from coordinates in S-JTSK with quality code 3 or 4 (most accurate); code 1 = from directly measured dimensions or from coordinates in a local system; code 0 = from coordinates in S-JTSK where at least one vertex has quality code 5 to 8, OR graphically (planimetering, from dimensions scaled off the map, from coordinates scaled off the map).",
+     "pozn": "Higher vertex accuracy (code 3–4) = a more accurate and \"stronger\" parcel area.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "kontrola",
+   "nazev": "Measurement accuracy and checking",
+   "zkratka": "Checking",
+   "zaznamy": [
+    {
+     "nazev": "Double (independent) point determination + connection to points",
+     "tagy": [
+      "measurement",
+      "double determination",
+      "independent",
+      "check",
+      "connection",
+      "method",
+      "procedure"
+     ],
+     "telo": "Each detail point is surveyed independently at least twice. The survey must be connected to points of at least the accuracy that is to be achieved for the newly determined points (i.e. a more accurate point cannot be obtained by relying on less accurate points). This applies regardless of method (GNSS, polar method etc.) — what matters is the achieved and verified accuracy.",
+     "pozn": "From the double determination an accuracy check is computed (see the sample mean error below).",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Verifying accuracy by check measurement of distances",
+     "tagy": [
+      "verification",
+      "check measurement",
+      "tie distances",
+      "distance",
+      "limit difference",
+      "ud",
+      "check"
+     ],
+     "telo": "Achieving the accuracy is verified by tie distances or by check measurement of the straight-line distances of other selected pairs of detail points and their comparison with the distances computed from coordinates. It passes when the difference between the check-measured distance and the distance from coordinates is smaller than the limit distance difference ud = 2·md (md = basic mean distance error).",
+     "pozn": "For a set with more than 20 differences a statistical criterion applies in addition (the share of differences smaller than md) — see item 13 of the annex.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Sample mean coordinate error (position test)",
+     "tagy": [
+      "sample mean error",
+      "sxy",
+      "uxy",
+      "check determination",
+      "verification",
+      "limit",
+      "coefficient k"
+     ],
+     "telo": "When verifying by a check (second) determination of the same point's coordinates, the sample mean coordinate error is computed as sxy = √(0.5·(Δx² + Δy²)), where Δx, Δy are the coordinate differences of the first and check determination. The accuracy passes when sxy does not exceed the limit coordinate error uxy = 2·mxy of the respective quality code (e.g. code 3 → uxy = 0.28 m).",
+     "pozn": "Coefficient k = 2 if the check determination has the same accuracy as the detail survey; k = 1 if the check is substantially more accurate (mxy < 0.10 m). For the limit values uxy see the quality code table.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "metody",
+   "nazev": "Positional survey methods",
+   "zkratka": "Methods",
+   "zaznamy": [
+    {
+     "nazev": "Survey methods for detail points",
+     "tagy": [
+      "method",
+      "polar",
+      "orthogonal",
+      "tie distances",
+      "intersection",
+      "measurement",
+      "detail point"
+     ],
+     "telo": "Detail points of the planimetry are usually surveyed by the POLAR method (horizontal angle from the orientation direction + distance from the station). Supplementary methods (when polar isn't possible or practical): ORTHOGONAL (rectangular coordinates to a survey line — chainage and offset; suitable in dense built-up areas), the method of CONSTRUCTION TIE DISTANCES and INTERSECTION from directions or distances.",
+     "pozn": "Regardless of the method, the required accuracy (quality code) must be achieved and verified — see double determination and checking above.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha; vyhláška č. 31/1995 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "GNSS / RTK survey in the cadastre",
+     "tagy": [
+      "GNSS",
+      "RTK",
+      "GPS",
+      "permanent station",
+      "VRS",
+      "CZEPOS",
+      "measurement",
+      "method"
+     ],
+     "telo": "Coordinates can be determined by GNSS technology, in practice by the RTK method. Besides an own reference station, networks of permanent stations (e.g. CZEPOS) can be used — corrections from a specific or from a virtual reference station (VRS). Each point is determined independently at least twice and the results are checked. GNSS technical procedures are governed by item 9 of the annex to Decree No. 31/1995 Coll.",
+     "pozn": "Connection/orientation to points of at least the accuracy to be achieved. Two independent GNSS determinations should be separated in time (different satellite constellation).",
+     "zdroj": "Vyhláška č. 31/1995 Sb., příloha bod 9; katastrální vyhláška č. 357/2013 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/1995-31",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Geometric basis and orientation of the survey",
+     "tagy": [
+      "geometric basis",
+      "orientation",
+      "connection",
+      "survey network",
+      "traverse",
+      "polar point",
+      "control points"
+     ],
+     "telo": "The geometric basis of the detail survey are the control points and the survey network: points determined by RTK, traverses and polar points as needed. The survey must be connected and oriented to points of at least the accuracy to be achieved for the newly determined points — a more accurate point cannot be obtained by relying on less accurate points.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Traverse — geometric conditions",
+     "tagy": [
+      "traverse",
+      "polygon",
+      "side",
+      "side ratio",
+      "angular misclosure",
+      "vertices",
+      "survey network"
+     ],
+     "telo": "When choosing traverse points, geometric parameters are observed (indicative, by accuracy class / standard):",
+     "tabulka": {
+      "hlavicka": [
+       "Parameter",
+       "Usually"
+      ],
+      "radky": [
+       [
+        "Limit (max.) side length",
+        "300 m"
+       ],
+       [
+        "Ratio of adjacent side lengths",
+        "up to 1:2 (elsewhere 1:3)"
+       ],
+       [
+        "Ratio of the longest and shortest side in the traverse",
+        "up to 1:3"
+       ],
+       [
+        "Max. total length (main traverse)",
+        "2000–2500 m"
+       ],
+       [
+        "Max. total length (secondary traverse)",
+        "1200–1600 m"
+       ],
+       [
+        "Max. number of vertices",
+        "17–25"
+       ]
+      ]
+     },
+     "pozn": "Open (one-end connected) traverse: max 3 new vertices, length up to 250 m. Limit deviation of the angular misclosure Δω = c·√n (n = number of angles; c by class/standard). The specific values differ between sources/standards — verify in ČSN 73 0415.",
+     "zdroj": "ČSN 73 0415 (Geodetické body); výukové materiály VUT/ZČU",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch07s04.html",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Polar point — conditions for determining an auxiliary point",
+     "tagy": [
+      "polar point",
+      "polar point",
+      "auxiliary point",
+      "polar distance",
+      "orientation",
+      "survey network"
+     ],
+     "telo": "Polar point = determination of a new point from a known point by a measured bearing and distance (an open traverse with one side). For auxiliary survey points (per the cadastral renewal manual): max length 1500 m and not more than the length of the farthest orientation. Orientation either at the given point to 2 control points (mxy ≤ 0.04 m), or at the determined point to ≥3 points — the angle between the direction with the measured distance and the others 30–170 gon.",
+     "pozn": "Length > 800 m → angles in two sets. Starting point with an error of 0.04–0.06 m → max 300 m. Points on technical structures usually up to 50 m. A point must not be determined by a single polar point only (a check is required).",
+     "zdroj": "ČÚZK — Návod pro obnovu katastrálního operátu a převod",
+     "odkaz": "https://cuzk.gov.cz/Predpisy/Resortni-predpisy-a-opatreni/Navody-CUZK/Navod_150150022.aspx",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Free station and orientation",
+     "tagy": [
+      "free station",
+      "orientation",
+      "station",
+      "connection",
+      "intersection",
+      "gon"
+     ],
+     "telo": "Free station: the instrument stands at an arbitrary point, its position is determined by measuring to given points. Orientation at the station is always done to at least 2 control/auxiliary points and to at least one of them the distance is measured too. For an unambiguous determination 2 points (direction + distance) or 3 points (directions only) suffice; for checking and adjustment (least squares) redundant points are chosen.",
+     "pozn": "The angle at the determined point between the directions to two given points should be within 30–170 gon. Angles are measured/recorded with an accuracy of at least 0.001 gon.",
+     "zdroj": "ČÚZK — Návod pro obnovu KO; katastrální vyhláška č. 357/2013 Sb.",
+     "odkaz": "https://cuzk.gov.cz/Predpisy/Resortni-predpisy-a-opatreni/Navody-CUZK/Navod_150150022.aspx",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Intersection (forward / resection / from distances)",
+     "tagy": [
+      "intersection",
+      "forward",
+      "resection",
+      "from distances",
+      "resection",
+      "danger circle",
+      "intersection angle"
+     ],
+     "telo": "FORWARD intersection: the position of a new point as the intersection of directions (or distances) from given points. RESECTION: the station is determined by sighting ≥3 given points. Intersection from distances: from distances measured to/from known points. The intersection angle at the determined point should be 30–170 gon (neither too acute nor too obtuse).",
+     "pozn": "Resection: BEWARE of the \"danger circle\" — if the station lies near the circle passing through the three given points, the problem has no reliable solution.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb.; výukové materiály ČVUT/ZČU",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch07s03.html",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Tacheometry (detail points with a total station)",
+     "tagy": [
+      "tacheometry",
+      "detail points",
+      "total station",
+      "polar",
+      "mapping",
+      "relief",
+      "accuracy"
+     ],
+     "telo": "Tacheometry = simultaneous determination of position (polar: horizontal angle + distance) and height (trigonometrically from zenith angle and distance) of detail points from one station — the basis of planimetric and height mapping. Modern total stations: point mean error of the order of 0.02–0.05 m, distances even over 200 m (accuracy decreases with distance).",
+     "pozn": "Check: before leaving the station, sight at least one given point as a check (verifying that the orientation / horizontal circle didn't change during collection). Required accuracy of detail points per quality code (cadastre) / ČSN 01 3410 for large-scale maps.",
+     "zdroj": "Výukové materiály ČVUT/ZČU; ČSN 01 3410; katastrální vyhláška č. 357/2013 Sb.",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch15.html",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "vysky",
+   "nazev": "Height measurement (levelling)",
+   "zkratka": "Heights",
+   "zaznamy": [
+    {
+     "nazev": "Levelling — types and measurement conditions",
+     "tagy": [
+      "levelling",
+      "technical levelling",
+      "precise",
+      "very precise",
+      "sight",
+      "sight length",
+      "sight height",
+      "misclosure",
+      "height difference"
+     ],
+     "telo": "Geometric levelling is divided by accuracy into technical (TN), precise (PN), very precise (VPN) and especially precise (ZPN). They differ in sight length, minimum sight height above the ground (because of refraction near the ground) and the limit deviation of the line misclosure (R = line length in km, result in mm):",
+     "tabulka": {
+      "hlavicka": [
+       "Type",
+       "Max. sight length",
+       "Min. height above ground",
+       "Limit misclosure deviation"
+      ],
+      "radky": [
+       [
+        "Technical (normal)",
+        "120 m",
+        "0,5 m",
+        "40·√R mm"
+       ],
+       [
+        "Technical (increased)",
+        "80 m (opt. 40–50)",
+        "0,3 m",
+        "20·√R mm"
+       ],
+       [
+        "Very precise / especially precise",
+        "50 m (often ≤40)",
+        "0,5 m",
+        "both directions, per ČSN"
+       ]
+      ]
+     },
+     "pozn": "TN: always start from two verified benchmarks; max line length 3–5 km. VPN/ZPN: measured there and back (both directions), double-scale staffs, connection to two points at least 1 km apart. Values from ČVUT/VUT teaching materials — verify the binding wording in ČSN.",
+     "zdroj": "ČSN 73 0415 (Geodetické body) a navazující předpisy; výukové materiály ČVUT/VUT",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch11s05.html",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Trigonometric levelling (height determination)",
+     "tagy": [
+      "trigonometric levelling",
+      "height",
+      "height difference",
+      "zenith angle",
+      "refraction",
+      "total station"
+     ],
+     "telo": "The height difference is determined from the zenith (vertical) angle and the slope distance — typically with a total station. Suitable for heights of inaccessible points and over longer distances where levelling isn't possible. On longer sights the influence of refraction and Earth curvature grows — they must be corrected; reliability is increased by measuring there and back (both ways) and by shorter sights.",
+     "pozn": "Accuracy depends on the sight length and the zenith angle accuracy — assessed separately (law of error propagation). For precise heights choose shorter sights and reciprocal measurement.",
+     "zdroj": "Výukové materiály ČVUT/VUT/SPŠ zeměměřická; ČSN pro výšková měření",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch11s05.html",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "vytyceni",
+   "nazev": "Stake-out",
+   "zkratka": "Stake-out",
+   "zaznamy": [
+    {
+     "nazev": "Staking out land boundaries",
+     "tagy": [
+      "stake-out",
+      "staking out",
+      "boundary",
+      "documentation",
+      "report",
+      "stake-out sketch",
+      "ÚOZI",
+      "limit deviation"
+     ],
+     "telo": "Staking out a boundary is a surveying activity in the public interest (§ 80–90 of the decree + items 16.28–16.32 of the annex). The stake-out accuracy depends on the sources: with numerical data the vertices are staked out with a mean coordinate error of ±0.14 m (code 3); with only a graphic 1:2880 map (or one digitised from it) only ±1.00 m. DOCUMENTATION is drawn up (stake-out sketch + stake-out report) verified by an ÚOZI; the affected owners are invited to be acquainted with it.",
+     "pozn": "Deadlines: a copy to the client within 30 days, copies to the affected owners; within 90 days a copy to the cadastral office. The cadastral office doesn't change the boundary in the map, it only adds the marks of permanent monumentation (unless there is disagreement). Staking out doesn't change legal relations; the owners needn't respect the stake-out and may refine the course within the limit deviations.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 80–90 + příloha body 16.28–16.32; zeměměřický zákon č. 200/1994 Sb. § 12",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Setting out structures (ČSN 73 0420)",
+     "tagy": [
+      "setting out structures",
+      "ČSN 73 0420",
+      "setting-out deviation",
+      "limit",
+      "construction tolerance",
+      "structure"
+     ],
+     "telo": "The accuracy of setting out structures is governed by ČSN 73 0420: part 1 (Basic requirements) — principles and computation of setting-out accuracy criteria; part 2 (Setting-out deviations) — specific values of limit setting-out deviations for linear, areal and spatial structures. The limit setting-out deviation is derived from the construction tolerance (standard deviation from the construction tolerance).",
+     "pozn": "The specific numeric values are in the paid ČSN 73 0420-2 (only a reference here). Related: ČSN ISO 4463 (measurement methods in construction).",
+     "zdroj": "ČSN 73 0420-1 a ČSN 73 0420-2 (Přesnost vytyčování staveb)",
+     "odkaz": "https://www.technicke-normy-csn.cz/csn-73-0420-1-730420-221530.html",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "ciselniky",
+   "nazev": "Codes and code lists",
+   "zkratka": "Code lists",
+   "zaznamy": [
+    {
+     "nazev": "Land types (codes)",
+     "tagy": [
+      "land type",
+      "code",
+      "code list",
+      "arable",
+      "garden",
+      "permanent grassland",
+      "forest",
+      "water",
+      "built-up",
+      "other"
+     ],
+     "telo": "Land type is a binding characteristic registered in the cadastre. Land type codes:",
+     "tabulka": {
+      "hlavicka": [
+       "Code",
+       "Land type"
+      ],
+      "radky": [
+       [
+        "2",
+        "arable land"
+       ],
+       [
+        "3",
+        "hop field"
+       ],
+       [
+        "4",
+        "vineyard"
+       ],
+       [
+        "5",
+        "garden"
+       ],
+       [
+        "6",
+        "orchard"
+       ],
+       [
+        "7",
+        "permanent grassland"
+       ],
+       [
+        "10",
+        "forest land"
+       ],
+       [
+        "11",
+        "water area"
+       ],
+       [
+        "13",
+        "built-up area and courtyard"
+       ],
+       [
+        "14",
+        "other area"
+       ]
+      ]
+     },
+     "pozn": "Codes 2–7 are agricultural land (ZPF). Land type in the cadastre ≠ permission to build (the zoning plan decides that).",
+     "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon) § 3; vyhláška č. 357/2013 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Types of geodetic control networks",
+     "tagy": [
+      "control points",
+      "TB",
+      "ZhB",
+      "PBPP",
+      "trigonometric",
+      "densification",
+      "levelling",
+      "horizontal",
+      "vertical",
+      "gravity"
+     ],
+     "telo": "Control networks are divided into horizontal, vertical and gravity. In the horizontal network there are trigonometric points (TB), densification points (ZhB) and the detailed horizontal control network (PBPP) — from the most accurate/sparse to the denser and less accurate. The vertical network consists of levelling benchmarks, the gravity network of gravity points.",
+     "pozn": "Specific accuracies and classes are set by the regulations on control networks (the Surveying Act and its implementing decree).",
+     "zdroj": "Zákon č. 200/1994 Sb. o zeměměřictví a prováděcí vyhláška č. 31/1995 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/1995-31",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Area determination method code",
+     "tagy": [
+      "code",
+      "area determination method",
+      "area",
+      "0",
+      "1",
+      "2",
+      "code list"
+     ],
+     "telo": "The code states how the parcel area was determined (and thus its reliability):",
+     "tabulka": {
+      "hlavicka": [
+       "Code",
+       "Area determination method"
+      ],
+      "radky": [
+       [
+        "2",
+        "from coordinates in S-JTSK, quality code 3 or 4 (most accurate)"
+       ],
+       [
+        "1",
+        "from directly measured dimensions or from coordinates in a local system"
+       ],
+       [
+        "0",
+        "from coordinates in S-JTSK with at least one point of quality 5–8, or graphically"
+       ]
+      ]
+     },
+     "pozn": "Code 2 = the highest accuracy. A graphically determined area falls under code 0.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Land use",
+     "tagy": [
+      "land use",
+      "land",
+      "code list",
+      "greenhouse",
+      "handling area",
+      "landfill"
+     ],
+     "telo": "A supplementary characteristic to the land type — it specifies what the land serves for. Examples: greenhouse / hotbed, handling area, land with ruins, motorway / road, cemetery and urn grove, waste landfill, photovoltaic power plant, water area land with a building. The code list is extensive.",
+     "pozn": "The complete code list is kept by ČÚZK (ISKN code lists → Land use).",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha; číselník ČÚZK",
+     "odkaz": "https://cuzk.gov.cz/Katastr-nemovitosti/Poskytovani-udaju-z-KN/Ciselniky-ISKN/Ciselniky-k-nemovitosti/Zpusob-vyuziti-pozemku.aspx",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Type of property protection",
+     "tagy": [
+      "type of protection",
+      "protection",
+      "code list",
+      "cultural monument",
+      "ZPF",
+      "protected area",
+      "buffer zone"
+     ],
+     "telo": "Records whether and how the property is protected under special regulations. Examples: immovable cultural monument (heritage protection), protection of the agricultural land fund (ZPF), nature and landscape protection, protected area or buffer zone.",
+     "pozn": "The complete code list is kept by ČÚZK. Note: on land with ZPF protection, removal from the ZPF is required before building.",
+     "zdroj": "Číselník ČÚZK (ISKN)",
+     "odkaz": "https://cuzk.gov.cz/Katastr-nemovitosti/Poskytovani-udaju-z-KN/Ciselniky-ISKN/Ciselniky-k-nemovitosti/Zpusob-ochrany-nemovitosti.aspx",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "gp-zpmz",
+   "nazev": "Requirements of GP and ZPMZ",
+   "zkratka": "GP / ZPMZ",
+   "zaznamy": [
+    {
+     "nazev": "Survey plan — when and what it contains",
+     "tagy": [
+      "survey plan",
+      "GP",
+      "requirements",
+      "title block",
+      "statement",
+      "ÚOZI",
+      "confirmation"
+     ],
+     "telo": "A survey plan (GP) is the technical basis for registering a change in the cadastre (division/merger of parcels, marking a building, an easement on part of a parcel etc.). It contains in particular the title block, a graphic representation of the existing and new state and a statement of the existing and new state of cadastral data (possibly a coordinate list and a BPEJ statement). It must be verified by a licensed surveyor (ÚOZI) and confirmed by the cadastral office.",
+     "pozn": "Regulation: § 79–86 of the decree and annexes No. 17 and 18. The cadastral office confirms the GP within 10 days.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 79–86 + přílohy 17 a 18",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Record of detailed survey of changes (ZPMZ)",
+     "tagy": [
+      "ZPMZ",
+      "record of detailed survey of changes",
+      "sketch",
+      "field book",
+      "survey documentation",
+      "coordinates"
+     ],
+     "telo": "ZPMZ is survey documentation deposited at the cadastral office — the result of surveying activities for a change (incl. the survey part of a survey plan). It contains in particular the title block, the survey sketch (geometric basis points, identical points, survey network; the new state is drawn in RED), the field book of measured data, the computation report and the coordinate list.",
+     "pozn": "The requirements are governed by item 16 of the annex. One ZPMZ can be used as the basis for several related survey plans.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha bod 16",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "When a survey plan is drawn up (§ 79)",
+     "tagy": [
+      "survey plan",
+      "GP",
+      "when",
+      "purpose",
+      "land division",
+      "building",
+      "easement"
+     ],
+     "telo": "A GP is drawn up for: a) a change of a cadastral unit boundary, b) land division, c) a change of a land boundary, d) marking/changing the outline of a building (main structure) and a water structure, e) determining boundaries in land consolidation, f) completing land registered in a simplified way, g) correcting the geometric and positional determination, h) refinement/reconstruction under an allotment procedure, i) the course of a staked-out or owner-refined boundary, j) the course of a boundary determined by a court, k) delimiting an easement on part of a parcel.",
+     "pozn": "A GP is NOT drawn up when the change concerns the whole parcel without a boundary change. Easement: a GP only for part of a parcel, not for the whole.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 79 odst. 1",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Marking and monumenting boundaries (§ 91)",
+     "tagy": [
+      "boundary",
+      "marking",
+      "monumentation",
+      "boundary mark",
+      "boundary stone",
+      "stone",
+      "plastic"
+     ],
+     "telo": "Boundary vertices are marked permanently: stones with a dressed head, plastic or reinforced concrete marks (at least 80×80×500 mm); a concreted iron pipe ø 20–40 mm or steel rebar ø 10–40 mm is also permissible. The centre of the mark coincides with the boundary vertex. The boundary is marked so that both neighbouring marks are visible from each mark and on straight sections the marks are no farther than 200 m apart.",
+     "pozn": "Other permanent ways of marking are also allowed (e.g. a wall). Boundaries merged into larger units aren't marked. If the owner doesn't mark the boundaries, the cadastral office may mark them at the owner's expense and impose a fine (§ 37 par. 2 of the Cadastral Act).",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., § 91",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Numbering of detail points and ZPMZ",
+     "tagy": [
+      "numbering",
+      "point number",
+      "ZPMZ",
+      "detail point",
+      "cadastral unit"
+     ],
+     "telo": "A detail point number has twelve digits and consists of three parts: the sequence number of the cadastral unit, the ZPMZ number and the point's own number (the quality code is given below the point). The unit of ZPMZ numbering is the cadastral unit. Existing points aren't renumbered — in the survey sketch only the ZPMZ number is given for them; newly surveyed check and identical points are given with their original numbers.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb., příloha",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "lhuty",
+   "nazev": "Deadlines and procedures",
+   "zkratka": "Deadlines",
+   "zaznamy": [
+    {
+     "nazev": "Protective period for registration (20 days)",
+     "tagy": [
+      "deadline",
+      "protective period",
+      "registration",
+      "20 days",
+      "seal",
+      "proceedings"
+     ],
+     "telo": "After filing an application for registration, a protective period of 20 days runs. The cadastral office informs the owner that their property is affected (seal) and may not allow the registration earlier than 20 days after this notification. The period gives room to defend against a fraudulent transfer — it is preclusive (after it expires an objection can no longer be raised).",
+     "pozn": "After the protective period the office usually has a further period (up to ~30 days) to decide; the whole proceedings can thus take of the order of 50 days.",
+     "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon) § 18",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Seal (note of pending proceedings)",
+     "tagy": [
+      "seal",
+      "P",
+      "title deed",
+      "proceedings",
+      "deadline"
+     ],
+     "telo": "The seal (the letter \"P\" at the property, in practice in part D / at the respective data) means that proceedings affecting registered rights are pending. It is marked no later than the next working day after the application is delivered; the office sends the notification to the owner within one day. The seal ceases after the registration is made or the proceedings are stopped or rejected.",
+     "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon)",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Confirmation of a survey plan by the cadastral office",
+     "tagy": [
+      "deadline",
+      "survey plan",
+      "confirmation",
+      "10 days",
+      "cadastral office"
+     ],
+     "telo": "The cadastral office reviews the survey plan (whether it has the requirements per the decree and correct parcel numbering) and confirms it usually within 10 days.",
+     "zdroj": "Katastrální vyhláška č. 357/2013 Sb.; správní řád",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Correction of an error in the cadastre (§ 36)",
+     "tagy": [
+      "error correction",
+      "deadline",
+      "30 days",
+      "60 days",
+      "disagreement",
+      "cadastral documentation"
+     ],
+     "telo": "Error correction brings the cadastral entry into line with the documents (it doesn't serve to remedy a discrepancy with the actual legal state). The cadastral office makes the correction on application within 30 days, in particularly justified cases within 60 days of delivery of the application (also without application, ex officio). It notifies the result; if the owner/entitled person disagrees within 30 days of delivery of the notice, the office issues a decision on the matter (an appeal is possible).",
+     "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon) § 36",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Types of entries (registration / record / note)",
+     "tagy": [
+      "entry",
+      "registration",
+      "record",
+      "note",
+      "right in rem",
+      "disputedness"
+     ],
+     "telo": "The cadastre is written into in three ways: by REGISTRATION (vklad) rights in rem are entered (ownership, lien, easement…), rights agreed as rights in rem, lease and tenancy — registration proceedings with a 20-day protective period. By RECORD (záznam) rights derived from ownership are entered (typically on the basis of decisions/documents of authorities). By NOTE (poznámka) important information is entered (e.g. execution, note of disputedness).",
+     "zdroj": "Zákon č. 256/2013 Sb. (katastrální zákon)",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    }
+   ]
+  }
+ ]
+}
