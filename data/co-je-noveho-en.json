@@ -1,0 +1,1289 @@
+{
+  "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
+  "verze": [
+    {
+      "v": 361,
+      "datum": "2026-09-18",
+      "nadpis": "Everything translated: release notes and Update history in five languages, Newsletter per language",
+      "body": [
+        "<b>What's new and Update history</b> are in English, German, Polish, Spanish and Italian — all 118 releases since the first version (data/co-je-noveho-xx.json, 559 texts). Days in the history are spelled out in the app's language (Friday 18 September 2026), counts of days and changes and release numbers go through patterns.",
+        "<b>The Geo newsletter</b> reads the issue per language (data/zpravodaj-xx.json): rubrics, the editorial, \"Read the original at the source\" and the footer are in the dictionary, today's issue is translated by hand. The daily build (scripts/build-zpravodaj.mjs) can translate the issue itself when the repository has the ANTHROPIC_API_KEY key — without it the articles stay in their original language and stale translations are deleted so the foreign-language app doesn't show yesterday's news.",
+        "The foreign-language app keeps the release notes and the newsletter on the phone (DICT_CACHE, refreshed in the background; the ?t= stamp no longer fills the cache with copies) and downloads them again after switching language.",
+        "Test test_jazyky_data extended to 113 checks (release notes: same structure, HTML and v/date in all languages; newsletter; History and Newsletter in the browser in Italian without a Czech sentence)."
+      ]
+    },
+    {
+      "v": 360,
+      "datum": "2026-09-18",
+      "nadpis": "Navigation even to a distant point, base map Map · Orthophoto · Cadastre, Tools reviewed and tidied, Settings → Application",
+      "body": [
+        "<b>The terrain route to a point</b> now also leads to a <b>levelling or trigonometric point</b> kilometres away: up to 3 km in detail as before, up to 20 km along roads and tracks from a coarser map (over 20 km a straight line). A target on a building wall (levelling bolt) — the route goes right up to it, not just \"to the nearest spot\".",
+        "<b>The map base</b> is two tabs: <b>Map</b> (own vector map, now on from the start — when there's no data or the phone is weaker, a raster quietly runs underneath) and <b>Orthophoto</b>; next to them <b>Cadastre</b> as a parcel switch over the base. The plain raster map as an option is gone.",
+        "<b>Tools reviewed one by one:</b> set aside (not deleted — find them by search) went the tape in the camera, check distances, volumes, route track, quality report, point verification, the \"don't know where to start\" guide, the Align differently signpost, visual stabilisation, surroundings tour, offline vector map, signal prediction and today in the field. <b>Align AR</b> = Compass and Align north.",
+        "<b>Precise measurement</b> has six rows instead of nine: <b>Fix GPS</b> (walking along an edge · from the map while walking · by a known point) and <b>With two phones</b> (DGPS · acoustic rangefinder) are signposts. \"Why ±4 m?\" shows <b>your current accuracy</b>. The correction is called \"True length from tape or rangefinder\".",
+        "<b>Point hunters</b> are in Learn, <b>Hidden points</b> next to Restore deleted point, <b>Distant points into AR</b> in Base data.",
+        "<b>Settings → Application</b> (formerly Maintenance + the side More): four sections <b>Help and guides</b> · <b>About the app</b> · <b>Backup</b> · <b>Space on the phone</b> — guide, Does everything work?, Write to the author, history, sharing, administration, backup, device profile, free up space. Hidden points are in Data next to the job. The strip under the tabs leads straight to the Guide."
+      ]
+    },
+    {
+      "v": 359,
+      "datum": "2026-09-18",
+      "nadpis": "Translations completed: guides, Regulations, Practice tasks and Geo cards in five languages, the last Czech remnants",
+      "body": [
+        "<b>The \"?\" guides of the tools</b> (110 texts), <b>Regulations and tolerances</b>, <b>Practice tasks</b> and <b>Geo cards</b> are in English, German, Polish, Spanish and Italian — not literal translations but texts written according to what the tool does. The Czech originals stay unchanged (data/navody-xx.json, predpisy-xx.json, ulohy-xx.json).",
+        "Over 1,000 more texts translated from screens that used to stay Czech in a foreign language: Precise GPS, Calibration by walking along an edge, Correction from the map, Acoustic rangefinder, Axis, Layers, Quiz, Yearbook, My activity, GNSS forecast, Weather (notes on weights and ČHMÚ measurements), company panel, briefing. Sentences glued together with numbers (\"38.6 m to the north-east\", \"September 2026\", \"Week: 6 min in the app…\") via patterns.",
+        "Spanish and Italian caught up with the remaining 27 texts (account, sign-in, Cadastre); all five languages now have the same set of 6,539 keys.",
+        "<b>The app in a foreign language no longer clings to the old dictionary</b>: dictionary extensions and localised files are refreshed in the background on every start (before, the service worker kept them forever in the first downloaded form — new translations never reached you).",
+        "New test test_jazyky_data (53 checks: files per language, same structure and HTML, Italian guide in the \"?\" window, Regulations, tasks, cards) in CI."
+      ]
+    },
+    {
+      "v": 358,
+      "datum": "2026-09-18",
+      "nadpis": "Walk-through of the app, round 2: a new user gets in, the menu no longer taps into nothing",
+      "body": [
+        "<b>New user</b>: gate → More options → \"Create for this device only\" → after closing the guide the app starts. Before, a black screen with only the dock remained (the company was created but nobody started the app).",
+        "More menu: \"Task guide\" and \"Tutorial and tour\" tapped right after start (before the deferred modules download) open a moment later — before, the tap silently fell through (openPruvodce / startTutorial is not defined).",
+        "Point card in a foreign language: \"I found it — 40 m to go / stand still 5 s more / waiting for GPS\" translated (it used to stay in Czech).",
+        "Passed: the gate and company creation, all menu items (Pro and Basic), every switch in Settings there and back, the Map panel rows, five languages, landscape display, gloves / left hand / font 130 % / outdoor / simple mode, 64 tools + 29 signpost items — no page error, no \"undefined/NaN\" text."
+      ]
+    },
+    {
+      "v": 357,
+      "datum": "2026-09-18",
+      "nadpis": "Daily check: Save and next fills in GPS by itself again",
+      "body": [
+        "After \"Save and next\" the coordinates of the next point fill in from the GPS average by themselves again — even if you overwrote Y/X by hand at the previous point. Otherwise just a check: all 45 test suites green, password recovery tried live on the server (a one-off account, deleted after the test)."
+      ]
+    },
+    {
+      "v": 356,
+      "datum": "2026-09-18",
+      "nadpis": "New point in two taps, bigger targets in the map, account recovery code",
+      "body": [
+        "<b>New point in two taps</b>: after opening, the coordinates fill in from the GPS average by themselves and refine every second (\"averaged from N · ±x m\"); tapping \"From GPS average\" is no longer needed. Whoever overwrites Y/X by hand or picks the map or a photo switches the automation off. When there is no satellite fix yet, the note below the buttons says so — no pop-up.",
+        "<b>Point markers in the map</b> catch taps within a 28 px radius (was 25), in gloves mode 34 px.",
+        "<b>Account recovery code</b>: registration still needs no e-mail, but the account gets a second key (20 characters) when created. On the gate there is \"Forgotten password? I have a recovery code\" → new password without e-mail; after use you get a new code. Whoever has an older account makes a code in About → Account → Recovery code (asks for the password).",
+        "The regression tests in CI run in three streams (≈7 minutes instead of 20); two suites that occasionally timed out in the long batch now wait more reliably."
+      ]
+    },
+    {
+      "v": 355,
+      "datum": "2026-09-18",
+      "nadpis": "Walk-through of the whole app: what misbehaved when clicking through all the tools",
+      "body": [
+        "<b>The toast \"Something went wrong (ucty:usageLog)\" is gone.</b> The storage overview in Settings → Maintenance created the modules' databases empty, and the module then couldn't write to them (change journal, usage measuring, photos, voice notes). The overview creates nothing anymore and each module adds its missing store itself — the data stays.",
+        "Site sketch: the \"Move\" button has an icon (it used to say \"undefined\").",
+        "Point card: an official point without Y/X in the data (e.g. Slovak points) shows S-JTSK computed from the position instead of dashes; on a small display (320 px) the coordinates aren't shortened with an ellipsis.",
+        "Distant points into AR: the \"Collapse\" wheel no longer lies over the status pill. Cadastre window: the wheel doesn't lie over the heading.",
+        "Terrain route without signal says \"no signal, or the server isn't responding\" instead of the English \"Failed to fetch\".",
+        "The CI test for Write to the author counted on three languages — since v351 there are five (so it was red)."
+      ]
+    },
+    {
+      "v": 354,
+      "datum": "2026-09-18",
+      "nadpis": "Navigation without a pop-up, the map in one place, clearer Tools, the Controls tab, small displays, translations",
+      "body": [
+        "<b>Take me there without a pop-up</b>: when the terrain route has no data right now (downloading, the target is too far…), an unobtrusive pill at the bottom of the map says so and disappears by itself — before, a window with an OK button in the middle of walking. Clearing the selection of distant points no longer overrides a download from ČÚZK still finishing.",
+        "<b>The vector map has one place</b>: it is switched on and styled only in the Map panel (Layers button → Base). In Settings → Data only the address of your own data remains. 3D view, Where can I measure and Site sketch no longer send you to Settings — they switch the map on themselves (or ask and switch it on).",
+        "<b>Tools from four layers to two</b>: the \"What are you doing today\" strip is gone from the Tools window (pick the work profile in Settings → Profiles; whoever wants the strip switches it on there too), ★ Pinned shows only when something is pinned, and the four office verbs (Before leaving, Company, Handbook, Learn) are sections on the \"More\" page — the strip has 8 verbs instead of 14. A new user opens Tools straight on Measure.",
+        "<b>Settings → Controls</b>: a new tab for left hand, gloves, vibration, gestures, simple mode, simplification and weaker phone / battery saving. Appearance keeps the theme, font and on-screen elements.",
+        "<b>Small display and phone in landscape</b>: on heights up to 640 px the dock rises and shrinks, so the Map/Split/AR wheel no longer lies over the Settings button (iPhone SE, 844×390).",
+        "<b>Translations</b>: 190 texts of tools from the latest versions (Point hunters, Precise GPS, Site sketch, Map panel, point card, measuring country…) added to English, German, Polish, Spanish and Italian; a CI check makes sure every new tool has a translation.",
+        "Messages like \"You can revert the mode choice in Settings → Appearance\" lead where the choice really is (Profiles, Controls)."
+      ]
+    },
+    {
+      "v": 353,
+      "datum": "2026-09-18",
+      "nadpis": "Check after two days of changes: messages don't hold you up, map data doesn't hammer the server",
+      "body": [
+        "The messages \"Terrain route: …\", \"Obstacle saved\", \"Slovakia: N points\" and \"Layer hidden\" are now short bubbles, not windows you have to dismiss (they also blocked dragging the divider in split).",
+        "When there's no map data for the country or no signal, the app tries again only after a minute (was every 5 s) and gives the real reason in the message.",
+        "All test suites passed: Map panel, terrain route, 3D, sketch, Geo cards, Slovak points, countries, Android, app walk-through."
+      ]
+    },
+    {
+      "v": 352,
+      "datum": "2026-09-18",
+      "nadpis": "Slovak official points, Geo cards refreshed, an airier Map panel, 3D by theme, house numbers upright",
+      "body": [
+        "<b>Slovakia has official points</b>: when the measuring country is SK, GKÚ SR points within 1.2 km are downloaded — the State trigonometric network (I–V order, orientation and densification points), the levelling network, the gravimetric and spatial network — with designation, cadastral unit, mark type and Bpv height. In the map, in AR and in navigation they behave like Czech ones (they don't have the official ČÚZK sketch, of course). The position is converted from S-JTSK (±1 m).",
+        "<b>Geo cards</b> (formerly \"Scroll and learn\"): each kind has its own colour, a big icon and a subtle pattern, the content lies on paper; at the bottom is a card counter.",
+        "<b>Map panel</b>: a slimmer header, tabs with breathing room; in the Layers tab there's a new <b>Surroundings watcher</b> switch (you're standing in a building, by a wall, under trees…) and a link to the correction settings (walking calibration, correction from map, snapping to corners). In split the panel closes after choosing a base so you can see the map switched.",
+        "<b>3D view</b> follows the app theme (dark = night map), not the manually chosen 2D map style; blueprint and print stay.",
+        "<b>House numbers, names of settlements and peaks</b> in the vector map stay upright when the map rotates with your heading — you don't read them upside down (street names run along the street as on paper).",
+        "Map data: Austria uploaded (from the country outline, 1.0 GB) and Hungary."
+      ]
+    },
+    {
+      "v": 351,
+      "datum": "2026-09-18",
+      "nadpis": "The app speaks Spanish and Italian",
+      "body": [
+        "<b>Two new languages: Spanish and Italian.</b> Everything that is in English, German and Polish is translated — the core and the whole extension (over 6,600 texts), including technical terminology (replanteo / tracciamento, distancias de control / misure di controllo, catastro / catasto…). Switch at the very top of <b>Settings → Appearance</b> or with the ring on the sign-in screen; a phone set to Spanish or Italian picks the language itself.",
+        "As with the other languages: Czech downloads nothing extra, the extension (~480 kB) is downloaded only after choosing the language and only that one. Proper names stay — ČÚZK, ČHMÚ, CZEPOS, S-JTSK, Bpv, decree numbers."
+      ]
+    },
+    {
+      "v": 350,
+      "datum": "2026-09-18",
+      "nadpis": "Map panel on three levels, terrain navigation even on orthophoto, obstacle on its own canvas",
+      "body": [
+        "<b>The Map and layers panel</b> (Layers button) has three tabs: <b>Base</b> (Map · Vector · Orthophoto cards with a sample, below them map rotation, vector map style and measuring country), <b>Layers</b> (cadastre, parcels, drawing, GPS quality, obstacles, terrain route, own base — switches) and <b>Tools</b> (Look around · Draw and measure · Data on the phone). Only one level is visible at a time, swipe to the next. The temporary \"Map trial\" button is gone — everything from it has its place in the panel.",
+        "<b>The terrain route works on orthophoto and on raster too</b> — building and path data is taken from the map tiles regardless of what is visible right now (before only with the vector map switched on on screen → a straight line). When the data isn't there yet, the app says it's downloading and computes the route by itself.",
+        "<b>Obstacle</b>: drawn on its own canvas above the map, so it doesn't fight with panning, zooming or long press (measuring); two fingers in drawing mode pan and zoom the map. The shape is visible during the stroke and after saving; the enabled Obstacles layer can be hidden.",
+        "A vector map switched on from the 3D view or from the panel stays on even after a style change (before it switched off after switching the style)."
+      ]
+    },
+    {
+      "v": 349,
+      "datum": "2026-09-17",
+      "nadpis": "From phone feedback: 3D card over the view, pavements on the terrain, obstacle by finger, sketch in a new coat, Scroll and learn",
+      "body": [
+        "<b>3D view</b>: tapping a point slides out <b>the classic point card over the 3D</b> (nothing switches to 2D, no flicker); a point is hit even 14 px off. <b>Pavements</b> are no longer broken rectangles — they are strips at real width with a kerb, laid on the terrain, without flicker and slanted slopes. <b>Greenery</b> is taken also from land-use areas (a park with trees, an orchard), before only from land cover — which is why it wasn't visible. <b>The globe</b> shows earlier (from the view of the whole of Czechia); MapLibre can't do more curvature than the real Earth's.",
+        "<b>Obstacle</b>: pick the kind and <b>trace the shape with one finger</b> in the map (two fingers = panning and zooming still work), no pop-ups; two taps = a rectangle as before. Cancel with the button in the bar at the top.",
+        "<b>Terrain route</b>: when there's no route and a straight line is shown, the app says why (target farther than 3 km, map loading, no passage from here…); range raised from 1.5 to 3 km. <b>Underpasses and passages through buildings</b> (a path in a tunnel) stay passable — only metro, railway and long road tunnels are dropped.",
+        "<b>Site sketch</b>: a new look (header with the point, base switch, palette of symbols at the bottom, bar with icons, north arrow, gridded paper) and <b>symbols following thematic-map conventions</b> (ČSN 01 3411, simplified): deciduous and coniferous tree, bush, post, lamp, manhole, hydrant, gully, boundary stone, traffic sign; lines fence / wall / kerb / ditch. <b>Trees from the orthophoto</b>: crown positions estimated from the ČÚZK orthophoto extent (dark or textured green patches) — added dashed, delete what doesn't fit.",
+        "<b>Scroll and learn</b> (Tools → Learn): cards to swipe — terms, formulas, regulations, questions from exercises, what the app can do, tips from the field; filter, star, counter.",
+        "<b>Outside Czechia</b>: map data for Slovakia, Hungary and Austria (Austria and Slovenia still uploading), the country simulation adds 3 sample points, the point list explains that ČÚZK official points exist only in Czechia."
+      ]
+    },
+    {
+      "v": 348,
+      "datum": "2026-09-17",
+      "nadpis": "Navigation no longer goes through walls, gravity point correct, working in 3D, site sketch",
+      "body": [
+        "<b>The terrain route</b> takes buildings and paths straight from the map tiles for the whole section, not just what the map has on screen right now (zoomed-out map = no buildings = a route through houses). It keeps a metre away from buildings, follows paths <b>along their axis</b> (not a metre beside), grid 1 m. When you stand <b>inside a building</b>, it leads you first to the <b>exit</b> (entrance from the map, otherwise the side facing the street — not an emergency exit) and only from there over the terrain. A target in a closed courtyard or a building = the route ends at the nearest spot and shows the rest straight (red dashed). Metro and tunnels aren't used in the route.",
+        "<b>AR</b>: the arrow leads to the next vertex of the route, <b>the line in the tape</b> shows the sought point (direct direction) and the azure dot below it the next vertex.",
+        "<b>A gravity point</b> downloaded by an older version (saved as PPBP) is reclassified by the ČÚZK layer after a new download — a hexagon in the map and \"Gravity point\" in the card header, not a circle with PPBP.",
+        "<b>Where can I measure</b>: hide the layer with the \"Hide\" pill right in the map (or the button in the result dialog), not only in the Layers panel.",
+        "<b>Obstacles in the map</b>: before drawing you pick the kind (pile, excavation, machine, fence, water, storage, other) — each has a colour and a symbol, the name is written right in the map and can be renamed; an excavation on a path closes that path for the route.",
+        "<b>3D view</b>: tapping a point = a card with the buttons <b>Point card</b> and <b>Navigate</b> (the route is drawn in 3D too, after closing it keeps running in split), <b>pavements 12 cm above the road</b> (you can tell whether a point is on the pavement or in the road), <b>points at height</b> as a post from the DMR 5G terrain, <b>greenery</b> (forest, scrub) as volumes, when zooming out a <b>globe</b>; the light theme works.",
+        "<b>New tool Site sketch</b> (Cadastre and bases): for the selected point outlines from the map (buildings, roads, paths, water, rails, forest), dimensions from-to with two taps (length from coordinates, tap to enter the tape value), objects (tree, bush, post, manhole, hydrant, stone, sign), fence / edge, text; base <b>Paper / Map / Orthophoto</b> — what you draw on one you see on the others. Saved with the point, PNG export with north arrow, scale bar and legend.",
+        "<b>Foreign country simulation</b> (Settings → Data → Measuring country → Try): puts you in the capital of the chosen country — coordinates, heights, cadastre and map switch as in the field.",
+        "The strip under the status bar (Dynamic Island) no longer stays light after switching from light to dark mode."
+      ]
+    },
+    {
+      "v": 347,
+      "datum": "2026-09-17",
+      "nadpis": "Point sketch laid on the map — which side of the fence the point is on",
+      "body": [
+        "<b>Lay the sketch on the map</b> — a button under the official ČÚZK sketch in the card of an official point. Tap the point mark in the sketch, then a building corner or boundary vertex, and the same corner in the map (within 3 m it snaps to a cadastral vertex). The sketch is stretched and rotated onto the cadastre, semi-transparent — you see which side of the post, fence or corner the point is on.",
+        "<b>In AR</b> the laid sketch is projected on the ground around the point; the bar at the bottom holds transparency, the AR switch, \"Refine with another corner\" (from three pairs it shows how much the points disagree) and \"Take off\". The placement survives a restart.",
+        "Honestly: sketches tend to be schematic → the surroundings fit to ±0.5–1 m, it's for \"which side\", not \"where to dig\". A corner from DKM is centimetres, from UKM ±1 m. The <b>Point sketch on the map</b> tile is in Tools → Cadastre and bases, with a guide."
+      ]
+    },
+    {
+      "v": 346,
+      "datum": "2026-09-17",
+      "nadpis": "Vector map data: the whole of Czechia available right away; temporary \"Map trial\" button",
+      "body": [
+        "<b>The whole of Czechia as map data</b> (1.7 GB) lives in the GitHub release \"mapa-data\" and the QTRIG cloud reads it in pieces — so <b>New map (vector, beta)</b> can be switched on right away, without setting up Cloudflare. Once R2 with all of Europe exists, the worker will reach there itself; outside Czechia the map says for now that data for that country isn't there yet (file per country: sk.pmtiles, at.pmtiles…).",
+        "<b>The \"Map trial\" button</b> at the bottom left of the main screen (temporary): a signpost to everything the own map is built on — switch on the map and style, 3D view, Where can I measure, a sample DXF drawing around you (axis with chainage), obstacle, a trial target round the corner with a terrain route, surroundings watcher, edge correction, snapping to corners, measuring country, clean-up. Each item says where you'll find it permanently. Hide it with the cross (back: Settings → Appearance → Map).",
+        "When there's no data for the country, the map says so right away and the base stays raster."
+      ]
+    },
+    {
+      "v": 345,
+      "datum": "2026-09-17",
+      "nadpis": "Surroundings watcher, route to a point by terrain with a height profile, manual obstacles, cadastre and orthophoto of neighbouring countries",
+      "body": [
+        "<b>Surroundings watcher.</b> By a building (within 4 m), inside a building by the map, under trees, by rails or by a marked obstacle the pill at the top tells you what it does to GPS and what to do (\"move 10 m away, or step offset\"). A new point from GPS records the conditions it was created in (e.g. \"2.1 m from a building\"). Switch off: Settings → AR & accuracy.",
+        "<b>Obstacle with two taps.</b> A pile of material, an excavation, an excavator — none of that is in any map. Layers → Map tools → <b>Obstacle</b>, tap two opposite corners: the route goes around it, the watcher warns before it, the GPS quality map shades it. Valid for the job; tap the rectangle to delete it.",
+        "<b>Route to a point by terrain.</b> Instead of a straight line a polyline that goes around buildings, water, motorways and obstacles and prefers paths over fields and forest (grid 2 m, computed on the phone). The tape and arrow in AR lead to the <b>nearest vertex</b>, the distance is the length along the route; if you stray 15 m it recomputes. Tapping the route shows the <b>height profile</b> (↑ climb, ↓ descent, steepest section). Switch off: Settings → AR & accuracy.",
+        "<b>Cadastre and orthophoto outside Czechia.</b> By the country you're standing in, the map bases switch: Slovakia (ESKN, ZBGIS), Poland (GUGiK), Austria (BEV, basemap.at), Netherlands (PDOK), France (IGN), Switzerland (swisstopo), Slovenia, Belgium (Flanders), Hungary, Spain (orthophoto). Elsewhere in the world Esri orthophoto. Honestly: foreign control networks aren't publicly available as data — outside Czechia you run on your own points, cadastre and map.",
+        "The vector map now checks before switching on that the data really is in the cloud; if not, it says why instead of showing an empty map."
+      ]
+    },
+    {
+      "v": 344,
+      "datum": "2026-09-16",
+      "nadpis": "Accuracy from the map: snapping a point to a corner, automatic GPS correction by an edge, \"where can I measure\" map",
+      "body": [
+        "<b>Snapping to corners.</b> You save a GPS point within 0.6 m of a parcel boundary vertex (cadastre), a DXF drawing point or within 1 m of a building corner from the vector map → the app asks and takes the coordinates from the map instead of the phone. The point records where it came from (snapped to…), accuracy by source (cadastre 0.1 m, drawing 0.05 m, building 0.5 m). Switch off: Settings → AR & accuracy.",
+        "<b>GPS correction by the edge you walk along.</b> When you walk ≥ 20 m parallel to a parcel boundary, a building wall or a drawing line and GPS keeps you constantly the same distance beside it (spread under 0.9 m), it isn't your track but a GPS error: the app offers a shift perpendicular to the edge (or switches it on right away in \"auto\" mode). The same correction as \"GPS shift to a known point\" — pill at the top, watched for 20 min / 300 m. Road axes from OSM aren't used (±1–3 m). Mode in Settings → AR & accuracy.",
+        "<b>Where can I measure</b> (Tools → Precise measuring): a GPS quality map 220 × 220 m around you from shading by buildings (heights from OSM) and forest — green open sky, amber half the sky (measure longer), red by a wall (offset, another spot). An estimate, not a measurement; hide the layer in the Layers panel.",
+        "All three need the vector map switched on (Settings → Appearance) — the building data comes from it; parcels from the Parcels (vector) tool, the drawing from Project import."
+      ]
+    },
+    {
+      "v": 343,
+      "datum": "2026-09-16",
+      "nadpis": "GPS correction from the map while walking, a nicer website, a message after downloading a new version",
+      "body": [
+        "<b>New tool GPS correction from the map while walking</b> (Precise measuring): stand still 30–60 s, tap the orthophoto exactly where you stand and the app subtracts the GPS error <b>even while walking</b> — in AR, in navigation, in distances and in saved points. Valid 10 min / 100 m, the pill at the top watches. The static \"Position from map\" stays separate. A card in the Precise measuring guide + a guide under \"?\".",
+        "The app's website has a new look (<a href=\"web/\" target=\"_blank\" rel=\"noopener\">stepanvcelak11.github.io/ar-geodet/web/</a>).",
+        "After downloading a new version the pill says the app must be closed and started again."
+      ]
+    },
+    {
+      "v": 342,
+      "datum": "2026-09-16",
+      "nadpis": "Own vector map (beta): \"construction\" style, DXF drawing as a layer with chainage, 3D view",
+      "body": [
+        "<b>New map (vector, beta)</b> — Settings → Appearance. The base is no longer someone else's image but our OpenStreetMap data in one file that the phone fetches in pieces. \"Construction\" style: buildings with house numbers, road edges, rails, water, forest and fields, boundaries — no shops or ads. Four variants from one data set: day, night (really dark), blueprint, print (black and white for PDF); \"by theme\" switches by itself.",
+        "<b>Drawing (DXF) as a map layer.</b> Project import draws lines in the CAD layer colours, keeps polylines as wholes and in the tool you pick a layer as the <b>axis</b>: chainage marks run along it and tapping any line tells the layer, length and chainage (\"km 0.420\" · 3.2 m from the axis). The \"Drawing (DXF)\" row in the Layers panel hides/shows it.",
+        "<b>3D view</b> (Tools → Cadastre and bases): buildings extruded to height, terrain, job points, the drawing and my position from an oblique angle. Two fingers rotate and tilt; tapping a building, point or line tells what it is. Needs the vector map switched on.",
+        "Map data: the file is being uploaded to the QTRIG cloud (Cloudflare R2, instructions in cloud/wrangler.toml); until then you can enter your own address in Settings (an extract from scripts/mapa-vyrez.py — Czechia is 1.7 GB). Without signal the vector map doesn't run yet (area download is coming); OSM raster and orthophoto stay as before.",
+        "In weaker-phone mode the vector map and 3D aren't offered (WebGL, a 1 MB library)."
+      ]
+    },
+    {
+      "v": 341,
+      "datum": "2026-09-16",
+      "nadpis": "Android: the Back button closes windows instead of the app, \"Add to home screen\" offer",
+      "body": [
+        "<b>The Back button on Android</b> closes the topmost open window (Tools, point card, dialog…) — before, in the app on the home screen it quit the app straight away. On the main screen the first Back warns, a second within 2.5 s closes the app, as is customary on Android.",
+        "<b>Add QTRIG to the home screen</b>: Chrome on Android offers installation once after a minute in the app (full screen, own icon, offline). \"Not now\" = quiet for 14 days.",
+        "The whole app went through Chrome emulation on Android (Pixel 7 and a 360 px display, compass from deviceorientationabsolute without permission, relative events ignored, 102 Tools tiles without error and without any element off-screen) — the test runs in CI."
+      ]
+    },
+    {
+      "v": 340,
+      "datum": "2026-09-16",
+      "nadpis": "Measuring outside Czechia: coordinates and heights by the country you stand in; EGM2008 geoid and WMM declination for the whole world",
+      "body": [
+        "<b>The app recognises the country from GPS and switches the coordinate system.</b> In Czechia everything stays as before (S-JTSK Y/X, Bpv). In Slovakia S-JTSK [JTSK03], in Poland PL-2000 (X/Y, zone by longitude), in Germany ETRS89/UTM (E/N), in Austria MGI GK (M28/M31/M34), Hungary EOV, Switzerland LV95, France Lambert-93, Netherlands RD, Belgium Lambert 72, Britain OSGB, Slovenia, Croatia, Spain, Scandinavia, the Baltics, Romania, Bulgaria… and elsewhere in the world generic UTM. Point card, point form, list, CSV/TXT/DXF/PDF export, calculators, stake-out, reports — all in that country's plane.",
+        "<b>Heights in the national system.</b> The geoid undulation now comes from the EGM2008 model (all of Europe at 5′, the world at 1°), plus the offset of the national height system against EVRF2007: Bpv, DHHN2016, GHA (Adriatic), NAP, TAW, LN02, NGF-IGN69, ODN… For countries where I don't know the offset, ±0.5 m is shown. <b>A fix for Czechia too:</b> the previous formula fitted in Prague, but in Brno it was 1.7 m off and in the corners of the country 3–8 m.",
+        "<b>Declination anywhere in the world.</b> The compass is corrected by the World Magnetic Model 2025 (NOAA) — before a linear estimate for Czechia that would lie by 6° in Spain.",
+        "<b>Settings → Data → Measuring country.</b> Automatically by GPS (country outlines are accurate to ~1 km — near a border switch by hand), or a fixed chosen country. When crossing a border the app says what it switched to.",
+        "What DOESN'T change: ČÚZK official points, RÚIAN parcels, VFK and GML networks always stay in Křovák — they are Czech data.",
+        "The data (geoid ~740 kB, outlines ~170 kB) is downloaded once after start and stays on the phone; until then the Czech formulas run as in v338."
+      ]
+    },
+    {
+      "v": 339,
+      "datum": "2026-09-16",
+      "nadpis": "Gravity points separately, numbers of associated points, tapping a parcel with territory protection, walking calibration along a cadastral boundary, download animation",
+      "body": [
+        "<b>Gravity points have their own symbol</b> — an orange hexagon in the map and in AR, the card says \"Gravity point · name\". They used to look like trigonometric points (purple triangle). They aren't offered for GPS anchoring (they tend to be in buildings).",
+        "<b>Associated (witness) points of TB and ZhB have a number with a sequence</b>: 19.3, 19.4 — before, three points \"19\" stood next to each other in the map. The TB card has a new row with the triangulation sheet.",
+        "Fix: labels of <b>cancelled</b> points from the ČÚZK service showed as valid detail points.",
+        "<b>Tapping a parcel shows more:</b> the area from graphics next to the official one, boundary source (DKM to centimetres / UKM to metres), validity, nearest address, terrain height from DMR 5G, for a building the construction, floor area and year of completion. New section <b>Protection and restrictions</b>: BPEJ (decoded), NP / protected landscape area / reserve / monument with their buffer zones, Natura 2000, memorial tree, protected deposit area, mining area and the protection zone of a fundamental control point mark.",
+        "<b>Walking calibration along a cadastral boundary:</b> with the Cadastre layer on, a tap within 4 m of a parcel boundary snaps to the nearest spot on the boundary — the outline is downloaded from RÚIAN by itself. In UKM territory the app reckons with ±1 m.",
+        "<b>Point card:</b> the \"Status: not staked\" tile is gone, the Staked button stays only with own points. Below the buttons a sentence says how <b>Check point</b> (just a record of where I stand) and <b>Correct GPS</b> (shifts further measurements) differ.",
+        "<b>Correct GPS warns about where you stand:</b> under a tree, by a wall or between houses GPS has a different error than in the open — when the position wavers, the app says so and advises another point or a longer average.",
+        "<b>DGPS more precisely:</b> the base block is the median of fixes weighted by reported accuracy, the rover weights fresh blocks more and drops an outlying block. The tool now says why it can't reach centimetres.",
+        "<b>You can see the new version downloading:</b> \"Downloading new version… 42 %\" with a bar appears at the top, a tick when done. When a new version is deployed, a spinning wheel after start.",
+        "New <b>app website</b>: <a href=\"web/\" target=\"_blank\" rel=\"noopener\">stepanvcelak11.github.io/ar-geodet/web/</a> — what the app can do, samples, Basic and Pro, accuracy honestly, installation."
+      ]
+    },
+    {
+      "v": 338,
+      "datum": "2026-09-15",
+      "nadpis": "GPS correction by a known point also for height, levelling points in the list, Correct GPS square in the point card",
+      "body": [
+        "<b>The height is corrected too.</b> If the point you stand on has a Bpv height (levelling benchmark, many TB and ZhB), the \"GPS shift to a known point\" tool computes the vertical shift too and adds it to the height of newly saved points from the GPS average. Put the phone on the mark, or write how much higher you hold it. A height overwritten from the DEM is left alone.",
+        "<b>Levelling points are in the list.</b> Their position at ČÚZK is to a metre — still better than the phone — and the height to millimetres.",
+        "<b>Correct GPS straight from the point card.</b> Among the card buttons there's a \"Correct GPS\" square: the confirmation tells you how far from the point you are by GPS, whether the point has a height and that you must stand right on it — then the correction switches on with one tap. The tool in Tools stays.",
+        "Fix: a confirmation window opened from the point card (like this very one) couldn't be confirmed — the tap closed the card instead of confirming."
+      ]
+    },
+    {
+      "v": 337,
+      "datum": "2026-09-15",
+      "nadpis": "Icons instead of emoji everywhere",
+      "body": [
+        "All the places where the app used emoji instead of an icon (Where's my stuff, badges in the Yearbook, Step offset, Campaign, Sun and light, radar in Weather, Newsletter, Defects, voice notes, the clock at points, guides…) now have the app's icons — the same on iPhone and Android, correct in the light theme too. Emoji remain only in the avatar symbol picker (that's your choice, not an icon)."
+      ]
+    },
+    {
+      "v": 336,
+      "datum": "2026-09-15",
+      "nadpis": "Distant points into AR: pick the area even from home, points get fetched from ČÚZK and are in the map too",
+      "body": [
+        "<b>Pan and zoom the map in the tool with two fingers</b> — you don't have to stand in that area. Select the rectangle either by dragging with one finger as before, or by <b>tapping one corner and then the opposite one</b> (between taps feel free to pan the map further).",
+        "<b>Points in the extent get fetched from ČÚZK.</b> The app normally downloads control points only within 300 m of you, so an extent 2 km away used to report \"no point\". Now the control points are downloaded and selected for it; without signal at least what the phone already has is taken.",
+        "<b>Selected points are drawn in the map too</b>, not just in AR — even kilometres from you. The extent and corners are visible right in the map while selecting."
+      ]
+    },
+    {
+      "v": 335,
+      "datum": "2026-09-15",
+      "nadpis": "App walk-through — 11 fixes from clicking through all the tools",
+      "body": [
+        "<b>GNSS forecast</b> showed in the Geo-photo window after it had been opened (both modules had the same window id) — each has its own now; a similar pair Measuring procedures × First measurement guide (one of them stayed unstyled).",
+        "<b>Does everything work?</b> reported \"Basic\" for the account even with Pro (it called a non-existent licence function).",
+        "<b>Track log</b> opened with an empty button and no statistics until the next GPS fix arrived.",
+        "<b>Yearbook:</b> the row of months began \"Jan Jan\" and December was missing.",
+        "<b>Day journal:</b> five buttons didn't fit in a row on a narrow phone (\"Close\" cut off); <b>Offset point:</b> the azimuth field was squeezed to a few pixels; <b>Parcel:</b> two crosses on top of each other; <b>Quiz:</b> a cut-off caption under the drawing; <b>Sun and light:</b> a row label wrapped onto three lines; the \"Download within a radius of300 m\" slider without a space; <b>Settings → Profiles:</b> a clipped \"Who are you\" selection.",
+        "<b>Light theme:</b> yellow warnings (Polar point, Intersection, Free station, guide, point card…) were unreadable on white — now dark; the header of the Tie distances table is no longer a dark strip.",
+        "<b>GNSS forecast:</b> instead of \"Measure 20:00–20:00\" (the whole window) it says \"any time in the next 24 h\"."
+      ]
+    },
+    {
+      "v": 334,
+      "datum": "2026-09-15",
+      "nadpis": "Point card: map sheet instead of the \"all official records\" expander",
+      "body": [
+        "<b>The \"Show all official records\" expander is gone from the point card.</b> It was a raw dump from ČÚZK and everything in it (number, cadastral unit, accuracy class, heights, line, name, link to geodetic data) is already shown at the top of the card in readable form.",
+        "<b>New Map sheet row</b> — the only thing that was only in the raw dump: the ZM 1:50 000 and SMO-5 sheet (name + number), below the heights and geoid undulation."
+      ]
+    },
+    {
+      "v": 332,
+      "datum": "2026-09-15",
+      "nadpis": "Tools are paged: one verb = one page, Mine first, Pro aside; the tool wheel dropped",
+      "body": [
+        "<b>Tools as pages.</b> Instead of one column across seven screens there's a strip of verbs at the top (Measure · New point · Measure precisely · Stake out · …) and below it always one page that fits the display. Page by swiping sideways or tapping a verb; the bottom says what is left and right.",
+        "<b>The Mine page</b> is first: Continue (last used tool), work type choice, <b>★ Pinned</b> and For this work. Pin a tool with the star right in its row. A pinned tool shows its <b>gesture</b> (or \"+ gesture\" to draw one) — the panel is thus also a gesture cheat sheet.",
+        "<b>Signposts</b> (Point by computation, Align otherwise, GNSS signal, Bases and cadastre, Weather and light, Day record, My numbers, Handbook) expand in place under their row, not into another window. Every row has a \"?\" with a guide, so you can explore without opening.",
+        "<b>In Basic, Pro is aside.</b> Locked tools from the paid version aren't scattered among the verbs — they gathered on the last \"Pro\" page (with the verb in the title) so they don't get in the way. Whoever has Pro doesn't see that page.",
+        "<b>The tool wheel (holding the Tools button) dropped.</b> Three paths led to a tool and it was complicated; two remain: Tools for paging and exploring, gestures for launching from memory. Holding the button now does the same as tapping."
+      ]
+    },
+    {
+      "v": 331,
+      "datum": "2026-09-15",
+      "nadpis": "The point card says which GPS correction was added to the point",
+      "body": [
+        "<b>The point card</b> has a new <b>GPS correction</b> tile for GPS points: by how much and from where the point was shifted (walking along an edge, known point, live DGPS, correction from QR) and whether it was recomputed by before-and-after calibration. The accuracy explanation (\"where the accuracy came from\") says the same — before, the card claimed \"only what the phone reports\" even about a point that calibration had moved half a metre back into place.",
+        "Recomputing points by time (before-and-after calibration) no longer forgets where the correction came from, and the point card sees it right away."
+      ]
+    },
+    {
+      "v": 330,
+      "datum": "2026-09-15",
+      "nadpis": "Precise measuring — a new section in Tools: walk around a shape, before-and-after calibration, where to put the phone, temporary DGPS base",
+      "body": [
+        "<b>The Precise measuring section</b> in Tools: everything that squeezes accuracy out of the phone, together — Precise GPS, Calibration by walking along an edge, GPS shift to a known point, Two-phone DGPS, Acoustic rangefinder and Check measurement. At the head <b>How to measure precisely with a phone</b>: three GPS errors (noise, shift, drift), what each method solves, a \"what to expect\" table, a 3–5 step procedure for each method, where calibration works and where it doesn't, and typical situations (paving by a kerb, a plot, a field without a point). Each tool also has a short \"Simply\" at the top.",
+        "<b>Walking calibration: walk around a shape.</b> The line can be <b>closed</b> (Close shape button or a tap back to the first point) — a plot's perimeter, a plus, a square — and the whole error vector comes out, not just the component perpendicular to a line. The app now shows <b>how much the GPS error drifted during the walk</b> (first vs. second half; for a loop the same as the misclosure) and warns above 1 m.",
+        "<b>Before-and-after calibration.</b> When you walk the edge again within 90 minutes and 500 m, the app says by how much the GPS error shifted in between and offers to <b>recompute by measurement time</b> the points saved between the two walks (even from Precise GPS) — a point in the middle gets half the difference. The vector is replaced, not added; the changes go into the journal.",
+        "<b>The correction is as accurate as the line's source:</b> the app remembers the source (orthophoto ±0.35 m, cadastral boundary ±0.3 m, saved points ±cm, street map ±2 m — that one it discourages right away and advises switching to orthophoto) and adds it to the error estimate as \"total\". A tap within 4 m of a vertex of a downloaded parcel snaps to the cadastral boundary.",
+        "<b>Precise GPS: where to put the phone.</b> A picture of the phone with a cross — the <b>centre</b> belongs over the point, the antenna is at the top edge and rotating by 90° around the centre cancels its position out. The correction added is saved with the point (for the before/after recomputation). After saving the app offers the point as a <b>temporary DGPS base</b> for a second phone.",
+        "<b>Two-phone DGPS: temporary base.</b> The base can also be a point from Precise GPS with walking calibration — the window says what that gives (rover points ±0.5 m relative to each other, the whole inherits the base's error as a common shift, walking calibration thereby lasts longer) and what it doesn't (extra accuracy). The acoustic rangefinder in intersection from two GPS points says the shape is to centimetres and the position of the whole follows the known points."
+      ]
+    },
+    {
+      "v": 329,
+      "datum": "2026-09-15",
+      "nadpis": "Tapping a parcel, the official ČÚZK sketch in the point card, tools back in sight",
+      "body": [
+        "<b>Parcel on tap:</b> switch on the Cadastral map layer in the map and tap inside a parcel — a card from RÚIAN shows number, cadastral unit, municipality, area, land type, use and a possible building (house number, storeys, built-up area); the outline is highlighted. No free service gives the owner and title deed — the <b>Owner and title deed</b> button opens this very parcel in the ČÚZK cadastre viewer.",
+        "<b>Official point card:</b> instead of the app's sketch there's now the <b>official ČÚZK site sketch</b> from the point's geodetic data (tie distances to house corners, fences…), for TB/ZhB an extract from the sheet with a switch to the whole sheet; the link to the full geodetic data remains. The app's sketch (neighbouring points, tie distances) is one tap below it. Own points keep it. A sketch once shown works without signal too.",
+        "<b>Tools:</b> Tie distances, Track log and Today in the field no longer hide from a new installation; the signpost rows (Align otherwise, Bases and cadastre, GNSS signal, Handbook…) list all their items, so even a new tool in them can be found without searching.",
+        "<b>Status bubble:</b> a warning with numbers no longer jumps from left to right (the azimuth, cut off because of the message 5× a second, kept coming back and disappearing).",
+        "Point hunters and Download area without comparisons to a mobile game; the buttons of the new tools (Acoustic rangefinder, Calibration by walking along an edge, DGPS) have the app's icons instead of emoji."
+      ]
+    },
+    {
+      "v": 327,
+      "datum": "2026-09-15",
+      "nadpis": "Free up space on the phone",
+      "body": [
+        "<b>Settings → Maintenance → Free up space:</b> an overview of what the app keeps on the phone — the downloaded map (tiles from Save surroundings, Pack the job and Download area, with an MB estimate) and each downloaded district/region separately — and <b>Delete</b> at each item. Deleting an area takes its map tiles too; the \"Used X MB\" row recalculates at once."
+      ]
+    },
+    {
+      "v": 326,
+      "datum": "2026-09-15",
+      "nadpis": "Smoothness round 2 — faster start, a map without jerks while walking, Tools without freezing",
+      "body": [
+        "<b>Start on a weaker phone:</b> deferred modules are now deployed minified (3.0 MB → ~1.2 MB; shorter update download and parsing), in Weaker phone mode they're fetched two at a time and only when idle; the three student tools download only on tap.",
+        "<b>Measuring dimensions only after rendering:</b> the status strip, notifications, window closing, mini-panel and work mode used to measure elements in the middle of an unfinished layout (about 0.7 s of main thread in the first seconds). Now they measure once after the frame and only when something changed.",
+        "<b>The map redraws only the difference:</b> markers that stay aren't deleted and rebuilt — redrawing 200 markers 96–177 ms → 5–28 ms, walking 60 m without six freezes. Tapping a marker is no longer lost by the marker being swapped under the finger.",
+        "<b>Tools:</b> the grid is assembled once after the batch of registrations instead of a hundred times at start; on opening only the tiles on screen are laid out. Opening: 11 long tasks (1.3 s, one of them 0.54 s) → one under 0.2 s (weak phone).",
+        "<b>Map first, markers after the frame:</b> after start the map and position appear, markers are added in small batches.",
+        "<b>Weaker phone:</b> map tiles load only after the pan finishes and with a smaller buffer beyond the edge."
+      ]
+    },
+    {
+      "v": 325,
+      "datum": "2026-09-15",
+      "nadpis": "DGPS live over the internet and more precise walking calibration (there and back)",
+      "body": [
+        "<b>Two-phone DGPS live (Pro):</b> the base on a known point taps <b>Share corrections live</b> and shows a six-character code; the second phone enters the code in <b>Live from the internet</b> and from then on the current correction is added to every saved point (also in Brutal GPS) — no more waiting for a QR. The pill at the top reports data age and distance from the base (limits 6 min / 3 km), Disconnect offers a retroactive correction of older points. Range ~2–3 km, needs internet on both phones (the base sends ~4 kB per minute).",
+        "<b>Calibration by walking along an edge is more precise:</b> fixes are weighted by their accuracy (±3 m has 16× more say than ±12 m) and when you walk the edge <b>there and back</b>, the app separates how far you hold the phone to the side of your track (in the right hand typically 0.2–0.4 m) — that used to stay in the correction. The correction error estimate accounts for per-second fixes not being independent.",
+        "The DGPS and walking calibration guides have been completed."
+      ]
+    },
+    {
+      "v": 324,
+      "datum": "2026-09-15",
+      "nadpis": "The GPS correction is watched: a pill at the top, a warning before expiry and at the distance limit",
+      "body": [
+        "<b>Watcher of GPS correction validity</b> (from walking along an edge as well as from \"GPS shift to a known point\"): after switching on, a pill at the top shows \"GPS correction 1.8 m · 12 min to go · 80 m from the spot\" — green valid, amber nearing the limit, red beyond it. The app warns <b>5 min before expiry</b> (20 min), after expiry, at <b>200 m</b> from the calibration spot and at 300 m — each once. Tapping the pill opens the tool that made the correction; it doesn't switch itself off, the decision is yours.",
+        "<b>Calibration by walking along an edge:</b> a much longer explanation in the window — why it works (the same principle as DGPS), how it's computed, <b>what accuracy you can reach</b> (30–50 m of walking → ±0.3–0.5 m perpendicular to the edge, with a good signal ±0.2 m; a line from the map adds the base's error) and how long it's valid. The result says right away how accurate new points will be; a switched-on correction in the window shows the remaining minutes and the distance from the calibration spot."
+      ]
+    },
+    {
+      "v": 323,
+      "datum": "2026-09-15",
+      "nadpis": "Point hunters — a collection of discovered points, awards and hunting",
+      "body": [
+        "<b>Point hunters</b> (Tools → Aids): official points you actually reach in the field (within 5 m, GPS to 8 m, 15 s standing) and tap <b>I found it</b> in the card are saved into your collection. A discovered point has a gold star in the map. Nothing is sent anywhere.",
+        "<b>Score by rarity in Czechia</b> (from ČÚZK counts): TB 50 · ZhB 30 · levelling 10 · PPBP 3 · gravity 200. The collection shows how many points of the district you're missing (when the district is downloaded on the phone).",
+        "<b>Awards:</b> First stone, Dozen, Hundred, Triangle (3 TB from one triangulation sheet), Whole line (all points of a levelling line), District (all TB of the district), District summit, Stone from a building — with progress to the nearest one.",
+        "<b>Hunt:</b> the nearest undiscovered points within 2 km sorted by yield per metre walked, with a Take me there button; <b>Stone of the day</b> for double (the same for everyone in the district)."
+      ]
+    },
+    {
+      "v": 321,
+      "datum": "2026-09-15",
+      "nadpis": "Two new ways to get a more precise position out of a bare phone — by sound and by walking",
+      "body": [
+        "<b>Acoustic rangefinder (Pro):</b> the distance between two phones <b>from sound, to centimetres</b>. The phone on a known point answers with a beep, the other measures; each finds in its own recording when it beeped and when the other did (one sample = 7 mm of sound travel), the clock difference subtracts itself and the second phone \"tells\" its measured time by the gap between two beeps — no internet, no copying numbers. Distances to two known points → <b>Point from two distances</b> (intersection) without GPS. Inside there's an explanation and a procedure; the first time do the zero calibration at 2.00 m. Tools → Measuring.",
+        "<b>Calibration by walking along an edge (Pro):</b> tap in the map from where to where you'll walk (kerb, pavement edge, fence, an axis from DXF — or two saved points), enter the side offset and just walk. From the transverse deviations of the fixes the app computes how much GPS lies here and now, and <b>Switch on correction</b> adds it to new points like \"GPS shift to a known point\" — just without stopping. On a straight line only the component perpendicular to the line, on a polyline the whole vector. Tools → Align otherwise.",
+        "New guides under \"?\" at both tiles; point origin \"acoustic rangefinder\" in the point card."
+      ]
+    },
+    {
+      "v": 320,
+      "datum": "2026-09-15",
+      "nadpis": "A district, region or the whole of Czechia on the phone — points without loading; official points sorted correctly",
+      "body": [
+        "<b>Download area</b> (Tools → Bases and cadastre): download <b>all official points</b> of a whole district, region or the republic (~635,000 points) plus an overview map. While walking, points are then taken from the phone instead of the network — they appear at once (12 ms instead of seconds) and work without signal. The download can be interrupted and finished later; packages can be updated and deleted.",
+        "<b>Fix of official point classification:</b> the app asked ČÚZK for layers the service had long ago renumbered — a trigonometric point showed as \"densification\", a densification point as \"detail\", and <b>cancelled points</b> looked valid. Now all 16 layers are read correctly (TB, ZhB, PPBP, ZVBP/PVBP levelling and gravity points) and cancelled ones aren't shown.",
+        "<b>The official point card</b> now shows the point type, <b>the full twelve-digit number</b> (not just \"28\"), cadastral unit and district, accuracy class (PPBP), levelling line and, for points determined in ETRS89, the ellipsoidal height.",
+        "<b>More precise height from GPS:</b> for points determined in ETRS89, ČÚZK also knows the ellipsoidal height, so the app computes the real geoid undulation on the spot (to centimetres) instead of a formula with a 1–2 m error — transferring GPS height to Bpv is thereby more precise throughout the app (export, double measurement, point height).",
+        "<b>Fewer requests to ČÚZK:</b> one batch of points while walking = 1 request instead of 6 (same data). Easier for a weak signal too.",
+        "<b>Language on the sign-in screen:</b> after switching the language, sign-in, registration and the account code stayed in Czech — the texts were missing from the dictionary. Added (EN/DE/PL)."
+      ]
+    },
+    {
+      "v": 318,
+      "datum": "2026-09-15",
+      "nadpis": "Gate without a hole, the owner's console holds, camera from Play with instructions",
+      "body": [
+        "<b>Fix:</b> \"More options\" on the sign-in screen and Close right away could let you in without an account (the start safeguard saw \"no gate\"). The guide now brings the gate back at once and the safeguard treats it as a gate.",
+        "<b>The error log</b> no longer records unloaded map tiles (a moment without signal) — 18 of 20 records were this and real errors got buried among them. The same applies to Errors from people in the console.",
+        "<b>Owner's console:</b> when the server doesn't respond (weak signal, brake), the view stays open with the reason and \"Try again\" — before, an alert popped up and the console jumped to the signpost (\"can't open it\"). The \"something's waiting\" dot recalculates right after messages are handled. The \"error at one person\" watcher leads straight to their account. The errors tile has a label by the chosen period.",
+        "<b>Camera from Google Play:</b> when it's blocked, the instructions say where to allow it — in Chrome (phone Settings → Apps → Chrome → Camera and Chrome → Site settings → Camera), not in a non-existent address bar.",
+        "<b>Who are you?</b> when creating an account explains the Student / Surveyor / Company difference concretely (an employee = Surveyor and a code from the boss; Company = the boss who leads people) and advises: unsure → Surveyor."
+      ]
+    },
+    {
+      "v": 317,
+      "datum": "2026-09-14",
+      "nadpis": "Settings start with point range, the map rotates smoothly, taps aren't lost",
+      "body": [
+        "<b>Settings:</b> the <b>AR & accuracy</b> tab is first and opens by default; right at the top is the <b>Point range</b> section with both sliders — visibility in the AR camera and point range in the map (that was hidden in the Data tab until now).",
+        "<b>Map rotation</b> no longer jerks: after settling, only the point labels on screen are straightened (others once they get there), and while walking the map redraws only when the set of points in range really changes.",
+        "<b>Taps aren't lost:</b> while your finger is on the display, the app doesn't rebuild what you're tapping — the point list, map markers and Settings don't redraw under the finger (that's why you sometimes had to tap twice)."
+      ]
+    },
+    {
+      "v": 316,
+      "datum": "2026-09-14",
+      "nadpis": "The map rotates without tearing, the camera under tools doesn't go out, replying to a message",
+      "body": [
+        "<b>Map rotation:</b> point labels straighten to horizontal only a moment after you stop turning — before, they were rewritten with every compass frame and on a weaker phone that took 79 % of performance (measured); now 0. While turning, labels are slanted for a fraction of a second.",
+        "<b>AR markers</b> are built only for points in range and only while the camera runs (before they were built for all job points, even in Map only mode): a fifth fewer elements on screen, faster start.",
+        "<b>The Points window</b> for a big job: the first 30 rows at once, the rest arrives calmly and while scrolling (\"N more points…\"); search finds a point from the end of the list too.",
+        "<b>Tools and sensors:</b> when measuring object height the camera went out (battery saving put it to sleep under the settings window). Tools now say themselves what they need — the camera, compass or GPS isn't put to sleep under them (object height, AR ruler, stamped photo, intersection from a photo, polar point, resection, stake-out, epochs, satellites, calibration…). Track recording keeps GPS even under the calculator or Settings.",
+        "<b>A message from the author</b> has a <b>Reply</b> button — the reply reaches the author's inbox and he can answer back into the app. Every message to the author now carries the account code, so an answer into the app works for all messages, not just Pro requests."
+      ]
+    },
+    {
+      "v": 315,
+      "datum": "2026-09-14",
+      "nadpis": "A smoother app: smaller point range and a mode for a weaker phone",
+      "body": [
+        "<b>Point range is smaller:</b> official points (ČÚZK) are downloaded and shown in the map within <b>300 m</b> of you (was 1 km) and in the AR camera within <b>100 m</b> (was 150). Fewer markers = a smoother map and camera. Set both with a slider: Settings → Data → \"Point range in the map\" and Settings → AR & accuracy → \"Point visibility in the AR camera\". Own job points are always drawn in the map. Whoever had the old defaults 1000/150 m saved got the new ones; a custom range doesn't change.",
+        "<b>Weaker phone</b> (Settings → AR & accuracy): an economical display without glass, shadows and animations, camera 480p, compass 20× a second, at most 40 markers in AR. Switches on by itself on a phone with little memory or when the app measures it can't keep up; can be set manually to On / Off. Measuring and data are the same.",
+        "<b>Share the app (QR)</b> in the More panel is now seen only by the app owner. The app is meant to be downloaded from Google Play (testers via invitation), not from a QR as a web page."
+      ]
+    },
+    {
+      "v": 314,
+      "datum": "2026-09-13",
+      "nadpis": "The tool flower more readable and a return to the owner's console",
+      "body": [
+        "<b>Tool flower:</b> all petals have the same font size, labels are wider and don't break mid-word; with twelve directions the petals don't overlap. The \"Record\" group has \"Rec.\" on the petal (the full name is in the middle of the flower).",
+        "<b>Owner's console:</b> every view has one big \"‹ Back to console\" button at the top under the heading — always in the same place, it doesn't scroll away. Windows opened from the console (People, Messages, Companies…) have a gold \"‹ Console\" tab on the left edge. Returning after closing a window works with the camera running too.",
+        "<b>Layers:</b> the \"Show target\" tile is called \"Show me and the target\" — it fits the map so that both you and the point you're walking to are visible (it's there only while guiding)."
+      ]
+    },
+    {
+      "v": 311,
+      "datum": "2026-09-13",
+      "nadpis": "A small thing: \"Learn\" has its own section in Tools",
+      "body": [
+        "Trainer, Guess it, Exercises, Quiz and Formulas stand in the Tools grid under the heading \"Learn\", not in \"Other\"."
+      ]
+    },
+    {
+      "v": 310,
+      "datum": "2026-09-13",
+      "nadpis": "Account deletion and clarified privacy — preparation for Google Play",
+      "body": [
+        "<b>Delete account</b> right in the app: Settings → More → About → Delete account. It asks for the password, deletes the account and your own space on the server; points and jobs on the phone stay. Without the app you can request it on the <i>smazani-uctu.html</i> page.",
+        "<b>About → Privacy</b> says exactly what goes to the server (account data, anonymous usage records, error reports) and what doesn't (position, camera image). The privacy policy has been rewritten the same way.",
+        "A small thing: the link to the privacy policy and account deletion also in English, German and Polish."
+      ]
+    },
+    {
+      "v": 309,
+      "datum": "2026-09-13",
+      "nadpis": "Pro is free until the end of the year — just ask",
+      "body": [
+        "The <b>Pro version</b> card says it straight: until the end of 2026 Pro is free, just send a request and the author switches it on; from 2027 Pro will be a subscription (monthly or yearly)."
+      ]
+    },
+    {
+      "v": 308,
+      "datum": "2026-09-13",
+      "nadpis": "Owner's console, round two: an overview at a glance, search, notifications to the phone and thirteen new things",
+      "body": [
+        "<b>The console home screen</b> is rearranged: search at the top, a \"Since your last visit\" block, a \"this isn't normal\" watcher (only when something deviates), summary numbers and Charts; below that five collapsible sections by what you're asking (What's happening · People, companies and messages · Releases and server · This phone · Key).",
+        "<b>Search across the whole console:</b> name, account code, company, a word from a message or error — accounts, companies, messages and errors one tap from the detail.",
+        "<b>Notifications to the phone</b> even with the app closed (new message, Pro request, wave of errors). On iPhone from the app on the home screen.",
+        "<b>Charts</b> 7 / 30 / 90 days with comparison to the previous period and CSV; <b>Newcomer funnel</b> (registration → first point → day 3 → rating, who dropped off).",
+        "<b>Reply to a person straight into the app</b> from the inbox; <b>Person's diary</b> day by day in \"Through the account's eyes\"; <b>Releases</b> shows who is on which version and who's stuck on an old one.",
+        "<b>\"Show me the app as Basic\"</b> for 15–60 minutes; <b>Server status and capacity</b> (requests and database against the free limits, how long it'll last); <b>Clean-up of old data</b> with a preview; <b>Day summary</b> 24 h / 3 days / since last time; Development report downloadable as .md.",
+        "Small things: the key lock says in how many minutes to try again; during a server outage the last known numbers stay with a label; on a computer the console is wider with four tiles in a row."
+      ]
+    },
+    {
+      "v": 307,
+      "datum": "2026-09-13",
+      "nadpis": "For students: Who are you?, Learn, Why ±4 m?, computation procedure — and 12 tools aside",
+      "body": [
+        "<b>Who are you?</b> — Student / Surveyor / Company after the first entry (any time in Settings → Profiles). A student has the <b>Learn</b> group at the top of Tools and in accounts \"crew\" is said instead of \"company\".",
+        "<b>Learn:</b> Trainer and Guess it are in Basic; new <b>Exercises</b> (22 problems with a key, can be pre-filled into the Calculator), <b>Point quiz</b> (TB, levelling bolt, boundary stone, nail…) and <b>Formulas</b> in the Handbook.",
+        "<b>Why ±4 m?</b> — the error budget of GPS + compass over the distance to a point, with an ellipse and \"what if\" sliders; in GNSS signal and in the expanded status bubble.",
+        "<b>The Calculator</b> shows the <b>computation procedure</b> (formulas and intermediate results, even the bearing quadrant) and has the <b>Helmert transformation</b>. Fixed: a traverse with 2+ intermediate points computed wrongly (field id collision) and an empty field gave NaN instead of \"Fill in\".",
+        "<b>Aside</b> (find them via search): Epochs, volume by walking around, Localization as a tool, two of the three intersections, inside a building, paving layer + Paving profile, points on top of each other, travel log, safety, checklist (now a button in the Day journal).",
+        "Settings: colour tint, animations and bar curvature are in Advanced; the settings profile is collapsed under the work profile."
+      ]
+    },
+    {
+      "v": 305,
+      "datum": "2026-09-13",
+      "nadpis": "Take me there at the top of the point card, Charts within reach in the console, gold Pro only where it belongs",
+      "body": [
+        "<b>Point card:</b> the buttons Take me there · Check point · Staked are right at the top, not below the sketch.",
+        "<b>Owner's console:</b> Charts — visual overview is the first tile and a gold button right under the summary numbers; the lock after wrong keys holds a quarter of an hour instead of an hour and the message advises switching Wi-Fi ↔ mobile data.",
+        "<b>Pro at a glance</b> toned down: only the Map/Split/AR switch and the Tools button with the PRO label are gold; Tools, headings and Settings are green again."
+      ]
+    },
+    {
+      "v": 304,
+      "datum": "2026-09-13",
+      "nadpis": "Cadastre with Back, owner's console without a false lock, gold Pro; walkie-talkie, attendance and the watch gone",
+      "body": [
+        "<b>Cadastre — where I stand right now</b> opens in an app window with a <b>Back</b> button (iKatastr.cz map). Before it jumped to the browser and there was no way back. The Settings choice controls the \"In browser\" button.",
+        "<b>Owner's console:</b> \"Too many key attempts, try in an hour\" came even with the correct key — the server counted every console request as a guess. Now it counts only wrong keys.",
+        "<b>Pro at a glance:</b> the gold from the flower continues through the app — the pill at the top, the Map/AR switch, window headings, icons and headings in Tools, switches and tabs in Settings, the PRO label on the Tools button.",
+        "<b>The status bubble</b> can no longer be switched off (the \"Turn off bubble\" button and the switch in Settings are gone); the switches of the old panels, which had nothing to act on without it, are hidden too.",
+        "<b>Gone:</b> Walkie-talkie, Attendance (also the home-screen shortcut) and the Garmin watch — on request; we may come back to it in the future. The \"Company\" and \"Transfers and devices\" signposts disappeared with it; Company and accounts and Send/load job stand directly in the list."
+      ]
+    },
+    {
+      "v": 303,
+      "datum": "2026-09-13",
+      "nadpis": "The guide shows where to tap, the flower without needless signposts, the console with charts and a report",
+      "body": [
+        "<b>The first measurement guide</b> now visibly ticks off every step and a \"tap here\" ring glows on the target (the + button, a point in the map, Take me there).",
+        "<b>Tool wheel:</b> signposts (Weather and light, GNSS signal…) unfold straight into petals when they fit; only what would overflow stays merged.",
+        "<b>Basic × Pro</b> has a simple visual overview at the top (five Pro areas), the long table is collapsed.",
+        "<b>Owner:</b> the console opens by itself only on the first entry; People have sorting and filters (last active, use the most, newest, With Pro, blocked); new <b>Charts — 30 days</b> and <b>Development report</b> (messages, ratings, errors and versions in one copyable text).",
+        "<b>Languages:</b> everything new (the guide, Does everything work?, rating, Where I work) and a few old leftovers are translated into EN/DE/PL.",
+        "Small things: windows no longer show through (History, Newsletter), readable field hints in the light theme, decimal comma in distances in point lists, Yearbook \"Jun/Jul\" and \"1 day\"; the contact from Write to the author is remembered with the account."
+      ]
+    },
+    {
+      "v": 302,
+      "datum": "2026-09-13",
+      "nadpis": "Before the beta: first measurement guide, Does everything work?, lighter start",
+      "body": [
+        "<b>First measurement guide</b> on first launch: five steps over the live app (position and compass, accuracy, first point, its card, Take me there) — they tick themselves off. You'll also find it in the Interactive tutorial.",
+        "<b>Does everything work?</b> (Tools, Settings → Maintenance): GPS, compass, camera, storage, version and latest errors as green/red rows, one tap to the author.",
+        "<b>Your contact</b> (Where I work → Contact, optional) — the author has someone to ask when you send a report; Write to the author pre-fills it.",
+        "<b>On the third day with the app</b> it asks once \"How does it suit you?\" (stars + a sentence).",
+        "<b>Start is 113 kB lighter</b> (the tutorial, update history, coordinate list and task guide download only after the first frame).",
+        "<b>The status pill</b> no longer cuts off the message — azimuth and accuracy give way first.",
+        "<b>Owner:</b> app version, phone and contact at people in the console."
+      ]
+    },
+    {
+      "v": 301,
+      "datum": "2026-09-13",
+      "nadpis": "Check after the walk-through: two small things",
+      "body": [
+        "<b>Volumes and contours:</b> the \"Collapse\" wheel lay right on the window's cross — now it stands next to it and a long heading wraps.",
+        "<b>Sketch / tacheometry:</b> the \"there's more\" fade on the button bar covered the last button (export) after scrolling."
+      ]
+    },
+    {
+      "v": 300,
+      "datum": "2026-09-13",
+      "nadpis": "App walk-through: the app is informal everywhere, version in About, small things",
+      "body": [
+        "<b>The app is informal everywhere</b> — the last windows that were formal (Write to the author, point sharing, computations, compass calibration, storage warning…) speak like the rest. The EN/DE/PL translations match.",
+        "<b>About shows the real version</b> (it used to say \"1.9\" forever) and <b>Update history</b> has the v286–v299 entries filled in.",
+        "<b>Point card:</b> the \"Point group\" and \"Nearby points\" lists say that a tap opens the card (not navigation).",
+        "<b>The Company and accounts guide</b> no longer describes the abolished \"limited mode\"; the gate survives a tap on \"More options\" right after start.",
+        "<b>The DTM window</b> has a header and cross like other windows; the Pro card no longer has a needless \"Collapse\".",
+        "<b>Status pill:</b> \"Continue: …\" fits in it; a refused screen lock (background, power-saving mode) isn't reported as an error.",
+        "<b>Basic in the Pro overview</b> lists all free tools; the action bar in Tacheometry hints that it scrolls; the links at profiles have a bigger target; the date in the Newsletter is human-readable."
+      ]
+    },
+    {
+      "v": 299,
+      "datum": "2026-09-12",
+      "nadpis": "Search in Settings keeps the typed text, lighter start",
+      "body": [
+        "<b>Search in Settings</b> deleted the first letters when you started typing right after opening — fixed.",
+        "<b>The app start is 36 kB lighter</b>: the point card content downloads only when the card is first opened.",
+        "<b>The point card in the light theme</b> is readable (it used to be white text on white)."
+      ]
+    },
+    {
+      "v": 297,
+      "datum": "2026-09-12",
+      "nadpis": "Point card: sketch over the orthophoto, dragging by the strip",
+      "body": [
+        "<b>The surroundings sketch lies over the orthophoto with parcel boundaries</b> (base from ČÚZK), neighbouring points within 150 m, tie distances and a scale bar.",
+        "<b>The height is shown for levelling points too</b> — the ČÚZK control point data has it for all layers, the app used to overlook it for levelling.",
+        "<b>Drag the point card by the strip</b> up over the whole screen and back down.",
+        "<b>Owner:</b> a new version reaches others only after \"Release to others\" in the console — a release can be braked when something goes wrong."
+      ]
+    },
+    {
+      "v": 295,
+      "datum": "2026-09-12",
+      "nadpis": "The point card is an overview, not navigation",
+      "body": [
+        "<b>Tapping a point</b> (in the map, in the cluster list, in Nearby points) opens the <b>point card</b> and doesn't navigate. Start navigation from the card with the <b>Take me there</b> button; <b>Check point</b> and <b>Staked</b> are available too.",
+        "<b>The card as a mosaic:</b> Y/X in large type with the kind icon, accuracy in colour, status, height, distance from me, when and from where measured, job, photos.",
+        "<b>Survey sketch of the surroundings:</b> neighbouring points, tie distances between them, parcels and a \"you\" marker when you're in the frame."
+      ]
+    },
+    {
+      "v": 291,
+      "datum": "2026-09-12",
+      "nadpis": "Face ID for the owner, company switching at sign-in",
+      "body": [
+        "<b>The app owner signs in with Face ID / fingerprint</b> instead of copying a long key (offered after the first sign-in with the key).",
+        "<b>Switch company</b> is on the sign-in screen too — when the device knows several companies or spaces.",
+        "<b>Owner:</b> overview, diary, calendar, backup and a view through the account's eyes in the console; gold theme of the owner's windows."
+      ]
+    },
+    {
+      "v": 290,
+      "datum": "2026-09-12",
+      "nadpis": "App walk-through: fourteen fixes of what didn't work or didn't fit",
+      "body": [
+        "<b>Gate → \"More options\" was a dead screen</b> (the start overlay lay over the guide) — it works.",
+        "<b>The \"Collapse\" wheel in Field books</b> ran over the Close button; signposts in the middle of the screen have no wheel.",
+        "<b>The Measure area panel</b> lay over the vertical dock and showed through other windows.",
+        "<b>Search in Tools:</b> the group headings collapsed to the top — while searching they're gone, only tiles remain.",
+        "<b>The control points, align north, job package and double measurement windows</b> are full-screen like the others (the HUD used to show through them).",
+        "<b>The status pill</b> has shorter texts and a cross with a bigger target; the error log has 2×2 buttons.",
+        "<b>Write to the author:</b> the Contact field was unstyled."
+      ]
+    },
+    {
+      "v": 288,
+      "datum": "2026-09-12",
+      "nadpis": "Pro on request, locked tools at the bottom, compass by the sensor",
+      "body": [
+        "<b>The Pro version isn't bought, it's requested:</b> a full-screen Pro card, the <b>Request Pro</b> button (name, contact, message) — the owner switches it on. Whoever has a key copies it in there.",
+        "<b>Locked tools are at the very bottom of Tools</b> in one \"In the Pro version\" section; the groups at the top are only from what's free.",
+        "<b>The tool wheel</b> has the same number of petals for every group (empty ones dashed), Back is exactly at the bottom.",
+        "<b>Switch company already on the start screen</b> when the device knows several companies.",
+        "<b>The compass reported \"silent\" even while the map was turning</b> — the watch is now driven by real sensor events."
+      ]
+    },
+    {
+      "v": 286,
+      "datum": "2026-09-11",
+      "nadpis": "The app is called QTRIG; Basic free, the rest in Pro",
+      "body": [
+        "<b>New name QTRIG and a new icon</b> (Q as a survey target). Address, data and jobs don't change.",
+        "<b>Basic free = 21 field actions:</b> measure, area, tie distances, precise GPS, stake out by list, field book, defects, bin, compass, north, GNSS, weather, cadastre where I stand, control points, transfers, change job, handbook, calculator. <b>Axis, polar point, geo-photo, project import, briefing and gestures are in Pro.</b>",
+        "<b>Layers:</b> Map/Orthophoto and rotation are free; cadastre, On me, Measure area, Save offline and Show target are in Pro.",
+        "<b>Crosses close windows again</b> (a regression from 8 Sep).",
+        "<b>The app owner signs in with the name VLASTNIK</b> and password = the key; one icon, everything unlocked."
+      ]
+    },
+    {
+      "v": 283,
+      "datum": "2026-09-09",
+      "nadpis": "The compass works again, Tools are tidy, the start is snappier",
+      "body": [
+        "<b>The compass stopped asking at the wrong moment.</b> The app requested motion and orientation access right at launch — but an iPhone doesn't allow such a request and answers \"denied\" even though nobody asked you. That produced the \"Compass has no permission\" window and a dead arrow in navigation until the end of the session. Now the app asks only on the first touch and after a denial tries once more.",
+        "<b>Tools are sorted.</b> Over sixty tiles lay in one heap under the heading \"Field tools\". Now they're in ten groups by what you do with them — Measure, Determine a new point, Stake out, Record, Align AR, Find out conditions, Cadastre and bases, Before leaving, Company and paperwork, Handbook. And <b>Write to the author</b> stands fixed right at the top, above the search.",
+        "<b>Distant points into AR.</b> A new tool (Align AR → <b>Distant points into AR</b>): drag a rectangle in the map with your finger and the points inside show in AR even beyond the set range — e.g. a base two kilometres away. The selection survives closing the app.",
+        "<b>Hold a finger on the map = distance from you.</b> A line stretches from your position to the finger and shows the distance. It complements the two-finger measurement, which measures between two places in the map.",
+        "<b>Updates without a button.</b> The app takes a new version by itself at launch — just close it and open again. The bar at the top only announces now, nothing is tapped on it. And the backup reminder stopped popping up over the app: it moved to Settings → Maintenance.",
+        "<b>Snappier start.</b> Downloading points from ČÚZK compared every downloaded element with all points in the job — with a thousand points that was over two and a half million comparisons and it showed in the app for the first few seconds. On top of that, 56 kB less code is downloaded before the first frame.",
+        "<b>Controls:</b> the closing swipe in the Layers window no longer leaves the panel hanging pushed aside, crosses have an honest touch target (and grow in gloves mode) and a swipe over a window's content no longer accidentally launches another tool's shortcut.",
+        "<b>In the map only the distance stayed at the navigated point</b> — degrees are gone, the direction is visible from the line itself."
+      ]
+    },
+    {
+      "v": 282,
+      "datum": "2026-09-08",
+      "nadpis": "Simple mode: the app behind two buttons",
+      "body": [
+        "<b>Switch it on in Settings → Appearance → Controls.</b> The map, camera, dock and tools disappear and only two big buttons remain on screen: <b>Add point</b> and <b>Navigate to point</b>. It's for a day when you only need to mark a spot and walk back — or when you lend the app to someone. The <b>Full app</b> link at the top right leads back to the full app.",
+        "<b>Add point</b> = a name (it suggests the next number in the series itself) and one of two buttons: <b>From GPS</b> — averages six seconds on the spot and shows the sample spread — or <b>Manually</b> for Y and X in S-JTSK. Then just Save. The point is saved to the job exactly as from the full app, including where it came from.",
+        "<b>Navigate to point</b> shows the job points <b>from the nearest to the farthest</b>. After a tap there's a full-screen arrow and a big distance — nothing more. When the phone doesn't report a heading, the arrow doesn't make it up: it tells you the azimuth as a number.",
+        "<b>Saves battery:</b> with the mode on, the camera switches off and the map doesn't redraw. When you switch it off, the app returns exactly to the view it was in."
+      ]
+    },
+    {
+      "v": 278,
+      "datum": "2026-09-06",
+      "nadpis": "Faster start: the app no longer builds what isn't visible while starting up",
+      "body": [
+        "<b>Points in the map are drawn in batches, nearest first.</b> With a job of a thousand points, nine hundred markers used to be built at once on every start and the phone stood still meanwhile. Now the surroundings where you stand appear at once and the rest fills in when the browser has a quiet moment — <b>blocking at start dropped by half</b> (measured 1,952 → 910 ms).",
+        "<b>The Tools window is assembled only after the first touch.</b> The list of actions and the tile grid used to be built right at start-up although nobody looked at them; it cost 0.5 s. Getting to Tools always takes one more tap, so they're ready before you get there — and whoever doesn't touch the app gets them anyway.",
+        "<b>Deferred modules no longer get in the way of the first frame.</b> A queue of 2.3 MB of further code was released 0.7 s after page load, i.e. exactly into the last metres of the start. Now it waits longer; whoever starts using the app right away forces it anyway."
+      ]
+    },
+    {
+      "v": 277,
+      "datum": "2026-09-05",
+      "nadpis": "More at hand: \"More\" under the tabs, a report with context and a transformation of empty Tools",
+      "body": [
+        "<b>\"More\" is finally visible.</b> Tutorial and tour, Save for offline, About, History, Share QR and Newsletter hung behind Settings → maintenance → the second-to-last button. Now they stand <b>in a strip right under the Settings tabs</b>, next to <b>Write to the author</b> — from every tab and without scrolling.",
+        "<b>A message to the author can attach what the app was just doing.</b> A new checkbox sends the open window, last tool, number of points, job, signal and GPS state and the last three errors from the Error log. Without it, \"it doesn't work for me\" couldn't be traced; it can be unticked.",
+        "<b>Reporting from the Error log takes one tap.</b> The <b>Send to the app author</b> button opens a message pre-filled with the error dump and circumstances — just add what was happening. Sharing and copying the whole log remains.",
+        "<b>Empty Tools are no longer mute.</b> In limited mode (without sign-in), instead of an empty grid a card shows what the app can do now, what will come after signing in — and a Sign in button."
+      ]
+    },
+    {
+      "v": 276,
+      "datum": "2026-09-05",
+      "nadpis": "Write to the author now takes two taps — and works without sign-in too",
+      "body": [
+        "<b>The row \"Something's off or missing? Write to the author\" is now in Settings right under the search and in the Tools footer.</b> Until now the only path led through Settings → Maintenance → the last button, and whoever isn't signed in couldn't reach it at all — even though they may send a message.",
+        "<b>A gesture shortcut.</b> In <b>Gestures and shortcuts</b> there's a new action <b>Write to the author</b>, so an error can be reported in gloves with one stroke, not two windows.",
+        "<b>A uniform name.</b> Everywhere it now says <b>Write to the author</b> instead of \"Write to me\" — with an app you get via a link, \"me\" doesn't say who you're writing to."
+      ]
+    },
+    {
+      "v": 275,
+      "datum": "2026-09-05",
+      "nadpis": "Axis stake-out: a polyline axis with chainage and stakes by metres",
+      "body": [
+        "<b>The axis can be a polyline, not only a straight line A→B.</b> Points are entered into the tool (formerly \"Line stake-out\", now <b>Axis stake-out</b>) in order from the start and the <b>Add vertex</b> button adds as many as needed. Chainage runs <b>across vertices</b> — the second segment continues where the first ended, not from zero.",
+        "<b>The read-out finds the segment you stand on by itself.</b> Besides chainage and perpendicular offset the window says which segment you're on (and between which points), how much is left <b>to the vertex</b> and <b>to the end of the axis</b>. You see the same in the collapsed strip and in the camera — the numbers never disagree.",
+        "<b>Start chainage aligns the numbers with the design.</b> When the section starts at km 1.200, enter 1200 and the app counts 1200…1400 instead of 0…200 — and the point to stake out is entered directly in design chainage.",
+        "<b>Stake out the whole axis by metres.</b> A new command drops stakes into the job at a regular step (every 10, 25, 50 m) along the whole section including its end, optionally offset from the axis. They're named by chainage (ST1225), so the stake-out checklist ticks them off directly.",
+        "<b>Vertices are drawn in the camera too.</b> The axis in AR follows the polyline (the corner isn't cut off), vertices have their own rings and the foot of the perpendicular reports the chainage including the start offset."
+      ]
+    },
+    {
+      "v": 274,
+      "datum": "2026-09-05",
+      "nadpis": "After the overall app walk-through: a manual position from the map is no longer a measurement, the bin restores the whole job",
+      "body": [
+        "<b>A manual position from the map doesn't pretend to be a measured point.</b> When you tapped your position into the map, it leaked into GPS averaging and was saved as if a satellite had measured it. Now a manually entered position is separate and isn't saved as a measurement.",
+        "<b>The bin keeps all the job's data.</b> Deleting a job used to sweep away data families the bin couldn't restore. Now the whole job goes into the bin.",
+        "<b>Module deferral works again.</b> The app was supposed to load heavy tools only when you open them — but they all got fetched right after start anyway. The start is again what it was meant to be.",
+        "<b>File sharing goes one single way.</b> Export, report and backup all end in the same system share sheet, not in ten workarounds depending on the tool."
+      ]
+    },
+    {
+      "v": 273,
+      "datum": "2026-09-03",
+      "nadpis": "From field reports: the tool wheel no longer shows the same thing twice and the owner's console comes back",
+      "body": [
+        "<b>In the tool wheel (\"the flower\") a merged tool appears ONCE.</b> Until now there was the <b>Company</b> signpost and right next to it still Attendance, Chat, Walkie-talkie and Accounts separately — the same thing twice. The wheel took the list by a side path that didn't know about the merging. Now the same rule holds everywhere: in the list of actions, in the grid and in the wheel a signpost is one item that opens. Search still finds the individual tools.",
+        "<b>The owner's console comes back by itself after closing a tool.</b> Whoever opened something from it lost it — after closing that window an empty map remained and the only way to the next view was a long press on the logo and the key. Now the console reopens where you left off.",
+        "<b>The background company check no longer throws anyone out of measuring.</b> Once a minute the app asks the server for the company settings; when that request failed (outage, older token), it sent the surveyor to the sign-in screen in the middle of work. Now such a response is only recorded and the company panel writes about it — nobody is thrown out of the app.",
+        "<b>When company administration fails, the app says why.</b> Deleting and editing accounts only showed \"Deletion failed\". Now you can tell that <b>the server runs an older version</b> that doesn't know that action yet (and that the account can be <b>Blocked</b> instead), as well as that the phone is no longer signed in as company admin.",
+        "<b>The Garmin watch guide described the pairing the wrong way round.</b> It promised a \"Generate code\" button and copying into Garmin Connect — but today the <b>watch</b> shows the code and it's copied into the app. Now the guide fits and it gained a <b>Prepare for the watch</b> part (map and points before leaving)."
+      ]
+    },
+    {
+      "v": 272,
+      "datum": "2026-09-03",
+      "nadpis": "App walk-through: the bin no longer swallows half the deleted points and search doesn't show what the admin forbade",
+      "body": [
+        "<b>The bin handles bulk deletion too.</b> When you deleted several points at once in the Points panel, the app promised \"They can be restored from the bin for 30 days\" — but the bin only held <b>the last 15</b> and the rest vanished for good. With bulk deletion \"Undo\" is deliberately not shown, so the bin is the only rescue there. Now a whole day of work fits in it (400 records) and space is watched by size, not count.",
+        "<b>Search no longer reveals tools the role doesn't have.</b> For an employee whose admin forbade a category, the forbidden tiles lit up for two seconds while typing into the search and then went out again. Tapping launched nothing, but the app showed what it shouldn't.",
+        "<b>A tool is found under the name the app itself shows.</b> A tile and the row in the list of actions can be named differently (\"Voice notes\" × \"A voice note\") and search only used the tile name. Whoever searched for what they read in the app found nothing — and for hidden tools search is the only path to them.",
+        "<b>A blocked account really signs out within a minute.</b> When blocking, the admin reads that the account will be signed out on the phone where it's currently signed in too. So far that only held after an app restart — the blocked person still had measuring open. Now the company settings are synced once a minute (in the background and offline nothing happens)."
+      ]
+    },
+    {
+      "v": 271,
+      "datum": "2026-09-03",
+      "nadpis": "Sign-in and company without dead ends, a shorter tool list, full-screen Look around",
+      "body": [
+        "<b>There's a way back from limited mode.</b> Whoever started the app without signing in stayed locked in it — the word \"sign in\" was nowhere on screen. Now a strip <b>Limited mode — Sign in</b> shows at the bottom above the bar, taking you to the sign-in screen any time.",
+        "<b>Everyone can switch company, not just the admin.</b> The company panel gained a <b>Companies</b> section: a list of companies you've ever signed in to, switching (always against the password) and <b>+ Join another company (code)</b>. The green strip at the top always has the <b>Sign in / switch</b> button — before it showed only to whoever already had a second company.",
+        "<b>The \"Server unavailable\" message stopped lying.</b> In three cases out of four the server was running and only this phone's access was missing. Now it distinguishes <b>no signal</b>, <b>phone not signed in to the server</b>, <b>access expired</b> and <b>server error</b> — and each message has a button that solves it. An empty Attendance also says whether it's empty because nobody clocked in or because the data didn't download.",
+        "<b>The tool list shrank by a quarter</b> (80 rows to 59). Related things are now represented by one row that opens: <b>My numbers</b>, <b>Day record</b>, <b>Company</b>, <b>Bases and cadastre</b>, <b>Transfers and devices</b> — alongside the earlier signposts. Nothing disappeared, it just stopped being listed one by one.",
+        "<b>Utility networks and Voice note are gone from the menu.</b> They stay in the app and you find them via search, they just no longer take up space among the tools you use.",
+        "<b>The \"Single determination — unverified\" strip disappeared from the point card.</b> It lit under almost every point and scolding a point saved a minute ago for lacking a second determination makes no sense. The deviation and verdict stay where you ask for them yourself — in the <b>Point verification</b> tool.",
+        "<b>Look around runs full-screen</b> and gained an <b>Around you</b> list (neighbouring parcels and how far they are). The <b>Show in camera</b> button collapses the window into a pill at the bottom edge so the image is visible; in the camera the boundaries are laid on the ground (terrain is accounted for) and the lines are finally visible in sunlight too.",
+        "<b>Windows no longer flicker when opening.</b> The content shows once it's ready — until now the window rendered before the rest was poured in and everything in it jumped.",
+        "<b>Dismiss the \"Weak GPS\" warning with one tap — and it stays dismissed.</b> The cross is now right in the status bubble (before, the path led through the detail and the notification card, i.e. three taps). And above all: dismissing is no longer cancelled by a single tick of good signal. Accuracy in the field jumps around 10 m (9 → 12 → 9 m), so after \"OK\" the warning kept coming back within seconds; now it's forgotten only after three minutes of continuous good signal — or at once when the signal gets <b>significantly</b> worse, because that's a new situation.",
+        "<b>The status bubble is a bit bigger.</b> After slimming it was too thin; two letters of height were added while it still keeps the text on one line."
+      ]
+    },
+    {
+      "v": 270,
+      "datum": "2026-08-31",
+      "nadpis": "A slim status bubble, full-screen Yearbook, updates once a day, faster gestures and a tool opens even on a quick tap",
+      "body": [
+        "<b>A tool opens even if you tap the tile right after start.</b> The app fetches some tools only after launch so it boots quickly. Whoever was faster than it tapped into nothing — outwardly nothing happened and the tool looked broken. Now such a tap is held and the tool opens by itself as soon as it's ready.",
+        "<b>The \"New version\" bar no longer nags at every launch.</b> It shows at most once a day. You can update manually any time: <b>More → Update history</b>, at the top is a green <b>Update</b> button — and while a new version waits, a badge glows at that item.",
+        "<b>The status bubble is a slim pill again.</b> It had doubled because the message wrapped onto two lines. Now the text is rather shortened with an ellipsis and the numbers — accuracy and azimuth — stay in place.",
+        "<b>Yearbook and \"Points on top of each other\" opened INSTEAD of the map.</b> In split the window squeezed between the camera and the map as a third strip and the camera kept running above it. Both windows now run full-screen like all the others.",
+        "<b>Gestures react sooner.</b> After the activation gesture a shorter stroke suffices for each shortcut arrow (34 px instead of 54) and it needn't be so exactly horizontal or vertical. The tool also launches immediately — until now it waited two tenths of a second just so the indicator could be seen.",
+        "<b>In the company it's visible when the list of people didn't download from the server.</b> Before, the old list from the phone's memory was silently shown in such a case — it looked as if the people had vanished. Now the reason is written at the top (no signal / phone not signed in / expired access) and what to do, plus a <b>Load list from server</b> button."
+      ]
+    },
+    {
+      "v": 265,
+      "datum": "2026-08-29",
+      "nadpis": "Yearbook, trainer, offline vector map, Look around and new looks",
+      "body": [
+        "New <b>Yearbook</b> in Tools: the year and month in numbers — how far you walked and climbed, how many points you measured, how many days you were in the field — and <b>a map of all points you measured in the year</b>, coloured by month. Quiet badges at the bottom for what went well. Everything stays on the phone, nothing is sent anywhere.",
+        "<b>Points on top of each other</b>: when two of you work on a job, the app now recognises that you both measured the same point and asks. When you confirm, the second determination is used as a <b>check measurement</b> — your colleague thereby actually verified the point for you. On top of that, a message to the company chat is no longer lost without signal: it's saved and sent by itself. And the app now says for every accuracy <b>where it comes from</b> — whether someone measured it or the phone only thinks so.",
+        "Underneath it all the app <b>stopped freezing on big computations</b> — volumes and other heavy computing run aside, so you can keep panning the map meanwhile.",
+        "<b>Field trainer</b> — practice stake-out for real. The app scatters points, you go stake them out and it tells you how many centimetres off you were. <b>Outdoors</b> on real GPS, or <b>at home in a room</b>: there only the position is fictional, you walk by holding a button and go where the phone points — compass and camera are real, so you practise exactly what you do outside. Simulated GPS inaccuracy can be switched on too, because a point that fits on the display needn't fit on the ground yet. Nothing from the trainer is saved to the job and the fictional position doesn't get into measurements.",
+        "<b>Offline vector map</b> — a base drawn, not downloaded as an image. <b>Pack an extent from the office</b> (no GPS needed) and have it in the field without signal, sharp at every zoom. A town with surroundings comes to a few MB instead of hundreds. The data is from OpenStreetMap — for orientation, not for measuring.",
+        "<b>Look around</b> — a mode for looking about, without a job and without measuring. It tells you which parcel you stand on (number, land type, area), how far the boundary is, your altitude and where the Sun is — and in the camera shows <b>parcel labels over their area</b>. When the boundary is closer than the GPS accuracy, it honestly admits it doesn't know which parcel it is.",
+        "<b>Poster of the day</b> — the day as one picture to share: the walked track drawn as a line, points as dots, weather and four big numbers. You'll also find it at the bottom of the Day journal. The kilometres walked and metres of climb come from the phone's GPS, so they're approximate.",
+        "Two new looks in <b>Settings → Appearance → Colour tint</b>. <b>Blueprint</b> redraws the whole app and map into the form of a survey drawing — light linework on dark blue, dialogs on graph paper. <b>Night</b> is a red palette with no blue at all: in the dark it doesn't ruin your eye adaptation (that half hour before you can see) and the display glows less. The map, markers and camera image are dimmed too.",
+        "Night mode can <b>switch on by itself after dusk</b> and step back in the morning — the switch is right under the tint choice. The app computes the times from your position offline (civil twilight) and won't override your own tint choice: if you pick a different one at night, the automation stays quiet until noon.",
+        "New tool <b>North by the Sun</b> (Tools → AR and calibration). The phone's compass is a magnetometer and near rebar, rails or cars it easily shows twenty degrees off. All the previous ways of aligning north need a known point in sight — in the middle of a field there's none. This one needs only a visible Sun: aim at it (or along your own shadow, you don't have to look into the Sun), hold three seconds and the app aligns north. Honestly: by hand it comes to ±3–5°, so it's a rescue where there's nothing to orient on, not a substitute for orientation on a point.",
+        "New tool <b>Point from two photos</b> (Tools → Measuring). Determines a point you can't reach — a corner behind a fence, a roof, a chimney, the other side of a river. Unlike forward intersection you don't have to aim the cross steadily: at each station you just snap a photo and tap the target in the frozen image, with a finger, at leisure, even in the car. If you mark a known point in the photo too, the compass error cancels from the result; without it the app marks the result as approximate and says why.",
+        "New <b>Guess it</b> (Tools → Aids) — three short disciplines where you first guess and only then learn the truth from the sensors: walk a given distance, turn to a given azimuth, estimate the distance to a point. During an attempt the app deliberately doesn't show what you're guessing. Beyond score and streaks it's a working skill: whoever knows what thirty metres look like and where south-west is spots a silly mistake before saving it. You can play it on a walk without a job too."
+      ]
+    },
+    {
+      "v": 264,
+      "datum": "2026-08-29",
+      "nadpis": "Other languages, an inbox for messages, faster start and point verification",
+      "body": [
+        "The app speaks <b>English, German and Polish</b>. The language is chosen by the phone and switched at the very top of <b>Settings → Appearance</b>; on the sign-in screen there's a ring at the top right for it. Switching is instant, the app doesn't restart. Technical terminology is translated as a surveyor would, not from a dictionary.",
+        "New <b>Write to me</b> (\"More\" or Settings → Maintenance): send the author what doesn't work, what's missing or what you'd change. <b>You needn't be signed in</b> and <b>it works without signal too</b> — the message waits on the phone and leaves by itself once there's a connection.",
+        "<b>Nearest known point</b>: official points (trigonometric, densification, levelling) sorted by distance, with direction and compass point. The <b>Anchor</b> button pre-fills the coordinates straight into the GPS shift to a known point — before they had to be copied by hand.",
+        "<b>Check measurement</b>: mark a point for verification, in 25 minutes the app calls and you let it be determined a second time. From the difference of both determinations it computes the <b>real accuracy</b> — unlike σ from one occupation it already includes the systematic error. Then you choose whether to keep the original, average, or overwrite.",
+        "<b>Pack the job</b>: one button downloads points, map, cadastre, orthophoto and terrain heights <b>around the job's centre</b> — not around where you happen to stand. At last a trip can be prepared from the office.",
+        "<b>The quality report</b> has a new <b>Check</b> column with the verified accuracy of the point and an explanation of how to read it.",
+        "Small things: a more precise status bubble and accuracy silhouette, improved gestures as tool shortcuts, company chat, update history and weather; the Garmin watch reads QR better.",
+        "The app <b>opens faster</b>. Nine tools that usually aren't even opened all day are now fetched only after rendering — the first frame appears about a third earlier and half a second less passes before the app is ready. Nothing is missing: the tools are in place, they just load in the background.",
+        "<b>Point verification</b> (a new tool in Record). The spread of a measurement says how calm the measurement was — not whether the point is right. The GPS error in a phone is shifted in the same direction throughout one occupation, so two hundred calm readings can be two hundred readings off. The only real check is a <b>second determination after a gap</b>. The point card now reports \"Verified by second determination · Δ 12 cm (limit 39 cm)\" or \"Single determination — unverified\" and the new tool shows the whole job at once.",
+        "<b>Stake-out report</b> (a new tool in Stake out). When you tick a point off, the app now also records <b>where you really stood</b> — and makes a design → reality table with ΔY, ΔX, positional deviation and the limit deviation by quality code. It can be printed, saved as PDF or exported to CSV. Rows where the phone had worse accuracy than half the limit are marked <b>inconclusive</b> — a verdict you can't rely on is worse than none.",
+        "In <b>Tools</b> you can now tell which tool touches the job's points: such tiles have a strip at the bottom edge. The others only show.",
+        "<b>The error log</b> can be sent with one tap together with the circumstances (app version, phone type, network and GPS state, unloaded modules). Coordinates, job names and point names aren't sent."
+      ]
+    },
+    {
+      "v": 263,
+      "datum": "2026-08-29",
+      "nadpis": "Fix: sign-in got stuck on \"too many attempts\"",
+      "body": [
+        "Fixed: the app could refuse even the <b>correct password</b> with a message about many attempts, and immediately — without asking the server at all. There were two defects feeding each other.",
+        "First: the phone counted <b>absolutely every</b> server response as a wrong password. Even the one that says \"too many attempts, wait\". So one lock on the server added errors on the phone too, and the locks added up.",
+        "Second: the error counter on the phone <b>never decreased</b> and only a successful sign-in cleared it. Whoever got past nine errors got a quarter-hour lock after every further failure from then on — and couldn't reach success, because the app refused even the correct password. It was a trap with no exit.",
+        "Now the counter is <b>forgotten after 30 minutes of quiet</b> and only a genuinely refused password counts as a password-guessing attempt. Protection against PIN guessing stays unchanged: five free attempts, then the wait doubles up to 15 minutes.",
+        "Whoever got stuck in that trap signs in straight away after the update — the stuck counter is discarded by itself."
+      ]
+    },
+    {
+      "v": 262,
+      "datum": "2026-08-29",
+      "nadpis": "GPS accuracy silhouette, quality report and faster start",
+      "body": [
+        "A new <b>accuracy silhouette</b> in the top left corner: a figure standing on the ground and around it a circle of how big the position uncertainty is right now. A circle tight at the feet means good, a circle across the whole card \"you're somewhere here\". The dotted mark is fixed and corresponds to 5 m, so it reads without counting: <b>inside the dotted = measure, outside = wait</b>. Thresholds and colours are the same as in the status bubble. Switch off in Settings → Appearance.",
+        "New tool <b>Quality report</b>: for every point you see what it was measured by, the standard error, <b>the spread of readings σ</b> and <b>how many epochs</b> were used. The app computed this before, but only one number of it reached the point — now it's documentable and can be exported as a report (.txt) or table (.csv) for the office. Hand-entered points have no spread and show a dash.",
+        "<b>The app starts faster</b>: twenty tools and exports that open only on demand (regulations, newsletter, backups, calibration, DXF/KML/CSV exports) load only after rendering. Before the first frame 277 kB and 20 files less are processed. Nothing disappeared — the first touch on the bar or Tools fetches the rest at once.",
+        "Fixed: <b>solid green buttons</b> had white text in dark mode with a contrast of only 3.35 : 1 — unreadable in direct sun. Now 4.82 : 1, and nine other places were fixed the same way (active tabs, segments, the new-version bar).",
+        "Fixed: the <b>\"Collapse\"</b> button didn't appear at all in some windows — insertion failed when the window heading had its own wrapper.",
+        "Inside: <b>errors the app deliberately passes over</b> so it doesn't crash in the field are now written to the Error log (over 1,500 places). Before they vanished without trace and a complaint from the field had nothing to hold on to. A CI check was added that watches colours and contrast, so the two earlier light-mode bugs can't quietly return."
+      ]
+    },
+    {
+      "v": 260,
+      "datum": "2026-08-29",
+      "nadpis": "Distance to the point on the divider edge and update history",
+      "body": [
+        "When navigating to a point the <b>distance moved to the dividing edge</b> between the camera and the map: the strip fills up as you get closer and the colour says how far you are (white → sand under 25 m → amber under 2 m → green on the point). In split it takes space from neither the camera nor the map; in full-screen AR it sits at the bottom edge.",
+        "Fixed: in bright sun the distance was practically invisible — dark text on an almost black plate.",
+        "Fixed: the <b>Arrow transparency</b> slider also made the data label transparent. Now it affects only the arrow.",
+        "New <b>Update history</b> window (More, or Settings → Maintenance) — what came to the app and when, since the first version."
+      ]
+    },
+    {
+      "v": 259,
+      "datum": "2026-08-29",
+      "nadpis": "Company switching, AR navigation and light mode",
+      "body": [
+        "Switching company no longer leaves the previous company hanging in administration — after switching the panel closes and reopens with the new one (before it looked as if switching didn't work).",
+        "New <b>Change job</b> tile in Tools (Aids) — switch jobs with one tap without leaving work in progress.",
+        "AR navigation: the arrow and distance show even when the navigated point is hidden by a filter, search or the \"hide\" flag. Before, navigation then ran only in the map.",
+        "Light mode: fixed 38 places where text was unreadable — buttons, warnings, the \"Map and layers\" panel in sun, the Regulations, Coordinate list and Newsletter windows.",
+        "The \"New version\" bar gained a <b>What's new</b> drop-down (this window)."
+      ]
+    },
+    {
+      "v": 258,
+      "datum": "2026-08-29",
+      "nadpis": "Gestures as tool shortcuts",
+      "body": [
+        "Draw a gesture on the display to open the chosen tool — set it up in Settings."
+      ]
+    },
+    {
+      "v": 257,
+      "datum": "2026-08-29",
+      "nadpis": "Collapsing, sketches, one backup, more precise weather",
+      "body": [
+        "Collapse now works for all tools, not just some.",
+        "More options in the sketch.",
+        "Backups merged into one.",
+        "Weather is aligned to real observations from stations."
+      ]
+    },
+    {
+      "v": 255,
+      "datum": "2026-08-09",
+      "nadpis": "Fix of QR code reading",
+      "body": [
+        "Version 254 broke reading of all QR codes — fixed."
+      ]
+    },
+    {
+      "v": 254,
+      "datum": "2026-08-09",
+      "nadpis": "Four fixes from field feedback",
+      "body": [
+        "Small things reported while working outside."
+      ]
+    },
+    {
+      "v": 252,
+      "datum": "2026-08-09",
+      "nadpis": "Garmin watch",
+      "body": [
+        "ČÚZK points downloaded online go to the watch too, not just own ones.",
+        "The map in the watch reaches farther and shows how many points are selected.",
+        "Points measured by the watch are drawn pink in the map and have their own switch in the list."
+      ]
+    },
+    {
+      "v": 251,
+      "datum": "2026-08-09",
+      "nadpis": "Map and points to the watch with one button",
+      "body": [
+        "The map in the watch reaches farther and shows how many points are selected.",
+        "One button sends the map and selected points to the watch at once.",
+        "The watch downloads the map from anywhere — the phone makes the tiles for it itself."
+      ]
+    },
+    {
+      "v": 245,
+      "datum": "2026-08-09",
+      "nadpis": "Garmin watch",
+      "body": [
+        "An app for Garmin Forerunner: pairing, point transfer and measuring straight from the watch.",
+        "The watch shows the pairing code, it's typed into the phone."
+      ]
+    },
+    {
+      "v": 244,
+      "datum": "2026-08-09",
+      "nadpis": "Merging of all branches in progress",
+      "body": [
+        "Everything in progress merged into one version."
+      ]
+    },
+    {
+      "v": 243,
+      "datum": "2026-08-09",
+      "nadpis": "Coordinate list for the office",
+      "body": [
+        "A configurable text export of coordinates with presets and preview — there's simply no single \"Groma/Kokeš format\"."
+      ]
+    },
+    {
+      "v": 242,
+      "datum": "2026-08-09",
+      "nadpis": "Clearer tool names",
+      "body": [
+        "Unified pairs of tools that did almost the same.",
+        "The staked-out line in the camera plugged into Tools."
+      ]
+    },
+    {
+      "v": 241,
+      "datum": "2026-08-09",
+      "nadpis": "Camera field of view from focal length",
+      "body": [
+        "The field of view can also be entered from the lens focal length, not only measured."
+      ]
+    },
+    {
+      "v": 240,
+      "datum": "2026-08-09",
+      "nadpis": "Tool clean-up based on a real walk-through",
+      "body": [
+        "Six rarely used tools moved aside and some renamed."
+      ]
+    },
+    {
+      "v": 239,
+      "datum": "2026-08-09",
+      "nadpis": "The tool wheel is a flower",
+      "body": [
+        "Petals reach the display edges, bigger font and centred labels."
+      ]
+    },
+    {
+      "v": 238,
+      "datum": "2026-08-09",
+      "nadpis": "My activity and bulk tool clean-up",
+      "body": [
+        "The app measures which tools you really use and orders them accordingly."
+      ]
+    },
+    {
+      "v": 237,
+      "datum": "2026-08-09",
+      "nadpis": "Outdoor mode and gloves",
+      "body": [
+        "Outdoor mode keeps the map light too (it used to go dark and couldn't be seen in the sun).",
+        "Sliders for gloves control.",
+        "Faster start."
+      ]
+    },
+    {
+      "v": 236,
+      "datum": "2026-08-09",
+      "nadpis": "Weather anchored to ČHMÚ stations",
+      "body": [
+        "The forecast is aligned to real measurements from five ČHMÚ stations.",
+        "The deviation is computed separately for the morning, day and evening parts of the day."
+      ]
+    },
+    {
+      "v": 235,
+      "datum": "2026-08-09",
+      "nadpis": "Wheel and Defects",
+      "body": [
+        "The cross in the middle of the wheel no longer jumps between the rings and is more sensitive at the edge.",
+        "Defects have a solid background — readable over the camera too."
+      ]
+    },
+    {
+      "v": 234,
+      "datum": "2026-08-09",
+      "nadpis": "Settings by swipe, Compass and Weather",
+      "body": [
+        "Settings close with a swipe on the display.",
+        "Fixed search in Settings.",
+        "Compass as a separate tool and Weather without a wall of text."
+      ]
+    },
+    {
+      "v": 233,
+      "datum": "2026-08-09",
+      "nadpis": "The divider's light edge",
+      "body": [
+        "The divider between the camera and the map slimmed down to a line of light — the camera and map got 8 px of image back.",
+        "Tools one slot lower in the bar so the thumb reaches them."
+      ]
+    },
+    {
+      "v": 232,
+      "datum": "2026-08-09",
+      "nadpis": "Performance and resilience",
+      "body": [
+        "When idle the app read storage 190× a second — now a fraction of that.",
+        "Reinforced critical spots so that one error doesn't bring down the whole screen."
+      ]
+    },
+    {
+      "v": 231,
+      "datum": "2026-08-09",
+      "nadpis": "Tool wheel",
+      "body": [
+        "Tools are picked by dragging a finger from the bar, without opening a window.",
+        "Fixed left-hand mode — windows were entirely off-screen."
+      ]
+    },
+    {
+      "v": 230,
+      "datum": "2026-08-08",
+      "nadpis": "Side index in Settings",
+      "body": [
+        "Settings gained a side index.",
+        "In the bar, instead of \"More\", there's the map control directly — that's used all the time in the field."
+      ]
+    },
+    {
+      "v": 228,
+      "datum": "2026-08-08",
+      "nadpis": "Divider in split",
+      "body": [
+        "The camera/map ratio is dragged with a finger, with stops at 25 / 50 / 75 %.",
+        "Three fixes reported from the field."
+      ]
+    },
+    {
+      "v": 226,
+      "datum": "2026-08-08",
+      "nadpis": "Battery saving in AR",
+      "body": [
+        "The camera runs at 720p and at most 30 frames a second — indistinguishable on the display, the battery lasts much longer.",
+        "The app starts in Map mode."
+      ]
+    },
+    {
+      "v": 225,
+      "datum": "2026-08-08",
+      "nadpis": "Rain warning",
+      "body": [
+        "A rain warning also from the short-term radar forecast."
+      ]
+    },
+    {
+      "v": 224,
+      "datum": "2026-08-08",
+      "nadpis": "Weather from Czech models",
+      "body": [
+        "The ČHMÚ ALADIN and AROME models and more ensembles were added — much more precise for Czechia."
+      ]
+    },
+    {
+      "v": 223,
+      "datum": "2026-08-08",
+      "nadpis": "Own profile guide",
+      "body": [
+        "Tidied elements in Settings and a guide that assembles your profile from a few questions."
+      ]
+    },
+    {
+      "v": 222,
+      "datum": "2026-08-08",
+      "nadpis": "One status strip instead of two",
+      "body": [
+        "The main screen has one status strip — more room for the image."
+      ]
+    },
+    {
+      "v": 221,
+      "datum": "2026-08-08",
+      "nadpis": "Settings on one row of tabs",
+      "body": [
+        "Single-row tabs and a separate Profiles tab."
+      ]
+    },
+    {
+      "v": 220,
+      "datum": "2026-08-08",
+      "nadpis": "Tools as a single view",
+      "body": [
+        "Four different ways to arrange the tools were replaced by one list with collapsible groups."
+      ]
+    },
+    {
+      "v": 218,
+      "datum": "2026-08-08",
+      "nadpis": "Start screen and position from the map",
+      "body": [
+        "A new start screen and a bar that warns of a new version.",
+        "<b>Position from map</b>: under trees and between houses you read your position by tapping the orthophoto when GPS is worse than what you can see yourself."
+      ]
+    },
+    {
+      "v": 217,
+      "datum": "2026-08-08",
+      "nadpis": "Six bugs found by running the app",
+      "body": [
+        "An audit by actually running it in a browser found six bugs that static checks didn't catch."
+      ]
+    },
+    {
+      "v": 209,
+      "datum": "2026-08-08",
+      "nadpis": "Five new tools",
+      "body": [
+        "<b>Geo-photo</b> — a photo with position and azimuth.",
+        "<b>Walkie-talkie</b> and a \"Man Down\" alert.",
+        "<b>Voice coding</b> of points.",
+        "<b>Indoor navigation</b> where GPS ends.",
+        "<b>Excavation walk-around</b>."
+      ]
+    },
+    {
+      "v": 208,
+      "datum": "2026-08-07",
+      "nadpis": "Accounts, Face ID and morning briefing",
+      "body": [
+        "Remembered sign-in and Face ID.",
+        "Company jobs with permissions.",
+        "<b>Today in the field</b> — one card with weather, GNSS windows and overdue points."
+      ]
+    },
+    {
+      "v": 207,
+      "datum": "2026-07-27",
+      "nadpis": "Notification centre and search",
+      "body": [
+        "Tools can be browsed as a list of actions (\"what I want to do\"), not only as a grid of tiles.",
+        "Search directly in Settings."
+      ]
+    },
+    {
+      "v": 170,
+      "datum": "2026-07-18",
+      "nadpis": "Brutal accuracy improvement",
+      "body": [
+        "<b>Anchoring AR to the station</b> (resection) — an end to markers dancing by metres.",
+        "<b>Helmert transformation</b> into a local system.",
+        "<b>Photo total station</b>, utility networks, measurement journal and job transfer.",
+        "<b>Polar point</b> (polar method) and the Free station guide."
+      ]
+    },
+    {
+      "v": 164,
+      "datum": "2026-07-12",
+      "nadpis": "View wheel and edge-to-edge",
+      "body": [
+        "Switching AR / Split / Map with a ring in the corner.",
+        "Content reaches the display edges, top and bottom."
+      ]
+    },
+    {
+      "v": 152,
+      "datum": "2026-07-12",
+      "nadpis": "Epochs and Object height",
+      "body": [
+        "<b>Epochs / displacement monitoring</b> — re-measuring points over time and watching deadlines.",
+        "<b>Object height</b> from the camera."
+      ]
+    },
+    {
+      "v": 123,
+      "datum": "2026-06-20",
+      "nadpis": "Redesign and QC inspector",
+      "body": [
+        "New look: a vertical bar, tiles in Settings, full-screen windows.",
+        "<b>QC inspector</b> — a quality code from the achieved accuracy and a gate that won't let you save a point worse than the job's target."
+      ]
+    },
+    {
+      "v": 64,
+      "datum": "2026-06-14",
+      "nadpis": "Sketch, tacheometry and QR",
+      "body": [
+        "<b>Sketch / tacheometry</b>: points in a local projection, connections, scale bar, PNG export.",
+        "Sharing points via <b>QR code</b> without a server.",
+        "Undo also for deleting points and jobs."
+      ]
+    },
+    {
+      "v": 1,
+      "datum": "2026-06-13",
+      "nadpis": "First version",
+      "body": [
+        "Points in the camera, a map with orthophoto and cadastre, downloading points from ČÚZK, measuring distances."
+      ]
+    }
+  ]
+}

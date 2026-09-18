@@ -1,0 +1,1289 @@
+{
+  "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
+  "verze": [
+    {
+      "v": 361,
+      "datum": "2026-09-18",
+      "nadpis": "Alles übersetzt: Versionshinweise und Aktualisierungshistorie in fünf Sprachen, Newsletter pro Sprache",
+      "body": [
+        "<b>Was ist neu und Aktualisierungshistorie</b> gibt es auf Englisch, Deutsch, Polnisch, Spanisch und Italienisch — alle 118 Versionen seit der ersten (data/co-je-noveho-xx.json, 559 Texte). Die Tage in der Historie stehen in Worten in der Sprache der App (Freitag, 18. September 2026), Anzahl der Tage und Änderungen sowie Versionsnummern laufen über Muster.",
+        "<b>Der Geo-Newsletter</b> liest die Ausgabe pro Sprache (data/zpravodaj-xx.json): Rubriken, Editorial, „Original bei der Quelle lesen“ und Fußzeile stehen im Wörterbuch, die heutige Ausgabe ist von Hand übersetzt. Der tägliche Build (scripts/build-zpravodaj.mjs) kann die Ausgabe selbst übersetzen, wenn das Repository den Schlüssel ANTHROPIC_API_KEY hat — ohne ihn bleiben die Artikel im Original und veraltete Übersetzungen werden gelöscht, damit die fremdsprachige App nicht die Nachrichten von gestern zeigt.",
+        "Die fremdsprachige App behält Versionshinweise und Newsletter im Handy (DICT_CACHE, Erneuerung im Hintergrund; das Stempel ?t= füllt die Cache nicht mehr mit Kopien) und lädt sie nach dem Sprachwechsel neu.",
+        "Test test_jazyky_data auf 113 Kontrollen erweitert (Versionshinweise: gleiche Struktur, HTML und v/Datum in allen Sprachen; Newsletter; Historie und Newsletter im Browser auf Italienisch ohne tschechischen Satz)."
+      ]
+    },
+    {
+      "v": 360,
+      "datum": "2026-09-18",
+      "nadpis": "Navigation auch zu einem fernen Punkt, Grundkarte Karte · Orthofoto · Kataster, Werkzeuge durchgesehen und aufgeräumt, Einstellungen → Anwendung",
+      "body": [
+        "<b>Die Route zum Punkt nach Gelände</b> führt jetzt auch zu einem <b>Nivellement- oder trigonometrischen Punkt</b> kilometerweit weg: bis 3 km detailliert wie bisher, bis 20 km über Straßen und Wege aus einer gröberen Karte (über 20 km eine Gerade). Ziel an einer Gebäudewand (Höhenbolzen) — die Route reicht bis zu ihm, nicht nur „zur nächsten Stelle“.",
+        "<b>Die Grundkarte</b> sind zwei Reiter: <b>Karte</b> (eigene Vektorkarte, jetzt von Anfang an eingeschaltet — wenn Daten fehlen oder das Handy schwächer ist, läuft darunter still ein Raster) und <b>Orthofoto</b>; daneben <b>Kataster</b> als Flurstückschalter über der Grundkarte. Die gewöhnliche Rasterkarte als Auswahl ist verschwunden.",
+        "<b>Werkzeuge eines nach dem anderen durchgesehen:</b> beiseite (nicht gelöscht — per Suche zu finden) gingen Maßband in der Kamera, Spannmaße, Kubaturen, Routenspur, Qualitätsprotokoll, Punktprüfung, der Assistent „weiß nicht, womit anfangen“, der Wegweiser Anders ausrichten, visuelle Stabilisierung, Umgebungsrundgang, Vektorkarte offline, Signalvorhersage und Heute im Gelände. <b>AR ausrichten</b> = Kompass und Nord ausrichten.",
+        "<b>Präzises Messen</b> hat statt neun Zeilen sechs: <b>GPS korrigieren</b> (Gehen an der Kante · aus der Karte beim Gehen · nach bekanntem Punkt) und <b>Mit zwei Handys</b> (DGPS · akustischer Entfernungsmesser) sind Wegweiser. „Warum ±4 m?“ zeigt <b>deine aktuelle Genauigkeit</b>. Die Korrektur heißt „Wahre Länge aus Maßband oder Entfernungsmesser“.",
+        "<b>Punktjäger</b> sind in Lernen, <b>Versteckte Punkte</b> bei Gelöschten Punkt wiederherstellen, <b>Ferne Punkte in AR</b> in den Grundlagen.",
+        "<b>Einstellungen → Anwendung</b> (früher Wartung + seitliches Mehr): vier Abschnitte <b>Hilfe und Anleitungen</b> · <b>Über die App</b> · <b>Sicherung</b> · <b>Platz im Handy</b> — Anleitung, Funktioniert alles?, Dem Autor schreiben, Historie, Teilen, Verwaltung, Sicherung, Geräteprofil, Platz freigeben. Versteckte Punkte sind in Daten beim Auftrag. Der Streifen unter den Reitern führt direkt zur Anleitung."
+      ]
+    },
+    {
+      "v": 359,
+      "datum": "2026-09-18",
+      "nadpis": "Übersetzungen vollendet: Anleitungen, Vorschriften, Übungsaufgaben und Geo-Karten in fünf Sprachen, die letzten tschechischen Reste",
+      "body": [
+        "<b>Die Anleitungen „?“ der Werkzeuge</b> (110 Texte), <b>Vorschriften und Abweichungen</b>, <b>Übungsaufgaben</b> und <b>Geo-Karten</b> gibt es auf Englisch, Deutsch, Polnisch, Spanisch und Italienisch — keine wörtlichen Übersetzungen, sondern Texte, die danach geschrieben sind, was das Werkzeug tut. Die tschechischen Originale bleiben unverändert (data/navody-xx.json, predpisy-xx.json, ulohy-xx.json).",
+        "Über 1 000 weitere Texte von Bildschirmen übersetzt, die in einer Fremdsprache bisher tschechisch blieben: Präzises GPS, Kalibrierung durch Gehen an der Kante, Korrektur aus der Karte, Akustischer Entfernungsmesser, Achse, Ebenen, Erkennungsquiz, Jahrbuch, Meine Aktivität, GNSS-Vorhersage, Wetter (Erläuterungen zu Gewichten und ČHMÚ-Messungen), Firmenpanel, Briefing. Mit Zahlen zusammengesetzte Sätze („38,6 m nach Nordosten“, „September 2026“, „Woche: 6 min in der App…“) über Muster.",
+        "Spanisch und Italienisch haben die restlichen 27 Texte aufgeholt (Konto, Anmeldung, Kataster); alle fünf Sprachen haben jetzt denselben Satz von 6 539 Schlüsseln.",
+        "<b>Die fremdsprachige App hängt nicht mehr am alten Wörterbuch</b>: Wörterbucherweiterungen und lokalisierte Dateien werden im Handy bei jedem Start im Hintergrund erneuert (vorher hielt der Service Worker sie für immer in der zuerst geladenen Form — neue Übersetzungen kamen nicht bei dir an).",
+        "Neuer Test test_jazyky_data (53 Kontrollen: Dateien pro Sprache, gleiche Struktur und HTML, italienische Anleitung im Fenster „?“, Vorschriften, Aufgaben, Karten) in CI."
+      ]
+    },
+    {
+      "v": 358,
+      "datum": "2026-09-18",
+      "nadpis": "Durchgang durch die App, 2. Runde: neue Nutzer kommen rein, das Menü tippt nicht ins Leere",
+      "body": [
+        "<b>Neuer Nutzer</b>: Tor → Weitere Optionen → „Nur für dieses Gerät anlegen“ → nach dem Schließen des Assistenten startet die App. Vorher blieb ein schwarzer Bildschirm nur mit dem Dock (die Firma war angelegt, aber niemand hat die App gestartet).",
+        "Menü Mehr: „Aufgabenassistent“ und „Anleitung und Rundgang“ direkt nach dem Start angetippt (bevor die verzögerten Module geladen sind) öffnen sich einen Moment später — vorher verpuffte der Tipp still (openPruvodce / startTutorial is not defined).",
+        "Punktkarte in Fremdsprache: „Gefunden — noch 40 m / noch 5 s stehen bleiben / warte auf GPS“ übersetzt (blieb vorher tschechisch).",
+        "Geprüft: Tor und Firmenanlage, alle Menüpunkte (Pro und Basis), jeder Schalter in den Einstellungen hin und zurück, die Zeilen des Panels Karte, fünf Sprachen, Querformat, Handschuhe / linke Hand / Schrift 130 % / draußen / einfacher Modus, 64 Werkzeuge + 29 Wegweiser-Einträge — ohne Seitenfehler, ohne Text „undefined/NaN“."
+      ]
+    },
+    {
+      "v": 357,
+      "datum": "2026-09-18",
+      "nadpis": "Tageskontrolle: Speichern und weiter füllt das GPS wieder selbst aus",
+      "body": [
+        "Nach „Speichern und weiter“ füllen sich beim nächsten Punkt die Koordinaten aus dem GPS-Mittel wieder von selbst — auch wenn du beim vorigen Punkt Y/X von Hand überschrieben hast. Sonst nur Kontrolle: alle 45 Testsätze grün, Passwortwiederherstellung live am Server ausprobiert (Einmalkonto, nach dem Test gelöscht)."
+      ]
+    },
+    {
+      "v": 356,
+      "datum": "2026-09-18",
+      "nadpis": "Neuer Punkt mit zwei Tipps, größere Ziele in der Karte, Wiederherstellungscode des Kontos",
+      "body": [
+        "<b>Neuer Punkt mit zwei Tipps</b>: nach dem Öffnen füllen sich die Koordinaten aus dem GPS-Mittel von selbst und werden jede Sekunde genauer („gemittelt aus N · ±x m“); „Aus GPS-Mittel“ antippen ist nicht mehr nötig. Wer Y/X von Hand überschreibt oder Karte bzw. Foto wählt, schaltet die Automatik ab. Gibt es noch keinen Satellitenfix, sagt es die Notiz unter den Tasten — kein Pop-up.",
+        "<b>Punktmarken in der Karte</b> fangen Tipps im Umkreis von 28 px (vorher 25), im Handschuhmodus 34 px.",
+        "<b>Wiederherstellungscode des Kontos</b>: die Registrierung will weiterhin keine E-Mail, aber das Konto bekommt beim Anlegen einen zweiten Schlüssel (20 Zeichen). Am Tor gibt es „Passwort vergessen? Ich habe einen Wiederherstellungscode“ → neues Passwort ohne E-Mail; nach dem Gebrauch bekommst du einen neuen Code. Wer ein älteres Konto hat, erzeugt den Code unter Über die App → Konto → Wiederherstellungscode (verlangt das Passwort).",
+        "Die Regressionstests in CI laufen in drei Strängen (≈7 Minuten statt 20); zwei Sätze, die in der langen Charge gelegentlich in ein Timeout liefen, warten jetzt zuverlässiger."
+      ]
+    },
+    {
+      "v": 355,
+      "datum": "2026-09-18",
+      "nadpis": "Durchgang durch die ganze App: was beim Durchklicken aller Werkzeuge gezickt hat",
+      "body": [
+        "<b>Der Toast „Etwas ist schiefgegangen (ucty:usageLog)“ ist weg.</b> Die Speicherübersicht in Einstellungen → Wartung legte die Datenbanken der Module leer an, und das Modul konnte dann nicht hineinschreiben (Änderungsjournal, Nutzungsmessung, Fotos, Sprachnotizen). Die Übersicht legt nichts mehr an, jedes Modul ergänzt seinen fehlenden Speicher selbst — die Daten bleiben.",
+        "Ortsskizze: die Taste „Verschieben“ hat ein Symbol (vorher stand dort „undefined“).",
+        "Punktkarte: ein amtlicher Punkt ohne Y/X in den Daten (etwa slowakische Punkte) zeigt das aus der Lage berechnete S-JTSK statt Striche; auf kleinem Display (320 px) werden die Koordinaten nicht mit Auslassungspunkten gekürzt.",
+        "Ferne Punkte in AR: über der Statuspille liegt nicht mehr das Rädchen „Einklappen“. Fenster Kataster: das Rädchen liegt nicht über der Überschrift.",
+        "Geländeroute ohne Empfang sagt „kein Empfang oder der Server antwortet nicht“ statt des englischen „Failed to fetch“.",
+        "Der CI-Test zu Dem Autor schreiben rechnete mit drei Sprachen — seit v351 sind es fünf (deshalb war er rot)."
+      ]
+    },
+    {
+      "v": 354,
+      "datum": "2026-09-18",
+      "nadpis": "Navigation ohne Pop-up, Karte an einem Ort, übersichtlichere Werkzeuge, Reiter Bedienung, kleine Displays, Übersetzungen",
+      "body": [
+        "<b>Führ mich hin ohne Pop-up</b>: wenn die Geländeroute gerade keine Daten hat (werden geladen, Ziel zu weit…), sagt es eine unauffällige Pille unten in der Karte und verschwindet von selbst — vorher ein Fenster mit Taste Verstanden mitten im Gehen. Das Aufheben der Auswahl ferner Punkte übersteuert nicht mehr einen noch laufenden Download vom ČÚZK.",
+        "<b>Die Vektorkarte hat einen Ort</b>: eingeschaltet und gestaltet wird sie nur im Panel Karte (Taste Ebenen → Hintergrund). In Einstellungen → Daten bleibt nur die Adresse eigener Daten. 3D-Ansicht, Wo kann ich messen und Ortsskizze schicken nicht mehr in die Einstellungen — sie schalten die Karte selbst ein (oder fragen und schalten ein).",
+        "<b>Werkzeuge von vier Ebenen auf zwei</b>: das Band „Was machst du heute“ ist aus dem Werkzeugfenster raus (das Arbeitsprofil wählst du in Einstellungen → Profile; wer das Band will, schaltet es ebendort ein), ★ Angeheftet erscheint nur, wenn etwas angeheftet ist, und die vier Büroverben (Vor der Abfahrt, Firma, Handbuch, Lernen) sind Abschnitte auf der Seite „Weitere“ — das Band hat 8 Verben statt 14. Ein neuer Nutzer öffnet die Werkzeuge direkt auf Messen.",
+        "<b>Einstellungen → Bedienung</b>: neuer Reiter für linke Hand, Handschuhe, Vibration, Gesten, einfachen Modus, Vereinfachung und schwächeres Telefon / Akkusparen. Aussehen behält Thema, Schrift und Elemente auf dem Bildschirm.",
+        "<b>Kleines Display und Telefon quer</b>: bei Höhen bis 640 px hebt sich das Dock und wird kleiner, sodass das Rad Karte/Split/AR nicht mehr über der Taste Einstellungen liegt (iPhone SE, 844×390).",
+        "<b>Übersetzungen</b>: 190 Texte der Werkzeuge aus den letzten Versionen (Punktejäger, Präzises GPS, Ortsskizze, Panel Karte, Punktkarte, Messland…) ins Englische, Deutsche, Polnische, Spanische und Italienische ergänzt; eine CI-Kontrolle stellt sicher, dass jedes neue Werkzeug eine Übersetzung hat.",
+        "Meldungen wie „Die Moduswahl machst du in Einstellungen → Aussehen rückgängig“ führen dorthin, wo die Wahl wirklich ist (Profile, Bedienung)."
+      ]
+    },
+    {
+      "v": 353,
+      "datum": "2026-09-18",
+      "nadpis": "Kontrolle nach zwei Tagen Änderungen: Meldungen halten nicht auf, Kartendaten greifen nicht an",
+      "body": [
+        "Die Meldungen „Geländeroute: …“, „Hindernis gespeichert“, „Slowakei: N Punkte“ und „Ebene ausgeblendet“ sind jetzt kurze Blasen, keine Fenster, die man wegklicken muss (sie blockierten auch das Ziehen des Teilers im Split).",
+        "Wenn es für das Land keine Kartendaten gibt oder kein Empfang ist, versucht es die App erst nach einer Minute wieder (vorher alle 5 s) und nennt in der Meldung den echten Grund.",
+        "Alle Testsätze bestanden: Panel Karte, Geländeroute, 3D, Skizze, Geo-Kärtchen, slowakische Punkte, Länder, Android, App-Durchgang."
+      ]
+    },
+    {
+      "v": 352,
+      "datum": "2026-09-18",
+      "nadpis": "Slowakische amtliche Punkte, Geo-Kärtchen neu, luftigeres Panel Karte, 3D nach Thema, Hausnummern gerade",
+      "body": [
+        "<b>Die Slowakei hat amtliche Punkte</b>: ist das Messland SK, werden die Punkte des GKÚ SR im Umkreis von 1,2 km geladen — Staatliches trigonometrisches Netz (I.–V. Ordnung, Orientierungs- und Verdichtungspunkte), Nivellementnetz, gravimetrisches und räumliches Netz — mit Bezeichnung, Katastergebiet, Markenart und Höhe Bpv. In Karte, AR und Navigation verhalten sie sich wie tschechische (die amtliche Skizze des ČÚZK haben sie natürlich nicht). Die Lage wird aus S-JTSK umgerechnet (±1 m).",
+        "<b>Geo-Kärtchen</b> (früher „Scroll und lern“): jede Art hat eigene Farbe, großes Symbol und feines Muster, der Inhalt liegt auf Papier; unten ist ein Kartenzähler.",
+        "<b>Panel Karte</b>: schlankerer Kopf, Reiter mit Luft; im Reiter Ebenen gibt es neu den Schalter <b>Umgebungswächter</b> (du stehst im Haus, an der Wand, unter Bäumen…) und einen Link zu den Korrektureinstellungen (Kalibrierung durch Gehen, Korrektur aus der Karte, Einrasten an Ecken). Im Split schließt sich das Panel nach der Wahl des Hintergrunds, damit man sieht, dass die Karte umgeschaltet hat.",
+        "<b>3D-Ansicht</b> richtet sich nach dem App-Thema (dunkel = Nachtkarte), nicht nach dem von Hand gewählten Stil der 2D-Karte; Blaupause und Druck bleiben.",
+        "<b>Hausnummern, Orts- und Gipfelnamen</b> in der Vektorkarte bleiben beim Drehen der Karte in Fahrtrichtung gerade — man liest sie nicht kopfüber (Straßennamen laufen entlang der Straße wie auf Papier).",
+        "Kartendaten: Österreich hochgeladen (aus dem Staatsumriss, 1,0 GB) und Ungarn."
+      ]
+    },
+    {
+      "v": 351,
+      "datum": "2026-09-18",
+      "nadpis": "Die App kann Spanisch und Italienisch",
+      "body": [
+        "<b>Zwei neue Sprachen: Spanisch und Italienisch.</b> Übersetzt ist alles, was englisch, deutsch und polnisch ist — Kern und ganze Erweiterung (über 6 600 Texte), inklusive Fachbegriffen (replanteo / tracciamento, distancias de control / misure di controllo, catastro / catasto…). Umschalten ganz oben in <b>Einstellungen → Aussehen</b> oder mit dem Ring auf dem Anmeldebildschirm; ein spanisch oder italienisch eingestelltes Telefon wählt die Sprache selbst.",
+        "Wie bei den anderen Sprachen: Tschechisch lädt nichts zusätzlich, die Erweiterung (~480 kB) wird erst nach der Sprachwahl geladen und nur die eine. Eigennamen bleiben — ČÚZK, ČHMÚ, CZEPOS, S-JTSK, Bpv, Verordnungsnummern."
+      ]
+    },
+    {
+      "v": 350,
+      "datum": "2026-09-18",
+      "nadpis": "Panel Karte auf drei Etagen, Geländenavigation auch auf dem Orthofoto, Hindernis auf eigener Leinwand",
+      "body": [
+        "<b>Panel Karte und Ebenen</b> (Taste Ebenen) hat drei Reiter: <b>Hintergrund</b> (Karten Karte · Vektor · Orthofoto mit Muster, darunter Kartendrehung, Stil der Vektorkarte und Messland), <b>Ebenen</b> (Kataster, Flurstücke, Zeichnung, GPS-Qualität, Hindernisse, Geländeroute, eigener Hintergrund — Schalter) und <b>Werkzeuge</b> (Umschauen · Zeichnen und messen · Daten im Telefon). Sichtbar ist immer nur eine Etage, mit Wischen wechselst du zur nächsten. Die vorläufige Taste „Kartentest“ ist damit weg — alles daraus hat im Panel seinen Platz.",
+        "<b>Die Geländeroute funktioniert auch auf Orthofoto und Raster</b> — Gebäude- und Wegedaten kommen aus den Kartenkacheln, egal was gerade zu sehen ist (vorher nur mit eingeschalteter Vektorkarte am Bildschirm → Gerade). Sind die Daten noch nicht da, sagt die App, dass sie geladen werden, und rechnet die Route von selbst nach.",
+        "<b>Hindernis</b>: wird auf eine eigene Leinwand über der Karte gezeichnet, streitet sich also nicht mit Verschieben, Zoomen oder langem Halten (Messen); zwei Finger im Zeichenmodus verschieben und zoomen die Karte. Die Form ist während des Zugs und nach dem Speichern zu sehen; die eingeschaltete Ebene Hindernisse lässt sich ausblenden.",
+        "Eine aus der 3D-Ansicht oder dem Panel eingeschaltete Vektorkarte bleibt auch nach einem Stilwechsel an (vorher schaltete sie sich nach dem Stilwechsel aus)."
+      ]
+    },
+    {
+      "v": 349,
+      "datum": "2026-09-17",
+      "nadpis": "Nach Rückmeldung vom Telefon: 3D-Karte über der Ansicht, Gehwege auf dem Gelände, Hindernis mit dem Finger, Skizze im neuen Gewand, Scroll und lern",
+      "body": [
+        "<b>3D-Ansicht</b>: Tippen auf einen Punkt schiebt <b>die klassische Punktkarte über das 3D</b> (nichts schaltet nach 2D, kein Flackern); ein Punkt wird auch 14 px daneben getroffen. <b>Gehwege</b> sind keine geknickten Rechtecke mehr — es sind Streifen in echter Breite mit Bordstein, aufs Gelände gelegt, ohne Flackern und schiefe Neigungen. <b>Grün</b> kommt auch aus Nutzungsflächen (Park mit Bäumen, Obstgarten), vorher nur aus der Bodenbedeckung — deshalb war es nicht zu sehen. <b>Der Globus</b> erscheint früher (ab der Ansicht auf ganz Tschechien); mehr Krümmung als die echte Erde kann MapLibre nicht.",
+        "<b>Hindernis</b>: Art wählen und <b>die Form mit einem Finger nachziehen</b> in der Karte (zwei Finger = Verschieben und Zoomen gehen weiter), keine Pop-ups; zwei Tipps = Rechteck wie bisher. Abbrechen mit der Taste in der Leiste oben.",
+        "<b>Geländeroute</b>: gibt es keine Route und es führt eine Gerade, sagt die App warum (Ziel weiter als 3 km, Karte lädt, von hier kein Durchgang…); Reichweite von 1,5 auf 3 km erhöht. <b>Unterführungen und Hausdurchgänge</b> (Weg im Tunnel) bleiben passierbar — verworfen werden nur U-Bahn-, Eisenbahn- und lange Straßentunnel.",
+        "<b>Ortsskizze</b>: neues Aussehen (Kopf mit Punkt, Hintergrundschalter, Symbolpalette unten, Leiste mit Symbolen, Nordpfeil, Rasterpapier) und <b>Symbole nach den Gepflogenheiten thematischer Karten</b> (ČSN 01 3411, vereinfacht): Laub- und Nadelbaum, Strauch, Mast, Lampe, Schacht, Hydrant, Einlauf, Grenzstein, Verkehrszeichen; Linien Zaun / Mauer / Bordstein / Graben. <b>Bäume aus dem Orthofoto</b>: Kronenlagen aus dem ČÚZK-Orthofoto-Ausschnitt geschätzt (dunkle oder texturierte grüne Flecken) — gestrichelt hinzugefügt, was nicht passt, löschst du.",
+        "<b>Scroll und lern</b> (Werkzeuge → Lernen): Kärtchen zum Wischen — Begriffe, Formeln, Vorschriften, Fragen aus Aufgaben, was die App kann, Tipps aus dem Gelände; Filter, Stern, Zähler.",
+        "<b>Außerhalb Tschechiens</b>: Kartendaten für die Slowakei, Ungarn und Österreich (Österreich und Slowenien werden noch hochgeladen), die Ländersimulation fügt 3 Beispielpunkte hinzu, die Punktliste erklärt, dass amtliche ČÚZK-Punkte nur in Tschechien existieren."
+      ]
+    },
+    {
+      "v": 348,
+      "datum": "2026-09-17",
+      "nadpis": "Navigation führt nicht mehr durch Wände, Schwerepunkt richtig, Arbeiten in 3D, Ortsskizze",
+      "body": [
+        "<b>Die Geländeroute</b> nimmt Gebäude und Wege direkt aus den Kartenkacheln für den ganzen Abschnitt, nicht nur das, was die Karte gerade am Bildschirm hat (herausgezoomte Karte = keine Gebäude = Route durch Häuser). Zu Gebäuden hält sie einen Meter Abstand, auf Wegen geht sie <b>auf deren Achse</b> (nicht einen Meter daneben), Raster 1 m. Stehst du <b>in einem Gebäude</b>, führt sie dich zuerst zum <b>Ausgang</b> (Eingang aus der Karte, sonst die Straßenseite — kein Notausgang) und erst von dort übers Gelände. Ziel in einem geschlossenen Hof oder Gebäude = Route endet an der nächsten Stelle und der Rest wird gerade gezeigt (rot gestrichelt). U-Bahn und Tunnel werden in der Route nicht genommen.",
+        "<b>AR</b>: der Pfeil führt zum nächsten Knick der Route, <b>der Strich im Band</b> zeigt den gesuchten Punkt (direkte Richtung) und der azurblaue Punkt darunter den nächsten Knick.",
+        "<b>Ein Schwerepunkt</b>, der von einer älteren Version geladen wurde (als PPBP gespeichert), wird nach neuem Laden nach der ČÚZK-Ebene umgestuft — Sechseck in der Karte und „Schwerepunkt“ im Kartenkopf, kein Kreis mit PPBP.",
+        "<b>Wo kann ich messen</b>: die Ebene blendest du mit der Pille „Ausblenden“ direkt in der Karte aus (oder mit der Taste im Ergebnisdialog), nicht nur im Panel Ebenen.",
+        "<b>Hindernisse in der Karte</b>: vor dem Zeichnen wählst du die Art (Haufen, Aushub, Maschine, Zaun, Wasser, Lager, Sonstiges) — jede hat Farbe und Symbol, der Name steht direkt in der Karte und lässt sich umbenennen; ein Aushub auf einem Weg sperrt den Weg für die Route.",
+        "<b>3D-Ansicht</b>: Tippen auf einen Punkt = Karte mit den Tasten <b>Punktkarte</b> und <b>Navigieren</b> (die Route wird auch in 3D gezeichnet, nach dem Schließen läuft sie im Split weiter), <b>Gehwege 12 cm über der Fahrbahn</b> (du erkennst, ob ein Punkt auf dem Gehweg oder in der Straße liegt), <b>Punkte in der Höhe</b> als Pfosten vom Gelände DMR 5G, <b>Grün</b> (Wald, Gebüsch) als Volumen, beim Herauszoomen ein <b>Globus</b>; das helle Thema funktioniert.",
+        "<b>Neues Werkzeug Ortsskizze</b> (Kataster und Unterlagen): zum gewählten Punkt Umrisse aus der Karte (Gebäude, Straßen, Wege, Gewässer, Gleise, Wald), Maße von–bis mit zwei Tipps (Länge aus Koordinaten, per Tipp den Maßbandwert eintragen), Objekte (Baum, Strauch, Mast, Schacht, Hydrant, Stein, Schild), Zaun / Kante, Text; Hintergrund <b>Papier / Karte / Orthofoto</b> — was du auf einem zeichnest, siehst du auch auf den anderen. Wird zum Punkt gespeichert, PNG-Export mit Nordpfeil, Maßstab und Legende.",
+        "<b>Simulation eines fremden Landes</b> (Einstellungen → Daten → Messland → Ausprobieren): stellt dich in die Hauptstadt des gewählten Landes — Koordinaten, Höhen, Kataster und Karte schalten um wie im Gelände.",
+        "Der Streifen unter der Statusleiste (Dynamic Island) bleibt nach dem Wechsel von hell zu dunkel nicht mehr hell."
+      ]
+    },
+    {
+      "v": 347,
+      "datum": "2026-09-17",
+      "nadpis": "Punktskizze auf die Karte gelegt — auf welcher Seite des Zauns der Punkt liegt",
+      "body": [
+        "<b>Skizze auf die Karte legen</b> — Taste unter der amtlichen ČÚZK-Skizze in der Karte eines amtlichen Punkts. Tippe in der Skizze auf die Punktmarke, dann auf eine Gebäudeecke oder einen Grenzpunkt und auf dieselbe Ecke in der Karte (bis 3 m rastet es am Katastergrenzpunkt ein). Die Skizze wird auf das Kataster gezogen und gedreht, halbtransparent — du siehst, auf welcher Seite von Mast, Zaun oder Ecke der Punkt liegt.",
+        "<b>In AR</b> wird die aufgelegte Skizze um den Punkt auf den Boden projiziert; die Leiste unten hält Transparenz, AR-Schalter, „Mit weiterer Ecke präzisieren“ (ab drei Paaren zeigt sie, wie weit die Punkte auseinanderliegen) und „Abnehmen“. Die Auflage überlebt einen Neustart.",
+        "Ehrlich: Skizzen sind meist schematisch → die Umgebung passt auf ±0,5–1 m, es geht um „welche Seite“, nicht um „wo graben“. Eine Ecke aus der DKM hat Zentimeter, aus der UKM ±1 m. Die Kachel <b>Punktskizze auf der Karte</b> ist in Werkzeuge → Kataster und Unterlagen, mit Anleitung."
+      ]
+    },
+    {
+      "v": 346,
+      "datum": "2026-09-17",
+      "nadpis": "Daten der Vektorkarte: ganz Tschechien sofort verfügbar; vorläufige Taste „Kartentest“",
+      "body": [
+        "<b>Ganz Tschechien als Kartendaten</b> (1,7 GB) liegt im GitHub-Release „mapa-data“ und die QTRIG-Cloud liest es stückweise — also lässt sich <b>Neue Karte (Vektor, Beta)</b> sofort einschalten, ohne Cloudflare einzurichten. Sobald R2 mit ganz Europa da ist, greift der Worker selbst dorthin; außerhalb Tschechiens sagt die Karte vorerst, dass es für das Land noch keine Daten gibt (Datei je Land: sk.pmtiles, at.pmtiles…).",
+        "<b>Die Taste „Kartentest“</b> links unten auf dem Hauptbildschirm (vorläufig): ein Wegweiser zu allem, was auf der eigenen Karte aufbaut — Karte und Stil einschalten, 3D-Ansicht, Wo kann ich messen, Beispiel-DXF-Zeichnung um dich herum (Achse mit Station), Hindernis, Testziel um die Ecke mit Geländeroute, Umgebungswächter, Kantenkorrektur, Einrasten an Ecken, Messland, Aufräumen. Bei jedem Punkt steht, wo du ihn dauerhaft findest. Ausblenden mit dem Kreuz (zurück: Einstellungen → Aussehen → Karte).",
+        "Gibt es für das Land keine Daten, sagt es die Karte sofort und der Hintergrund bleibt Raster."
+      ]
+    },
+    {
+      "v": 345,
+      "datum": "2026-09-17",
+      "nadpis": "Umgebungswächter, Route zum Punkt nach Gelände mit Höhenprofil, manuelle Hindernisse, Kataster und Orthofoto der Nachbarländer",
+      "body": [
+        "<b>Umgebungswächter.</b> An einem Gebäude (bis 4 m), im Gebäude laut Karte, unter Bäumen, an Gleisen oder an einem markierten Hindernis sagt dir die Pille oben, was das mit dem GPS macht und was zu tun ist („10 m Abstand oder Schritt-Offset“). Zum neuen GPS-Punkt wird gespeichert, unter welchen Bedingungen er entstand (z. B. „2,1 m vom Gebäude“). Abschalten: Einstellungen → AR & Genauigkeit.",
+        "<b>Hindernis mit zwei Tipps.</b> Materialhaufen, Aushub, Bagger — das steht in keiner Karte. Ebenen → Kartenwerkzeuge → <b>Hindernis</b>, tippe auf zwei gegenüberliegende Ecken: die Route umgeht es, der Wächter warnt davor, die GPS-Qualitätskarte schattiert es. Gilt für den Auftrag; Tippen aufs Rechteck löscht es.",
+        "<b>Route zum Punkt nach Gelände.</b> Statt einer Geraden eine gebrochene Route, die Gebäude, Gewässer, Autobahnen und Hindernisse umgeht und Wege gegenüber Feld und Wald bevorzugt (Raster 2 m, Berechnung im Telefon). Band und Pfeil in AR führen zum <b>nächsten Knick</b>, die Entfernung ist die Länge entlang der Route; weichst du 15 m ab, wird neu gerechnet. Tippen auf die Route zeigt das <b>Höhenprofil</b> (↑ Anstieg, ↓ Gefälle, steilster Abschnitt). Abschalten: Einstellungen → AR & Genauigkeit.",
+        "<b>Kataster und Orthofoto außerhalb Tschechiens.</b> Nach dem Land, in dem du stehst, schalten die Kartenhintergründe um: Slowakei (ESKN, ZBGIS), Polen (GUGiK), Österreich (BEV, basemap.at), Niederlande (PDOK), Frankreich (IGN), Schweiz (swisstopo), Slowenien, Belgien (Flandern), Ungarn, Spanien (Orthofoto). Anderswo auf der Welt Esri-Orthofoto. Ehrlich: Festpunktfelder fremder Staaten gibt es öffentlich nicht als Daten — außerhalb Tschechiens fährst du auf eigenen Punkten, Kataster und Karte.",
+        "Die Vektorkarte prüft jetzt vor dem Einschalten, ob die Daten wirklich in der Cloud sind; wenn nicht, sagt sie warum, statt eine leere Karte zu zeigen."
+      ]
+    },
+    {
+      "v": 344,
+      "datum": "2026-09-16",
+      "nadpis": "Genauigkeit aus der Karte: Punkt an Ecke einrasten, automatische GPS-Korrektur nach Kante, Karte „wo kann ich messen“",
+      "body": [
+        "<b>Einrasten an Ecken.</b> Du speicherst einen GPS-Punkt bis 0,6 m von einem Grenzknick des Flurstücks (Kataster), einem Punkt der DXF-Zeichnung oder bis 1 m von einer Gebäudeecke aus der Vektorkarte → die App fragt und nimmt die Koordinaten aus der Karte statt vom Telefon. Am Punkt steht, woher er ist (eingerastet an…), Genauigkeit nach Quelle (Kataster 0,1 m, Zeichnung 0,05 m, Gebäude 0,5 m). Abschalten: Einstellungen → AR & Genauigkeit.",
+        "<b>GPS-Korrektur nach der Kante, an der du entlanggehst.</b> Gehst du ≥ 20 m parallel zu einer Flurstücksgrenze, Gebäudewand oder Zeichnungslinie und das GPS hält dich ständig gleich weit daneben (Streuung unter 0,9 m), ist das nicht dein Weg, sondern ein GPS-Fehler: die App bietet eine Verschiebung senkrecht zur Kante an (oder schaltet sie im Modus „automatisch“ gleich ein). Dieselbe Korrektur wie „GPS-Versatz auf bekannten Punkt“ — Pille oben, überwacht 20 min / 300 m. Straßenachsen aus OSM werden nicht benutzt (±1–3 m). Modus in Einstellungen → AR & Genauigkeit.",
+        "<b>Wo kann ich messen</b> (Werkzeuge → Präzises Messen): GPS-Qualitätskarte 220 × 220 m um dich herum aus der Abschattung durch Gebäude (Höhen aus OSM) und Wald — grün freier Himmel, orange halber Himmel (länger messen), rot an der Wand (Offset, anderer Ort). Schätzung, keine Messung; die Ebene blendest du im Panel Ebenen aus.",
+        "Alle drei brauchen die eingeschaltete Vektorkarte (Einstellungen → Aussehen) — die Gebäudedaten kommen daraus; Flurstücke aus dem Werkzeug Flurstücke (Vektor), die Zeichnung aus dem Projektimport."
+      ]
+    },
+    {
+      "v": 343,
+      "datum": "2026-09-16",
+      "nadpis": "GPS-Korrektur aus der Karte beim Gehen, schönere Website, Meldung nach dem Laden einer neuen Version",
+      "body": [
+        "<b>Neues Werkzeug GPS-Korrektur aus der Karte beim Gehen</b> (Präzises Messen): 30–60 s stehen bleiben, im Orthofoto genau dort tippen, wo du stehst, und die App zieht den GPS-Fehler <b>auch beim Gehen</b> ab — in AR, Navigation, Entfernungen und bei gespeicherten Punkten. Gilt 10 min / 100 m, die Pille oben wacht. Die statische „Position aus Karte“ bleibt getrennt. Karte im Assistenten Präzises Messen + Anleitung unter „?“.",
+        "Die Website der App hat ein neues Aussehen (<a href=\"web/\" target=\"_blank\" rel=\"noopener\">stepanvcelak11.github.io/ar-geodet/web/</a>).",
+        "Nach dem Laden einer neuen Version sagt die Pille, dass die App geschlossen und neu gestartet werden muss."
+      ]
+    },
+    {
+      "v": 342,
+      "datum": "2026-09-16",
+      "nadpis": "Eigene Vektorkarte (Beta): Stil „Baustelle“, DXF-Zeichnung als Ebene mit Station, 3D-Ansicht",
+      "body": [
+        "<b>Neue Karte (Vektor, Beta)</b> — Einstellungen → Aussehen. Der Hintergrund ist kein fremdes Bild mehr, sondern unsere OpenStreetMap-Daten in einer Datei, die das Telefon stückweise holt. Stil „Baustelle“: Gebäude mit Hausnummern, Straßenkanten, Gleise, Gewässer, Wald und Feld, Grenzen — ohne Läden und Werbung. Vier Varianten aus einem Datensatz: Tag, Nacht (wirklich dunkel), Blaupause, Druck (schwarzweiß für PDF); „nach Thema“ schaltet selbst.",
+        "<b>Zeichnung (DXF) als Kartenebene.</b> Der Projektimport zeichnet Linien in den Farben der CAD-Ebenen, hält Polylinien als Ganzes und im Werkzeug wählst du eine Ebene als <b>Achse</b>: entlang laufen Stationsmarken und Tippen auf irgendeine Linie nennt Ebene, Länge und Station („km 0,420“ · 3,2 m von der Achse). Die Zeile „Zeichnung (DXF)“ im Panel Ebenen blendet sie aus/ein.",
+        "<b>3D-Ansicht</b> (Werkzeuge → Kataster und Unterlagen): Gebäude in die Höhe gezogen, Gelände, Auftragspunkte, Zeichnung und meine Position schräg von oben. Zwei Finger drehen und kippen; Tippen auf Gebäude, Punkt oder Linie sagt, was es ist. Braucht die eingeschaltete Vektorkarte.",
+        "Kartendaten: die Datei wird in die QTRIG-Cloud hochgeladen (Cloudflare R2, Anleitung in cloud/wrangler.toml); bis dahin lässt sich in den Einstellungen eine eigene Adresse eintragen (Ausschnitt aus scripts/mapa-vyrez.py — Tschechien hat 1,7 GB). Ohne Empfang läuft die Vektorkarte noch nicht (Gebietsdownload kommt); OSM-Raster und Orthofoto bleiben wie bisher.",
+        "Im Modus schwächeres Telefon werden Vektorkarte und 3D nicht angeboten (WebGL, 1 MB Bibliothek)."
+      ]
+    },
+    {
+      "v": 341,
+      "datum": "2026-09-16",
+      "nadpis": "Android: die Taste Zurück schließt Fenster statt der App, Angebot „Zum Startbildschirm hinzufügen“",
+      "body": [
+        "<b>Die Taste Zurück auf Android</b> schließt das oberste offene Fenster (Werkzeuge, Punktkarte, Dialog…) — vorher beendete sie in der App vom Startbildschirm die App sofort. Auf dem Hauptbildschirm warnt das erste Zurück, das zweite binnen 2,5 s schließt die App, wie auf Android üblich.",
+        "<b>QTRIG zum Startbildschirm hinzufügen</b>: Chrome auf Android bietet nach einer Minute in der App einmal die Installation an (Vollbild, eigenes Symbol, offline). „Jetzt nicht“ = 14 Tage Ruhe.",
+        "Die ganze App lief durch die Chrome-Emulation auf Android (Pixel 7 und 360-px-Display, Kompass aus deviceorientationabsolute ohne Berechtigung, relative Ereignisse ignoriert, 102 Werkzeugkacheln ohne Fehler und ohne Element außerhalb des Displays) — der Test läuft in CI."
+      ]
+    },
+    {
+      "v": 340,
+      "datum": "2026-09-16",
+      "nadpis": "Messen außerhalb Tschechiens: Koordinaten und Höhen nach dem Land, in dem du stehst; Geoid EGM2008 und Deklination WMM für die ganze Welt",
+      "body": [
+        "<b>Die App erkennt das Land aus dem GPS und schaltet das Koordinatensystem um.</b> In Tschechien bleibt alles wie bisher (S-JTSK Y/X, Bpv). In der Slowakei S-JTSK [JTSK03], in Polen PL-2000 (X/Y, Zone nach Länge), in Deutschland ETRS89/UTM (E/N), in Österreich MGI GK (M28/M31/M34), Ungarn EOV, Schweiz LV95, Frankreich Lambert-93, Niederlande RD, Belgien Lambert 72, Britannien OSGB, Slowenien, Kroatien, Spanien, Skandinavien, Baltikum, Rumänien, Bulgarien… und sonst in der Welt allgemeines UTM. Punktkarte, Punktformular, Liste, Export CSV/TXT/DXF/PDF, Rechner, Absteckung, Protokolle — alles in der Ebene des Landes.",
+        "<b>Höhen im nationalen System.</b> Die Geoidundulation kommt jetzt aus dem Modell EGM2008 (ganz Europa in 5′, Welt in 1°), dazu der Versatz des nationalen Höhensystems gegenüber EVRF2007: Bpv, DHHN2016, GHA (Adria), NAP, TAW, LN02, NGF-IGN69, ODN… Bei Ländern, deren Versatz ich nicht kenne, wird ±0,5 m gezeigt. <b>Korrektur auch für Tschechien:</b> die bisherige Formel passte in Prag, in Brünn lag sie aber 1,7 m daneben und in den Ecken der Republik 3–8 m.",
+        "<b>Deklination überall auf der Welt.</b> Der Kompass wird nach dem World Magnetic Model 2025 (NOAA) korrigiert — vorher eine lineare Schätzung für Tschechien, die in Spanien um 6° gelogen hätte.",
+        "<b>Einstellungen → Daten → Messland.</b> Automatisch nach GPS (die Länderumrisse sind auf ~1 km genau — an Grenzen von Hand umschalten) oder ein fest gewähltes Land. Beim Grenzübertritt sagt die App, worauf sie umgeschaltet hat.",
+        "Was sich NICHT ändert: amtliche ČÚZK-Punkte, RÚIAN-Flurstücke, VFK und GML-Netze bleiben immer im Křovák — es sind tschechische Daten.",
+        "Die Daten (Geoid ~740 kB, Umrisse ~170 kB) werden einmal nach dem Start geladen und bleiben im Telefon; bis dahin laufen die Formeln für Tschechien wie bis v338."
+      ]
+    },
+    {
+      "v": 339,
+      "datum": "2026-09-16",
+      "nadpis": "Schwerepunkte getrennt, Nummern zugehöriger Punkte, Tippen ins Flurstück mit Gebietsschutz, Kalibrierung durch Gehen an der Katastergrenze, Download-Animation",
+      "body": [
+        "<b>Schwerepunkte haben ein eigenes Zeichen</b> — oranges Sechseck in Karte und AR, die Karte sagt „Schwerepunkt · Name“. Vorher sahen sie aus wie trigonometrische Punkte (violettes Dreieck). Zum GPS-Ankern werden sie nicht angeboten (meist im Gebäude).",
+        "<b>Zugehörige (Sicherungs-)Punkte von TB und ZhB haben eine Nummer mit Reihenfolge</b>: 19.3, 19.4 — vorher standen in der Karte drei Punkte „19“ nebeneinander. In der TB-Karte gibt es neu eine Zeile mit dem Triangulationsblatt.",
+        "Korrektur: Beschriftungen <b>aufgehobener</b> Punkte aus dem ČÚZK-Dienst erschienen als gültige Detailpunkte.",
+        "<b>Tippen ins Flurstück zeigt mehr:</b> Fläche aus der Grafik neben der amtlichen, Grenzquelle (DKM auf Zentimeter / UKM auf Meter), Gültigkeit, nächste Adresse, Geländehöhe aus DMR 5G, beim Gebäude Bauweise, Nutzfläche und Fertigstellungsjahr. Neuer Teil <b>Schutz und Beschränkungen</b>: BPEJ (aufgeschlüsselt), NP / Landschaftsschutzgebiet / Reservat / Denkmal samt Schutzzonen, Natura 2000, Naturdenkmal-Baum, geschütztes Lagerstättengebiet, Abbaugebiet und Schutzzone der Marke eines Grundfestpunkts.",
+        "<b>Kalibrierung durch Gehen an der Katastergrenze:</b> mit eingeschalteter Ebene Kataster rastet ein Tipp bis 4 m von der Flurstücksgrenze an der nächsten Stelle der Grenze ein — der Umriss wird von selbst aus dem RÚIAN geladen. In UKM-Gebieten rechnet die App mit ±1 m.",
+        "<b>Punktkarte:</b> die Kachel „Status: nicht abgesteckt“ ist weg, die Taste Abgesteckt bleibt nur bei eigenen Punkten. Unter den Tasten steht ein Satz, worin sich <b>Kontrollpunkt</b> (nur Aufzeichnung, wo ich stehe) und <b>GPS korrigieren</b> (verschiebt weitere Messungen) unterscheiden.",
+        "<b>GPS korrigieren warnt, wo du stehst:</b> unter einem Baum, an der Wand oder zwischen Häusern hat das GPS einen anderen Fehler als im Freien — schwankt die Position, schreibt es die App und rät zu einem anderen Punkt oder längerem Mitteln.",
+        "<b>DGPS genauer:</b> der Basisblock ist der Median der Fixes, gewichtet nach gemeldeter Genauigkeit, der Rover gewichtet frische Blöcke stärker und verwirft einen Ausreißerblock. Im Werkzeug steht jetzt, warum es nicht auf Zentimeter geht.",
+        "<b>Das Laden der neuen Version ist sichtbar:</b> oben erscheint „Lade neue Version… 42 %“ mit Balken, nach Abschluss ein Haken. Beim Ausrollen einer neuen Version nach dem Start ein drehendes Rädchen.",
+        "Neue <b>Website der App</b>: <a href=\"web/\" target=\"_blank\" rel=\"noopener\">stepanvcelak11.github.io/ar-geodet/web/</a> — was die App kann, Beispiele, Basis und Pro, Genauigkeit ehrlich, Installation."
+      ]
+    },
+    {
+      "v": 338,
+      "datum": "2026-09-15",
+      "nadpis": "GPS-Korrektur nach bekanntem Punkt auch für die Höhe, Nivellementpunkte in der Auswahl, Kästchen GPS korrigieren in der Punktkarte",
+      "body": [
+        "<b>Die Höhe wird auch korrigiert.</b> Hat der Punkt, auf dem du stehst, eine Höhe Bpv (Nivellementpunkt, viele TB und ZhB), rechnet das Werkzeug „GPS-Versatz auf bekannten Punkt“ auch den vertikalen Versatz und addiert ihn zur Höhe neu gespeicherter Punkte aus dem GPS-Mittel. Leg das Telefon auf die Marke oder schreib, wie viel höher du es hältst. Eine aus dem DGM überschriebene Höhe lässt es in Ruhe.",
+        "<b>Nivellementpunkte sind in der Auswahl.</b> Ihre Lage steht beim ČÚZK auf den Meter — immer noch besser als das Telefon — und die Höhe auf Millimeter.",
+        "<b>GPS direkt aus der Punktkarte korrigieren.</b> Zwischen den Tasten der Karte ist ein Kästchen „GPS korrigieren“: die Bestätigung sagt dir, wie weit du laut GPS vom Punkt bist, ob der Punkt eine Höhe hat und dass du direkt darauf stehen musst — dann schaltet die Korrektur mit einem Tipp ein. Das Werkzeug in den Werkzeugen bleibt.",
+        "Korrektur: ein aus der Punktkarte geöffnetes Bestätigungsfenster (etwa genau dieses) ließ sich nicht bestätigen — der Tipp schloss die Karte statt zu bestätigen."
+      ]
+    },
+    {
+      "v": 337,
+      "datum": "2026-09-15",
+      "nadpis": "Symbole statt Emoji überall",
+      "body": [
+        "Alle Stellen, wo die App statt eines Symbols Emoji benutzte (Wo hab ich was, Abzeichen im Jahrbuch, Schritt-Offset, Kampagne, Sonne und Licht, Radar im Wetter, Newsletter, Mängel, Sprachnotizen, Uhr bei Punkten, Assistenten…), haben jetzt App-Symbole — gleich auf iPhone und Android, auch im hellen Thema richtig. Emoji blieben nur in der Auswahl des Avatarsymbols (das ist deine Wahl, kein Symbol)."
+      ]
+    },
+    {
+      "v": 336,
+      "datum": "2026-09-15",
+      "nadpis": "Ferne Punkte in AR: Gebiet auch von zu Hause wählen, Punkte werden vom ČÚZK nachgeladen und sind auch in der Karte",
+      "body": [
+        "<b>Die Karte im Werkzeug mit zwei Fingern verschieben und zoomen</b> — du musst nicht in dem Gebiet stehen. Das Rechteck wählst du entweder wie bisher durch Ziehen mit einem Finger oder durch <b>Tippen auf eine Ecke und dann auf die gegenüberliegende</b> (zwischen den Tipps die Karte ruhig weiterschieben).",
+        "<b>Punkte im Ausschnitt werden vom ČÚZK nachgeladen.</b> Die App lädt das Festpunktfeld normalerweise nur bis 300 m um dich, also meldete ein Ausschnitt 2 km entfernt bisher „kein Punkt“. Jetzt wird das Festpunktfeld dafür geladen und ausgewählt; ohne Empfang wird wenigstens genommen, was das Telefon schon hat.",
+        "<b>Gewählte Punkte werden auch in der Karte gezeichnet</b>, nicht nur in AR — auch kilometerweit von dir. Ausschnitt und Ecken sind beim Wählen direkt in der Karte zu sehen."
+      ]
+    },
+    {
+      "v": 335,
+      "datum": "2026-09-15",
+      "nadpis": "App-Durchgang — 11 Korrekturen vom Durchklicken aller Werkzeuge",
+      "body": [
+        "<b>GNSS-Vorhersage</b> erschien nach geöffnetem Geo-Foto in dessen Fenster (beide Module hatten dieselbe Fenster-id) — jetzt hat jedes seins; ähnliches Paar Messverfahren × Assistent erste Messung (eines blieb ohne Stil).",
+        "<b>Funktioniert alles?</b> meldete beim Konto „Basis“ auch mit Pro (rief eine nicht existierende Lizenzfunktion auf).",
+        "<b>Wegspur</b> öffnete mit leerer Taste und ohne Statistik, bis der nächste GPS-Fix kam.",
+        "<b>Jahrbuch:</b> die Monatsreihe begann mit „Jan Jan“ und der Dezember fehlte.",
+        "<b>Tagesjournal:</b> fünf Tasten passten auf einem schmalen Telefon nicht in eine Zeile („Schließen“ abgeschnitten); <b>Offset-Punkt:</b> das Azimutfeld war auf ein paar Pixel gequetscht; <b>Flurstück:</b> zwei Kreuze übereinander; <b>Quiz:</b> abgeschnittene Beschriftung unter der Zeichnung; <b>Sonne und Licht:</b> Zeilenetikett auf drei Zeilen gebrochen; Schieber „Laden im Umkreis300 m“ ohne Leerzeichen; <b>Einstellungen → Profile:</b> beschnittene Auswahl „Wer bist du“.",
+        "<b>Helles Thema:</b> gelbe Hinweise (Polarpunkt, Schnitt, freie Stationierung, Assistent, Punktkarte…) waren auf Weiß unlesbar — jetzt dunkel; der Kopf der Spannmaßtabelle ist kein dunkler Streifen mehr.",
+        "<b>GNSS-Vorhersage:</b> statt „Miss 20:00–20:00“ (ganzes Fenster) sagt sie „jederzeit in den nächsten 24 h“."
+      ]
+    },
+    {
+      "v": 334,
+      "datum": "2026-09-15",
+      "nadpis": "Punktkarte: Kartenblatt statt Aufklapper „alle amtlichen Einträge“",
+      "body": [
+        "<b>Der Aufklapper „Alle amtlichen Einträge zeigen“ ist aus der Punktkarte verschwunden.</b> Es war ein Rohauszug vom ČÚZK und alles daraus (Nummer, Katastergebiet, Genauigkeitsklasse, Höhen, Zug, Name, Link zu den geodätischen Unterlagen) zeigt die Karte schon oben in lesbarer Form.",
+        "<b>Neue Zeile Kartenblatt</b> — das Einzige, was nur im Rohauszug war: Blatt ZM 1:50 000 und SMO-5 (Name + Nummer), unter den Höhen und der Geoidundulation."
+      ]
+    },
+    {
+      "v": 332,
+      "datum": "2026-09-15",
+      "nadpis": "Werkzeuge werden geblättert: ein Verb = eine Seite, Meine zuerst, Pro beiseite; Werkzeugrad abgeschafft",
+      "body": [
+        "<b>Werkzeuge als Blättern.</b> Statt einer Spalte über sieben Bildschirme gibt es oben ein Band mit Verben (Messen · Neuer Punkt · Präzise messen · Abstecken · …) und darunter immer eine Seite, die aufs Display passt. Geblättert wird mit Wischen zur Seite oder Tippen aufs Verb; unten steht, was links und rechts ist.",
+        "<b>Die Seite Meine</b> ist die erste: Fortsetzen (zuletzt benutztes Werkzeug), Wahl des Arbeitstyps, <b>★ Angeheftet</b> und Für diese Arbeit. Ein Werkzeug heftest du mit dem Stern direkt in seiner Zeile an. Beim Angehefteten ist seine <b>Geste</b> zu sehen (oder „+ Geste“, mit der du sie zeichnest) — das Panel ist so zugleich ein Spickzettel für Gesten.",
+        "<b>Wegweiser</b> (Punkt durch Berechnung, Anders ausrichten, GNSS-Signal, Unterlagen und Kataster, Wetter und Licht, Tageseintrag, Meine Zahlen, Handbuch) klappen an Ort und Stelle unter ihrer Zeile auf, nicht in ein weiteres Fenster. Jede Zeile hat ein „?“ mit Anleitung, man kann also ohne Öffnen stöbern.",
+        "<b>In Basis ist Pro beiseite.</b> Gesperrte Werkzeuge der Bezahlversion sind nicht in den Verben verstreut — sie sammelten sich auf der letzten Seite „Pro“ (mit dem Verb im Titel), damit sie nicht stören. Wer Pro hat, sieht die Seite nicht.",
+        "<b>Das Werkzeugrad (Halten der Taste Werkzeuge) abgeschafft.</b> Drei Wege führten zum Werkzeug und es war kompliziert; zwei bleiben: Werkzeuge zum Blättern und Ausprobieren, Gesten zum Starten aus dem Gedächtnis. Halten der Taste macht jetzt dasselbe wie Tippen."
+      ]
+    },
+    {
+      "v": 331,
+      "datum": "2026-09-15",
+      "nadpis": "Die Punktkarte sagt, welche GPS-Korrektur zum Punkt addiert wurde",
+      "body": [
+        "<b>Die Punktkarte</b> hat bei GPS-Punkten eine neue Kachel <b>GPS-Korrektur</b>: um wie viel und woher der Punkt verschoben wurde (Gehen an der Kante, bekannter Punkt, DGPS live, Korrektur aus QR) und ob er mit Kalibrierung vorher/nachher umgerechnet wurde. Dasselbe sagt auch die Genauigkeitserklärung („woher die Genauigkeit stammt“) — vorher behauptete die Karte „nur was das Telefon meldet“ auch bei einem Punkt, den die Kalibrierung einen halben Meter zurück an seinen Platz gebracht hatte.",
+        "Das Umrechnen von Punkten nach Zeit (Kalibrierung vorher/nachher) vergisst nicht mehr, woher die Korrektur war, und die Punktkarte sieht es sofort."
+      ]
+    },
+    {
+      "v": 330,
+      "datum": "2026-09-15",
+      "nadpis": "Präzises Messen — neuer Abschnitt in den Werkzeugen: eine Form abgehen, Kalibrierung vorher/nachher, wohin mit dem Telefon, temporäre DGPS-Basis",
+      "body": [
+        "<b>Der Abschnitt Präzises Messen</b> in den Werkzeugen: alles, was aus dem Telefon Genauigkeit herausholt, beisammen — Präzises GPS, Kalibrierung durch Abgehen einer Kante, GPS-Versatz auf bekannten Punkt, Zwei-Telefon-DGPS, Akustischer Entfernungsmesser und Kontrollmessung. An der Spitze <b>Wie man mit dem Handy präzise misst</b>: drei GPS-Fehler (Rauschen, Versatz, Schwimmen), was welche Methode löst, Tabelle „was zu erwarten ist“, Vorgehen zu jeder Methode in 3–5 Schritten, wo sich kalibrieren lässt und wo nicht, und typische Situationen (Einbau am Bordstein, Grundstück, Feld ohne Punkt). Jedes Werkzeug hat oben auch ein kurzes „Einfach“.",
+        "<b>Kalibrierung durch Gehen: eine Form abgehen.</b> Die Linie lässt sich <b>schließen</b> (Taste Form schließen oder Tippen zurück auf den ersten Punkt) — Grundstücksumfang, Plus, Quadrat — und es kommt der ganze Fehlervektor heraus, nicht nur die Komponente senkrecht zur Geraden. Die App zeigt neu, <b>um wie viel der GPS-Fehler beim Gehen geschwommen ist</b> (erste vs. zweite Hälfte; bei der Umrundung dasselbe wie der Abschluss) und warnt über 1 m.",
+        "<b>Kalibrierung vorher/nachher.</b> Gehst du die Kante binnen 90 Minuten und 500 m erneut ab, sagt die App, um wie viel sich der GPS-Fehler dazwischen verschoben hat, und bietet an, die zwischen beiden Gängen gespeicherten Punkte (auch aus Präzises GPS) <b>nach Messzeit umzurechnen</b> — ein Punkt in der Mitte bekommt die Hälfte der Differenz. Der Vektor wird ersetzt, nicht addiert; die Änderungen gehen ins Journal.",
+        "<b>Die Korrektur ist so genau wie die Quelle der Linie:</b> die App merkt sich die Quelle (Orthofoto ±0,35 m, Katastergrenze ±0,3 m, gespeicherte Punkte ±cm, Straßenkarte ±2 m — davon rät sie gleich ab und empfiehlt das Orthofoto) und addiert sie zur Fehlerschätzung als „gesamt“. Ein Tipp bis 4 m von einem Knickpunkt eines geladenen Flurstücks rastet an der Katastergrenze ein.",
+        "<b>Präzises GPS: wohin mit dem Telefon.</b> Ein Bild des Telefons mit Kreuz — über den Punkt gehört die <b>Mitte</b>, die Antenne sitzt an der Oberkante, und Drehen um 90° um die Mitte hebt ihre Lage auf. Zum Punkt wird gespeichert, welche Korrektur addiert wurde (für die Umrechnung vorher/nachher). Nach dem Speichern bietet die App den Punkt als <b>temporäre DGPS-Basis</b> für ein zweites Telefon an.",
+        "<b>Zwei-Telefon-DGPS: temporäre Basis.</b> Basis kann auch ein Punkt aus Präzises GPS mit Kalibrierung durch Gehen sein — das Fenster sagt, was das bringt (Roverpunkte untereinander ±0,5 m, das Ganze erbt den Basisfehler als gemeinsamen Versatz, die Kalibrierung durch Gehen gilt damit länger) und was nicht (zusätzliche Genauigkeit). Der akustische Entfernungsmesser beim Schnitt aus zwei GPS-Punkten sagt, dass die Form auf Zentimeter stimmt und die Lage des Ganzen den bekannten Punkten folgt."
+      ]
+    },
+    {
+      "v": 329,
+      "datum": "2026-09-15",
+      "nadpis": "Tippen ins Flurstück, amtliche ČÚZK-Skizze in der Punktkarte, Werkzeuge wieder im Blick",
+      "body": [
+        "<b>Flurstück per Tipp:</b> schalte in der Karte die Ebene Katasterkarte ein und tippe ins Flurstück — eine Karte aus dem RÚIAN zeigt Nummer, Katastergebiet, Gemeinde, Fläche, Nutzungsart, Verwendung und ggf. Gebäude (Hausnummer, Geschosse, bebaute Fläche); der Umriss wird hervorgehoben. Eigentümer und Grundbuchblatt gibt kein kostenloser Dienst her — die Taste <b>Eigentümer und LV</b> öffnet genau dieses Flurstück in Nahlížení do KN.",
+        "<b>Karte des amtlichen Punkts:</b> statt der App-Skizze steht jetzt die <b>amtliche Punktbeschreibung des ČÚZK</b> aus den geodätischen Unterlagen des Punkts (Spannmaße zu Hausecken, Zäunen…), bei TB/ZhB ein Ausschnitt aus dem Blatt mit Umschalten aufs ganze Blatt; der Link zu den vollständigen geodätischen Unterlagen blieb. Die App-Skizze (Nachbarpunkte, Spannmaße) ist einen Tipp darunter. Eigene Punkte haben sie weiterhin. Eine einmal gezeigte Skizze funktioniert auch ohne Empfang.",
+        "<b>Werkzeuge:</b> Spannmaße, Wegspur und Heute im Gelände verstecken sich bei einer neuen Installation nicht mehr; die Wegweiserzeilen (Anders ausrichten, Unterlagen und Kataster, GNSS-Signal, Handbuch…) listen alle ihre Einträge, sodass auch ein neues Werkzeug darin ohne Suchen zu finden ist.",
+        "<b>Statusblase:</b> ein Hinweis mit Zahlen springt nicht mehr von links nach rechts (der wegen der Meldung 5× pro Sekunde abgeschnittene Azimut kam zurück und verschwand wieder).",
+        "Punktejäger und Gebiet herunterladen ohne Vergleich mit einem Handyspiel; die Tasten der neuen Werkzeuge (Akustischer Entfernungsmesser, Kalibrierung durch Abgehen einer Kante, DGPS) haben App-Symbole statt Emoji."
+      ]
+    },
+    {
+      "v": 327,
+      "datum": "2026-09-15",
+      "nadpis": "Platz im Telefon freigeben",
+      "body": [
+        "<b>Einstellungen → Wartung → Platz freigeben:</b> Übersicht, was die App im Telefon hält — die geladene Karte (Kacheln aus Umgebung speichern, Auftrag packen und Gebiet herunterladen, mit MB-Schätzung) und jeder geladene Bezirk/jede Region einzeln — und bei jedem Eintrag <b>Löschen</b>. Das Löschen eines Gebiets nimmt auch seine Kartenkacheln mit; die Zeile „Belegt X MB“ wird sofort neu berechnet."
+      ]
+    },
+    {
+      "v": 326,
+      "datum": "2026-09-15",
+      "nadpis": "Flüssigkeit 2. Runde — schnellerer Start, Karte ohne Ruckeln beim Gehen, Werkzeuge ohne Hänger",
+      "body": [
+        "<b>Start auf schwächerem Telefon:</b> verzögerte Module werden ab jetzt minifiziert ausgerollt (3,0 MB → ~1,2 MB; kürzeres Laden der Aktualisierung und Parsen), im Modus Schwächeres Telefon werden sie zu zweit und nur im Leerlauf nachgeladen; die drei Studentenwerkzeuge werden erst beim Tippen geladen.",
+        "<b>Maße erst nach dem Rendern messen:</b> Statusleiste, Hinweise, Fensterschließen, Mini-Panel und Arbeitsmodus maßen ihre Elemente früher mitten im unfertigen Layout (etwa 0,7 s Hauptthread in den ersten Sekunden). Jetzt wird einmal nach dem Bild gemessen und nur, wenn sich etwas geändert hat.",
+        "<b>Die Karte zeichnet nur die Differenz neu:</b> Marken, die bleiben, werden nicht gelöscht und neu gebaut — Neuzeichnen von 200 Marken 96–177 ms → 5–28 ms, 60 m Gehen ohne sechs Hänger. Ein Tipp auf eine Marke geht nicht mehr verloren, weil die Marke unter dem Finger ausgetauscht wird.",
+        "<b>Werkzeuge:</b> das Raster wird einmal nach der Registrierungscharge zusammengesetzt statt hundertmal beim Start; beim Öffnen werden nur die Kacheln auf dem Bildschirm gelegt. Öffnen: 11 lange Aufgaben (1,3 s, davon eine 0,54 s) → eine unter 0,2 s (schwaches Telefon).",
+        "<b>Karte zuerst, Marken nach dem Bild:</b> nach dem Start erscheinen Karte und Position, die Marken kommen in kleinen Chargen dazu.",
+        "<b>Schwächeres Telefon:</b> Kartenkacheln laden erst nach Ende des Verschiebens und mit kleinerem Vorrat über den Rand hinaus."
+      ]
+    },
+    {
+      "v": 325,
+      "datum": "2026-09-15",
+      "nadpis": "DGPS live über das Internet und genauere Kalibrierung durch Gehen (hin und zurück)",
+      "body": [
+        "<b>Zwei-Telefon-DGPS live (Pro):</b> die Basis auf dem bekannten Punkt tippt <b>Korrekturen live teilen</b> und zeigt einen sechsstelligen Code; das zweite Telefon gibt den Code in <b>Live aus dem Internet</b> ein und ab dann wird zu jedem gespeicherten Punkt (auch im Brutalen GPS) die aktuelle Korrektur addiert — kein Warten auf QR mehr. Die Pille oben meldet Datenalter und Entfernung zur Basis (Grenzen 6 min / 3 km), Trennen bietet die nachträgliche Korrektur älterer Punkte an. Reichweite ~2–3 km, braucht Internet auf beiden Telefonen (die Basis sendet ~4 kB pro Minute).",
+        "<b>Die Kalibrierung durch Abgehen einer Kante ist genauer:</b> Fixes werden nach ihrer Genauigkeit gewichtet (±3 m hat 16× mehr Gewicht als ±12 m), und gehst du die Kante <b>hin und zurück</b>, trennt die App ab, wie weit du das Telefon seitlich deiner Spur hältst (in der rechten Hand typisch 0,2–0,4 m) — das blieb vorher in der Korrektur. Die Schätzung des Korrekturfehlers berücksichtigt, dass sekündliche Fixes nicht unabhängig sind.",
+        "Die Anleitungen zu DGPS und Kalibrierung durch Gehen wurden ergänzt."
+      ]
+    },
+    {
+      "v": 324,
+      "datum": "2026-09-15",
+      "nadpis": "Die GPS-Korrektur wird überwacht: Pille oben, Hinweis vor dem Ablauf und an der Entfernungsgrenze",
+      "body": [
+        "<b>Wächter der Gültigkeit der GPS-Korrektur</b> (aus dem Abgehen einer Kante wie aus „GPS-Versatz auf bekannten Punkt“): nach dem Einschalten leuchtet oben eine Pille „GPS-Korrektur 1,8 m · noch 12 min · 80 m vom Ort“ — grün gilt, orange nähert sich der Grenze, rot ist darüber. Die App warnt <b>5 min vor Ablauf</b> (20 min), nach Ablauf, bei <b>200 m</b> vom Kalibrierort und bei 300 m — jeweils einmal. Tippen auf die Pille öffnet das Werkzeug, das die Korrektur erzeugt hat; sie schaltet sich nicht selbst ab, die Entscheidung ist deine.",
+        "<b>Kalibrierung durch Abgehen einer Kante:</b> deutlich längere Erklärung im Fenster — warum es geht (dasselbe Prinzip wie DGPS), wie gerechnet wird, <b>welche Genauigkeit erreichbar ist</b> (30–50 m Gehen → ±0,3–0,5 m senkrecht zur Kante, bei gutem Signal ±0,2 m; eine Linie aus der Karte addiert den Fehler der Unterlage) und wie lange es gilt. Beim Ergebnis steht gleich, wie genau neue Punkte sein werden; eine eingeschaltete Korrektur zeigt im Fenster die verbleibenden Minuten und die Entfernung vom Kalibrierort."
+      ]
+    },
+    {
+      "v": 323,
+      "datum": "2026-09-15",
+      "nadpis": "Punktejäger — Sammlung entdeckter Punkte, Auszeichnungen und Jagd",
+      "body": [
+        "<b>Punktejäger</b> (Werkzeuge → Hilfsmittel): amtliche Punkte, die du im Gelände wirklich erreichst (bis 5 m, GPS bis 8 m, 15 s stehen) und in der Karte <b>Gefunden</b> antippst, werden in deiner Sammlung gespeichert. Ein entdeckter Punkt hat in der Karte einen goldenen Stern. Nichts wird irgendwohin geschickt.",
+        "<b>Punkte nach Seltenheit in Tschechien</b> (aus den ČÚZK-Zahlen): TB 50 · ZhB 30 · Nivellement 10 · PPBP 3 · Schwerepunkt 200. Die Sammlung zeigt, wie viele Punkte des Bezirks dir fehlen (wenn der Bezirk im Telefon geladen ist).",
+        "<b>Auszeichnungen:</b> Erster Stein, Dutzend, Hundert, Dreieck (3 TB von einem Triangulationsblatt), Ganze Linie (alle Punkte einer Nivellementlinie), Bezirk (alle TB des Bezirks), Gipfel des Bezirks, Stein aus einem Gebäude — mit Fortschritt zur nächsten.",
+        "<b>Jagen:</b> die nächsten unentdeckten Punkte bis 2 km, sortiert nach Ertrag pro gegangenem Meter, mit der Taste Führ mich hin; <b>Stein des Tages</b> für das Doppelte (derselbe für alle im Bezirk)."
+      ]
+    },
+    {
+      "v": 321,
+      "datum": "2026-09-15",
+      "nadpis": "Zwei neue Wege, aus dem nackten Telefon eine genauere Position zu holen — mit Schall und mit Gehen",
+      "body": [
+        "<b>Akustischer Entfernungsmesser (Pro):</b> die Strecke zwischen zwei Telefonen <b>aus Schall, auf Zentimeter</b>. Das Telefon auf dem bekannten Punkt antwortet mit einem Piepton, das andere misst; jedes findet in seiner eigenen Aufnahme, wann es selbst und wann das andere gepiept hat (ein Sample = 7 mm Schallweg), die Uhrendifferenz zieht sich selbst ab und das zweite Telefon „sagt“ seine gemessene Zeit durch die Lücke zwischen zwei Pieptönen — ohne Internet, ohne Abschreiben. Strecken zu zwei bekannten Punkten → <b>Punkt aus zwei Strecken</b> (Schnitt) ohne GPS. Innen gibt es Erklärung und Vorgehen; beim ersten Mal die Nullkalibrierung auf 2,00 m machen. Werkzeuge → Messen.",
+        "<b>Kalibrierung durch Abgehen einer Kante (Pro):</b> tippe in der Karte, von wo nach wo du gehst (Bordstein, Gehwegkante, Zaun, Achse aus DXF — oder zwei gespeicherte Punkte), gib den seitlichen Abstand ein und geh einfach. Aus den Querabweichungen der Fixes rechnet die App, um wie viel das GPS hier und jetzt lügt, und <b>Korrektur einschalten</b> addiert sie zu neuen Punkten wie „GPS-Versatz auf bekannten Punkt“ — nur ohne Anhalten. Auf einer Geraden nur die Komponente senkrecht zur Linie, auf einer gebrochenen der ganze Vektor. Werkzeuge → Anders ausrichten.",
+        "Neue Anleitungen unter „?“ bei beiden Kacheln; Punktherkunft „akustischer Entfernungsmesser“ in der Punktkarte."
+      ]
+    },
+    {
+      "v": 320,
+      "datum": "2026-09-15",
+      "nadpis": "Bezirk, Region oder ganz Tschechien im Telefon — Punkte ohne Laden; amtliche Punkte richtig sortiert",
+      "body": [
+        "<b>Gebiet herunterladen</b> (Werkzeuge → Unterlagen und Kataster): lade <b>alle amtlichen Punkte</b> eines ganzen Bezirks, einer Region oder der Republik (~635 000 Punkte) samt Übersichtskarte. Beim Gehen kommen die Punkte dann nicht aus dem Netz, sondern aus dem Telefon — sie erscheinen sofort (12 ms statt Sekunden) und funktionieren ohne Empfang. Das Laden lässt sich unterbrechen und später beenden; Pakete lassen sich aktualisieren und löschen.",
+        "<b>Korrektur der Einteilung amtlicher Punkte:</b> die App fragte das ČÚZK nach Ebenen, die der Dienst längst umnummeriert hatte — ein trigonometrischer Punkt erschien als „Verdichtung“, ein Verdichtungspunkt als „Detail“ und <b>aufgehobene Punkte</b> sahen gültig aus. Jetzt werden alle 16 Ebenen richtig gelesen (TB, ZhB, PPBP, Nivellement ZVBP/PVBP und Schwerepunkte) und aufgehobene werden nicht gezeigt.",
+        "<b>Die Karte des amtlichen Punkts</b> zeigt neu die Punktart, <b>die vollständige zwölfstellige Nummer</b> (nicht nur „28“), Katastergebiet und Bezirk, Genauigkeitsklasse (PPBP), Nivellementlinie und bei in ETRS89 bestimmten Punkten die ellipsoidische Höhe.",
+        "<b>Genauere Höhe aus GPS:</b> bei in ETRS89 bestimmten Punkten kennt das ČÚZK auch die ellipsoidische Höhe, also rechnet die App die tatsächliche Geoidundulation vor Ort (auf Zentimeter) statt einer Formel mit 1–2 m Fehler — die Übertragung der GPS-Höhe auf Bpv ist damit in der ganzen App genauer (Export, Doppelmessung, Punkthöhe).",
+        "<b>Weniger Anfragen an das ČÚZK:</b> eine Punktecharge beim Gehen = 1 Anfrage statt 6 (gleiche Daten). Auch bei schwachem Empfang einfacher.",
+        "<b>Sprache auf dem Anmeldebildschirm:</b> nach dem Umschalten der Sprache blieben Anmeldung, Registrierung und Kontocode tschechisch — die Texte fehlten im Wörterbuch. Ergänzt (EN/DE/PL)."
+      ]
+    },
+    {
+      "v": 318,
+      "datum": "2026-09-15",
+      "nadpis": "Tor ohne Loch, Eigentümerkonsole hält, Kamera aus Play mit Anleitung",
+      "body": [
+        "<b>Korrektur:</b> „Weitere Optionen“ auf dem Anmeldebildschirm und gleich Schließen konnte ohne Konto hineinlassen (die Startsicherung sah „kein Tor“). Der Assistent bringt das Tor jetzt sofort zurück und die Sicherung nimmt ihn als Tor.",
+        "<b>Das Fehlerprotokoll</b> schreibt nicht mehr ungeladene Kartenkacheln auf (ein Moment ohne Empfang) — 18 von 20 Einträgen waren das und echte Fehler gingen darin unter. Dasselbe gilt für Fehler von Leuten in der Konsole.",
+        "<b>Eigentümerkonsole:</b> antwortet der Server nicht (schwacher Empfang, Bremse), bleibt die Ansicht mit dem Grund und „Nochmal versuchen“ offen — vorher sprang ein Alert auf und die Konsole zurück zum Wegweiser („lässt sich nicht öffnen“). Der Punkt „etwas wartet“ wird nach dem Erledigen der Nachrichten sofort neu berechnet. Der Wächter „Fehler bei einer Person“ führt direkt zu ihrem Konto. Die Fehlerkachel hat eine Beschriftung nach gewähltem Zeitraum.",
+        "<b>Kamera aus Google Play:</b> ist sie gesperrt, sagt die Anleitung, wo sie zu erlauben ist — in Chrome (Telefoneinstellungen → Apps → Chrome → Kamera und Chrome → Website-Einstellungen → Kamera), nicht in einer nicht existierenden Adressleiste.",
+        "<b>Wer bist du?</b> beim Anlegen des Kontos erklärt den Unterschied Student / Vermesser / Firma konkret (Mitarbeiter = Vermesser und Code vom Chef; Firma = der Chef, der Leute führt) und rät: unsicher → Vermesser."
+      ]
+    },
+    {
+      "v": 317,
+      "datum": "2026-09-14",
+      "nadpis": "Einstellungen beginnen mit der Punktreichweite, die Karte dreht sich flüssig, Tipps gehen nicht verloren",
+      "body": [
+        "<b>Einstellungen:</b> der Reiter <b>AR & Genauigkeit</b> ist der erste und öffnet standardmäßig; ganz oben ist der Abschnitt <b>Punktreichweite</b> mit beiden Reglern — Sichtbarkeit in der AR-Kamera und Reichweite der Punkte in der Karte (das war bisher im Reiter Daten versteckt).",
+        "<b>Kartendrehung</b> ruckelt nicht mehr: nach dem Beruhigen werden nur die Punktbeschriftungen auf dem Bildschirm gerade gestellt (die anderen, sobald sie hineinkommen), und beim Gehen wird die Karte nur neu gezeichnet, wenn sich wirklich ändert, welche Punkte in Reichweite sind.",
+        "<b>Tipps gehen nicht verloren:</b> solange dein Finger auf dem Display ist, baut die App nicht um, worauf du tippst — Punktliste, Kartenmarken und Einstellungen werden nicht unter dem Finger neu gezeichnet (deshalb musste man manchmal zweimal tippen)."
+      ]
+    },
+    {
+      "v": 316,
+      "datum": "2026-09-14",
+      "nadpis": "Die Karte dreht sich ohne Ruckeln, die Kamera unter Werkzeugen geht nicht aus, Antwort auf eine Nachricht",
+      "body": [
+        "<b>Kartendrehung:</b> Punktbeschriftungen werden erst einen Moment nach dem Ende des Drehens waagerecht gestellt — vorher wurden sie mit jedem Kompassbild neu geschrieben und das nahm auf einem schwächeren Telefon 79 % der Leistung (gemessen); jetzt 0. Beim Drehen sind die Beschriftungen für den Bruchteil einer Sekunde schräg.",
+        "<b>AR-Marken</b> werden nur für Punkte in Reichweite und nur bei laufender Kamera gebaut (vorher für alle Auftragspunkte, auch im Modus Nur Karte): ein Fünftel weniger Elemente auf dem Bildschirm, schnellerer Start.",
+        "<b>Das Fenster Punkte</b> bei großem Auftrag: die ersten 30 Zeilen sofort, der Rest kommt in Ruhe und beim Scrollen („weitere N Punkte…“); die Suche findet auch einen Punkt vom Ende der Liste.",
+        "<b>Werkzeuge und Sensoren:</b> beim Messen der Objekthöhe ging die Kamera aus (das Akkusparen legte sie unter dem Einstellfenster schlafen). Werkzeuge sagen jetzt selbst, was sie brauchen — Kamera, Kompass oder GPS werden unter ihnen nicht schlafen gelegt (Objekthöhe, AR-Maßband, Foto mit Stempel, Schnitt aus Foto, Polarpunkt, Rückwärtsschnitt, Absteckung, Epochen, Satelliten, Kalibrierung…). Die Spuraufzeichnung hält das GPS auch unter dem Rechner oder den Einstellungen.",
+        "<b>Eine Nachricht vom Autor</b> hat die Taste <b>Antworten</b> — die Antwort landet im Postfach des Autors und er kann wieder in die App antworten. Jede Nachricht an den Autor trägt jetzt den Kontocode, sodass die Antwort in die App bei allen Nachrichten funktioniert, nicht nur bei Pro-Anfragen."
+      ]
+    },
+    {
+      "v": 315,
+      "datum": "2026-09-14",
+      "nadpis": "Flüssigere App: kleinere Punktreichweite und Modus für schwächeres Telefon",
+      "body": [
+        "<b>Die Punktreichweite ist kleiner:</b> amtliche Punkte (ČÚZK) werden bis <b>300 m</b> um dich geladen und in der Karte gezeigt (vorher 1 km) und in der AR-Kamera bis <b>100 m</b> (vorher 150). Weniger Marken = flüssigere Karte und Kamera. Beides stellst du per Regler ein: Einstellungen → Daten → „Reichweite der Punkte in der Karte“ und Einstellungen → AR & Genauigkeit → „Sichtbarkeit der Punkte in der AR-Kamera“. Eigene Auftragspunkte werden in der Karte immer gezeichnet. Wer die alten Standardwerte 1000/150 m gespeichert hatte, bekam die neuen; eine eigene Reichweite ändert sich nicht.",
+        "<b>Schwächeres Telefon</b> (Einstellungen → AR & Genauigkeit): sparsame Darstellung ohne Glas, Schatten und Animationen, Kamera 480p, Kompass 20× pro Sekunde, höchstens 40 Marken in AR. Schaltet sich auf einem Telefon mit wenig Speicher von selbst ein oder wenn die App misst, dass sie nicht nachkommt; lässt sich von Hand auf Ein / Aus stellen. Messen und Daten sind gleich.",
+        "<b>App teilen (QR)</b> im Panel Mehr sieht nur noch der App-Eigentümer. Die App soll aus Google Play geladen werden (Tester über Einladung), nicht per QR als Webseite."
+      ]
+    },
+    {
+      "v": 314,
+      "datum": "2026-09-13",
+      "nadpis": "Die Werkzeugblume lesbarer und Rückkehr zur Eigentümerkonsole",
+      "body": [
+        "<b>Werkzeugblume:</b> alle Blätter haben dieselbe Schriftgröße, die Beschriftungen sind breiter und brechen nicht mitten im Wort; bei zwölf Richtungen überlappen die Blätter nicht. Die Gruppe „Aufzeichnen“ hat auf dem Blatt „Aufz.“ (der volle Name steht in der Blütenmitte).",
+        "<b>Eigentümerkonsole:</b> in jeder Ansicht ist oben unter der Überschrift eine große Taste „‹ Zurück zur Konsole“ — immer an derselben Stelle, scrollt nicht weg. Bei aus der Konsole geöffneten Fenstern (Leute, Nachrichten, Firmen…) ist am linken Rand ein goldener Reiter „‹ Konsole“. Die Rückkehr nach dem Schließen eines Fensters funktioniert auch mit laufender Kamera.",
+        "<b>Ebenen:</b> die Kachel „Ziel zeigen“ heißt „Mich und das Ziel zeigen“ — sie richtet die Karte so aus, dass du und der Punkt, zu dem du gehst, zu sehen sind (gibt es nur beim Führen)."
+      ]
+    },
+    {
+      "v": 311,
+      "datum": "2026-09-13",
+      "nadpis": "Kleinigkeit: „Lernen“ hat in den Werkzeugen einen eigenen Abschnitt",
+      "body": [
+        "Trainer, Schätz mal, Übungsaufgaben, Quiz und Formeln stehen im Werkzeugraster unter der Überschrift „Lernen“, nicht unter „Sonstige“."
+      ]
+    },
+    {
+      "v": 310,
+      "datum": "2026-09-13",
+      "nadpis": "Kontolöschung und präzisierter Datenschutz — Vorbereitung auf Google Play",
+      "body": [
+        "<b>Konto löschen</b> direkt in der App: Einstellungen → Mehr → Über die App → Konto löschen. Verlangt das Passwort, löscht das Konto und den eigenen Platz auf dem Server; Punkte und Aufträge im Telefon bleiben. Ohne App geht der Antrag auf der Seite <i>smazani-uctu.html</i>.",
+        "<b>Über die App → Datenschutz</b> sagt genau, was an den Server geht (Kontodaten, anonyme Nutzungsaufzeichnungen, Fehlermeldungen) und was nicht (Position, Kamerabild). Ebenso die überarbeitete Datenschutzerklärung.",
+        "Kleinigkeit: der Link zur Datenschutzerklärung und Kontolöschung auch auf Englisch, Deutsch und Polnisch."
+      ]
+    },
+    {
+      "v": 309,
+      "datum": "2026-09-13",
+      "nadpis": "Pro ist bis Jahresende kostenlos — einfach anfragen",
+      "body": [
+        "Die Karte <b>Pro-Version</b> sagt es direkt: bis Ende 2026 ist Pro kostenlos, einfach eine Anfrage schicken und der Autor schaltet es frei; ab 2027 ist Pro ein Abo (Monat oder Jahr)."
+      ]
+    },
+    {
+      "v": 308,
+      "datum": "2026-09-13",
+      "nadpis": "Eigentümerkonsole, zweite Runde: Überblick auf einen Blick, Suche, Benachrichtigungen aufs Telefon und dreizehn neue Dinge",
+      "body": [
+        "<b>Der Startbildschirm der Konsole</b> ist umsortiert: oben die Suche, der Block „Seit deinem letzten Besuch“, der Wächter „das ist nicht normal“ (nur wenn etwas abweicht), Zusammenfassungszahlen und Diagramme; darunter fünf einklappbare Abschnitte danach, was du fragst (Was passiert · Leute, Firmen und Nachrichten · Ausgaben und Server · Dieses Telefon · Schlüssel).",
+        "<b>Suche über die ganze Konsole:</b> Name, Kontocode, Firma, ein Wort aus Nachricht oder Fehler — Konten, Firmen, Nachrichten und Fehler einen Tipp vom Detail entfernt.",
+        "<b>Benachrichtigungen aufs Telefon</b> auch bei geschlossener App (neue Nachricht, Pro-Anfrage, Fehlerwelle). Auf dem iPhone aus der App auf dem Startbildschirm.",
+        "<b>Diagramme</b> 7 / 30 / 90 Tage mit Vergleich zum Vorzeitraum und CSV; <b>Trichter der Neulinge</b> (Registrierung → erster Punkt → 3. Tag → Bewertung, wer abgesprungen ist).",
+        "<b>Einer Person direkt in die App antworten</b> aus dem Postfach; <b>Tagebuch der Person</b> Tag für Tag in „Aus Sicht des Kontos“; <b>Ausgaben</b> zeigt, wer auf welcher Version ist und wer auf einer alten hängt.",
+        "<b>„Zeig mir die App als Basis“</b> für 15–60 Minuten; <b>Serverstatus und Kapazität</b> (Anfragen und Datenbank gegen die kostenlosen Limits, wie lange es reicht); <b>Aufräumen alter Daten</b> mit Vorschau; <b>Tageszusammenfassung</b> 24 h / 3 Tage / seit dem letzten Mal; Entwicklungsbericht als .md herunterladbar.",
+        "Kleinigkeiten: die Schlüsselsperre sagt, in wie vielen Minuten es erneut zu versuchen ist; bei Serverausfall bleiben die letzten bekannten Zahlen mit Etikett; am Computer ist die Konsole breiter mit vier Kacheln in einer Reihe."
+      ]
+    },
+    {
+      "v": 307,
+      "datum": "2026-09-13",
+      "nadpis": "Für Studenten: Wer bist du?, Lernen, Warum ±4 m?, Rechenweg — und 12 Werkzeuge beiseite",
+      "body": [
+        "<b>Wer bist du?</b> — Student / Vermesser / Firma nach dem ersten Eintritt (jederzeit in Einstellungen → Profile). Ein Student hat in den Werkzeugen oben die Gruppe <b>Lernen</b> und in den Konten heißt es „Truppe“ statt „Firma“.",
+        "<b>Lernen:</b> Trainer und Schätz mal sind in Basis; neu <b>Übungsaufgaben</b> (22 Aufgaben mit Lösung, lassen sich in den Rechner vorausfüllen), <b>Punktequiz</b> (TB, Nivellementbolzen, Grenzstein, Nagel…) und <b>Formeln</b> im Handbuch.",
+        "<b>Warum ±4 m?</b> — das Fehlerbudget von GPS + Kompass auf die Entfernung zum Punkt, mit Ellipse und „was wäre wenn“-Schiebern; im GNSS-Signal und in der aufgeklappten Statusblase.",
+        "<b>Der Rechner</b> zeigt den <b>Rechenweg</b> (Formeln und Zwischenergebnisse, auch den Quadranten des Richtungswinkels) und hat die <b>Helmert-Transformation</b>. Korrigiert: ein Polygonzug mit 2+ Zwischenpunkten rechnete falsch (Kollision der Feld-ids) und ein leeres Feld ergab NaN statt „Ausfüllen“.",
+        "<b>Beiseite</b> (über die Suche zu finden): Epochen, Volumen durch Umrunden, Lokalisierung als Werkzeug, zwei der drei Schnitte, im Gebäude, Einbauschicht + Profil Einbau, Punkte übereinander, Fahrtenbuch, Sicherheit, Checkliste (jetzt Taste im Tagesjournal).",
+        "Einstellungen: Farbton, Animationen und Wölbung der Leiste sind unter Erweitert; das Einstellungsprofil ist unter dem Arbeitsprofil eingeklappt."
+      ]
+    },
+    {
+      "v": 305,
+      "datum": "2026-09-13",
+      "nadpis": "Führ mich hin oben in der Punktkarte, Diagramme in Reichweite in der Konsole, goldenes Pro nur dort, wo es hingehört",
+      "body": [
+        "<b>Punktkarte:</b> die Tasten Führ mich hin · Kontrollpunkt · Abgesteckt sind gleich oben, nicht erst unter der Skizze.",
+        "<b>Eigentümerkonsole:</b> Diagramme — visuelle Übersicht ist die erste Kachel und eine goldene Taste gleich unter den Zusammenfassungszahlen; die Sperre nach falschen Schlüsseln hält eine Viertelstunde statt einer Stunde und die Meldung rät, WLAN ↔ mobile Daten umzuschalten.",
+        "<b>Pro auf den ersten Blick</b> abgemildert: golden sind nur der Schalter Karte/Split/AR und die Taste Werkzeuge mit dem Etikett PRO; Werkzeuge, Überschriften und Einstellungen sind wieder grün."
+      ]
+    },
+    {
+      "v": 304,
+      "datum": "2026-09-13",
+      "nadpis": "Kataster mit Zurück, Eigentümerkonsole ohne falsche Sperre, goldenes Pro; Funkgerät, Anwesenheit und Uhr weg",
+      "body": [
+        "<b>Kataster — wo ich gerade stehe</b> öffnet sich in einem App-Fenster mit der Taste <b>Zurück</b> (Karte iKatastr.cz). Vorher sprang es in den Browser und man kam nicht zurück. Die Wahl in den Einstellungen steuert die Taste „Im Browser“.",
+        "<b>Eigentümerkonsole:</b> „Zu viele Schlüsselversuche, versuch es in einer Stunde“ kam auch mit richtigem Schlüssel — der Server zählte jede Konsolenanfrage als Rateversuch. Jetzt zählt er nur falsche Schlüssel.",
+        "<b>Pro auf den ersten Blick:</b> das Gold aus der Blume geht weiter durch die App — Pille oben, Schalter Karte/AR, Fensterüberschriften, Symbole und Überschriften in den Werkzeugen, Schalter und Reiter in den Einstellungen, Etikett PRO auf der Taste Werkzeuge.",
+        "<b>Die Statusblase</b> lässt sich nicht mehr abschalten (die Taste „Blase abschalten“ und der Schalter in den Einstellungen sind weg); versteckt sind auch die Schalter der alten Panels, die ohne sie nichts zu bewirken hatten.",
+        "<b>Weg:</b> Funkgerät, Anwesenheit (auch die Verknüpfung vom Startbildschirm) und Garmin-Uhr — auf Wunsch, in Zukunft kommen wir vielleicht darauf zurück. Die Wegweiser „Firma“ und „Übertragungen und Geräte“ verschwanden damit; Firma und Konten sowie Auftrag senden/laden stehen direkt in der Liste."
+      ]
+    },
+    {
+      "v": 303,
+      "datum": "2026-09-13",
+      "nadpis": "Der Assistent zeigt, wohin tippen, die Blume ohne überflüssige Wegweiser, die Konsole mit Diagrammen und Bericht",
+      "body": [
+        "<b>Der Assistent für die erste Messung</b> hakt jetzt jeden Schritt sichtbar ab und auf dem Ziel leuchtet ein Ring „hier tippen“ (Taste +, Punkt in der Karte, Führ mich hin).",
+        "<b>Werkzeugrad:</b> Wegweiser (Wetter und Licht, GNSS-Signal…) klappen direkt in Blätter auf, wenn sie passen; zusammengefasst bleibt nur, was überlaufen würde.",
+        "<b>Basis × Pro</b> hat oben eine einfache visuelle Übersicht (fünf Pro-Bereiche), die lange Tabelle ist eingeklappt.",
+        "<b>Eigentümer:</b> die Konsole öffnet sich nur beim ersten Eintritt von selbst; Leute haben Sortierung und Filter (zuletzt aktiv, nutzen am meisten, neueste, Mit Pro, blockiert); neu <b>Diagramme — 30 Tage</b> und <b>Entwicklungsbericht</b> (Nachrichten, Bewertungen, Fehler und Versionen in einem kopierbaren Text).",
+        "<b>Sprachen:</b> alles Neue (Assistent, Funktioniert alles?, Bewertung, Wo ich arbeite) und ein paar alte Reste sind ins EN/DE/PL übersetzt.",
+        "Kleinigkeiten: Fenster scheinen nicht mehr durch (Historie, Newsletter), lesbare Feldhinweise im hellen Thema, Dezimalkomma bei Entfernungen in Punktlisten, Jahrbuch „Jun/Jul“ und „1 Tag“; der Kontakt aus Dem Autor schreiben wird beim Konto gemerkt."
+      ]
+    },
+    {
+      "v": 302,
+      "datum": "2026-09-13",
+      "nadpis": "Vor der Beta: Assistent für die erste Messung, Funktioniert alles?, leichterer Start",
+      "body": [
+        "<b>Assistent für die erste Messung</b> beim ersten Start: fünf Schritte über der lebenden App (Position und Kompass, Genauigkeit, erster Punkt, seine Karte, Führ mich hin) — sie haken sich selbst ab. Du findest ihn auch in der Interaktiven Anleitung.",
+        "<b>Funktioniert alles?</b> (Werkzeuge, Einstellungen → Wartung): GPS, Kompass, Kamera, Speicher, Version und letzte Fehler als grüne/rote Zeilen, mit einem Tipp zum Autor.",
+        "<b>Dein Kontakt</b> (Wo ich arbeite → Kontakt, freiwillig) — der Autor hat jemanden zum Fragen, wenn du eine Meldung schickst; Dem Autor schreiben füllt ihn voraus.",
+        "<b>Am dritten Tag mit der App</b> fragt sie einmal „Wie passt es dir?“ (Sterne + ein Satz).",
+        "<b>Der Start ist um 113 kB leichter</b> (Anleitung, Aktualisierungshistorie, Koordinatenliste und Aufgabenassistent werden erst nach dem ersten Bild geladen).",
+        "<b>Die Statuspille</b> schneidet die Meldung nicht mehr ab — Azimut und Genauigkeit weichen zuerst.",
+        "<b>Eigentümer:</b> bei den Leuten in der Konsole App-Version, Telefon und Kontakt."
+      ]
+    },
+    {
+      "v": 301,
+      "datum": "2026-09-13",
+      "nadpis": "Kontrolle nach dem Durchgang: zwei Kleinigkeiten",
+      "body": [
+        "<b>Volumen und Höhenlinien:</b> das Rädchen „Einklappen“ lag direkt auf dem Kreuz des Fensters — jetzt steht es daneben und eine lange Überschrift bricht um.",
+        "<b>Skizze / Tachymetrie:</b> der Übergang „es gibt mehr“ auf der Tastenleiste verdeckte nach dem Scrollen die letzte Taste (Export)."
+      ]
+    },
+    {
+      "v": 300,
+      "datum": "2026-09-13",
+      "nadpis": "App-Durchgang: die App duzt überall, Version in Über die App, Kleinigkeiten",
+      "body": [
+        "<b>Die App duzt überall</b> — die letzten Fenster, die siezten (Dem Autor schreiben, Punkte teilen, Berechnungen, Kompasskalibrierung, Speicherhinweis…), sprechen wie der Rest. Die Übersetzungen EN/DE/PL passen dazu.",
+        "<b>Über die App zeigt die echte Version</b> (vorher stand dort ewig „1.9“) und die <b>Aktualisierungshistorie</b> hat die Einträge v286–v299 ergänzt.",
+        "<b>Punktkarte:</b> die Listen „Punktgruppe“ und „Punkte in der Umgebung“ sagen, dass ein Tipp die Karte öffnet (nicht die Navigation).",
+        "<b>Der Assistent Firma und Konten</b> beschreibt nicht mehr den abgeschafften „eingeschränkten Modus“; das Tor übersteht einen Tipp auf „Weitere Optionen“ gleich nach dem Start.",
+        "<b>Das DGM-Fenster</b> hat Kopf und Kreuz wie die anderen Fenster; die Pro-Karte hat kein überflüssiges „Einklappen“ mehr.",
+        "<b>Statuspille:</b> „Fortsetzen: …“ passt hinein; eine verweigerte Displaysperre (Hintergrund, Sparmodus) wird nicht als Fehler gemeldet.",
+        "<b>Basis in der Pro-Übersicht</b> listet alle freien Werkzeuge; die Aktionsleiste in der Tachymetrie deutet an, dass sie scrollt; die Links bei den Profilen haben ein größeres Ziel; das Datum im Newsletter ist menschenlesbar."
+      ]
+    },
+    {
+      "v": 299,
+      "datum": "2026-09-12",
+      "nadpis": "Die Suche in den Einstellungen behält den getippten Text, leichterer Start",
+      "body": [
+        "<b>Die Suche in den Einstellungen</b> löschte die ersten Buchstaben, wenn man gleich nach dem Öffnen zu tippen begann — behoben.",
+        "<b>Der App-Start ist um 36 kB leichter</b>: der Inhalt der Punktkarte wird erst beim ersten Öffnen der Karte geladen.",
+        "<b>Die Punktkarte im hellen Thema</b> ist lesbar (vorher weiße Schrift auf Weiß)."
+      ]
+    },
+    {
+      "v": 297,
+      "datum": "2026-09-12",
+      "nadpis": "Punktkarte: Skizze über dem Orthofoto, Ziehen am Streifen",
+      "body": [
+        "<b>Die Umgebungsskizze liegt über dem Orthofoto mit Flurstücksgrenzen</b> (Grundlage vom ČÚZK), Nachbarpunkte bis 150 m, Spannmaße und Maßstab.",
+        "<b>Die Höhe wird auch bei Nivellementpunkten gezeigt</b> — das ČÚZK-Festpunktfeld hat sie in allen Ebenen, die App übersah sie beim Nivellement bisher.",
+        "<b>Die Punktkarte ziehst du am Streifen</b> nach oben über den ganzen Bildschirm und wieder herunter.",
+        "<b>Eigentümer:</b> eine neue Version geht an die anderen erst nach „Für andere freigeben“ in der Konsole — ein Release lässt sich bremsen, wenn etwas schiefgeht."
+      ]
+    },
+    {
+      "v": 295,
+      "datum": "2026-09-12",
+      "nadpis": "Die Punktkarte ist eine Übersicht, keine Navigation",
+      "body": [
+        "<b>Tippen auf einen Punkt</b> (in der Karte, in der Cluster-Liste, in Punkte in der Umgebung) öffnet die <b>Punktkarte</b> und navigiert nicht. Die Navigation startest du aus der Karte mit der Taste <b>Führ mich hin</b>; auch <b>Kontrollpunkt</b> und <b>Abgesteckt</b> stehen bereit.",
+        "<b>Die Karte als Mosaik:</b> Y/X in großer Schrift mit dem Symbol der Art, Genauigkeit in Farbe, Status, Höhe, Entfernung von mir, wann und woher gemessen, Auftrag, Fotos.",
+        "<b>Messriss der Umgebung:</b> Nachbarpunkte, Spannmaße dazwischen, Flurstücke und eine Marke „du“, wenn du im Bild bist."
+      ]
+    },
+    {
+      "v": 291,
+      "datum": "2026-09-12",
+      "nadpis": "Face ID für den Eigentümer, Firmenwechsel bei der Anmeldung",
+      "body": [
+        "<b>Der App-Eigentümer meldet sich mit Face ID / Fingerabdruck an</b> statt einen langen Schlüssel abzuschreiben (wird nach der ersten Anmeldung per Schlüssel angeboten).",
+        "<b>Firma wechseln</b> gibt es auch auf dem Anmeldebildschirm — wenn das Gerät mehrere Firmen oder Bereiche kennt.",
+        "<b>Eigentümer:</b> Übersicht, Tagebuch, Kalender, Sicherung und Ansicht aus Sicht des Kontos in der Konsole; goldenes Thema der Eigentümerfenster."
+      ]
+    },
+    {
+      "v": 290,
+      "datum": "2026-09-12",
+      "nadpis": "App-Durchgang: vierzehn Korrekturen dessen, was nicht ging oder nicht passte",
+      "body": [
+        "<b>Tor → „Weitere Optionen“ war ein toter Bildschirm</b> (über dem Assistenten lag die Startüberlagerung) — es geht.",
+        "<b>Das Rädchen „Einklappen“ in den Feldbüchern</b> fuhr über die Taste Schließen; Wegweiser in der Bildschirmmitte haben kein Rädchen.",
+        "<b>Das Panel Fläche messen</b> lag über dem senkrechten Dock und schien durch andere Fenster.",
+        "<b>Suche in den Werkzeugen:</b> die Gruppenüberschriften rutschten nach oben zusammen — beim Suchen sind sie weg, es bleiben nur Kacheln.",
+        "<b>Die Fenster Festpunkte, Nord ausrichten, Auftragspaket und Doppelmessung</b> sind bildschirmfüllend wie die anderen (vorher schien das HUD durch).",
+        "<b>Die Statuspille</b> hat kürzere Texte und ein Kreuz mit größerem Ziel; das Fehlerprotokoll hat 2×2 Tasten.",
+        "<b>Dem Autor schreiben:</b> das Feld Kontakt war ohne Stil."
+      ]
+    },
+    {
+      "v": 288,
+      "datum": "2026-09-12",
+      "nadpis": "Pro auf Anfrage, gesperrte Werkzeuge ganz unten, Kompass nach dem Sensor",
+      "body": [
+        "<b>Die Pro-Version wird nicht gekauft, sondern angefragt:</b> Pro-Karte über den ganzen Bildschirm, Taste <b>Pro anfragen</b> (Name, Kontakt, Nachricht) — der Eigentümer schaltet sie frei. Wer einen Schlüssel hat, trägt ihn dort ein.",
+        "<b>Gesperrte Werkzeuge sind in den Werkzeugen ganz unten</b> in einem Abschnitt „In der Pro-Version“; die Gruppen oben bestehen nur aus dem, was kostenlos ist.",
+        "<b>Das Werkzeugrad</b> hat für jede Gruppe gleich viele Blätter (leere gestrichelt), Zurück ist genau unten.",
+        "<b>Firma wechseln schon auf dem Startbildschirm</b>, wenn das Gerät mehrere Firmen kennt.",
+        "<b>Der Kompass meldete „schweigt“, obwohl sich die Karte drehte</b> — die Überwachung richtet sich jetzt wirklich nach den Sensorereignissen."
+      ]
+    },
+    {
+      "v": 286,
+      "datum": "2026-09-11",
+      "nadpis": "Die App heißt QTRIG; Basis kostenlos, der Rest in Pro",
+      "body": [
+        "<b>Neuer Name QTRIG und neues Symbol</b> (Q als Messzielmarke). Adresse, Daten und Aufträge ändern sich nicht.",
+        "<b>Basis kostenlos = 21 Tätigkeiten fürs Gelände:</b> messen, Fläche, Spannmaße, präzises GPS, nach Liste abstecken, Feldbuch, Mängel, Papierkorb, Kompass, Nord, GNSS, Wetter, Kataster wo ich stehe, Festpunkte, Übertragungen, Auftrag wechseln, Handbuch, Rechner. <b>Achse, Polarpunkt, Geo-Foto, Projektimport, Briefing und Gesten sind in Pro.</b>",
+        "<b>Ebenen:</b> kostenlos Karte/Orthofoto und Drehen; Kataster, Auf mich, Fläche messen, Offline speichern und Ziel zeigen sind in Pro.",
+        "<b>Kreuze schließen wieder Fenster</b> (Regression vom 8. 9.).",
+        "<b>Der App-Eigentümer meldet sich mit dem Namen VLASTNIK an</b> und Passwort = Schlüssel; ein Symbol, alles entsperrt."
+      ]
+    },
+    {
+      "v": 283,
+      "datum": "2026-09-09",
+      "nadpis": "Der Kompass läuft wieder, die Werkzeuge sind aufgeräumt, der Start ist flotter",
+      "body": [
+        "<b>Der Kompass fragt nicht mehr im falschen Moment.</b> Die App bat gleich beim Start um Zugriff auf Bewegung und Ausrichtung — nur lässt das iPhone so eine Anfrage nicht zu und antwortet „abgelehnt“, obwohl dich niemand gefragt hat. Daraus wurde das Fenster „Kompass hat keine Berechtigung“ und ein toter Pfeil in der Navigation bis zum Ende des Laufs. Jetzt fragt die App erst bei der ersten Berührung und versucht es nach einer Ablehnung einmal erneut.",
+        "<b>Die Werkzeuge sind sortiert.</b> Über sechzig Kacheln lagen auf einem Haufen unter der Überschrift „Geländewerkzeuge“. Jetzt sind sie in zehn Gruppen danach, was du mit ihnen machst — Messen, Neuen Punkt bestimmen, Abstecken, Aufzeichnen, AR ausrichten, Bedingungen ermitteln, Kataster und Unterlagen, Vor der Abfahrt, Firma und Papiere, Handbuch. Und <b>Dem Autor schreiben</b> steht fest ganz oben, über der Suche.",
+        "<b>Ferne Punkte in AR.</b> Neues Werkzeug (AR ausrichten → <b>Ferne Punkte in AR</b>): zieh mit dem Finger in der Karte ein Rechteck auf und die Punkte darin erscheinen in AR auch jenseits der eingestellten Reichweite — etwa eine Basis zwei Kilometer entfernt. Die Auswahl überlebt das Schließen der App.",
+        "<b>Finger auf der Karte halten = Entfernung von dir.</b> Von deiner Position zum Finger spannt sich eine Linie und zeigt die Entfernung. Ergänzt die Messung mit zwei Fingern, die zwischen zwei Stellen in der Karte misst.",
+        "<b>Aktualisierung ohne Taste.</b> Eine neue Version holt sich die App beim Start selbst — einfach schließen und wieder öffnen. Die Leiste oben kündigt nur noch an, es wird nichts angetippt. Und die Sicherungserinnerung springt nicht mehr über die App: sie ist in Einstellungen → Wartung gezogen.",
+        "<b>Flotterer Start.</b> Das Laden von Punkten vom ČÚZK verglich jedes geladene Element mit allen Punkten im Auftrag — bei tausend Punkten waren das über zweieinhalb Millionen Vergleiche und man sah es der App die ersten Sekunden an. Zudem werden vor dem ersten Bild 56 kB weniger Code geladen.",
+        "<b>Bedienung:</b> die Schließgeste im Fenster Ebenen lässt das Panel nicht mehr zur Seite geschoben hängen, Kreuze haben ein ehrliches Berührungsziel (und wachsen im Handschuhmodus) und ein Wischen über den Fensterinhalt startet nicht mehr versehentlich das Kürzel eines anderen Werkzeugs.",
+        "<b>In der Karte blieb beim navigierten Punkt nur die Entfernung</b> — Grad sind weg, die Richtung sieht man an der Linie selbst."
+      ]
+    },
+    {
+      "v": 282,
+      "datum": "2026-09-08",
+      "nadpis": "Einfacher Modus: die App hinter zwei Tasten",
+      "body": [
+        "<b>Schalte ihn ein in Einstellungen → Aussehen → Bedienung.</b> Karte, Kamera, Dock und Werkzeuge verschwinden und auf dem Bildschirm bleiben nur zwei große Tasten: <b>Punkt hinzufügen</b> und <b>Zum Punkt navigieren</b>. Das ist für einen Tag, an dem du nur eine Stelle markieren und zurückgehen musst — oder wenn du jemandem die App in die Hand gibst. Zurück zur vollen App führt der Link <b>Ganze App</b> rechts oben.",
+        "<b>Punkt hinzufügen</b> = Name (schlägt selbst die nächste Nummer in der Reihe vor) und eine von zwei Tasten: <b>Aus GPS</b> — mittelt sechs Sekunden vor Ort und zeigt die Streuung der Proben — oder <b>Von Hand</b> für Y und X im S-JTSK. Dann nur Speichern. Der Punkt wird in den Auftrag genau so gespeichert wie aus der vollen App, inklusive seiner Herkunft.",
+        "<b>Zum Punkt navigieren</b> zeigt die Auftragspunkte <b>vom nächsten zum fernsten</b>. Nach dem Tipp gibt es bildschirmfüllend einen Pfeil und eine große Entfernung — sonst nichts. Meldet das Telefon keine Richtung, erfindet der Pfeil nichts: er nennt dir den Azimut als Zahl.",
+        "<b>Spart Akku:</b> bei eingeschaltetem Modus geht die Kamera aus und die Karte wird nicht neu gezeichnet. Schaltest du ihn aus, kehrt die App genau in die Ansicht zurück, in der sie war."
+      ]
+    },
+    {
+      "v": 278,
+      "datum": "2026-09-06",
+      "nadpis": "Schnellerer Start: die App baut beim Einschalten nicht mehr, was nicht zu sehen ist",
+      "body": [
+        "<b>Punkte in der Karte werden in Chargen gezeichnet, die nächsten zuerst.</b> Bei einem Auftrag mit tausend Punkten wurden bisher bei jedem Start neunhundert Marken auf einmal gebaut und das Telefon stand dabei still. Jetzt ist sofort die Umgebung zu sehen, in der du stehst, und der Rest wird nachgezeichnet, wenn der Browser einen Moment Ruhe hat — <b>die Blockade beim Start sank um die Hälfte</b> (gemessen 1 952 → 910 ms).",
+        "<b>Das Fenster Werkzeuge wird erst nach der ersten Berührung zusammengesetzt.</b> Die Liste der Tätigkeiten und das Kachelraster wurden bisher gleich beim Einschalten gebaut, obwohl niemand hinsah; das kostete 0,5 s. In die Werkzeuge führt immer noch ein Tipp, sie sind also fertig, bevor du dort ankommst — und wer die App nicht berührt, bekommt sie sowieso.",
+        "<b>Verzögerte Module stehen dem ersten Bild nicht mehr im Weg.</b> Eine Warteschlange von 2,3 MB weiterem Code wurde 0,7 s nach dem Laden der Seite losgelassen, also genau in die letzten Meter des Starts. Jetzt wartet sie länger; wer die App sofort benutzt, erzwingt sie ohnehin selbst."
+      ]
+    },
+    {
+      "v": 277,
+      "datum": "2026-09-05",
+      "nadpis": "Mehr zur Hand: „Mehr“ unter den Reitern, Meldung mit Kontext und Verwandlung der leeren Werkzeuge",
+      "body": [
+        "<b>„Mehr“ ist endlich sichtbar.</b> Anleitung und Rundgang, Für offline speichern, Über die App, Historie, QR teilen und Newsletter hingen hinter Einstellungen → Wartung → vorletzte Taste. Jetzt stehen sie <b>in einem Band gleich unter den Reitern der Einstellungen</b>, neben <b>Dem Autor schreiben</b> — aus jedem Reiter und ohne Scrollen.",
+        "<b>Eine Nachricht an den Autor kann anhängen, was die App gerade tat.</b> Ein neues Häkchen schickt das offene Fenster, das letzte Werkzeug, die Punktzahl, den Auftrag, den Zustand von Empfang und GPS und die letzten drei Fehler aus dem Fehlerprotokoll. Ohne das ließ sich „bei mir geht es nicht“ nicht nachvollziehen; lässt sich abwählen.",
+        "<b>Aus dem Fehlerprotokoll wird mit einem Tipp gemeldet.</b> Die Taste <b>An den App-Autor senden</b> öffnet eine Nachricht, vorausgefüllt mit dem Fehlerauszug und den Umständen — nur noch ergänzen, was passiert ist. Teilen und Kopieren des ganzen Protokolls bleibt.",
+        "<b>Leere Werkzeuge sind nicht mehr stumm.</b> Im eingeschränkten Modus (ohne Anmeldung) zeigt sich statt eines leeren Rasters eine Karte, was die App jetzt kann, was nach der Anmeldung dazukommt — und eine Taste Anmelden."
+      ]
+    },
+    {
+      "v": 276,
+      "datum": "2026-09-05",
+      "nadpis": "Dem Autor schreiben geht jetzt mit zwei Tipps — und auch ohne Anmeldung",
+      "body": [
+        "<b>Die Zeile „Stimmt etwas nicht oder fehlt etwas? Dem Autor schreiben“ steht jetzt in den Einstellungen gleich unter der Suche und im Fuß der Werkzeuge.</b> Bis jetzt führte der einzige Weg über Einstellungen → Wartung → letzte Taste, und wer nicht angemeldet ist, kam gar nicht hin — obwohl er eine Nachricht schicken darf.",
+        "<b>Kürzel per Geste.</b> In <b>Gesten und Kürzel</b> gibt es neu die Aktion <b>Dem Autor schreiben</b>, sodass sich ein Fehler mit Handschuhen mit einem Zug melden lässt, nicht über zwei Fenster.",
+        "<b>Einheitlicher Name.</b> Überall steht jetzt <b>Dem Autor schreiben</b> statt „Schreib mir“ — bei einer App, die man per Link bekommt, sagt „mir“ nicht, an wen man schreibt."
+      ]
+    },
+    {
+      "v": 275,
+      "datum": "2026-09-05",
+      "nadpis": "Achsabsteckung: gebrochene Achse mit Station und Pflöcken meterweise",
+      "body": [
+        "<b>Die Achse kann gebrochen sein, nicht nur eine Gerade A→B.</b> Die Punkte werden ins Werkzeug (früher „Geradenabsteckung“, jetzt <b>Achsabsteckung</b>) in Reihenfolge vom Anfang eingegeben und mit der Taste <b>Knick hinzufügen</b> kommen so viele dazu, wie nötig. Die Station läuft <b>über die Knicke</b> — der zweite Abschnitt schließt dort an, wo der erste endete, nicht bei null.",
+        "<b>Die Ablesung findet selbst den Abschnitt, auf dem du stehst.</b> Neben Station und Querabstand schreibt das Fenster, auf welchem Abschnitt du bist (und zwischen welchen Punkten), wie viel <b>bis zum Knick</b> und <b>bis zum Achsende</b> bleibt. Dasselbe siehst du im eingeklappten Streifen und in der Kamera — die Zahlen laufen nirgends auseinander.",
+        "<b>Die Anfangsstation gleicht die Zahlen mit dem Projekt ab.</b> Beginnt der Abschnitt bei km 1,200, gib 1200 ein und die App zählt 1200…1400 statt 0…200 — und der abzusteckende Punkt wird direkt in Projektstation eingegeben.",
+        "<b>Ganze Achse meterweise abstecken.</b> Ein neuer Befehl setzt Pflöcke in den Auftrag in regelmäßigem Schritt (alle 10, 25, 50 m) über den ganzen Abschnitt inklusive Ende, wahlweise von der Achse versetzt. Sie werden nach der Station benannt (ST1225), sodass die Absteck-Checkliste sie direkt abhakt.",
+        "<b>In der Kamera werden auch die Knicke gezeichnet.</b> Die Achse in AR folgt der gebrochenen Trasse (die Ecke wird nicht abgeschnitten), die Scheitel haben eigene Ringe und der Lotfußpunkt meldet die Station inklusive Anfangsversatz."
+      ]
+    },
+    {
+      "v": 274,
+      "datum": "2026-09-05",
+      "nadpis": "Nach dem Gesamtdurchgang der App: eine manuelle Position aus der Karte ist keine Messung mehr, der Papierkorb stellt den ganzen Auftrag wieder her",
+      "body": [
+        "<b>Eine manuelle Position aus der Karte tut nicht mehr so, als wäre sie ein gemessener Punkt.</b> Hattest du die Position in die Karte getippt, floss sie ins GPS-Mitteln und wurde gespeichert, als hätte sie ein Satellit gemessen. Jetzt ist die von Hand eingegebene Position getrennt und wird nicht als Messung gespeichert.",
+        "<b>Der Papierkorb hält alle Daten des Auftrags.</b> Das Löschen eines Auftrags fegte früher auch Datenfamilien weg, die der Papierkorb nicht zurückholen konnte. Jetzt wird der ganze Auftrag in den Papierkorb gelegt.",
+        "<b>Das Verzögern der Module funktioniert wieder.</b> Die App sollte schwere Werkzeuge erst laden, wenn du sie öffnest — doch sie wurden trotzdem alle gleich nach dem Start geholt. Der Start ist wieder so, wie er sein sollte.",
+        "<b>Das Teilen von Dateien geht nur noch einen Weg.</b> Export, Protokoll und Sicherung enden im selben Systemteilen, nicht in zehn Umwegen je nach Werkzeug."
+      ]
+    },
+    {
+      "v": 273,
+      "datum": "2026-09-03",
+      "nadpis": "Nach Meldungen aus dem Gelände: das Werkzeugrad zeigt dieselbe Sache nicht mehr zweimal und die Eigentümerkonsole kommt zurück",
+      "body": [
+        "<b>Im Werkzeugrad („Blume“) steht ein zusammengefasstes Werkzeug EINMAL.</b> Bisher gab es dort den Wegweiser <b>Firma</b> und gleich daneben immer noch Anwesenheit, Chat, Funkgerät und Konten einzeln — dieselbe Sache zweimal. Das Rad nahm die Liste über einen Umweg, der vom Zusammenfassen nichts wusste. Jetzt gilt überall dieselbe Regel: in der Liste der Tätigkeiten, im Raster und im Rad ist ein Wegweiser ein Eintrag, der sich aufklappt. Die Suche findet die einzelnen Werkzeuge weiter.",
+        "<b>Die Eigentümerkonsole kommt nach dem Schließen eines Werkzeugs von selbst zurück.</b> Wer daraus etwas öffnete, verlor sie — nach dem Schließen des Fensters blieb eine leere Karte und zur nächsten Ansicht führte nur langes Drücken auf das Logo und der Schlüssel. Jetzt öffnet sich die Konsole dort wieder, wo du aufgehört hast.",
+        "<b>Die Firmenprüfung im Hintergrund wirft niemanden mehr aus der Messung.</b> Einmal pro Minute fragt die App den Server nach den Firmeneinstellungen; schlug diese Anfrage fehl (Ausfall, älteres Token), schickte sie den Vermesser mitten in der Arbeit auf den Anmeldebildschirm. Jetzt wird so eine Antwort nur aufgezeichnet und das Firmenpanel schreibt darüber — aus der App wird niemand geworfen.",
+        "<b>Wenn die Firmenverwaltung nicht klappt, sagt die App warum.</b> Beim Löschen und Bearbeiten von Konten erschien nur „Löschen fehlgeschlagen“. Jetzt erkennt man, dass <b>der Server auf einer älteren Version läuft</b>, die die Aktion noch nicht kann (und dass sich das Konto stattdessen <b>Sperren</b> lässt), und auch, dass das Telefon nicht mehr als Firmenadmin angemeldet ist.",
+        "<b>Die Anleitung zur Garmin-Uhr beschrieb die Kopplung verkehrt herum.</b> Sie versprach eine Taste „Code erzeugen“ und Abschreiben in Garmin Connect — doch heute zeigt die <b>Uhr</b> den Code und er wird in die App übertragen. Jetzt passt die Anleitung und hat einen Teil <b>Für die Uhr vorbereiten</b> dazubekommen (Karte und Punkte vor der Abfahrt)."
+      ]
+    },
+    {
+      "v": 272,
+      "datum": "2026-09-03",
+      "nadpis": "App-Durchgang: der Papierkorb schluckt nicht mehr die Hälfte der gelöschten Punkte und die Suche zeigt nicht, was der Admin verboten hat",
+      "body": [
+        "<b>Der Papierkorb fasst auch Massenlöschungen.</b> Hattest du im Panel Punkte mehrere Punkte auf einmal gelöscht, versprach die App „Wiederherstellen geht 30 Tage aus dem Papierkorb“ — doch in den Papierkorb passten nur <b>die letzten 15</b> und der Rest verschwand für immer. Bei Massenlöschung wird „Rückgängig“ absichtlich nicht gezeigt, also ist der Papierkorb dort die einzige Rettung. Jetzt passt ein ganzer Arbeitstag hinein (400 Einträge) und der Platz wird nach Größe überwacht, nicht nach Anzahl.",
+        "<b>Die Suche deckt keine Werkzeuge mehr auf, die die Rolle nicht hat.</b> Bei einem Mitarbeiter, dem der Admin eine Kategorie verboten hatte, leuchteten beim Tippen in die Suche die verbotenen Kacheln zwei Sekunden auf und gingen wieder aus. Tippen startete zwar nichts, aber die App zeigte, was sie nicht zeigen sollte.",
+        "<b>Ein Werkzeug wird unter dem Namen gefunden, den die App selbst zeigt.</b> Kachel und Zeile in der Liste der Tätigkeiten können unterschiedlich heißen („Sprachnotizen“ × „Sprachnotiz“) und gesucht wurde nur nach dem Kachelnamen. Wer suchte, was er in der App las, fand nichts — und bei versteckten Werkzeugen ist die Suche der einzige Weg zu ihnen.",
+        "<b>Ein gesperrtes Konto meldet sich wirklich binnen einer Minute ab.</b> Beim Sperren liest der Admin, dass das Konto auch auf dem Handy abgemeldet wird, wo es gerade angemeldet ist. Bisher galt das erst nach einem Neustart der App — der Gesperrte hatte das Messen weiter offen. Jetzt werden die Firmeneinstellungen einmal pro Minute abgeglichen (im Hintergrund und offline passiert nichts)."
+      ]
+    },
+    {
+      "v": 271,
+      "datum": "2026-09-03",
+      "nadpis": "Anmeldung und Firma ohne Sackgassen, kürzere Werkzeugliste, Umschau über den ganzen Bildschirm",
+      "body": [
+        "<b>Aus dem eingeschränkten Modus führt ein Weg zurück.</b> Wer die App ohne Anmeldung startete, blieb darin eingesperrt — das Wort „anmelden“ stand nirgends auf dem Bildschirm. Jetzt leuchtet unten über der Leiste ein Streifen <b>Eingeschränkter Modus — Anmelden</b>, mit dem du jederzeit auf den Anmeldebildschirm kommst.",
+        "<b>Die Firma wechselt jeder, nicht nur der Admin.</b> Im Firmenpanel kam der Abschnitt <b>Firmen</b> dazu: Liste der Firmen, bei denen du dich je angemeldet hast, Wechsel (immer gegen das Passwort) und <b>+ Weitere Firma verbinden (Code)</b>. Der grüne Streifen oben hat die Taste <b>Anmelden / wechseln</b> immer — vorher sah sie nur, wer schon eine zweite Firma hatte.",
+        "<b>Die Meldung „Server nicht erreichbar“ lügt nicht mehr.</b> In drei von vier Fällen lief der Server und es fehlte nur der Zugang dieses Telefons. Jetzt wird unterschieden zwischen <b>kein Empfang</b>, <b>Telefon nicht am Server angemeldet</b>, <b>Zugang abgelaufen</b> und <b>Serverfehler</b> — und zu jeder Meldung gibt es eine Taste, die es löst. Eine leere Anwesenheit sagt auch, ob sie leer ist, weil niemand gestempelt hat, oder weil die Daten nicht geladen wurden.",
+        "<b>Die Werkzeugliste ist um ein Viertel kürzer</b> (80 Zeilen auf 59). Verwandte Dinge vertritt jetzt eine Zeile, die sich aufklappt: <b>Meine Zahlen</b>, <b>Tageseintrag</b>, <b>Firma</b>, <b>Unterlagen und Kataster</b>, <b>Übertragungen und Geräte</b> — neben den bisherigen Wegweisern. Nichts ist verschwunden, es wird nur nicht mehr einzeln aufgezählt.",
+        "<b>Versorgungsnetze und Sprachnotiz sind aus dem Menü raus.</b> Sie bleiben in der App und du findest sie über die Suche, sie nehmen nur keinen Platz mehr zwischen den Werkzeugen ein, die du benutzt.",
+        "<b>Der Streifen „Einzelbestimmung — ungeprüft“ ist aus der Punktkarte verschwunden.</b> Er leuchtete unter fast jedem Punkt, und einen vor einer Minute gespeicherten Punkt für die fehlende zweite Bestimmung zu rügen ergibt keinen Sinn. Abweichung und Urteil bleiben dort, wo du selbst danach fragst — im Werkzeug <b>Punktprüfung</b>.",
+        "<b>Die Umschau läuft über den ganzen Bildschirm</b> und hat eine Liste <b>Um dich herum</b> dazubekommen (Nachbarflurstücke und wie weit sie sind). Mit der Taste <b>In Kamera zeigen</b> klappt das Fenster zu einer Pille am unteren Rand zusammen, damit das Bild zu sehen ist; in der Kamera liegen die Grenzen auf dem Boden (das Gelände wird berücksichtigt) und die Linien sind endlich auch in der Sonne zu sehen.",
+        "<b>Fenster flackern beim Öffnen nicht mehr.</b> Der Inhalt erscheint, wenn er fertig ist — bisher wurde das Fenster gezeichnet, bevor der Rest hineingeschüttet war, und alles darin sprang.",
+        "<b>Die Warnung „Schwaches GPS“ klickst du mit einem Tipp weg — und sie bleibt weggeklickt.</b> Das Kreuz ist jetzt direkt in der Statusblase (vorher führte der Weg über Detail und Hinweiskarte, also drei Tipps). Und vor allem: das Wegklicken wird nicht mehr durch ein einziges Tick guten Signals aufgehoben. Die Genauigkeit im Gelände springt um 10 m herum (9 → 12 → 9 m), also kam die Warnung nach „Verstanden“ nach ein paar Sekunden immer wieder; jetzt wird sie erst nach drei Minuten durchgehend gutem Signal vergessen — oder sofort, wenn sich das Signal <b>deutlich</b> verschlechtert, denn das ist eine neue Situation.",
+        "<b>Die Statusblase ist ein Stück größer.</b> Nach dem Verschlanken war sie zu dünn; zwei Buchstaben Höhe kamen dazu, und sie hält den Text trotzdem auf einer Zeile."
+      ]
+    },
+    {
+      "v": 270,
+      "datum": "2026-08-31",
+      "nadpis": "Schlanke Statusblase, Jahrbuch über den ganzen Bildschirm, Aktualisierung einmal täglich, schnellere Gesten und ein Werkzeug öffnet sich auch bei schnellem Tipp",
+      "body": [
+        "<b>Ein Werkzeug öffnet sich auch, wenn du die Kachel gleich nach dem Start antippst.</b> Die App holt einen Teil der Werkzeuge erst nach dem Start nach, damit sie schnell hochfährt. Wer schneller war als sie, tippte ins Leere — nach außen passierte nichts und das Werkzeug wirkte kaputt. Jetzt wird so ein Tipp festgehalten und das Werkzeug öffnet sich von selbst, sobald es bereit ist.",
+        "<b>Die Leiste „Neue Version“ nervt nicht mehr bei jedem Start.</b> Sie erscheint höchstens einmal am Tag. Aktualisieren geht jederzeit von Hand: <b>Mehr → Aktualisierungshistorie</b>, oben ist eine grüne Taste <b>Aktualisieren</b> — und solange eine neue Version wartet, leuchtet bei dem Eintrag ein Abzeichen.",
+        "<b>Die Statusblase ist wieder eine schlanke Pille.</b> Sie war aufs Doppelte gewachsen, weil die Meldung auf zwei Zeilen umbrach. Jetzt wird der Text lieber mit drei Punkten gekürzt und die Zahlen — Genauigkeit und Azimut — bleiben an ihrem Platz.",
+        "<b>Jahrbuch und „Punkte übereinander“ öffneten sich STATT der Karte.</b> Im Split zwängte sich das Fenster als dritter Streifen zwischen Kamera und Karte und die Kamera lief darüber weiter. Beide Fenster laufen jetzt über den ganzen Bildschirm wie alle anderen.",
+        "<b>Gesten reagieren früher.</b> Nach der Aktivierungsgeste reicht für jeden Pfeil des Kürzels ein kürzerer Zug (34 px statt 54) und er muss nicht so genau waagerecht oder senkrecht sein. Das Werkzeug startet zudem sofort — bisher wurde zwei Zehntelsekunden gewartet, nur damit die Anzeige zu sehen war.",
+        "<b>In der Firma ist zu sehen, wenn die Personenliste nicht vom Server geladen wurde.</b> Früher erschien in so einem Fall still die alte Liste aus dem Telefonspeicher — es sah aus, als wären die Leute verschwunden. Jetzt steht oben, warum (kein Empfang / Telefon nicht angemeldet / abgelaufener Zugang) und was zu tun ist, plus die Taste <b>Liste vom Server laden</b>."
+      ]
+    },
+    {
+      "v": 265,
+      "datum": "2026-08-29",
+      "nadpis": "Jahrbuch, Trainer, Offline-Vektorkarte, Umschau und neue Erscheinungsbilder",
+      "body": [
+        "Neues <b>Jahrbuch</b> in den Werkzeugen: Jahr und Monat in Zahlen — wie viel du gegangen und gestiegen bist, wie viele Punkte du gemessen hast, wie viele Tage du im Gelände warst — und <b>eine Karte aller Punkte, die du im Jahr gemessen hast</b>, nach Monaten gefärbt. Unten stille Abzeichen für das, was gelungen ist. Alles bleibt im Telefon, nichts wird irgendwohin geschickt.",
+        "<b>Punkte übereinander</b>: wenn ihr zu zweit auf einem Auftrag arbeitet, erkennt die App neu, dass ihr beide denselben Punkt gemessen habt, und fragt nach. Bestätigst du, wird die zweite Bestimmung als <b>Kontrollmessung</b> verwendet — der Kollege hat dir den Punkt damit eigentlich geprüft. Eine Nachricht in den Firmenchat geht zudem ohne Empfang nicht mehr verloren: sie wird gespeichert und von selbst gesendet. Und die App sagt jetzt bei jeder Genauigkeit, <b>woher sie stammt</b> — ob sie jemand gemessen hat oder das Telefon sie sich nur denkt.",
+        "Unter all dem hat die App <b>aufgehört, bei großen Berechnungen einzufrieren</b> — Volumen und anderes schweres Rechnen laufen nebenbei, sodass man währenddessen weiter die Karte verschieben kann.",
+        "<b>Geländetrainer</b> — Abstecken zur Übung im Trockenen. Die App verteilt Punkte, du gehst sie abstecken und sie sagt, auf wie viele Zentimeter du warst. <b>Draußen</b> mit echtem GPS oder <b>zu Hause im Zimmer</b>: dort ist nur die Position erfunden, gegangen wird durch Halten einer Taste, und es geht dorthin, wohin das Telefon zeigt — Kompass und Kamera sind echt, geübt wird also genau das wie draußen. Auch eine simulierte GPS-Ungenauigkeit lässt sich einschalten, denn ein Punkt, der auf dem Display passt, muss noch nicht am Boden passen. Nichts aus dem Trainer wird in den Auftrag gespeichert und die erfundene Position gelangt nicht in Messungen.",
+        "<b>Vektorkarte offline</b> — ein gezeichneter Hintergrund, nicht als Bild geladen. Den Ausschnitt <b>packst du vom Büro aus</b> (GPS ist dafür nicht nötig) und hast ihn im Gelände ohne Empfang, scharf in jeder Vergrößerung. Eine Gemeinde mit Umgebung kommt auf ein paar MB statt Hunderte. Die Daten sind von OpenStreetMap — zur Orientierung, nicht zum Abmessen.",
+        "<b>Umschau</b> — ein Modus zum Umsehen, ohne Auftrag und ohne Messen. Sagt, auf welchem Flurstück du stehst (Nummer, Nutzungsart, Fläche), wie weit die Grenze ist, auf welcher Höhe du bist und wo die Sonne steht — und zeigt in der Kamera <b>Flurstücksbeschriftungen über ihrer Fläche</b>. Ist die Grenze näher als die GPS-Genauigkeit, gibt es ehrlich zu, nicht zu wissen, welches Flurstück es ist.",
+        "<b>Plakat des Tages</b> — der Tag als ein Bild zum Teilen: die gegangene Spur als Linie, Punkte als Punkte, Wetter und vier große Zahlen. Du findest es auch unten im Tagesjournal. Gegangene Kilometer und Höhenmeter stammen vom Handy-GPS, sind also orientierend.",
+        "Zwei neue Erscheinungsbilder in <b>Einstellungen → Aussehen → Farbton</b>. <b>Blaupause</b> zeichnet die ganze App und die Karte in die Form einer Vermessungszeichnung um — helle Zeichnung auf dunklem Blau, Dialoge auf Millimeterpapier. <b>Nacht</b> ist eine rote Palette ganz ohne Blau: im Dunkeln zerstört sie die Adaption des Auges nicht (die halbe Stunde, bis man wieder sieht) und das Display leuchtet weniger. Auch Karte, Marken und Kamerabild werden gedämpft.",
+        "Der Nachtmodus kann sich <b>nach der Dämmerung selbst einschalten</b> und morgens wieder zurücktreten — umgeschaltet wird gleich unter der Farbtonwahl. Die Zeiten rechnet die App offline aus deiner Position (bürgerliche Dämmerung), deine eigene Farbtonwahl überschreibt sie nicht: wählst du nachts einen anderen, schweigt die Automatik bis Mittag.",
+        "Neues Werkzeug <b>Nord nach der Sonne</b> (Werkzeuge → AR und Kalibrierung). Der Kompass im Telefon ist ein Magnetometer und zeigt bei Bewehrung, Schienen oder Autos locker zwanzig Grad daneben. Alle bisherigen Arten der Nordausrichtung brauchen einen bekannten Punkt in Sicht — mitten im Feld gibt es keinen. Diese braucht nur die sichtbare Sonne: du zielst auf sie (oder entlang des eigenen Schattens, in die Sonne musst du nicht schauen), hältst drei Sekunden und die App richtet Nord aus. Ehrlich: aus der Hand kommt es auf ±3–5°, es ist also eine Rettung dort, wo es nichts zum Orientieren gibt, kein Ersatz für die Orientierung auf einen Punkt.",
+        "Neues Werkzeug <b>Punkt aus zwei Fotos</b> (Werkzeuge → Messen). Bestimmt einen Punkt, zu dem man nicht hinkommt — Ecke hinter dem Zaun, Dach, Schornstein, anderes Flussufer. Anders als beim Vorwärtsschnitt musst du das Kreuz nicht ruhig halten: an jedem Standpunkt knipst du nur ein Foto und tippst das Ziel im eingefrorenen Bild an, mit dem Finger, in Ruhe, meinetwegen erst im Auto. Markierst du auf dem Foto auch einen bekannten Punkt, fällt der Kompassfehler aus dem Ergebnis heraus; ohne ihn markiert die App das Ergebnis als orientierend und sagt warum.",
+        "Neu <b>Schätz mal</b> (Werkzeuge → Hilfsmittel) — drei kurze Disziplinen, bei denen du erst schätzt und dann erst die Wahrheit aus den Sensoren erfährst: geh eine vorgegebene Strecke, dreh dich auf einen vorgegebenen Azimut, schätze die Entfernung zu einem Punkt. Während des Versuchs zeigt die App absichtlich nicht, was du schätzen sollst. Neben Punktestand und Serie ist es eine Arbeitsfertigkeit: wer weiß, wie dreißig Meter aussehen und wo Südwesten ist, erkennt einen dummen Fehler, bevor er ihn speichert. Lässt sich auch auf dem Spaziergang ohne Auftrag spielen."
+      ]
+    },
+    {
+      "v": 264,
+      "datum": "2026-08-29",
+      "nadpis": "Andere Sprachen, ein Postfach für Nachrichten, schnellerer Start und Punktprüfung",
+      "body": [
+        "Die App kann <b>Englisch, Deutsch und Polnisch</b>. Die Sprache wählt sich nach dem Telefon und wird ganz oben in <b>Einstellungen → Aussehen</b> umgeschaltet; auf dem Anmeldebildschirm gibt es dafür rechts oben einen Ring. Das Umschalten ist sofort, die App startet nicht neu. Die Fachbegriffe sind geodätisch übersetzt, nicht aus dem Wörterbuch.",
+        "Neu <b>Schreib mir</b> („Mehr“ oder Einstellungen → Wartung): schick dem Autor, was nicht funktioniert, was fehlt oder was du ändern würdest. <b>Du musst nicht angemeldet sein</b> und <b>es geht auch ohne Empfang</b> — die Nachricht wartet im Telefon und geht von selbst raus, sobald es Verbindung gibt.",
+        "<b>Nächster bekannter Punkt</b>: amtliche Punkte (trigonometrisch, Verdichtung, Nivellement) nach Entfernung sortiert, mit Richtung und Himmelsrichtung. Die Taste <b>Anker</b> füllt die Koordinaten direkt in den GPS-Versatz auf bekannten Punkt vor — vorher mussten sie von Hand abgeschrieben werden.",
+        "<b>Kontrollmessung</b>: du markierst einen Punkt zur Prüfung, nach 25 Minuten meldet sich die App und du lässt ihn ein zweites Mal bestimmen. Aus der Differenz beider Bestimmungen rechnet sie die <b>tatsächliche Genauigkeit</b> — anders als σ aus einer Aufstellung enthält sie schon den systematischen Fehler. Dann wählst du, ob Original behalten, mitteln oder überschreiben.",
+        "<b>Auftrag packen</b>: eine Taste lädt Punkte, Karte, Kataster, Orthofoto und Höhen <b>rund um die Mitte des Auftrags</b> — nicht um den Ort, an dem du gerade stehst. Endlich lässt sich die Ausfahrt vom Büro aus vorbereiten.",
+        "<b>Das Qualitätsprotokoll</b> hat eine neue Spalte <b>Kontrolle</b> mit der geprüften Genauigkeit des Punkts und einer Erklärung, wie man sie liest.",
+        "Kleinigkeiten: genauere Statusblase und Genauigkeitssilhouette, verbesserte Gesten als Werkzeugkürzel, Firmenchat, Aktualisierungshistorie und Wetter; die Garmin-Uhr liest QR besser.",
+        "Die App <b>öffnet sich schneller</b>. Neun Werkzeuge, die den ganzen Tag meist nicht einmal geöffnet werden, werden jetzt erst nach dem Rendern nachgeladen — das erste Bild erscheint etwa ein Drittel früher und bis die App bereit ist, vergeht eine halbe Sekunde weniger. Nichts fehlt: die Werkzeuge sind da, sie laden nur im Hintergrund.",
+        "<b>Punktprüfung</b> (neues Werkzeug in Aufzeichnen). Die Streuung einer Messung sagt, wie ruhig die Messung war — nicht, ob der Punkt richtig ist. Der GPS-Fehler im Telefon ist während einer Aufstellung ständig in dieselbe Richtung verschoben, also können zweihundert ruhige Ablesungen zweihundert Ablesungen daneben sein. Die einzige echte Kontrolle ist eine <b>zweite Bestimmung mit Abstand</b>. Die Punktkarte meldet jetzt direkt „Durch zweite Bestimmung geprüft · Δ 12 cm (Grenze 39 cm)“ oder „Einzelbestimmung — ungeprüft“ und das neue Werkzeug zeigt den ganzen Auftrag auf einmal.",
+        "<b>Absteckprotokoll</b> (neues Werkzeug in Abstecken). Hakst du einen Punkt ab, schreibt die App neu auch auf, <b>wo du wirklich gestanden hast</b> — und macht daraus eine Tabelle Projekt → Wirklichkeit mit ΔY, ΔX, Lageabweichung und Grenzabweichung nach Qualitätscode. Druckbar, als PDF speicherbar oder als CSV exportierbar. Zeilen, in denen das Telefon eine schlechtere Genauigkeit als die halbe Grenze hatte, werden als <b>nicht aussagekräftig</b> markiert — ein Urteil, auf das man sich nicht verlassen kann, ist schlimmer als keins.",
+        "In den <b>Werkzeugen</b> ist jetzt zu erkennen, welches Werkzeug an die Auftragspunkte geht: solche Kacheln haben an der Unterkante einen Streifen. Die anderen zeigen nur.",
+        "<b>Das Fehlerprotokoll</b> lässt sich mit einem Tipp samt Umständen senden (App-Version, Telefontyp, Netz- und GPS-Zustand, ungeladene Module). Koordinaten, Auftrags- und Punktnamen werden nicht gesendet."
+      ]
+    },
+    {
+      "v": 263,
+      "datum": "2026-08-29",
+      "nadpis": "Korrektur: die Anmeldung blieb bei „zu viele Versuche“ hängen",
+      "body": [
+        "Behoben: die App konnte auch das <b>richtige Passwort</b> mit einer Meldung über viele Versuche ablehnen, und zwar sofort — ohne den Server überhaupt zu fragen. Es waren zwei Fehler, die sich gegenseitig fütterten.",
+        "Erstens: das Telefon zählte <b>wirklich jede</b> Serverantwort als falsches Passwort. Auch die, die „zu viele Versuche, warte“ sagt. Eine Sperre auf dem Server fügte so auch im Telefon Fehler hinzu und die Sperren summierten sich.",
+        "Zweitens: der Fehlerzähler im Telefon <b>sank nie</b> und nur eine erfolgreiche Anmeldung löschte ihn. Wer über neun Fehler kam, bekam von da an nach jedem weiteren Fehlschlag eine Viertelstunde Sperre — und konnte nicht zum Erfolg kommen, weil die App auch das richtige Passwort ablehnte. Es war eine Falle ohne Ausgang.",
+        "Neu wird der Zähler <b>nach 30 Minuten Ruhe vergessen</b> und als Versuch, das Passwort zu erraten, zählt nur ein wirklich abgelehntes Passwort. Der Schutz gegen PIN-Raten bleibt unverändert: fünf Versuche frei, dann verdoppelt sich das Warten bis auf 15 Minuten.",
+        "Wer in der Falle steckte, meldet sich nach der Aktualisierung direkt an — der festgefahrene Zähler wird von selbst verworfen."
+      ]
+    },
+    {
+      "v": 262,
+      "datum": "2026-08-29",
+      "nadpis": "GPS-Genauigkeitssilhouette, Qualitätsprotokoll und schnellerer Start",
+      "body": [
+        "Neue <b>Genauigkeitssilhouette</b> links oben: eine Figur auf dem Boden und darum ein Kreis, wie groß die Lageunsicherheit gerade ist. Ein Kreis dicht an den Füßen heißt gut, ein Kreis über die ganze Karte „du bist irgendwo hier“. Die gepunktete Marke ist fest und entspricht 5 m, also liest man es ohne Rechnen: <b>innerhalb der Punkte = messen, außerhalb = warten</b>. Schwellen und Farben sind dieselben wie bei der Statusblase. Abschalten in Einstellungen → Aussehen.",
+        "Neues Werkzeug <b>Qualitätsprotokoll</b>: bei jedem Punkt ist zu sehen, womit er gemessen wurde, wie groß der Standardfehler ist, <b>die Streuung der Ablesungen σ</b> und <b>wie viele Epochen</b> verwendet wurden. Die App hat das schon früher gerechnet, aber am Punkt kam nur eine Zahl davon an — jetzt ist es belegbar und lässt sich als Protokoll (.txt) oder Tabelle (.csv) fürs Büro exportieren. Von Hand eingegebene Punkte haben keine Streuung und einen Strich.",
+        "<b>Die App startet schneller</b>: zwanzig Werkzeuge und Exporte, die erst auf Anforderung geöffnet werden (Vorschriften, Newsletter, Sicherungen, Kalibrierung, DXF/KML/CSV-Exporte), laden erst nach dem Rendern. Vor dem ersten Bild werden so 277 kB und 20 Dateien weniger verarbeitet. Nichts ist verschwunden — die erste Berührung der Leiste oder der Werkzeuge holt den Rest auf einmal nach.",
+        "Behoben: <b>volle grüne Tasten</b> hatten im dunklen Modus weißen Text mit nur 3,35 : 1 Kontrast — in direkter Sonne unlesbar. Neu 4,82 : 1, und ebenso wurden neun weitere Stellen angeglichen (aktive Reiter, Segmente, Leiste der neuen Version).",
+        "Behoben: die Taste <b>„Einklappen“</b> erschien bei manchen Fenstern gar nicht — das Einfügen scheiterte, wenn die Fensterüberschrift eine eigene Hülle hatte.",
+        "Innen: <b>Fehler, die die App absichtlich übergeht</b>, damit sie im Gelände nicht abstürzt, werden neu ins Fehlerprotokoll geschrieben (über 1 500 Stellen). Vorher verschwanden sie spurlos und eine Reklamation aus dem Gelände hatte nichts, woran sie sich festhalten konnte. Dazu kam eine CI-Kontrolle, die Farben und Kontrast überwacht, sodass die zwei früheren Fehler im hellen Modus nicht still zurückkommen können."
+      ]
+    },
+    {
+      "v": 260,
+      "datum": "2026-08-29",
+      "nadpis": "Entfernung zum Punkt auf der Teilerkante und Aktualisierungshistorie",
+      "body": [
+        "Beim Navigieren auf einen Punkt ist die <b>Entfernung auf die Teilerkante</b> zwischen Kamera und Karte gezogen: der Streifen füllt sich, je näher du kommst, und die Farbe sagt, wie weit du bist (weiß → sandfarben unter 25 m → bernstein unter 2 m → grün am Punkt). Im Split nimmt sie damit weder Kamera noch Karte Platz weg; in AR über den ganzen Bildschirm sitzt sie an der Unterkante.",
+        "Behoben: in greller Sonne war die Entfernung praktisch unsichtbar — dunkler Text auf fast schwarzer Platte.",
+        "Behoben: der Schieber <b>Pfeiltransparenz</b> machte auch das Etikett mit den Angaben durchsichtig. Jetzt betrifft er nur den Pfeil.",
+        "Neues Fenster <b>Aktualisierungshistorie</b> (Mehr oder Einstellungen → Wartung) — was wann in die App kam, seit der ersten Version."
+      ]
+    },
+    {
+      "v": 259,
+      "datum": "2026-08-29",
+      "nadpis": "Firmenwechsel, AR-Navigation und heller Modus",
+      "body": [
+        "Der Firmenwechsel lässt in der Verwaltung nicht mehr die vorherige Firma hängen — nach dem Wechsel schließt sich das Panel und öffnet sich neu mit der neuen (vorher sah es aus, als würde der Wechsel nicht funktionieren).",
+        "Neue Kachel <b>Auftrag wechseln</b> in den Werkzeugen (Hilfsmittel) — Auftragswechsel mit einem Tipp, ohne die angefangene Arbeit zu verlassen.",
+        "AR-Navigation: Pfeil und Entfernung erscheinen auch, wenn der navigierte Punkt durch Filter, Suche oder das Merkmal „ausblenden“ versteckt ist. Vorher lief die Navigation dann nur in der Karte.",
+        "Heller Modus: 38 Stellen behoben, wo Text unlesbar war — Tasten, Warnungen, das Panel „Karte und Ebenen“ in der Sonne, die Fenster Vorschriften, Koordinatenliste und Newsletter.",
+        "Die Leiste „Neue Version“ hat ein Aufklappmenü <b>Was ist neu</b> bekommen (dieses Fenster)."
+      ]
+    },
+    {
+      "v": 258,
+      "datum": "2026-08-29",
+      "nadpis": "Gesten als Werkzeugkürzel",
+      "body": [
+        "Mit einer Geste auf dem Display öffnest du das gewählte Werkzeug — einstellbar in den Einstellungen."
+      ]
+    },
+    {
+      "v": 257,
+      "datum": "2026-08-29",
+      "nadpis": "Einklappen, Skizzen, eine Sicherung, genaueres Wetter",
+      "body": [
+        "Einklappen geht jetzt bei allen Werkzeugen, nicht nur bei manchen.",
+        "Mehr Möglichkeiten in der Skizze.",
+        "Sicherungen zu einer zusammengeführt.",
+        "Das Wetter wird nach echten Beobachtungen von Stationen abgeglichen."
+      ]
+    },
+    {
+      "v": 255,
+      "datum": "2026-08-09",
+      "nadpis": "Korrektur des Lesens von QR-Codes",
+      "body": [
+        "Version 254 hat das Lesen aller QR-Codes kaputtgemacht — behoben."
+      ]
+    },
+    {
+      "v": 254,
+      "datum": "2026-08-09",
+      "nadpis": "Vier Korrekturen aus Rückmeldungen aus dem Gelände",
+      "body": [
+        "Kleinigkeiten, die bei der Arbeit draußen gemeldet wurden."
+      ]
+    },
+    {
+      "v": 252,
+      "datum": "2026-08-09",
+      "nadpis": "Garmin-Uhr",
+      "body": [
+        "In die Uhr gehen auch online geladene ČÚZK-Punkte, nicht nur eigene.",
+        "Die Karte in der Uhr reicht weiter und zeigt, wie viele Punkte ausgewählt sind.",
+        "Von der Uhr gemessene Punkte werden in der Karte rosa gezeichnet und haben einen eigenen Schalter in der Liste."
+      ]
+    },
+    {
+      "v": 251,
+      "datum": "2026-08-09",
+      "nadpis": "Karte und Punkte in die Uhr mit einer Taste",
+      "body": [
+        "Die Karte in der Uhr reicht weiter und zeigt, wie viele Punkte ausgewählt sind.",
+        "Eine Taste schickt Karte und ausgewählte Punkte auf einmal in die Uhr.",
+        "Die Uhr lädt die Karte von überall — das Handy erzeugt die Kacheln dafür selbst."
+      ]
+    },
+    {
+      "v": 245,
+      "datum": "2026-08-09",
+      "nadpis": "Garmin-Uhr",
+      "body": [
+        "App für Garmin Forerunner: Kopplung, Punktübertragung und Messen direkt von der Uhr.",
+        "Den Kopplungscode zeigt die Uhr, eingetippt wird er im Handy."
+      ]
+    },
+    {
+      "v": 244,
+      "datum": "2026-08-09",
+      "nadpis": "Zusammenführung aller angefangenen Zweige",
+      "body": [
+        "Alles Angefangene in eine Version zusammengegossen."
+      ]
+    },
+    {
+      "v": 243,
+      "datum": "2026-08-09",
+      "nadpis": "Koordinatenliste fürs Büro",
+      "body": [
+        "Konfigurierbarer Textexport der Koordinaten mit Voreinstellungen und Vorschau — ein einziges „Groma/Kokeš-Format“ gibt es nämlich nicht."
+      ]
+    },
+    {
+      "v": 242,
+      "datum": "2026-08-09",
+      "nadpis": "Verständlichere Werkzeugnamen",
+      "body": [
+        "Vereinheitlichte Werkzeugpaare, die fast dasselbe taten.",
+        "Die abgesteckte Gerade in der Kamera in die Werkzeuge eingebunden."
+      ]
+    },
+    {
+      "v": 241,
+      "datum": "2026-08-09",
+      "nadpis": "Blickwinkel der Kamera aus der Brennweite",
+      "body": [
+        "Der Blickwinkel lässt sich auch aus der Brennweite des Objektivs eingeben, nicht nur messen."
+      ]
+    },
+    {
+      "v": 240,
+      "datum": "2026-08-09",
+      "nadpis": "Aufräumen der Werkzeuge nach einem echten Durchgang",
+      "body": [
+        "Sechs wenig genutzte Werkzeuge beiseitegerückt und ein Teil umbenannt."
+      ]
+    },
+    {
+      "v": 239,
+      "datum": "2026-08-09",
+      "nadpis": "Das Werkzeugrad ist eine Blume",
+      "body": [
+        "Die Blätter reichen bis zu den Displayrändern, größere Schrift und zentrierte Beschriftungen."
+      ]
+    },
+    {
+      "v": 238,
+      "datum": "2026-08-09",
+      "nadpis": "Meine Aktivität und Massen-Aufräumen der Werkzeuge",
+      "body": [
+        "Die App misst, welche Werkzeuge du wirklich benutzt, und ordnet sie danach."
+      ]
+    },
+    {
+      "v": 237,
+      "datum": "2026-08-09",
+      "nadpis": "Außenmodus und Handschuhe",
+      "body": [
+        "Der Außenmodus lässt auch die Karte hell (vorher wurde sie dunkel und war in der Sonne nicht zu sehen).",
+        "Schieberegler für die Bedienung mit Handschuhen.",
+        "Schnellerer Start."
+      ]
+    },
+    {
+      "v": 236,
+      "datum": "2026-08-09",
+      "nadpis": "Wetter an ČHMÚ-Stationen gekoppelt",
+      "body": [
+        "Die Vorhersage wird nach echten Messungen von fünf ČHMÚ-Stationen abgeglichen.",
+        "Die Abweichung wird getrennt für Morgen, Tag und Abend gerechnet."
+      ]
+    },
+    {
+      "v": 235,
+      "datum": "2026-08-09",
+      "nadpis": "Rad und Mängel",
+      "body": [
+        "Das Kreuz in der Radmitte springt nicht mehr zwischen den Ringen und ist am Rand empfindlicher.",
+        "Mängel haben einen vollen Hintergrund — auch über der Kamera lesbar."
+      ]
+    },
+    {
+      "v": 234,
+      "datum": "2026-08-09",
+      "nadpis": "Einstellungen per Wischen, Kompass und Wetter",
+      "body": [
+        "Die Einstellungen schließen sich mit einem Wischen über das Display.",
+        "Korrigierte Suche in den Einstellungen.",
+        "Kompass als eigenes Werkzeug und Wetter ohne Textwand."
+      ]
+    },
+    {
+      "v": 233,
+      "datum": "2026-08-09",
+      "nadpis": "Die Lichtkante des Teilers",
+      "body": [
+        "Der Teiler zwischen Kamera und Karte ist zu einer Lichtlinie geschrumpft — Kamera und Karte bekamen 8 px Bild zurück.",
+        "Werkzeuge einen Platz tiefer in der Leiste, damit man sie mit dem Daumen erreicht."
+      ]
+    },
+    {
+      "v": 232,
+      "datum": "2026-08-09",
+      "nadpis": "Leistung und Widerstandsfähigkeit",
+      "body": [
+        "Im Leerlauf las die App 190× pro Sekunde den Speicher — jetzt ein Bruchteil davon.",
+        "Kritische Stellen verstärkt, damit ein Fehler nicht den ganzen Bildschirm mitreißt."
+      ]
+    },
+    {
+      "v": 231,
+      "datum": "2026-08-09",
+      "nadpis": "Werkzeugrad",
+      "body": [
+        "Werkzeuge werden mit einem Fingerzug aus der Leiste gewählt, ohne ein Fenster zu öffnen.",
+        "Modus linke Hand behoben — die Fenster waren ganz außerhalb des Bildschirms."
+      ]
+    },
+    {
+      "v": 230,
+      "datum": "2026-08-08",
+      "nadpis": "Seitliches Register in den Einstellungen",
+      "body": [
+        "Die Einstellungen haben ein seitliches Register bekommen.",
+        "In der Leiste ist statt „Mehr“ direkt die Kartenbedienung — die wird im Gelände ständig gebraucht."
+      ]
+    },
+    {
+      "v": 228,
+      "datum": "2026-08-08",
+      "nadpis": "Teiler im Split",
+      "body": [
+        "Das Verhältnis Kamera/Karte wird mit dem Finger gezogen, mit Rasten bei 25 / 50 / 75 %.",
+        "Drei aus dem Gelände gemeldete Korrekturen."
+      ]
+    },
+    {
+      "v": 226,
+      "datum": "2026-08-08",
+      "nadpis": "Akkusparen in AR",
+      "body": [
+        "Die Kamera läuft mit 720p und höchstens 30 Bildern pro Sekunde — auf dem Display nicht zu unterscheiden, der Akku hält deutlich länger.",
+        "Die App startet im Modus Karte."
+      ]
+    },
+    {
+      "v": 225,
+      "datum": "2026-08-08",
+      "nadpis": "Regenwarnung",
+      "body": [
+        "Regenwarnung auch aus der kurzfristigen Radarvorhersage."
+      ]
+    },
+    {
+      "v": 224,
+      "datum": "2026-08-08",
+      "nadpis": "Wetter aus tschechischen Modellen",
+      "body": [
+        "Die Modelle ČHMÚ ALADIN und AROME und weitere Ensembles kamen dazu — für Tschechien deutlich genauer."
+      ]
+    },
+    {
+      "v": 223,
+      "datum": "2026-08-08",
+      "nadpis": "Assistent für das eigene Profil",
+      "body": [
+        "Aufgeräumte Elemente in den Einstellungen und ein Assistent, der dir aus ein paar Fragen das Profil zusammenstellt."
+      ]
+    },
+    {
+      "v": 222,
+      "datum": "2026-08-08",
+      "nadpis": "Eine Statusleiste statt zwei",
+      "body": [
+        "Der Hauptbildschirm hat eine Statusleiste — mehr Platz fürs Bild."
+      ]
+    },
+    {
+      "v": 221,
+      "datum": "2026-08-08",
+      "nadpis": "Einstellungen auf einer Reiterzeile",
+      "body": [
+        "Einzeilige Reiter und ein eigener Reiter Profile."
+      ]
+    },
+    {
+      "v": 220,
+      "datum": "2026-08-08",
+      "nadpis": "Werkzeuge als eine einzige Ansicht",
+      "body": [
+        "Vier verschiedene Arten, die Werkzeuge anzuordnen, ersetzte eine Liste mit einklappbaren Gruppen."
+      ]
+    },
+    {
+      "v": 218,
+      "datum": "2026-08-08",
+      "nadpis": "Startbildschirm und Position aus der Karte",
+      "body": [
+        "Neuer Startbildschirm und eine Leiste, die auf eine neue Version hinweist.",
+        "<b>Position aus Karte</b>: unter Bäumen und zwischen Häusern liest du die Position durch Tippen ins Orthofoto ab, wenn das GPS schlechter ist als das, was du selbst siehst."
+      ]
+    },
+    {
+      "v": 217,
+      "datum": "2026-08-08",
+      "nadpis": "Sechs Fehler durch Ausführen der App gefunden",
+      "body": [
+        "Ein Audit durch tatsächliches Ausführen im Browser fand sechs Fehler, die statische Prüfungen nicht erwischten."
+      ]
+    },
+    {
+      "v": 209,
+      "datum": "2026-08-08",
+      "nadpis": "Fünf neue Werkzeuge",
+      "body": [
+        "<b>Geo-Foto</b> — Foto mit Position und Azimut.",
+        "<b>Funkgerät</b> und Meldung „Man Down“.",
+        "<b>Sprachkodierung</b> der Punkte.",
+        "<b>Navigation im Gebäude</b>, wo das GPS endet.",
+        "<b>Aushubumrundung</b>."
+      ]
+    },
+    {
+      "v": 208,
+      "datum": "2026-08-07",
+      "nadpis": "Konten, Face ID und Morgenbriefing",
+      "body": [
+        "Gemerkte Anmeldung und Face ID.",
+        "Firmenaufträge mit Berechtigungen.",
+        "<b>Heute im Gelände</b> — eine Karte mit Wetter, GNSS-Fenstern und überfälligen Punkten."
+      ]
+    },
+    {
+      "v": 207,
+      "datum": "2026-07-27",
+      "nadpis": "Benachrichtigungszentrale und Suche",
+      "body": [
+        "Werkzeuge lassen sich als Liste der Tätigkeiten („was ich tun will“) durchsehen, nicht nur als Kachelraster.",
+        "Suche direkt in den Einstellungen."
+      ]
+    },
+    {
+      "v": 170,
+      "datum": "2026-07-18",
+      "nadpis": "Brutale Genauigkeitsverbesserung",
+      "body": [
+        "<b>Verankern von AR am Standpunkt</b> (Rückwärtsschnitt) — Schluss mit meterweise tanzenden Marken.",
+        "<b>Helmert-Transformation</b> in ein lokales System.",
+        "<b>Foto-Totalstation</b>, Versorgungsnetze, Messjournal und Auftragsübertragung.",
+        "<b>Polarpunkt</b> (Polarmethode) und Assistent Freie Stationierung."
+      ]
+    },
+    {
+      "v": 164,
+      "datum": "2026-07-12",
+      "nadpis": "Ansichtsrad und Edge-to-Edge",
+      "body": [
+        "Umschalten AR / Split / Karte mit einem Ring in der Ecke.",
+        "Der Inhalt reicht bis zu den Displayrändern, oben und unten."
+      ]
+    },
+    {
+      "v": 152,
+      "datum": "2026-07-12",
+      "nadpis": "Epochen und Objekthöhe",
+      "body": [
+        "<b>Epochen / Verschiebungsmonitoring</b> — Nachmessen von Punkten über die Zeit und Überwachen von Terminen.",
+        "<b>Objekthöhe</b> aus der Kamera."
+      ]
+    },
+    {
+      "v": 123,
+      "datum": "2026-06-20",
+      "nadpis": "Redesign und QC-Inspektor",
+      "body": [
+        "Neues Aussehen: senkrechte Leiste, Kacheln in den Einstellungen, Fenster über den ganzen Bildschirm.",
+        "<b>QC-Inspektor</b> — Qualitätscode aus der erreichten Genauigkeit und ein Tor, das keinen Punkt speichern lässt, der schlechter ist als das Ziel des Auftrags."
+      ]
+    },
+    {
+      "v": 64,
+      "datum": "2026-06-14",
+      "nadpis": "Skizze, Tachymetrie und QR",
+      "body": [
+        "<b>Skizze / Tachymetrie</b>: Punkte in lokaler Projektion, Verbindungen, Maßstab, PNG-Export.",
+        "Punkte teilen per <b>QR-Code</b> ohne Server.",
+        "Rückgängig auch für das Löschen von Punkten und Aufträgen."
+      ]
+    },
+    {
+      "v": 1,
+      "datum": "2026-06-13",
+      "nadpis": "Erste Version",
+      "body": [
+        "Punkte in der Kamera, Karte mit Orthofoto und Kataster, Laden von Punkten vom ČÚZK, Messen von Entfernungen."
+      ]
+    }
+  ]
+}

@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v360';   // uklid 18. 9.: trasa k dalekemu bodu (20 km), podklad Mapa/Ortofoto/Katastr, Nastroje 17 stranou + rozcestniky, Nastaveni → Aplikace
+const SHELL_CACHE = 'argeodet-shell-v361';   // preklady 18. 9. vecer: soupis zmen + Historie v 5 jazycich (co-je-noveho-xx.json), zpravodaj po jazyce, DICT_CACHE klic bez ?t=
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=360',
-    './css/style.css?v=360',
-    './css/vylepseni.css?v=360',
+    './css/tokens.css?v=361',
+    './css/style.css?v=361',
+    './css/vylepseni.css?v=361',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -346,7 +346,7 @@ function isDict(url) { return isLangData(url) || url.includes('/data/egm2008') |
 // cache-first by tedy cizojazyčnou appku navždy držel na prvním staženém slovníku. Proto
 // stale-while-revalidate: odpoví se z cache hned (offline funguje), na pozadí se stáhne čerstvá
 // kopie do DICT_CACHE (GitHub Pages vrací 304, když se soubor nezměnil). Projeví se od dalšího startu.
-function isLangData(url) { return /\/data\/(jazyky|navody|predpisy|ulohy)-[a-z]{2}\.json/.test(url); }
+function isLangData(url) { return /\/data\/(jazyky|navody|predpisy|ulohy|co-je-noveho|zpravodaj)-[a-z]{2}\.json/.test(url); }
 
 // Knihovny z CDN. Zamerne se matchuje CELA DOMENA, ne jen *.js: z jsdelivr se
 // tahaji i pisma pro jspdf a wasm/jazykova data pro tesseract — kdyby spadly do
@@ -543,12 +543,16 @@ self.addEventListener('fetch', event => {
             return;
         }
         if (isLangData(url)) {
+            // Klic BEZ query: soupis zmen (js/co-je-noveho.js) si pridava razitko ?t=,
+            // aby sel vzdy cerstvy — s razitkem v klici by se cache plnila kopiemi
+            // a offline by nikdy nic nenasel.
+            const key = url.split('?')[0];
             event.respondWith(
-                caches.match(event.request).then(cached => {
+                caches.match(key).then(cached => {
                     const network = fetch(event.request).then(response => {
                         if (response && response.ok) {
                             const clone = response.clone();
-                            caches.open(DICT_CACHE).then(cache => cache.put(event.request, clone));
+                            caches.open(DICT_CACHE).then(cache => cache.put(key, clone));
                         }
                         return response;
                     }).catch(() => cached);

@@ -56,7 +56,7 @@
             var p = String(iso).split('-');
             var d = new Date(+p[0], +p[1] - 1, +p[2]);
             if (isNaN(d.getTime())) return String(iso);
-            return d.toLocaleDateString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'numeric', year: 'numeric' });
+            return d.toLocaleDateString((window.AGJazyk && AGJazyk.locale) ? AGJazyk.locale() : 'cs-CZ', { weekday: 'short', day: 'numeric', month: 'numeric', year: 'numeric' });
         } catch (e) { return String(iso); }
     }
     // "2026-06-13" -> "13. 6." (krátké, na kartu)
@@ -67,8 +67,14 @@
         return (+p[2]) + '. ' + (+p[1]) + '.';
     }
 
+    // Vydání se ukládá po jazyce (agZprData / agZprData.en …): po přepnutí jazyka
+    // by se jinak offline ukázalo vydání v tom předchozím.
+    function kData() {
+        var l = (window.AGJazyk && AGJazyk.get) ? AGJazyk.get() : 'cs';
+        return l === 'cs' ? K_DATA : K_DATA + '.' + l;
+    }
     function getCached() {
-        var raw = lsGet(K_DATA);
+        var raw = lsGet(kData());
         if (!raw) return null;
         try { return JSON.parse(raw); } catch (e) { return null; }
     }
@@ -103,12 +109,15 @@
         var online = (typeof navigator === 'undefined') || navigator.onLine !== false;
         if (!online) { updateDot(); return; }
 
-        fetch(DATA_URL, { cache: 'no-cache' })
+        // Po jazyce (data/zpravodaj-en.json…) — vzniká jen když má build-zpravodaj.mjs
+        // klíč k modelu; jinak AGJazyk.fetchData vrátí české vydání.
+        var fx = (window.AGJazyk && AGJazyk.fetchData) ? AGJazyk.fetchData : fetch;
+        fx(DATA_URL, { cache: 'no-cache' })
             .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
             .then(function (j) {
                 if (!j || !Array.isArray(j.polozky)) throw new Error('bad json');
                 _edition = j; _offline = false;
-                lsSet(K_DATA, JSON.stringify(j));
+                lsSet(kData(), JSON.stringify(j));
                 updateDot();
                 // pokud je čtečka zrovna otevřená, překresli
                 if (_ov && _ov.classList.contains('open')) render();
@@ -191,7 +200,7 @@
         }
 
         var ed = _edition;
-        if (sub) sub.innerHTML = 'Vydání ' + esc(fmtEdition(ed.vydani)) +
+        if (sub) sub.innerHTML = esc((window.AGJazyk && AGJazyk.t) ? AGJazyk.t('Vydání') : 'Vydání') + ' ' + esc(fmtEdition(ed.vydani)) +
             (_offline ? ' <span class="zpr-badge zpr-badge-off">offline</span>' : ' <span class="zpr-badge zpr-badge-on">online</span>');
 
         var intro = ed.uvodnik ? ('<p class="zpr-intro">' + esc(ed.uvodnik) + '</p>') : '';
@@ -229,6 +238,15 @@
     function closeReader() { if (_ov) _ov.classList.remove('open'); }
 
     window.openZpravodaj = openReader; // veřejné API (volitelné napojení odjinud)
+
+    // Přepnutí jazyka: vydání z cache toho jazyka a nové stažení; otevřená čtečka se překreslí.
+    try {
+        window.addEventListener('ag:jazyk', function () {
+            _edition = getCached(); _offline = !!_edition;
+            loadEdition();
+            if (_ov && _ov.classList.contains('open')) render();
+        });
+    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zpravodaj:jazyk'); }
 
     // --------------------------------------------------------------------------------
     // Položka v bočním menu (+ tečka)

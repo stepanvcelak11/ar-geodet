@@ -2,6 +2,17 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 361,
+   "datum": "2026-09-18",
+   "nadpis": "Všechno přeloženo: soupis změn a Historie aktualizací v pěti jazycích, Zpravodaj po jazyce",
+   "body": [
+    "<b>Co je nového a Historie aktualizací</b> jsou v angličtině, němčině, polštině, španělštině a italštině — všech 118 vydání od první verze (data/co-je-noveho-xx.json, 559 textů). Dny v Historii jsou slovy podle jazyka (Venerdì 18 settembre 2026), počty dnů a změn i čísla vydání přes vzory.",
+    "<b>Geo zpravodaj</b> čte vydání po jazyce (data/zpravodaj-xx.json): rubriky, úvodník, „Číst originál u zdroje“ a patička jsou ve slovníku, dnešní vydání je přeložené ručně. Denní sestavení (scripts/build-zpravodaj.mjs) umí vydání přeložit samo, když má repozitář klíč ANTHROPIC_API_KEY — bez klíče zůstávají články v původním znění a zastaralé překlady se smažou, ať cizojazyčná appka neukazuje včerejší zprávy.",
+    "Cizojazyčná appka si soupis změn i zpravodaj drží v telefonu (DICT_CACHE, obnovování na pozadí; razítko ?t= už neplní cache kopiemi) a po přepnutí jazyka je stáhne znovu.",
+    "Test test_jazyky_data rozšířen na 113 kontrol (soupis změn: stejná struktura, HTML a v/datum ve všech jazycích; zpravodaj; Historie a Zpravodaj v prohlížeči italsky bez české věty)."
+   ]
+  },
+  {
    "v": 360,
    "datum": "2026-09-18",
    "nadpis": "Navigace i k dalekému bodu, podklad Mapa · Ortofoto · Katastr, Nástroje prošlé a uklizené, Nastavení → Aplikace",

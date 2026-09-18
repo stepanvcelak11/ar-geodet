@@ -606,6 +606,8 @@
         get: function () { return _lang; },
         dataUrl: dataUrl,
         fetchData: fetchData,
+        // locale pro Date.toLocaleDateString podle jazyka appky (dny a měsíce slovy)
+        locale: function () { return { cs: 'cs-CZ', en: 'en-GB', de: 'de-DE', pl: 'pl-PL', es: 'es-ES', it: 'it-IT' }[_lang] || 'cs-CZ'; },
         set: set,
         list: function () { return _langs.slice(); },
         // překlad jednoho českého řetězce (pro moduly, které si text staví samy)

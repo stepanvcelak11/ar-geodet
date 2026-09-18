@@ -1,0 +1,102 @@
+{
+  "vydani": "2026-09-18",
+  "uvodnik": "Issue of 18 September 2026 — 8 surveying news items (foreign sources in the original language).",
+  "polozky": [
+    {
+      "rubrika": "Z domova",
+      "top": true,
+      "nadpis": "WSGP — end of operation of version 2.10 services",
+      "perex": "Users of the web services for authors and verifiers of survey sketches (WSGP): on 16 October 2026 the version 2.10 web services will be shut down.",
+      "telo": "Dear users of the web services for authors and verifiers of survey sketches (WSGP), please note that on 16 October 2026 the operation of the version 2.10 web services for authors and verifiers of survey sketches will end. From that date only version 3.1 of the web service for authors and verifiers of survey sketches will be in operation. We apologise for any complications this causes and thank you for your understanding.",
+      "body": [],
+      "proc": "",
+      "zdroj": "ČÚZK",
+      "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
+      "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Golden Software Enhances Usability for Faster, More Efficient 3D Visualization in Surfer Surface Mapping Software",
+      "perex": "Golden, Colorado, 16 September 2026 – Golden Software has focused on enhanced usability in the latest version of its Surfer mapping and 3D visualization software package released today.",
+      "telo": "Golden, Colorado, 16 September 2026 – Golden Software has focused on enhanced usability in the latest version of its Surfer mapping and 3D visualization software package released today. New and long-time Surfer users will find it is faster and easier to make high-quality subsurface maps that accurately visualize their 3D data sets. Slice your models along any vector path, generate crisp 2D contour and image profiles in seconds, and export report-ready images or grids with a single click. “We made Surfer easier to use by streamlining the map creation workflow,” said Kari Dickenson, Surfer Product Manager. “Starting with the redesigned ribbon tab on the homepage, the new version of Surfer chan",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/16/golden-software-enhances-usability-for-faster-more-efficient-3d-visualization-in-surfer-surface-mapping-software/?utm_source=rss&utm_medium=rss&utm_campaign=golden-software-enhances-usability-for-faster-more-efficient-3d-visualization-in-surfer-surface-mapping-software",
+      "datum": "2026-09-16"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Merrick & Company and Teledyne Optech Strengthen Strategic Partnership to Advance Geospatial Innovation",
+      "perex": "Colorado – September 15, 2026 – Merrick & Company is strengthening its longstanding strategic partnership with Teledyne Optech (Teledyne), reinforcing a decade-long collaboration focused on advancing…",
+      "telo": "Colorado – September 15, 2026 – Merrick & Company is strengthening its longstanding strategic partnership with Teledyne Optech (Teledyne), reinforcing a decade-long collaboration focused on advancing geospatial technology, improving data collection capabilities, and delivering greater value to clients. Merrick’s latest investment in Teledyne’s next-generation airborne mapping technology represents another milestone in a relationship built on innovation, trust, and a shared commitment to continuous improvement. As part of the continued partnership, Merrick recently integrated Teledyne’s dual Galaxy Edge+ G2 lidar sensor suite and upgraded aerial imaging capabilities into its geospatial operat",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/16/merrick-company-and-teledyne-optech-strengthen-strategic-partnership-to-advance-geospatial-innovation/?utm_source=rss&utm_medium=rss&utm_campaign=merrick-company-and-teledyne-optech-strengthen-strategic-partnership-to-advance-geospatial-innovation",
+      "datum": "2026-09-16"
+    },
+    {
+      "rubrika": "Přístroje",
+      "top": false,
+      "nadpis": "Trimble Unveils ST30 Smart Target for Optical Surveying",
+      "perex": "New surveying system represents leap forward in field technology to maximize daily output and solve common challenges with confidence Munich and Westminster, Colo., Sept. 15, 2026 — Trimble today anno…",
+      "telo": "New surveying system represents leap forward in field technology to maximize daily output and solve common challenges with confidence Munich and Westminster, Colo., Sept. 15, 2026 — Trimble today announced the launch of the Trimble ® ST30 smart target, a new-generation surveying system. This system breaks new ground by integrating optical and subscription-based GNSS functionality into a single smart target solution. Setting a new standard for traceability, redundancy, versatility and safety, the ST30 introduces key innovations, including tilt compensation and automatic rod height measurements. It is the first smart target on the market to offer fully integrated, high-accuracy GNSS functional",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/15/trimble-unveils-st30-smart-target-for-optical-surveying/?utm_source=rss&utm_medium=rss&utm_campaign=trimble-unveils-st30-smart-target-for-optical-surveying",
+      "datum": "2026-09-15"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "Vexcel Imaging Launches UltraCam Condor 5.0",
+      "perex": "Graz, Austria • September 15, 2026 — Live from Intergeo 2026 in Munich, Vexcel Imaging today announced the UltraCam Condor 5.0 , a new aerial mapping system designed for wide-area and nationwide geosp…",
+      "telo": "Graz, Austria • September 15, 2026 — Live from Intergeo 2026 in Munich, Vexcel Imaging today announced the UltraCam Condor 5.0 , a new aerial mapping system designed for wide-area and nationwide geospatial data collection. With up to 83,000 pixels across the flight strip, the Condor 5.0 captures more ground in a single pass than any aerial mapping system to date. Combined with a new reconstruction approach in UltraMap designed for challenging image geometries, it delivers reliable photogrammetric-grade DSM, DTM, and orthophoto products across the largest aerial footprint ever deployed for mapping. The UltraCam Condor 5.0 will be available in multiple models with cross-track image widths rang",
+      "body": [],
+      "proc": "",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/09/15/vexcel-imaging-launches-ultracam-condor-5-0-with-the-worlds-largest-aerial-camera-footprint/?utm_source=rss&utm_medium=rss&utm_campaign=vexcel-imaging-launches-ultracam-condor-5-0-with-the-worlds-largest-aerial-camera-footprint",
+      "datum": "2026-09-15"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "Vexcel Imaging Launches UltraCam Condor 5.0 with the World’s Largest Aerial Camera Footprint",
+      "perex": "Graz, Austria • September 15, 2026 — Live from Intergeo 2026 in Munich, Vexcel Imaging today announced the UltraCam Condor 5.0 , a new aerial mapping system designed for wide-area and nationwide geosp…",
+      "telo": "Graz, Austria • September 15, 2026 — Live from Intergeo 2026 in Munich, Vexcel Imaging today announced the UltraCam Condor 5.0 , a new aerial mapping system designed for wide-area and nationwide geospatial data collection. With up to 83,000 pixels across the flight strip, the Condor 5.0 captures more ground in a single pass than any aerial mapping system to date. Combined with a new reconstruction approach in UltraMap designed for challenging image geometries, it delivers reliable photogrammetric-grade DSM, DTM, and orthophoto products across the largest aerial footprint ever deployed for mapping. The UltraCam Condor 5.0 will be available in multiple models with cross-track image widths rang",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/15/vexcel-imaging-launches-ultracam-condor-5-0-with-the-worlds-largest-aerial-camera-footprint/?utm_source=rss&utm_medium=rss&utm_campaign=vexcel-imaging-launches-ultracam-condor-5-0-with-the-worlds-largest-aerial-camera-footprint",
+      "datum": "2026-09-15"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "Topcon Launches Innovations Supporting Integrated Geomatics Workflows at INTERGEO 2026",
+      "perex": "Topcon Positioning Systems announces additions to its geomatics portfolio designed to support integrated digital workflows for survey, construction, and infrastructure projects.",
+      "telo": "Topcon Positioning Systems announces additions to its geomatics portfolio designed to support integrated digital workflows for survey, construction, and infrastructure projects. The new solutions expand Topcon’s geospatial ecosystem, including reality capture, positioning, data management, monitoring, and subsurface intelligence technologies to improve accuracy and the flow of information on projects. The announcement was made in conjunction with INTERGEO 2026, the trade fair for geodesy, geoinformation, and land management, taking place September 15–17 in Munich, Germany. “Industry professionals are looking for flexible technologies that fit within their existing processes,” said Neil Vanca",
+      "body": [],
+      "proc": "",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/surveying/topcon-launches-innovations-supporting-integrated-geomatics-workflows-at-intergeo-2026/",
+      "datum": "2026-09-15"
+    },
+    {
+      "rubrika": "Přístroje",
+      "top": false,
+      "nadpis": "Calian Strengthens Precision GNSS Antenna Portfolio with New Survey and Anti-Jamming Antenna Solutions",
+      "perex": "Calian, a leader in high-precision GNSS antenna technology, today announced the expansion of its precision positioning and resilient PNT portfolio with three innovative antenna solutions: the new Accu…",
+      "telo": "Calian, a leader in high-precision GNSS antenna technology, today announced the expansion of its precision positioning and resilient PNT portfolio with three innovative antenna solutions: the new Accutenna® 4 (AC4) pole mount antenna (AC4990PXF), the latest pole mount Controlled Reception Pattern Antenna (CRPA) (CR8894PXF+), and the AJ979XF+-MAR full-band anti-jamming antenna. These solutions address the evolving requirements of surveying, mapping, critical infrastructure, marine, autonomy, public safety and defence users who require both precision positioning and GNSS resilience in increasingly challenging RF environments. Together, the AC4990PXF, CR8894PXF+, and AJ979XF+-MAR full-band anti",
+      "body": [],
+      "proc": "",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/gnsslocation-tech/calian-strengthens-precision-gnss-antenna-portfolio-with-new-survey-and-anti-jamming-antenna-solutions/",
+      "datum": "2026-09-15"
+    }
+  ]
+}

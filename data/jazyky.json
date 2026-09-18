@@ -165,7 +165,16 @@
     ["^Průměruji GPS \\((\\d+) měření\\) — stůj chvíli na místě, souřadnice se doplní samy\\.$", "Averaging GPS ($1 readings) — stand still for a moment, the coordinates fill in by themselves.", "Mittle GPS ($1 Messungen) — bleib kurz stehen, die Koordinaten füllen sich von selbst.", "Uśredniam GPS ($1 pomiarów) — postój chwilę w miejscu, współrzędne uzupełnią się same.", "Promediando GPS ($1 mediciones) — quédate quieto un momento, las coordenadas se rellenan solas.", "Sto mediando il GPS ($1 misure) — resta fermo un attimo, le coordinate si compilano da sole."],
     ["^Odkud je „(.+)\"$", "Where \"$1\" comes from", "Woher „$1“ kommt", "Skąd jest „$1”", "De dónde sale «$1»", "Da dove viene «$1»"],
     ["^Proč ±([\\d,.]+) m\\? — chybový rozpočet$", "Why ±$1 m? — error budget", "Warum ±$1 m? — Fehlerbudget", "Dlaczego ±$1 m? — budżet błędów", "¿Por qué ±$1 m? — presupuesto de error", "Perché ±$1 m? — bilancio degli errori"],
-    ["^Mapa jede z rastru: (.+)$", "Map runs from raster: $1", "Karte läuft aus dem Raster: $1", "Mapa działa z rastra: $1", "El mapa va en ráster: $1", "La mappa gira su raster: $1"]
+    ["^Mapa jede z rastru: (.+)$", "Map runs from raster: $1", "Karte läuft aus dem Raster: $1", "Mapa działa z rastra: $1", "El mapa va en ráster: $1", "La mappa gira su raster: $1"],
+    ["^Číst originál u zdroje \\((.+)\\) →$", "Read the original at the source ($1) →", "Original bei der Quelle lesen ($1) →", "Czytaj oryginał u źródła ($1) →", "Leer el original en la fuente ($1) →", "Leggi l'originale alla fonte ($1) →"],
+    ["^Zdroj: (.+)$", "Source: $1", "Quelle: $1", "Źródło: $1", "Fuente: $1", "Fonte: $1"],
+    ["^Proč to řešit: (.+)$", "Why it matters: $1", "Warum das wichtig ist: $1", "Dlaczego to ważne: $1", "Por qué importa: $1", "Perché conta: $1"],
+    ["^Vydání (\\d+\\. \\d+\\. \\d{4}) — (\\d+) zpráv z geodézie \\(zahraniční zdroje v původním znění\\)\\.$", "Issue of $1 — $2 surveying news items (foreign sources in the original language).", "Ausgabe vom $1 — $2 Meldungen aus der Geodäsie (ausländische Quellen im Original).", "Wydanie z $1 — $2 wiadomości z geodezji (źródła zagraniczne w oryginale).", "Edición del $1 — $2 noticias de geodesia (fuentes extranjeras en su idioma original).", "Edizione del $1 — $2 notizie di geodesia (fonti estere in lingua originale)."],
+    ["^Vydání (\\d+\\. \\d+\\. \\d{4}) — (\\d+) zpráv z geodézie\\.$", "Issue of $1 — $2 surveying news items.", "Ausgabe vom $1 — $2 Meldungen aus der Geodäsie.", "Wydanie z $1 — $2 wiadomości z geodezji.", "Edición del $1 — $2 noticias de geodesia.", "Edizione del $1 — $2 notizie di geodesia."],
+    ["^(\\d+) (?:den|dny|dnů) · (\\d+) změn · běžíš na verzi (\\d+)$", "$1 days · $2 changes · you are on version $3", "$1 Tage · $2 Änderungen · du bist auf Version $3", "$1 dni · $2 zmian · masz wersję $3", "$1 días · $2 cambios · tienes la versión $3", "$1 giorni · $2 modifiche · sei alla versione $3"],
+    ["^(\\d+) (?:den|dny|dnů) · (\\d+) změn$", "$1 days · $2 changes", "$1 Tage · $2 Änderungen", "$1 dni · $2 zmian", "$1 días · $2 cambios", "$1 giorni · $2 modifiche"],
+    ["^verze ([\\d, ]+)$", "version $1", "Version $1", "wersja $1", "versión $1", "versione $1"],
+    ["^Verze (\\d+)$", "Version $1", "Version $1", "Wersja $1", "Versión $1", "Versione $1"]
   ],
   "t": {
     "Body": ["Points", "Punkte", "Punkty", "Puntos", "Punti"],

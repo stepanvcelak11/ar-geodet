@@ -31,9 +31,15 @@
 //
 // Zdroje upravíš v poli FEEDS níže. Mrtvý/nedostupný feed se jen přeskočí.
 // =============================================================================
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, existsSync, unlinkSync } from 'node:fs';
 
 const OUT = 'data/zpravodaj.json';
+// Vydání po jazyce (data/zpravodaj-en.json …) pro cizojazyčnou appku (js/zpravodaj.js
+// je čte přes AGJazyk.fetchData, český soubor je záloha). Vznikají JEN s klíčem
+// k modelu — pravidlově se překládat nedá. Bez klíče se staré verze smažou, ať
+// cizojazyčná appka neukazuje včerejší zprávy vedle dnešního českého vydání.
+const JAZYKY = { en: 'angličtiny', de: 'němčiny', pl: 'polštiny', es: 'španělštiny', it: 'italštiny' };
+const outLang = (l) => 'data/zpravodaj-' + l + '.json';
 
 // --- Zdroje (RSS/Atom). Klidně přidávej/odebírej; neexistující se přeskočí. -----
 const FEEDS = [
@@ -240,6 +246,40 @@ async function polishWithClaude(edition, today) {
     return raw;
 }
 
+// Překlad hotového (českého) vydání do jednoho jazyka. Stejný tvar, mění se jen
+// texty; odkaz, zdroj, datum, rubrika (klíč — appka si ji přeloží slovníkem) a top
+// zůstávají. Model smí vydání jen přeložit, nikdy shodit: při chybě se jazyk vynechá.
+async function translateWithClaude(edition, lang) {
+    const SYS = [
+        'Jsi překladatel geodetického zpravodaje aplikace QTRIG do ' + JAZYKY[lang] + '.',
+        'Dostaneš hotové vydání (JSON). Přelož do ' + JAZYKY[lang] + ' pole "uvodnik" a u každé položky "nadpis", "perex", "telo", "body" a "proc".',
+        '- Odborné termíny geodézie překládej tak, jak je používají geodeti v té zemi (např. en: total station, de: Tachymeter, pl: tachimetr).',
+        '- Položky, které už v cílovém jazyce jsou, nech beze změny. Uříznutý úryvek (končí „…") ukonči přirozeně, nic nedomýšlej.',
+        'TVRDÁ PRAVIDLA:',
+        '- NEMĚŇ pole "rubrika", "top", "zdroj", "odkaz", "datum", "vydani" ani počet a pořadí položek.',
+        '- NEVYMÝŠLEJ fakta, čísla, data ani jména, která v podkladu nejsou.',
+        '- Vrať POUZE JSON stejného tvaru jako vstup, nic dalšího.',
+    ].join('\n');
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: ANTHROPIC_MODEL, max_tokens: 16000, system: SYS,
+            messages: [{ role: 'user', content: 'VYDÁNÍ:\n' + JSON.stringify(edition) }] }),
+    });
+    if (!r.ok) throw new Error('Anthropic API → HTTP ' + r.status + ': ' + (await r.text()).slice(0, 300));
+    const j = await r.json();
+    const text = (j.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('');
+    const raw = extractJson(text);
+    if (!raw) throw new Error('Model nevrátil platný JSON.');
+    // tvar zkontroluje normEdition; navíc musí sedět počet a odkazy položek (nic nesmí zmizet ani přibýt)
+    const ed = normEdition(raw, edition.vydani);
+    if (ed.polozky.length !== edition.polozky.length || ed.polozky.some((p, i) => p.odkaz !== edition.polozky[i].odkaz)) {
+        throw new Error('překlad změnil položky');
+    }
+    ed.polozky.forEach((p, i) => { p.rubrika = edition.polozky[i].rubrika; p.top = edition.polozky[i].top; p.zdroj = edition.polozky[i].zdroj; p.datum = edition.polozky[i].datum; });
+    return ed;
+}
+
 // --- Validace / normalizace ---------------------------------------------------
 function normEdition(raw, today) {
     if (!raw || !Array.isArray(raw.polozky)) throw new Error('Vydání nemá pole "polozky".');
@@ -345,6 +385,20 @@ async function main() {
     edition = normEdition(edition, today);
     writeFileSync(OUT, JSON.stringify(edition, null, 2) + '\n', 'utf8');
     console.log('[hotovo] zapsáno', OUT, '·', edition.polozky.length, 'položek, top:', edition.polozky.find((p) => p.top)?.nadpis);
+
+    // 4) Vydání po jazyce (jen s klíčem; jinak staré smazat — viz JAZYKY nahoře)
+    for (const lang of Object.keys(JAZYKY)) {
+        const f = outLang(lang);
+        if (!ANTHROPIC_KEY) { if (existsSync(f)) { unlinkSync(f); console.log('[jazyk] bez klíče — smazán zastaralý', f); } continue; }
+        try {
+            const ed = await translateWithClaude(edition, lang);
+            writeFileSync(f, JSON.stringify(ed, null, 2) + '\n', 'utf8');
+            console.log('[jazyk] zapsáno', f);
+        } catch (e) {
+            console.warn('[jazyk] ' + lang + ' přeskočen (' + e.message + ')');
+            if (existsSync(f)) { unlinkSync(f); console.log('[jazyk] smazán zastaralý', f); }
+        }
+    }
 }
 
 main().catch((e) => { console.error('[chyba]', e && e.message ? e.message : e); process.exit(1); });

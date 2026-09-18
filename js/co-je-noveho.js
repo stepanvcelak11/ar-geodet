@@ -52,7 +52,10 @@
         if (_data) return Promise.resolve(_data);
         if (_loading) return Promise.resolve(null);
         _loading = true;
-        return fetch(URL_DATA + '?t=' + Date.now(), { cache: 'no-store' })
+        // Po jazyce (data/co-je-noveho-en.json…): AGJazyk.fetchData vrátí český, když
+        // lokalizovaný není. Razítko ?t= zůstává — soupis se má číst vždy čerstvý.
+        var fx = (window.AGJazyk && AGJazyk.fetchData) ? AGJazyk.fetchData : fetch;
+        return fx(URL_DATA + '?t=' + Date.now(), { cache: 'no-store' })
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (j) {
                 _loading = false;
@@ -61,6 +64,10 @@
             })
             .catch(function () { _loading = false; return null; });
     }
+
+    // Přepnutí jazyka = jiný soubor; příště se stáhne znovu.
+    try { window.addEventListener('ag:jazyk', function () { _data = null; _loading = false; }); }
+    catch (e) { window.AG && AG.swallow && AG.swallow(e, 'co-je-noveho:jazyk'); }
 
     function injectStyles() {
         if (document.getElementById(STYLE_ID)) return;

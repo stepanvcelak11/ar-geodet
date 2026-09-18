@@ -10,6 +10,16 @@ u"""Regrese k překladům 18. 9. 2026 (v356) — DATOVÉ soubory po jazyce a slo
       Předpisy (openPredpisy) mají italské kategorie, Cvičné úlohy italské zadání,
       Geo kartičky (AGScrollUceni) italský nadpis úlohy; po přepnutí na cs se návod vrátí do češtiny.
 
+  Doplněno 18. 9. 2026 večer (v361) — poslední české zbytky:
+  D4  data/co-je-noveho-xx.json (soupis změn, 118 vydání) v 5 jazycích: stejná struktura, stejné v/datum,
+      stejné HTML tagy v odrážkách, bez češtiny; js/co-je-noveho.js + historie-aktualizaci.js čtou přes
+      AGJazyk.fetchData; sw.js dává i co-je-noveho-xx a zpravodaj-xx do DICT_CACHE (klíč bez ?t=).
+  D5  Zpravodaj: js/zpravodaj.js + brifink.js čtou vydání po jazyce, build-zpravodaj.mjs umí s klíčem
+      ANTHROPIC_API_KEY vyrobit data/zpravodaj-xx.json (bez klíče zastaralé smaže), workflow je commituje;
+      když soubory po jazyce zrovna existují, mají stejný počet položek/odkazů jako české vydání.
+  B2  V prohlížeči (it): Historie aktualizací bez češtiny (dny slovy italsky, italské nadpisy vydání),
+      Zpravodaj bez češtiny (úvodník přes vzor / soubor po jazyce, „Leggi l'originale…").
+
 Spuštění:  python scripts/test_jazyky_data.py [port]
 """
 import io
@@ -103,6 +113,57 @@ def staticke():
             j = nacti('data/navody-%s.json' % l)
             spatne = [k for k in cs if k != '_' and sorted(re.findall(r'</?[a-z]+', j.get(k, ''))) != sorted(re.findall(r'</?[a-z]+', cs[k]))]
             ok('D1 navody-%s: stejné HTML tagy jako česky' % l, not spatne, spatne[:5])
+    # D4 soupis změn po jazyce
+    cs = nacti('data/co-je-noveho.json')
+    tagy = lambda t: sorted(re.findall(r'</?[a-z]+', t))
+    for l in LANGS:
+        pth = 'data/co-je-noveho-%s.json' % l
+        if not os.path.exists(os.path.join(ROOT, pth)):
+            ok('D4 %s existuje' % pth, False, 'chybí')
+            continue
+        j = nacti(pth)
+        ok('D4 %s: stejný počet vydání a stejná v/datum' % pth, len(j['verze']) == len(cs['verze'])
+           and all(a['v'] == b['v'] and a['datum'] == b['datum'] and len(a['body']) == len(b['body']) for a, b in zip(j['verze'], cs['verze'])))
+        spatne = [a['v'] for a, b in zip(j['verze'], cs['verze']) if any(tagy(x) != tagy(y) for x, y in zip(a['body'], b['body']))]
+        ok('D4 %s: stejné HTML tagy v odrážkách' % pth, not spatne, spatne[:5])
+        zbytky = []
+        for v in j['verze']:
+            zbytky += ceska_slova(v['nadpis'])
+            for b in v['body']:
+                zbytky += ceska_slova(re.sub(r'<[^>]+>', '', b))
+        ok('D4 %s: bez českých zbytků' % pth, not zbytky, sorted(set(zbytky))[:12])
+        ok('D4 %s: nejnovější nadpis přeložený' % pth, j['verze'][0]['nadpis'] != cs['verze'][0]['nadpis'])
+    for f, needle in (('js/co-je-noveho.js', 'AGJazyk.fetchData'), ('js/historie-aktualizaci.js', 'AGJazyk.fetchData'),
+                      ('js/zpravodaj.js', 'AGJazyk.fetchData'), ('js/brifink.js', 'AGJazyk.dataUrl')):
+        ok('D4 %s čte data po jazyce' % f, needle in io.open(os.path.join(ROOT, f), encoding='utf-8').read())
+    sw = io.open(os.path.join(ROOT, 'sw.js'), encoding='utf-8').read()
+    ok('D4 sw.js: isLangData zná co-je-noveho-xx a zpravodaj-xx', '|co-je-noveho|zpravodaj)-[a-z]{2}' in sw)
+    ok('D4 sw.js: klíč v DICT_CACHE bez ?t= razítka', "const key = url.split('?')[0];" in sw and 'cache.put(key, clone)' in sw)
+    for f, needle in (('js/historie-aktualizaci.js', "AGJazyk.locale()"), ('js/zpravodaj.js', "kData()"), ('js/zpravodaj.js', "'ag:jazyk'"),
+                      ('js/co-je-noveho.js', "'ag:jazyk'"), ('js/historie-aktualizaci.js', "'ag:jazyk'"), ('js/jazyky.js', 'locale: function')):
+        ok('D4 %s: %s' % (f, needle), needle in io.open(os.path.join(ROOT, f), encoding='utf-8').read())
+    # D5 zpravodaj
+    bz = io.open(os.path.join(ROOT, 'scripts/build-zpravodaj.mjs'), encoding='utf-8').read()
+    ok('D5 build-zpravodaj.mjs: překlad vydání po jazyce (translateWithClaude) + úklid bez klíče',
+       'async function translateWithClaude(edition, lang)' in bz and "outLang(lang)" in bz and 'unlinkSync(f)' in bz)
+    wf = io.open(os.path.join(ROOT, '.github/workflows/zpravodaj.yml'), encoding='utf-8').read()
+    ok('D5 zpravodaj.yml commituje data/zpravodaj*.json', "git add -A -- 'data/zpravodaj*.json'" in wf and "git diff --quiet -- 'data/zpravodaj*.json'" in wf)
+    zcs = nacti('data/zpravodaj.json')
+    for l in LANGS:
+        pth = 'data/zpravodaj-%s.json' % l
+        if not os.path.exists(os.path.join(ROOT, pth)):
+            print('INFO %s teď neexistuje (bot bez ANTHROPIC_API_KEY je maže) — přeskočeno' % pth)
+            continue
+        j = nacti(pth)
+        ok('D5 %s: stejné vydání, počet a odkazy položek' % pth, j.get('vydani') == zcs.get('vydani') and len(j['polozky']) == len(zcs['polozky'])
+           and all(a['odkaz'] == b['odkaz'] and a['rubrika'] == b['rubrika'] for a, b in zip(j['polozky'], zcs['polozky'])))
+        zb = ceska_slova(j['uvodnik']) + [w for p in j['polozky'] for w in ceska_slova(p['nadpis'] + ' ' + p['perex'])]
+        ok('D5 %s: bez českých zbytků v úvodníku a nadpisech' % pth, not zb, sorted(set(zb))[:10])
+    core_re = [r[0] for r in nacti('data/jazyky.json')['re']]
+    for pat in (u'^Číst originál u zdroje \\((.+)\\) →$', u'^(\\d+) (?:den|dny|dnů) · (\\d+) změn · běžíš na verzi (\\d+)$', u'^verze ([\\d, ]+)$'):
+        ok('D5 slovník má vzor %s' % pat[:30], pat in core_re, pat)
+    for k in (u'Z domova', u'Technologie', u'Z praxe', u'Akce', u'Geo zpravodaj', u'Nová verze je připravená.', u'tady jsi'):
+        ok('D5 slovník má klíč %s' % k, all(k in nacti('data/jazyky-%s.json' % l)['t'] for l in LANGS))
     sady = {l: set(nacti('data/jazyky-%s.json' % l)['t']) for l in LANGS}
     ok('D2 všech 5 rozšíření slovníku má stejné klíče', all(sady[l] == sady['en'] for l in LANGS),
        {l: len(sady[l] ^ sady['en']) for l in LANGS})
@@ -163,6 +224,29 @@ async def beh(url):
         await page.wait_for_timeout(4000)
         su = await page.evaluate("() => { const k = AGScrollUceni.karty(); const o = k.filter(x => x.typ === 'otazka' || (x.nh || '').indexOf('loha') >= 0)[0]; return { n: k.length, nh: o ? o.nh : null, txt: document.body.textContent.indexOf('Dalle coordinate') >= 0 || document.body.textContent.indexOf('Nella stazione') >= 0 }; }")
         ok('B1 Geo kartičky: otázky z italských úloh', su.get('n', 0) > 0 and su.get('txt'), su)
+        # B2 Historie aktualizací + Zpravodaj italsky
+        DUMP = """(sel) => { const root = document.querySelector(sel); if (!root) return null;
+            const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); const out = [];
+            while (w.nextNode()) { const t = w.currentNode.nodeValue.trim(); if (t) out.push(t); } return out; }"""
+        await page.evaluate("() => new Promise(res => AGLazy.need('js/historie-aktualizaci.js', () => { AGHistorie.open(); res(); }))")
+        await page.wait_for_timeout(3000)
+        hist = await page.evaluate(DUMP, '.hist-ov') or []
+        zb = sorted(set(w for t in hist for w in ceska_slova(t)))
+        ok('B2 Historie aktualizací: bez češtiny (%d uzlů)' % len(hist), hist and not zb, zb[:10])
+        ok('B2 Historie: dny slovy italsky + počet dnů', any(re.match(r'^(Lunedì|Martedì|Mercoledì|Giovedì|Venerdì|Sabato|Domenica) \d+ ', t) for t in hist)
+           and any(' giorni · ' in t and 'versione' in t for t in hist), [t for t in hist if 'giorn' in t][:2])
+        ok('B2 Historie: italský nadpis vydání (Navigazione anche verso un punto lontano)', any('Navigazione anche verso un punto lontano' in t for t in hist))
+        await page.evaluate("() => AGHistorie.close()")
+        await page.evaluate("() => new Promise(res => AGLazy.need('js/zpravodaj.js', () => { openZpravodaj(); res(); }))")
+        await page.wait_for_timeout(3500)
+        zpr = await page.evaluate(DUMP, '.zpr-overlay') or []
+        # články z ČÚZK jsou česky jen bez souboru po jazyce (bot bez klíče) — kontrolují se jen texty appky
+        ui = [t for t in zpr if not t.startswith('Vážení') and len(t) < 400]
+        zb = sorted(set(w for t in ui for w in ceska_slova(t)))
+        ok('B2 Zpravodaj: bez češtiny v textech appky (%d uzlů)' % len(zpr), zpr and not zb, zb[:10])
+        ok('B2 Zpravodaj: úvodník italsky (Edizione del …)', any(t.startswith('Edizione del') for t in zpr), zpr[:5])
+        ok(u'B2 Zpravodaj: „Leggi l\'originale alla fonte (…)"', any(t.startswith(u"Leggi l'originale alla fonte (") for t in zpr))
+        await page.evaluate("() => { const x = document.querySelector('.zpr-x'); if (x) x.click(); }")
         # přepnutí zpět na cs → návod česky
         await page.evaluate("() => AGJazyk.set('cs')")
         await page.wait_for_timeout(1500)

@@ -34,23 +34,25 @@ jobs:
         env:
           # VOLITELNÉ a ve výchozím stavu PRÁZDNÉ: bez klíče se vydání složí
           # pravidlově z RSS — zdarma, bez jakéhokoli API. Kdo bude chtít zpět
-          # české shrnutí cizojazyčných zpráv, přidá repo secret ANTHROPIC_API_KEY;
+          # české shrnutí cizojazyčných zpráv A VYDÁNÍ V PĚTI JAZYCÍCH pro cizojazyčnou
+          # appku (data/zpravodaj-en|de|pl|es|it.json), přidá repo secret ANTHROPIC_API_KEY;
           # skript si ho vezme sám a při selhání API se tiše vrátí k pravidlům.
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node scripts/build-zpravodaj.mjs
 
       - name: Commitnout, pokud se vydání změnilo
         run: |
-          if git diff --quiet -- data/zpravodaj.json; then
+          # zpravodaj*.json = české vydání + vydání po jazyce (jen s ANTHROPIC_API_KEY)
+          if git diff --quiet -- 'data/zpravodaj*.json' && [ -z "$(git ls-files --others --exclude-standard -- 'data/zpravodaj-*.json')" ]; then
             echo "Beze změny — necommituji."
             exit 0
           fi
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/zpravodaj.json
+          git add -A -- 'data/zpravodaj*.json'
           git commit -m "Zpravodaj: vydání $(date +%F) [skip ci]"
           # Robustní push: když mezitím někdo pushne na main, rebasni a zkus znovu.
-          # (Bot sahá jen na data/zpravodaj.json, takže rebase je bezkonfliktní.)
+          # (Bot sahá jen na data/zpravodaj*.json, takže rebase je bezkonfliktní.)
           for i in 1 2 3 4 5; do
             if git push origin HEAD:main; then echo "pushnuto"; exit 0; fi
             echo "push odmítnut (pokus $i) — stahuji origin/main a rebasuji…"

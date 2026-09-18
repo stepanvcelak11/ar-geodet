@@ -48,7 +48,9 @@
 
     function load() {
         if (_data) return Promise.resolve(_data);
-        return fetch(URL_DATA)
+        // Soubor po jazyce (data/co-je-noveho-en.json…), český jako záloha.
+        var fx = (window.AGJazyk && AGJazyk.fetchData) ? AGJazyk.fetchData : fetch;
+        return fx(URL_DATA)
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (j) {
                 _data = (j && Array.isArray(j.verze)) ? j.verze.slice() : null;
@@ -148,6 +150,14 @@
         if (!m) return d || 'bez data';
         var dt = new Date(+m[1], +m[2] - 1, +m[3]);
         if (isNaN(dt.getTime())) return d;
+        // Cizí jazyk: den i měsíc slovy podle jazyka appky (Friday 18 September 2026);
+        // české skloňování níže je jen pro češtinu.
+        if (window.AGJazyk && AGJazyk.get && AGJazyk.get() !== 'cs') {
+            try {
+                var cizi = dt.toLocaleDateString(AGJazyk.locale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                return cizi.charAt(0).toUpperCase() + cizi.slice(1);
+            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'historie-aktualizaci:denTxt'); }
+        }
         var den = DNY[dt.getDay()];
         // velké písmeno JEN na začátku — `text-transform:capitalize` by v CSS udělalo
         // i „Srpna", což je česky špatně
@@ -272,6 +282,14 @@
         });
         return _ov;
     }
+
+    // Přepnutí jazyka: zahodit soupis, otevřené okno překreslit z nového souboru.
+    try {
+        window.addEventListener('ag:jazyk', function () {
+            _data = null; _err = false;
+            if (_ov && _ov.classList.contains('open')) load().then(function () { if (_ov.classList.contains('open')) render(); });
+        });
+    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'historie-aktualizaci:jazyk'); }
 
     function open() {
         build();

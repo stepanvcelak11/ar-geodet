@@ -243,7 +243,9 @@
 
     // ---- ZPRAVODAJ ---------------------------------------------------------------
     function getZpravodaj() {
-        return fetchT('data/zpravodaj.json', 5000).then(function (r) { return r.json(); }).then(function (j) {
+        var zu = (window.AGJazyk && AGJazyk.dataUrl) ? AGJazyk.dataUrl('data/zpravodaj.json') : 'data/zpravodaj.json';
+        return fetchT(zu, 5000).then(function (r) { return (r.ok || zu === 'data/zpravodaj.json') ? r : fetchT('data/zpravodaj.json', 5000); })
+            .then(function (r) { return r.json(); }).then(function (j) {
             if (!j || !Array.isArray(j.polozky) || !j.polozky.length) return null;
             var top = null;
             for (var i = 0; i < j.polozky.length; i++) { if (j.polozky[i] && j.polozky[i].top) { top = j.polozky[i]; break; } }
