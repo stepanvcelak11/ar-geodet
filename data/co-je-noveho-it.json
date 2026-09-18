@@ -2,12 +2,24 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 371,
+      "datum": "2026-09-18",
+      "nadpis": "Giro dell’app: collegamenti alle Impostazioni dopo la ristrutturazione, testi francesi con numero, virgola decimale",
+      "body": [
+        "<b>Francese:</b> i testi con un numero dentro (la pillola «GPS senza fix 8 s · posizione incerta», «5 min fa», mesi nell’Annuario, meteo, cestino…) comparivano in italiano nell’app francese — 168 schemi ora sono davvero francesi e il controllo dei dati lo sorveglia.",
+        "<b>Collegamenti alle Impostazioni dopo la ristrutturazione (v365):</b> «Mostra filtri» dei tipi di punto nascosti, «Max punti in AR», il pulsante Cambia accanto a Paese di misura nel pannello Mappa e Impostazioni accanto a Precisione dalla mappa portavano a una pagina diversa da quella dell’opzione. La scheda <b>Stai misurando in</b>, gli avvisi e le guide indicano i percorsi giusti (Mappa e punti, Backup e manutenzione, Strumenti → Funziona tutto?) e la mappa base si chiama <b>Mappa</b>, non Vettore.",
+        "<b>La scheda «Stai misurando in»</b> mostra le coordinate di quel paese (Polonia = PL-2000, non S-JTSK); «Cosa sa fare l’app qui» è un pulsante vero.",
+        "<b>Strumenti:</b> mancava la tessera <b>Schizzo del punto sulla mappa</b> (ricerca ed elenco attività non portavano a nulla); Particella ha un solo pulsante di riduzione invece di due; Reti sotterranee — i selettori delle coordinate su una riga; Distanziometro acustico — la scelta del suono sta su uno schermo stretto.",
+        "<b>Numeri in ceco con la virgola:</b> Manutenzione «Usati 0,0 MB di ~3,0 GB», Funziona tutto? («±3,0 m»), Sole e luce (ombra), Sicurezza sul campo (S-JTSK 741 789,46), Dentro un edificio, Poster del giorno; il Diario del giorno usa il plurale giusto per un singolo punto."
+      ]
+    },
+    {
       "v": 370,
       "datum": "2026-09-18",
       "nadpis": "Scheda «Stai misurando in»: subito dopo l’avvio all’estero, non solo dopo il confine",
       "body": [
         "<b>Chi scarica l’app all’estero lo sa subito.</b> Dopo l’avvio in un paese diverso dalla Cechia (una volta per paese) compare la scheda <b>Stai misurando in: …</b> — sistema di coordinate e quote del paese, se lo stato <b>pubblica qui punti ufficiali</b> (sì: Cechia, Slovacchia, Svizzera, Paesi Bassi — l’app li scarica; no: sulla mappa ci sono solo i tuoi punti), se c’è il catasto e quale ortofoto. Prima il paese si annunciava solo dopo il confine, con due messaggi di fila — ora è una sola scheda, anche al passaggio.",
-        "La scheda aspetta che l’app giri e nulla la copra (porta, guida alla prima misura, altro dialogo). La riapri quando vuoi in <b>Impostazioni → Lavoro e dati → Paese di misura → Cosa sa fare l’app qui</b>; sotto la scelta del paese c’è una frase su dove la rete geodetica è pubblica.",
+        "La scheda aspetta che l’app giri e nulla la copra (porta, guida alla prima misura, altro dialogo). La riapri quando vuoi in <b>Impostazioni → Mappa e punti → Paese di misura → Cosa sa fare l’app qui</b>; sotto la scelta del paese c’è una frase su dove la rete geodetica è pubblica.",
         "La simulazione di un paese estero avvisa con una bolla, non con un dialogo (copriva la scheda), e non dice più che «qui non ci sono punti ČÚZK» — in Svizzera e Paesi Bassi ci sono."
       ]
     },

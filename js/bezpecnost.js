@@ -168,6 +168,8 @@
         if (s <= 300) return 1;
         return 2;
     }
+    // souřadnice na displeji jako všude v appce: „741 817,82" (SMS níž zůstává s tečkou — strojově čitelná)
+    function fmtS(v) { return v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
     function sjtsk(lat, lng) {
         try { if (window.GeoCore && typeof GeoCore.toMistni === 'function') { var r = GeoCore.toMistni(lat, lng); if (r) return { y: r.y, x: r.x }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:sjtsk'); }
         try { if (typeof proj4 === 'function') { var s = window.agMistniPole(lat, lng); return { y: s[0], x: s[1] }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:sjtsk'); }
@@ -544,7 +546,7 @@
             var s = sjtsk(f.lat, f.lng);
             h += cell(lv === 0 ? 'good wide' : (lv === 1 ? 'warn wide' : 'bad wide'), 'i-map-pin', 'Kde jsem',
                 esc(f.lat.toFixed(6) + ', ' + f.lng.toFixed(6)),
-                (s ? agSys() + ' ' + agOsy().osaA + ' ' + esc(s.y.toFixed(2)) + ' &nbsp; ' + agOsy().osaB + ' ' + esc(s.x.toFixed(2)) + '<br>' : agSys() + ' teď nespočítám (chybí převodní knihovna).<br>') +
+                (s ? agSys() + ' ' + agOsy().osaA + ' ' + esc(fmtS(s.y)) + ' &nbsp; ' + agOsy().osaB + ' ' + esc(fmtS(s.x)) + '<br>' : agSys() + ' teď nespočítám (chybí převodní knihovna).<br>') +
                 'Poloha: ' + esc(ageTxt(f)) + (lv === 2 ? ' — <b>nespoléhej na ni</b>' : ''));
         } else {
             h += cell('bad wide', 'i-map-pin', 'Kde jsem', 'Nemám polohu',
@@ -599,7 +601,7 @@
                 '<h4>' + esc(_firedNum) + ' — předáno telefonu</h4>' +
                 '<div style="font-size:calc(12px * var(--ag-font-scale, 1));line-height:1.45;color:var(--text-muted);">Jestli se vytáčení neotevřelo, vytoč číslo ručně — appka nepozná, jestli hovor běží.</div>' +
                 '<div class="bz-big">' + (f ? esc(f.lat.toFixed(6) + ', ' + f.lng.toFixed(6)) : 'polohu nemám') + '</div>' +
-                (s ? '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));font-weight:700;">' + agSys() + ' ' + agOsy().osaA + ' ' + esc(s.y.toFixed(2)) + ' &nbsp; ' + agOsy().osaB + ' ' + esc(s.x.toFixed(2)) + '</div>' : '') +
+                (s ? '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));font-weight:700;">' + agSys() + ' ' + agOsy().osaA + ' ' + esc(fmtS(s.y)) + ' &nbsp; ' + agOsy().osaB + ' ' + esc(fmtS(s.x)) + '</div>' : '') +
                 (f ? '<div style="font-size:calc(11px * var(--ag-font-scale, 1));color:var(--text-muted);margin-top:3px;">Poloha: ' + esc(ageTxt(f)) + '</div>' : '') +
                 '<div style="display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:10px;">' +
                 '<button type="button" class="bz-mini" data-act="dial" data-num="' + esc(_firedNum) + '">' + ICO_PHONE + 'Vytočit znovu</button>' +

@@ -243,10 +243,11 @@
 
         // slunce teď + stín
         var shadow = (s.el > 0.5) ? (h / Math.tan(s.el * RAD)) : null;
+        var m1 = function (x) { return (x < 100 ? x.toFixed(1) : String(Math.round(x))).replace('.', ','); };   // česky s čárkou („9,5 m")
         html += '<h4>Slunce teď</h4><div class="ag-su-big">' +
             '<div class="ag-su-cell"><small>Azimut</small><b>' + s.az.toFixed(0) + '°</b></div>' +
             '<div class="ag-su-cell"><small>Výška</small><b>' + s.el.toFixed(0) + '°</b></div>' +
-            '<div class="ag-su-cell"><small>Stín ' + h.toFixed(1) + ' m</small><b>' + (shadow != null ? (shadow < 100 ? shadow.toFixed(1) : Math.round(shadow)) + ' m' : '–') + '</b></div>' +
+            '<div class="ag-su-cell"><small>Stín ' + m1(h) + ' m</small><b>' + (shadow != null ? m1(shadow) + ' m' : '–') + '</b></div>' +
             '</div>' +
             '<div class="ag-su-in"><label>Výška svislice <input type="text" inputmode="decimal" autocomplete="off" id="ag-su-pole" value="' + h.toFixed(1) + '"> m</label>' +
             '<span style="color:var(--text-muted,#9aa1ac);font-size:.85em;">stín míří k azimutu ' + (((s.az + 180) % 360)).toFixed(0) + '°</span></div>';
@@ -290,7 +291,7 @@
                 '<span>' + pad2(k) + ':00</span>' +
                 '<span class="w">az ' + sp2.az.toFixed(0) + '°</span>' +
                 '<span class="w">' + sp2.el.toFixed(0) + '° nad</span>' +
-                '<span class="w">stín ' + (sh != null ? (sh < 100 ? sh.toFixed(1) : Math.round(sh)) + ' m' : '–') + '</span>' +
+                '<span class="w">stín ' + (sh != null ? m1(sh) + ' m' : '–') + '</span>' +
                 '<span class="g">' + tag + '</span></div>';
         }
 

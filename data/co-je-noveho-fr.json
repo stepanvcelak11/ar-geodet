@@ -2,12 +2,24 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 371,
+      "datum": "2026-09-18",
+      "nadpis": "Tour de l’appli : liens vers les Réglages après la refonte, textes français avec nombre, virgule décimale",
+      "body": [
+        "<b>Français :</b> les textes contenant un nombre (la pastille « GPS sans fix 8 s · position incertaine », « il y a 5 min », les mois du Bilan annuel, la météo, la corbeille…) s’affichaient en italien dans l’appli française — 168 modèles sont maintenant vraiment en français et le contrôle des données y veille.",
+        "<b>Liens vers les Réglages après la refonte (v365) :</b> « Afficher les filtres » des types de points masqués, « Max. de points en RA », le bouton Changer à côté de Pays de mesure dans le panneau Carte et Réglages à côté de Précision depuis la carte menaient à une autre page que celle de l’option. La fiche <b>Tu mesures en</b>, les messages et les guides donnent les bons chemins (Carte et points, Sauvegarde et entretien, Outils → Tout fonctionne ?) et le fond de carte s’appelle <b>Carte</b>, pas Vecteur.",
+        "<b>La fiche « Tu mesures en »</b> montre les coordonnées de ce pays (Pologne = PL-2000, pas S-JTSK) ; « Ce que l’appli sait faire ici » est un vrai bouton.",
+        "<b>Outils :</b> la tuile <b>Croquis du point sur la carte</b> manquait (la recherche et la liste des tâches ne menaient nulle part) ; Parcelle a un seul bouton de réduction au lieu de deux ; Réseaux souterrains — les sélecteurs de coordonnées sur une ligne ; Télémètre acoustique — le choix du son tient sur un écran étroit.",
+        "<b>Nombres en tchèque avec virgule :</b> Entretien « Utilisé 0,0 MB sur ~3,0 GB », Tout fonctionne ? (« ±3,0 m »), Soleil et lumière (ombre), Sécurité sur le terrain (S-JTSK 741 789,46), Dans un bâtiment, Affiche du jour ; le Journal du jour accorde correctement un point isolé."
+      ]
+    },
+    {
       "v": 370,
       "datum": "2026-09-18",
       "nadpis": "Fiche « Tu mesures en » : dès le démarrage à l’étranger, pas seulement après la frontière",
       "body": [
         "<b>Qui télécharge l’appli à l’étranger le sait tout de suite.</b> Après un démarrage dans un pays autre que la Tchéquie (une fois par pays), la fiche <b>Tu mesures en : …</b> apparaît — système de coordonnées et altitudes du pays, si l’État <b>publie ici des points officiels</b> (oui : Tchéquie, Slovaquie, Suisse, Pays-Bas — l’appli les télécharge ; non : la carte ne montre que tes points), s’il y a un cadastre et quelle orthophoto. Avant, le pays n’était annoncé qu’après la frontière, par deux messages à la suite — maintenant c’est une seule fiche, aussi au passage.",
-        "La fiche attend que l’appli tourne et que rien ne la recouvre (porte, guide de la première mesure, autre dialogue). Tu la rouvres à tout moment dans <b>Réglages → Chantier et données → Pays de mesure → Ce que l’appli sait faire ici</b> ; sous le choix du pays, une phrase dit où le canevas est public.",
+        "La fiche attend que l’appli tourne et que rien ne la recouvre (porte, guide de la première mesure, autre dialogue). Tu la rouvres à tout moment dans <b>Réglages → Carte et points → Pays de mesure → Ce que l’appli sait faire ici</b> ; sous le choix du pays, une phrase dit où le canevas est public.",
         "La simulation d’un pays étranger signale par une bulle, pas un dialogue (il recouvrait la fiche), et n’affirme plus qu’« il n’y a pas de points ČÚZK ici » — en Suisse et aux Pays-Bas, il y en a."
       ]
     },

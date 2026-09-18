@@ -2,12 +2,24 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 371,
+      "datum": "2026-09-18",
+      "nadpis": "Durchgang: Einstellungs-Links nach dem Umbau, französische Texte mit Zahl, Dezimalkomma",
+      "body": [
+        "<b>Französisch:</b> Texte mit einer Zahl darin (Pille „GPS ohne Fix 8 s · Position unsicher“, „vor 5 min“, Monate im Jahrbuch, Wetter, Papierkorb…) erschienen in der französischen App auf Italienisch — 168 Muster sind jetzt wirklich französisch und die Datenprüfung wacht darüber.",
+        "<b>Links in die Einstellungen nach dem Umbau (v365):</b> „Filter anzeigen“ bei ausgeblendeten Punktarten, „Max. Punkte in AR“, die Schaltfläche Ändern beim Messland im Kartenpanel und Einstellungen bei Genauigkeit aus der Karte führten auf eine andere Seite als die Option. Die Karte <b>Du misst in</b>, Meldungen und Anleitungen nennen die richtigen Wege (Karte und Punkte, Sicherung und Wartung, Werkzeuge → Funktioniert alles?) und die Grundkarte heißt <b>Karte</b>, nicht Vektor.",
+        "<b>Die Karte „Du misst in“</b> zeigt die Koordinaten des Landes (Polen = PL-2000, nicht S-JTSK); „Was die App hier kann“ ist eine richtige Schaltfläche.",
+        "<b>Werkzeuge:</b> die Kachel <b>Punktskizze auf der Karte</b> fehlte (Suche und Aufgabenliste führten ins Leere); Parzelle hat eine Minimieren-Schaltfläche statt zwei; Unterirdische Leitungen — die Koordinatenschalter stehen in einer Zeile; Akustischer Entfernungsmesser — die Tonwahl passt auf ein schmales Display.",
+        "<b>Zahlen mit Dezimalkomma auf Tschechisch:</b> Wartung „Belegt 0,0 MB von ~3,0 GB“, Funktioniert alles? („±3,0 m“), Sonne und Licht (Schatten), Sicherheit im Gelände (S-JTSK 741 789,46), Im Gebäude, Tagesposter; das Tagesprotokoll dekliniert einen einzelnen Punkt richtig."
+      ]
+    },
+    {
       "v": 370,
       "datum": "2026-09-18",
       "nadpis": "Karte „Du misst in“: gleich nach dem Start im Ausland, nicht erst nach dem Grenzübertritt",
       "body": [
         "<b>Wer die App im Ausland lädt, erfährt es sofort.</b> Nach dem Start in einem anderen Land als Tschechien (einmal pro Land) erscheint die Karte <b>Du misst in: …</b> — Koordinatensystem und Höhen des Landes, ob der Staat hier <b>amtliche Punkte veröffentlicht</b> (ja: Tschechien, Slowakei, Schweiz, Niederlande — die App lädt sie; nein: in der Karte sind nur deine Punkte), ob es Kataster gibt und welches Orthofoto. Vorher wurde das Land nur nach dem Grenzübertritt gemeldet, mit zwei Meldungen hintereinander — jetzt ist es eine Karte, auch beim Übertritt.",
-        "Die Karte wartet, bis die App läuft und nichts sie verdeckt (Tor, Anleitung zur ersten Messung, anderer Dialog). Jederzeit wieder zu öffnen unter <b>Einstellungen → Auftrag und Daten → Messland → Was die App hier kann</b>; unter der Länderauswahl steht ein Satz, wo das Festpunktfeld öffentlich ist.",
+        "Die Karte wartet, bis die App läuft und nichts sie verdeckt (Tor, Anleitung zur ersten Messung, anderer Dialog). Jederzeit wieder zu öffnen unter <b>Einstellungen → Karte und Punkte → Messland → Was die App hier kann</b>; unter der Länderauswahl steht ein Satz, wo das Festpunktfeld öffentlich ist.",
         "Die Simulation eines fremden Landes meldet per Bubble statt Dialog (der überdeckte die Karte) und behauptet nicht mehr, dass es „hier keine ČÚZK-Punkte gibt“ — in der Schweiz und den Niederlanden gibt es welche."
       ]
     },

@@ -41,7 +41,7 @@ def staticke():
     d = json.load(io.open(os.path.join(ROOT, 'data', 'jazyky.json'), encoding='utf-8'))
     re_keys = [r[0] for r in d.get('re', [])]
     ok('C0 slovnik ma vzor „ještě N m" a „postůj ještě N s"', '^ještě (\\d+) m$' in re_keys and '^postůj ještě (\\d+) s$' in re_keys, re_keys[-3:])
-    ok('C0 slovnik zna „čekám na GPS" v 5 jazycich', len(d['t'].get('čekám na GPS', [])) == 5)
+    ok('C0 slovnik zna „čekám na GPS" ve vsech jazycich', len(d['t'].get('čekám na GPS', [])) == len(d['poradi']))
     ll = io.open(os.path.join(ROOT, 'js', 'lazy-load.js'), encoding='utf-8').read()
     ok('B0 lazy-load: pojistka klepnuti kryje i #side-menu [onclick]', "#side-menu [onclick]" in ll)
     ok('B0 lazy-load: need() ceka na rozjety skript (hotovo[])', 'hotovo[src] = true' in ll)

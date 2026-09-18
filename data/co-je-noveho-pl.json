@@ -2,12 +2,24 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 371,
+      "datum": "2026-09-18",
+      "nadpis": "Przegląd aplikacji: odnośniki do Ustawień po przebudowie, francuskie teksty z liczbą, przecinek dziesiętny",
+      "body": [
+        "<b>Francuski:</b> teksty z liczbą w środku (pigułka „GPS bez fixu 8 s · pozycja niepewna”, „5 min temu”, miesiące w Roczniku, pogoda, kosz…) były we francuskiej aplikacji po włosku — 168 wzorców jest teraz naprawdę po francusku, a kontrola danych tego pilnuje.",
+        "<b>Odnośniki do Ustawień po przebudowie (v365):</b> „Pokaż filtry” przy ukrytych rodzajach punktów, „Maks. punktów w AR”, przycisk Zmień przy Kraju pomiaru w panelu Mapa i Ustawienia przy Dokładności z mapy prowadziły na inną stronę niż ta z opcją. Karta <b>Mierzysz w kraju</b>, komunikaty i instrukcje podają właściwe ścieżki (Mapa i punkty, Kopia zapasowa i konserwacja, Narzędzia → Czy wszystko działa?), a podkład nazywa się <b>Mapa</b>, nie Wektor.",
+        "<b>Karta „Mierzysz w kraju”</b> pokazuje współrzędne tego kraju (Polska = PL-2000, nie S-JTSK); „Co aplikacja tu potrafi” to porządny przycisk.",
+        "<b>Narzędzia:</b> brakowało kafelka <b>Szkic punktu na mapie</b> (wyszukiwanie i lista czynności prowadziły donikąd); Działka ma jeden przycisk minimalizacji zamiast dwóch; Sieci podziemne — przełączniki układu w jednym wierszu; Dalmierz akustyczny — wybór dźwięku mieści się na wąskim ekranie.",
+        "<b>Liczby po czesku z przecinkiem:</b> Konserwacja „Zajęte 0,0 MB z ~3,0 GB”, Czy wszystko działa? („±3,0 m”), Słońce i światło (cień), Bezpieczeństwo w terenie (S-JTSK 741 789,46), Wewnątrz budynku, Plakat dnia; Dziennik dnia poprawnie odmienia pojedynczy punkt."
+      ]
+    },
+    {
       "v": 370,
       "datum": "2026-09-18",
       "nadpis": "Karta „Mierzysz w kraju”: zaraz po starcie za granicą, nie dopiero po przekroczeniu granicy",
       "body": [
         "<b>Kto pobierze aplikację za granicą, dowie się od razu.</b> Po starcie w kraju innym niż Czechy (raz na kraj) pojawia się karta <b>Mierzysz w kraju: …</b> — układ współrzędnych i wysokości tego kraju, czy państwo <b>publikuje tu punkty urzędowe</b> (tak: Czechy, Słowacja, Szwajcaria, Holandia — aplikacja je pobierze; nie: na mapie są tylko twoje punkty), czy jest kataster i jakie ortofoto. Wcześniej o kraju mówiło się dopiero po przekroczeniu granicy, dwoma komunikatami po sobie — teraz to jedna karta, także przy przekroczeniu.",
-        "Karta czeka, aż aplikacja działa i nic jej nie zasłania (brama, przewodnik pierwszego pomiaru, inne okno). W każdej chwili otworzysz ją ponownie w <b>Ustawienia → Zlecenie i dane → Kraj pomiaru → Co aplikacja tu potrafi</b>; pod wyborem kraju jest zdanie, gdzie osnowa jest publiczna.",
+        "Karta czeka, aż aplikacja działa i nic jej nie zasłania (brama, przewodnik pierwszego pomiaru, inne okno). W każdej chwili otworzysz ją ponownie w <b>Ustawienia → Mapa i punkty → Kraj pomiaru → Co aplikacja tu potrafi</b>; pod wyborem kraju jest zdanie, gdzie osnowa jest publiczna.",
         "Symulacja obcego kraju zgłasza dymkiem, nie oknem (przykrywało kartę), i nie twierdzi już, że „punktów ČÚZK tu nie ma” — w Szwajcarii i Holandii są."
       ]
     },

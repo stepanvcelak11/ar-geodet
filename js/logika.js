@@ -258,8 +258,8 @@ if ('serviceWorker' in navigator) {
         function _warnStorageWriteFail(savedToFallback) {
             if (_idbWriteWarned) return; _idbWriteWarned = true;
             const msg = savedToFallback
-                ? 'POZOR: databáze telefonu odmítla zápis bodů. Data jsou dočasně zachráněna v záložním úložišti a po restartu se vrátí, ale udělej co nejdřív zálohu (Nastavení → Aplikace → Stáhnout zálohu) a uvolni místo v telefonu.'
-                : 'POZOR: bod se nepodařilo trvale uložit (databáze telefonu odmítla zápis — nejspíš plné úložiště). Data se mohou po zavření aplikace ztratit.\n\nUvolni místo a udělej zálohu (Nastavení → Aplikace → Stáhnout zálohu).';
+                ? 'POZOR: databáze telefonu odmítla zápis bodů. Data jsou dočasně zachráněna v záložním úložišti a po restartu se vrátí, ale udělej co nejdřív zálohu (Nastavení → Záloha a údržba → Stáhnout zálohu) a uvolni místo v telefonu.'
+                : 'POZOR: bod se nepodařilo trvale uložit (databáze telefonu odmítla zápis — nejspíš plné úložiště). Data se mohou po zavření aplikace ztratit.\n\nUvolni místo a udělej zálohu (Nastavení → Záloha a údržba → Stáhnout zálohu).';
             try { agInfo(msg); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:_warnStorageWriteFail'); }
         }
         // dump/restore celeho kv storu — pro zalohu vsech dat (zaloha.js)
@@ -509,7 +509,7 @@ if ('serviceWorker' in navigator) {
             // Text rika naplno, co se z kose vrati a co uz ne — slib "30 dni v kosi"
             // na fotky, hlasovky ani podlozene plany NEPLATI (leží ve vlastnich
             // databazich, ktere kos neumi zachytit).
-            if(!confirm("Opravdu smazat aktuální zakázku?\n\nZ koše půjde 30 dní vrátit body, spojnice, zápisníky a nastavení zakázky.\nNENÁVRATNĚ se smažou fotky u bodů, hlasovky a podložené plány — pokud je potřebuješ, nejdřív si stáhni zálohu (Nastavení → Aplikace).")) return;
+            if(!confirm("Opravdu smazat aktuální zakázku?\n\nZ koše půjde 30 dní vrátit body, spojnice, zápisníky a nastavení zakázky.\nNENÁVRATNĚ se smažou fotky u bodů, hlasovky a podložené plány — pokud je potřebuješ, nejdřív si stáhni zálohu (Nastavení → Záloha a údržba).")) return;
             const pid = activeProjectId;
             // UKLID PODLE PREFIXU, ne rucnim vyctem: VSECHNA per-zakazkova data zacinaji
             // `${pid}_` (getStoreKey). Rucni seznam klicu tu zastaraval — ~13 klicu modulu
@@ -1047,7 +1047,7 @@ if ('serviceWorker' in navigator) {
             }
             // bod dál, než kam AR ukazuje → vysvětlit (v mapě bod je)
             if (pt.currentDist != null && pt.currentDist > arRadius) {
-                quickToast('Bod uložen — je ' + Math.round(pt.currentDist) + ' m daleko, v AR se ukáže do ' + Math.round(arRadius) + ' m. Přibliž se, zvětši viditelnost v Nastavení → AR, nebo bod zvýrazni pro navigaci.'); _saveToastShown = true;
+                quickToast('Bod uložen — je ' + Math.round(pt.currentDist) + ' m daleko, v AR se ukáže do ' + Math.round(arRadius) + ' m. Přibliž se, zvětši viditelnost v Nastavení → Časté, nebo bod zvýrazni pro navigaci.'); _saveToastShown = true;
             }
         }
         // ===== HLIDANI DUPLICIT PRI UKLADANI NOVEHO BODU ==========================
@@ -1856,9 +1856,11 @@ if ('serviceWorker' in navigator) {
                 if (navigator.storage && navigator.storage.estimate) {
                     const est = await navigator.storage.estimate();
                     const used = est.usage || 0, quota = est.quota || 0;
-                    const mb = n => (n / 1048576).toFixed(1);
+                    // česky s čárkou („0,0 MB"), kvóta v GB, když je nad 1 GB („z ~3,0 GB") — dřív „0.0 MB z ~3072.0 MB"
+                    const mb = n => (n / 1048576).toFixed(1).replace('.', ',');
+                    const gb = n => n >= 1073741824 ? (n / 1073741824).toFixed(1).replace('.', ',') + ' GB' : mb(n) + ' MB';
                     const pct = quota ? Math.round(used / quota * 100) : 0;
-                    let line = `Využito <b>${mb(used)} MB</b>` + (quota ? ` z ~${mb(quota)} MB (${pct} %)` : '');
+                    let line = `Využito <b>${mb(used)} MB</b>` + (quota ? ` z ~${gb(quota)} (${pct} %)` : '');
                     if (quota && pct >= 85) line += ' <span style="color:var(--danger);">⚠ skoro plné</span>';
                     parts.push(line);
                 } else parts.push('Prohlížeč nehlásí obsazení úložiště.');

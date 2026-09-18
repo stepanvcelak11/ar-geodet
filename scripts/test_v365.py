@@ -73,7 +73,7 @@ def staticke():
     sw = src('sw.js')
     ok('S9 sw.js bez odpojených modulů', "'./js/rezim-prace.js'" not in sw and "'./js/nastaveni-lista.js'" not in sw)
     d = json.load(io.open(os.path.join(ROOT, 'data', 'jazyky.json'), encoding='utf-8'))
-    ok('S10 slovník: nové klíče Nastavení v 5 jazycích', all(len(d['t'].get(k, [])) == 5 for k in ['Časté', 'Kategorie', 'Méně často', 'AR kamera', 'Mapa a body', 'Výkon a baterie', 'Zakázka a data', 'Záloha a údržba', 'Účet a aplikace', 'Body v kameře', 'Body v mapě', 'Telefon v ruce', 'Zkratky', 'Druh úředních bodů', 'Zpět na Nastavení']))
+    ok('S10 slovník: nové klíče Nastavení ve všech jazycích', all(len(d['t'].get(k, [])) == len(d['poradi']) for k in ['Časté', 'Kategorie', 'Méně často', 'AR kamera', 'Mapa a body', 'Výkon a baterie', 'Zakázka a data', 'Záloha a údržba', 'Účet a aplikace', 'Body v kameře', 'Body v mapě', 'Telefon v ruce', 'Zkratky', 'Druh úředních bodů', 'Zpět na Nastavení']))
     po = src('js/nastaveni-poradek.js')
     ok('S11 poradek: MOVE_SEC, HIDE, mirrorMenu, bez skládání sekcí', 'MOVE_SEC' in po and "var HIDE = [" in po and 'function mirrorMenu' in po and 'agSetFold_v1' not in po)
     hl = src('js/nastaveni-hledani.js')
@@ -227,7 +227,7 @@ async def beh(url):
 
         print('--- H) jazyk systému bez uložené volby ---')
         # (na přání 18. 9. večer: „ať se aplikace zapíná v jazyce systému, pokud ho má, jinak anglicky")
-        for loc, want, slovo in [('de-DE', 'de', 'AR-Kamera'), ('fr-FR', 'en', 'AR camera'), ('cs-CZ', 'cs', 'AR kamera'), ('sk-SK', 'cs', 'AR kamera')]:
+        for loc, want, slovo in [('de-DE', 'de', 'AR-Kamera'), ('fr-FR', 'fr', 'Caméra RA'), ('nl-NL', 'en', 'AR camera'), ('cs-CZ', 'cs', 'AR kamera'), ('sk-SK', 'cs', 'AR kamera')]:
             ctx = await br.new_context(locale=loc, viewport={'width': 390, 'height': 844}, has_touch=True, is_mobile=True,
                                        geolocation={'latitude': LAT, 'longitude': LNG, 'accuracy': 3}, permissions=['geolocation'], service_workers='block')
             page = await ctx.new_page()

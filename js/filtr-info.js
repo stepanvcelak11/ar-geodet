@@ -151,13 +151,15 @@
         refresh();
     }
 
-    // Ukázat, KDE se filtry přepínají — Nastavení → záložka Data (tam jsou f-tb…f-custom
+    // Ukázat, KDE se filtry přepínají — Nastavení → karta Časté (tam jsou f-tb…f-custom
     // i pole hledání). Uživatel tak vidí, co si zapnul, a může to zrušit po svém.
     function openFilters() {
         try { if (typeof openSettings === 'function') openSettings(); } catch (e) { return; }
         try {
-            var btn = document.querySelector('#settings-modal .tab-btn[onclick*="tab-data"]');
-            if (btn) btn.click();
+            // od v365 jsou chipy druhů na PRVNÍ obrazovce Nastavení (karta Časté), ne na stránce Data —
+            // AGSettings.reveal si stránku najde sám; bez něj stačí zůstat na první obrazovce
+            if (window.AGSettings && AGSettings.reveal && document.getElementById('f-tb')) { AGSettings.reveal('f-tb'); return; }
+            try { if (typeof window.agSettingsHome === 'function') window.agSettingsHome(); } catch (e0) { /* nic */ }
             var row = document.getElementById('f-tb');
             if (row && row.closest) {
                 var box = row.closest('.st-chip');
@@ -254,8 +256,9 @@
     function openArSettings() {
         try { if (typeof openSettings === 'function') openSettings(); } catch (e) { return; }
         try {
-            var btn = document.querySelector('#settings-modal .tab-btn[onclick*="tab-ar"]');
-            if (btn) btn.click();
+            // „Max. bodů v AR" je od v365 na kartě Časté (první obrazovka), ne na stránce AR kamera
+            if (window.AGSettings && AGSettings.reveal && document.getElementById('s-max-ar-slider')) { AGSettings.reveal('s-max-ar-slider'); return; }
+            try { if (typeof window.agSettingsHome === 'function') window.agSettingsHome(); } catch (e0) { /* nic */ }
             var sl = document.getElementById('s-max-ar-slider');
             if (sl && sl.scrollIntoView) sl.scrollIntoView({ block: 'center' });
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:openArSettings'); }
@@ -297,7 +300,7 @@
         refresh();
     }
 
-    window.AGFiltrInfo = { refresh: refresh, showAll: showAll, count: count, refreshCap: refreshCap };
+    window.AGFiltrInfo = { refresh: refresh, showAll: showAll, count: count, refreshCap: refreshCap, openFilters: openFilters, openArSettings: openArSettings };
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();

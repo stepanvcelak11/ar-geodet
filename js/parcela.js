@@ -744,6 +744,8 @@
         injectStyles();
         var el = document.createElement('div');
         el.className = 'modal-overlay'; el.id = 'agpc-modal'; el.style.zIndex = '100001';
+        // vlastní „—" (minimalizace s živým proužkem dole) — obecné sbalení z js/mini-panel.js by tu dělalo totéž podruhé
+        el.setAttribute('data-ag-mini-off', '1');
         el.innerHTML =
             '<div class="modal-content">'
             + '<div class="agpc-head">'
@@ -830,7 +832,7 @@
             // modal-close okno zavírá (ownCloseButton) a modul si tak udělá úklid.
             '#agpc-modal .agpc-head{display:flex;align-items:center;gap:6px;margin-bottom:8px;padding-right:50px;}',
             '#agpc-modal #agpc-close{display:none;}',
-            '#agpc-modal .agpc-hbtn{width:34px;height:34px;flex:0 0 34px;border:1px solid var(--glass-border,rgba(255,255,255,.1));border-radius:10px;',
+            '#agpc-modal .agpc-hbtn{width:40px;height:40px;flex:0 0 40px;border:1px solid var(--glass-border,rgba(255,255,255,.22));border-radius:50%;',   // stejný tvar jako křížek z js/modal-close.js
             '  background:var(--surface-2,rgba(255,255,255,.09));color:var(--text-color,#e8edf2);font-size:calc(16px * var(--ag-font-scale, 1));line-height:1;cursor:pointer;}',
             '#agpc-modal .agpc-sec-h{font:700 12px/1 var(--font-ui,system-ui),sans-serif;letter-spacing:.06em;text-transform:uppercase;',
             '  color:var(--text-muted,#9aa1ac);margin:6px 0 8px;display:flex;align-items:center;gap:6px;}',

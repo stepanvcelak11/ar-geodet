@@ -2938,7 +2938,7 @@
         if (btn) return;
         btn = document.createElement('button');
         btn.id = 'ag-prostory-btn'; btn.className = 'menu-btn'; btn.type = 'button';
-        btn.textContent = 'Kde pracuju (prostory)';
+        btn.innerHTML = '<svg class="icon"><use href="#i-globe"/></svg> Kde pracuju (prostory)';   // ikona jako u sousedních tlačítek účtu
         btn.addEventListener('click', function () {
             try { if (typeof toggleMenu === 'function' && menu.classList.contains('open')) toggleMenu(); }
             catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:prostoryMenu'); }

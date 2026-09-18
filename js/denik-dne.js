@@ -224,7 +224,7 @@
                 });
             };
             pushPts(body.add, '+'); pushPts(body.edit, '~'); pushPts(body.del, '−');
-            if (body.noTs) sb.rows.push('(' + body.noTs + ' bodů bez časového razítka nelze zařadit ke dni)');
+            if (body.noTs) sb.rows.push('(' + body.noTs + ' ' + (body.noTs === 1 ? 'bod' : (body.noTs >= 2 && body.noTs <= 4 ? 'body' : 'bodů')) + ' bez časového razítka nelze zařadit ke dni)');
             m.sections.push(sb);
 
             // ZÁVADY

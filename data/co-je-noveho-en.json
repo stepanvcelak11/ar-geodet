@@ -2,12 +2,24 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 371,
+      "datum": "2026-09-18",
+      "nadpis": "Walk-through: Settings links after the rebuild, French texts with numbers, decimal commas",
+      "body": [
+        "<b>French:</b> texts with a number inside (the “GPS no fix 8 s · position uncertain” pill, “5 min ago”, months in the Yearbook, weather, bin…) were shown in Italian in the French app — 168 patterns are now really French and the data check guards against a repeat.",
+        "<b>Links into Settings after the rebuild (v365):</b> “Show filters” for hidden point types, “Max. points in AR”, the Change button next to Measurement country in the Map panel and Settings next to Accuracy from the map led to a different page than where the option lives. The <b>You are measuring in</b> card, messages and guides now give the right paths (Map and points, Backup and maintenance, Tools → Is everything working?) and the basemap is called <b>Map</b>, not Vector.",
+        "<b>The “You are measuring in” card</b> shows the coordinates of that country (Poland = PL-2000, not S-JTSK); “What the app can do here” is a proper button.",
+        "<b>Tools:</b> the <b>Point sketch on the map</b> tile was missing (search and the task list led nowhere); Parcel has one minimise button instead of two; Underground networks — the coordinate switches sit on one line; Acoustic rangefinder — the sound option fits a narrow screen.",
+        "<b>Numbers with a decimal comma in Czech:</b> Maintenance “Used 0,0 MB of ~3,0 GB”, Is everything working? (“±3,0 m”), Sun and light (shadow), Safety in the field (S-JTSK 741 789,46), Inside a building, Poster of the day; the Day log uses the right plural for a single point."
+      ]
+    },
+    {
       "v": 370,
       "datum": "2026-09-18",
       "nadpis": "“You are measuring in” card: right after the start abroad, not only after crossing a border",
       "body": [
         "<b>Whoever downloads the app abroad learns it right away.</b> After starting in a country other than Czechia (once per country) the card <b>You are measuring in: …</b> pops up — the coordinate system and heights of that country, whether the state <b>publishes official points</b> here (yes: Czechia, Slovakia, Switzerland, Netherlands — the app downloads them; no: the map shows only your own points), whether there is a cadastre and which orthophoto. Before, the country was announced only after crossing a border, with two messages in a row — now it is one card, also when crossing.",
-        "The card waits until the app is running and nothing covers it (gate, first-measurement guide, another dialog). You can open it again any time in <b>Settings → Job and data → Measurement country → What the app can do here</b>; under the country picker there is a line saying where geodetic control is public.",
+        "The card waits until the app is running and nothing covers it (gate, first-measurement guide, another dialog). You can open it again any time in <b>Settings → Map and points → Measurement country → What the app can do here</b>; under the country picker there is a line saying where geodetic control is public.",
         "The foreign-country simulation reports with a toast, not a dialog (it overrode the card), and no longer claims that “there are no ČÚZK points here” — in Switzerland and the Netherlands there are."
       ]
     },

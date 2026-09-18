@@ -104,7 +104,7 @@
             } catch (e) { res(null); }
         });
     }
-    function mb(b) { return (b / 1048576).toFixed(b < 10485760 ? 1 : 0) + ' MB'; }
+    function mb(b) { return (b / 1048576).toFixed(b < 10485760 ? 1 : 0).replace('.', ',') + ' MB'; }   // česky s čárkou
 
     function sesbirat() {
         var rows = [];
@@ -122,9 +122,9 @@
             var gSt = 'bad', gTx;
             if (geoPerm === 'denied') gTx = t('Poloha je zakázaná — povol ji telefonu v nastavení prohlížeče / systému.');
             else if (!lat) { gSt = geoPerm === 'prompt' ? 'warn' : 'bad'; gTx = geoPerm === 'prompt' ? t('Appka se na polohu ještě nezeptala (dovolení přijde po startu).') : t('Zatím žádná poloha — vyjdi pod volné nebe a chvíli počkej.'); }
-            else if (fixS != null && fixS > 15) { gSt = 'warn'; gTx = t('Poslední poloha je stará ' + fixS + ' s') + (acc ? ' · ±' + Number(acc).toFixed(1) + ' m' : ''); }
+            else if (fixS != null && fixS > 15) { gSt = 'warn'; gTx = t('Poslední poloha je stará ' + fixS + ' s') + (acc ? ' · ±' + Number(acc).toFixed(1).replace('.', ',') + ' m' : ''); }
             else if (acc && acc > 20) { gSt = 'warn'; gTx = t('Slabý fix') + ' ±' + Number(acc).toFixed(0) + ' m · ' + t('zkus volné nebe'); }
-            else { gSt = 'ok'; gTx = (acc ? '±' + Number(acc).toFixed(1) + ' m' : t('fix bez udané přesnosti')) + (fixS != null ? ' · ' + t('před ' + fixS + ' s') : ''); }
+            else { gSt = 'ok'; gTx = (acc ? '±' + Number(acc).toFixed(1).replace('.', ',') + ' m' : t('fix bez udané přesnosti')) + (fixS != null ? ' · ' + t('před ' + fixS + ' s') : ''); }
             rows.push({ k: 'gps', st: gSt, b: 'GPS', s: gTx });
 
             // 3) kompas

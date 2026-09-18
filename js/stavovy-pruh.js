@@ -429,7 +429,7 @@
             parts.push('<span class="ag-sp-alert ' + noteCls(note.level) + '">' + esc(alertTxt) + '</span>'
                 + (note.count > 1 ? '<span class="ag-sp-ncount">' + note.count + '</span>' : '')
                 + (note.id ? '<button type="button" class="ag-sp-x" data-note="' + esc(note.id)
-                    + '" aria-label="Rozumím, skrýt upozornění">×</button>' : ''));
+                    + '" aria-label="' + esc(window.AGJazyk ? AGJazyk.t('Rozumím, skrýt upozornění') : 'Rozumím, skrýt upozornění') + '">×</button>' : ''));   // pruh se překresluje často — přeložit hned, ne až pozorovatelem
         } else if (_msg && (Date.now() - _msgTs) < MSG_MS) {
             // hláška z #info (krátkodobá: „Stahuji data…")
             alertTxt = String(_msg);

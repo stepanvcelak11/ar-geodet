@@ -111,7 +111,7 @@
         if (AGMapaVektor.stav() !== 'zapnuto') {
             if (nactiData._zapinam) { info('Zapínám vektorovou mapu…'); return; }
             nactiData._zapinam = true; info('Zapínám vektorovou mapu…');
-            AGMapaVektor.zapni().then(function (ok) { nactiData._zapinam = false; if (ok) nactiData(); else info('Mapa se nezapnula: ' + (AGMapaVektor.chyba() || 'neznámá chyba') + '. Ručně: Vrstvy → Podklad → Vektor.'); }).catch(function () { nactiData._zapinam = false; info('Mapa se nezapnula.'); });
+            AGMapaVektor.zapni().then(function (ok) { nactiData._zapinam = false; if (ok) nactiData(); else info('Mapa se nezapnula: ' + (AGMapaVektor.chyba() || 'neznámá chyba') + '. Ručně: Vrstvy → Podklad → Mapa.'); }).catch(function () { nactiData._zapinam = false; info('Mapa se nezapnula.'); });
             return;
         }
         var k = 111320, dl = R_DATA / k, dn = R_DATA / (k * Math.cos(pt.lat * Math.PI / 180));

@@ -271,7 +271,7 @@
         var h = document.createElement('div'); h.className = 'set-h'; h.textContent = 'Data mapy (vektor)';
         var r2 = document.createElement('div'); r2.id = 's-mapa-vektor-vice';
         r2.innerHTML = '<label>Adresa dat mapy (PMTiles)<small id="s-mapa-vektor-info" style="display:block; font-weight:400; color:var(--text-muted);"></small></label><input type="text" id="s-mapa-url" autocomplete="off" placeholder="' + URL_VYCHOZI + '">'
-            + '<small style="display:block; margin-top:4px; color:var(--text-muted);">nech prázdné = výchozí data QTRIG; vlastní výřez z pmtiles extract. Mapa se zapíná tlačítkem Vrstvy → Podklad → Vektor.</small>';
+            + '<small style="display:block; margin-top:4px; color:var(--text-muted);">nech prázdné = výchozí data QTRIG; vlastní výřez z pmtiles extract. Mapa se zapíná tlačítkem Vrstvy → Podklad → Mapa.</small>';
         tab.appendChild(h); tab.appendChild(r2);
         var inp = r2.querySelector('input');
         inp.value = st.url;

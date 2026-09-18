@@ -371,7 +371,8 @@
             '.aku-sub{font-size:calc(12px * var(--ag-font-scale,1));opacity:.7;text-align:center;}',
             '.aku-row{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap;}',
             '.aku-row label{font-size:calc(12px * var(--ag-font-scale,1));opacity:.8;min-width:110px;}',
-            '.aku-row input,.aku-row select{flex:1;min-width:90px;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.25);color:inherit;font-size:calc(14px * var(--ag-font-scale,1));}',
+            '#ag-aku-band{flex:1 1 260px;}',   // volba zvuku je dlouhá — na telefonu se zalomí pod popisek na celou šířku, ať se neuřezává
+            '.aku-row input,.aku-row select{flex:1;min-width:90px;max-width:100%;text-overflow:ellipsis;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.25);color:inherit;font-size:calc(14px * var(--ag-font-scale,1));}',
             '.aku-list{list-style:none;margin:6px 0;padding:0;font-size:calc(13px * var(--ag-font-scale,1));}',
             '.aku-list li{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08);align-items:center;}',
             '.aku-list li .bad{color:var(--danger,#fb7185);}',
@@ -433,7 +434,7 @@
             + '</div>'
             + '<div class="aku-card" style="margin-top:12px;">'
             + '<div class="aku-row"><label>Teplota vzduchu</label><input id="ag-aku-t" type="text" inputmode="decimal" value="' + fmt(tp != null ? tp : s.teplota, 0) + '"><span style="opacity:.7">°C' + (tp != null ? ' · z Počasí' : '') + '</span></div>'
-            + '<div class="aku-row"><label>Zvuk</label><select id="ag-aku-band"><option value="std"' + (s.pasmo === 'std' ? ' selected' : '') + '>slyšitelný cvrlik 5–13 kHz (spolehlivější)</option><option value="tichy"' + (s.pasmo === 'tichy' ? ' selected' : '') + '>skoro neslyšný 14–20 kHz</option></select></div>'
+            + '<div class="aku-row"><label>Zvuk</label><select id="ag-aku-band"><option value="std"' + (s.pasmo === 'std' ? ' selected' : '') + '>slyšitelný 5–13 kHz (spolehlivější)</option><option value="tichy"' + (s.pasmo === 'tichy' ? ' selected' : '') + '>skoro neslyšný 14–20 kHz</option></select></div>'
             + '<div class="aku-row"><label>Kol na měření</label><select id="ag-aku-rounds"><option' + (s.kola === 1 ? ' selected' : '') + '>1</option><option' + (s.kola === 3 ? ' selected' : '') + '>3</option><option' + (s.kola === 5 ? ' selected' : '') + '>5</option></select></div>'
             + '<div class="aku-row"><label>Oprava nuly</label><span>' + fmt(offset()) + ' m' + (lsGet(LS_OFF, null) == null ? ' (výchozí, nekalibrováno)' : ' (kalibrováno)') + '</span></div>'
             + '</div>'

@@ -158,7 +158,7 @@
         // stejná karta, jaká naskočí sama po startu v cizině (js/zdroje-zemi.js uvod)
         var co = document.createElement('div'); co.className = 'st-note'; co.id = 's-zeme-co';
         co.style.cssText = 'font-size:calc(12px * var(--ag-font-scale,1));opacity:.85;margin:-2px 2px 8px;';
-        co.innerHTML = '<span></span> <button type="button" class="ag-btn-mini" style="margin-left:6px;"></button>';
+        co.innerHTML = '<span></span> <button type="button" class="btn btn-secondary" style="display:inline-block;width:auto;margin:6px 0 0;padding:7px 12px;font-size:calc(12.5px * var(--ag-font-scale,1));"></button>';   // .ag-btn-mini neexistovala → tlačítko bez stylu (18. 9. 2026 noc)
         co.querySelector('span').textContent = 'Úřední body zveřejňují jako data jen Česko, Slovensko, Švýcarsko a Nizozemsko; jinde jsou v mapě jen tvoje body.';
         var coBtn = co.querySelector('button'); coBtn.textContent = 'Co tu appka umí';
         coBtn.addEventListener('click', function () {
@@ -202,7 +202,7 @@
             try { document.getElementById('settings-modal').style.display = 'none'; } catch (e) { /* nic */ }
             var b = document.getElementById('s-zeme-sim-btn'); if (b) b.textContent = 'Ukončit simulaci';
             // bublina, ne dialog: dialog by přebil kartu „Měříš v zemi" (zdroje-zemi.js), která o bodech a podkladech říká všechno (18. 9. 2026 noc)
-            try { (window.quickToast || window.agInfo)('Simulace: stojíš v ' + ((m && m[2]) || (z && z.nazev) || kod) + '. Souřadnice ' + (AGSour.popisky().system || '') + '.' + (kod !== 'CZ' ? ' Přidal jsem 3 ukázkové body (A, B, C).' : '') + ' Zpět: Nastavení → Data → Ukončit simulaci.'); } catch (e) { /* nic */ }
+            try { (window.quickToast || window.agInfo)('Simulace: stojíš v ' + ((m && m[2]) || (z && z.nazev) || kod) + '. Souřadnice ' + (AGSour.popisky().system || '') + '.' + (kod !== 'CZ' ? ' Přidal jsem 3 ukázkové body (A, B, C).' : '') + ' Zpět: Nastavení → Mapa a body → Ukončit simulaci.'); } catch (e) { /* nic */ }
             obnov();
         } catch (e) { swallow(e, 'simulace'); }
     }

@@ -170,6 +170,13 @@ def staticke():
     core = nacti('data/jazyky.json')
     ok('D2 jádro: %d překladů u každého klíče' % len(LANGS), all(len(v) == len(LANGS) and all(v) for v in core['t'].values()))
     ok('D2 jádro: vzory re mají %d sloupců' % (len(LANGS) + 1), all(len(r) == len(LANGS) + 1 for r in core['re']))
+    # D2 sloupec jazyka nesmí být OPSANÝ ze sousedního jazyka (v368 mělo 168 z 188 vzorů ve fr sloupci italštinu):
+    # dva jazyky se smějí shodovat jen tam, kde se shodují i s angličtinou (čísla, „$1 · Base") nebo u pár slov
+    kopie = []
+    for i in range(1, len(LANGS)):
+        for r in core['re']:
+            if r[i] == r[i + 1] and r[1] != r[i + 1] and len(r[i + 1]) > 12: kopie.append((LANGS[i - 1], LANGS[i], r[0][:40]))
+    ok('D2 jádro: žádný sloupec vzorů opsaný ze sousedního jazyka', len(kopie) <= 3, kopie[:8])
     sw = io.open(os.path.join(ROOT, 'sw.js'), encoding='utf-8').read()
     ok('D3 sw.js: isLangData + stale-while-revalidate do DICT_CACHE', 'function isLangData(url)' in sw and 'if (isLangData(url)) {' in sw
        and sw.index('if (isLangData(url)) {') < sw.index('caches.open(isFont(url) ? FONT_CACHE : (isDict(url) ? DICT_CACHE : SHELL_CACHE))'))

@@ -74,7 +74,7 @@
         var baseEl = document.getElementById('agof-base-info');
         if (baseEl) {
             baseEl.innerHTML = base
-                ? (base.label + (base.acc != null ? ' · ±' + base.acc.toFixed(1) + ' m' : ''))
+                ? (base.label + (base.acc != null ? ' · ±' + base.acc.toFixed(1).replace('.', ',') + ' m' : ''))
                 : '<span style="color:var(--danger,#fb7185)">Není poloha — počkej na GPS, nebo vyber bod.</span>';
         }
         var out = document.getElementById('agof-result');

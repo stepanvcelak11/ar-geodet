@@ -1634,6 +1634,11 @@ body.left-hand #area-panel { left: calc(max(10px, env(safe-area-inset-left)) + 7
 #area-panel .ap-btn .icon { width: 14px; height: 14px; vertical-align: -0.18em; margin-right: 3px; }
 #area-panel .ap-end { background: var(--accent); color: #04221a; }
 #area-panel .ap-hint { font-size: calc(11px * var(--ag-font-scale, 1)); line-height: 1.4; color: var(--text-muted); text-align: center; }
+/* světlý motiv: panel měl natvrdo tmavé sklo a bílý text — nad světlou mapou jediný tmavý blok (18. 9. 2026 noc) */
+body.light-mode #area-panel { background: rgba(247, 248, 250, 0.96); color: #141821; border-color: rgba(15, 23, 42, 0.14); }
+body.light-mode #area-panel .ap-stats > div { background: rgba(15, 23, 42, 0.05); }
+body.light-mode #area-panel .ap-btn { background: rgba(15, 23, 42, 0.08); color: #141821; }
+body.light-mode #area-panel .ap-end { background: var(--accent); color: #04221a; }
 
 /* Geodeticky slovnik */
 #dict-list .dict-item { padding: 9px 2px; border-bottom: 1px solid var(--glass-border); }

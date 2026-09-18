@@ -152,7 +152,7 @@
                 if (Array.isArray(arr)) nCustom = arr.length;
             }
             if (nCustom != null && nCustom - nStaked > 0) {
-                out.push({ k: 'p_stakeout', t: 'Vytyčovací seznam: ' + (nCustom - nStaked) + ' bodů neodškrtnuto', why: 'vezmi stabilizaci (kolíky/hřeby) aspoň na tolik bodů' });
+                out.push({ k: 'p_stakeout', t: 'Vytyčovací seznam: ' + (nCustom - nStaked) + ' ' + ((nCustom - nStaked) === 1 ? 'bod neodškrtnut' : ((nCustom - nStaked) <= 4 ? 'body neodškrtnuty' : 'bodů neodškrtnuto')), why: 'vezmi stabilizaci (kolíky/hřeby) aspoň na tolik bodů' });
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'checklist:raw'); }
         // monitoring: existují sledované body → jde se na epochu

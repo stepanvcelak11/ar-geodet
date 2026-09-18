@@ -592,4 +592,10 @@
         _test: { buildTransform: buildTransform, snapTo: snapTo, S: S, drawTri: drawTri }
     };
     window.agOpenNacrtNaMapu = open;
+    // dlaždice v Nástrojích (seznam úkonů: Katastr a podklady; mřížka: Vytyčování a náčrt) — registr ji zná od začátku, ale modul ji nikdy
+    // nevyrobil, takže hledání i seznam úkonů vedly do prázdna (18. 9. 2026 noc)
+    function register() {
+        try { if (typeof window.agRegisterFieldTool === 'function') window.agRegisterFieldTool({ id: 'nacrt-na-mapu', label: 'Náčrt bodu na mapě', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/><path d="M11 11l2-2 2 2"/></svg>', cat: 'Vytyčování a náčrt', onClick: open, order: 11 }); } catch (e) { swallow(e, 'register'); }   // mřížka Katastr má 14 dlaždic (strop), náčrt patří i k vytyčování
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', register); else register();
 })();

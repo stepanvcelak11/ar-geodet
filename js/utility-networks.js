@@ -620,8 +620,9 @@
         if (document.getElementById('agun-style')) return;
         var st = document.createElement('style'); st.id = 'agun-style';
         st.textContent = [
-            '#agun-modal .agun-srs{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 2px 10px;}',
-            '#agun-modal .agun-radio{display:inline-flex;align-items:center;gap:6px;font-size:calc(13px * var(--ag-font-scale, 1));}',
+            '#agun-modal .agun-srs{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;margin:6px 2px 10px;}',
+            '#agun-modal .agun-srs > span{flex:0 0 100%;}',   // popisek na vlastním řádku, oba přepínače vedle sebe (na 390 px se lámaly každý jinam)
+            '#agun-modal .agun-radio{display:inline-flex;align-items:center;gap:6px;margin:0;color:inherit;font-weight:500;font-size:calc(13px * var(--ag-font-scale, 1));}',   // margin:0 — .modal-content label má margin-top 16px a přepínače se lámaly do dvou řádků
             '#agun-modal .agun-radio input{width:16px;height:16px;accent-color:var(--accent,#2f9e74);}',
             '#agun-modal .agun-list{max-height:34vh;overflow:auto;margin:10px 0 4px;}',
             '#agun-modal .agun-row{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;background:rgba(255,255,255,0.05);margin-bottom:6px;}',

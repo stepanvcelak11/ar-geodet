@@ -475,7 +475,7 @@
 
         var gap = 20, cw = (W - 2 * M - 3 * gap) / 4, ch = 172, cy0 = 1010;
         statCard(g, M, cy0, cw, ch, String(nAdd), 'ks', 'nové body', C.gold);
-        statCard(g, M + (cw + gap), cy0, cw, ch, (km >= 10 ? km.toFixed(0) : km.toFixed(1)), 'km', 'ušlá stopa', C.accent);
+        statCard(g, M + (cw + gap), cy0, cw, ch, (km >= 10 ? km.toFixed(0) : km.toFixed(1).replace('.', ',')), 'km', 'ušlá stopa', C.accent);
         var ck = casKarta(casMs);
         statCard(g, M + 2 * (cw + gap), cy0, cw, ch, ck.v, ck.u, 'v terénu', C.accent2);
         statCard(g, M + 3 * (cw + gap), cy0, cw, ch, String(Math.round(up)), 'm', 'nastoupáno', C.ink);

@@ -101,8 +101,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=370">
-    <link rel="stylesheet" href="css/style.css?v=370">
+    <link rel="stylesheet" href="css/tokens.css?v=371">
+    <link rel="stylesheet" href="css/style.css?v=371">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -233,7 +233,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=370">
+    <link rel="stylesheet" href="css/vylepseni.css?v=371">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -724,7 +724,7 @@
                     <button type="button" class="tab-btn set-cat" data-tab="tab-vzhled" onclick="switchTab('tab-vzhled', this)"><span class="set-ico"><svg class="icon"><use href="#i-palette"/></svg></span><span class="tb-tx"><b>Vzhled</b><small>písmo, jazyk, noční režim, odstín, barvy bodů</small></span><span class="set-chev">›</span></button>
                     <button type="button" class="tab-btn set-cat" data-tab="tab-ovladani" onclick="switchTab('tab-ovladani', this)"><span class="set-ico"><svg class="icon"><use href="#i-vibrate"/></svg></span><span class="tb-tx"><b>Ovládání</b><small>levá ruka, rukavice, vibrace, gesta, jednoduchý režim</small></span><span class="set-chev">›</span></button>
                     <button type="button" class="tab-btn set-cat" data-tab="tab-vykon" onclick="switchTab('tab-vykon', this)"><span class="set-ico"><svg class="icon"><use href="#i-zap"/></svg></span><span class="tb-tx"><b>Výkon a baterie</b><small>slabší telefon, úspora baterie, uspat GPS</small></span><span class="set-chev">›</span></button>
-                    <button type="button" class="tab-btn set-cat" data-tab="tab-data" onclick="switchTab('tab-data', this)"><span class="set-ico"><svg class="icon"><use href="#i-folder"/></svg></span><span class="tb-tx"><b>Zakázka a data</b><small>zakázka, firemní cloud, offline, katastr</small></span><span class="set-chev">›</span></button>
+                    <button type="button" class="tab-btn set-cat" data-tab="tab-data" onclick="switchTab('tab-data', this)"><span class="set-ico"><svg class="icon"><use href="#i-folder"/></svg></span><span class="tb-tx"><b>Zakázka a data</b><small>zakázka, firemní cloud, offline, úložiště</small></span><span class="set-chev">›</span></button>
                 </div>
                 <div class="set-h set-h-mute">Méně často</div>
                 <div class="set-card set-cats set-cats-mute">
@@ -1104,7 +1104,7 @@
                             <button type="button" data-styl="auto">Podle motivu</button><button type="button" data-styl="den">Den</button><button type="button" data-styl="noc">Noc</button><button type="button" data-styl="modrotisk">Modrotisk</button><button type="button" data-styl="tisk">Tisk</button>
                         </div>
                     </div>
-                    <div class="ms-zeme" id="ms-zeme" hidden><svg class="icon"><use href="#i-globe"/></svg><span id="ms-zeme-t"></span><button type="button" onclick="try{openSettings();switchTab('tab-data',document.querySelector('[data-tab=\'tab-data\']')||document.querySelectorAll('.tab-btn')[2]);}catch(e){openSettings();}">Změnit</button></div>
+                    <div class="ms-zeme" id="ms-zeme" hidden><svg class="icon"><use href="#i-globe"/></svg><span id="ms-zeme-t"></span><button type="button" onclick="try{openSettings();if(window.AGSettings&&AGSettings.reveal&&document.getElementById('s-zeme'))AGSettings.reveal('s-zeme');else switchTab('tab-mapa',document.querySelector('[data-tab=\'tab-mapa\']'));}catch(e){openSettings();}">Změnit</button></div>
                 </section>
 
                 <section class="ms-tab" data-ms-tab="vrstvy">
@@ -1156,7 +1156,7 @@
                         <span class="ms-go" aria-hidden="true">›</span>
                     </button>
                 </div>
-                <div class="ms-zeme" id="ms-presnost"><svg class="icon"><use href="#i-sliders"/></svg><span>Korekce GPS z mapy, kalibrace chůzí po hraně, přichycení k rohům</span><button type="button" onclick="try{openSettings();switchTab('tab-ar',document.querySelector('.tab-btn[onclick*=\'tab-ar\']')||document.querySelectorAll('.tab-btn')[1]);}catch(e){openSettings();}">Nastavení</button></div>
+                <div class="ms-zeme" id="ms-presnost"><svg class="icon"><use href="#i-sliders"/></svg><span>Korekce GPS z mapy, kalibrace chůzí po hraně, přichycení k rohům</span><button type="button" onclick="try{openSettings();if(window.AGSettings&&AGSettings.reveal&&document.getElementById('s-prichyceni'))AGSettings.reveal('s-prichyceni');else switchTab('tab-mapa',document.querySelector('[data-tab=\'tab-mapa\']'));}catch(e){openSettings();}">Nastavení</button></div>
                 </section>
 
                 <section class="ms-tab" data-ms-tab="nastroje">

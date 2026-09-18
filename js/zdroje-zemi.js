@@ -85,7 +85,8 @@
     function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
     function uvodHtml(kod) {
         var z = (window.AGSour && AGSour.ZEME[kod]) || null, jm = z ? z.nazev : kod;
-        var c = null; try { c = window.AGSour && AGSour.crs ? AGSour.crs() : null; } catch (e) { c = null; }
+        // souřadnice TÉ země (z registru), ne právě aktivní — karta se ukazuje i pro zemi, kam se teprve jede
+        var c = (z && z.crs) || null; if (!c) { try { c = window.AGSour && AGSour.crs ? AGSour.crs() : null; } catch (e) { c = null; } }
         var zd = ZDROJE[kod] || {}, orto = zd.orto || ESRI, kat = zd.katastr || null;
         var uz = (kod === 'SK') ? 'GKÚ SR' : (window.AGBodySvet && AGBodySvet.zdrojPro(kod));
         var row = function (l, v, ok) { return '<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid rgba(128,128,128,.18);"><span style="opacity:.75;min-width:96px;">' + esc(l) + '</span><span' + (ok === false ? ' style="color:var(--warning,#e6a100);"' : (ok === true ? ' style="color:var(--accent);"' : '')) + '>' + v + '</span></div>'; };
@@ -97,7 +98,7 @@
         h += row(T('Katastr'), kat ? esc(T('ano') + ' — ' + kat.nazev) : esc(T('ne — parcely tu nemám')), !!kat);
         h += row(T('Ortofoto'), esc(orto.nazev));
         h += '</div><p style="margin:10px 0 0;font-size:.92em;opacity:.85;">' + esc(T('Úřední body zveřejňují jako data jen Česko, Slovensko, Švýcarsko a Nizozemsko. Jinde se dnes měří roverem ze státní sítě a body si geodet zakládá sám — appka tu pracuje s tvými body, výkresem a kalibracemi.')) + '</p>';
-        h += '<p style="margin:8px 0 0;font-size:.85em;opacity:.65;">' + esc(T('Zemi změníš v Nastavení → Zakázka a data → Země měření.')) + '</p>';
+        h += '<p style="margin:8px 0 0;font-size:.85em;opacity:.65;">' + esc(T('Zemi změníš v Nastavení → Mapa a body → Země měření.')) + '</p>';
         return { title: T('Měříš v zemi') + ': ' + jm, html: h };
     }
     function uvod(kod, vzdy) {

@@ -127,7 +127,7 @@
         }
         // Mapa vypnutá → nabídnout zapnutí rovnou tady, ne posílat do Nastavení (18. 9. 2026, N2)
         if (AGMapaVektor.stav() !== 'zapnuto') {
-            if (typeof window.agConfirm !== 'function') { return agAlert({ title: 'Kde se dá měřit', message: 'Mapa kvality GPS počítá stínění z budov ve vektorové mapě. Zapni ji: Vrstvy → Podklad → Vektor.' }); }
+            if (typeof window.agConfirm !== 'function') { return agAlert({ title: 'Kde se dá měřit', message: 'Mapa kvality GPS počítá stínění z budov ve vektorové mapě. Zapni ji: Vrstvy → Podklad → Mapa.' }); }
             return agConfirm({ title: 'Kde se dá měřit', message: 'Mapa kvality GPS počítá stínění z budov ve vektorové mapě. Zapnout ji a pokračovat?', okText: 'Zapnout a pokračovat', cancelText: 'Zrušit' })
                 .then(function (ano) { if (!ano) return; return AGMapaVektor.zapni().then(function (ok) { if (ok) { otevri._pokus = 0; otevri(); } else agAlert({ title: 'Kde se dá měřit', message: 'Mapa se nezapnula: ' + (AGMapaVektor.chyba() || 'neznámá chyba') + '.' }); }); });
         }
@@ -140,7 +140,7 @@
         var celkem = v.stat.z + v.stat.o + v.stat.c || 1;
         var tady = skoreV(p.lat, p.lng);
         var msg = 'Okolí ' + (2 * R) + ' × ' + (2 * R) + ' m, ' + v.budov + ' budov' + (v.lesu ? ', les' : '') + ' (' + v.ms + ' ms).<br>'
-            + '<span style="color:#22c55e">■</span> volné nebe ' + Math.round(100 * v.stat.z / celkem) + ' % · <span style="color:#f59e0b">■</span> půl nebe ' + Math.round(100 * v.stat.o / celkem) + ' % · <span style="color:#ef4444">■</span> stíněno ' + Math.round(100 * v.stat.c / celkem) + ' %'
+            + '<span style="white-space:nowrap;"><span style="color:#22c55e">■</span> volné nebe ' + Math.round(100 * v.stat.z / celkem) + ' % ·</span> <span style="white-space:nowrap;"><span style="color:#f59e0b">■</span> půl nebe ' + Math.round(100 * v.stat.o / celkem) + ' % ·</span> <span style="white-space:nowrap;"><span style="color:#ef4444">■</span> stíněno ' + Math.round(100 * v.stat.c / celkem) + ' %</span>'
             + (tady != null ? '<br><b>Tady, kde stojíš: ' + (tady >= 0.85 ? 'volné nebe — dobré' : tady >= 0.6 ? 'půl nebe — měř déle (průměrování)' : 'stíněno — posuň se nebo použij offset') + '</b> (' + Math.round(tady * 100) + ' % oblohy)' : '')
             + '<br><small>Odhad ze stínění budov a lesa, ne měření: stromy mimo les, auta a odrazy nevidí. Schovat jde pilulkou „Skrýt" dole v mapě, nebo v panelu Vrstvy.</small>';
         if (typeof window.agConfirm === 'function') window.agConfirm({ title: 'Kde se dá měřit', message: msg, okText: 'Nechat v mapě', cancelText: 'Skrýt' }).then(function (nechat) { if (nechat === false) prepni(false); });

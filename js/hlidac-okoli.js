@@ -273,7 +273,7 @@
         var p = document.getElementById(PILL); if (p) return p;
         try { AG.style('ag-okoli-pill-style', ['#' + PILL + '{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 76px);z-index:11980;display:none;align-items:center;gap:7px;padding:5px 12px;border-radius:999px;font:600 12px/1.2 var(--font-ui,system-ui),sans-serif;color:#fff;border:1px solid rgba(255,255,255,.22);box-shadow:0 4px 16px rgba(0,0,0,.45);max-width:88vw;background:rgba(146,94,7,.92);cursor:pointer;}', '#' + PILL + '.show{display:flex;}', '#' + PILL + '.bad{background:rgba(140,28,28,.94);}', 'body.ag-simple #' + PILL + '{display:none!important;}'].join('\n')); } catch (e) { swallow(e, 'css'); }
         p = document.createElement('div'); p.id = PILL; p.setAttribute('role', 'status');
-        p.addEventListener('click', function () { if (_stav) try { window.agAlert && window.agAlert({ title: 'Hlídač okolí', message: _stav.text + '<br><br><b>Co s tím:</b> ' + _stav.rada + '<br><small>Vypnout: Nastavení → AR & přesnost → Hlídač okolí.</small>' }); } catch (e) { /* nic */ } });
+        p.addEventListener('click', function () { if (_stav) try { window.agAlert && window.agAlert({ title: 'Hlídač okolí', message: _stav.text + '<br><br><b>Co s tím:</b> ' + _stav.rada + '<br><small>Vypnout: Nastavení → Mapa a body → Hlídač okolí.</small>' }); } catch (e) { /* nic */ } });
         document.body.appendChild(p); return p;
     }
     function ukaz(stav) {

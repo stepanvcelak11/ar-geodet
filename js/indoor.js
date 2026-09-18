@@ -505,7 +505,7 @@
                     ? '<b>Vizuální sledování tenhle telefon nenabízí</b> (na iPhonu WebXR není). Použije se krokový výpočet: kroky z akcelerometru, směr z kompasu — uvnitř budov s ním počítej jako s jednotkami procent ušlé dráhy.'
                     : 'Zjišťuji, jestli telefon umí vizuální sledování…'))
             + '</div>'
-            + '<div class="ag-in-note">Délka kroku: <b>' + stepLen().toFixed(2) + ' m</b> — kalibruje se venku v nástroji '
+            + '<div class="ag-in-note">Délka kroku: <b>' + stepLen().toFixed(2).replace('.', ',') + ' m</b> — kalibruje se venku v nástroji '
             + '<b>Krokový offset</b> (sdílená hodnota). Nezkalibrovaný krok je největší zdroj chyby.</div>';
         if (_fixes.length) {
             h += '<div class="ag-in-h">Historie srovnání</div>';

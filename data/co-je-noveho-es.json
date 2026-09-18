@@ -2,12 +2,24 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 371,
+      "datum": "2026-09-18",
+      "nadpis": "Recorrido por la app: enlaces a Ajustes tras la reforma, textos franceses con número, coma decimal",
+      "body": [
+        "<b>Francés:</b> los textos con un número dentro (la píldora «GPS sin fix 8 s · posición incierta», «hace 5 min», meses del Anuario, tiempo, papelera…) salían en italiano en la app francesa — 168 patrones ahora están de verdad en francés y la comprobación de datos lo vigila.",
+        "<b>Enlaces a Ajustes tras la reforma (v365):</b> «Mostrar filtros» de tipos de punto ocultos, «Máx. puntos en RA», el botón Cambiar junto a País de medición en el panel Mapa y Ajustes junto a Precisión desde el mapa llevaban a otra página distinta de donde está la opción. La tarjeta <b>Estás midiendo en</b>, los avisos y las guías dicen las rutas correctas (Mapa y puntos, Copia de seguridad y mantenimiento, Herramientas → ¿Me funciona todo?) y el mapa base se llama <b>Mapa</b>, no Vector.",
+        "<b>La tarjeta «Estás midiendo en»</b> muestra las coordenadas de ese país (Polonia = PL-2000, no S-JTSK); «Qué puede hacer la app aquí» es un botón de verdad.",
+        "<b>Herramientas:</b> faltaba la casilla <b>Croquis del punto en el mapa</b> (la búsqueda y la lista de tareas no llevaban a nada); Parcela tiene un botón de minimizar en vez de dos; Redes subterráneas — los selectores de coordenadas en una línea; Distanciómetro acústico — la opción de sonido cabe en pantalla estrecha.",
+        "<b>Números en checo con coma:</b> Mantenimiento «Usado 0,0 MB de ~3,0 GB», ¿Me funciona todo? («±3,0 m»), Sol y luz (sombra), Seguridad en campo (S-JTSK 741 789,46), Dentro de un edificio, Póster del día; el Diario del día usa el plural correcto para un solo punto."
+      ]
+    },
+    {
       "v": 370,
       "datum": "2026-09-18",
       "nadpis": "Tarjeta «Estás midiendo en»: nada más arrancar en el extranjero, no solo al cruzar la frontera",
       "body": [
         "<b>Quien descarga la app en el extranjero lo sabe enseguida.</b> Tras arrancar en un país distinto de Chequia (una vez por país) aparece la tarjeta <b>Estás midiendo en: …</b> — sistema de coordenadas y alturas de ese país, si el estado <b>publica aquí puntos oficiales</b> (sí: Chequia, Eslovaquia, Suiza, Países Bajos — la app los descarga; no: en el mapa solo están tus puntos), si hay catastro y qué ortofoto. Antes el país se anunciaba solo al cruzar la frontera, con dos avisos seguidos — ahora es una sola tarjeta, también al cruzar.",
-        "La tarjeta espera a que la app esté en marcha y nada la tape (puerta, guía de la primera medición, otro diálogo). Puedes abrirla de nuevo en <b>Ajustes → Trabajo y datos → País de medición → Qué puede hacer la app aquí</b>; bajo el selector de país hay una frase con los países donde la red geodésica es pública.",
+        "La tarjeta espera a que la app esté en marcha y nada la tape (puerta, guía de la primera medición, otro diálogo). Puedes abrirla de nuevo en <b>Ajustes → Mapa y puntos → País de medición → Qué puede hacer la app aquí</b>; bajo el selector de país hay una frase con los países donde la red geodésica es pública.",
         "La simulación de país extranjero avisa con burbuja, no con diálogo (tapaba la tarjeta), y ya no afirma que «aquí no hay puntos ČÚZK» — en Suiza y Países Bajos los hay."
       ]
     },

@@ -356,7 +356,7 @@
         { k: 'project-import', fn: 'agOpenProjectImport', pro: 1, w: 1, cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Import projektu', vh: 'DXF, situace', keys: 'import projekt oblast stazeni csv dxf soubor nahrat',
           help: { t: 'Import projektu (DXF)' } },
         // Náčrt na mapě (N2, 17. 9. 2026): oficiální náčrt ČÚZK položený dvěma klepnutími na katastr
-        { k: 'nacrt-na-mapu', fn: 'agOpenNacrtNaMapu', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Náčrt bodu na mapě', vh: 'oficiální náčrt ČÚZK položený na katastr, v mapě i v AR', keys: 'nacrt mistopis cuzk mapa katastr polozit georeference bod dohledani hledani roh budovy ar',
+        { k: 'nacrt-na-mapu', fn: 'agOpenNacrtNaMapu', cat: 'Vytyčování a náčrt', verb: 'Katastr a podklady', vl: 'Náčrt bodu na mapě', vh: 'oficiální náčrt ČÚZK položený na katastr, v mapě i v AR', keys: 'nacrt mistopis cuzk mapa katastr polozit georeference bod dohledani hledani roh budovy ar',
           help: { t: 'Náčrt bodu na mapě' } },
         { k: 'geo-overlay', fn: 'agOpenGeoOverlay', pro: 1, cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Podložit plán do mapy', vh: 'georeference obrázku', keys: 'podklad georeference obrazek plan situace vykres overlay',
           help: { t: 'Vlastní podklad' } },

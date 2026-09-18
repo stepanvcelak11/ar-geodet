@@ -2,12 +2,24 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 371,
+   "datum": "2026-09-18",
+   "nadpis": "Průchod appkou: odkazy do Nastavení po přestavbě, francouzské texty s číslem, čísla s čárkou",
+   "body": [
+    "<b>Francouzština:</b> texty s číslem uvnitř (pilulka „GPS bez fixu 8 s · poloha nejistá“, „před 5 min“, měsíce v Ročence, počasí, koš…) byly ve francouzské appce italsky — 168 vzorů je teď opravdu francouzsky a kontrola dat hlídá, aby se to neopakovalo.",
+    "<b>Odkazy do Nastavení po přestavbě (v365):</b> „Zobrazit filtry“ u schovaných druhů bodů, „Max. bodů v AR“, tlačítko Změnit u Země měření v panelu Mapa a Nastavení u Přesnosti z mapy vedly na jinou stránku, než kde volba je. Karta <b>Měříš v zemi</b>, hlášky a návody říkají správné cesty (Mapa a body, Záloha a údržba, Nástroje → Funguje mi všechno?) a podklad se jmenuje <b>Mapa</b>, ne Vektor.",
+    "<b>Karta „Měříš v zemi“</b> ukazuje souřadnice té země (Polsko = PL-2000, ne S-JTSK); „Co tu appka umí“ je pořádné tlačítko.",
+    "<b>Nástroje:</b> dlaždice <b>Náčrt bodu na mapě</b> chyběla (hledání i seznam úkonů vedly do prázdna); Parcela má jedno tlačítko minimalizace místo dvou; Podzemní sítě — přepínače souřadnic v jednom řádku; Akustický dálkoměr — volba zvuku se vejde na úzký displej.",
+    "<b>Čísla česky s čárkou:</b> Údržba „Využito 0,0 MB z ~3,0 GB“, Funguje mi všechno? („±3,0 m“), Slunce a světlo (stín), Bezpečnost v terénu (S-JTSK 741 789,46), Uvnitř budovy, Plakát dne; Deník dne píše „1 bod“, ne „1 bodů“."
+   ]
+  },
+  {
    "v": 370,
    "datum": "2026-09-18",
    "nadpis": "Karta „Měříš v zemi“: hned po startu v cizině, ne až po přejezdu hranice",
    "body": [
     "<b>Kdo si appku stáhne v cizině, dozví se to hned.</b> Po startu v jiné zemi než Česku (jednou na zemi) naskočí karta <b>Měříš v zemi: …</b> — souřadnicový systém a výšky té země, jestli tu stát <b>zveřejňuje úřední body</b> (ano: Česko, Slovensko, Švýcarsko, Nizozemsko — appka je stáhne; ne: v mapě jsou jen tvoje body), jestli mám katastr a jaké ortofoto. Dřív se o zemi říkalo jen po přejezdu hranice, a to dvěma hláškami za sebou — teď je to jedna karta i při přejezdu.",
-    "Karta počká, až appka běží a nic ji nepřekrývá (brána, průvodce prvním měřením, jiný dialog). Kdykoli ji otevřeš znovu v <b>Nastavení → Zakázka a data → Země měření → Co tu appka umí</b>; pod výběrem země stojí věta, kde je bodové pole veřejné.",
+    "Karta počká, až appka běží a nic ji nepřekrývá (brána, průvodce prvním měřením, jiný dialog). Kdykoli ji otevřeš znovu v <b>Nastavení → Mapa a body → Země měření → Co tu appka umí</b>; pod výběrem země stojí věta, kde je bodové pole veřejné.",
     "Simulace cizí země hlásí bublinou, ne dialogem (ten kartu přebíjel), a už netvrdí, že „úřední body ČÚZK tu nejsou“ — ve Švýcarsku a Nizozemsku jsou."
    ]
   },
