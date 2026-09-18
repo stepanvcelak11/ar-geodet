@@ -44,16 +44,29 @@
     //         i < 0 = na začátek sekce, i >= 0 = na konec (menší číslo vždy dřív)
     var LAYOUT = {
         'tab-vzhled': {
-            order: ['Motiv a barvy', 'Displej a čitelnost', 'Ovládání', 'Prvky na obrazovce', 'Zjednodušení'],
+            order: ['Motiv a barvy', 'Displej a čitelnost', 'Prvky na obrazovce'],
+            put: {
+                's-mapfab': { s: 'Prvky na obrazovce', i: 1 }         // tlačítko vrstev v mapě
+                // 'ag-rp-setrow' se PŘESUNUL do záložky Profily (návrh C) — viz níž
+                // sekce Ovládání + Zjednodušení se 18. 9. 2026 PŘESTĚHOVALY do záložky Ovládání (N4) — viz níž
+            }
+        },
+        // ZÁLOŽKA OVLÁDÁNÍ (18. 9. 2026, N4): všechno, čím se appka OVLÁDÁ (ruka, rukavice, vibrace,
+        // gesta, jednoduchý režim, zjednodušení) a jak šetří telefon. Moduly věší řádky pořád tam,
+        // kam byly zvyklé (Vzhled, AR) — MOVE níž je sem přestěhuje, ať se nemusí měnit každý z nich.
+        'tab-ovladani': {
+            order: ['Ovládání', 'Zjednodušení', 'Telefon a baterie'],
             put: {
                 'ag-glove-row': { s: 'Ovládání', after: 's-lefthand' },   // rukavice hned k levé ruce
+                'ag-jr-setrow': { s: 'Ovládání', i: 3 },                  // jednoduchý režim
                 'ag-gz-setrow': { s: 'Ovládání', i: 4 },                  // gesta = zkratky na nástroje
                 'ag-kn-setrow': { s: 'Ovládání', i: 5 },                  // kolečko nástrojů (podržení tlačítka Nástroje)
-                's-mapfab': { s: 'Prvky na obrazovce', i: 1 },        // tlačítko vrstev v mapě
+                's-mapfab': { s: 'Ovládání', i: 6 },                      // tlačítko vrstev v mapě (map-tools.js ho věší k levé ruce)
                 'ag-ns-setrow': { s: 'Zjednodušení', i: 1 },              // krátké nastavení
                 'ag-ts-setrow': { s: 'Zjednodušení', i: 2 },              // jednoduchý panel Nástrojů
-                'ag-ua-simple-row': { s: 'Zjednodušení', i: 3 }               // zjednodušené Nástroje
-                // 'ag-rp-setrow' se PŘESUNUL do záložky Profily (návrh C) — viz níž
+                'ag-ua-simple-row': { s: 'Zjednodušení', i: 3 },          // zjednodušené Nástroje
+                'agl-card': { s: 'Telefon a baterie', i: 1 },             // slabší telefon (js/slabsi-telefon.js)
+                'agp-card': { s: 'Telefon a baterie', i: 2 }              // úspora baterie (js/power-save.js)
             }
         },
         // ZÁLOŽKA PROFILY (návrh C): obě podobně pojmenované věci vedle sebe.
@@ -64,7 +77,8 @@
             put: {
                 'ag-prof-adv': { s: 'Profil nastavení', i: 1 },   // js/profily.js (sbalený obal pruhu)
                 'ag-ss-setrow': { s: 'Profil práce', i: 0 },   // js/student-start.js (Kdo jsi)
-                'ag-rp-setrow': { s: 'Profil práce', i: 1 }    // js/rezim-prace.js
+                'ag-rp-selrow': { s: 'Profil práce', i: 1 },   // js/rezim-prace.js — select profilu (18. 9. 2026, N3)
+                'ag-rp-setrow': { s: 'Profil práce', i: 2 }    // js/rezim-prace.js — pás i v Nástrojích (přepínač)
             }
         },
         'tab-ar': {
@@ -72,8 +86,7 @@
             put: {
                 'ag-arfusion-row': { s: 'Kompas a stabilita směru', i: -2 },  // nad tlačítko Kompas
                 'agvt-settings-row': { s: 'Kompas a stabilita směru', i: -1 },
-                'agl-card': { s: 'Kompas a stabilita směru', i: 8 },   // slabší telefon (js/slabsi-telefon.js, vlastní nadpis)
-                'agp-card': { s: 'Kompas a stabilita směru', i: 9 }    // úspora baterie (vlastní nadpis)
+                // 'agl-card' a 'agp-card' (slabší telefon, úspora baterie) → záložka Ovládání (18. 9. 2026)
             }
         },
         'tab-data': {
@@ -92,6 +105,28 @@
         }
     };
     var STRAY_H = 'Další volby';     // sběrná sekce pro neznámé přírůstky
+    // STĚHOVÁNÍ MEZI ZÁLOŽKAMI (18. 9. 2026, N4): prvek s tímhle id patří do dané záložky, ať ho
+    // modul vložil kamkoli. Řeší se PŘED srovnáním sekcí: přesun je jen appendChild, o pořadí
+    // uvnitř cílové záložky se postará arrangeTab podle LAYOUT.put.
+    var MOVE = {
+        'tab-ovladani': ['ag-glove-row', 'ag-jr-setrow', 'ag-gz-setrow', 'ag-kn-setrow', 'ag-ns-setrow', 'ag-ts-setrow', 'ag-ua-simple-row', 'agl-card', 'agp-card']
+    };
+    function relocate() {
+        for (var tabId in MOVE) {
+            if (!Object.prototype.hasOwnProperty.call(MOVE, tabId)) continue;
+            var tab = document.getElementById(tabId);
+            if (!tab) continue;                                   // starší index.html bez záložky — nic se nestěhuje
+            var ids = MOVE[tabId];
+            for (var i = 0; i < ids.length; i++) {
+                var el = document.getElementById(ids[i]);
+                if (!el) continue;
+                var src = el.closest ? el.closest('.settings-tab') : null;
+                if (!src || src === tab) continue;
+                var row = rowOf(el, src);
+                if (row) tab.appendChild(row);
+            }
+        }
+    }
 
     function norm(s) {
         s = String(s == null ? '' : s).toLowerCase();
@@ -401,6 +436,7 @@
         _busy = true;
         try {
             arrangeHead();
+            relocate();
             // Seznam záložek se bere z LAYOUT, ne natvrdo. Dřív tu byly vypsané čtyři
             // ids — nová záložka „Profily" se pak sice do LAYOUT zapsala, ale nikdy
             // se nesrovnala, takže její sekce vůbec nevznikly (8.8.2026).

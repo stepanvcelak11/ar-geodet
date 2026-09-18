@@ -153,12 +153,13 @@ async def beh(url):
         ok('A1 modul je nacteny a vypnuty', await cekej(page, "window.AGMapaVektor && AGMapaVektor.stav() === 'vypnuto'", 60), await page.evaluate("() => window.AGMapaVektor && AGMapaVektor.stav()"))
         ok('A2 knihovny MapLibre se NEstahuji, dokud je vypnuto', await page.evaluate("() => !window.maplibregl && !document.querySelector('script[src*=\"maplibre-gl-5\"]')"))
         ok('A3 podklad je rastr OSM (.leaflet-tile v mape, zadne platno MapLibre)', await page.evaluate("() => !!document.querySelector('#map .leaflet-tile-pane img, #map .leaflet-tile') && !document.querySelector('#map .maplibregl-canvas')"))
-        await page.evaluate("() => { openSettings(); switchTab('tab-vzhled', document.querySelectorAll('.tab-btn')[0]); }")
-        ok('A4 Nastaveni → Vzhled: prepinac „Nová mapa (vektor, beta)", styl a adresa schovane', await cekej(page, "document.getElementById('s-mapa-vektor') && !document.getElementById('s-mapa-vektor').checked && document.getElementById('s-mapa-vektor-vice').style.display === 'none'", 20))
+        await page.evaluate("() => { openSettings(); switchTab('tab-data', document.querySelectorAll('.tab-btn')[2]); }")
+        # 18. 9. 2026 (N2): prepinac a styl maji JEDNO misto — panel Mapa → Podklad; v Nastavení → Data je jen adresa dat
+        ok('A4 Nastaveni: prepinac mapy uz NENI ve Vzhledu, adresa PMTiles je v Data', await cekej(page, "!document.getElementById('s-mapa-vektor') && document.getElementById('s-mapa-url') && document.getElementById('tab-data').contains(document.getElementById('s-mapa-url')) && !document.getElementById('tab-vzhled').textContent.includes('Nová mapa (vektor')", 20))
 
         # ================= B: zapnuti s fixture ====================================
         await page.evaluate("() => { document.getElementById('s-mapa-url').value = %s; document.getElementById('s-mapa-url').dispatchEvent(new Event('change')); }" % json.dumps(fixture))
-        await page.evaluate("() => { var s = document.getElementById('s-mapa-vektor'); s.checked = true; s.dispatchEvent(new Event('change')); document.getElementById('settings-modal').style.display = 'none'; }")
+        await page.evaluate("() => { document.getElementById('settings-modal').style.display = 'none'; document.getElementById('ms-base-vektor').click(); }")
         ok('B1 po zapnuti se dotahly knihovny a stav = zapnuto', await cekej(page, "window.maplibregl && window.pmtiles && L.maplibreGL && AGMapaVektor.stav() === 'zapnuto'", 60), await page.evaluate("() => [AGMapaVektor.stav(), AGMapaVektor.chyba()]"))
         ok('B2 v Leafletu je platno MapLibre a #map ma tridu base-vektor', await cekej(page, "document.querySelector('#map .maplibregl-canvas') && document.getElementById('map').classList.contains('base-vektor')", 30))
         ok('B3 styl je nacteny a zdroj je nase fixture', await cekej(page, "AGMapaVektor.mapa() && AGMapaVektor.mapa().isStyleLoaded() && AGMapaVektor.mapa().getStyle().sources.pm.url.indexOf('tests/fixtures/mapa-praha.pmtiles') > 0", 60),

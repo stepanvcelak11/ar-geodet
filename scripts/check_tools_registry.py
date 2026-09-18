@@ -242,6 +242,17 @@ def main():
             errs.append(u'%s: ma hidden: 1, ale zadna synonyma (keys) — schovany nastroj '
                         u'se da otevrit uz jen hledanim, takze by z appky zmizel uplne' % k)
 
+    # ---- STROP SCHOVANYCH NASTROJU (18. 9. 2026, hodnoceni N10) --------------------
+    # `hidden: 1` je odkladiste: 13 nastroju, ktere uzivatel nechtel videt, ale nikdo je
+    # nesmazal ani neslouzil. Kazdy dalsi zvetsuje appku (218 modulu, 110 zaznamu) a riziko
+    # kolizi id, jake se resily 15. 9. Pravidlo: novy nastroj = jeden stary pryc nebo
+    # slouceny. Strop se smi snizit, zvysit jen s duvodem zapsanym sem.
+    HIDDEN_MAX = 13
+    hidden = [r['k'] for r in recs if r.get('hidden')]
+    if len(hidden) > HIDDEN_MAX:
+        errs.append(u'schovanych nastroju (hidden: 1) je %d, strop je %d — nastroj bud vrat do seznamu, '
+                    u'sluc do rozcestniku (inhub), nebo smaz i s modulem: %s' % (len(hidden), HIDDEN_MAX, ', '.join(hidden)))
+
     # zaznam bez nastroje = zbytek po smazanem modulu; hub/notile jsou vyjimky
     for r in recs:
         k = r['k']

@@ -165,7 +165,10 @@ async def beh(url):
         if s:
             verbs = await page.evaluate("() => AGReg.groups().map(g => g.t)")
             ok('A2 první stránka je Moje a okno se na ní otevřelo', s['ids'][0] == 'moje' and s['cur'] == 'moje' and s['vybrany'].endswith('Moje'), (s['ids'][:3], s['cur'], s['vybrany']))
-            ok('A3 každé sloveso z registru má stránku, v pořadí registru', [i for i in s['ids'] if i in verbs] == [v for v in verbs if v in s['ids']] and len([i for i in s['ids'] if i in verbs]) >= 10, s['ids'])
+            # 18. 9. 2026 (N3): Před výjezdem, Firma a papíry, Příručka a výpočty a Učit se jsou sekce na stránce „Další"
+            ok('A3 terénní slovesa mají stránku v pořadí registru; 4 kancelářská jsou sekce na „Další"', [i for i in s['ids'] if i in verbs] == [v for v in verbs if v in s['ids']] and len([i for i in s['ids'] if i in verbs]) == 8
+               and not any(v in s['ids'] for v in ('Před výjezdem', 'Firma a papíry', 'Příručka a výpočty', 'Učit se')) and 'dalsi' in s['ids'], s['ids'])
+            ok('A3b stránka Další má sekce sloučených sloves (ag-uk-dalsi) s řádky', await page.evaluate("() => { var p = document.querySelector('.ag-uk-page[data-page=\"dalsi\"]'); var s = p ? p.querySelectorAll('.ag-uk-g.ag-uk-dalsi') : []; return s.length >= 3 && Array.from(s).every(x => x.querySelectorAll('.ag-uk-i').length > 0); }"))
             ok('A4 v Pro tarifu stránka „pro" NENÍ', 'pro' not in s['ids'], s['ids'])
             ok('A5 pás stránek roluje vodorovně (scrollWidth = N × šířka)', s['scrollW'] >= (len(s['ids']) - 0.5) * s['clientW'] and s['clientW'] > 200, (s['scrollW'], s['clientW'], len(s['ids'])))
             dlouhe = {k: v['h'] for k, v in s['strany'].items() if v['h'] > 1900}
@@ -206,7 +209,9 @@ async def beh(url):
                      poradit: !!m.querySelector('.ag-uk-foot'), editbtn: (function () { var b = document.getElementById('ag-tp-editbtn'); return b ? getComputedStyle(b).display : 'none'; })() };
         }""")
         ok('B1 Moje: Pokračovat s naposledy použitým nástrojem nahoře', b and b['pokracovat'] and 'Oměrné' in b['pokrText'], b)
-        ok('B2 Moje: pás „Co dnes děláš" je uvnitř stránky Moje', b and b['rp'], b)
+        # 18. 9. 2026 (N3): pás je výchozím stavem SCHOVANÝ (profil se volí v Nastavení → Profily), v Moje je jen po zapnutí
+        ok('B2 Moje: pás „Co dnes děláš" je výchozím stavem schovaný (prvek skrytý nebo mimo Moje)', b and (not b['rp'] or await page.evaluate("() => { var w = document.getElementById('ag-rp-wrap'); return !w || w.hidden; }")), b)
+        ok('B2b Nastavení → Profily má select profilu práce a přepínač pásu', await page.evaluate("() => !!document.getElementById('ag-rp-sel') && document.getElementById('ag-rp-sel').options.length >= 5 && !!document.getElementById('ag-rp-sw') && !document.getElementById('ag-rp-sw').checked"))
         ok('B3 Moje: ★ Připnuté = oba připnuté ze seedu, hvězdičky svítí', b and b['favRows'] == ['brutal-gps', 'openStakeoutModal'] and b['hvezdy'] == 2, b)
         ok('B4 Moje: u připnutých je gesto (výchozí ↓→ ↓↑ pro Přesnou GPS) nebo „+ gesto"', b and len(b['gesta']) == 2 and any('↓' in g and '↑' in g for g in b['gesta']) and any('gesto' in g for g in b['gesta']), b and b['gesta'])
         ok('B5 Moje: „Poradit, co použít" v patičce; tlačítko „Upravit oblíbené" schované', b and b['poradit'] and b['editbtn'] == 'none', b)

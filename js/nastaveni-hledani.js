@@ -40,14 +40,18 @@
         { id: 'tab-vzhled', t: 'Vzhled' },
         { id: 'tab-ar', t: 'AR a přesnost' },
         { id: 'tab-data', t: 'Data' },
-        { id: 'tab-udrzba', t: 'Údržba' }
+        { id: 'tab-udrzba', t: 'Údržba' },
+        { id: 'tab-profily', t: 'Profily' },
+        { id: 'tab-ovladani', t: 'Ovládání' }
     ];
 
     // Co zůstává vidět v krátkém pohledu — id ovládacího prvku uvnitř řádku.
     // Vybráno podle toho, co geodet mění v terénu, ne podle toho, co existuje.
     var KEEP = {
         'tab-vzhled': ['seg-mode', 'v-theme', 's-outdoor'],
-        'tab-ar': ['s-ar-radius-slider', 's-map-radius-slider', 's-max-ar-slider', 'agl-rezim'],   // dosah AR + mapa pohromadě; agl-rezim = Slabší telefon
+        'tab-ar': ['s-ar-radius-slider', 's-map-radius-slider', 's-max-ar-slider'],   // dosah AR + mapa pohromadě
+        'tab-ovladani': ['s-lefthand', 'agl-rezim'],   // levá ruka, jednoduchý režim, slabší telefon (18. 9. 2026)
+        'tab-profily': null,
         'tab-data': ['s-project-select', 'f-tb'],
         'tab-udrzba': null           // null = nekrátit (jsou tam jen 4 tlačítka)
     };

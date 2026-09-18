@@ -81,7 +81,12 @@
     // Otázka, kterou pokládá renderAR: „má se tenhle bod ukázat i mimo dosah?"
     function vzdy(id) { return id != null && nacti()[String(id)] === 1; }
     function pocet() { return Object.keys(nacti()).length; }
+    // ⚠ Generace výběru (18. 9. 2026): „Zrušit výběr“ během dobíhajícího stahování z ČÚZK
+    //   dřív prohrálo — Promise po fetchi zavolala seber(bb) a všech 250 bodů bylo zpátky
+    //   (test_v283 H). Stahování si pamatuje generaci a po zrušení už nic nevybírá.
+    var _gen = 0;
     function zrus() {
+        _gen++;
         _set = Object.create(null);
         uloz();
         prekresli();
@@ -295,8 +300,10 @@
         if (polomer > MAX_POLOMER_M) { srovnejListu(zprava + ' Výřez je na stažení z ČÚZK moc velký (přes ' + Math.round(MAX_POLOMER_M * 2 / 1000) + ' km napříč) — zmenši ho.'); return; }
         if (_stahuji) { srovnejListu(zprava); return; }
         _stahuji = true;
+        var gen = _gen;
         srovnejListu(zprava + ' Stahuji body ČÚZK pro výřez…');
         Promise.resolve().then(function () { return fetchGeodata(clat, clng, polomer, false); }).then(function () {
+            if (gen !== _gen) return;   // mezitím zrušeno — body z ČÚZK jsou v telefonu, ale do výběru nejdou
             var r2 = seber(bb);
             if (r2.pridano) prekresli();
             var celkem = r.pridano + r2.pridano;

@@ -15,7 +15,8 @@
 // zapnutá, nahradí v `baseLayers.osm` rastr OSM — applyMapLayers() z grafika.js ji
 // pak přidává/odebírá jako dřív. Ortofoto ČÚZK zůstává druhý podklad.
 //
-// ZAPÍNÁNÍ: Nastavení → Vzhled → „Nová mapa (vektor, beta)". VÝCHOZE VYPNUTO (beta) a
+// ZAPÍNÁNÍ: panel Mapa (tlačítko Vrstvy) → Podklad → karta Vektor; adresa vlastních dat v
+// Nastavení → Data. VÝCHOZE VYPNUTO (beta) a
 // v režimu slabší telefon (AGLite) se nenabízí — MapLibre je 1 MB knihovny a WebGL.
 // Knihovny (js/lib/maplibre-gl-5.24.0.js + css, pmtiles-4.5.0.js, maplibre-gl-leaflet)
 // se stahují AŽ při zapnutí, ne při startu.
@@ -209,30 +210,28 @@
         return out;
     }
 
-    // ---- Nastavení → Vzhled → řádek ------------------------------------------------------
+    // ---- Nastavení → Data → „Data mapy" (jen adresa PMTiles) --------------------------------
+    // ⚠ JEDNO MÍSTO (18. 9. 2026): zapínání a styl vektorové mapy bydlí v panelu Mapa → Podklad
+    //   (tlačítko Vrstvy). Dřív byl přepínač i v Nastavení → Vzhled a čtyři hlášky posílaly
+    //   uživatele právě tam — dvě místa pro jednu volbu. Tady zůstává jen adresa vlastních dat,
+    //   což je věc dat, ne vzhledu.
     function ui() {
-        if (document.getElementById('s-mapa-vektor')) return;
-        var tab = document.getElementById('tab-vzhled'); if (!tab) return;
-        var hs = tab.querySelectorAll('.set-h'), kotva = null;
-        for (var i = 0; i < hs.length; i++) if (/Displej/.test(hs[i].textContent)) { kotva = hs[i]; break; }
-        var h = document.createElement('div'); h.className = 'set-h'; h.textContent = 'Mapa';
-        var r1 = document.createElement('div'); r1.className = 'st-row';
-        r1.innerHTML = '<span class="st-lab">Nová mapa (vektor, beta)<small id="s-mapa-vektor-info">vlastní podklad z OpenStreetMap: budovy, hrany, koleje, bez reklam; styl podle motivu</small></span>'
-            + '<label class="st-sw"><input type="checkbox" id="s-mapa-vektor"><span class="st-sw-face"></span></label>';
+        if (document.getElementById('s-mapa-url')) return;
+        var tab = document.getElementById('tab-data'); if (!tab) return;
+        var h = document.createElement('div'); h.className = 'set-h'; h.textContent = 'Data mapy (vektor)';
         var r2 = document.createElement('div'); r2.id = 's-mapa-vektor-vice';
-        r2.innerHTML = '<label>Styl vektorové mapy</label><select id="s-mapa-styl" class="st-sel"><option value="auto">Podle motivu</option><option value="den">Den</option><option value="noc">Noc</option><option value="modrotisk">Modrotisk</option><option value="tisk">Tisk (černobílá)</option></select>'
-            + '<label>Adresa dat mapy (PMTiles)<small style="display:block; font-weight:400; color:var(--text-muted);">nech prázdné = výchozí; vlastní výřez z pmtiles extract</small></label><input type="text" id="s-mapa-url" autocomplete="off" placeholder="' + URL_VYCHOZI + '">';
-        if (kotva) { tab.insertBefore(h, kotva); tab.insertBefore(r1, kotva); tab.insertBefore(r2, kotva); } else { tab.appendChild(h); tab.appendChild(r1); tab.appendChild(r2); }
-        var sw = r1.querySelector('input'), sel = r2.querySelector('select'), inp = r2.querySelector('input');
-        sw.checked = st.zap; sel.value = st.styl; inp.value = st.url; r2.style.display = st.zap ? '' : 'none';
-        if (lite()) { sw.disabled = true; document.getElementById('s-mapa-vektor-info').textContent = 'v režimu slabší telefon není k dispozici (WebGL)'; }
-        sw.addEventListener('change', function () { r2.style.display = sw.checked ? '' : 'none'; nastav({ zap: sw.checked }).then(obnov); });
-        sel.addEventListener('change', function () { nastav({ styl: sel.value }).then(obnov); });
+        r2.innerHTML = '<label>Adresa dat mapy (PMTiles)<small id="s-mapa-vektor-info" style="display:block; font-weight:400; color:var(--text-muted);"></small></label><input type="text" id="s-mapa-url" autocomplete="off" placeholder="' + URL_VYCHOZI + '">'
+            + '<small style="display:block; margin-top:4px; color:var(--text-muted);">nech prázdné = výchozí data QTRIG; vlastní výřez z pmtiles extract. Mapa se zapíná tlačítkem Vrstvy → Podklad → Vektor.</small>';
+        tab.appendChild(h); tab.appendChild(r2);
+        var inp = r2.querySelector('input');
+        inp.value = st.url;
+        if (lite()) { inp.disabled = true; }
         inp.addEventListener('change', function () { nastav({ url: inp.value.trim() }).then(obnov); });
         obnov();
     }
     function obnov() {
-        var i = document.getElementById('s-mapa-vektor-info'); if (!i || lite()) return;
+        var i = document.getElementById('s-mapa-vektor-info'); if (!i) return;
+        if (lite()) { i.textContent = 'v režimu slabší telefon není vektorová mapa k dispozici (WebGL)'; return; }
         i.textContent = stav === 'zapnuto' ? ('zapnuto · styl ' + varianta() + ' · ' + (st.url ? 'vlastní data' : 'data z cloudu QTRIG'))
             : stav === 'nacitam' ? 'načítám knihovny mapy…'
             : stav === 'chyba' ? ('nejde zapnout: ' + chybaText)

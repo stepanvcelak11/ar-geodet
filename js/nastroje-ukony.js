@@ -660,19 +660,15 @@
         // ★ Připnuté — VOLBA UŽIVATELE: co si sem dal sám, to rozcestník ani `hidden`
         // nepotlačuje. Připnutý nástroj tu ukazuje své gesto (nebo nabídne ho nakreslit).
         var favs = favKeys().filter(function (k) { return findTile(k); });
-        var fsec = section(moje, '★ Připnuté', favs.length ? favs.length : null, 'ag-uk-fav',
-            favs.length ? (gestaZapnuta() ? 'klepni na gesto = změnit' : null) : null);
+        // ★ Připnuté jen když něco připnuté JE (18. 9. 2026, N3) — prázdná sekce s poučkou
+        // zabírala první obrazovku Nástrojů; poučka je teď jednou větou v patičce Moje.
         if (favs.length) {
+            var fsec = section(moje, '★ Připnuté', favs.length, 'ag-uk-fav', gestaZapnuta() ? 'klepni na gesto = změnit' : null);
             favs.forEach(function (k) {
                 var r = (window.AGReg && AGReg.get(k)) || {};
                 var t = findTile(k);
                 fsec.appendChild(item({ l: r.vl || tileLabel(t), h: r.vh || '' }, (function (kk) { return function () { run(kk); }; })(k), iconOf(k), k, { fav: 1, gest: 1 }));
             });
-        } else {
-            var em = document.createElement('div');
-            em.className = 'ag-uk-empty';
-            em.textContent = 'Nástroj, který používáš pořád, si připni hvězdičkou ★ v jeho řádku — bude tady' + (gestaZapnuta() ? ' a půjde mu dát gesto.' : '.');
-            fsec.appendChild(em);
         }
         var pl = profileLabel();
         if (pl) {
@@ -685,9 +681,24 @@
                 });
             }
         }
+        if (!favs.length) {
+            var em = document.createElement('div');
+            em.className = 'ag-uk-empty';
+            em.textContent = 'Nástroj, který používáš pořád, si připni hvězdičkou ★ v jeho řádku — bude tady' + (gestaZapnuta() ? ' a půjde mu dát gesto.' : '.');
+            moje.appendChild(em);
+        }
         moje.appendChild(footBlock());
+        // Moje bez obsahu (nic naposledy, nic připnutého, žádný profil) → okno se otevře na prvním
+        // slovesu, ať je hned vidět nástroj a ne prázdná stránka s poučkou
+        var mojePrazdne = !nb && !favs.length && !vlast.length && !(pl && profileKeys().filter(function (k) { return findTile(k); }).length);
 
         // ---- SLOVESA: jedno sloveso = jedna stránka ---------------------------------------------
+        // ⚠ ČTYŘI SLOVESA POD „DALŠÍ" (18. 9. 2026, N3): pásek měl 14 záložek a na 390 px se jich
+        //   vešlo sedm. Před výjezdem, Firma a papíry, Příručka a výpočty a Učit se nejsou terénní
+        //   úkony — bydlí na stránce „Další" jako sekce s nadpisem (student má Učit se dál první).
+        var DO_DALSI = { 'Před výjezdem': 1, 'Firma a papíry': 1, 'Příručka a výpočty': 1, 'Učit se': 1 };
+        var dalsiSekce = [];
+        try { if (window.AGProfilOsoby && AGProfilOsoby.je('student')) delete DO_DALSI['Učit se']; } catch (e) { /* nic */ }
         // ⚠ ZAMČENÉ (PRO BEZ LICENCE) STRANOU (12. 9. 2026 dolů, 15. 9. 2026 na vlastní
         //   stránku, přání: „aby ta Pro nebyly rozházený v těch daných kategoriích,
         //   ale aby to bylo stranou a nepřekáželo"). Slovesné stránky obsahují jen to,
@@ -705,6 +716,7 @@
                 return true;
             });
             if (!volne.length) return;                      // celé sloveso je za peníze → jen na Pro
+            if (DO_DALSI[grp.t]) { dalsiSekce.push({ grp: grp, volne: volne }); return; }
             var sec = page(grp.t, grp.t, KRATCE[grp.t] || grp.t);
             heading(sec, grp.t, volne.length);
             volne.forEach(function (it) {
@@ -741,12 +753,33 @@
             if (zamceno(r.k)) { zamcene.push({ it: { k: r.k, l: r.l }, verb: '' }); return false; }
             return true;
         });
-        if (rest.length) {
-            var rsec = page(PAGE_DALSI, 'Další nástroje', 'Další');
-            heading(rsec, 'Další nástroje', rest.length);
-            rest.forEach(function (r) {
-                rsec.appendChild(item({ l: r.l }, function () { run(r.k); }, iconOf(r.k), r.k, { fav: 1 }));
+        if (rest.length || dalsiSekce.length) {
+            var rsec = page(PAGE_DALSI, 'Další', 'Další');
+            // slovesa sloučená pod Další — každé jako sekce s nadpisem (řádky mají stejné chování)
+            dalsiSekce.forEach(function (d) {
+                var dsec = section(rsec, d.grp.t, d.volne.length, 'ag-uk-dalsi');
+                d.volne.forEach(function (it) {
+                    used[it.k] = 1;
+                    if (HUB[it.k]) {
+                        dsec.appendChild(hubRow(it, d.grp.t));
+                        var hk2 = [];
+                        try { hk2 = (window.AGReg && AGReg.hubItems) ? AGReg.hubItems(it.k) : []; } catch (e) { hk2 = []; }
+                        hk2.forEach(function (k) {
+                            if (HIDDEN[k] || !findTile(k) || !zamceno(k) || used[k]) return;
+                            var r = (window.AGReg && AGReg.get(k)) || {};
+                            used[k] = 1;
+                            zamcene.push({ it: { k: k, l: r.vl || tileLabel(findTile(k)), h: it.l + (r.vh ? ' · ' + r.vh : '') }, verb: d.grp.t });
+                        });
+                    }
+                    else dsec.appendChild(item(it, function () { run(it.k); }, iconOf(it.k), it.k, { fav: 1 }));
+                });
             });
+            if (rest.length) {
+                heading(rsec, 'Další nástroje', rest.length);
+                rest.forEach(function (r) {
+                    rsec.appendChild(item({ l: r.l }, function () { run(r.k); }, iconOf(r.k), r.k, { fav: 1 }));
+                });
+            }
             // Pojistka funguje, ale tiše: 9. 8. 2026 tu půl roku ležel „Metr v kameře"
             // a „Kontrola vrstvy", protože je nikdo do mapy sloves nedopsal. Ozve se
             // v konzoli. "noverb" z registru = nástroj tu MÁ být; bez registru je tu
@@ -789,6 +822,7 @@
         }
 
         host.setAttribute('data-sig', gridSig());
+        host.setAttribute('data-moje-prazdne', mojePrazdne ? '1' : '0');
         adoptRp();
         // posluchač tahu — jednou na pás (pás se staví s každou přestavbou znovu)
         pager.addEventListener('scroll', function () {
@@ -837,8 +871,16 @@
         // Okno se OTEVÍRÁ NA MOJE (rozhodnutí 15. 9. 2026) — ne tam, kde se naposledy
         // listovalo. Rozbalené rozcestníky se sbalí, ať je stránka zase krátká.
         if (_otevreno && !_byloOtevreno) { curPage = PAGE_MOJE; sbalHuby(); if (host) go(PAGE_MOJE, true); }
+        var _prvniOtevreni = _otevreno && !_byloOtevreno;
         _byloOtevreno = _otevreno;
         if (_otevreno && active === 'ukony' && (!host || host.getAttribute('data-sig') !== gridSig())) build();
+        // Prázdné Moje (nový uživatel) → rovnou první sloveso, ať je vidět nástroj (18. 9. 2026, N3)
+        if (_prvniOtevreni && active === 'ukony') {
+            try {
+                var h2 = document.getElementById(LIST_ID);
+                if (h2 && h2.getAttribute('data-moje-prazdne') === '1' && PAGES.length > 1 && curPage === PAGE_MOJE) go(PAGES[1].id, true);
+            } catch (e) { swallow(e, 'sync:prvni'); }
+        }
 
         // ⚠⚠⚠ `ag-uk-on` SMÍ BÝT JEN TEHDY, KDYŽ SEZNAM SKUTEČNĚ EXISTUJE. Ta třída
         //   schová mřížku, takže bez seznamu by okno Nástrojů zůstalo PRÁZDNÉ — přesně

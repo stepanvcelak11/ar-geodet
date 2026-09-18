@@ -125,8 +125,9 @@ async def test_zapnuti(ctx):
     await page.evaluate("() => { if (typeof openSettings === 'function') openSettings(); else { const m = document.getElementById('settings-modal'); if (m) m.style.display = 'flex'; } }")
     await page.wait_for_timeout(600)
     await page.evaluate("""() => {
-        // zalozka Vzhled (tam patri sekce Ovladani) + doskrolovat na radek
-        const t = [...document.querySelectorAll('#settings-modal .tab-btn')].find(b => /Vzhled/.test(b.innerText));
+        // zalozka Ovladani (od 18. 9. 2026 vlastni zalozka; driv sekce ve Vzhledu) + doskrolovat na radek
+        const t = [...document.querySelectorAll('#settings-modal .tab-btn')].find(b => /^Ovl/.test(b.innerText.trim()))
+            || [...document.querySelectorAll('#settings-modal .tab-btn')].find(b => /Vzhled/.test(b.innerText));
         if (t) t.click();
         const r = document.getElementById('ag-jr-setrow'); if (r) r.scrollIntoView({ block: 'center' });
     }""")

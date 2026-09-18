@@ -106,7 +106,14 @@
     }
     function nactiData() {
         var MD = window.AGMapaData;
-        if (!MD || !window.AGMapaVektor || AGMapaVektor.stav() !== 'zapnuto') { info('Obrysy z mapy potřebují zapnutou vektorovou mapu (Nastavení → Vzhled → Nová mapa).'); return; }
+        if (!MD || !window.AGMapaVektor) { info('Obrysy z mapy nejsou k dispozici (vektorová mapa se nenačetla).'); return; }
+        // vypnutá mapa → zapnout rovnou, ne posílat do Nastavení (18. 9. 2026, N2)
+        if (AGMapaVektor.stav() !== 'zapnuto') {
+            if (nactiData._zapinam) { info('Zapínám vektorovou mapu…'); return; }
+            nactiData._zapinam = true; info('Zapínám vektorovou mapu…');
+            AGMapaVektor.zapni().then(function (ok) { nactiData._zapinam = false; if (ok) nactiData(); else info('Mapa se nezapnula: ' + (AGMapaVektor.chyba() || 'neznámá chyba') + '. Ručně: Vrstvy → Podklad → Vektor.'); }).catch(function () { nactiData._zapinam = false; info('Mapa se nezapnula.'); });
+            return;
+        }
         var k = 111320, dl = R_DATA / k, dn = R_DATA / (k * Math.cos(pt.lat * Math.PI / 180));
         info('Načítám obrysy…');
         MD.oblast({ s: pt.lat - dl, n: pt.lat + dl, w: pt.lng - dn, e: pt.lng + dn }).then(function (d) { data = d; obrysy(); sestavSnapy(); info(d.buildings.length + ' budov, ' + d.roads.length + ' cest z mapy'); }).catch(function (e) { info('Obrysy se nenačetly: ' + ((e && e.message) || e)); });

@@ -2011,6 +2011,11 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
 .settings-tiles::-webkit-scrollbar { display: none; }
 /* AR & přesnost první (14. 9. 2026) — jen vizuálně, DOM pořadí záložek se nemění */
 .settings-tiles #tabbtn-ar { order: -1; }
+/* Ovládání (18. 9. 2026, N4) je v DOM šesté (indexy 0–4 drží app-search.js a ucty.js), vizuálně za Vzhledem */
+.settings-tiles .tab-btn { order: 1; }
+.settings-tiles .tab-btn:first-child, .settings-tiles #tabbtn-ovladani { order: 0; }
+/* karty Slabší telefon / Úspora baterie mají vlastní nadpis — v Ovládání stojí pod jedním společným */
+#tab-ovladani #agl-card > .set-h, #tab-ovladani #agp-card > .set-h { display: none; }
 .settings-tiles .tab-btn {
     flex: 0 0 auto;
     min-width: 0;
@@ -2152,14 +2157,23 @@ body.ag-glove .settings-tiles .tab-btn .tb-tx b { font-size: calc(14px * var(--a
    MUSÍ stát ZA definicí výše — stejná specificita, rozhoduje pořadí.
    Užší chip (50 px = 44 px na text) neuveze 10px popisek („Nastavení" 48,3 px),
    proto o stupeň zpět na 9 px (43,5 px). */
-@media (max-height: 560px) {
-    #dock { top: 55%; }
+/* NÍZKÝ DISPLEJ (≤ 640 px: iPhone SE, starší Androidy, telefon NA ŠÍŘKU — manifest sice říká
+   portrait, ale Safari ani PWA na iOS orientaci nezamknou). ZMĚŘENO 18. 9. 2026 na 320×568
+   a 844×390: dok se středem v 60 % výšky končil pod horní hranou kolečka Mapa/Split/AR
+   (#ag-view-wheel, fixní 34 px nad spodkem) a „Nastavení" leželo pod ním. Proto se dok
+   zvedne ke středu, chipy se stáhnou a mezera zmenší — spodní chip pak končí nad kolečkem
+   a horní nezasahuje do stavové pilulky nahoře (ta je uprostřed, dok u pravého kraje). */
+@media (max-height: 640px) {
+    #dock { top: calc(50% - 26px); gap: 5px; }
     .dock-btn {
         width: 50px;
-        padding: 5px 2px;
+        padding: 4px 2px;
+        gap: 2px;
         font-size: calc(9px * var(--ag-font-scale, 1));
     }
     .dock-btn .icon { width: 19px; height: 19px; }
+    .dock-fab { width: 42px; height: 42px; margin-top: -20px; }
+    .dock-fab .icon { width: 21px; height: 21px; }
 }
 /* „Nový bod" zůstává čistý akcentní kruh (bez skleněného chipu kolem) */
 .dock-primary {

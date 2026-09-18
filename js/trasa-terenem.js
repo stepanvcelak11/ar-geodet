@@ -310,7 +310,7 @@
         return { id: c.id, name: c.name, body: body, delka: delka(body), bunka: r.bunka, ts: Date.now(), profil: null, od: od, zdroj: r.zdroj, vychod: vy, nedosazitelne: !!v.nedosazitelne };
     }
     function pripravenoProc() {
-        if (!st.zap) return 'navigace podle terénu je vypnutá (Nastavení → AR & přesnost)';
+        if (!st.zap) return 'navigace podle terénu je vypnutá (zapni ji: Vrstvy → Trasa terénem)';
         if (!window.AGHrany || !window.AGMapaVektor) return 'moduly mapy se ještě načítají';
         if (!window.AGMapaData && !mapaNaObrazovce()) return 'data mapy se ještě načítají';
         return '';
@@ -329,8 +329,28 @@
             else { trasa = null; kresli(); }
         } catch (e) { swallow(e, 'prepocitej'); trasa = null; _duvod = 'chyba výpočtu: ' + ((e && e.message) || e); } finally { _pocitam = false; }
         // bez trasy řekni PROČ (jednou na cíl a důvod) — v348 uživatel viděl jen přímku a nevěděl, co se děje
-        try { if (!trasa && _duvod && c && prepocitej._hlaseno !== c.id + '|' + _duvod) { prepocitej._hlaseno = c.id + '|' + _duvod; (window.quickToast || window.agInfo)('Trasa terénem: ' + _duvod + '.'); } } catch (e) { /* nic */ }
+        // ⚠ NIKDY MODÁLNĚ (18. 9. 2026): agInfo = okno s tlačítkem Rozumím; při chůzi k bodu ho musel
+        //   uživatel odklikat a v CI leželo přes dělič (test_v283 L). Teď nenápadná pilulka v mapě,
+        //   sama zmizí, klepnutí ji zavře.
+        try { if (!trasa && _duvod && c && prepocitej._hlaseno !== c.id + '|' + _duvod) { prepocitej._hlaseno = c.id + '|' + _duvod; pilulka('Trasa terénem: ' + _duvod + '.'); } } catch (e) { /* nic */ }
         return trasa;
+    }
+    // Pilulka dole v mapě (stejný vzhled jako #ag-kvgps-pill): nic neblokuje, zmizí za 6 s.
+    var PILL_ID = 'ag-trasa-pill';
+    function pilulka(text) {
+        try {
+            var p = document.getElementById(PILL_ID);
+            if (!p) {
+                try { AG.style(PILL_ID + '-style', ['#' + PILL_ID + '{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:1200;display:flex;align-items:center;gap:8px;max-width:calc(100% - 32px);padding:6px 10px 6px 12px;border-radius:999px;font:600 12px/1.25 var(--font-ui,system-ui),sans-serif;color:#fff;background:rgba(20,24,28,.86);border:1px solid rgba(255,255,255,.18);box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer;text-align:left;}',
+                    '#' + PILL_ID + ' b{flex:0 0 auto;display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--warning,#fbbf24);}',
+                    'body.ag-simple #' + PILL_ID + '{display:none!important;}'].join('\n')); } catch (e) { swallow(e, 'pilulka:css'); }
+                p = document.createElement('button'); p.type = 'button'; p.id = PILL_ID; p.setAttribute('aria-live', 'polite');
+                p.addEventListener('click', function (ev) { ev.stopPropagation(); p.remove(); });
+                (document.getElementById('map-container') || document.body).appendChild(p);
+            }
+            p.innerHTML = '<b></b><span></span>'; p.lastChild.textContent = text;
+            clearTimeout(p._t); p._t = setTimeout(function () { try { p.remove(); } catch (e) { /* nic */ } }, 6000);
+        } catch (e) { swallow(e, 'pilulka'); }
     }
     // vzdálenost ode mě k trase + index nejbližšího úseku
     function kTrase(me) {

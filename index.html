@@ -101,8 +101,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=353">
-    <link rel="stylesheet" href="css/style.css?v=353">
+    <link rel="stylesheet" href="css/tokens.css?v=354">
+    <link rel="stylesheet" href="css/style.css?v=354">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -233,7 +233,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=353">
+    <link rel="stylesheet" href="css/vylepseni.css?v=354">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -675,6 +675,11 @@
                      ZÁMĚRNĚ poslední — indexy tlačítek 0–3 tak zůstaly platné pro
                      js/app-search.js (skoky na záložky) i pro js/ucty.js (oprávnění). -->
                 <div class="tab-btn" id="tabbtn-profily" onclick="switchTab('tab-profily', this); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-star"/></svg><span class="tb-tx"><b>Profily</b><small>Profil nastavení a profil práce, přednastavení voleb</small></span></div>
+                <!-- OVLÁDÁNÍ (18. 9. 2026, hodnocení N4): Vzhled měl 70 ovládacích prvků — motiv a písmo
+                     vedle levé ruky, rukavic, gest, jednoduchého režimu a zjednodušení. Ovládání telefonu
+                     je teď vlastní záložka (sekce Ovládání + Zjednodušení z Vzhledu, karty Slabší telefon
+                     a Úspora baterie z AR). Vizuálně hned za Vzhledem (CSS order), v DOM ZÁMĚRNĚ šestá. -->
+                <div class="tab-btn" id="tabbtn-ovladani" onclick="switchTab('tab-ovladani', this); try{this.closest('.modal-content').scrollTop=0}catch(e){}"><svg class="icon"><use href="#i-vibrate"/></svg><span class="tb-tx"><b>Ovládání</b><small>Levá ruka, rukavice, gesta, jednoduchý režim, slabší telefon</small></span></div>
             </div>
             <!-- PRUH POD ZÁLOŽKAMI (5. 9. 2026). Panel „Více" (návod, prohlídka, uložit
                  pro offline, o aplikaci, historie, sdílení QR, zpravodaj) neměl od přechodu
@@ -717,11 +722,8 @@
                         <label class="st-sw"><input type="checkbox" id="s-auto-outdoor" checked><span class="st-sw-face"></span></label></div>
                     <div class="st-row"><span class="st-lab">Zamezit zhasínání displeje</span>
                         <label class="st-sw"><input type="checkbox" id="s-wakelock" checked><span class="st-sw-face"></span></label></div>
-                    <div class="set-h">Ovládání</div>
-                    <div class="st-row"><span class="st-lab">Ovládání pro levou ruku<small>zrcadlí ovládání na levou stranu displeje</small></span>
-                        <label class="st-sw"><input type="checkbox" id="s-lefthand"><span class="st-sw-face"></span></label></div>
-                    <div class="st-row"><span class="st-lab">Vibrace<small>potvrzení uložení bodu a ťuknutí v AR (iPhone vibrace neumí)</small></span>
-                        <label class="st-sw"><input type="checkbox" id="s-vibration" checked onchange="toggleVibration()"><span class="st-sw-face"></span></label></div>
+                    <!-- Sekce „Ovládání" (levá ruka, vibrace + řádky, které si k nim věší moduly) se
+                         18. 9. 2026 přestěhovala do vlastní záložky #tab-ovladani (níž). -->
                     <!-- Prvky na obrazovce — přesunuto z menu „Více" (ids tgl-* čte toggleHudElements v grafika.js).
                          SCHOVÁNO 13. 9. 2026: stavová bublina (js/stavovy-pruh.js) tyhle panely slučuje a už se nedá
                          vypnout, takže přepínače neměly na co působit. Vstupy zůstávají v DOM — čtou je profily.js,
@@ -926,6 +928,17 @@
                     <p class="st-intro"><b>Profil práce</b> nesahá na nastavení — jen zúží <b>Nástroje</b> na to, co dnes děláš.
                         Pod ním je v Pokročilém ještě <b>profil nastavení</b> (přepne několik voleb naráz).
                         Obojí jde kdykoli vypnout a nic se tím neztratí.</p>
+                </div>
+                <!-- OVLÁDÁNÍ (18. 9. 2026, N4). Statické řádky levá ruka + vibrace bydlely ve Vzhledu; moduly
+                     (rukavice, gesta, jednoduchý režim, jednoduchý panel, zjednodušené Nástroje, krátké
+                     nastavení) si řádky věší za #s-vibration / #s-lefthand nebo je sem přestěhuje
+                     js/nastaveni-poradek.js (MOVE). Ids beze změny — saveSettings() je čte podle id. -->
+                <div id="tab-ovladani" class="settings-tab">
+                    <div class="set-h">Ovládání</div>
+                    <div class="st-row"><span class="st-lab">Ovládání pro levou ruku<small>zrcadlí ovládání na levou stranu displeje</small></span>
+                        <label class="st-sw"><input type="checkbox" id="s-lefthand"><span class="st-sw-face"></span></label></div>
+                    <div class="st-row"><span class="st-lab">Vibrace<small>potvrzení uložení bodu a ťuknutí v AR (iPhone vibrace neumí)</small></span>
+                        <label class="st-sw"><input type="checkbox" id="s-vibration" checked onchange="toggleVibration()"><span class="st-sw-face"></span></label></div>
                 </div>
             </div>
             <button class="btn btn-primary" style="margin-top: 16px;" onclick="saveSettings()">Uložit vše a Zavřít</button>

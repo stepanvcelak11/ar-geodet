@@ -235,11 +235,16 @@
         if (el) { el.style.display = 'none'; el.innerHTML = ''; }
     }
     function otevri(bod) {
-        if (window.AGLite && AGLite.lite) { return window.agAlert ? agAlert({ title: '3D pohled', message: 'V režimu slabší telefon není 3D pohled k dispozici (potřebuje WebGL). Vypni ho v Nastavení → Vzhled.' }) : alert('3D pohled není v režimu slabší telefon.'); }
-        if (!window.AGMapaVektor || !window.AGMapaStyl) { return agAlert({ title: '3D pohled', message: 'Nejdřív zapni vektorovou mapu: Nastavení → Vzhled → Nová mapa (vektor, beta).' }); }
+        // Hlášky NEposílají uživatele do Nastavení — nabídnou rovnou akci (18. 9. 2026, N2).
+        if (window.AGLite && AGLite.lite) {
+            if (typeof window.agConfirm !== 'function' || !AGLite.nastav) { return alert('3D pohled není v režimu slabší telefon.'); }
+            return agConfirm({ title: '3D pohled', message: 'V režimu slabší telefon není 3D pohled (potřebuje WebGL). Vypnout úsporný režim a otevřít 3D?', okText: 'Vypnout a otevřít', cancelText: 'Nechat' })
+                .then(function (ano) { if (!ano) return; AGLite.nastav('off'); setTimeout(function () { if (!AGLite.lite) otevri(bod); }, 300); });
+        }
+        if (!window.AGMapaVektor || !window.AGMapaStyl) { return agAlert({ title: '3D pohled', message: 'Vektorová mapa se v této verzi nenačetla — zkus appku znovu otevřít (Nastavení → Údržba → Obnovit aplikaci).' }); }
         var zap = AGMapaVektor.stav() === 'zapnuto' ? Promise.resolve(true) : AGMapaVektor.zapni();
         zap.then(function (ok) {
-            if (!ok) { agAlert({ title: '3D pohled', message: 'Vektorová mapa se nezapnula: ' + (AGMapaVektor.chyba() || 'neznámá chyba') + '. Zapni ji v Nastavení → Vzhled.' }); return; }
+            if (!ok) { agAlert({ title: '3D pohled', message: 'Vektorová mapa se nezapnula: ' + (AGMapaVektor.chyba() || 'neznámá chyba') + '. Až bude signál, klepni na 3D znovu — mapa se zapne sama (ručně: Vrstvy → Podklad → Vektor).' }); return; }
             // stylopis si připojí sám (lazy-tools ho dává jen při otevření z dlaždice)
             if (!document.querySelector('link[href$="css/pohled-3d.css"]')) { var lk = document.createElement('link'); lk.rel = 'stylesheet'; lk.href = 'css/pohled-3d.css'; document.head.appendChild(lk); }
             if (!el) { el = document.createElement('div'); el.id = 'ag3d'; document.body.appendChild(el); }

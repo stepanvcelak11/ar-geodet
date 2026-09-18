@@ -120,6 +120,11 @@ jobs:
       - name: Delici cara Zaklad/Pro (registr)
         run: python scripts/check_verze.py
 
+      # 18. 9. 2026 (N8): kazdy text nastroje a panelu Mapa musi mit preklad — 47 textu
+      # z v320–v350 se v cizich jazycich ukazovalo cesky a nic to nehlidalo.
+      - name: Slovnik pokryva Nastroje a panel Mapa (en/de/pl/es/it)
+        run: python scripts/check_slovnik_nastroje.py
+
       - name: Zaklad nesaha na Pro moduly
         run: python scripts/check_zaklad.py
 

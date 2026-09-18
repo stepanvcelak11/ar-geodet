@@ -2,6 +2,20 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 354,
+   "datum": "2026-09-18",
+   "nadpis": "Navigace bez vyskakovacího okna, mapa na jednom místě, přehlednější Nástroje, záložka Ovládání, malé displeje, překlady",
+   "body": [
+    "<b>Doveď mě bez vyskakovacího okna</b>: když trasa terénem zrovna nemá data (stahují se, cíl je moc daleko…), řekne to nenápadná pilulka dole v mapě a sama zmizí — dřív okno s tlačítkem Rozumím uprostřed chůze. Zrušení výběru vzdálených bodů už nepřebije dobíhající stahování z ČÚZK.",
+    "<b>Vektorová mapa má jedno místo</b>: zapíná se a stylizuje jen v panelu Mapa (tlačítko Vrstvy → Podklad). V Nastavení → Data zůstává jen adresa vlastních dat. 3D pohled, Kde se dá měřit a Místopisný náčrt už neposílají do Nastavení — mapu zapnou samy (nebo se zeptají a zapnou).",
+    "<b>Nástroje ze čtyř vrstev na dvě</b>: pás „Co dnes děláš“ je z okna Nástrojů pryč (profil práce vybereš v Nastavení → Profily; kdo pás chce, zapne si ho tamtéž), ★ Připnuté se ukazuje jen když něco připnuté je, a čtyři kancelářská slovesa (Před výjezdem, Firma, Příručka, Učit se) jsou sekce na stránce „Další“ — pásek má 8 sloves místo 14. Nový uživatel otevře Nástroje rovnou na Změřit.",
+    "<b>Nastavení → Ovládání</b>: nová záložka pro levou ruku, rukavice, vibrace, gesta, jednoduchý režim, zjednodušení a slabší telefon / úsporu baterie. Vzhled zůstal motivu, písmu a prvkům na obrazovce.",
+    "<b>Malý displej a telefon na šířku</b>: dok se na výšce do 640 px zvedne a stáhne, takže kolečko Mapa/Split/AR už neleží přes tlačítko Nastavení (iPhone SE, 844×390).",
+    "<b>Překlady</b>: 190 textů nástrojů z posledních verzí (Lovci bodů, Přesná GPS, Místopisný náčrt, panel Mapa, karta bodu, země měření…) doplněno do angličtiny, němčiny, polštiny, španělštiny a italštiny; kontrola v CI hlídá, že každý nový nástroj má překlad.",
+    "Hlášky „Volbu režimu vrátíš v Nastavení → Vzhled“ a spol. vedou tam, kde volba opravdu je (Profily, Ovládání)."
+   ]
+  },
+  {
    "v": 353,
    "datum": "2026-09-18",
    "nadpis": "Kontrola po dvou dnech změn: hlášky nezdržují, data mapy neútočí",

@@ -122,8 +122,14 @@
     function prepni(stav) { _viditelna = (stav == null) ? !_viditelna : !!stav; vykresli(); return _viditelna; }
 
     function otevri() {
-        if (!window.AGMapaVektor || AGMapaVektor.stav() !== 'zapnuto' || !window.AGHrany) {
-            return agAlert({ title: 'Kde se dá měřit', message: 'Mapa kvality GPS počítá stínění z budov ve vektorové mapě. Zapni ji: Nastavení → Vzhled → Nová mapa (vektor, beta), a chvíli počkej, než se okolí načte.' });
+        if (!window.AGMapaVektor || !window.AGHrany) {
+            return agAlert({ title: 'Kde se dá měřit', message: 'Mapa kvality GPS potřebuje vektorovou mapu, která se v této verzi nenačetla — zkus appku znovu otevřít.' });
+        }
+        // Mapa vypnutá → nabídnout zapnutí rovnou tady, ne posílat do Nastavení (18. 9. 2026, N2)
+        if (AGMapaVektor.stav() !== 'zapnuto') {
+            if (typeof window.agConfirm !== 'function') { return agAlert({ title: 'Kde se dá měřit', message: 'Mapa kvality GPS počítá stínění z budov ve vektorové mapě. Zapni ji: Vrstvy → Podklad → Vektor.' }); }
+            return agConfirm({ title: 'Kde se dá měřit', message: 'Mapa kvality GPS počítá stínění z budov ve vektorové mapě. Zapnout ji a pokračovat?', okText: 'Zapnout a pokračovat', cancelText: 'Zrušit' })
+                .then(function (ano) { if (!ano) return; return AGMapaVektor.zapni().then(function (ok) { if (ok) { otevri._pokus = 0; otevri(); } else agAlert({ title: 'Kde se dá měřit', message: 'Mapa se nezapnula: ' + (AGMapaVektor.chyba() || 'neznámá chyba') + '.' }); }); });
         }
         var p = poloha() || (function () { var c = getMap().getCenter(); return { lat: c.lat, lng: c.lng }; })();
         // dlaždice s budovami mohou být ještě na cestě (po posunu mapy) — pár vteřin počkat, než počítat z prázdna

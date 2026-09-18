@@ -227,7 +227,11 @@
     function modeById(id) { var a = allModes(); for (var i = 0; i < a.length; i++) if (a[i].id === id) return a[i]; return null; }
     function known(id) { return !!modeById(id) || !!(src() && src()[id]); }
     function curMode() { var v = ls(PROF_PREFIX + pid()); return known(v) ? v : 'univerzal'; }
-    function hidden() { return ls(HIDE_KEY) === '1'; }
+    // ⚠ VÝCHOZE SCHOVANÝ (18. 9. 2026, N3 „Nástroje ze čtyř vrstev na dvě“): pás byl čtvrtá
+    //   navigační vrstva nad seznamem nástrojů (slovesa + čipy + Připnuté + hledání) a na
+    //   390 px nebyl v prvním pohledu vidět ani jeden nástroj. Profil se teď vybírá
+    //   v Nastavení → Profily (select níž); kdo pás v Nástrojích chce, zapne si ho tamtéž.
+    function hidden() { return ls(HIDE_KEY) !== '0'; }
     function simpleOn() { return ls(SIMPLE_KEY) === '1'; }
 
     // ---- zdroj pravdy o tom, co režim filtruje -------------------------------------
@@ -634,7 +638,7 @@
         w.querySelector('#ag-rp-hide').addEventListener('click', function () {
             lsSet(HIDE_KEY, '1');
             render();
-            try { if (typeof window.quickToast === 'function') window.quickToast('Volbu režimu vrátíš v Nastavení → Vzhled'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:ensureWrap'); }
+            try { if (typeof window.quickToast === 'function') window.quickToast('Volbu režimu vrátíš v Nastavení → Profily'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:ensureWrap'); }
         });
         var list = w.querySelector('#ag-rp-list');
         list.addEventListener('click', function (ev) {
@@ -751,12 +755,19 @@
             if (!row || !row.parentNode) return;
             host = row.parentNode; after = row.nextSibling;
         }
-        d.innerHTML = '<span class="st-lab">Volba profilu práce v Nástrojích<small id="ag-rp-setnote">nahoře v Nástrojích vybereš, co dnes děláš, a seznam se podle toho zúží</small></span>'
+        // Volba profilu bydlí TADY (select), pás v Nástrojích je jen volitelná zkratka.
+        var sel = document.createElement('div');
+        sel.className = 'st-row'; sel.id = 'ag-rp-selrow';
+        sel.innerHTML = '<span class="st-lab">Profil práce (co dnes děláš)<small id="ag-rp-setnote">zúží Nástroje na to, co k té práci patří</small></span>'
+            + '<select id="ag-rp-sel" class="st-sel" aria-label="Profil práce"></select>';
+        d.innerHTML = '<span class="st-lab">Pás „Co dnes děláš“ i v Nástrojích<small>zkratka pro rychlé přepínání profilu nahoře v okně Nástrojů</small></span>'
             + '<label class="st-sw"><input type="checkbox" id="ag-rp-sw"><span class="st-sw-face"></span></label>';
-        if (after) host.insertBefore(d, after); else host.appendChild(d);
+        if (after) { host.insertBefore(sel, after); host.insertBefore(d, after); } else { host.appendChild(sel); host.appendChild(d); }
         var cb = d.querySelector('#ag-rp-sw');
         cb.checked = !hidden();
         cb.addEventListener('change', function () { lsSet(HIDE_KEY, cb.checked ? '0' : '1'); render(); syncSettingRow(); });
+        var se = sel.querySelector('#ag-rp-sel');
+        se.addEventListener('change', function () { pick(se.value || 'univerzal'); });
         // PAST, KTEROU TO ZAVÍRÁ: kdo si kartu na úvodu odklidil („Nezobrazovat")
         // se zapnutým profilem, neměl kde ho vypnout — Nástroje mu zůstaly zúžené
         // a nebylo poznat proč. Proto se tady píše, který profil právě platí, a je
@@ -776,13 +787,23 @@
         var m = modeById(cur);
         var html;
         if (cur === 'univerzal' || !m) {
-            html = 'nahoře v Nástrojích vybereš, co dnes děláš, a seznam se podle toho zúží. '
-                + 'Teď <b>žádný profil neběží</b> — v Nástrojích jsou všechny dlaždice.';
+            html = 'zúží Nástroje na to, co k té práci patří. Teď <b>žádný profil neběží</b> — v Nástrojích je všechno.';
         } else {
-            html = 'Právě běží profil <b>' + esc(m.t) + '</b>, takže Nástroje ukazují hlavně jeho dlaždice. '
+            html = 'Právě běží profil <b>' + esc(m.t) + '</b>, takže Nástroje ukazují hlavně jeho nástroje. '
                 + '<button type="button" id="ag-rp-setoff">Nepoužívat žádný profil</button>';
         }
         if (note.innerHTML !== html) note.innerHTML = html;
+        // select: vestavěné + vlastní profily; podpis, ať se nepřestavuje naprázdno
+        var se = document.getElementById('ag-rp-sel');
+        if (se) {
+            var sig = cur + '|' + customSig();
+            if (se.getAttribute('data-sig') !== sig) {
+                se.setAttribute('data-sig', sig);
+                se.innerHTML = allModes().map(function (x) {
+                    return '<option value="' + esc(x.id) + '"' + (x.id === cur ? ' selected' : '') + '>' + esc(x.t) + '</option>';
+                }).join('');
+            }
+        }
     }
 
     // ---- init ---------------------------------------------------------------------
