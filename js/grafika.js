@@ -998,10 +998,13 @@
             if (areaMode) { areaVertices.push({ lat: clickLatLng.lat, lng: clickLatLng.lng }); afterAreaChange(); return; }
             if (connectMode) { handleConnectTap(clickLatLng); return; }
             const clickPoint = map.latLngToContainerPoint(clickLatLng); const nearbyPoints = [];
+            const _tapR = document.body.classList.contains('ag-glove') ? 34 : 28;
             arPoints.forEach(pt => {
                 if (pt.hidden) return; if (pt.cat === 'TB' && !filters.tb) return; if (pt.cat === 'ZHB' && !filters.zhb) return; if (pt.cat === 'PBPP' && !filters.pbpp) return; if (pt.cat === 'NIVEL' && !filters.nivel) return; if (pt.cat === 'CUSTOM' && !filters.custom) return; if (searchQuery && !pt.name.toLowerCase().includes(searchQuery.toLowerCase())) return;
                 const ptLatLng = L.latLng(pt.lat, pt.lng); const ptPoint = map.latLngToContainerPoint(ptLatLng); const pixelDist = clickPoint.distanceTo(ptPoint);
-                if (pixelDist <= 25) { nearbyPoints.push(pt); }
+                // DOTYKOVÝ TERČ ZNAČKY (18. 9. 2026, R2): značka je kreslená 24 px, klepnutí bere okruh
+                //   28 px (= terč 56 px), v režimu rukavic 34 px. Dřív 25 px — v rukavicích na slunci loterie.
+                if (pixelDist <= _tapR) { nearbyPoints.push(pt); }
             });
             // ⚠ KLEPNUTÍ NA BOD = KARTA, NE NAVIGACE (12. 9. 2026, uživatel: „chci jen kliknout na
             //   bod a vyskočí tabulka s informacemi; navádět až tlačítkem"). Dřív klepnutí v mapě,
@@ -1885,8 +1888,8 @@
             agSetupPointForm(null, false);   // z mapy: bez „Uložit a další" (dalsi bod = dalsi tap do mapy)
             document.getElementById('custom-modal-overlay').style.display = 'flex';
         }
-        function openNewPointModal() { editingCustomPointId = null; pendingPointAccuracy = null; { const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none'; } { const _h = document.getElementById('custom-create-helpers'); if (_h) _h.style.display = ''; } document.getElementById('custom-modal-title').innerText = "Vložit bod"; document.getElementById('custom-name').value = ''; document.getElementById('custom-y').value = ''; document.getElementById('custom-x').value = ''; { const _z = document.getElementById('custom-z'); if (_z) _z.value = ''; } resetNewPointExtras(null); agSetupPointForm(null, true); document.getElementById('custom-modal-overlay').style.display = 'flex'; }
-        function closeCustomModal() { document.getElementById('custom-modal-overlay').style.display = 'none'; fixAppLayout(); }
+        function openNewPointModal() { editingCustomPointId = null; pendingPointAccuracy = null; { const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none'; } { const _h = document.getElementById('custom-create-helpers'); if (_h) _h.style.display = ''; } document.getElementById('custom-modal-title').innerText = "Vložit bod"; document.getElementById('custom-name').value = ''; document.getElementById('custom-y').value = ''; document.getElementById('custom-x').value = ''; { const _z = document.getElementById('custom-z'); if (_z) _z.value = ''; } resetNewPointExtras(null); agSetupPointForm(null, true); document.getElementById('custom-modal-overlay').style.display = 'flex'; window._agPointOrigin = null; try { agAutoGpsStart(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:openNewPointModal'); } }
+        function closeCustomModal() { document.getElementById('custom-modal-overlay').style.display = 'none'; try { agAutoGpsStop(); } catch (e) { /* nic */ } fixAppLayout(); }
         function closeBottomSheet() { document.getElementById('bottom-sheet').classList.remove('open'); arPoints.forEach(p => { if (p.element) p.element.classList.remove('active-reading'); }); activePointIdForModal = null; }
 
         function toggleHighlight() { if (highlightedPointId === activePointIdForModal) { highlightedPointId = null; } else { highlightedPointId = activePointIdForModal; } closeBottomSheet(); arPoints.forEach(p => { if (p.element) { if (p.id === highlightedPointId) { p.element.classList.add('highlighted'); } else { p.element.classList.remove('highlighted'); } } }); if (!highlightedPointId) { document.getElementById('ar-hud').style.display = 'none'; } updateNavGlow(); }

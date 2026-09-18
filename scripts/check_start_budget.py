@@ -143,7 +143,13 @@ INDEX = os.path.join(ROOT, 'index.html')
 #   ukazal Krovak (nesmysl). Zbytek dat sveta (geoid, deklinace, obrysy zemi) je
 #   odlozeny (js/zeme-svet.js). K tomu logika.js +3 kB (agMistni/agOsy/zivy posun).
 #   Kandidati na odlozeni zustavaji: js/localization-helmert.js (46 kB) — OVERIT SPUSTENIM.
-LIMIT_JS_KB = 2216
+# ZVYSENO 18.9.2026 (popate): 2216 -> 2232 kB. Duvod:
+#   Obnovovaci kod uctu (2. kolo hodnoceni, R3): js/ucty.js +9 kB — brana „Zapomenute heslo?
+#   Mam obnovovaci kod", formular obnovy a karta s kodem po registraci MUSI byt eager, protoze
+#   brana bezi PRED startem appky (bez prihlaseni se nic dalsiho nenacte). K tomu logika.js
+#   +2 kB (Novy bod: prumer GPS sam, R1) a grafika.js +0,3 kB (terce znacek, R2).
+#   Kandidati na odlozeni zustavaji: js/localization-helmert.js (46 kB) — OVERIT SPUSTENIM.
+LIMIT_JS_KB = 2232
 LIMIT_CSS_KB = 320
 LIMIT_JS_SOUBORU = 76
 

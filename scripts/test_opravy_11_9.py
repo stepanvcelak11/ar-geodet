@@ -119,7 +119,9 @@ async def beh(url):
         ctx, page = await stranka(br, url, boot(tarif='zaklad'), chyby)
         await cekej_moduly(page, 'window.AGUkony && window.AGProZamky')
         for name, mid in (('Nástroje', 'tools-modal'), ('Body', 'manage-modal')):
-            await page.tap('#dock button:has-text("%s")' % name)
+            # force: dok ma po zavreni okna prechod (transform) a Playwright ceka na „stabilni“ prvek — v dlouhe
+            # davce CI to obcas vytimeoutovalo (18. 9. 2026, R5); tap na souradnice stredu je to, co dela prst
+            await page.tap('#dock button:has-text("%s")' % name, force=True)
             await page.wait_for_timeout(1000)
             r = await page.evaluate("""(mid) => {
                 var m = document.getElementById(mid); var x = m.querySelector(':scope > .agmc-x');

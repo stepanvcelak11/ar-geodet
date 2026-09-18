@@ -2,6 +2,17 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 356,
+   "datum": "2026-09-18",
+   "nadpis": "Nový bod na dvě klepnutí, větší terče v mapě, obnovovací kód účtu",
+   "body": [
+    "<b>Nový bod na dvě klepnutí</b>: po otevření se souřadnice z průměru GPS vyplní samy a každou vteřinu se zpřesňují („zprůměrováno z N · ±x m“); klepnutí na „Z průměru GPS“ už není potřeba. Kdo přepíše Y/X rukou nebo vybere mapu či fotku, automatiku tím vypne. Když satelitní fix ještě není, řekne to poznámka pod tlačítky — žádné vyskakovací okno.",
+    "<b>Značky bodů v mapě</b> chytají klepnutí v okruhu 28 px (dřív 25), v režimu rukavic 34 px.",
+    "<b>Obnovovací kód účtu</b>: registrace dál nechce e-mail, ale účet dostane při založení druhý klíč (20 znaků). Na bráně je „Zapomenuté heslo? Mám obnovovací kód“ → nové heslo bez e-mailu; po použití dostaneš nový kód. Kdo má účet z dřívějška, vyrobí si kód v O aplikaci → Účet → Obnovovací kód (chce heslo).",
+    "Regresní testy v CI běží ve třech proudech (≈7 minut místo 20); dvě sady, které v dlouhé dávce občas vytimeoutovaly, čekají spolehlivěji."
+   ]
+  },
+  {
    "v": 355,
    "datum": "2026-09-18",
    "nadpis": "Průchod celou appkou: co blblo při klikání přes všechny nástroje",

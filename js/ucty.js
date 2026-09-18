@@ -1764,7 +1764,8 @@
             .join('\n')
             + '\n.ag-gate-like{position:fixed;inset:0;z-index:999999;}'
             + '\n#ag-kod .agk-kod{font:800 30px/1.2 var(--font-display,system-ui);letter-spacing:.22em;'
-            + '  color:var(--accent,#2f9e74);padding:12px 8px;word-break:break-all;text-align:center;}';
+            + '  color:var(--accent,#2f9e74);padding:12px 8px;word-break:break-all;text-align:center;}'
+            + '\n#ag-kod .agk-kod.agk-rec{font-size:19px;letter-spacing:.08em;padding:6px 4px;}';
         (document.head || document.documentElement).appendChild(st);
     }
 
@@ -2608,6 +2609,9 @@
             '  <div class="agl-err" id="agg-err"></div>' +
             '  <button type="button" class="agl-btn" id="agg-go">Přihlásit</button>' +
             '  <button type="button" class="agl-ghost" id="agg-scan">Naskenovat QR od admina</button>' +
+            // OBNOVOVACÍ KÓD (18. 9. 2026, R3): heslo jde obnovit bez e-mailu — druhým klíčem, který
+            // účet dostal při založení (nebo si ho vyrobil v O aplikaci → Účet).
+            '  <button type="button" class="agl-ghost" id="agg-forgot">Zapomenuté heslo? Mám obnovovací kód</button>' +
             '</div>' +
             '<button type="button" class="agl-btn" id="agg-show-join">Přihlásit se (mám kód účtu)</button>' +
             '<button type="button" class="agl-btn" id="agg-reg">Založit účet</button>' +
@@ -2622,12 +2626,13 @@
             //   takže není kam poslat odkaz. Musí to být napsané TADY, u hesla,
             //   ne až někde v nápovědě — jinak se to člověk dozví ve chvíli, kdy
             //   už je pozdě.
-            '<div class="agg-note">Registrace je na tři pole a nechce e-mail. Heslo proto nejde obnovit — ' +
-            'ulož si ho a čas od času si stáhni zálohu zakázky.</div>' +
+            '<div class="agg-note">Registrace je na tři pole a nechce e-mail. Místo něj dostaneš <b>obnovovací kód</b> — ' +
+            'ulož si ho mimo telefon; s ním jde heslo kdykoli nastavit znovu.</div>' +
             '</div>';
         document.body.appendChild(ov);
         fillMark(ov);
         startLive(ov);
+        ov.querySelector('#agg-forgot').onclick = function () { showObnova(ov.querySelector('#agg-code').value || ''); };
 
         var errEl = ov.querySelector('#agg-err');
         var gateApi = DEFAULT_API;   // QR od admina může nést i vlastní adresu API
@@ -2849,7 +2854,7 @@
                     usageLog('login', 'register');
                     // Kód účtu je JEDINÁ cesta zpátky, když si člověk appku smaže
                     // nebo vymění telefon — ukázat ho jednou v hlášce nestačí.
-                    ukazKodUctu(r.data.ucet);
+                    ukazKodUctu(r.data.ucet, r.data.recovery);
                     try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: r.data.user } })); }
                     catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:register'); }
                     return;
@@ -2993,6 +2998,7 @@
             // ven — z appky a z webu (smazani-uctu.html). Sbalené za jedním nenápadným
             // odkazem, rozbalí se pole na heslo: server (POST /account/delete) ho chce
             // znovu, aby telefon nechaný na stole nesmazal cizí účet jedním klepnutím.
+            '<button type="button" class="agl-ghost" id="agp-rec-open">Nový obnovovací kód…</button>' +
             '<button type="button" class="agl-ghost" id="agp-del-open" style="opacity:.7;">Smazat účet…</button>' +
             // Odchod je popsaný přesně tak, jak se chová — člověk se musí předem
             // dozvědět, že mu prostor zůstane, ale zamrzlý.
@@ -3021,6 +3027,7 @@
             };
         })();
         ov.querySelector('#agp-del-open').onclick = function () { ov.remove(); showSmazaniUctu(); };
+        ov.querySelector('#agp-rec-open').onclick = function () { showNovyObnovovaciKod(); };
         ov.addEventListener('click', function (e) {
             var b = e.target.closest ? e.target.closest('.agg-prof') : null;
             if (!b || b.disabled) return;
@@ -3121,7 +3128,8 @@
 
     // Kód účtu po registraci. Zůstává na obrazovce, dokud ho člověk neodklikne —
     // je to jediné, čím se příště přihlásí, a heslo mu nikdo neobnoví.
-    function ukazKodUctu(ucet) {
+    // recovery = obnovovací kód (18. 9. 2026, R3) — ukazuje se JEDNOU, server ho v čitelné podobě nemá
+    function ukazKodUctu(ucet, recovery, jenKod) {
         if (!ucet || !ucet.code) return;
         injectStyles();
         var ov = document.createElement('div');
@@ -3129,14 +3137,122 @@
         ov.className = 'ag-gate-like';
         ov.innerHTML =
             '<div class="agl-card">' +
-            '<div class="agl-firm">Hotovo. Tímhle kódem se budeš přihlašovat:</div>' +
-            '<div class="agk-kod">' + esc(ucet.code) + '</div>' +
-            '<div class="agg-note">Opiš si ho někam mimo telefon. Spolu s heslem je to všechno, ' +
-            'co potřebuješ, aby ses dostal ke svým datům na jiném zařízení.</div>' +
-            '<button type="button" class="agl-btn" id="agk-ok">Zapsáno, jdeme měřit</button>' +
+            (jenKod ? '<div class="agl-firm">Nový obnovovací kód</div>'
+                : '<div class="agl-firm">Hotovo. Tímhle kódem se budeš přihlašovat:</div><div class="agk-kod">' + esc(ucet.code) + '</div>') +
+            (recovery ? ('<div class="agg-note" style="margin-top:2px;"><b>Obnovovací kód</b> — kdybys zapomněl heslo, tímhle si nastavíš nové. ' +
+                'Ukáže se jen teď; ulož si ho mimo telefon (poznámky, papír, foto obrazovky).</div>' +
+                '<div class="agk-kod agk-rec">' + esc(recovery) + '</div>' +
+                '<button type="button" class="agl-ghost" id="agk-copy">Zkopírovat kód účtu i obnovovací kód</button>') : '') +
+            (jenKod ? '' : '<div class="agg-note">Kód účtu si opiš někam mimo telefon. Spolu s heslem je to všechno, ' +
+                'co potřebuješ, aby ses dostal ke svým datům na jiném zařízení.</div>') +
+            '<button type="button" class="agl-btn" id="agk-ok">' + (jenKod ? 'Uloženo, zavřít' : 'Zapsáno, jdeme měřit') + '</button>' +
             '</div>';
         document.body.appendChild(ov);
-        ov.querySelector('#agk-ok').onclick = function () { ov.remove(); enterApp(); };
+        var cp = ov.querySelector('#agk-copy');
+        if (cp) cp.onclick = function () {
+            var t = 'QTRIG — kód účtu: ' + ucet.code + (recovery ? '\nobnovovací kód: ' + recovery : '');
+            try { navigator.clipboard.writeText(t).then(function () { cp.textContent = 'Zkopírováno — vlož do poznámek'; }, function () { cp.textContent = 'Nejde kopírovat — opiš ručně'; }); }
+            catch (e) { cp.textContent = 'Nejde kopírovat — opiš ručně'; }
+        };
+        ov.querySelector('#agk-ok').onclick = function () { ov.remove(); if (!jenKod) enterApp(); };
+    }
+
+    // ---- obnova hesla obnovovacím kódem (brána, bez přihlášení) ---------------------------
+    function showObnova(predvyplnenyKod) {
+        injectStyles();
+        var old = document.getElementById('ag-obnova'); if (old) old.remove();
+        var ov = document.createElement('div');
+        ov.id = 'ag-obnova';
+        ov.className = 'ag-gate-like';
+        ov.innerHTML =
+            '<div class="agl-card">' +
+            '<div class="agl-firm">Nové heslo obnovovacím kódem</div>' +
+            '<div class="agg-box on">' +
+            '  <input type="text" id="ago-code" maxlength="8" placeholder="Kód účtu (8 znaků)" autocapitalize="characters" autocomplete="username" style="text-transform:uppercase;letter-spacing:.15em;" value="' + esc(String(predvyplnenyKod || '').toUpperCase()) + '">' +
+            '  <input type="text" id="ago-rec" maxlength="23" placeholder="Obnovovací kód (XXXXX-XXXXX-XXXXX-XXXXX)" autocapitalize="characters" autocomplete="one-time-code" style="text-transform:uppercase;">' +
+            '  <input type="password" id="ago-p1" maxlength="64" placeholder="Nové heslo (aspoň 8 znaků)" autocomplete="new-password">' +
+            '  <input type="password" id="ago-p2" maxlength="64" placeholder="Nové heslo znovu" autocomplete="new-password">' +
+            '  <div class="agl-err" id="ago-err"></div>' +
+            '  <button type="button" class="agl-btn" id="ago-go">Nastavit nové heslo</button>' +
+            '</div>' +
+            '<div class="agg-note">Obnovovací kód jsi dostal při založení účtu (nebo v O aplikaci → Účet). Po použití dostaneš nový — starý přestane platit.</div>' +
+            '<button type="button" class="agl-ghost" id="ago-zpet">Zpět</button>' +
+            '</div>';
+        document.body.appendChild(ov);
+        var err = ov.querySelector('#ago-err'), busy = false;
+        ov.querySelector('#ago-zpet').onclick = function () { ov.remove(); };
+        ov.querySelector('#ago-go').onclick = function () {
+            if (busy) return;
+            var code = (ov.querySelector('#ago-code').value || '').trim().toUpperCase();
+            var rec = (ov.querySelector('#ago-rec').value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+            var p1 = ov.querySelector('#ago-p1').value || '', p2 = ov.querySelector('#ago-p2').value || '';
+            if (code.length !== 8) { err.textContent = 'Kód účtu má 8 znaků.'; return; }
+            if (rec.length !== 20) { err.textContent = 'Obnovovací kód má 20 znaků (4 × 5).'; return; }
+            if (p1.length < 8) { err.textContent = 'Heslo musí mít aspoň 8 znaků.'; return; }
+            if (p1 !== p2) { err.textContent = 'Hesla se neshodují.'; return; }
+            busy = true; err.textContent = 'Ověřuji…';
+            cloudFetch('/account/recover', { method: 'POST', api: DEFAULT_API, body: { code: code, recovery: rec, password: p1 } }).then(function (r) {
+                if (!(r.ok && r.data && r.data.ok)) {
+                    busy = false;
+                    err.textContent = r.status === 0 ? 'Server není dosažitelný — obnova jde jen přes internet.' : ((r.data && r.data.error) || ('Obnova selhala (' + r.status + ').'));
+                    return;
+                }
+                // rovnou přihlásit novým heslem a ukázat nový obnovovací kód
+                var novy = r.data.recovery;
+                cloudFetch('/login', { method: 'POST', api: DEFAULT_API, body: { code: code, password: p1 } }).then(function (l) {
+                    busy = false;
+                    ov.remove();
+                    if (l.ok && l.data && l.data.token) {
+                        failClear();
+                        adoptLogin(l.data, DEFAULT_API, p1);
+                        usageLog('login', 'recover');
+                        ukazKodUctu(l.data.ucet, novy);
+                        try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: l.data.user } })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:recover'); }
+                    } else {
+                        ukazKodUctu({ code: code }, novy, true);
+                        agInfo('Heslo je nastavené. Přihlas se novým heslem.');
+                    }
+                });
+            });
+        };
+        setTimeout(function () { try { ov.querySelector(predvyplnenyKod ? '#ago-rec' : '#ago-code').focus(); } catch (e) { } }, 60);
+    }
+
+    // ---- nový obnovovací kód pro přihlášený účet (O aplikaci → Účet, obrazovka prostorů) ----
+    function showNovyObnovovaciKod() {
+        var ucet = getUcet();
+        if (!ucet || !ucet.code) { agInfo('Nejdřív se přihlas účtem.'); return; }
+        injectStyles();
+        var old = document.getElementById('ag-rec'); if (old) old.remove();
+        var ov = document.createElement('div');
+        ov.id = 'ag-rec';
+        ov.className = 'ag-gate-like';
+        ov.innerHTML =
+            '<div class="agl-card">' +
+            '<div class="agl-firm">Obnovovací kód účtu ' + esc(ucet.code) + '</div>' +
+            '<div class="agg-note">Kdybys zapomněl heslo, obnovovacím kódem si nastavíš nové — bez e-mailu. Nový kód nahradí ten starý. Potvrď heslem:</div>' +
+            '<div class="agg-box on">' +
+            '  <input type="password" id="agrc-pass" maxlength="64" placeholder="Heslo účtu" autocomplete="current-password">' +
+            '  <div class="agl-err" id="agrc-err"></div>' +
+            '  <button type="button" class="agl-btn" id="agrc-go">Vytvořit nový obnovovací kód</button>' +
+            '</div>' +
+            '<button type="button" class="agl-ghost" id="agrc-zpet">Zpět</button>' +
+            '</div>';
+        document.body.appendChild(ov);
+        var err = ov.querySelector('#agrc-err'), busy = false;
+        ov.querySelector('#agrc-zpet').onclick = function () { ov.remove(); };
+        ov.querySelector('#agrc-go').onclick = function () {
+            if (busy) return;
+            var heslo = ov.querySelector('#agrc-pass').value || '';
+            if (!heslo) { err.textContent = 'Zadej heslo.'; return; }
+            busy = true; err.textContent = 'Vyrábím…';
+            cloudFetch('/account/recovery', { method: 'POST', body: { password: heslo } }).then(function (r) {
+                busy = false;
+                if (r.ok && r.data && r.data.recovery) { ov.remove(); ukazKodUctu(ucet, r.data.recovery, true); return; }
+                err.textContent = r.status === 0 ? 'Server není dosažitelný — kód se vyrábí přes internet.' : ((r.data && r.data.error) || ('Nepovedlo se (' + r.status + ').'));
+            });
+        };
+        setTimeout(function () { try { ov.querySelector('#agrc-pass').focus(); } catch (e) { } }, 60);
     }
 
     // ---- sken přihlašovacího QR od admina (payload 'AGF1\ncode\tname\tapi?';
@@ -3390,6 +3506,7 @@
         lock: lock,
         logout: logout,
         smazatUcet: showSmazaniUctu,   // O aplikaci → Smazat účet (Google Play)
+        obnovovaciKod: showNovyObnovovaciKod,   // O aplikaci → Účet → Nový obnovovací kód (18. 9. 2026, R3)
         // brána + host + profily firem
         showGate: showGate,
         // pozvánka z odkazu (?firma=&jmeno=) pro průvodce připojením

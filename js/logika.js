@@ -939,7 +939,12 @@ if ('serviceWorker' in navigator) {
             persistCustomPoints(); saveLines(); renderManageList(); drawAllMarkersOnMap(); updateInfoPanel();
         }
         // Vyplnit Y/X z PRUMEROVANE GPS polohy (presnejsi nez jeden odecet) + ulozit dosazenou presnost
-        function fillAveragedGPS() {
+        // silent=true (18. 9. 2026, R1 „Nový bod na dvě klepnutí“): volá se SAMO při otevření okna a pak
+        // každou vteřinu, dokud uživatel souřadnice nepřepíše — nesmí vyskakovat dialog, důvod
+        // „ještě nemám průměr“ jde do řádku #custom-acc-note. Vrací true, když pole vyplnilo.
+        function fillAveragedGPS(silent) {
+            const _note = function (html) { const n = document.getElementById('custom-acc-note'); if (!n) return; n.style.display = 'block'; n.innerHTML = html; };
+            const _rekni = function (dlouhe, kratke) { if (silent) { _note('<span style="opacity:.8">' + kratke + '</span>'); return false; } agInfo(dlouhe); return false; };
             // ⚠ #2 POLOHA Z MAPY: odecet prstem do ortofota NENI mereni. Vyplnime ho —
             // je to casto poctivejsi zdroj nez GPS mezi panelaky — ale s VLASTNI
             // presnosti (z meritka mapy) a s vlastni provenienci, at appka netvrdi
@@ -969,9 +974,9 @@ if ('serviceWorker' in navigator) {
             // BRANA CERSTVOSTI: kdyz GPS prestala dodavat fixy (tunel, suspend), prumer je
             // ze STARE polohy — bod by se tise ulozil jinam, nez clovek stoji.
             const _fx = window.AGFix;
-            if (_fx && _fx.ts && (Date.now() - _fx.ts) > 10000) { agInfo('Poloha je stará ' + Math.round((Date.now() - _fx.ts) / 1000) + ' s — GPS teď nedodává čerstvé fixy.\n\nPočkej pod volným nebem na obnovení signálu a zkus to znovu.'); return; }
-            if (gpsAvgResult && gpsAvgResult.coarse) { agInfo("Slabý GNSS signál — telefon hlásí síťovou polohu ±" + Math.round(gpsAvgResult.acc) + " m, ne satelitní fix.\n\nVyjdi pod volné nebe a počkej, až se přesnost zlepší pod 20 m."); return; }
-            if (!gpsAvgResult || gpsAvgResult.n < 2) { agInfo("Počkej na ustálení průměrování GPS (stůj chvíli na místě)."); return; }
+            if (_fx && _fx.ts && (Date.now() - _fx.ts) > 10000) { return _rekni('Poloha je stará ' + Math.round((Date.now() - _fx.ts) / 1000) + ' s — GPS teď nedodává čerstvé fixy.\n\nPočkej pod volným nebem na obnovení signálu a zkus to znovu.', 'GPS nedodává čerstvé fixy (' + Math.round((Date.now() - _fx.ts) / 1000) + ' s) — souřadnice se doplní, až se signál vrátí.'); }
+            if (gpsAvgResult && gpsAvgResult.coarse) { return _rekni("Slabý GNSS signál — telefon hlásí síťovou polohu ±" + Math.round(gpsAvgResult.acc) + " m, ne satelitní fix.\n\nVyjdi pod volné nebe a počkej, až se přesnost zlepší pod 20 m.", 'Zatím jen síťová poloha ±' + Math.round(gpsAvgResult.acc) + ' m — čekám na satelitní fix, souřadnice se doplní samy.'); }
+            if (!gpsAvgResult || gpsAvgResult.n < 2) { return _rekni("Počkej na ustálení průměrování GPS (stůj chvíli na místě).", 'Průměruji GPS' + (gpsAvgResult && gpsAvgResult.n ? ' (' + gpsAvgResult.n + ' měření)' : '') + ' — stůj chvíli na místě, souřadnice se doplní samy.'); }
             const r = gpsAvgResult; let sjtsk = agMistni(r.lat, r.lng);
             document.getElementById('custom-y').value = sjtsk.y.toFixed(2);
             document.getElementById('custom-x').value = sjtsk.x.toFixed(2);
@@ -989,7 +994,30 @@ if ('serviceWorker' in navigator) {
                 h += bpv != null ? ` · výška ${agOsy().vyska} <b>${bpv.toFixed(2)} m</b>${r.altSterr != null ? ` (±${r.altSterr.toFixed(2)} m, ${r.altN}×)` : ''}` : ` · <span style="opacity:.7">výšku telefon nehlásí</span>`;
                 note.innerHTML = h;
             }
+            return true;
         }
+        // ---- R1: souřadnice z GPS průměru SAMY při otevření okna Nový bod (18. 9. 2026) ----------
+        // Dřív: Nový bod → klepnout na „Z průměru GPS“ (i když bylo zvýrazněné jako hlavní) → Uložit.
+        // Teď se pole vyplní hned a každou vteřinu se ZPŘESŇUJÍ (průměr roste), dokud uživatel
+        // Y/X nepřepíše, nevybere jiný zdroj (mapa, fotka) nebo okno nezavře. Nový bod → Uložit = 2 klepnutí.
+        let _agAutoGpsTimer = null;
+        function agAutoGpsStart() {
+            agAutoGpsStop();
+            const y = document.getElementById('custom-y'), x = document.getElementById('custom-x');
+            if (!y || !x) return;
+            y.dataset.agAuto = '1'; x.dataset.agAuto = '1';
+            const stop = function () { delete y.dataset.agAuto; delete x.dataset.agAuto; agAutoGpsStop(); };
+            y.addEventListener('input', stop, { once: true }); x.addEventListener('input', stop, { once: true });
+            const tick = function () {
+                const ov = document.getElementById('custom-modal-overlay');
+                if (!ov || ov.style.display === 'none' || y.dataset.agAuto !== '1' || (window._agPointOrigin && window._agPointOrigin !== 'gps-avg')) { agAutoGpsStop(); return; }
+                try { fillAveragedGPS(true); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agAutoGps'); }
+            };
+            tick();
+            _agAutoGpsTimer = setInterval(tick, 1000);
+        }
+        function agAutoGpsStop() { if (_agAutoGpsTimer) { clearInterval(_agAutoGpsTimer); _agAutoGpsTimer = null; } }
+        window.agAutoGpsStart = agAutoGpsStart; window.agAutoGpsStop = agAutoGpsStop;
         
         // Nový bod musí být v AR i mapě vidět HNED (terénní bug: aktivní „Hledat konkrétní
         // bod" nebo vypnutý filtr „Vlastní" ho tiše schovaly — vypadalo to, že se bod

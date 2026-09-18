@@ -185,7 +185,8 @@ async def test_mrizka(ctx):
     await page.evaluate("() => window.AGLazy && AGLazy.flush()")
     await page.wait_for_timeout(2500)
     await page.evaluate("() => { document.getElementById('tools-modal').style.display='flex'; }")
-    for _ in range(40):
+    for _ in range(90):   # 18. 9. 2026 (R5): 40×500 ms v dlouhe davce CI nestacilo (odlozeny modul zpetna-vazba.js)
+        await page.evaluate("() => window.AGLazy && AGLazy.flush()")
         st0 = await page.evaluate("""() => ({
             dlazdic: document.querySelectorAll('#tools-modal .tool-tile').length,
             fb: !!document.getElementById('ag-fb-foot-tools')

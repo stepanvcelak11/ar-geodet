@@ -409,6 +409,22 @@ function placenaCesta(path) {
 // přihlašovací pole bere JEDEN kód a server podle délky pozná, jestli hledat
 // v účtech, nebo (u starých klientů) ve firmách. Se stejnou délkou by musel
 // zkoušet obojí a kolize dvou kódů by tiše přihlásila do špatného místa.
+// Obnovovací kód: 4×5 znaků z CODE_ABC (bez O/0/I/1/L), zapisuje se s pomlčkami, porovnává bez nich
+// a bez ohledu na velikost písmen. Entropie 20 × log2(31) ≈ 99 bitů.
+function recCode() {
+    const a = new Uint8Array(20); crypto.getRandomValues(a);
+    let s = '';
+    for (let i = 0; i < 20; i++) { if (i && i % 5 === 0) s += '-'; s += CODE_ABC[a[i] % CODE_ABC.length]; }
+    return s;
+}
+function recNorm(s) { return String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
+// vyrobí nový obnovovací kód, uloží jeho hash k účtu a vrátí ho (jediná chvíle, kdy existuje v čitelné podobě)
+async function recNew(env, accId) {
+    const kod = recCode(), sul = randHex(16);
+    const h = await pbkdf2(recNorm(kod), sul, ITERS);
+    await env.DB.prepare('UPDATE accounts SET rec_hash=?, rec_salt=? WHERE id=?').bind(h, sul, accId).run();
+    return kod;
+}
 function accCode() {
     const a = new Uint8Array(8);
     crypto.getRandomValues(a);
@@ -432,6 +448,11 @@ async function ensureUctySchema(env) {
     // SQLite neumí IF NOT EXISTS u ALTER — když sloupec už je, příkaz selže
     // a to je v pořádku (proto try/catch u každého zvlášť).
     const alters = [
+        // OBNOVOVACÍ KÓD (18. 9. 2026, R3): registrace nechce e-mail, takže heslo nešlo obnovit vůbec.
+        //   Účet dostane při založení druhý klíč (20 znaků, ukáže se JEDNOU), uložený stejně jako
+        //   heslo (PBKDF2). POST /account/recover: kód účtu + obnovovací kód → nové heslo + nový kód.
+        'ALTER TABLE accounts ADD COLUMN rec_hash TEXT',
+        'ALTER TABLE accounts ADD COLUMN rec_salt TEXT',
         'ALTER TABLE users ADD COLUMN acc_id TEXT',
         // ⚠ ODCHOD Z FIRMY NEMAŽE ČLENSTVÍ. Vyplní se `left_ts` a prostor
         //   zůstane v přepínači jako ARCHIV jen ke čtení. MUSÍ být zamrzlý:
@@ -1513,6 +1534,8 @@ export default {
             // Starsi nasazeny worker tuhle polozku nema, takze podle ni pozna appka,
             // ze na serveru bezi stara verze — viz js/hodinky-parovani.js.
             //
+            // v:28 = obnovovací kód účtu: /register vrací `recovery`, POST /account/recover (bez tokenu),
+            //        POST /account/recovery (s tokenem, nový kód). 18. 9. 2026, R3.
             // v:25 = GET /cuzk/nacrt?u= (adresy obrázků místopisného náčrtu bodu ze stránky ČÚZK).
             // v:24 = /dgps/push + /dgps/pull (DGPS živě: základna sdílí korekce kódem, rover je tahá).
             // v:23 = prehled.chybyUcty[].acc (id uctu k hlidaci chyb).
@@ -1529,7 +1552,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 27, mapa: !!env.MAPA, mapaGithub: true, nacrt: true, dgps: true, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 28, recovery: true, mapa: !!env.MAPA, mapaGithub: true, nacrt: true, dgps: true, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
 
             // ---------------- VLASTNÍ MAPA: DATA PMTILES Z R2 (16. 9. 2026) ----------------
             // GET/HEAD /mapa/<soubor>.pmtiles → objekt z R2 bucketu (binding MAPA, viz
@@ -1883,8 +1906,11 @@ export default {
                         nyni, accId).run();
 
                 const u = { id: userId, firm_id: firmId, name: b.name, role: 'admin', acc_id: accId };
+                let recovery = null;
+                try { recovery = await recNew(env, accId); } catch (e) { recovery = null; }   // starší DB bez sloupce: účet vznikne i tak
                 return json({
                     token: await makeToken(env, u, accId),
+                    recovery: recovery,
                     ucet: { id: accId, code: code, name: String(b.name).slice(0, 40), tarif: 'zaklad' },
                     user: { id: userId, name: u.name, role: 'admin' },
                     prostory: await prostoryUctu(env, accId),
@@ -1898,6 +1924,37 @@ export default {
             //   6 znaků = kód FIRMY → stará cesta {code, name, password}, kterou
             //     dál potřebují telefony s neaktualizovanou appkou. Až doslouží,
             //     smaže se celá druhá větev a nic jiného se měnit nebude.
+            // ---------------- obnova hesla obnovovacím kódem (18. 9. 2026, R3) ------------
+            // Bez tokenu (člověk se nemůže přihlásit). Brzdy jako u /login: kód účtu + IP.
+            // Po úspěchu se kód OTOČÍ — starý přestane platit a odpověď nese nový.
+            if (req.method === 'POST' && path === '/account/recover') {
+                await ensureUctySchema(env);
+                const b = await req.json().catch(() => null) || {};
+                const kod = String(b.code || '').trim().toUpperCase();
+                const rec = recNorm(b.recovery);
+                if (kod.length !== 8 || rec.length !== 20 || b.password == null) return err(400, 'Chybí kód účtu, obnovovací kód nebo nové heslo.');
+                if (String(b.password).length < 8) return err(400, 'Heslo musí mít aspoň 8 znaků.');
+                const ip = req.headers.get('CF-Connecting-IP') || '0';
+                const gk = 'rec:' + kod + ':' + ip, gi = 'recip:' + ip;
+                if (!await guardHit(env, gk, 5, 60 * 60e3)) return err(429, 'Příliš mnoho pokusů. Zkus to za hodinu.');
+                if (!await guardHit(env, gi, 20, 60 * 60e3)) return err(429, 'Příliš mnoho pokusů z této sítě. Zkus to za hodinu.');
+                const acc = await dbFirst(env, 'SELECT * FROM accounts WHERE code=?', kod);
+                if (!acc || !acc.rec_hash || !acc.rec_salt) return err(401, 'Nesprávný kód účtu nebo obnovovací kód.');
+                if (acc.disabled) return err(403, 'Účet je zablokovaný.');
+                const h = await pbkdf2(rec, acc.rec_salt, acc.iters || ITERS);
+                if (!timingSafeEq(h, acc.rec_hash)) return err(401, 'Nesprávný kód účtu nebo obnovovací kód.');
+                const salt = randHex(16);
+                const hash = await pbkdf2(String(b.password), salt, ITERS);
+                await env.DB.prepare('UPDATE accounts SET pass_hash=?, salt=?, iters=? WHERE id=?').bind(hash, salt, ITERS, acc.id).run();
+                // vlastní prostor má u uživatele tentýž hash (users.pass_hash) — sjednotit, ať funguje i stará cesta přihlášení
+                await dbRunSoft(env, 'UPDATE users SET pass_hash=?, salt=?, iters=? WHERE acc_id=? AND own=1', hash, salt, ITERS, acc.id);
+                const novy = await recNew(env, acc.id);
+                await guardClear(env, gk); await guardClear(env, gi);
+                await guardClear(env, 'log2:' + kod);
+                try { await ownerLog(env, 'heslo-obnoveno', acc.code, 'obnovovacím kódem'); } catch (e) {}
+                return json({ ok: true, recovery: novy });
+            }
+
             if (req.method === 'POST' && path === '/login') {
               const b = await req.json().catch(() => null) || {};
               const kod = String(b.code || '').trim().toUpperCase();
@@ -3099,6 +3156,22 @@ export default {
             // patří firmě, jako při odchodu), události užívání a poloha, vzkazy, účet.
             // Objednávky zůstávají BEZ vazby na účet: jsou to účetní doklady.
             // Poslední admin firmy s dalšími lidmi napřed předá správu (jako /spaces/leave).
+            // Nový obnovovací kód pro už založený účet (účty z doby před R3 ho nemají) — chce heslo,
+            // aby telefon nechaný na stole nedal cizímu klíč k účtu.
+            if (req.method === 'POST' && path === '/account/recovery') {
+                if (!me.accId || !me.acc) return err(400, 'Účet ještě není založený.');
+                const b = await req.json().catch(() => null) || {};
+                if (b.password == null) return err(400, 'Chybí heslo.');
+                const ip = req.headers.get('CF-Connecting-IP') || '0';
+                if (!await guardHit(env, 'recn:' + ip, 10, 15 * 60e3)) return err(429, 'Příliš mnoho pokusů. Zkus to za 15 minut.');
+                const h = await pbkdf2(String(b.password), me.acc.salt, me.acc.iters);
+                if (!timingSafeEq(h, me.acc.pass_hash)) return err(401, 'Nesprávné heslo.');
+                await ensureUctySchema(env);
+                const kod = await recNew(env, me.accId);
+                await guardClear(env, 'recn:' + ip);
+                return json({ ok: true, recovery: kod });
+            }
+
             if (req.method === 'POST' && path === '/account/delete') {
                 if (!me.accId || !me.acc) return err(400, 'Účet ještě není založený.');
                 const b = await req.json().catch(() => null) || {};
