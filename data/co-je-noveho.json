@@ -2,6 +2,15 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 351,
+   "datum": "2026-09-18",
+   "nadpis": "Appka umí španělsky a italsky",
+   "body": [
+    "<b>Dva nové jazyky: španělština a italština.</b> Přeložené je všechno, co anglicky, německy a polsky — jádro i celé rozšíření (přes 6 600 textů), včetně odborného názvosloví (replanteo / tracciamento, distancias de control / misure di controllo, catastro / catasto…). Přepíná se v <b>Nastavení → Vzhled</b> úplně nahoře nebo kroužkem na přihlašovací obrazovce; telefon nastavený španělsky nebo italsky si jazyk vybere sám.",
+    "Stejně jako u ostatních jazyků: čeština nestahuje nic navíc, rozšíření (~480 kB) se stáhne až po volbě jazyka a jen to jedno. Vlastní jména zůstávají — ČÚZK, ČHMÚ, CZEPOS, S-JTSK, Bpv, čísla vyhlášek."
+   ]
+  },
+  {
    "v": 350,
    "datum": "2026-09-18",
    "nadpis": "Panel Mapa ve třech patrech, navigace terénem i na ortofotu, překážka na plátně",

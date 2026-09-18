@@ -36,10 +36,10 @@
 //   • data/jazyky.json — JÁDRO (~700 nejčastějších textů + vzory `re`). Je malé,
 //     service worker si ho ukládá do předcache, takže jazyk jde přepnout i bez
 //     signálu hned napoprvé.
-//   • data/jazyky-en|de|pl.json — ROZŠÍŘENÍ (~5 700 klíčů, ~480 kB na jazyk).
+//   • data/jazyky-en|de|pl|es|it.json — ROZŠÍŘENÍ (~5 700 klíčů, ~480 kB na jazyk).
 //     Stahuje se AŽ po volbě jazyka a JEN ten jeden zvolený. V předcache není:
 //     kdo appku používá česky, nestáhne z něj ani bajt, a i cizinec platí za
-//     svůj jazyk, ne za tři. Po prvním stažení ho service worker uloží (běžná
+//     svůj jazyk, ne za pět. Po prvním stažení ho service worker uloží (běžná
 //     cache-first cesta pro vlastní soubory), takže offline funguje dál.
 //   Když se rozšíření nestáhne (offline při prvním přepnutí), appka se prostě
 //   přeloží jen z jádra — nic nespadne, jen zůstane víc textů česky.
@@ -64,7 +64,8 @@
     //   Musí sedět s `poradi` v data/jazyky.json; kdyby tam přibyl jazyk navíc,
     //   po načtení se do nabídky doplní sám (viz mergeLangs).
     var CS = { c: 'cs', n: 'Čeština' };
-    var LANGS = [CS, { c: 'en', n: 'English' }, { c: 'de', n: 'Deutsch' }, { c: 'pl', n: 'Polski' }];
+    var LANGS = [CS, { c: 'en', n: 'English' }, { c: 'de', n: 'Deutsch' }, { c: 'pl', n: 'Polski' },
+        { c: 'es', n: 'Español' }, { c: 'it', n: 'Italiano' }];
 
     var _lang = 'cs';         // aktuální kód
     var _langs = LANGS.slice();
@@ -106,7 +107,7 @@
         for (var i = 0; i < l.length; i++) {
             var c = String(l[i] || '').toLowerCase().slice(0, 2);
             if (c === 'cs' || c === 'sk') return 'cs';
-            if (c === 'en' || c === 'de' || c === 'pl') return c;
+            if (c === 'en' || c === 'de' || c === 'pl' || c === 'es' || c === 'it') return c;
         }
         return l.length ? 'en' : 'cs';
     }
