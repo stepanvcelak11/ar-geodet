@@ -69,11 +69,18 @@
             // 2, prohlížeč vyhodí VersionError a data bychom nepřečetli vůbec.
             try { rq = (dbName === DB_NAME) ? indexedDB.open(dbName, 1) : indexedDB.open(dbName); }
             catch (e) { swallow(e, 'ag-store:open'); return res(null); }
-            rq.onupgradeneeded = function () {
+            rq.onupgradeneeded = function (e) {
                 try {
                     var db = rq.result;
+                    // ⚠⚠ CIZÍ DATABÁZI NIKDY NEZAKLÁDAT (18. 9. 2026). `open(name)` bez verze
+                    // neexistující databázi VYTVOŘÍ prázdnou (verze 1) — a její modul, který
+                    // otevírá `open(name, 1)`, už pak nikdy nedostane onupgradeneeded, takže
+                    // sklad nevznikne a každý zápis padá na „object store was not found"
+                    // (Měření použití hlásilo toast „Něco se pokazilo (ucty:usageLog)").
+                    // Zrušení upgradu při oldVersion 0 databázi nezaloží.
+                    if (dbName !== DB_NAME && e && e.oldVersion === 0) { try { rq.transaction.abort(); } catch (e2) { } return; }
                     if (!db.objectStoreNames.contains(storeName)) db.createObjectStore(storeName);
-                } catch (e) { swallow(e, 'ag-store:upgrade'); }
+                } catch (e3) { swallow(e3, 'ag-store:upgrade'); }
             };
             rq.onsuccess = function () {
                 var db = rq.result;
@@ -192,6 +199,8 @@
         return new Promise(function (res) {
             if (typeof indexedDB === 'undefined') return res([]);
             var rq; try { rq = indexedDB.open(dbName); } catch (e) { return res([]); }
+            // neexistující databázi nezakládat (viz open() výš) — přehled má jen číst
+            rq.onupgradeneeded = function (e) { if (e && e.oldVersion === 0) { try { rq.transaction.abort(); } catch (e2) { } } };
             rq.onsuccess = function () {
                 var db = rq.result, names = [];
                 try { for (var i = 0; i < db.objectStoreNames.length; i++) names.push(db.objectStoreNames[i]); } catch (e) { swallow(e, 'ag-store:storesOf'); }

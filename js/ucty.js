@@ -858,7 +858,23 @@
                     os.createIndex('ts', 'ts', { unique: false });
                 }
             };
-            r.onsuccess = function () { _db = r.result; res(_db); };
+            r.onsuccess = function () {
+                var db = r.result;
+                // SAMOLÉČBA (18. 9. 2026): do v353 uměl přehled místa (js/ag-store.js) založit
+                // tuhle databázi PRÁZDNOU — verze už sedí, onupgradeneeded nepřijde a sklad
+                // chybí; každý zápis pak hlásil „object store was not found". Otevřít o verzi
+                // výš = upgrade proběhne a sklad vznikne, data se nemažou.
+                if (db && !db.objectStoreNames.contains(STORE)) {
+                    var v2 = db.version + 1; try { db.close(); } catch (e) { }
+                    var r2; try { r2 = indexedDB.open(DB, v2); } catch (e) { return res(null); }
+                    r2.onupgradeneeded = r.onupgradeneeded;
+                    r2.onsuccess = function () { _db = r2.result; res(_db); };
+                    r2.onerror = function () { res(null); };
+                    r2.onblocked = function () { res(null); };
+                    return;
+                }
+                _db = db; res(_db);
+            };
             r.onerror = function () { res(null); };
             r.onblocked = function () { res(null); };
         });

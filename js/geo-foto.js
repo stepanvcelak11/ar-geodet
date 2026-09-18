@@ -138,7 +138,20 @@
         return new Promise(function (res, rej) {
             var rq = indexedDB.open(DB_NAME, 1);
             rq.onupgradeneeded = function () { rq.result.createObjectStore(STORE, { keyPath: 'id' }); };
-            rq.onsuccess = function () { _db = rq.result; res(_db); };
+            rq.onsuccess = function () {
+                var d = rq.result;
+                // SAMOLÉČBA (18. 9. 2026): přehled místa (js/ag-store.js) uměl databázi založit prázdnou;
+                // chybí-li sklad, otevřít o verzi výš — upgrade ho doplní, data zůstanou.
+                if (d && !d.objectStoreNames.contains(STORE)) {
+                    var v2 = d.version + 1; try { d.close(); } catch (e) { }
+                    var r2 = indexedDB.open(DB_NAME, v2);
+                    r2.onupgradeneeded = function () { r2.result.createObjectStore(STORE, { keyPath: 'id' }); };
+                    r2.onsuccess = function () { _db = r2.result; res(_db); };
+                    r2.onerror = function () { rej(r2.error); };
+                    return;
+                }
+                _db = d; res(_db);
+            };
             rq.onerror = function () { rej(rq.error); };
         });
     }

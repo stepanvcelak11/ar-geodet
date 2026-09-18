@@ -195,7 +195,7 @@
             m = document.createElement('div'); m.id = 'ag-katastr-okno';
             m.innerHTML = '<div class="agk-head">'
                 + '<button type="button" class="agk-zpet" id="agk-zpet"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Zpět</button>'
-                + '<div class="agk-t"><b>Katastr — kde právě stojím</b><small id="agk-sub"></small></div>'
+                + '<div class="agk-t" data-ag-head><b>Katastr — kde právě stojím</b><small id="agk-sub"></small></div>'
                 + '<button type="button" class="agk-ven" id="agk-ven" title="Otevřít zdroj z Nastavení v prohlížeči">V prohlížeči</button>'
                 + '</div>'
                 + '<div class="agk-body"><iframe id="agk-frame" title="Katastr (iKatastr.cz)" referrerpolicy="no-referrer-when-downgrade" allow="geolocation"></iframe>'

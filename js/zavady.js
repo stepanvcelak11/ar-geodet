@@ -104,7 +104,20 @@
             if (typeof indexedDB === 'undefined') { rej(new Error('no idb')); return; }
             var r = indexedDB.open(PDB, 1);
             r.onupgradeneeded = function () { try { r.result.createObjectStore(PSTORE); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zavady:onupgradeneeded'); } };
-            r.onsuccess = function () { res(r.result); };
+            r.onsuccess = function () {
+                var d = r.result;
+                // SAMOLÉČBA (18. 9. 2026): přehled místa (js/ag-store.js) uměl databázi založit prázdnou;
+                // chybí-li sklad, otevřít o verzi výš — upgrade ho doplní, fotky zůstanou.
+                if (d && !d.objectStoreNames.contains(PSTORE)) {
+                    var v2 = d.version + 1; try { d.close(); } catch (e) { }
+                    var r2 = indexedDB.open(PDB, v2);
+                    r2.onupgradeneeded = function () { try { r2.result.createObjectStore(PSTORE); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zavady:onupgradeneeded'); } };
+                    r2.onsuccess = function () { res(r2.result); };
+                    r2.onerror = function () { rej(r2.error); };
+                    return;
+                }
+                res(d);
+            };
             r.onerror = function () { rej(r.error); };
         });
     }

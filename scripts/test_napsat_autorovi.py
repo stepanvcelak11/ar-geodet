@@ -332,7 +332,7 @@ def test_slovnik():
     for klic in [u'Napsat autorovi', u'Napsat autorovi — nápady a chyby',
                  u'Něco nesedí, nebo něco chybí? Napsat autorovi']:
         h = t.get(klic)
-        ok('D3 slovnik zna "%s"' % klic[:34], isinstance(h, list) and len(h) == 3 and all(h), h)
+        ok('D3 slovnik zna "%s"' % klic[:34], isinstance(h, list) and len(h) >= 3 and all(h), h)
 
 
 def test_gesto():

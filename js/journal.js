@@ -41,7 +41,21 @@
                     os.createIndex('pt', ['proj', 'id'], { unique: false });
                 }
             };
-            r.onsuccess = function () { _db = r.result; res(_db); };
+            r.onsuccess = function () {
+                var db = r.result;
+                // SAMOLÉČBA (18. 9. 2026): přehled místa (js/ag-store.js) uměl databázi založit
+                // prázdnou — sklad chybí a verze sedí; otevřít o verzi výš ho doplní (viz ucty.js).
+                if (db && !db.objectStoreNames.contains(STORE)) {
+                    var v2 = db.version + 1; try { db.close(); } catch (e) { }
+                    var r2; try { r2 = indexedDB.open(DB, v2); } catch (e) { return res(null); }
+                    r2.onupgradeneeded = r.onupgradeneeded;
+                    r2.onsuccess = function () { _db = r2.result; res(_db); };
+                    r2.onerror = function () { res(null); };
+                    r2.onblocked = function () { res(null); };
+                    return;
+                }
+                _db = db; res(_db);
+            };
             r.onerror = function () { res(null); };
             r.onblocked = function () { res(null); };
         });

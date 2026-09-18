@@ -539,6 +539,9 @@
         // ⚠ KARTA UPROSTŘED NENÍ OKNO (12. 9. 2026): rozcestník („Usadit AR") = průhledný
         //   překryv + malá karta; kolečko se věšelo přes HUD. Okna jedou přes celou šířku.
         var kids = el.children, bestH = 0, bestW = 0;
+        // PRÁZDNÁ PLACHTA NENÍ OKNO (18. 9. 2026): průhledná vrstva na kreslení prstem přes mapu
+        //   (Vzdálené body do AR, překážka…) nemá děti ani text — kolečko by sedlo na stavovou pilulku.
+        if (!kids.length && !(el.textContent || '').trim()) return false;
         for (var i = 0; i < kids.length; i++) {
             if (kids[i].classList && kids[i].classList.contains('ag-mini-fab')) continue;
             var k = kids[i].getBoundingClientRect(); if (k.height > bestH) bestH = k.height; if (k.width > bestW) bestW = k.width;
@@ -691,20 +694,23 @@
         f.style.transition = 'none';
         var vysledek = function () { void f.offsetWidth; f.style.transition = tr; };
         var steps = [58, 110, 162];   // 58 px = vedle křížku z modal-close.js; dál po šířce tlačítka
-        var nadpis = null;
+        var nadpis = null, krokNadpisu = 0;
         for (var i = 0; i < steps.length; i++) {
             f.style[other] = 'auto';
             f.style[side] = 'calc(env(safe-area-inset-' + side + ',0px) + ' + steps[i] + 'px)';
             void f.offsetWidth;
             var kol = fabCollides(f, modal);
             if (!kol) { vysledek(); return; }
-            if (i === 0 && (HEADS[kol.tagName] || kol.hasAttribute('data-ag-head'))) nadpis = kol;
+            // první krok, kde překáží UŽ JEN nadpis (ne tlačítko) — tam se nadpisu udělá místo.
+            // Do 18. 9. 2026 se bral jen krok 0: v okně s tlačítkem vedle křížku (Katastr:
+            // „Mapy.com") kolečko přeskočilo na krok 1 a leželo přes text nadpisu.
+            if (!nadpis && (HEADS[kol.tagName] || kol.hasAttribute('data-ag-head'))) { nadpis = kol; krokNadpisu = i; }
         }
         // ⚠ DLOUHÝ NADPIS SI UDĚLÁ MÍSTO (12. 9. 2026): překáží-li jen text nadpisu,
         //   dostane padding a zalomí se — řádek níž kolečko krylo popisek (osa).
         if (nadpis) {
             f.style[other] = 'auto';
-            f.style[side] = 'calc(env(safe-area-inset-' + side + ',0px) + ' + steps[0] + 'px)';
+            f.style[side] = 'calc(env(safe-area-inset-' + side + ',0px) + ' + steps[krokNadpisu] + 'px)';
             f.style.top = '';
             void f.offsetWidth;
             var fr = f.getBoundingClientRect(), hr = nadpis.getBoundingClientRect();

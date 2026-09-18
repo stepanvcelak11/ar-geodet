@@ -375,6 +375,7 @@
 
         _vrstva = document.createElement('div');
         _vrstva.id = 'ag-dosah-vrstva';
+        _vrstva.setAttribute('data-ag-mini-off', '1');   // průhledná plachta přes celou mapu není okno — js/mini-panel.js jí jinak přidá kolečko „Sbalit" přes stavovou pilulku (18. 9. 2026)
         _ram = document.createElement('div');
         _ram.id = 'ag-dosah-ram';
         _lista = document.createElement('div');

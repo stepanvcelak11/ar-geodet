@@ -127,7 +127,21 @@
         return new Promise(function (res) {
             var r; try { r = indexedDB.open(name, 1); } catch (e) { return res(null); }
             r.onupgradeneeded = function (e) { try { if (!e.target.result.objectStoreNames.contains(cfg.store)) cfg.schema(e.target.result); } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'zaloha:onupgradeneeded'); } };
-            r.onsuccess = function () { res(r.result); };
+            r.onsuccess = function () {
+                var d = r.result;
+                // SAMOLÉČBA (18. 9. 2026): databázi mohl přehled místa (js/ag-store.js) založit
+                // prázdnou — sklad chybí a obnova by padla; o verzi výš ho schéma doplní.
+                if (d && !d.objectStoreNames.contains(cfg.store)) {
+                    var v2 = d.version + 1; try { d.close(); } catch (e) { }
+                    var r2; try { r2 = indexedDB.open(name, v2); } catch (e) { return res(null); }
+                    r2.onupgradeneeded = r.onupgradeneeded;
+                    r2.onsuccess = function () { res(r2.result); };
+                    r2.onerror = function () { res(null); };
+                    r2.onblocked = function () { res(null); };
+                    return;
+                }
+                res(d);
+            };
             r.onerror = function () { res(null); };
             r.onblocked = function () { res(null); };
         });

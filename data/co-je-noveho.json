@@ -2,6 +2,19 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 355,
+   "datum": "2026-09-18",
+   "nadpis": "Průchod celou appkou: co blblo při klikání přes všechny nástroje",
+   "body": [
+    "<b>Toast „Něco se pokazilo (ucty:usageLog)“ je pryč.</b> Přehled místa v Nastavení → Údržba zakládal databáze modulů prázdné, a modul pak do nich neuměl zapsat (žurnál změn, měření použití, fotky, hlasovky). Přehled už nic nezakládá a každý modul si chybějící sklad sám doplní — data zůstávají.",
+    "Místopisný náčrt: tlačítko „Posun“ má ikonu (dřív tam stálo „undefined“).",
+    "Karta bodu: úřední bod bez Y/X v datech (třeba slovenské body) ukáže S-JTSK spočítané z polohy místo pomlček; na malém displeji (320 px) se souřadnice nezkracují trojtečkou.",
+    "Vzdálené body do AR: přes stavovou pilulku už neleží kolečko „Sbalit“. Okno Katastr: kolečko neleží přes nadpis.",
+    "Trasa terénem bez signálu říká „bez signálu, nebo server neodpovídá“ místo anglického „Failed to fetch“.",
+    "Test CI k Napsat autorovi počítal se třemi jazyky — od v351 jich je pět (byl proto červený)."
+   ]
+  },
+  {
    "v": 354,
    "datum": "2026-09-18",
    "nadpis": "Navigace bez vyskakovacího okna, mapa na jednom místě, přehlednější Nástroje, záložka Ovládání, malé displeje, překlady",

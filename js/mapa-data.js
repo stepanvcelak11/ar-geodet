@@ -171,7 +171,9 @@
     function oblast(bbox) {
         var t = tilesPro(bbox, Z); if (t.length > MAX_DLAZDIC) return Promise.reject(new Error('oblast příliš velká (' + t.length + ' dlaždic)'));
         if (Date.now() < _chybaDo) return Promise.reject(new Error(_chybaText || 'data mapy nejsou k dispozici'));
-        return Promise.all(t.map(function (q) { return dlazdice(q.z, q.x, q.y); })).then(sloz).catch(function (e) { _chybaDo = Date.now() + 60000; _chybaText = (e && e.message) || String(e); throw e; });
+        return Promise.all(t.map(function (q) { return dlazdice(q.z, q.x, q.y); })).then(sloz).catch(function (e) { _chybaDo = Date.now() + 60000; _chybaText = lidsky((e && e.message) || String(e)); throw e; });
+    // „Failed to fetch" / „NetworkError" / „Load failed" (Safari) = bez signálu nebo server neodpovídá — uživateli to říct česky (18. 9. 2026)
+    function lidsky(t) { return /failed to fetch|networkerror|load failed|network request failed/i.test(t) ? 'bez signálu, nebo server neodpovídá' : t; }
     }
     // synchronně z cache: Promise si ukládá výsledek do .vysledek, ať se nemusí čekat
     function oblastHned(bbox) {

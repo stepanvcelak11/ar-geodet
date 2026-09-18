@@ -124,7 +124,9 @@
             '.ag-kb-t b.t{font-family:var(--font-ui,system-ui);font-weight:600;font-size:calc(12.5px * var(--ag-font-scale,1));white-space:normal;}',
             '.ag-kb-t.c2{grid-column:1/-1;}.ag-kb-t.r2{grid-row:span 2;}',
             '.ag-kb-t.yx{display:flex;flex-direction:column;justify-content:center;gap:6px;background:linear-gradient(135deg,var(--accent-soft,rgba(47,158,116,.18)),rgba(47,158,116,.04));border-color:var(--accent-line,rgba(47,158,116,.4));}',
-            '.ag-kb-t.yx b{font-size:calc(17px * var(--ag-font-scale,1));color:var(--accent,#3fbc8c);margin-top:1px;}',
+            // Y/X se NIKDY neuřezává: na 320 px (iPhone SE) se „1 044 452,95" v dlaždici nevešlo a končilo trojtečkou (18. 9. 2026).
+            // 12 znaků mono ≈ 7,4 em; dlaždice je ~40 vw minus vnitřní okraje (na 320 px má 131 px).
+            '.ag-kb-t.yx b{font-size:min(calc(17px * var(--ag-font-scale,1)), calc((40vw - 20px) / 7.4));color:var(--accent,#3fbc8c);margin-top:1px;}',
             '.ag-kb-t.yx .ic{position:absolute;right:8px;top:8px;width:30px;height:30px;color:var(--accent,#3fbc8c);opacity:.55;}',
             '.ag-kb-t.ok b{color:#3fbc8c;}.ag-kb-t.warn{background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.35);}.ag-kb-t.warn b{color:var(--warning,#fbbf24);}',
             '.ag-kb-t.bad{background:rgba(226,104,95,.08);border-color:rgba(226,104,95,.35);}.ag-kb-t.bad b{color:#e2685f;}',
@@ -337,7 +339,13 @@
                 if (K === 'Y' || K === 'SOURADNICE_Y') sY = v;
                 if (K === 'X' || K === 'SOURADNICE_X') sX = v;
             }
-            if (sY == null || sX == null) return null;
+            // Úřední bod bez Y/X v datech (slovenské body z WMS GKÚ, body z cizích zdrojů,
+            // starší mezipaměť): spočítat z polohy, ať v kartě nesvítí pomlčky (18. 9. 2026).
+            if (sY == null || sX == null) {
+                if (typeof proj4 !== 'function' || !isFinite(pt.lat) || !isFinite(pt.lng)) return null;
+                var c2 = window.agMistniPole(pt.lat, pt.lng);
+                return { y: c2[0], x: c2[1] };
+            }
             return sY < sX ? { y: sY, x: sX } : { y: sX, x: sY };   // Y je vždy to menší
         } catch (e) { return null; }
     }

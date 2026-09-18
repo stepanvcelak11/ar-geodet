@@ -333,7 +333,8 @@
 
     // ---- okno ---------------------------------------------------------------------------------------
     var IK = {
-        posun: '<svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M8 7l4-4 4 4M8 17l4 4 4-4M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg>',
+        // klíč = id režimu (tl('vyber', …)); do 18. 9. 2026 tu bylo `posun` a tlačítko neslo text „undefined"
+        vyber: '<svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M8 7l4-4 4 4M8 17l4 4 4-4M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg>',
         vzdalenost: '<svg viewBox="0 0 24 24"><path d="M4 12h16M4 8v8M20 8v8M9 10v4M15 10v4"/></svg>',
         objekt: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>',
         cara: '<svg viewBox="0 0 24 24"><path d="M3 18l6-9 5 5 7-9"/></svg>',
