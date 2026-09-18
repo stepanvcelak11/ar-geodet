@@ -223,7 +223,8 @@ async def test_admin(ctx):
         huby = await page.evaluate("() => AGReg.all().filter(r => r.hub).map(r => r.k)")
         # Rozcestnik se v seznamu ukaze jen tehdy, kdyz jeho dlazdice v mrizce
         # opravdu stoji (tools-hub.js je lazy) - jinak by se testovalo prazdno.
-        stojici = await page.evaluate("""() => AGReg.all().filter(r => r.hub)
+        # 18. 9. 2026: rozcestnik muze byt sam `hidden` (Srovnat jinak) — pak radek nema schvalne
+        stojici = await page.evaluate("""() => AGReg.all().filter(r => r.hub && !r.hidden)
             .filter(r => !![...document.querySelectorAll('#tools-modal .tool-tile')]
                 .find(t => (t.getAttribute('data-tool') || '') === r.k)).map(r => r.k)""")
         chybi_hub = [h for h in stojici if h not in set(sez['vse'])]
@@ -245,8 +246,9 @@ async def test_admin(ctx):
         ziji = await page.evaluate("""() => {
             const out = {};
             for (const k of AGReg.hiddenKeys()) {
+                // dlazdice modulu ma data-tool, staticka dlazdice z index.html jen onclick s nazvem funkce (18. 9. 2026: Omerne, Kubatury)
                 const t = [...document.querySelectorAll('#tools-modal .tool-tile')]
-                    .find(x => (x.getAttribute('data-tool') || '') === k);
+                    .find(x => (x.getAttribute('data-tool') || '') === k || (x.getAttribute('onclick') || '').indexOf(k + '(') >= 0);
                 out[k] = { dlazdice: !!t, keys: !!(AGReg.get(k) || {}).keys };
             }
             return out;

@@ -330,8 +330,8 @@ test('REGRESE: vstupy modulů a řádek terénu se vloží', async ({ page, cont
     //   • Předpisy a odchylky — dlaždice v Nástrojích (registrace field-tool).
     // ⚠ 11. 9. 2026: terénní AR (DMR 5G) je ZRUŠENÝ na přání uživatele — řádek
     // #ms-terrain ani #btn-terrain už neexistují; js/dmr-terrain.js zůstal jen
-    // jako datová služba výšek. Panel se místo toho hlídá řádkem „Katastrální
-    // mapa" (#btn-katastr, v index.html natvrdo — když panel nenaskočí, chybí i on).
+    // jako datová služba výšek. Panel se místo toho hlídá kartou „Katastr"
+    // (#btn-katastr, v index.html natvrdo — když panel nenaskočí, chybí i on).
     const warns = [];
     page.on('console', (m) => { if (m.type() === 'warning' && /insertBefore/.test(m.text())) warns.push(m.text()); });
 
@@ -364,9 +364,10 @@ test('REGRESE: vstupy modulů a řádek terénu se vloží', async ({ page, cont
     await expect(vstup, 'panel „Mapa a vrstvy" nemá viditelný vstup — ani lišta, ani kolečko v mapě')
         .toBeVisible({ timeout: 10000 });
     await vstup.click();
-    const tabVr = page.locator('#ms-tabs [data-ms-tab="vrstvy"]');
-    if (await tabVr.count()) await tabVr.click();
-    await expect(page.locator('#btn-katastr'), 'řádek „Katastrální mapa" v panelu Mapa a vrstvy').toBeVisible();
+    // 18. 9. 2026: Katastr je karta v záložce PODKLAD (vedle Mapy a Ortofota), ne řádek ve Vrstvách
+    const tabPod = page.locator('#ms-tabs [data-ms-tab="podklad"]');
+    if (await tabPod.count()) await tabPod.click();
+    await expect(page.locator('#btn-katastr'), 'karta „Katastr" v panelu Mapa → Podklad').toBeVisible();
 
     expect(warns, 'insertBefore selhalo:\n' + warns.join('\n')).toEqual([]);
 });

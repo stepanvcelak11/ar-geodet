@@ -128,7 +128,8 @@ async def beh(url):
 
         async def api(route, req):
             u = req.url
-            if 'workers.dev' in u or '/account/recover' in u or u.endswith('/login') or '/register' in u:
+            # data vektorové mapy (/mapa/…) nejsou volání účtů — od v360 se mapa zapíná sama (18. 9. 2026)
+            if ('workers.dev' in u and '/mapa/' not in u) or '/account/recover' in u or u.endswith('/login') or '/register' in u:
                 body = None
                 try: body = json.loads(req.post_data or 'null')
                 except Exception: body = None
