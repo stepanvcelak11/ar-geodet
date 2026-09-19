@@ -2,6 +2,15 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 381,
+      "datum": "2026-09-19",
+      "nadpis": "Die App spricht Niederländisch",
+      "body": [
+        "<b>Niederländisch.</b> Die siebte Sprache neben Englisch, Deutsch, Polnisch, Spanisch, Italienisch und Französisch — Kern und die ganze Erweiterung (6 700 Texte), die „?“-Anleitungen bei den Werkzeugen, Vorschriften, Übungsaufgaben, Geo-Karten, Ländernamen und diese Änderungsliste (alle Versionen). Ein auf Niederländisch eingestelltes Telefon wählt sie selbst; sonst Einstellungen → Aussehen. Datum und Zahlen laufen in nl-NL.",
+        "Die Fachbegriffe sind vermessungstechnisch, nicht wörterbuchmäßig (uitzetten, achterwaartse snijding, controlematen, waterpassen, grondslagnet, kadaster, perceel); Eigennamen bleiben (ČÚZK, ČHMÚ, S-JTSK, Bpv, Verordnungsnummern). Die Datenprüfung in CI (test_jazyky_data, 124 Prüfungen) wacht auch beim Niederländischen über gleiche Struktur und tschechische Reste."
+      ]
+    },
+    {
       "v": 380,
       "datum": "2026-09-19",
       "nadpis": "Ort oder Adresse finden, Punktlink für Kollegen, RTK-Netze nach Land, „Nur mal schauen“ am Tor",

@@ -2,6 +2,15 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 381,
+      "datum": "2026-09-19",
+      "nadpis": "Aplikacja mówi po niderlandzku",
+      "body": [
+        "<b>Niderlandzki.</b> Siódmy język obok angielskiego, niemieckiego, polskiego, hiszpańskiego, włoskiego i francuskiego — rdzeń i całe rozszerzenie (6 700 tekstów), instrukcje „?” przy narzędziach, Przepisy, Zadania ćwiczeniowe, Geo-fiszki, nazwy krajów i ta lista zmian (wszystkie wydania). Telefon ustawiony na niderlandzki wybierze go sam; inaczej Ustawienia → Wygląd. Daty i liczby w nl-NL.",
+        "Terminologia jest geodezyjna, nie słownikowa (uitzetten, achterwaartse snijding, controlematen, waterpassen, grondslagnet, kadaster, perceel); nazwy własne zostają (ČÚZK, ČHMÚ, S-JTSK, Bpv, numery rozporządzeń). Kontrola danych w CI (test_jazyky_data, 124 kontrole) pilnuje tej samej struktury i czeskich pozostałości także dla niderlandzkiego."
+      ]
+    },
+    {
       "v": 380,
       "datum": "2026-09-19",
       "nadpis": "Znajdź miejsce lub adres, link do punktu dla kolegi, sieci RTK według krajów, „Tylko popatrzeć” na bramie",

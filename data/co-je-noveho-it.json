@@ -2,6 +2,15 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 381,
+      "datum": "2026-09-19",
+      "nadpis": "L’app parla olandese",
+      "body": [
+        "<b>Olandese.</b> La settima lingua accanto a inglese, tedesco, polacco, spagnolo, italiano e francese — nucleo e tutta l’estensione (6 700 testi), le guide «?» degli strumenti, Normative, Esercizi, Geo-schede, nomi dei paesi e questo elenco delle modifiche (tutte le versioni). Un telefono impostato in olandese la sceglie da solo; altrimenti Impostazioni → Aspetto. Date e numeri in nl-NL.",
+        "La terminologia è topografica, non da dizionario (uitzetten, achterwaartse snijding, controlematen, waterpassen, grondslagnet, kadaster, perceel); i nomi propri restano (ČÚZK, ČHMÚ, S-JTSK, Bpv, numeri dei decreti). Il controllo dati in CI (test_jazyky_data, 124 controlli) sorveglia la stessa struttura e i residui cechi anche per l’olandese."
+      ]
+    },
+    {
       "v": 380,
       "datum": "2026-09-19",
       "nadpis": "Trova luogo o indirizzo, link del punto a un collega, reti RTK per paese, «Dai solo un’occhiata» all’ingresso",

@@ -1,0 +1,839 @@
+{
+ "aktualizovano": "2026-06-14",
+ "disclaimer": "Indicatief spiekbriefje, geen juridische uitleg. Controleer de waarden in de volledige tekst bij de bron — voorschriften veranderen.",
+ "kategorie": [
+  {
+   "id": "odchylky",
+   "nazev": "Grensafwijkingen en nauwkeurigheid",
+   "zkratka": "Afwijkingen",
+   "zaznamy": [
+    {
+     "nazev": "Kwaliteitscode van detailpunten (mxy en grensafwijkingen)",
+     "tagy": [
+      "afwijking",
+      "afwijkingen",
+      "nauwkeurigheid",
+      "kwaliteitscode",
+      "mxy",
+      "uxy",
+      "grens",
+      "coördinaatfout",
+      "detailpunt"
+     ],
+     "telo": "De nauwkeurigheid van de coördinaten van een detailpunt in S-JTSK wordt uitgedrukt met een kwaliteitscode 3 tot 8. Bij elke code hoort een basisstandaardfout van de coördinaten mxy. Daaruit worden de grenscoördinaatfout uxy = 2·mxy en de grenspositieafwijking = 2·√2·mxy afgeleid. Codes 3–5 zijn punten ingemeten in het veld, codes 6–8 komen uit de digitalisering van vroegere kaarten.",
+     "tabulka": {
+      "hlavicka": [
+       "Code",
+       "Herkomst",
+       "mxy [m]",
+       "uxy = 2·mxy [m]",
+       "Grenspositie [m]"
+      ],
+      "radky": [
+       [
+        "3",
+        "inmeting in het veld",
+        "0,14",
+        "0,28",
+        "0,39"
+       ],
+       [
+        "4",
+        "inmeting in het veld",
+        "0,26",
+        "0,52",
+        "0,74"
+       ],
+       [
+        "5",
+        "inmeting in het veld",
+        "0,50",
+        "1,00",
+        "1,41"
+       ],
+       [
+        "6",
+        "digitalisering",
+        "0,21",
+        "0,42",
+        "0,59"
+       ],
+       [
+        "7",
+        "digitalisering",
+        "0,50",
+        "1,00",
+        "1,41"
+       ],
+       [
+        "8",
+        "digitalisering",
+        "1,00",
+        "2,00",
+        "2,82"
+       ]
+      ]
+     },
+     "pozn": "uxy = 2·mxy · grenspositieafwijking = 2·√2·mxy. Het nauwkeurigst zijn punten met code 3 (nieuw geodetisch ingemeten).",
+     "zdroj": "Tsjechisch kadastraal besluit nr. 357/2013 Sb., bijlage punt 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Grensafwijking van de perceeloppervlakte",
+     "tagy": [
+      "oppervlakte",
+      "grensafwijking",
+      "oppervlakteafwijking",
+      "perceel",
+      "tolerantie",
+      "m2"
+     ],
+     "telo": "De grensafwijking van de oppervlakte zegt hoeveel twee oppervlaktes van hetzelfde perceel (bijv. de nieuwe en de geregistreerde) mogen verschillen zonder dat de oppervlakte in het kadaster verandert. Ze hangt af van de kwaliteitscode van de knikpunten en van de oppervlakte P (de grootste van de vergeleken oppervlaktes in m²):",
+     "tabulka": {
+      "hlavicka": [
+       "Kwaliteitscode",
+       "Grensafwijking oppervlakte [m²]"
+      ],
+      "radky": [
+       [
+        "3",
+        "2"
+       ],
+       [
+        "4",
+        "0,4·√P + 4"
+       ],
+       [
+        "5",
+        "1,2·√P + 12"
+       ],
+       [
+        "6",
+        "0,3·√P + 3"
+       ],
+       [
+        "7",
+        "0,8·√P + 8"
+       ],
+       [
+        "8",
+        "2,0·√P + 20"
+       ]
+      ]
+     },
+     "pozn": "P = de grootste van de vergeleken oppervlaktes [m²]. Voor een groep percelen / code van bepalingswijze 0 of een combinatie wordt het dubbele genomen. Voorbeeld: perceel 1000 m² met code 8 → 2,0·√1000 + 20 ≈ 83 m². Controleer de exacte formulering van de formules in de bijlage.",
+     "zdroj": "Tsjechisch kadastraal besluit nr. 357/2013 Sb., bijlage (grensafwijkingen van oppervlaktes)",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Kleuren van punten in Nahlížení do KN (nauwkeurigheidscontrole)",
+     "tagy": [
+      "inzage",
+      "kleur",
+      "groen",
+      "rood",
+      "kwaliteitscode",
+      "nauwkeurigheid",
+      "grens"
+     ],
+     "telo": "In de toepassing Nahlížení do KN worden in de laag „Perceelgrenzen met nauwkeurigheidsaanduiding” / „Detailpunten met nauwkeurigheidsaanduiding” de punten naar kwaliteitscode gekleurd getoond: GROEN de punten met kwaliteitscode 3 (het nauwkeurigst, geodetisch ingemeten), ROOD de punten met kwaliteitscode 4 tot 8. Een snelle visuele controle hoe betrouwbaar een grens is.",
+     "zdroj": "ČÚZK — Nahlížení do KN",
+     "odkaz": "https://nahlizenidokn.cuzk.gov.cz",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Bepalingswijze van de perceeloppervlakte vs. kwaliteitscode",
+     "tagy": [
+      "oppervlakte",
+      "bepalingswijze oppervlakte",
+      "kwaliteitscode",
+      "perceel"
+     ],
+     "telo": "De bepalingswijze van de perceeloppervlakte wordt met een code aangeduid: code 2 = uit coördinaten in S-JTSK met kwaliteitscode 3 of 4 (het nauwkeurigst); code 1 = uit rechtstreeks gemeten maten of uit coördinaten in een lokaal stelsel; code 0 = uit coördinaten in S-JTSK waarvan minstens één knikpunt kwaliteitscode 5 tot 8 heeft, OF grafisch (met planimeter, uit op de kaart afgemeten maten, uit op de kaart afgelezen coördinaten).",
+     "pozn": "Hogere nauwkeurigheid van de knikpunten (code 3–4) = nauwkeurigere en „sterkere” perceeloppervlakte.",
+     "zdroj": "Tsjechisch kadastraal besluit nr. 357/2013 Sb., bijlage",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "kontrola",
+   "nazev": "Nauwkeurigheid en controle van metingen",
+   "zkratka": "Controle",
+   "zaznamy": [
+    {
+     "nazev": "Dubbele (onafhankelijke) bepaling van een punt + aansluiting op punten",
+     "tagy": [
+      "meting",
+      "dubbele bepaling",
+      "onafhankelijk",
+      "controle",
+      "aansluiting",
+      "methode",
+      "werkwijze"
+     ],
+     "telo": "De inmeting van elk detailpunt wordt onafhankelijk minstens twee keer uitgevoerd. De meting moet zijn aangesloten op punten van minstens dezelfde nauwkeurigheid als die welke bij de nieuw te bepalen punten moet worden bereikt (d.w.z. een nauwkeuriger punt kan niet worden verkregen door te steunen op minder nauwkeurige punten). Dit geldt ongeacht de methode (GNSS, polaire methode enz.) — beslissend is de bereikte en gecontroleerde nauwkeurigheid.",
+     "pozn": "Uit de dubbele bepaling wordt de nauwkeurigheidscontrole berekend (zie de steekproefstandaardfout hieronder).",
+     "zdroj": "Tsjechisch kadastraal besluit nr. 357/2013 Sb., bijlage punt 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Controle van de nauwkeurigheid door controlemeting van lengtes",
+     "tagy": [
+      "controle",
+      "controlemeting",
+      "controlematen",
+      "lengte",
+      "grensverschil",
+      "ud",
+      "controle"
+     ],
+     "telo": "Het bereiken van de nauwkeurigheid wordt gecontroleerd met controlematen of met een controlemeting van de lengtes van rechte verbindingslijnen van andere gekozen paren detailpunten en hun vergelijking met de uit de coördinaten berekende lengtes. Het voldoet wanneer het verschil tussen de gecontroleerd gemeten lengte en de lengte uit de coördinaten kleiner is dan het grenslengteverschil ud = 2·md (md = basisstandaardfout van de lengte).",
+     "pozn": "Bij een set met meer dan 20 verschillen geldt bovendien een statistisch criterium (aandeel verschillen kleiner dan md) — zie punt 13 van de bijlage.",
+     "zdroj": "Tsjechisch kadastraal besluit nr. 357/2013 Sb., bijlage punt 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Steekproefstandaardfout van de coördinaten (positietest)",
+     "tagy": [
+      "steekproefstandaardfout",
+      "sxy",
+      "uxy",
+      "controlebepaling",
+      "controle",
+      "grens",
+      "coëfficiënt k"
+     ],
+     "telo": "Bij controle door een controle- (tweede) bepaling van de coördinaten van hetzelfde punt wordt de steekproefstandaardfout van de coördinaten sxy = √(0,5·(Δx² + Δy²)) berekend, waarbij Δx, Δy de verschillen van de coördinaten uit de eerste en de controlebepaling zijn. De nauwkeurigheid voldoet wanneer sxy de grenscoördinaatfout uxy = 2·mxy van de betreffende kwaliteitscode niet overschrijdt (bijv. code 3 → uxy = 0,28 m).",
+     "pozn": "Coëfficiënt k = 2 als de controlebepaling dezelfde nauwkeurigheid heeft als de detailmeting; k = 1 als de controle wezenlijk nauwkeuriger is (mxy < 0,10 m). Grenswaarden uxy zie de tabel van kwaliteitscodes.",
+     "zdroj": "Tsjechisch kadastraal besluit nr. 357/2013 Sb., bijlage punt 13",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "metody",
+   "nazev": "Positionele meetmethoden",
+   "zkratka": "Methoden",
+   "zaznamy": [
+    {
+     "nazev": "Meetmethoden voor detailpunten",
+     "tagy": [
+      "methode",
+      "polair",
+      "orthogonaal",
+      "controlematen",
+      "snijding",
+      "meting",
+      "detailpunt"
+     ],
+     "telo": "Detailpunten van de situatie worden in de regel met de POLAIRE methode ingemeten (horizontale hoek vanaf de oriëntatierichting + afstand vanaf het standpunt). Aanvullende methoden (wanneer polair niet kan of niet doelmatig is): ORTHOGONAAL (rechthoekige coördinaten ten opzichte van een meetlijn — metrering en loodlijn; geschikt in dichte bebouwing), de methode van CONSTRUCTIEVE CONTROLEMATEN en SNIJDING uit richtingen of uit afstanden.",
+     "pozn": "Ongeacht de methode moet de vereiste nauwkeurigheid (kwaliteitscode) worden bereikt en gecontroleerd — zie dubbele bepaling en controle hierboven.",
+     "zdroj": "Tsjechisch kadastraal besluit nr. 357/2013 Sb., bijlage; besluit nr. 31/1995 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "GNSS-/RTK-meting in het kadaster",
+     "tagy": [
+      "GNSS",
+      "RTK",
+      "GPS",
+      "permanent station",
+      "VRS",
+      "CZEPOS",
+      "meting",
+      "methode"
+     ],
+     "telo": "Coördinaten kunnen worden bepaald met GNSS-technologie, in de praktijk met de RTK-methode. Behalve een eigen referentiestation kunnen netwerken van permanente stations worden gebruikt (bijv. CZEPOS) — correcties van een concreet of van een virtueel referentiestation (VRS). Elk punt wordt onafhankelijk minstens twee keer bepaald en de resultaten worden gecontroleerd. De technische GNSS-procedures regelt punt 9 van de bijlage van besluit nr. 31/1995 Sb.",
+     "pozn": "Aansluiting/oriëntatie op punten van minstens de nauwkeurigheid die bereikt moet worden. Twee onafhankelijke GNSS-bepalingen moeten een tussentijd hebben (andere satellietconstellatie).",
+     "zdroj": "Besluit nr. 31/1995 Sb., bijlage punt 9; Tsjechisch kadastraal besluit nr. 357/2013 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/1995-31",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Meetkundige basis en oriëntatie van de meting",
+     "tagy": [
+      "meetkundige basis",
+      "oriëntatie",
+      "aansluiting",
+      "meetnet",
+      "polygoon",
+      "polair punt",
+      "grondslagnet"
+     ],
+     "telo": "De meetkundige basis van de detailmeting zijn de punten van de grondslagnetten en het meetnet: punten bepaald met de RTK-methode, polygonen en polaire punten naar behoefte. De meting moet zijn aangesloten en georiënteerd op punten van minstens de nauwkeurigheid die bij de nieuw te bepalen punten moet worden bereikt — een nauwkeuriger punt kan niet worden verkregen door te steunen op minder nauwkeurige punten.",
+     "zdroj": "Tsjechisch kadastraal besluit nr. 357/2013 Sb., bijlage",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Polygoon — meetkundige voorwaarden",
+     "tagy": [
+      "polygoon",
+      "veelhoek",
+      "zijde",
+      "zijdeverhouding",
+      "hoeksluitfout",
+      "hoekpunten",
+      "meetnet"
+     ],
+     "telo": "Bij de keuze van de polygoonpunten worden meetkundige parameters aangehouden (indicatief, naar nauwkeurigheidsklasse / norm):",
+     "tabulka": {
+      "hlavicka": [
+       "Parameter",
+       "In de regel"
+      ],
+      "radky": [
+       [
+        "Grens- (max.) zijdelengte",
+        "300 m"
+       ],
+       [
+        "Verhouding van de lengtes van aangrenzende zijden",
+        "tot 1:2 (elders 1:3)"
+       ],
+       [
+        "Verhouding van de langste en kortste zijde in de polygoon",
+        "tot 1:3"
+       ],
+       [
+        "Max. som van de lengtes (hoofdpolygoon)",
+        "2000–2500 m"
+       ],
+       [
+        "Max. som van de lengtes (nevenpolygoon)",
+        "1200–1600 m"
+       ],
+       [
+        "Max. aantal hoekpunten",
+        "17–25"
+       ]
+      ]
+     },
+     "pozn": "Vrije (eenzijdig aangesloten) polygoon: max. 3 nieuwe hoekpunten, lengte tot 250 m. Grensafwijking van de hoeksluitfout Δω = c·√n (n = aantal hoeken; c naar klasse/norm). De concrete waarden verschillen per bron/norm — controleer in ČSN 73 0415.",
+     "zdroj": "ČSN 73 0415 (Geodetische punten); lesmateriaal VUT/ZČU",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch07s04.html",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Polair punt — voorwaarden voor het bepalen van een hulppunt",
+     "tagy": [
+      "polair punt",
+      "polair",
+      "hulppunt",
+      "lengte van het polaire punt",
+      "oriëntatie",
+      "meetnet"
+     ],
+     "telo": "Polair punt = bepaling van een nieuw punt vanaf een bekend punt met een gemeten richtingshoek en afstand (vrije polygoon van één zijde). Voor hulpmeetpunten (volgens de Handleiding voor de vernieuwing van het kadastrale operaat): max. lengte 1500 m en niet meer dan de afstand tot de verste oriëntatie. Oriëntatie hetzij op het gegeven punt op 2 grondslagpunten (mxy ≤ 0,04 m), hetzij op het te bepalen punt op ≥3 punten — de hoek tussen de richting met gemeten afstand en de overige 30–170 gon.",
+     "pozn": "Lengte > 800 m → hoeken in twee groepen. Uitgangspunt met fout 0,04–0,06 m → max. 300 m. Punten op technische objecten in de regel tot 50 m. Een punt mag niet met slechts één polair punt worden bepaald (controle vereist).",
+     "zdroj": "ČÚZK — Handleiding voor de vernieuwing van het kadastrale operaat en conversie",
+     "odkaz": "https://cuzk.gov.cz/Predpisy/Resortni-predpisy-a-opatreni/Navody-CUZK/Navod_150150022.aspx",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Vrij standpunt en oriëntatie",
+     "tagy": [
+      "vrij standpunt",
+      "oriëntatie",
+      "standpunt",
+      "aansluiting",
+      "snijding",
+      "gon"
+     ],
+     "telo": "Vrij standpunt: het instrument staat op een willekeurig punt, zijn positie wordt bepaald door meting naar gegeven punten. De oriëntatie op het standpunt wordt altijd op minstens 2 grondslagpunten / hulppunten uitgevoerd en naar minstens één daarvan wordt ook de afstand gemeten. Voor een eenduidige bepaling volstaan 2 punten (richting + afstand) of 3 punten (alleen richtingen); voor controle en vereffening (kleinste kwadraten) worden overtallige punten gekozen.",
+     "pozn": "De hoek op het te bepalen punt tussen de richtingen naar twee gegeven punten moet tussen 30–170 gon liggen. Hoeken worden gemeten/geregistreerd met een nauwkeurigheid van minstens 0,001 gon.",
+     "zdroj": "ČÚZK — Handleiding voor de vernieuwing van het kadastrale operaat; Tsjechisch kadastraal besluit nr. 357/2013 Sb.",
+     "odkaz": "https://cuzk.gov.cz/Predpisy/Resortni-predpisy-a-opatreni/Navody-CUZK/Navod_150150022.aspx",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Snijding (voorwaarts / achterwaarts / uit afstanden)",
+     "tagy": [
+      "snijding",
+      "voorwaarts",
+      "achterwaarts",
+      "uit afstanden",
+      "achterwaartse snijding",
+      "gevaarlijke cirkel",
+      "snijhoek"
+     ],
+     "telo": "VOORWAARTSE snijding: de positie van het nieuwe punt als snijpunt van richtingen (of afstanden) vanaf gegeven punten. ACHTERWAARTSE snijding: het standpunt wordt bepaald door richten op ≥3 gegeven punten. Snijding uit afstanden: uit gemeten afstanden naar/vanaf bekende punten. De snijhoek op het te bepalen punt moet 30–170 gon zijn (niet te scherp en niet te stomp).",
+     "pozn": "Achterwaartse snijding: PAS OP voor de „gevaarlijke cirkel” — ligt het standpunt dicht bij de cirkel door de drie gegeven punten, dan heeft de opgave geen betrouwbare oplossing.",
+     "zdroj": "Tsjechisch kadastraal besluit nr. 357/2013 Sb.; lesmateriaal ČVUT/ZČU",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch07s03.html",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Tachymetrie (detailpunten met een totaalstation)",
+     "tagy": [
+      "tachymetrie",
+      "detailpunten",
+      "totaalstation",
+      "polair",
+      "kartering",
+      "hoogtemeting",
+      "nauwkeurigheid"
+     ],
+     "telo": "Tachymetrie = gelijktijdige bepaling van de positie (polair: horizontale hoek + afstand) en de hoogte (trigonometrisch uit zenithoek en afstand) van detailpunten vanaf één standpunt — de basis van de situatie- en hoogtekartering. Moderne totaalstations: standaardfout van een punt in de orde van 0,02–0,05 m, afstanden ook boven 200 m (de nauwkeurigheid neemt af met de afstand).",
+     "pozn": "Controle: meet vóór het verlaten van het standpunt ter controle minstens één gegeven punt (controle dat tijdens de opname de oriëntatie / horizontale cirkel niet is veranderd). De vereiste nauwkeurigheid van detailpunten volgens de kwaliteitscode (kadaster) / ČSN 01 3410 voor grootschalige kaarten.",
+     "zdroj": "Lesmateriaal ČVUT/ZČU; ČSN 01 3410; Tsjechisch kadastraal besluit nr. 357/2013 Sb.",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch15.html",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "vysky",
+   "nazev": "Hoogtemeting (waterpassen)",
+   "zkratka": "Hoogten",
+   "zaznamy": [
+    {
+     "nazev": "Waterpassen — soorten en meetvoorwaarden",
+     "tagy": [
+      "waterpassen",
+      "technische waterpassing",
+      "nauwkeurig",
+      "zeer nauwkeurig",
+      "richting",
+      "richtingslengte",
+      "hoogte van de richting",
+      "sluitfout",
+      "hoogteverschil"
+     ],
+     "telo": "Meetkundige waterpassing wordt naar nauwkeurigheid ingedeeld in technische (TN), nauwkeurige (PN), zeer nauwkeurige (VPN) en bijzonder nauwkeurige (ZPN). Ze verschillen in richtingslengte, minimale hoogte van de richting boven het terrein (vanwege refractie bij de grond) en grensafwijking van de sluitfout van de waterpasgang (R = lengte van de gang in km, resultaat in mm):",
+     "tabulka": {
+      "hlavicka": [
+       "Soort",
+       "Max. richtingslengte",
+       "Min. hoogte boven het terrein",
+       "Grensafwijking sluitfout"
+      ],
+      "radky": [
+       [
+        "Technisch (normaal)",
+        "120 m",
+        "0,5 m",
+        "40·√R mm"
+       ],
+       [
+        "Technisch (verhoogd)",
+        "80 m (opt. 40–50)",
+        "0,3 m",
+        "20·√R mm"
+       ],
+       [
+        "Zeer nauwkeurig / bijzonder nauwkeurig",
+        "50 m (vaak ≤40)",
+        "0,5 m",
+        "in beide richtingen, volgens ČSN"
+       ]
+      ]
+     },
+     "pozn": "TN: ga altijd uit van twee gecontroleerde waterpaspunten; max. lengte van de gang 3–5 km. VPN/ZPN: er wordt heen en terug gemeten (in beide richtingen), baken met dubbele schaal, aansluiting op twee punten minstens 1 km uit elkaar. Waarden uit lesmateriaal van ČVUT/VUT — controleer de bindende tekst in ČSN.",
+     "zdroj": "ČSN 73 0415 (Geodetische punten) en aansluitende voorschriften; lesmateriaal ČVUT/VUT",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch11s05.html",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Trigonometrische hoogtemeting (bepaling van hoogten)",
+     "tagy": [
+      "trigonometrische hoogtemeting",
+      "hoogte",
+      "hoogteverschil",
+      "zenithoek",
+      "refractie",
+      "totaalstation"
+     ],
+     "telo": "Het hoogteverschil wordt bepaald uit de zenit- (verticale) hoek en de schuine afstand — typisch met een totaalstation. Geschikt voor hoogten van ontoegankelijke punten en op grotere afstanden waar waterpassen niet kan. Bij langere richtingen groeit de invloed van refractie en aardkromming — die moeten worden gecorrigeerd; de betrouwbaarheid wordt verhoogd door heen en terug te meten (in beide richtingen) en door kortere richtingen.",
+     "pozn": "De nauwkeurigheid hangt af van de richtingslengte en de nauwkeurigheid van de zenithoek — wordt apart beoordeeld (voortplantingswet van fouten). Kies voor nauwkeurige hoogten kortere richtingen en meting in beide richtingen.",
+     "zdroj": "Lesmateriaal ČVUT/VUT/SPŠ zeměměřická; ČSN voor hoogtemetingen",
+     "odkaz": "https://gis.zcu.cz/studium/gen1/html/ch11s05.html",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "vytyceni",
+   "nazev": "Uitzetten",
+   "zkratka": "Uitzetten",
+   "zaznamy": [
+    {
+     "nazev": "Uitzetten van perceelgrenzen",
+     "tagy": [
+      "uitzetting",
+      "uitzetten",
+      "grens",
+      "documentatie",
+      "rapport",
+      "uitzetschets",
+      "ÚOZI",
+      "grensafwijking"
+     ],
+     "telo": "Het uitzetten van een grens is een landmeetkundige activiteit in het algemeen belang (§ 80–90 van het besluit + punten 16.28–16.32 van de bijlage). De nauwkeurigheid van het uitzetten hangt af van de onderliggende gegevens: zijn er numerieke gegevens, dan worden de knikpunten uitgezet met een standaardfout van de coördinaten van ±0,14 m (code 3); is er alleen een grafische kaart 1:2880 (of een daaruit gedigitaliseerde), dan slechts ±1,00 m. Van het uitzetten wordt DOCUMENTATIE opgesteld (uitzetschets + uitzetrapport) gecertificeerd door een bevoegd landmeter (ÚOZI); de betrokken eigenaren worden uitgenodigd om kennis te nemen.",
+     "pozn": "Termijnen: een exemplaar aan de opdrachtgever binnen 30 dagen, kopieën aan de betrokken eigenaren; binnen 90 dagen een kopie aan het kadastraal kantoor. Het kadastraal kantoor wijzigt de grens op de kaart niet, het vult alleen de merken van de blijvende markering aan (bij geen bezwaar). Door het uitzetten veranderen de rechtsverhoudingen niet; eigenaren hoeven het uitzetten niet te respecteren en kunnen het verloop binnen de grensafwijkingen preciseren.",
+     "zdroj": "Tsjechisch kadastraal besluit nr. 357/2013 Sb., § 80–90 + bijlage punten 16.28–16.32; landmeetwet nr. 200/1994 Sb. § 12",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Uitzetten van bouwwerken (ČSN 73 0420)",
+     "tagy": [
+      "uitzetten van bouwwerken",
+      "ČSN 73 0420",
+      "uitzetafwijking",
+      "grens",
+      "bouwtolerantie",
+      "bouwwerk"
+     ],
+     "telo": "De nauwkeurigheid van het uitzetten van bouwwerken regelt ČSN 73 0420: deel 1 (Basiseisen) — principes en berekening van de nauwkeurigheidscriteria van het uitzetten; deel 2 (Uitzetafwijkingen) — concrete waarden van de grensuitzetafwijkingen voor lijn-, vlak- en ruimtelijke bouwwerken. De grensuitzetafwijking wordt afgeleid uit de bouwtolerantie (standaardafwijking uit de bouwtolerantie).",
+     "pozn": "De concrete getalswaarden staan in de betaalde ČSN 73 0420-2 (hier alleen een verwijzing). Verwant is ČSN ISO 4463 (meetmethoden in de bouw).",
+     "zdroj": "ČSN 73 0420-1 en ČSN 73 0420-2 (Nauwkeurigheid van het uitzetten van bouwwerken)",
+     "odkaz": "https://www.technicke-normy-csn.cz/csn-73-0420-1-730420-221530.html",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "ciselniky",
+   "nazev": "Codes en codelijsten",
+   "zkratka": "Codelijsten",
+   "zaznamy": [
+    {
+     "nazev": "Grondsoorten (codes)",
+     "tagy": [
+      "grondsoort",
+      "code",
+      "codelijst",
+      "bouwland",
+      "tuin",
+      "blijvend grasland",
+      "bos",
+      "water",
+      "bebouwd",
+      "overig"
+     ],
+     "telo": "De grondsoort is een bindend kenmerk dat in het kadaster wordt geregistreerd. Codes van de grondsoort:",
+     "tabulka": {
+      "hlavicka": [
+       "Code",
+       "Grondsoort"
+      ],
+      "radky": [
+       [
+        "2",
+        "bouwland"
+       ],
+       [
+        "3",
+        "hopveld"
+       ],
+       [
+        "4",
+        "wijngaard"
+       ],
+       [
+        "5",
+        "tuin"
+       ],
+       [
+        "6",
+        "boomgaard"
+       ],
+       [
+        "7",
+        "blijvend grasland"
+       ],
+       [
+        "10",
+        "bosgrond"
+       ],
+       [
+        "11",
+        "water"
+       ],
+       [
+        "13",
+        "bebouwd oppervlak en erf"
+       ],
+       [
+        "14",
+        "overige grond"
+       ]
+      ]
+     },
+     "pozn": "Codes 2–7 zijn landbouwgrond (ZPF). Grondsoort in het kadaster ≠ mogelijkheid om te bouwen (daarover beslist het bestemmingsplan).",
+     "zdroj": "Wet nr. 256/2013 Sb. (kadasterwet) § 3; besluit nr. 357/2013 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Soorten geodetische grondslagnetten",
+     "tagy": [
+      "grondslagnet",
+      "TB",
+      "ZhB",
+      "PBPP",
+      "trigonometrisch",
+      "verdichtings-",
+      "waterpas-",
+      "positioneel",
+      "hoogte-",
+      "zwaartekracht-"
+     ],
+     "telo": "Grondslagnetten worden ingedeeld in positionele, hoogte- en zwaartekrachtnetten. In het positionele net zijn er trigonometrische punten (TB), verdichtingspunten (ZhB) en het gedetailleerde positionele grondslagnet (PBPP) — van de nauwkeurigste/dunste naar dichtere en minder nauwkeurige. Het hoogtenet bestaat uit waterpaspunten, het zwaartekrachtnet uit zwaartekrachtpunten.",
+     "pozn": "De concrete nauwkeurigheden en klassen bepalen de voorschriften over grondslagnetten (landmeetwet en uitvoeringsbesluit).",
+     "zdroj": "Wet nr. 200/1994 Sb. over landmeetkunde en uitvoeringsbesluit nr. 31/1995 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/1995-31",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Code van de bepalingswijze van de oppervlakte",
+     "tagy": [
+      "code",
+      "bepalingswijze oppervlakte",
+      "oppervlakte",
+      "0",
+      "1",
+      "2",
+      "codelijst"
+     ],
+     "telo": "De code geeft aan hoe de perceeloppervlakte is bepaald (en daarmee haar betrouwbaarheid):",
+     "tabulka": {
+      "hlavicka": [
+       "Code",
+       "Bepalingswijze oppervlakte"
+      ],
+      "radky": [
+       [
+        "2",
+        "uit coördinaten in S-JTSK, kwaliteitscode 3 of 4 (het nauwkeurigst)"
+       ],
+       [
+        "1",
+        "uit rechtstreeks gemeten maten of uit coördinaten in een lokaal stelsel"
+       ],
+       [
+        "0",
+        "uit coördinaten in S-JTSK met minstens één punt van kwaliteit 5–8, of grafisch"
+       ]
+      ]
+     },
+     "pozn": "Code 2 = hoogste nauwkeurigheid. Een grafisch bepaalde oppervlakte valt onder code 0.",
+     "zdroj": "Tsjechisch kadastraal besluit nr. 357/2013 Sb.",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Gebruikswijze van het perceel",
+     "tagy": [
+      "gebruikswijze",
+      "perceel",
+      "codelijst",
+      "kas",
+      "manipulatievlak",
+      "stortplaats"
+     ],
+     "telo": "Aanvullend kenmerk bij de grondsoort — preciseert waarvoor het perceel dient. Voorbeelden: kas / broeibak, manipulatievlak, perceel met een ruïne, snelweg / weg, begraafplaats en urnenhof, afvalstortplaats, fotovoltaïsche centrale, waterperceel met gebouw. De codelijst is uitgebreid.",
+     "pozn": "De volledige codelijst beheert ČÚZK (Codelijsten ISKN → Gebruikswijze van het perceel).",
+     "zdroj": "Tsjechisch kadastraal besluit nr. 357/2013 Sb., bijlage; codelijst ČÚZK",
+     "odkaz": "https://cuzk.gov.cz/Katastr-nemovitosti/Poskytovani-udaju-z-KN/Ciselniky-ISKN/Ciselniky-k-nemovitosti/Zpusob-vyuziti-pozemku.aspx",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Beschermingswijze van het onroerend goed",
+     "tagy": [
+      "beschermingswijze",
+      "bescherming",
+      "codelijst",
+      "cultureel monument",
+      "ZPF",
+      "beschermd gebied",
+      "beschermingszone"
+     ],
+     "telo": "Registreert of en hoe het onroerend goed volgens bijzondere voorschriften is beschermd. Voorbeelden: onroerend cultureel monument (monumentenbescherming), bescherming van landbouwgrond (ZPF), natuur- en landschapsbescherming, beschermd gebied of beschermingszone.",
+     "pozn": "De volledige codelijst beheert ČÚZK. Let op: op een perceel met ZPF-bescherming is vóór de bouw onttrekking aan het ZPF nodig.",
+     "zdroj": "Codelijst ČÚZK (ISKN)",
+     "odkaz": "https://cuzk.gov.cz/Katastr-nemovitosti/Poskytovani-udaju-z-KN/Ciselniky-ISKN/Ciselniky-k-nemovitosti/Zpusob-ochrany-nemovitosti.aspx",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "gp-zpmz",
+   "nazev": "Vereisten van een GP en ZPMZ",
+   "zkratka": "GP / ZPMZ",
+   "zaznamy": [
+    {
+     "nazev": "Meetkundig plan — wanneer en wat het bevat",
+     "tagy": [
+      "meetkundig plan",
+      "GP",
+      "vereisten",
+      "beschrijvend veld",
+      "staat",
+      "ÚOZI",
+      "bevestiging"
+     ],
+     "telo": "Het meetkundig plan is de technische basis voor de inschrijving van een wijziging in het kadaster (splitsing/samenvoeging van percelen, intekening van een gebouw, erfdienstbaarheid op een deel van een perceel e.a.). Het bevat met name het beschrijvend veld, de grafische weergave van de bestaande en de nieuwe toestand en de staat van de bestaande en de nieuwe kadastrale gegevens (eventueel een coördinatenlijst en een BPEJ-staat). Het moet zijn gecertificeerd door een bevoegd landmeter (ÚOZI) en bevestigd door het kadastraal kantoor.",
+     "pozn": "Regeling: § 79–86 van het besluit en bijlagen nr. 17 en 18. Het kadastraal kantoor bevestigt het GP binnen 10 dagen.",
+     "zdroj": "Tsjechisch kadastraal besluit nr. 357/2013 Sb., § 79–86 + bijlagen 17 en 18",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Record van de detailmeting van wijzigingen (ZPMZ)",
+     "tagy": [
+      "ZPMZ",
+      "record van de detailmeting van wijzigingen",
+      "schets",
+      "veldboek",
+      "meetdocumentatie",
+      "coördinaten"
+     ],
+     "telo": "Het ZPMZ is meetdocumentatie die bij het kadastraal kantoor wordt bewaard — het resultaat van landmeetkundige werkzaamheden voor een wijziging (o.a. het meetkundige deel van het meetkundig plan). Het bevat met name het beschrijvend veld, de meetschets (punten van de meetkundige basis, identieke punten, het meetnet; de nieuwe toestand wordt ROOD getekend), het veldboek met de gemeten gegevens, het berekeningsprotocol en de coördinatenlijst.",
+     "pozn": "De vereisten regelt punt 16 van de bijlage. Eén ZPMZ kan als basis voor meerdere samenhangende meetkundige plannen worden gebruikt.",
+     "zdroj": "Tsjechisch kadastraal besluit nr. 357/2013 Sb., bijlage punt 16",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Wanneer een meetkundig plan wordt opgesteld (§ 79)",
+     "tagy": [
+      "meetkundig plan",
+      "GP",
+      "wanneer",
+      "doel",
+      "perceelsplitsing",
+      "gebouw",
+      "erfdienstbaarheid"
+     ],
+     "telo": "Een GP wordt opgesteld voor: a) wijziging van de grens van een kadastrale gemeente, b) splitsing van een perceel, c) wijziging van een perceelgrens, d) intekening/wijziging van de omtrek van een gebouw (hoofdgebouw) en een waterbouwkundig werk, e) bepaling van grenzen bij ruilverkaveling, f) aanvulling van een vereenvoudigd geregistreerd perceel, g) correctie van de meetkundige en positionele bepaling, h) precisering/reconstructie volgens de toewijzingsprocedure, i) het verloop van een uitgezette of door de eigenaren gepreciseerde grens, j) het verloop van een door de rechter bepaalde grens, k) afbakening van een erfdienstbaarheid op een deel van een perceel.",
+     "pozn": "Een GP wordt NIET opgesteld wanneer de wijziging het hele perceel betreft zonder grenswijziging. Erfdienstbaarheid: GP alleen bij een deel van het perceel, niet bij het geheel.",
+     "zdroj": "Tsjechisch kadastraal besluit nr. 357/2013 Sb., § 79 lid 1",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Markering en stabilisatie van grenzen (§ 91)",
+     "tagy": [
+      "grens",
+      "markering",
+      "stabilisatie",
+      "grensmerk",
+      "grenssteen",
+      "steen",
+      "kunststof"
+     ],
+     "telo": "Knikpunten van grenzen worden blijvend gemarkeerd: stenen met bewerkte kop, merken van kunststof of gewapend beton (minstens 80×80×500 mm); toegestaan is ook een ingebetonneerde ijzeren buis ø 20–40 mm of stalen wapening ø 10–40 mm. Het midden van het merk valt samen met het knikpunt van de grens. De grens wordt zo gemarkeerd dat vanaf elk merk beide buurmerken zichtbaar zijn en op rechte stukken de merken niet verder dan 200 m uit elkaar liggen.",
+     "pozn": "Markering kan ook op een andere blijvende manier (bijv. met een muur). Grenzen die in grotere gehelen zijn samengevoegd worden niet gemarkeerd. Markeert de eigenaar de grenzen niet, dan kan het kadastraal kantoor ze op zijn kosten markeren en een boete opleggen (§ 37 lid 2 van de kadasterwet).",
+     "zdroj": "Tsjechisch kadastraal besluit nr. 357/2013 Sb., § 91",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Nummering van detailpunten en ZPMZ",
+     "tagy": [
+      "nummering",
+      "puntnummer",
+      "ZPMZ",
+      "detailpunt",
+      "kadastrale gemeente"
+     ],
+     "telo": "Het nummer van een detailpunt heeft twaalf cijfers en bestaat uit drie delen: het volgnummer van de kadastrale gemeente, het nummer van het ZPMZ en het eigenlijke puntnummer (de kwaliteitscode staat onder het punt). De eenheid van nummering van ZPMZ is de kadastrale gemeente. Bestaande punten worden niet hernummerd — in de meetschets staat bij hen alleen het ZPMZ-nummer; nieuw ingemeten controle- en identieke punten worden met hun oorspronkelijke nummers vermeld.",
+     "zdroj": "Tsjechisch kadastraal besluit nr. 357/2013 Sb., bijlage",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    }
+   ]
+  },
+  {
+   "id": "lhuty",
+   "nazev": "Termijnen en procedures",
+   "zkratka": "Termijnen",
+   "zaznamy": [
+    {
+     "nazev": "Beschermingstermijn bij inschrijving (20 dagen)",
+     "tagy": [
+      "termijn",
+      "beschermingstermijn",
+      "inschrijving",
+      "20 dagen",
+      "plombe",
+      "procedure"
+     ],
+     "telo": "Na indiening van het verzoek tot inschrijving loopt een beschermingstermijn van 20 dagen. Het kadastraal kantoor informeert de eigenaar dat zijn onroerend goed betrokken is (plombe) en mag de inschrijving niet eerder toestaan dan na het verstrijken van 20 dagen na deze kennisgeving. De termijn geeft ruimte om zich tegen een frauduleuze overdracht te verweren — hij is vervaltermijn (na het verstrijken kan geen bezwaar meer worden ingediend).",
+     "pozn": "Na de beschermingstermijn heeft het kantoor doorgaans nog een termijn (tot ~30 dagen) om te beslissen; de hele procedure kan zo in de orde van 50 dagen duren.",
+     "zdroj": "Wet nr. 256/2013 Sb. (kadasterwet) § 18",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Plombe (aantekening van een lopende procedure)",
+     "tagy": [
+      "plombe",
+      "P",
+      "eigendomsakte",
+      "procedure",
+      "termijn"
+     ],
+     "telo": "De plombe (letter „P” bij het onroerend goed, in de praktijk in deel D / bij de betreffende gegevens) geeft aan dat er een procedure loopt die de ingeschreven rechten raakt. Ze wordt uiterlijk de volgende werkdag na ontvangst van het verzoek aangebracht; de kennisgeving aan de eigenaar stuurt het kantoor binnen één dag. De plombe vervalt na uitvoering van de inschrijving, staking of afwijzing van de procedure.",
+     "zdroj": "Wet nr. 256/2013 Sb. (kadasterwet)",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Bevestiging van het meetkundig plan door het kadastraal kantoor",
+     "tagy": [
+      "termijn",
+      "meetkundig plan",
+      "bevestiging",
+      "10 dagen",
+      "kadastraal kantoor"
+     ],
+     "telo": "Het kadastraal kantoor toetst het meetkundig plan (of het de vereisten volgens het besluit en de juiste perceelnummering heeft) en bevestigt het binnen een termijn van doorgaans 10 dagen.",
+     "zdroj": "Tsjechisch kadastraal besluit nr. 357/2013 Sb.; bestuursprocesrecht",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-357",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Correctie van een fout in het kadaster (§ 36)",
+     "tagy": [
+      "foutcorrectie",
+      "termijn",
+      "30 dagen",
+      "60 dagen",
+      "bezwaar",
+      "kadastraal operaat"
+     ],
+     "telo": "Met een foutcorrectie wordt de inschrijving in het kadaster in overeenstemming gebracht met de akten (dient niet om een discrepantie met de feitelijke rechtstoestand te herstellen). Het kadastraal kantoor voert de correctie op verzoek uit binnen 30 dagen, in bijzonder gemotiveerde gevallen binnen 60 dagen na ontvangst van het verzoek (kan ook zonder verzoek, ambtshalve). Het resultaat wordt meegedeeld; maakt de eigenaar/rechthebbende binnen 30 dagen na ontvangst van de mededeling bezwaar, dan neemt het kadastraal kantoor een beslissing in de zaak (beroep is mogelijk).",
+     "zdroj": "Wet nr. 256/2013 Sb. (kadasterwet) § 36",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    },
+    {
+     "nazev": "Soorten inschrijvingen (vklad / záznam / poznámka)",
+     "tagy": [
+      "inschrijving",
+      "vklad",
+      "záznam",
+      "aantekening",
+      "zakelijk recht",
+      "betwisting"
+     ],
+     "telo": "In het kadaster wordt op drie manieren ingeschreven: met VKLAD (constitutieve inschrijving) worden zakelijke rechten ingeschreven (eigendom, hypotheekrecht, erfdienstbaarheid…), als zakelijk overeengekomen rechten, huur en pacht — inschrijvingsprocedure met een beschermingstermijn van 20 dagen. Met ZÁZNAM (registratie) worden rechten ingeschreven die van het eigendomsrecht zijn afgeleid (typisch op basis van beslissingen/akten van instanties). Met POZNÁMKA (aantekening) wordt belangrijke informatie ingeschreven (bijv. executie, aantekening van betwisting).",
+     "zdroj": "Wet nr. 256/2013 Sb. (kadasterwet)",
+     "odkaz": "https://www.zakonyprolidi.cz/cs/2013-256",
+     "platnost": "2026-06-14"
+    }
+   ]
+  }
+ ]
+}

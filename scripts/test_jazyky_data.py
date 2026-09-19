@@ -40,7 +40,7 @@ from ag_boot import boot  # noqa: E402
 import test_v329 as V  # noqa: E402
 
 PORT = next((int(a) for a in sys.argv[1:] if a.isdigit()), 9187)
-LANGS = ['en', 'de', 'pl', 'es', 'it', 'fr']
+LANGS = ['en', 'de', 'pl', 'es', 'it', 'fr', 'nl']
 vysledky = []
 CZ = re.compile(u'[ěščřžůňťď]')
 # vlastní jména, která zůstávají česky i v překladu

@@ -36,7 +36,7 @@
 //   • data/jazyky.json — JÁDRO (~700 nejčastějších textů + vzory `re`). Je malé,
 //     service worker si ho ukládá do předcache, takže jazyk jde přepnout i bez
 //     signálu hned napoprvé.
-//   • data/jazyky-en|de|pl|es|it|fr.json — ROZŠÍŘENÍ (~6 600 klíčů, ~480 kB na jazyk).
+//   • data/jazyky-en|de|pl|es|it|fr|nl.json — ROZŠÍŘENÍ (~6 700 klíčů, ~480 kB na jazyk).
 //     Stahuje se AŽ po volbě jazyka a JEN ten jeden zvolený. V předcache není:
 //     kdo appku používá česky, nestáhne z něj ani bajt, a i cizinec platí za
 //     svůj jazyk, ne za pět. Po prvním stažení ho service worker uloží (běžná
@@ -65,7 +65,7 @@
     //   po načtení se do nabídky doplní sám (viz mergeLangs).
     var CS = { c: 'cs', n: 'Čeština' };
     var LANGS = [CS, { c: 'en', n: 'English' }, { c: 'de', n: 'Deutsch' }, { c: 'pl', n: 'Polski' },
-        { c: 'es', n: 'Español' }, { c: 'it', n: 'Italiano' }, { c: 'fr', n: 'Français' }];
+        { c: 'es', n: 'Español' }, { c: 'it', n: 'Italiano' }, { c: 'fr', n: 'Français' }, { c: 'nl', n: 'Nederlands' }];
 
     var _lang = 'cs';         // aktuální kód
     var _langs = LANGS.slice();
@@ -107,7 +107,7 @@
         for (var i = 0; i < l.length; i++) {
             var c = String(l[i] || '').toLowerCase().slice(0, 2);
             if (c === 'cs' || c === 'sk') return 'cs';
-            if (c === 'en' || c === 'de' || c === 'pl' || c === 'es' || c === 'it' || c === 'fr') return c;
+            if (c === 'en' || c === 'de' || c === 'pl' || c === 'es' || c === 'it' || c === 'fr' || c === 'nl') return c;
         }
         return l.length ? 'en' : 'cs';
     }
@@ -610,7 +610,7 @@
         dataUrl: dataUrl,
         fetchData: fetchData,
         // locale pro Date.toLocaleDateString podle jazyka appky (dny a měsíce slovy)
-        locale: function () { return { cs: 'cs-CZ', en: 'en-GB', de: 'de-DE', pl: 'pl-PL', es: 'es-ES', it: 'it-IT', fr: 'fr-FR' }[_lang] || 'cs-CZ'; },
+        locale: function () { return { cs: 'cs-CZ', en: 'en-GB', de: 'de-DE', pl: 'pl-PL', es: 'es-ES', it: 'it-IT', fr: 'fr-FR', nl: 'nl-NL' }[_lang] || 'cs-CZ'; },
         set: set,
         list: function () { return _langs.slice(); },
         // překlad jednoho českého řetězce (pro moduly, které si text staví samy)

@@ -2,6 +2,15 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 381,
+   "datum": "2026-09-19",
+   "nadpis": "Appka umí nizozemsky",
+   "body": [
+    "<b>Nizozemština.</b> Sedmý jazyk vedle angličtiny, němčiny, polštiny, španělštiny, italštiny a francouzštiny — jádro i celé rozšíření (6 700 textů), návody „?“ u nástrojů, Předpisy, Cvičné úlohy, Geo kartičky, názvy zemí i tenhle soupis změn (všech vydání). Telefon nastavený nizozemsky si ji vybere sám; jinak Nastavení → Vzhled. Datumy a čísla jdou v nl-NL.",
+    "Odborné názvosloví je geodetické, ne slovníkové (uitzetten, achterwaartse snijding, controlematen, waterpassen, grondslagnet, kadaster, perceel); vlastní jména zůstávají (ČÚZK, ČHMÚ, S-JTSK, Bpv, čísla vyhlášek). Kontrola dat v CI (test_jazyky_data, 124 kontrol) hlídá stejnou strukturu a české zbytky i u nizozemštiny."
+   ]
+  },
+  {
    "v": 380,
    "datum": "2026-09-19",
    "nadpis": "Najít místo nebo adresu, odkaz na bod kolegovi, RTK sítě po zemích, „Jen se podívat“ na bráně",

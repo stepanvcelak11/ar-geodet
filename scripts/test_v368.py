@@ -49,7 +49,7 @@ def ceska_slova(t):
 
 def staticke():
     core = nacti('data/jazyky.json')
-    ok('F1 jádro: fr v jazyky i poradi', ['fr', u'Français'] in core['jazyky'] and core['poradi'][-1] == 'fr')
+    ok('F1 jádro: fr v jazyky i poradi', ['fr', u'Français'] in core['jazyky'] and 'fr' in core['poradi'])   # ne poradi[-1]: od v381 je za fr nizozemstina
     n = len(core['poradi'])
     ok('F1 jádro: %d překladů u každého klíče, žádný prázdný' % n, all(len(v) == n and all(v) for v in core['t'].values()))
     ok('F1 jádro: vzory re mají %d sloupců' % (n + 1), all(len(r) == n + 1 for r in core['re']))

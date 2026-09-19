@@ -1,0 +1,1489 @@
+{
+  "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
+  "verze": [
+    {
+      "v": 381,
+      "datum": "2026-09-19",
+      "nadpis": "De app spreekt Nederlands",
+      "body": [
+        "<b>Nederlands.</b> De zevende taal naast Engels, Duits, Pools, Spaans, Italiaans en Frans — kern en de hele uitbreiding (6 700 teksten), de handleidingen „?” bij de gereedschappen, Voorschriften, Oefenopgaven, Geo-kaartjes, landnamen en deze lijst van wijzigingen (alle versies). Een telefoon die op Nederlands staat kiest het zelf; anders Instellingen → Uiterlijk. Datums en getallen in nl-NL.",
+        "De terminologie is landmeetkundig, niet uit het woordenboek (uitzetten, achterwaartse snijding, controlematen, waterpassen, grondslagnet, kadaster, perceel); eigennamen blijven (ČÚZK, ČHMÚ, S-JTSK, Bpv, nummers van besluiten). De gegevenscontrole in CI (test_jazyky_data, 124 controles) bewaakt ook voor het Nederlands dezelfde structuur en Tsjechische resten."
+      ]
+    },
+    {
+      "v": 380,
+      "datum": "2026-09-19",
+      "nadpis": "Plaats of adres zoeken, link naar een punt voor een collega, RTK-netwerken per land, „Alleen kijken” op de poort",
+      "body": [
+        "<b>Plaats of adres zoeken</b> (Gereedschappen → Voor vertrek, of de knop in het paneel Lagen): adres, gemeente of naam van een plek (OpenStreetMap, de hele wereld) en de kaart springt erheen. Coördinaten typ je zoals je wilt — <b>50,0755 14,4378</b>, <b>50°04'32\"N 14°26'16\"E</b>, of een paar in het stelsel van het land waarin je meet (S‑JTSK Y X, Lambert‑93, UTM). Bij het resultaat kies je: Als mijn positie nemen (de omgeving wordt vanaf daar gedownload), Als punt opslaan, Hierheen navigeren, Link kopiëren. Zo bereid je thuis de kaart voor vóór vertrek naar waar dan ook in Europa.",
+        "<b>Link naar een punt voor een collega.</b> In de kaart van elk punt staat <b>Link naar het punt sturen</b>; wie hem opent, krijgt het punt in zijn project opgeslagen en de app navigeert hem ernaartoe — op iPhone en Android, in elk land (<code>…?bod=lat,lng,naam</code>; Android opent ook <code>geo:</code>-links). Daarbij gecorrigeerd: buiten Tsjechië en Slowakije wordt bij import, link en eenvoudige modus het S‑JTSK-bereik niet gecontroleerd — in Duitsland „viel” eerder elk punt „buiten het bereik” en werd niet opgeslagen.",
+        "<b>Waar correcties vandaan te halen.</b> De kaart „Je meet in het land” en Instellingen → Land van de meting zeggen welk RTK-netwerk er in het land is (CZEPOS, SKPOS, ASG‑EUPOS, SAPOS, APOS, swipos, RGP/Teria, NETPOS, ERGNSS, SWEPOS, CPOS, OS Net…), wie het beheert, waar je je aanmeldt en waar het voor landmeters gratis is — 38 landen.",
+        "<b>Poort: „Alleen kijken — zonder account, de gegevens blijven in de telefoon”.</b> Eén tik maakt een lokaal account zonder wachtwoord aan en de app start; wie een link heeft gekregen, hoeft niet eerst een formulier in te vullen. Een account met herstelcode maak je later op elk moment aan (Instellingen → Account → Gebruiker wisselen → Uitloggen → Account aanmaken)."
+      ]
+    },
+    {
+      "v": 379,
+      "datum": "2026-09-19",
+      "nadpis": "Officiële punten in Frankrijk en Spanje, perceel met een tik in PL/FR/NL, terreinhoogte in heel Europa",
+      "body": [
+        "<b>Officiële punten nu ook in Frankrijk en Spanje.</b> De kaart beweerde dat maar vier landen hun grondslagnet publiceren — dat klopt niet. In Frankrijk downloadt de app de punten van IGN (net RBF, gedetailleerd net RDF en <b>387 duizend waterpasmerken</b> met toestand en hoogte NGF-IGN69), in Spanje de toppen ROI en REGENTE en de waterpasmerken REDNAP (IGN España, orthometrische hoogten). Elk punt heeft een link naar de fiche/reseña (PDF) — in de kaart als „Tekening openen”. Zes landen met officiële punten: Tsjechië, Slowakije, Zwitserland, Nederland, Frankrijk, Spanje.",
+        "<b>Perceel met een tik ook buiten Tsjechië.</b> In Polen (ULDK GUGiK), Frankrijk (IGN apicarto) en Nederland (Kadaster PDOK) toont een tik op de kaart met het kadaster aan het perceelnummer, de gemeente, de oppervlakte (en de oppervlakte uit de grens ter controle), markeert de grens en opent met een knop het portaal van het land. De kaart „Je meet in het land” zegt dat bij het kadaster.",
+        "<b>Terreinhoogte in heel Europa.</b> Vroeger alleen ČÚZK DMR 5G, elders „niet te bepalen”. Nu per land: Zwitserland swissALTI3D (±0,5 m, LN02), Frankrijk RGE ALTI (±0,5 m, NGF-IGN69), elders tegels EU-DEM/SRTM (±5 m — alleen indicatief, de app zegt dat bij Nieuw punt en overschrijft de punthoogte uit de GPS niet). Nieuw punt, perceel en het projectpakket delen dit; de opmerking over de „scan 2009–2013” blijft alleen bij DMR 5G."
+      ]
+    },
+    {
+      "v": 378,
+      "datum": "2026-09-19",
+      "nadpis": "In het buitenland zonder Tsjechisch en zonder ČÚZK: wat alleen Tsjechisch is, wordt verborgen of omgeschakeld",
+      "body": [
+        "<b>Start in het buitenland meldt niet meer in het Tsjechisch.</b> Na de eerste start in Berlijn, Parijs, Warschau of Madrid verscheen het Tsjechische dialoogvenster „Je bent in het land…” ook in de Duitse of Franse app (wedloop van twee modules). Nu verschijnt altijd de vertaalde kaart <b>Je meet in het land</b> — met de naam van het land in jouw taal. Het paneel Punten zegt <b>Mijn punten (MGI / Austria GK)</b>, niet „(S-JTSK)”; bij Nieuw punt staat het hoogtestelsel van het land in plaats van „(Bpv)”; de melding „GPS levert geen verse fixen (N s)” is vertaald.",
+        "<b>Buiten Tsjechië wordt ČÚZK niet aangesproken.</b> Bij de start in Amsterdam gingen 31 aanvragen naar het Tsjechische grondslagnet boven Nederland. Gereedschappen die alleen thuis gegevens hebben — <b>District, regio of heel Tsjechië downloaden</b>, Punten downloaden uit een uitsnede, Percelen op de kaart en in AR, Puntschets op de kaart, Voorschriften (CZ/SK) — worden in het buitenland niet in de lijst getekend (via zoeken zijn ze te vinden). <b>Kadaster — waar ik sta</b> opent in plaats van iKatastr het portaal van dat land (ZBGIS, Géoportail, BEV, map.geo.admin.ch, Geoportal.gov.pl…), met positie waar het portaal dat kan. Het weer roept DWD (Bright Sky) alleen aan waar het stations heeft.",
+        "<b>De eenvoudige modus</b> toont meteen na de start niet meer „Er ging iets mis (updateInfoPanel is not defined)” — de eerste GPS-fix was het laden van de graphics voor; in deze modus worden technische meldingen helemaal niet getoond (ze gaan naar het Foutenlogboek).",
+        "<b>CI bewaakt weer.</b> De tests waren sinds v373 rood alleen vanwege de test voor v372, die een exact versienummer wilde; gecorrigeerd en de versiecontrole bewaakt dat geen enkele test dat nog eens doet."
+      ]
+    },
+    {
+      "v": 377,
+      "datum": "2026-09-19",
+      "nadpis": "Eenvoudige modus: navigatie ook naar officiële punten",
+      "body": [
+        "<b>Eenvoudige modus → Navigeren naar een punt</b> biedt behalve jouw punten ook de <b>officiële ČÚZK-punten</b> die om je heen zijn gedownload (TB, ZhB, PPBP, waterpas-, zwaartekrachtpunten) — met een soortlabel, samen met de jouwe gesorteerd op afstand, hoogstens de 80 dichtstbijzijnde (via zoeken vind je elk punt). Zolang de omgeving niet is gedownload, staat er de knop „Omgeving nu downloaden”."
+      ]
+    },
+    {
+      "v": 376,
+      "datum": "2026-09-19",
+      "nadpis": "Navigatiestrook op de grond in plaats van een 3D-pijl",
+      "body": [
+        "<b>Pijlenstrook op de grond.</b> De pijl naar het doel in de AR-camera is nu een strook van vier pijlen op de grond, die <b>naar het punt toe buigt</b> zoals autonavigatie: de dichtstbijzijnde is het grootst, de verdere vervagen, achter je rug krult hij tot een keerlus (en wordt rood). Geen sprongen meer tussen vier tekeningen bij 35° en 110°, je ziet hoeveel je moet draaien.",
+        "Het label met de naam van het punt en de afstand zit boven de strook met het gouden doel en overlapt de pijl niet meer. Binnen de tolerantie ±10° wordt de strook lichter en pulseert het doel. Kleur en grootte uit Instellingen → AR-camera blijven gelden; de keuze van de pijlvorm heeft bij de strook geen zin en is verdwenen.",
+        "Gekozen op 19-9 uit vier ontwerpen (strook op de grond · ring · baken · nieuwe pijl)."
+      ]
+    },
+    {
+      "v": 375,
+      "datum": "2026-09-19",
+      "nadpis": "Zon, maan en planeten achter de wereldbol, de hemel beweegt vloeiend",
+      "body": [
+        "<b>Het heelal achter de wereldbol vloeiend.</b> Sterren en sterrenbeelden werden vroeger pas na het einde van het verschuiven opnieuw getekend (ze sprongen); nu bewegen ze beeld voor beeld met de wereldbol mee (de sterrencatalogus is voorberekend, één beeld kost een paar ms).",
+        "<b>Zon, maan en vijf planeten</b> (Mercurius, Venus, Mars, Jupiter, Saturnus) op de werkelijke plekken aan de hemel voor de dag en het uur van vandaag: de maan met de juiste fase en de verlichte kant naar de zon, de zon met corona, Saturnus met ring. Een hemellichaam dat op een smal scherm buiten beeld zou vallen, wordt naar de rand getrokken in de richting waar het werkelijk is — zoals „doel buiten de strook” in AR.",
+        "Breder gezichtsveld rond de bol. Nog steeds alleen decoratie — er wordt niets uit gemeten."
+      ]
+    },
+    {
+      "v": 374,
+      "datum": "2026-09-19",
+      "nadpis": "Sterrenbeelden achter de wereldbol, noorden op de Poolster, kaartje over astronomische oriëntatie",
+      "body": [
+        "<b>Sterrenbeelden achter de wereldbol (3D-weergave).</b> Sterren en 17 sterrenbeelden (Ursa Major, Cassiopeia, Orion, Crux, Scorpius…) liggen op de echte hemelbol: de hemel achter de aarde komt overeen met de sterrentijd van vandaag en de plek waar je naar kijkt, verschuift met de wereldbol en draait ermee. De Melkweg loopt langs het echte galactische vlak. Alleen voor het plezier — er wordt niets uit gemeten.",
+        "<b>Kompascontrole op de Poolster.</b> De nachtelijke tegenhanger van de controle op de zon (Kompas → Controleren op de Poolster): je richt de achtercamera op de Poolster en de app zegt de afwijking van het kompas. De Poolster staat binnen 1° van het ware noorden en die rest berekent de app uit tijd en positie — zonder magneetnaald, zonder signaal, zonder declinatie. Toont ook de hoogte van de Poolster boven de horizon (= jouw geografische breedte) en hoe je hem vanaf de Grote Beer vindt.",
+        "<b>Geo-kaartje „Poolster = waar noorden”</b> in Leren: waarom de sterren het oudste geodetische net zijn (azimut, breedte, lengte, Laplace-punten)."
+      ]
+    },
+    {
+      "v": 373,
+      "datum": "2026-09-19",
+      "nadpis": "Het heelal achter de wereldbol in de 3D-weergave",
+      "body": [
+        "<b>Als je in de 3D-weergave de kaart uitzoomt tot een bol, is daarachter het heelal:</b> sterren, de band van de Melkweg en de <b>maan in de werkelijke fase</b> van vandaag (wassend = de rechterkant licht op, zoals we hem vanuit Europa zien), rond de aarde een blauwe rand atmosfeer en zonlicht uit de linkerbovenhoek — precies zoals het op het terrein schijnt. Als je de wereldbol met twee vingers draait, draaien de sterren mee.",
+        "De hemel wordt één keer getekend en niets erin animeert, dus het kost geen batterij. Bij terugzoomen naar plat wordt hij verborgen; in de gekantelde weergave staat boven de horizon een hemel in de kleur van het thema in plaats van een kale achtergrond."
+      ]
+    },
+    {
+      "v": 372,
+      "datum": "2026-09-18",
+      "nadpis": "Derde ronde: start zonder signaal zonder „Er ging iets mis”, wegwijzers leiden naar waar het is, verbindingsstatus volgens de gegevens",
+      "body": [
+        "<b>Start zonder signaal meldt niet meer „Er ging iets mis”.</b> De vectorkaart is standaard en als haar gegevens niet kunnen worden gedownload (geen signaal), is dat een netwerktoestand, geen fout van de app — geen melding op het inlogscherm, de regel Kaart in Instellingen zegt dat het na terugkeer van het signaal opnieuw wordt geprobeerd.",
+        "<b>Meldingen leiden naar waar het echt is.</b> Elf meldingen stuurden naar het menu „Meer”, dat sinds augustus verborgen is: de prullenbak is <b>Gereedschappen → Registreren → Verwijderd punt herstellen</b>, het foutenlogboek <b>Gereedschappen → Overige gereedschappen</b>, opslaan voor offline <b>Instellingen → Project en gegevens</b>, De auteur schrijven is de balk bovenaan in Gereedschappen. Het tabblad „Overige” in Gereedschappen heet „Overige gereedschappen” (in vreemde talen werd het als „Next” vertaald). Op de poort bij „Meer opties” staat een zin hoe de werkruimte uit de registratie zich tot het bedrijf verhoudt.",
+        "<b>Verbindingsstatus volgens of de gegevens echt binnenkomen.</b> Het GPS-detail beweert niet meer „Er is internet” alleen omdat de telefoon netwerk heeft: het wordt berekend uit het laatste echte antwoord (ČÚZK, cloud, kaartgegevens). Bij één streepje meldt het <b>Signaal zwak</b> met de tijd van het laatste antwoord; de pil „Gegevens downloaden…” zegt na 15 s zonder antwoord dat de punten van ČÚZK niet zijn aangekomen en dat het blijft proberen.",
+        "<b>Uiterlijk:</b> de balk in Schets / Tachymetrie breekt op de telefoon af in twee regels (Uit punten, Ongedaan maken, ondergrond en export tegelijk zichtbaar); de doklabels breken bij grote letters geen woorden meer; de vier acties in de kaart van een officieel punt staan in een raster van 2×2, even hoog.",
+        "<b>Talen:</b> in het Engelse Nieuw punt bleven vier Tsjechische teksten staan (kwaliteitscode, Waarom?, terreinhoogte) — vertaald. Frans: 169 live teksten met getallen (GPS-pil, aantallen punten, maanden, richtingen…) waren per ongeluk Italiaans — vertaald naar het Frans.",
+        "<b>Voor de ontwikkeling:</b> de regressietests in CI waren rood sinds v368 (drie controles rekenden met vijf talen) — gecorrigeerd; de laatste regressiestatus is te zien in de console van de eigenaar en in de samenvatting van de versiecontrole; een nieuwe controle bewaakt dat geen enkele melding naar het opgeheven menu stuurt."
+      ]
+    },
+    {
+      "v": 371,
+      "datum": "2026-09-18",
+      "nadpis": "Doorloop van de app: links naar Instellingen na de verbouwing, Franse teksten met getal, getallen met komma",
+      "body": [
+        "<b>Frans:</b> teksten met een getal erin (pil „GPS zonder fix 8 s · positie onzeker”, „5 min geleden”, maanden in het Jaarboek, weer, prullenbak…) waren in de Franse app Italiaans — 168 patronen zijn nu echt Frans en de gegevenscontrole bewaakt dat het zich niet herhaalt.",
+        "<b>Links naar Instellingen na de verbouwing (v365):</b> „Filters tonen” bij verborgen puntsoorten, „Max. punten in AR”, de knop Wijzigen bij Land van de meting in het paneel Kaart en Instellingen bij Nauwkeurigheid van de kaart leidden naar een andere pagina dan waar de optie staat. De kaart <b>Je meet in het land</b>, meldingen en handleidingen noemen de juiste paden (Kaart en punten, Back-up en onderhoud, Gereedschappen → Werkt alles?) en de ondergrond heet <b>Kaart</b>, niet Vector.",
+        "<b>De kaart „Je meet in het land”</b> toont de coördinaten van dat land (Polen = PL-2000, niet S-JTSK); „Wat de app hier kan” is een echte knop.",
+        "<b>Gereedschappen:</b> de tegel <b>Puntschets op de kaart</b> ontbrak (zoeken en de takenlijst leidden naar niets); Perceel heeft één minimaliseerknop in plaats van twee; Ondergrondse leidingen — de coördinaatschakelaars op één regel; Akoestische afstandsmeter — de geluidskeuze past op een smal scherm.",
+        "<b>Getallen in het Tsjechisch met komma:</b> Onderhoud „Gebruikt 0,0 MB van ~3,0 GB”, Werkt alles? („±3,0 m”), Zon en licht (schaduw), Veiligheid in het veld (S-JTSK 741 789,46), Binnen in een gebouw, Dagposter; het Daglogboek schrijft „1 punt”, niet „1 punten”."
+      ]
+    },
+    {
+      "v": 370,
+      "datum": "2026-09-18",
+      "nadpis": "Kaart „Je meet in het land”: meteen na de start in het buitenland, niet pas na het passeren van de grens",
+      "body": [
+        "<b>Wie de app in het buitenland downloadt, hoort het meteen.</b> Na de start in een ander land dan Tsjechië (één keer per land) verschijnt de kaart <b>Je meet in het land: …</b> — het coördinatenstelsel en de hoogten van dat land, of de staat hier <b>officiële punten publiceert</b> (ja: Tsjechië, Slowakije, Zwitserland, Nederland — de app downloadt ze; nee: op de kaart staan alleen jouw punten), of er een kadaster is en welke orthofoto. Vroeger werd over het land alleen na het passeren van de grens verteld, en dan met twee meldingen achter elkaar — nu is het één kaart, ook bij het passeren.",
+        "De kaart wacht tot de app draait en niets haar overdekt (poort, wizard voor de eerste meting, ander dialoogvenster). Je opent haar altijd opnieuw in <b>Instellingen → Kaart en punten → Land van de meting → Wat de app hier kan</b>; onder de landkeuze staat een zin waar het grondslagnet openbaar is.",
+        "De simulatie van een ander land meldt met een bubbel, niet met een dialoogvenster (dat overstemde de kaart), en beweert niet meer dat „officiële ČÚZK-punten hier niet zijn” — in Zwitserland en Nederland zijn ze er."
+      ]
+    },
+    {
+      "v": 369,
+      "datum": "2026-09-18",
+      "nadpis": "Officiële punten in Zwitserland en Nederland; de app zegt waar de staat punten publiceert",
+      "body": [
+        "<b>Officiële punten in Zwitserland en Nederland.</b> Waar de staat het grondslagnet als open data geeft, downloadt de app het om je heen vanzelf — naast Tsjechië (ČÚZK) en Slowakije (GKÚ SR) nu ook <b>Zwitserland</b> (swisstopo: Lagefixpunkte LFP1/LFP2, Höhenfixpunkte HFP1/HFP2 met hoogte LN02, puntprotocol als PDF) en <b>Nederland</b> (Kadaster RDinfo: Rijksdriehoekspunten met foto van het punt). Op de kaart, in AR en in de navigatie gedragen ze zich als de Tsjechische; de puntkaart heeft een regel Bron.",
+        "<b>Waar er geen punten zijn, zegt de app dat.</b> Polen, Oostenrijk, Duitsland, Frankrijk en andere staten publiceren hun grondslagnet niet (geoportalen willen een sleutel of betaling) — na het passeren van de grens zegt de melding meteen „Officiële punten publiceert de staat hier niet — op de kaart staan alleen jouw punten” en het paneel Punten noemt de vier landen waar het openbaar is. Zodat mensen uit het buitenland niet verwachten dat de punten verschijnen.",
+        "Eerlijk: in die landen wordt tegenwoordig gemeten met een rover met correcties uit het nationale netwerk (SAPOS, APOS, ASG-EUPOS…) en maakt de landmeter zijn punten zelf aan — de app werkt daar met eigen punten, tekening en kalibraties."
+      ]
+    },
+    {
+      "v": 368,
+      "datum": "2026-09-18",
+      "nadpis": "De app kan Frans, eigen kaart voor heel Europa, weer per land",
+      "body": [
+        "<b>Frans.</b> De zesde taal naast Engels, Duits, Pools, Spaans en Italiaans — kern en hele uitbreiding (6 600 teksten), handleidingen „?” bij de gereedschappen, Voorschriften, Oefenopgaven, Geo-kaartjes en deze lijst van wijzigingen (alle 120 versies). Een telefoon die op Frans staat kiest het zelf; anders Instellingen → Uiterlijk.",
+        "<b>Eigen vectorkaart voor heel Europa.</b> De kaartgegevens (gebouwen, wegen, water, sporen, bos) worden per land geüpload naar de GitHub-release „mapa-data” — nu al Slowakije, Oostenrijk, Hongarije, Slovenië, Kroatië, de Baltische staten, de Balkan en kleinere staten; grote landen (Duitsland, Frankrijk, Polen, Italië, Spanje…) worden in delen toegevoegd, omdat één bestand hoogstens 2 GB mag zijn. De app kiest op basis van de positie zelf het juiste deel (data/mapa-dily.json), je hoeft niets in te stellen. Waar de gegevens er nog niet zijn, draait het raster door.",
+        "<b>Weer per land.</b> Regionale modellen (ČHMÚ ALADIN, GeoSphere AROME, Météo-France AROME, KNMI HARMONIE, MET Norway, ItaliaMeteo, UK Met Office, MeteoSwiss) worden alleen aangeroepen in het land waarvoor ze rekenen — vroeger werd AROME France ook voor Praag gevraagd en gaf het cijfers van de rand van zijn rooster. Globale modellen en ensembles draaien overal, dus de voorspelling komt ook buiten Tsjechië uit 20+ bronnen.",
+        "Eerlijk: <b>officiële punten (grondslagnetten) zijn alleen in Tsjechië en Slowakije openbaar als data</b> — elders publiceren de staten ze niet (Polen, Oostenrijk, Duitsland hebben alleen kaartdiensten of geven ze tegen betaling). Kadaster via de kaart is er in SK, PL, AT, NL, FR, CH, SI, BE, HU; orthofoto overal (nationaal waar die er is, elders Esri)."
+      ]
+    },
+    {
+      "v": 367,
+      "datum": "2026-09-18",
+      "nadpis": "Controle van de maand: zonder loze meldingen, lege wegwijzer, Engels zonder Tsjechisch",
+      "body": [
+        "<b>Zonder signaal zonder meldingen:</b> een niet-gedownloade kaarttegel, een letterglyf of een hoogtetegel van het terrein in de 3D-weergave tonen niet meer „Er ging iets mis” voor elk adres apart — ze worden alleen in het foutenlogboek geschreven.",
+        "<b>De wegwijzer „Anders uitlijnen”</b> wordt niet meer opgebouwd: sinds v360 zijn al zijn leden verborgen, via zoeken opende een leeg venster met alleen Sluiten.",
+        "<b>Engels en andere talen:</b> de ondertitels van wegwijzers in Gereedschappen (GPS corrigeren, Met twee telefoons, Omstandigheden) worden per afzonderlijk gereedschap vertaald; 70 sleutels en patronen toegevoegd (pil „GPS zonder fix N s”, Waar je kunt meten, Nieuw punt zonder hoogtemodel, puntkaart, Puntenjagers, Formules, Zonneschaduw…); de notitie bij een punt heeft een vertaalde hulptekst.",
+        "<b>Licht thema:</b> de miniatuur van de kaart „Kaart” in Ondergrond is geen wit vierkant meer.",
+        "<b>Epochen / monitoring:</b> het kruisje van het venster zat niet over de pil Sluiten in de kop.",
+        "<b>Teksten:</b> de wizard en de checklist „Wat mee te nemen” verwijzen niet meer naar de opgeheven strook „Wat doe je vandaag”; de registratie zegt dat het wachtwoord opnieuw kan worden ingesteld met de herstelcode (vroeger „wachtwoord kan niet worden hersteld”)."
+      ]
+    },
+    {
+      "v": 366,
+      "datum": "2026-09-18",
+      "nadpis": "Vraag „Wie ben je?” afgeschaft",
+      "body": [
+        "De beginvraag Student / Landmeter / Bedrijf na de eerste start is weg (samen met de profielen uit de vorige versie). De app gedraagt zich voor iedereen hetzelfde; de groep „Leren” in Gereedschappen blijft, alleen staat hij niet bovenaan."
+      ]
+    },
+    {
+      "v": 365,
+      "datum": "2026-09-18",
+      "nadpis": "Instellingen opnieuw: het belangrijke meteen, de rest apart",
+      "body": [
+        "<b>Instellingen</b> zijn verbouwd. Na het openen zie je de kaart <b>Vaak gebruikt</b> — bereik van punten in de camera en op de kaart, plafond van punten in AR, licht/donker, buitenmodus en soorten officiële punten — en daaronder acht categorieën als regels: AR-camera, Kaart en punten, Uiterlijk, Bediening, Prestaties en batterij, Project en gegevens; onderaan „Minder vaak” met back-up en account. Elke regel heeft een ondertitel met de inhoud, de pagina heeft bovenaan Terug.",
+        "Weg zijn de tabbladen, het zijregister, „Korte instellingen” en de inklapbare secties — de structuur wordt door de indeling zelf gedragen. Binnen de pagina's blijft alleen één ingeklapt „Geavanceerd”.",
+        "<b>Profielen</b> (instellingenprofiel Veld/Nauwkeurigheid/Demo, werkprofiel en de strook „Wat doe je vandaag” in Gereedschappen) zijn afgeschaft. Alleen het Apparaatprofiel (kalibratie van de telefoon) in Back-up en onderhoud blijft.",
+        "Uit Instellingen zijn de dubbelingen verdwenen: De auteur schrijven en Werkt alles? vind je in Gereedschappen; Waar ik werk, Pro-versie, Gebruiker wisselen en Bedrijfsbeheer hebben regels op de pagina Account en app."
+      ]
+    },
+    {
+      "v": 364,
+      "datum": "2026-09-18",
+      "nadpis": "De route zwemt niet over een vijver of rivier",
+      "body": [
+        "<b>De route naar een punt</b> loopt niet meer rechtdoor over water: als een vijver of rivier de weg blokkeert en de brug of dam verder ligt dan waar de app keek (40 m rondom), kijkt hij rond tot 250 m en dan tot 800 m en vindt een omweg. Een beek of sloot steekt hij nog steeds over — klein water is in orde. Als er binnen 800 m geen oversteek is, blijft hij bij het water en toont de rest gestreept zoals vroeger."
+      ]
+    },
+    {
+      "v": 363,
+      "datum": "2026-09-18",
+      "nadpis": "Geo-nieuwsbrief uitgeschakeld",
+      "body": [
+        "<b>De Geo-nieuwsbrief</b> is uit de app verdwenen (het item in het menu Meer, de dagelijkse editie en de regel in de briefing „Vandaag in het veld”). Er wordt niets gewist — code, gegevens en de dagelijkse samenstelling blijven in de repository voor een eventuele terugkeer."
+      ]
+    },
+    {
+      "v": 362,
+      "datum": "2026-09-18",
+      "nadpis": "Route uit een gebouw zonder de ring „Uitgang”",
+      "body": [
+        "Als je in een huis staat, wordt de route naar een punt nog steeds via de uitgang berekend, maar op de kaart brandt niet meer de ring met het label „Uitgang (schatting: kant naar de straat)” — alleen het gestreepte stukje naar de uitgang blijft."
+      ]
+    },
+    {
+      "v": 361,
+      "datum": "2026-09-18",
+      "nadpis": "Alles vertaald: lijst van wijzigingen en Updategeschiedenis in vijf talen, Nieuwsbrief per taal",
+      "body": [
+        "<b>Wat is er nieuw en Updategeschiedenis</b> zijn in het Engels, Duits, Pools, Spaans en Italiaans — alle 118 versies sinds de eerste (data/co-je-noveho-xx.json, 559 teksten). De dagen in de Geschiedenis staan in woorden per taal (Venerdì 18 settembre 2026), aantallen dagen en wijzigingen en versienummers via patronen.",
+        "<b>De Geo-nieuwsbrief</b> leest de editie per taal (data/zpravodaj-xx.json): rubrieken, hoofdredactioneel, „Origineel lezen bij de bron” en de voettekst staan in de woordenlijst, de editie van vandaag is handmatig vertaald. De dagelijkse samenstelling (scripts/build-zpravodaj.mjs) kan de editie zelf vertalen als de repository de sleutel ANTHROPIC_API_KEY heeft — zonder sleutel blijven de artikelen in de oorspronkelijke tekst en worden verouderde vertalingen gewist, zodat de anderstalige app niet het nieuws van gisteren toont.",
+        "De anderstalige app bewaart de lijst van wijzigingen en de nieuwsbrief in de telefoon (DICT_CACHE, verversen op de achtergrond; de stempel ?t= vult de cache niet meer met kopieën) en downloadt ze na het wisselen van taal opnieuw.",
+        "De test test_jazyky_data is uitgebreid tot 113 controles (lijst van wijzigingen: dezelfde structuur, HTML en v/datum in alle talen; nieuwsbrief; Geschiedenis en Nieuwsbrief in de browser in het Italiaans zonder Tsjechische zin)."
+      ]
+    },
+    {
+      "v": 360,
+      "datum": "2026-09-18",
+      "nadpis": "Navigatie ook naar een ver punt, ondergrond Kaart · Orthofoto · Kadaster, Gereedschappen doorlopen en opgeruimd, Instellingen → App",
+      "body": [
+        "<b>De route naar een punt over het terrein</b> gaat ook naar een <b>waterpas- en trigonometrisch punt</b> kilometers ver: tot 3 km gedetailleerd zoals vroeger, tot 20 km over wegen en paden uit een grovere kaart (boven 20 km een rechte lijn). Een doel op de muur van een gebouw (waterpasbout) — de route komt er helemaal bij, niet alleen „tot de dichtstbijzijnde plek”.",
+        "<b>De kaartondergrond</b> zijn twee kaarten: <b>Kaart</b> (eigen vector-, nu vanaf het begin ingeschakeld — als er geen gegevens zijn of de telefoon zwakker is, draait eronder stilletjes het raster) en <b>Orthofoto</b>; ernaast <b>Kadaster</b> als schakelaar voor percelen over de ondergrond. De gewone rasterkaart als optie is verdwenen.",
+        "<b>De gereedschappen een voor een doorlopen:</b> apart gezet (niet gewist — via zoeken te vinden) zijn de liniaal in de camera, controlematen, volumes, routespoor, kwaliteitsrapport, puntcontrole, de wizard „ik weet niet waar te beginnen”, de wegwijzer Anders uitlijnen, visuele stabilisatie, rondkijken, vectorkaart offline, signaalvoorspelling en vandaag in het veld. <b>AR uitlijnen</b> = Kompas en Noorden uitlijnen.",
+        "<b>Nauwkeurig meten</b> heeft zes regels in plaats van negen: <b>GPS corrigeren</b> (door langs een rand te lopen · van de kaart tijdens het lopen · op een bekend punt) en <b>Met twee telefoons</b> (DGPS · akoestische afstandsmeter) zijn wegwijzers. „Waarom ±4 m?” toont <b>jouw huidige nauwkeurigheid</b>. Correcties heet „De werkelijke lengte uit een meetband of afstandsmeter”.",
+        "<b>Puntenjagers</b> staan in Leren, <b>Verborgen punten</b> bij Verwijderd punt herstellen, <b>Verre punten in AR</b> in Ondergronden.",
+        "<b>Instellingen → App</b> (vroeger Onderhoud + zij-Meer): vier secties <b>Hulp en handleidingen</b> · <b>Over de app</b> · <b>Back-up</b> · <b>Ruimte in de telefoon</b> — handleiding, Werkt alles?, De auteur schrijven, geschiedenis, delen, beheer, back-up, apparaatprofiel, ruimte vrijmaken. Verborgen punten staan in Gegevens bij het project. De balk onder de tabbladen leidt rechtstreeks naar de Handleiding."
+      ]
+    },
+    {
+      "v": 359,
+      "datum": "2026-09-18",
+      "nadpis": "Vertalingen afgerond: handleidingen, Voorschriften, Oefenopgaven en Geo-kaartjes in vijf talen, de laatste Tsjechische resten",
+      "body": [
+        "<b>De handleidingen „?” bij de gereedschappen</b> (110 teksten), <b>Voorschriften en toleranties</b>, <b>Oefenopgaven</b> en <b>Geo-kaartjes</b> zijn in het Engels, Duits, Pools, Spaans en Italiaans — het zijn geen letterlijke vertalingen, maar teksten geschreven naar wat het gereedschap doet. De Tsjechische originelen blijven ongewijzigd (data/navody-xx.json, predpisy-xx.json, ulohy-xx.json).",
+        "Meer dan 1 000 andere teksten vertaald van schermen die vroeger in een vreemde taal Tsjechisch bleven: Nauwkeurige GPS, Kalibratie door langs een rand te lopen, Correctie van de kaart, Akoestische afstandsmeter, As, Lagen, Puntenquiz, Jaarboek, Mijn activiteit, GNSS-voorspelling, Weer (uitleg bij gewichten en ČHMÚ-metingen), bedrijfspaneel, briefing. Samengestelde zinnen met getallen („38,6 m naar het noordoosten”, „september 2026”, „Week: 6 min in de app…”) via patronen.",
+        "Spaans en Italiaans hebben de resterende 27 teksten ingehaald (account, inloggen, Kadaster), alle vijf talen hebben nu dezelfde set van 6 539 sleutels.",
+        "<b>De anderstalige app blijft niet meer op de oude woordenlijst hangen</b>: de uitbreiding van de woordenlijst en de gelokaliseerde bestanden worden in de telefoon bij elke start op de achtergrond ververst (vroeger hield de service worker ze voor altijd in de eerst gedownloade vorm — nieuwe vertalingen bereikten je niet).",
+        "Nieuwe test test_jazyky_data (53 controles: bestanden per taal, dezelfde structuur en HTML, Italiaanse handleiding in het venster „?”, Voorschriften, opgaven, kaartjes) in CI."
+      ]
+    },
+    {
+      "v": 358,
+      "datum": "2026-09-18",
+      "nadpis": "Doorloop van de app, 2e ronde: een nieuwe gebruiker komt binnen, het menu tikt niet in het niets",
+      "body": [
+        "<b>Nieuwe gebruiker</b>: poort → Meer opties → „Alleen voor dit apparaat aanmaken” → na het sluiten van de wizard start de app. Vroeger bleef een zwart scherm met alleen het dok (het bedrijf was aangemaakt, maar niemand startte de app).",
+        "Menu Meer: „Taakwizard” en „Handleiding en rondleiding” aangetikt meteen na de start (voordat de uitgestelde modules zijn gedownload) openen een ogenblik later — vroeger viel de tik stilletjes weg (openPruvodce / startTutorial is not defined).",
+        "Puntkaart in een vreemde taal: „Ik heb het gevonden — nog 40 m / blijf nog 5 s staan / ik wacht op GPS” vertaald (bleef vroeger Tsjechisch).",
+        "Doorlopen: poort en aanmaken van een bedrijf, alle menu-items (Pro en Basis), elke schakelaar in Instellingen heen en terug, regels van het paneel Kaart, vijf talen, liggend scherm, handschoenen / linkerhand / letters 130 % / buiten- / eenvoudige modus, 64 gereedschappen + 29 wegwijzeritems — zonder paginafout, zonder tekst „undefined/NaN”."
+      ]
+    },
+    {
+      "v": 357,
+      "datum": "2026-09-18",
+      "nadpis": "Controle van de dag: Opslaan en volgende vult de GPS weer vanzelf in",
+      "body": [
+        "Na „Opslaan en volgende” worden bij het volgende punt de coördinaten uit het GPS-gemiddelde weer vanzelf ingevuld — ook als je bij het vorige punt Y/X met de hand hebt overschreven. Verder alleen controle: alle 45 testsets groen, het wachtwoordherstel live op de server uitgeprobeerd (eenmalig account, na de test verwijderd)."
+      ]
+    },
+    {
+      "v": 356,
+      "datum": "2026-09-18",
+      "nadpis": "Nieuw punt met twee tikken, grotere doelen op de kaart, herstelcode van het account",
+      "body": [
+        "<b>Nieuw punt met twee tikken</b>: na het openen worden de coördinaten uit het GPS-gemiddelde vanzelf ingevuld en elke seconde verfijnd („gemiddeld uit N · ±x m”); tikken op „Uit het GPS-gemiddelde” is niet meer nodig. Wie Y/X met de hand overschrijft of de kaart of een foto kiest, schakelt daarmee de automatiek uit. Als er nog geen satellietfix is, zegt een opmerking onder de knoppen dat — geen pop-upvenster.",
+        "<b>De puntmarkeringen op de kaart</b> vangen een tik in een straal van 28 px (vroeger 25), in de handschoenmodus 34 px.",
+        "<b>Herstelcode van het account</b>: de registratie vraagt nog steeds geen e-mail, maar het account krijgt bij het aanmaken een tweede sleutel (20 tekens). Op de poort staat „Wachtwoord vergeten? Ik heb een herstelcode” → nieuw wachtwoord zonder e-mail; na gebruik krijg je een nieuwe code. Wie een account van vroeger heeft, maakt de code in Over de app → Account → Herstelcode (vraagt het wachtwoord).",
+        "De regressietests in CI lopen in drie stromen (≈7 minuten in plaats van 20); twee sets die in de lange batch soms een time-out kregen, wachten betrouwbaarder."
+      ]
+    },
+    {
+      "v": 355,
+      "datum": "2026-09-18",
+      "nadpis": "Doorloop van de hele app: wat haperde bij het klikken door alle gereedschappen",
+      "body": [
+        "<b>De melding „Er ging iets mis (ucty:usageLog)” is weg.</b> Het ruimteoverzicht in Instellingen → Onderhoud maakte de databases van modules leeg aan, en de module kon er daarna niet in schrijven (wijzigingsjournaal, gebruiksmeting, foto's, spraaknotities). Het overzicht maakt niets meer aan en elke module vult zijn ontbrekende opslag zelf aan — de gegevens blijven.",
+        "Situatieschets: de knop „Verschuiven” heeft een icoon (vroeger stond er „undefined”).",
+        "Puntkaart: een officieel punt zonder Y/X in de gegevens (bijvoorbeeld Slowaakse punten) toont S-JTSK berekend uit de positie in plaats van streepjes; op een klein scherm (320 px) worden de coördinaten niet met drie puntjes afgekort.",
+        "Verre punten in AR: over de statuspil ligt niet meer het wieltje „Inpakken”. Venster Kadaster: het wieltje ligt niet over de titel.",
+        "De route over het terrein zonder signaal zegt „geen signaal, of de server antwoordt niet” in plaats van het Engelse „Failed to fetch”.",
+        "De CI-test voor De auteur schrijven rekende met drie talen — sinds v351 zijn het er vijf (was daarom rood)."
+      ]
+    },
+    {
+      "v": 354,
+      "datum": "2026-09-18",
+      "nadpis": "Navigatie zonder pop-upvenster, kaart op één plek, overzichtelijkere Gereedschappen, tabblad Bediening, kleine schermen, vertalingen",
+      "body": [
+        "<b>Leid me erheen zonder pop-upvenster</b>: als de route over het terrein even geen gegevens heeft (worden gedownload, het doel is te ver…), zegt een onopvallende pil onderaan de kaart dat en verdwijnt vanzelf — vroeger een venster met de knop Begrepen midden in het lopen. Het opheffen van de selectie van verre punten overstemt niet meer een nog lopende download van ČÚZK.",
+        "<b>De vectorkaart heeft één plek</b>: ze wordt alleen in het paneel Kaart ingeschakeld en gestyled (knop Lagen → Ondergrond). In Instellingen → Gegevens blijft alleen het adres van eigen gegevens. 3D-weergave, Waar je kunt meten en Situatieschets sturen niet meer naar Instellingen — ze schakelen de kaart zelf in (of vragen het en schakelen in).",
+        "<b>Gereedschappen van vier lagen naar twee</b>: de strook „Wat doe je vandaag” is uit het venster Gereedschappen weg (het werkprofiel kies je in Instellingen → Profielen; wie de strook wil, zet hem daar aan), ★ Vastgepind wordt alleen getoond als er iets is vastgepind, en de vier kantoorwerkwoorden (Voor vertrek, Bedrijf, Handboek, Leren) zijn secties op de pagina „Overige” — de strook heeft 8 werkwoorden in plaats van 14. Een nieuwe gebruiker opent Gereedschappen meteen op Meten.",
+        "<b>Instellingen → Bediening</b>: een nieuw tabblad voor linkerhand, handschoenen, trillen, gebaren, eenvoudige modus, vereenvoudiging en zwakkere telefoon / batterijbesparing. Uiterlijk blijft bij thema, letters en elementen op het scherm.",
+        "<b>Klein scherm en telefoon in liggende stand</b>: het dok gaat bij een hoogte tot 640 px omhoog en wordt smaller, zodat het wiel Kaart/Gesplitst/AR niet meer over de knop Instellingen ligt (iPhone SE, 844×390).",
+        "<b>Vertalingen</b>: 190 gereedschapsteksten uit de laatste versies (Puntenjagers, Nauwkeurige GPS, Situatieschets, paneel Kaart, puntkaart, land van de meting…) toegevoegd in het Engels, Duits, Pools, Spaans en Italiaans; een controle in CI bewaakt dat elk nieuw gereedschap een vertaling heeft.",
+        "De meldingen „De moduskeuze zet je terug in Instellingen → Uiterlijk” en dergelijke leiden naar waar de optie echt staat (Profielen, Bediening)."
+      ]
+    },
+    {
+      "v": 353,
+      "datum": "2026-09-18",
+      "nadpis": "Controle na twee dagen wijzigingen: meldingen houden niet op, kaartgegevens vallen niet aan",
+      "body": [
+        "De meldingen „Route over het terrein: …”, „Obstakel opgeslagen”, „Slowakije: N punten” en „Laag verborgen” zijn nu korte bubbels, geen vensters die je moet wegtikken (die blokkeerden ook het slepen van de scheidingslijn in gesplitst).",
+        "Als er geen kaartgegevens voor het land zijn of geen signaal, probeert de app het pas na een minuut opnieuw (vroeger elke 5 s) en zegt in de melding de echte reden.",
+        "Alle testsets doorlopen: paneel Kaart, route over het terrein, 3D, schets, Geo-kaartjes, Slowaakse punten, landen, Android, doorloop van de app."
+      ]
+    },
+    {
+      "v": 352,
+      "datum": "2026-09-18",
+      "nadpis": "Slowaakse officiële punten, Geo-kaartjes in een nieuw jasje, paneel Kaart luchtiger, 3D volgens het thema, huisnummers recht",
+      "body": [
+        "<b>Slowakije heeft officiële punten</b>: als het land van de meting SK is, worden de punten van GKÚ SR in de omgeving van 1,2 km gedownload — Nationaal trigonometrisch net (I.–V. orde, oriëntatie- en verdichtingspunten), waterpasnet, gravimetrisch en ruimtelijk net — met aanduiding, kad. gemeente, soort merk en Bpv-hoogte. Op de kaart, in AR en in de navigatie gedragen ze zich als de Tsjechische (de officiële ČÚZK-schets hebben ze uiteraard niet). De positie wordt omgezet uit S-JTSK (±1 m).",
+        "<b>Geo-kaartjes</b> (vroeger „Scroll en leer”): elke soort heeft een eigen kleur, groot icoon en subtiel patroon, de inhoud ligt op papier; onderaan staat de kaartteller.",
+        "<b>Paneel Kaart</b>: slankere kop, tabbladen met ruimte; in het tabblad Lagen is de schakelaar <b>Omgevingsbewaker</b> bijgekomen (je staat in een huis, bij een muur, onder bomen…) en een link naar de instellingen van de correcties (kalibratie door lopen, correctie van de kaart, snappen aan hoeken). In gesplitst sluit het paneel na de keuze van de ondergrond, zodat te zien is dat de kaart is omgeschakeld.",
+        "<b>De 3D-weergave</b> volgt het thema van de app (donker = nachtkaart), niet de handmatig gekozen stijl van de 2D-kaart; blauwdruk en afdruk blijven.",
+        "<b>Huisnummers, namen van nederzettingen en toppen</b> in de vectorkaart blijven bij het draaien van de kaart recht — je leest ze niet ondersteboven (straatnamen lopen langs de straat zoals op papier).",
+        "Kaartgegevens: Oostenrijk (uit de landsgrens, 1,0 GB) en Hongarije geüpload."
+      ]
+    },
+    {
+      "v": 351,
+      "datum": "2026-09-18",
+      "nadpis": "De app kan Spaans en Italiaans",
+      "body": [
+        "<b>Twee nieuwe talen: Spaans en Italiaans.</b> Vertaald is alles wat in het Engels, Duits en Pools is — kern en hele uitbreiding (meer dan 6 600 teksten), inclusief vakterminologie (replanteo / tracciamento, distancias de control / misure di controllo, catastro / catasto…). Omschakelen in <b>Instellingen → Uiterlijk</b> helemaal bovenaan of met het ringetje op het inlogscherm; een telefoon die op Spaans of Italiaans staat kiest de taal zelf.",
+        "Net als bij de andere talen: Tsjechisch downloadt niets extra, de uitbreiding (~480 kB) wordt pas na de taalkeuze gedownload en alleen die ene. Eigennamen blijven — ČÚZK, ČHMÚ, CZEPOS, S-JTSK, Bpv, nummers van besluiten."
+      ]
+    },
+    {
+      "v": 350,
+      "datum": "2026-09-18",
+      "nadpis": "Paneel Kaart in drie verdiepingen, navigatie over het terrein ook op de orthofoto, obstakel op een canvas",
+      "body": [
+        "<b>Het paneel Kaart en lagen</b> (knop Lagen) heeft drie tabbladen: <b>Ondergrond</b> (kaarten Kaart · Vector · Orthofoto met een staal, daaronder kaartrotatie, stijl van de vectorkaart en land van de meting), <b>Lagen</b> (kadaster, percelen, tekening, GPS-kwaliteit, obstakels, route over het terrein, eigen ondergrond — schakelaars) en <b>Gereedschappen</b> (Kijken · Tekenen en meten · Gegevens in de telefoon). Er is altijd maar één verdieping zichtbaar, met een veeg schakel je naar de volgende. De tijdelijke knop „Kaarttest” is daarmee vervallen — alles daaruit heeft zijn plek in het paneel.",
+        "<b>De route over het terrein werkt ook op de orthofoto en op het raster</b> — de gegevens van gebouwen en wegen komen uit de kaarttegels ongeacht wat er te zien is (vroeger alleen met de vectorkaart op het scherm → rechte lijn). Als de gegevens er nog niet zijn, zegt de app dat ze worden gedownload en berekent de route zelf.",
+        "<b>Obstakel</b>: wordt op een eigen canvas boven de kaart getekend, zodat het niet botst met verschuiven, zoomen of lang indrukken (meten); twee vingers in de tekenmodus verschuiven en zoomen de kaart. De vorm is zichtbaar tijdens de veeg en na het opslaan; de ingeschakelde laag Obstakels kan worden verborgen.",
+        "Een vectorkaart ingeschakeld vanuit de 3D-weergave of het paneel blijft ook na een stijlwijziging ingeschakeld (vroeger schakelde ze na het wisselen van stijl uit)."
+      ]
+    },
+    {
+      "v": 349,
+      "datum": "2026-09-17",
+      "nadpis": "Volgens feedback van de telefoon: 3D-kaart over de weergave, trottoirs op het terrein, obstakel met de vinger, schets in een nieuw jasje, Scroll en leer",
+      "body": [
+        "<b>3D-weergave</b>: een tik op een punt schuift de <b>klassieke puntkaart over 3D</b> (niets schakelt naar 2D, geen geknipper); een punt wordt ook 14 px ernaast geraakt. <b>Trottoirs</b> zijn geen gebroken rechthoeken meer — het zijn stroken op werkelijke breedte met een rand, op het terrein gelegd, zonder geknipper en schuine hellingen. <b>Groen</b> komt ook uit gebruiksvlakken (park met bomen, boomgaard), vroeger alleen uit de bedekking — daarom was het niet te zien. <b>De wereldbol</b> verschijnt eerder (vanaf het zicht op heel Tsjechië); een grotere kromming dan die van de echte aarde kan MapLibre niet.",
+        "<b>Obstakel</b>: je kiest de soort en <b>omlijnt de vorm met één vinger</b> op de kaart (twee vingers = verschuiven en zoomen van de kaart werken door), geen pop-upmeldingen; twee tikken = rechthoek zoals vroeger. Annuleren met de knop in de balk bovenaan.",
+        "<b>Route over het terrein</b>: als er geen route is en een rechte lijn wordt getoond, zegt de app waarom (doel verder dan 3 km, kaart wordt geladen, vanaf de plek is er geen doorgang…); het bereik verhoogd van 1,5 naar 3 km. <b>Onderdoorgangen en doorgangen door een huis</b> (weg in een tunnel) blijven begaanbaar — alleen metro, spoor- en lange wegtunnels worden weggelaten.",
+        "<b>Situatieschets</b>: nieuw uiterlijk (kop met het punt, ondergrondschakelaar, symbolenpalet onderaan, balk met iconen, noordpijl, papier met raster) en <b>symbolen volgens de gewoonten van doelkaarten</b> (ČSN 01 3411, vereenvoudigd): loof- en naaldboom, struik, paal, lantaarn, put, hydrant, kolk, grenssteen, verkeersbord; lijnen hek / muur / stoeprand / greppel. <b>Bomen uit de orthofoto</b>: schatting van de kroonposities uit de uitsnede van de ČÚZK-orthofoto (donkere of getextureerde groene vlekken) — ze worden gestreept toegevoegd, wat niet klopt, verwijder je.",
+        "<b>Scroll en leer</b> (Gereedschappen → Leren): kaartjes om te swipen — begrippen, formules, voorschriften, vragen uit opgaven, wat de app kan, tips uit het veld; filter, ster, teller.",
+        "<b>Buiten Tsjechië</b>: kaartgegevens voor Slowakije, Hongarije en Oostenrijk (Oostenrijk en Slovenië worden toegevoegd), de landsimulatie voegt 3 voorbeeldpunten toe, de puntenlijst legt uit dat officiële ČÚZK-punten alleen in Tsjechië zijn."
+      ]
+    },
+    {
+      "v": 348,
+      "datum": "2026-09-17",
+      "nadpis": "De navigatie loopt niet meer door muren, zwaartekrachtpunt correct, werken in 3D, situatieschets",
+      "body": [
+        "<b>De route over het terrein</b> neemt gebouwen en wegen rechtstreeks uit de kaarttegels voor het hele traject, niet alleen wat de kaart net op het scherm heeft (uitgezoomde kaart = geen gebouwen = route door huizen). Rond gebouwen houdt ze een meter afstand, op wegen loopt ze <b>over hun as</b> (niet een meter ernaast), raster 1 m. Als je <b>in een gebouw</b> staat, leidt ze je eerst naar de <b>uitgang</b> (ingang uit de kaart, anders de kant naar de straat — geen nooduitgang) en pas van daar over het terrein. Een doel in een gesloten binnenplaats of in een gebouw = de route eindigt bij de dichtstbijzijnde plek en de rest wordt recht getoond (rood gestreept). Metro en tunnels worden in de route niet genomen.",
+        "<b>AR</b>: de pijl leidt naar de volgende knik van de route, <b>het streepje in de strook</b> toont het gezochte punt (rechte richting) en de azuurblauwe stip eronder de volgende knik.",
+        "<b>Een zwaartekrachtpunt</b> gedownload met een oudere versie (opgeslagen als PPBP) wordt na een nieuwe download heringedeeld volgens de ČÚZK-laag — een zeshoek op de kaart en „Zwaartekrachtpunt” in de kop van de kaart, geen cirkeltje met PPBP.",
+        "<b>Waar je kunt meten</b>: de laag verberg je met de pil „Verbergen” rechtstreeks op de kaart (of met de knop in het resultaatvenster), niet alleen in het paneel Lagen.",
+        "<b>Obstakels op de kaart</b>: vóór het tekenen kies je de soort (hoop, sleuf, machine, hek, water, opslag, overig) — elk heeft een kleur en symbool, de naam staat rechtstreeks op de kaart, kan worden hernoemd; een sleuf op een weg sluit die weg voor de route.",
+        "<b>3D-weergave</b>: een tik op een punt = een kaart met de knoppen <b>Puntkaart</b> en <b>Navigeren</b> (de route wordt ook in 3D getekend, na het sluiten loopt ze door in gesplitst), <b>trottoirs 12 cm boven de rijbaan</b> (je ziet of een punt op het trottoir of op de weg ligt), <b>punten in de hoogte</b> als paaltje vanaf het terrein DMR 5G, <b>groen</b> (bos, struiken) als volumes, bij uitzoomen een <b>wereldbol</b>; het lichte thema werkt.",
+        "<b>Nieuw gereedschap Situatieschets</b> (Kadaster en ondergronden): bij het gekozen punt omtrekken van de kaart (gebouwen, wegen, paden, water, sporen, bos), maten van–tot met twee tikken (lengte uit de coördinaten, met een tik noteer je de waarde van de meetband), objecten (boom, struik, paal, put, hydrant, steen, bord), hek / rand, tekst; ondergrond <b>Papier / Kaart / Orthofoto</b> — wat je op de ene tekent, zie je ook op de andere. Wordt bij het punt opgeslagen, PNG-export met noordpijl, schaal en legenda.",
+        "<b>Simulatie van een ander land</b> (Instellingen → Gegevens → Land van de meting → Uitproberen): zet je in de hoofdstad van het gekozen land — coördinaten, hoogten, kadaster en kaart schakelen om zoals in het veld.",
+        "De balk onder de statusregel (Dynamic Island) blijft na het omschakelen van de lichte naar de donkere modus niet meer licht."
+      ]
+    },
+    {
+      "v": 347,
+      "datum": "2026-09-17",
+      "nadpis": "Puntschets op de kaart gelegd — aan welke kant van het hek het punt ligt",
+      "body": [
+        "<b>Schets op de kaart leggen</b> — een knop onder de officiële ČÚZK-schets in de kaart van een officieel punt. Je tikt in de schets op het merkteken van het punt, dan op een hoek van een gebouw of een knikpunt van de grens, en op dezelfde hoek op de kaart (binnen 3 m snapt het aan een knikpunt van het kadaster). De schets wordt over het kadaster getrokken en gedraaid, halfdoorzichtig — je ziet aan welke kant van de paal, het hek of de hoek het punt ligt.",
+        "<b>In AR</b> wordt de gelegde schets op de grond rond het punt geprojecteerd; de balk onderaan houdt de doorzichtigheid, de AR-schakelaar, „Verfijnen met nog een hoek” (vanaf drie paren wordt getoond hoeveel de punten botsen) en „Weghalen”. De plaatsing overleeft een herstart.",
+        "Eerlijk: schetsen zijn meestal schematisch → de omgeving klopt op ±0,5–1 m, het is voor „welke kant”, niet voor „waar graven”. Een hoek uit de DKM heeft centimeters, uit de UKM ±1 m. De tegel <b>Puntschets op de kaart</b> staat in Gereedschappen → Kadaster en ondergronden, met handleiding."
+      ]
+    },
+    {
+      "v": 346,
+      "datum": "2026-09-17",
+      "nadpis": "Gegevens van de vectorkaart: heel Tsjechië meteen beschikbaar; tijdelijke knop „Kaarttest”",
+      "body": [
+        "<b>Heel Tsjechië als kaartgegevens</b> (1,7 GB) staat in de GitHub-release „mapa-data” en de QTRIG-cloud leest het in stukjes — dus <b>Nieuwe kaart (vector, bèta)</b> kan meteen worden ingeschakeld, zonder Cloudflare in te stellen. Zodra R2 met heel Europa er is, grijpt de worker daar zelf naar; buiten Tsjechië zegt de kaart voorlopig dat de gegevens voor dat land er nog niet zijn (bestand per land: sk.pmtiles, at.pmtiles…).",
+        "<b>De knop „Kaarttest”</b> linksonder op het hoofdscherm (tijdelijk): een wegwijzer naar alles wat op de eigen kaart steunt — kaart en stijl inschakelen, 3D-weergave, Waar je kunt meten, een voorbeeld-DXF-tekening om je heen (as met metrering), obstakel, een testdoel om de hoek met een route over het terrein, omgevingsbewaker, correctie langs een rand, snappen aan hoeken, land van de meting, opruimen. Bij elk item staat waar je het blijvend vindt. Verbergen met het kruisje (terug: Instellingen → Uiterlijk → Kaart).",
+        "Als er geen gegevens voor het land zijn, zegt de kaart dat meteen en blijft de ondergrond raster."
+      ]
+    },
+    {
+      "v": 345,
+      "datum": "2026-09-17",
+      "nadpis": "Omgevingsbewaker, route naar een punt over het terrein met hoogteprofiel, handmatige obstakels, kadaster en orthofoto van buurlanden",
+      "body": [
+        "<b>Omgevingsbewaker.</b> Bij een gebouw (tot 4 m), in een gebouw volgens de kaart, onder bomen, bij het spoor of bij een gemarkeerd obstakel zegt de pil bovenaan je wat dat met de GPS doet en wat je eraan doet („10 m afstand, of stapoffset”). Bij een nieuw punt uit de GPS wordt genoteerd onder welke omstandigheden het is ontstaan (bijv. „2,1 m van een gebouw”). Uitschakelen: Instellingen → AR & nauwkeurigheid.",
+        "<b>Obstakel met twee tikken.</b> Een hoop materiaal, een sleuf, een graafmachine — dat staat in geen enkele kaart. Lagen → Kaartgereedschappen → <b>Obstakel</b>, tik op twee tegenoverliggende hoeken: de route gaat eromheen, de bewaker waarschuwt ervoor, de GPS-kwaliteitskaart schermt het af. Geldt voor het project; met een tik op de rechthoek verwijder je hem.",
+        "<b>Route naar een punt over het terrein.</b> In plaats van een rechte lijn een geknikte route die om gebouwen, water, snelwegen en obstakels heen loopt en wegen verkiest boven veld en bos (raster 2 m, berekening in de telefoon). De strook en de pijl in AR leiden naar de <b>dichtstbijzijnde knik</b>, de afstand is de lengte langs de route; als je 15 m afdwaalt, wordt ze herberekend. Een tik op de route toont het <b>hoogteprofiel</b> (↑ stijgen, ↓ dalen, steilste stuk). Uitschakelen: Instellingen → AR & nauwkeurigheid.",
+        "<b>Kadaster en orthofoto buiten Tsjechië.</b> Volgens het land waar je staat schakelen de ondergronden op de kaart om: Slowakije (ESKN, ZBGIS), Polen (GUGiK), Oostenrijk (BEV, basemap.at), Nederland (PDOK), Frankrijk (IGN), Zwitserland (swisstopo), Slovenië, België (Vlaanderen), Hongarije, Spanje (orthofoto). Elders in de wereld de Esri-orthofoto. Eerlijk: grondslagnetten van andere staten zijn niet openbaar als data — buiten Tsjechië werk je op eigen punten, kadaster en kaart.",
+        "De vectorkaart controleert nu vóór het inschakelen dat de gegevens in de cloud er echt zijn; zo niet, dan zegt ze waarom, in plaats van een lege kaart te tonen."
+      ]
+    },
+    {
+      "v": 344,
+      "datum": "2026-09-16",
+      "nadpis": "Nauwkeurigheid van de kaart: punt snappen aan een hoek, automatische GPS-correctie langs een rand, kaart „waar je kunt meten”",
+      "body": [
+        "<b>Snappen aan hoeken.</b> Je slaat een punt uit de GPS op binnen 0,6 m van een knikpunt van een perceelgrens (kadaster), een punt van een DXF-tekening of binnen 1 m van een gebouwhoek uit de vectorkaart → de app vraagt het en neemt de coördinaten van de kaart in plaats van de telefoon. Bij het punt wordt genoteerd waar het vandaan komt (gesnapt aan…), de nauwkeurigheid volgens de bron (kadaster 0,1 m, tekening 0,05 m, gebouw 0,5 m). Uitschakelen: Instellingen → AR & nauwkeurigheid.",
+        "<b>GPS-correctie langs de rand waarlangs je loopt.</b> Als je ≥ 20 m evenwijdig aan een perceelgrens, gebouwmuur of tekeninglijn loopt en de GPS je steeds even ernaast houdt (spreiding onder 0,9 m), is dat niet jouw route maar een GPS-fout: de app biedt een verschuiving loodrecht op de rand aan (of schakelt die in de modus „vanzelf” meteen in). Dezelfde correctie als „GPS-verschuiving op een bekend punt” — pil bovenaan, bewaking 20 min / 300 m. Wegassen uit OSM worden niet gebruikt (±1–3 m). Modus in Instellingen → AR & nauwkeurigheid.",
+        "<b>Waar je kunt meten</b> (Gereedschappen → Nauwkeurig meten): een GPS-kwaliteitskaart van 220 × 220 m om je heen uit de afscherming door gebouwen (hoogten uit OSM) en bos — groen open hemel, oranje halve hemel (meet langer), rood bij een muur (offset, andere plek). Een schatting, geen meting; de laag verberg je in het paneel Lagen.",
+        "Alle drie hebben de ingeschakelde vectorkaart nodig (Instellingen → Uiterlijk) — de gegevens over gebouwen komen daaruit; percelen uit het gereedschap Percelen (vector), de tekening uit Project importeren."
+      ]
+    },
+    {
+      "v": 343,
+      "datum": "2026-09-16",
+      "nadpis": "GPS-correctie van de kaart tijdens het lopen, mooiere website, melding na het downloaden van een nieuwe versie",
+      "body": [
+        "<b>Nieuw gereedschap GPS-correctie van de kaart tijdens het lopen</b> (Nauwkeurig meten): blijf 30–60 s staan, tik op de orthofoto precies waar je staat, en de app trekt de GPS-fout <b>ook tijdens het lopen</b> af — in AR, in de navigatie, in de afstanden en bij de op te slaan punten. Geldt 10 min / 100 m, de pil bovenaan bewaakt het. De statische „Positie van de kaart” blijft apart. Een kaart in de wizard Nauwkeurig meten + handleiding onder „?”.",
+        "De website van de app heeft een nieuw uiterlijk (<a href=\"web/\" target=\"_blank\" rel=\"noopener\">stepanvcelak11.github.io/ar-geodet/web/</a>).",
+        "Na het downloaden van een nieuwe versie zegt de pil dat de app moet worden gesloten en opnieuw gestart."
+      ]
+    },
+    {
+      "v": 342,
+      "datum": "2026-09-16",
+      "nadpis": "Eigen vectorkaart (bèta): stijl „bouw”, DXF-tekening als laag met metrering, 3D-weergave",
+      "body": [
+        "<b>Nieuwe kaart (vector, bèta)</b> — Instellingen → Uiterlijk. De ondergrond is niet meer een afbeelding van derden, maar onze OpenStreetMap-gegevens in één bestand dat de telefoon in stukjes ophaalt. Stijl „bouw”: gebouwen met huisnummers, wegranden, sporen, water, bos en veld, grenzen — zonder winkels en reclame. Vier varianten uit één gegevensbron: dag, nacht (echt donker), blauwdruk, afdruk (zwart-wit voor PDF); „volgens het thema” schakelt vanzelf.",
+        "<b>Tekening (DXF) als kaartlaag.</b> Project importeren tekent lijnen in de kleuren van de CAD-lagen, houdt polylijnen als gehelen en in het gereedschap kies je een laag als <b>as</b>: erlangs lopen metreringsmarkeringen en een tik op welke lijn ook zegt laag, lengte en metrering („km 0,420” · 3,2 m van de as). De regel „Tekening (DXF)” in het paneel Lagen verbergt/toont hem.",
+        "<b>3D-weergave</b> (Gereedschappen → Kadaster en ondergronden): gebouwen in de hoogte getrokken, terrein, projectpunten, tekening en mijn positie schuin van boven. Twee vingers draaien en kantelen; een tik op een gebouw, punt of lijn zegt wat het is. Heeft de ingeschakelde vectorkaart nodig.",
+        "Kaartgegevens: het bestand wordt naar de QTRIG-cloud geüpload (Cloudflare R2, instructies in cloud/wrangler.toml); tot dan kun je in Instellingen een eigen adres invoeren (uitsnede uit scripts/mapa-vyrez.py — Tsjechië heeft 1,7 GB). Zonder signaal draait de vectorkaart voorlopig niet (het downloaden van een gebied komt nog); OSM-raster en orthofoto blijven zoals vroeger.",
+        "In de modus zwakkere telefoon worden vectorkaart en 3D niet aangeboden (WebGL, 1 MB bibliotheek)."
+      ]
+    },
+    {
+      "v": 341,
+      "datum": "2026-09-16",
+      "nadpis": "Android: de knop Terug sluit vensters in plaats van de app, aanbod „Aan beginscherm toevoegen”",
+      "body": [
+        "<b>De knop Terug op Android</b> sluit het bovenste geopende venster (Gereedschappen, puntkaart, dialoogvenster…) — vroeger beëindigde hij in de app op het beginscherm meteen de app. Op het hoofdscherm waarschuwt de eerste Terug, de tweede binnen 2,5 s sluit de app, zoals op Android gebruikelijk.",
+        "<b>QTRIG aan het beginscherm toevoegen</b>: Chrome op Android biedt na een minuut in de app één keer installatie aan (volledig scherm, eigen icoon, offline). „Nu niet” = 14 dagen rust.",
+        "De hele app is doorlopen in de Chrome-emulatie op Android (Pixel 7 en een 360 px scherm, kompas uit deviceorientationabsolute zonder toestemming, relatieve gebeurtenissen genegeerd, 102 tegels van Gereedschappen zonder fout en zonder element buiten het scherm) — de test draait in CI."
+      ]
+    },
+    {
+      "v": 340,
+      "datum": "2026-09-16",
+      "nadpis": "Meten buiten Tsjechië: coördinaten en hoogten volgens het land waar je staat; geoïde EGM2008 en declinatie WMM voor de hele wereld",
+      "body": [
+        "<b>De app herkent het land uit de GPS en schakelt het coördinatenstelsel om.</b> In Tsjechië blijft alles zoals vroeger (S-JTSK Y/X, Bpv). In Slowakije S-JTSK [JTSK03], in Polen PL-2000 (X/Y, zone naar lengte), in Duitsland ETRS89/UTM (E/N), in Oostenrijk MGI GK (M28/M31/M34), Hongarije EOV, Zwitserland LV95, Frankrijk Lambert-93, Nederland RD, België Lambert 72, Groot-Brittannië OSGB, Slovenië, Kroatië, Spanje, Scandinavië, de Baltische staten, Roemenië, Bulgarije… en elders in de wereld het algemene UTM. Puntkaart, puntformulier, lijst, export CSV/TXT/DXF/PDF, rekenmachines, uitzetten, rapporten — alles in het vlak van dat land.",
+        "<b>Hoogten in het nationale stelsel.</b> De geoïdhoogte komt nu uit het model EGM2008 (heel Europa per 5′, de wereld per 1°), daarbij de verschuiving van het nationale hoogtestelsel ten opzichte van EVRF2007: Bpv, DHHN2016, GHA (Adriatisch), NAP, TAW, LN02, NGF-IGN69, ODN… Bij landen waar ik de verschuiving niet ken, wordt ±0,5 m getoond. <b>Correctie ook voor Tsjechië:</b> de bestaande formule klopte in Praag, maar zat in Brno 1,7 m ernaast en in de hoeken van het land 3–8 m.",
+        "<b>Declinatie overal ter wereld.</b> Het kompas wordt gecorrigeerd volgens het World Magnetic Model 2025 (NOAA) — vroeger een lineaire schatting voor Tsjechië, die in Spanje 6° zou liegen.",
+        "<b>Instellingen → Gegevens → Land van de meting.</b> Automatisch volgens de GPS (de landsgrenzen zijn tot ~1 km nauwkeurig — bij een grens schakel je handmatig om), of een vast gekozen land. Bij het passeren van een grens zegt de app waarnaar hij is omgeschakeld.",
+        "Wat NIET verandert: officiële ČÚZK-punten, RÚIAN-percelen, VFK en GML-leidingen blijven altijd in Křovák — het zijn Tsjechische gegevens.",
+        "De gegevens (geoïde ~740 kB, landsgrenzen ~170 kB) worden één keer na de start gedownload en blijven in de telefoon; tot dan draaien de formules voor Tsjechië zoals tot v338."
+      ]
+    },
+    {
+      "v": 339,
+      "datum": "2026-09-16",
+      "nadpis": "Zwaartekrachtpunten apart, nummers van bijbehorende punten, tik in een perceel met gebiedsbescherming, kalibratie door langs de kadastergrens te lopen, downloadanimatie",
+      "body": [
+        "<b>Zwaartekrachtpunten hebben een eigen symbool</b> — een oranje zeshoek op de kaart en in AR, de kaart zegt „Zwaartekrachtpunt · naam”. Vroeger deden ze zich voor als trigonometrische punten (paarse driehoek). Om de GPS te verankeren worden ze niet aangeboden (ze zitten meestal in een gebouw).",
+        "<b>Bijbehorende (zekerings)punten bij TB en ZhB hebben een nummer met volgnummer</b>: 19.3, 19.4 — vroeger stonden er drie punten „19” naast elkaar op de kaart. In de kaart van een TB staat nu een regel met het triangulatieblad.",
+        "Correctie: labels van <b>opgeheven</b> punten uit de ČÚZK-dienst werden als geldige detailpunten getoond.",
+        "<b>Een tik in een perceel toont meer:</b> de oppervlakte uit de geometrie naast de officiële, de bron van de grens (DKM op centimeters / UKM op meters), geldigheid, dichtstbijzijnde adres, terreinhoogte uit DMR 5G, bij een gebouw de constructie, het vloeroppervlak en het bouwjaar. Nieuw onderdeel <b>Bescherming en beperkingen</b>: BPEJ (uitgeschreven code), NP / beschermd landschap / reservaat / monument met beschermingszones, Natura 2000, monumentale boom, beschermd delfstoffengebied, winningsgebied en de beschermingszone van het merk van een basisgrondslagpunt.",
+        "<b>Kalibratie door langs de kadastergrens te lopen:</b> met de laag Kadaster aan snapt een tik binnen 4 m van een perceelgrens aan de dichtstbijzijnde plek van de grens — de omtrek wordt vanzelf van RÚIAN gedownload. In een gebied met UKM rekent de app met ±1 m.",
+        "<b>Puntkaart:</b> de tegel „Status: niet uitgezet” is weg, de knop Uitgezet blijft alleen bij eigen punten. Onder de knoppen staat een zin waarin <b>Controlepunt</b> (alleen een registratie van waar ik sta) en <b>GPS corrigeren</b> (verschuift de volgende metingen) verschillen.",
+        "<b>GPS corrigeren waarschuwt waar je staat:</b> onder een boom, bij een muur of tussen huizen heeft de GPS een andere fout dan in het vrije veld — als de positie schommelt, schrijft de app dat en adviseert een ander punt of een langere middeling.",
+        "<b>DGPS nauwkeuriger:</b> het blok van het basisstation is de mediaan van de fixen met een gewicht volgens de gemelde nauwkeurigheid, de rover weegt verse blokken zwaarder en laat een blok dat uit de rij valt weg. In het gereedschap staat nu waarom het niet op centimeters kan.",
+        "<b>Het downloaden van een nieuwe versie zie je:</b> bovenaan verschijnt „Nieuwe versie downloaden… 42 %” met een balk, na afloop een vinkje. Bij het installeren van een nieuwe versie na de start een draaiend wieltje.",
+        "Nieuwe <b>website van de app</b>: <a href=\"web/\" target=\"_blank\" rel=\"noopener\">stepanvcelak11.github.io/ar-geodet/web/</a> — wat de app kan, voorbeelden, Basis en Pro, nauwkeurigheid eerlijk, installatie."
+      ]
+    },
+    {
+      "v": 338,
+      "datum": "2026-09-15",
+      "nadpis": "GPS-correctie op een bekend punt ook in de hoogte, waterpaspunten in de lijst, het vakje GPS corrigeren in de puntkaart",
+      "body": [
+        "<b>De hoogte wordt ook gecorrigeerd.</b> Heeft het punt waarop je staat een Bpv-hoogte (waterpaspunt, een reeks TB en ZhB), dan berekent het gereedschap „GPS-verschuiving op een bekend punt” ook de verticale verschuiving en telt die op bij de hoogte van nieuw opgeslagen punten uit het GPS-gemiddelde. Leg de telefoon op het merk, of schrijf hoeveel hoger je hem houdt. Een hoogte overschreven uit het DMR laat hij met rust.",
+        "<b>Waterpaspunten staan in de lijst.</b> Hun positie is bij ČÚZK op een meter — nog altijd beter dan een telefoon — en de hoogte op millimeters.",
+        "<b>GPS corrigeren rechtstreeks vanuit de puntkaart.</b> Tussen de knoppen van de kaart staat het vakje „GPS corrigeren”: de bevestiging zegt je hoe ver je volgens de GPS van het punt bent, of het punt een hoogte heeft en dat je er precies op moet staan — dan wordt de correctie met één tik ingeschakeld. Het gereedschap in Gereedschappen blijft.",
+        "Correctie: een bevestigingsvenster geopend vanuit de puntkaart (zoals precies dit) kon niet worden weggetikt — de tik sloot de kaart in plaats van te bevestigen."
+      ]
+    },
+    {
+      "v": 337,
+      "datum": "2026-09-15",
+      "nadpis": "Iconen in plaats van emoji overal",
+      "body": [
+        "Alle plekken waar de app in plaats van een icoon emoji gebruikte (Waar staat wat, badges in het Jaarboek, Stapoffset, Campagne, Zon en licht, radar in Weer, Nieuwsbrief, Gebreken, spraaknotities, horloge bij punten, wizard…), hebben nu app-iconen — hetzelfde op iPhone en Android, ook correct in het lichte thema. Emoji zijn alleen gebleven in de keuze van het avatarsymbool (dat is jouw keuze, geen icoon)."
+      ]
+    },
+    {
+      "v": 336,
+      "datum": "2026-09-15",
+      "nadpis": "Verre punten in AR: het gebied kies je ook van thuis uit, de punten worden van ČÚZK opgehaald en staan ook op de kaart",
+      "body": [
+        "<b>De kaart in het gereedschap verschuif en zoom je met twee vingers</b> — je hoeft niet in dat gebied te staan. De rechthoek kies je met een veeg van één vinger zoals vroeger, of <b>door op een hoek en dan op de tegenoverliggende te tikken</b> (tussen de tikken schuif je de kaart gerust verder).",
+        "<b>De punten in de uitsnede worden van ČÚZK opgehaald.</b> De app downloadt het grondslagnet normaal alleen tot 300 m om je heen, zodat een uitsnede 2 km verderop vroeger „geen punt” meldde. Nu wordt het grondslagnet ervoor gedownload en gekozen; zonder signaal wordt minstens genomen wat de telefoon al heeft.",
+        "<b>De gekozen punten worden ook op de kaart getekend</b>, niet alleen in AR — ook kilometers van je vandaan. De uitsnede en de hoeken zijn bij het kiezen rechtstreeks op de kaart te zien."
+      ]
+    },
+    {
+      "v": 335,
+      "datum": "2026-09-15",
+      "nadpis": "Doorloop van de app — 11 correcties uit het klikken door alle gereedschappen",
+      "body": [
+        "<b>De GNSS-voorspelling</b> verscheen na een geopende Geo-foto in haar venster (beide modules hadden dezelfde venster-id) — elk heeft nu het zijne; een vergelijkbaar paar Meetprocedures × Wizard voor de eerste meting (een ervan bleef zonder stijl).",
+        "<b>Werkt alles?</b> meldde bij het account „Basis” ook met Pro (riep een niet-bestaande licentiefunctie aan).",
+        "<b>Routespoor</b> opende met een lege knop en zonder statistiek tot de volgende GPS-fix binnenkwam.",
+        "<b>Jaarboek:</b> de reeks maanden begon met „jan jan” en december ontbrak.",
+        "<b>Daglogboek:</b> vijf knoppen pasten op een smalle telefoon niet op één regel („Sluiten” afgesneden); <b>Offsetpunt:</b> het azimutveld was tot een paar pixels samengedrukt; <b>Perceel:</b> twee kruisjes over elkaar; <b>Puntenquiz:</b> afgesneden label onder de tekening; <b>Zon en licht:</b> regellabel gebroken over drie regels; schuifregelaar „Downloaden in een straal van300 m” zonder spatie; <b>Instellingen → Profielen:</b> afgesneden keuze „Wie ben je”.",
+        "<b>Licht thema:</b> gele waarschuwingen (Polair punt, Snijding, Vrij standpunt, wizard, puntkaart…) waren op wit onleesbaar — nu donker; de tabelkop van Controlematen is geen donkere balk meer.",
+        "<b>GNSS-voorspelling:</b> in plaats van „Meet 20:00–20:00” (het hele venster) zegt ze „wanneer je wilt in de komende 24 u”."
+      ]
+    },
+    {
+      "v": 334,
+      "datum": "2026-09-15",
+      "nadpis": "Puntkaart: kaartblad in plaats van het uitklapmenu „alle officiële records”",
+      "body": [
+        "<b>Het uitklapmenu „Alle officiële records tonen” is uit de puntkaart verdwenen.</b> Het was een ruwe uitvoer van ČÚZK en alles daaruit (nummer, kad. gemeente, nauwkeurigheidsklasse, hoogten, waterpasgang, naam, link naar geodetische gegevens) toont de kaart al bovenaan in leesbare vorm.",
+        "<b>Nieuwe regel Kaartblad</b> — het enige wat alleen in de ruwe uitvoer stond: blad ZM 1:50 000 en SMO-5 (naam + nummer), onder de hoogten en de geoïdhoogte."
+      ]
+    },
+    {
+      "v": 332,
+      "datum": "2026-09-15",
+      "nadpis": "Gereedschappen worden gebladerd: één werkwoord = één pagina, Mijn als eerste, Pro apart; gereedschapswiel afgeschaft",
+      "body": [
+        "<b>Gereedschappen als bladeren.</b> In plaats van één kolom over zeven schermen staat bovenaan een strook werkwoorden (Meten · Nieuw punt · Nauwkeurig meten · Uitzetten · …) en daaronder altijd één pagina die op het scherm past. Je bladert met een veeg opzij of een tik op een werkwoord; onderaan staat wat links en rechts is.",
+        "<b>De pagina Mijn</b> is de eerste: Doorgaan (laatst gebruikt gereedschap), keuze van het werktype, <b>★ Vastgepind</b> en Voor dit werk. Een gereedschap pin je vast met de ster rechtstreeks in zijn rij. Bij een vastgepind gereedschap is zijn <b>gebaar</b> te zien (of „+ gebaar” waarmee je het tekent) — het paneel is zo tegelijk een spiekbriefje voor gebaren.",
+        "<b>Wegwijzers</b> (Punt door berekening, Anders uitlijnen, GNSS-signaal, Ondergronden en kadaster, Weer en licht, Dagnotitie, Mijn cijfers, Handboek) klappen ter plekke onder hun rij uit, niet in een volgend venster. Elke rij heeft een „?” met handleiding, zodat je kunt uitproberen zonder te openen.",
+        "<b>In Basis staat Pro apart.</b> Vergrendelde gereedschappen uit de betaalde versie zijn niet verspreid over de werkwoorden — ze zijn samengebracht op de laatste pagina „Pro” (met het werkwoord in de titel), zodat ze niet in de weg zitten. Wie Pro heeft, ziet die pagina niet.",
+        "<b>Het gereedschapswiel (knop Gereedschappen vasthouden) is afgeschaft.</b> Er leidden drie wegen naar een gereedschap en dat was ingewikkeld; er blijven er twee: Gereedschappen om te bladeren en uit te proberen, gebaren om uit het hoofd te starten. De knop vasthouden doet nu hetzelfde als tikken."
+      ]
+    },
+    {
+      "v": 331,
+      "datum": "2026-09-15",
+      "nadpis": "De puntkaart zegt welke GPS-correctie bij het punt is opgeteld",
+      "body": [
+        "<b>De puntkaart</b> heeft bij punten uit de GPS een nieuwe tegel <b>GPS-correctie</b>: hoeveel en waarvandaan het punt is verschoven (lopen langs een rand, bekend punt, DGPS live, correctie uit QR) en of het is herberekend met de kalibratie voor en na. Hetzelfde zegt ook de uitleg van de nauwkeurigheid („waar de nauwkeurigheid vandaan komt”) — vroeger beweerde de kaart „alleen wat de telefoon meldt” ook over een punt dat door kalibratie een halve meter terug op zijn plek kreeg.",
+        "De herberekening van punten op tijd (kalibratie voor en na) vergeet niet meer waar de correctie vandaan kwam, en de puntkaart ziet het meteen."
+      ]
+    },
+    {
+      "v": 330,
+      "datum": "2026-09-15",
+      "nadpis": "Nauwkeurig meten — nieuwe sectie in Gereedschappen: loop een vorm rond, kalibratie voor en na, waar de telefoon te leggen, tijdelijk DGPS-basisstation",
+      "body": [
+        "<b>De sectie Nauwkeurig meten</b> in Gereedschappen: alles wat nauwkeurigheid uit de telefoon perst, bij elkaar — Nauwkeurige GPS, Kalibratie door langs een rand te lopen, GPS-verschuiving op een bekend punt, DGPS met twee telefoons, Akoestische afstandsmeter en Controlemeting. Vooraan <b>Hoe nauwkeurig te meten met een telefoon</b>: drie GPS-fouten (ruis, verschuiving, drijven), welke methode wat oplost, een tabel „wat te verwachten”, een werkwijze per methode in 3–5 stappen, waar kalibreren werkt en waar niet, en typische situaties (wegenbouw bij de stoeprand, perceel, veld zonder punt). Elk gereedschap heeft bovenaan ook een kort „Kort gezegd”.",
+        "<b>Kalibratie door lopen: loop een vorm rond.</b> De lijn kan worden <b>gesloten</b> (knop Vorm sluiten of een tik terug op het eerste punt) — omtrek van het perceel, plusteken, vierkant — en de hele foutvector komt eruit, niet alleen de component loodrecht op een rechte lijn. De app toont nu <b>hoeveel de GPS-fout tijdens het lopen dreef</b> (eerste vs. tweede helft; bij een rondgang hetzelfde als de sluitfout) en waarschuwt boven 1 m.",
+        "<b>Kalibratie voor en na.</b> Als je de rand binnen 90 minuten en 500 m opnieuw loopt, zegt de app hoeveel de GPS-fout intussen is verschoven en biedt aan de tussen beide wandelingen opgeslagen punten (ook uit Nauwkeurige GPS) <b>te herberekenen volgens de meettijd</b> — een punt in het midden krijgt de helft van het verschil. De vector wordt vervangen, niet opgeteld; de wijzigingen gaan naar het journaal.",
+        "<b>Zo nauwkeurig als de lijn, zo nauwkeurig de correctie:</b> de app onthoudt de bron (orthofoto ±0,35 m, kadastergrens ±0,3 m, opgeslagen punten ±cm, stratenkaart ±2 m — die raadt hij meteen af en adviseert over te schakelen naar orthofoto) en telt hem bij de foutschatting op als „totaal”. Een tik binnen 4 m van een knikpunt van een gedownload perceel snapt aan de kadastergrens.",
+        "<b>Nauwkeurige GPS: waar de telefoon te leggen.</b> Een afbeelding van de telefoon met een kruisje — boven het punt hoort het <b>midden</b>, de antenne zit bij de bovenrand en door 90° rond het midden te draaien valt haar positie weg. Bij het punt wordt opgeslagen welke correctie is opgeteld (voor de herberekening voor/na). Na het opslaan biedt de app het punt aan als <b>tijdelijk DGPS-basisstation</b> voor een tweede telefoon.",
+        "<b>DGPS met twee telefoons: tijdelijk basisstation.</b> Het basisstation kan ook een punt uit Nauwkeurige GPS met kalibratie door lopen zijn — het venster zegt wat dat oplevert (roverpunten onderling ±0,5 m, het geheel erft de fout van het basisstation als gemeenschappelijke verschuiving, de kalibratie door lopen geldt daardoor langer) en wat niet (extra nauwkeurigheid). De akoestische afstandsmeter zegt bij een snijding uit twee GPS-punten dat de vorm op centimeters is en de positie van het geheel volgens de bekende punten."
+      ]
+    },
+    {
+      "v": 329,
+      "datum": "2026-09-15",
+      "nadpis": "Tik in een perceel, officiële ČÚZK-schets in de puntkaart, gereedschappen terug in het zicht",
+      "body": [
+        "<b>Perceel met een tik:</b> schakel op de kaart de laag Kadastrale kaart in en tik binnen een perceel — een kaart uit RÚIAN toont nummer, kad. gemeente, gemeente, oppervlakte, grondsoort, gebruikswijze en eventueel het gebouw (huisnummer, verdiepingen, bebouwd oppervlak); de omtrek wordt gemarkeerd. Eigenaar en eigendomsakte geeft geen enkele gratis dienst — de knop <b>Eigenaar en LV</b> opent dit perceel rechtstreeks in Nahlížení do KN.",
+        "<b>Kaart van een officieel punt:</b> in plaats van de schets uit de app staat er nu de <b>officiële situatieschets van ČÚZK</b> uit de geodetische gegevens van het punt (controlematen naar hoeken van huizen, hekken…), bij TB/ZhB een uitsnede van het blad met omschakeling naar het hele blad; de link naar de volledige geodetische gegevens is gebleven. De schets uit de app (buurpunten, controlematen) staat één tik eronder. Eigen punten hebben hem nog steeds. Een eenmaal getoonde schets werkt ook zonder signaal.",
+        "<b>Gereedschappen:</b> Controlematen, Routespoor en Vandaag in het veld worden bij een nieuwe installatie niet meer verborgen; de rijen van wegwijzers (Anders uitlijnen, Ondergronden en kadaster, GNSS-signaal, Handboek…) sommen al hun items op, zodat ook een nieuw gereedschap erin te vinden is zonder zoeken.",
+        "<b>Statusbubbel:</b> een melding met getallen springt niet meer van links naar rechts (de azimut kwam na het afkappen vanwege de melding 5× per seconde terug en verdween weer).",
+        "Puntenjagers en Gebied downloaden zonder vergelijking met een mobiel spel; de knoppen van nieuwe gereedschappen (Akoestische afstandsmeter, Kalibratie door langs een rand te lopen, DGPS) hebben app-iconen in plaats van emoji."
+      ]
+    },
+    {
+      "v": 327,
+      "datum": "2026-09-15",
+      "nadpis": "Ruimte vrijmaken in de telefoon",
+      "body": [
+        "<b>Instellingen → Onderhoud → Ruimte vrijmaken:</b> een overzicht van wat de app in de telefoon bewaart — de gedownloade kaart (tegels uit Omgeving opslaan, Project inpakken en Gebied downloaden, met een schatting in MB) en elk gedownload district/regio apart — en bij elk item <b>Verwijderen</b>. Het verwijderen van een gebied neemt ook zijn kaarttegels mee; de regel „Gebruikt X MB” wordt meteen herberekend."
+      ]
+    },
+    {
+      "v": 326,
+      "datum": "2026-09-15",
+      "nadpis": "Vloeiendheid 2e ronde — snellere start, kaart zonder schokken bij het lopen, Gereedschappen zonder haperen",
+      "body": [
+        "<b>Start op een zwakkere telefoon:</b> uitgestelde modules worden voortaan geminificeerd uitgerold (3,0 MB → ~1,2 MB; korter downloaden van een update en parseren), in de modus Zwakkere telefoon worden ze per twee en alleen bij inactiviteit opgehaald; drie studentengereedschappen worden pas bij een tik gedownload.",
+        "<b>Afmetingen pas meten na het tekenen:</b> de statusbalk, meldingen, het sluiten van vensters, het minipaneel en de werkmodus maten vroeger elementen midden in een onvoltooide lay-out (ongeveer 0,7 s hoofddraad in de eerste seconden). Nu wordt één keer na het beeld gemeten en alleen als er iets is veranderd.",
+        "<b>De kaart tekent alleen het verschil:</b> markeringen die blijven, worden niet gewist en opnieuw opgebouwd — het hertekenen van 200 markeringen 96–177 ms → 5–28 ms, 60 m lopen zonder zes haperingen. Een tik op een markering gaat niet meer verloren door het wisselen van de markering onder de vinger.",
+        "<b>Gereedschappen:</b> het raster wordt één keer na een batch registraties samengesteld in plaats van honderd keer bij de start; bij het openen worden alleen de tegels op het scherm ingedeeld. Openen: 11 lange taken (1,3 s, waarvan één 0,54 s) → één binnen 0,2 s (zwakke telefoon).",
+        "<b>Eerst de kaart, markeringen na het beeld:</b> na de start verschijnen de kaart en de positie, de markeringen worden in kleine batches aangevuld.",
+        "<b>Zwakkere telefoon:</b> kaarttegels worden pas na afloop van het verschuiven geladen en met een kleinere voorraad buiten de rand."
+      ]
+    },
+    {
+      "v": 325,
+      "datum": "2026-09-15",
+      "nadpis": "DGPS live via internet en nauwkeurigere kalibratie door lopen (heen en terug)",
+      "body": [
+        "<b>DGPS met twee telefoons live (Pro):</b> het basisstation op een bekend punt tikt op <b>Correcties live delen</b> en toont een zestekencode; de tweede telefoon voert de code in bij <b>Live van internet</b> en vanaf dat moment wordt bij elk opgeslagen punt (ook in Brute GPS) de actuele correctie opgeteld — geen wachten op QR meer. De pil bovenaan meldt de leeftijd van de gegevens en de afstand tot het basisstation (grens 6 min / 3 km), Verbreken biedt een correctie achteraf van oudere punten aan. Bereik ~2–3 km, heeft internet op beide telefoons nodig (het basisstation stuurt ~4 kB per minuut).",
+        "<b>De kalibratie door langs een rand te lopen is nauwkeuriger:</b> de fixen worden gewogen naar hun nauwkeurigheid (±3 m heeft 16× meer stem dan ±12 m) en als je de rand <b>heen en terug</b> loopt, scheidt de app hoeveel je de telefoon opzij van je spoor houdt (in de rechterhand typisch 0,2–0,4 m) — dat bleef vroeger in de correctie zitten. De schatting van de correctiefout houdt er rekening mee dat fixen per seconde niet onafhankelijk zijn.",
+        "De handleidingen DGPS en kalibratie door lopen aangevuld."
+      ]
+    },
+    {
+      "v": 324,
+      "datum": "2026-09-15",
+      "nadpis": "De GPS-correctie wordt bewaakt: pil bovenaan, waarschuwing vóór het verstrijken en bij de afstandsgrens",
+      "body": [
+        "<b>Bewaker van de geldigheid van de GPS-correctie</b> (uit lopen langs een rand en uit „GPS-verschuiving op een bekend punt”): na het inschakelen brandt bovenaan de pil „GPS-correctie 1,8 m · nog 12 min · 80 m van de plek” — groen geldt, oranje nadert de grens, rood is erover. De app waarschuwt <b>5 min vóór het verstrijken</b> (20 min), na het verstrijken, op <b>200 m</b> van de kalibratieplek en op 300 m — elk één keer. Een tik op de pil opent het gereedschap dat de correctie heeft gemaakt; ze schakelt zichzelf niet uit, de beslissing is aan jou.",
+        "<b>Kalibratie door langs een rand te lopen:</b> een aanzienlijk langere uitleg in het venster — waarom het werkt (hetzelfde principe als DGPS), hoe het wordt berekend, <b>welke nauwkeurigheid haalbaar is</b> (30–50 m lopen → ±0,3–0,5 m loodrecht op de rand, met een goed signaal ±0,2 m; een lijn van de kaart voegt de fout van de ondergrond toe) en hoe lang het geldt. Bij het resultaat staat meteen hoe nauwkeurig de nieuwe punten worden; een ingeschakelde correctie toont in het venster de resterende minuten en de afstand tot de kalibratieplek."
+      ]
+    },
+    {
+      "v": 323,
+      "datum": "2026-09-15",
+      "nadpis": "Puntenjagers — verzameling van ontdekte punten, onderscheidingen en de jacht",
+      "body": [
+        "<b>Puntenjagers</b> (Gereedschappen → Hulpmiddelen): officiële punten waar je in het veld echt naartoe loopt (tot 5 m, GPS tot 8 m, 15 s stilstaan) en in de kaart op <b>Ik heb het gevonden</b> tikt, worden in je verzameling opgeslagen. Een ontdekt punt heeft op de kaart een gouden ster. Er wordt niets verstuurd.",
+        "<b>Score naar zeldzaamheid in Tsjechië</b> (uit de aantallen van ČÚZK): TB 50 · ZhB 30 · waterpas 10 · PPBP 3 · zwaartekracht 200. De verzameling toont hoeveel punten van het district je mist (als het district in de telefoon is gedownload).",
+        "<b>Onderscheidingen:</b> Eerste steen, Dozijn, Honderd, Driehoek (3 TB uit één triangulatieblad), Hele waterpasgang (alle punten van een waterpasgang), District (alle TB van het district), Top van het district, Steen uit een gebouw — met de voortgang naar de dichtstbijzijnde.",
+        "<b>Jagen:</b> de dichtstbijzijnde onontdekte punten tot 2 km gesorteerd op opbrengst per gelopen meter, met de knop Leid me erheen; <b>Steen van de dag</b> voor het dubbele (dezelfde voor iedereen in het district)."
+      ]
+    },
+    {
+      "v": 321,
+      "datum": "2026-09-15",
+      "nadpis": "Twee nieuwe manieren om uit een kale telefoon een nauwkeurigere positie te halen — met geluid en door te lopen",
+      "body": [
+        "<b>Akoestische afstandsmeter (Pro):</b> afstand tussen twee telefoons <b>uit geluid, op de centimeter</b>. De telefoon op het bekende punt antwoordt met een piep, de andere meet; elk vindt in zijn eigen opname wanneer hij piepte en wanneer de ander (één monster = 7 mm geluidsweg), het klokverschil valt vanzelf weg en de tweede telefoon „zegt” zijn gemeten tijd door de pauze tussen twee piepjes — zonder internet, zonder overschrijven. Afstanden naar twee bekende punten → <b>Punt uit twee afstanden</b> (snijding) zonder GPS. Binnenin staat de uitleg en de werkwijze, doe de eerste keer de nulkalibratie op 2,00 m. Gereedschappen → Meten.",
+        "<b>Kalibratie door langs een rand te lopen (Pro):</b> tik op de kaart van waar tot waar je gaat lopen (stoeprand, rand van het trottoir, hek, as uit een DXF — of twee opgeslagen punten), voer de zijdelingse afstand in en loop gewoon. De app berekent uit de dwarsafwijkingen van de fixen hoeveel de GPS hier en nu liegt, en <b>Correctie inschakelen</b> telt die op bij nieuwe punten zoals „GPS-verschuiving op een bekend punt” — alleen zonder te stoppen. Op een rechte lijn komt alleen de component loodrecht op de lijn eruit, op een geknikte de hele vector. Gereedschappen → Anders uitlijnen.",
+        "Nieuwe handleidingen onder „?” bij beide tegels; herkomst van het punt „akoestische afstandsmeter” in de puntkaart."
+      ]
+    },
+    {
+      "v": 320,
+      "datum": "2026-09-15",
+      "nadpis": "District, regio of heel Tsjechië in de telefoon — punten zonder laden; officiële punten correct ingedeeld",
+      "body": [
+        "<b>Gebied downloaden</b> (Gereedschappen → Ondergronden en kadaster): je downloadt <b>alle officiële punten</b> van een heel district, regio of het hele land (~635 000 punten) en daarbij een overzichtskaart. Tijdens het lopen komen de punten dan niet van het netwerk, maar uit de telefoon — ze verschijnen meteen (12 ms in plaats van seconden) en werken zonder signaal. Het downloaden kan worden onderbroken en later afgemaakt; pakketten kunnen worden bijgewerkt en verwijderd.",
+        "<b>Correctie van de indeling van officiële punten:</b> de app vroeg ČÚZK naar lagen die de dienst allang had hernummerd — een trigonometrisch punt werd getoond als „verdichtings-”, een verdichtingspunt als „detail-” en <b>opgeheven punten</b> zagen eruit als geldig. Nu worden alle 16 lagen correct gelezen (TB, ZhB, PPBP, waterpassing ZVBP/PVBP en zwaartekrachtpunten) en de opgeheven worden niet getoond.",
+        "<b>De kaart van een officieel punt</b> toont nu de puntsoort, het <b>volledige twaalfcijferige nummer</b> (niet alleen „28”), kadastrale gemeente en district, nauwkeurigheidsklasse (PPBP), waterpasgang en bij punten bepaald in ETRS89 de ellipsoïdische hoogte.",
+        "<b>Nauwkeurigere hoogte uit de GPS:</b> bij punten bepaald in ETRS89 kent ČÚZK ook de ellipsoïdische hoogte, zodat de app de werkelijke geoïdhoogte ter plaatse berekent (op centimeters) in plaats van een formule met een fout van 1–2 m — de overdracht van de GPS-hoogte naar Bpv is daarmee in de hele app nauwkeuriger (export, dubbele meting, punthoogte).",
+        "<b>Minder aanvragen bij ČÚZK:</b> één batch punten tijdens het lopen = 1 aanvraag in plaats van 6 (dezelfde gegevens). Ook eenvoudiger bij een zwak signaal.",
+        "<b>Taal op het inlogscherm:</b> na het wisselen van taal bleven inloggen, registratie en accountcode Tsjechisch — de teksten ontbraken in de woordenlijst. Aangevuld (EN/DE/PL)."
+      ]
+    },
+    {
+      "v": 318,
+      "datum": "2026-09-15",
+      "nadpis": "Poort zonder gat, de console van de eigenaar houdt stand, camera uit Play met instructies",
+      "body": [
+        "<b>Correctie:</b> „Meer opties” op het inlogscherm en meteen Sluiten kon zonder account binnenlaten (de startbeveiliging zag „geen poort”). De wizard zet de poort nu meteen terug en de beveiliging beschouwt hem als poort.",
+        "<b>Het foutenlogboek</b> noteert geen niet-geladen kaarttegels meer (momenten zonder signaal) — 18 van de 20 records waren dit en de echte fouten raakten erin ondergesneeuwd. Hetzelfde geldt voor Fouten van mensen in de console.",
+        "<b>Console van de eigenaar:</b> als de server niet antwoordt (zwak signaal, rem), blijft de weergave open met de reden en „Opnieuw proberen” — vroeger sprong een alert op en de console sprong naar de wegwijzer („kan niet worden aangeklikt”). De stip „er wacht iets” wordt na het afhandelen van berichten meteen herberekend. De bewaker „fout bij één persoon” leidt rechtstreeks naar zijn account. De foutentegel heeft een label volgens de gekozen periode.",
+        "<b>Camera uit Google Play:</b> als die is geblokkeerd, zegt de instructie waar je haar toestaat — in Chrome (Instellingen van de telefoon → Apps → Chrome → Camera en Chrome → Site-instellingen → Camera), niet in een niet-bestaande adresbalk.",
+        "<b>Wie ben je?</b> legt bij het aanmaken van een account het verschil Student / Landmeter / Bedrijf concreet uit (medewerker = Landmeter en een code van de baas; Bedrijf = de baas die de mensen leidt) en adviseert: weet je het niet → Landmeter."
+      ]
+    },
+    {
+      "v": 317,
+      "datum": "2026-09-14",
+      "nadpis": "Instellingen beginnen met het puntbereik, de kaart draait soepel, tikken gaan niet verloren",
+      "body": [
+        "<b>Instellingen:</b> het tabblad <b>AR & nauwkeurigheid</b> is het eerste en opent standaard; helemaal bovenaan staat de sectie <b>Puntbereik</b> met beide schuiven — zichtbaarheid in de AR-camera en puntbereik op de kaart (dat zat tot nu toe verstopt in het tabblad Gegevens).",
+        "<b>Het draaien van de kaart</b> schokt niet meer: de puntlabels worden na het stabiliseren alleen uitgelijnd voor die op het scherm (de andere pas als ze erin komen), en de kaart wordt tijdens het lopen alleen hertekend als echt verandert welke punten in bereik zijn.",
+        "<b>Tikken gaan niet verloren:</b> zolang je vinger op het scherm is, bouwt de app niet om waarop je tikt — de puntenlijst, markeringen op de kaart en Instellingen worden niet onder de vinger hertekend (dat was de reden dat soms twee keer moest worden getikt)."
+      ]
+    },
+    {
+      "v": 316,
+      "datum": "2026-09-14",
+      "nadpis": "De kaart draait zonder haperen, de camera onder gereedschappen gaat niet uit, antwoord op een bericht",
+      "body": [
+        "<b>Draaien van de kaart:</b> de puntlabels worden pas een ogenblik nadat je stopt met draaien horizontaal uitgelijnd — vroeger werden ze bij elk kompasbeeld herschreven en op een zwakkere telefoon kostte dat 79 % van de prestaties (gemeten); nu 0. Tijdens het draaien staan de labels een fractie van een seconde schuin.",
+        "<b>AR-markeringen</b> worden alleen opgebouwd voor punten in bereik en alleen als de camera draait (vroeger voor alle projectpunten, ook in de modus Alleen kaart): een vijfde minder elementen op het scherm, snellere start.",
+        "<b>Het venster Punten</b> bij een groot project: de eerste 30 rijen meteen, de rest komt rustig en bij het scrollen („nog N punten…”); het zoeken vindt ook een punt van het einde van de lijst.",
+        "<b>Gereedschappen en sensoren:</b> bij het meten van de hoogte van een object ging de camera uit (de batterijbesparing legde hem onder het instellingenvenster te slapen). Gereedschappen zeggen nu zelf wat ze nodig hebben — camera, kompas of GPS gaan eronder niet in slaap (hoogte van een object, AR-liniaal, foto met stempel, snijding uit foto, polair punt, achterwaartse snijding, uitzetten, epochen, satellieten, kalibratie…). De spooropname houdt de GPS ook onder de rekenmachine of Instellingen vast.",
+        "<b>Een bericht van de auteur</b> heeft de knop <b>Beantwoorden</b> — het antwoord komt in de postbus van de auteur en hij kan je weer in de app antwoorden. Elk bericht aan de auteur draagt nu de accountcode, zodat het antwoord in de app bij alle berichten werkt, niet alleen bij Pro-aanvragen."
+      ]
+    },
+    {
+      "v": 315,
+      "datum": "2026-09-14",
+      "nadpis": "Vloeiendere app: kleiner puntbereik en een modus voor een zwakkere telefoon",
+      "body": [
+        "<b>Het puntbereik is kleiner:</b> officiële punten (ČÚZK) worden gedownload en op de kaart getoond tot <b>300 m</b> van je (vroeger 1 km) en in de AR-camera tot <b>100 m</b> (vroeger 150). Minder markeringen = vloeiendere kaart en camera. Beide stel je in met een schuif: Instellingen → Gegevens → „Puntbereik op de kaart” en Instellingen → AR & nauwkeurigheid → „Zichtbaarheid van punten in de AR-camera”. Eigen projectpunten worden op de kaart altijd getekend. Wie de oude standaard 1000/150 m had opgeslagen, kreeg de nieuwe; een eigen ingesteld bereik verandert niet.",
+        "<b>Zwakkere telefoon</b> (Instellingen → AR & nauwkeurigheid): een spaarzame weergave zonder glas, schaduwen en animaties, camera 480p, kompas 20× per seconde, hoogstens 40 markeringen in AR. Schakelt zelf in op een telefoon met weinig geheugen of als de app meet dat hij niet bijhoudt; kan handmatig op Aan / Uit worden gezet. Metingen en gegevens zijn hetzelfde.",
+        "<b>App delen (QR)</b> in het paneel Meer ziet alleen nog de eigenaar van de app. De app moet uit Google Play worden gedownload (testers via een uitnodiging), niet uit een QR als website."
+      ]
+    },
+    {
+      "v": 314,
+      "datum": "2026-09-13",
+      "nadpis": "Gereedschapsbloem leesbaarder en terug naar de console van de eigenaar",
+      "body": [
+        "<b>Gereedschapsbloem:</b> alle blaadjes hebben dezelfde lettergrootte, de labels zijn breder en breken niet midden in een woord; bij twaalf richtingen overlappen de blaadjes niet. De groep „Registreren” heeft op het blaadje „Record” (de volledige naam staat in het midden van de bloem).",
+        "<b>Console van de eigenaar:</b> in elke weergave staat bovenaan onder de titel één grote knop „‹ Terug naar de console” — altijd op dezelfde plek, scrolt niet weg. Bij vensters geopend vanuit de console (Mensen, Berichten, Bedrijven…) staat aan de linkerrand een gouden tab „‹ Console”. Terugkeren na het sluiten van een venster werkt ook met draaiende camera.",
+        "<b>Lagen:</b> de tegel „Doel tonen” heet „Mij en het doel tonen” — lijnt de kaart zo uit dat jij en het punt waarheen je gaat erin te zien zijn (staat er alleen tijdens het leiden)."
+      ]
+    },
+    {
+      "v": 311,
+      "datum": "2026-09-13",
+      "nadpis": "Kleinigheid: „Leren” heeft in Gereedschappen een eigen sectie",
+      "body": [
+        "Trainer, Schat het, Oefenopgaven, Puntenquiz en Formules staan in het raster van Gereedschappen onder de titel „Leren”, niet in „Overige”."
+      ]
+    },
+    {
+      "v": 310,
+      "datum": "2026-09-13",
+      "nadpis": "Account verwijderen en gepreciseerde privacy — voorbereiding op Google Play",
+      "body": [
+        "<b>Account verwijderen</b> rechtstreeks in de app: Instellingen → Meer → Over de app → Account verwijderen. Vraagt het wachtwoord, verwijdert het account en de eigen ruimte op de server; punten en projecten in de telefoon blijven. Zonder de app kan het worden aangevraagd op de pagina <i>smazani-uctu.html</i>.",
+        "<b>Over de app → Privacy</b> zegt precies wat naar de server gaat (accountgegevens, anonieme gebruiksrecords, foutmeldingen) en wat niet (positie, camerabeeld). Net zo het herschreven privacybeleid.",
+        "Kleinigheid: de link naar het privacybeleid en het verwijderen van het account ook in het Engels, Duits en Pools."
+      ]
+    },
+    {
+      "v": 309,
+      "datum": "2026-09-13",
+      "nadpis": "Pro is tot het einde van het jaar gratis — gewoon aanvragen",
+      "body": [
+        "De kaart <b>Pro-versie</b> zegt het meteen: tot eind 2026 is Pro gratis, je stuurt een aanvraag en de auteur schakelt het in; vanaf 2027 is Pro tegen een abonnement (maand of jaar)."
+      ]
+    },
+    {
+      "v": 308,
+      "datum": "2026-09-13",
+      "nadpis": "Console van de eigenaar, tweede ronde: overzicht in één oogopslag, zoeken, meldingen op de telefoon en dertien nieuwe dingen",
+      "body": [
+        "<b>Het startscherm van de console</b> is herschikt: bovenaan zoeken, het blok „Sinds je laatste bezoek”, de bewaker „dit is niet normaal” (alleen als iets afwijkt), de samenvattende cijfers en Grafieken; daaronder vijf inklapbare secties naargelang wat je vraagt (Wat er gebeurt · Mensen, bedrijven en berichten · Versies en server · Deze telefoon · Sleutel).",
+        "<b>Zoeken door de hele console:</b> naam, accountcode, bedrijf, een woord uit een bericht of fout — accounts, bedrijven, berichten en fouten met één tik naar het detail.",
+        "<b>Meldingen op de telefoon</b> ook bij gesloten app (nieuw bericht, Pro-aanvraag, golf van fouten). Op een iPhone vanuit de app op het beginscherm.",
+        "<b>Grafieken</b> 7 / 30 / 90 dagen met vergelijking met de vorige periode en CSV; <b>Trechter van nieuwkomers</b> (registratie → eerste punt → 3e dag → beoordeling, wie afhaakte).",
+        "<b>Iemand rechtstreeks in de app beantwoorden</b> vanuit de postbus; <b>Dagboek van een persoon</b> dag na dag in „Door de ogen van het account”; <b>Versies</b> toont wie op welke versie zit en wie op een oude is blijven hangen.",
+        "<b>„Toon me de app als Basis”</b> voor 15–60 minuten; <b>Serverstatus en capaciteit</b> (aanvragen en database tegenover de gratis limieten, hoe lang het volhoudt); <b>Opruimen van oude gegevens</b> met voorbeeld; <b>Dagsamenvatting</b> 24 u / 3 dagen / sinds de vorige keer; Melding voor de ontwikkeling te downloaden als .md.",
+        "Kleinigheden: de sleutelvergrendeling zegt over hoeveel minuten je opnieuw kunt proberen; bij een serverstoring blijven de laatst bekende cijfers met een label; op een computer is de console breder met vier tegels op een rij."
+      ]
+    },
+    {
+      "v": 307,
+      "datum": "2026-09-13",
+      "nadpis": "Voor studenten: Wie ben je?, Leren, Waarom ±4 m?, berekeningswerkwijze — en 12 gereedschappen apart",
+      "body": [
+        "<b>Wie ben je?</b> — Student / Landmeter / Bedrijf na de eerste keer binnenkomen (altijd in Instellingen → Profielen). Een student heeft in Gereedschappen bovenaan de groep <b>Leren</b> en in plaats van „bedrijf” staat in de accounts „ploeg”.",
+        "<b>Leren:</b> Trainer en Schat het zitten in Basis; nieuwe <b>Oefenopgaven</b> (22 opgaven met sleutel, kunnen vooraf in de Rekenmachine worden ingevuld), <b>Puntenquiz</b> (TB, waterpasbout, grenssteen, spijker…) en <b>Formules</b> in het Handboek.",
+        "<b>Waarom ±4 m?</b> — foutenbegroting van GPS + kompas over de afstand tot het punt, met ellips en „wat als”-schuifregelaars; in GNSS-signaal en in de uitgeklapte statusbubbel.",
+        "<b>De Rekenmachine</b> toont de <b>berekeningswerkwijze</b> (formules en tussenresultaten, ook het kwadrant van de richtingshoek) en heeft de <b>Helmert-transformatie</b>. Gecorrigeerd: een polygoon met 2+ tussenpunten rekende verkeerd (botsing van veld-id's) en een leeg veld gaf NaN in plaats van „Invullen”.",
+        "<b>Apart</b> (te vinden via zoeken): Epochen, volume door rondlopen, Lokalisatie als gereedschap, twee van de drie snijdingen, binnen in een gebouw, wegenbouwlaag + profiel Wegenbouw, punten op elkaar, rittenboek, veiligheid, checklist (nu een knop in het Daglogboek).",
+        "Instellingen: kleurtint, animaties en de welving van de balk staan in Geavanceerd; het instellingenprofiel is ingeklapt onder het werkprofiel."
+      ]
+    },
+    {
+      "v": 305,
+      "datum": "2026-09-13",
+      "nadpis": "Leid me erheen bovenaan in de puntkaart, Grafieken binnen bereik in de console, gouden Pro alleen waar het hoort",
+      "body": [
+        "<b>Puntkaart:</b> de knoppen Leid me erheen · Controlepunt · Uitgezet staan meteen bovenaan, niet pas onder de schets.",
+        "<b>Console van de eigenaar:</b> Grafieken — visueel overzicht is de eerste tegel en een gouden knop meteen onder de samenvattende cijfers; de vergrendeling na foute sleutels houdt een kwartier in plaats van een uur en de melding adviseert Wi-Fi ↔ mobiele data om te schakelen.",
+        "<b>Pro op het oog</b> verfijnd: goud is alleen de schakelaar Kaart/Gesplitst/AR en de knop Gereedschappen met het label PRO; Gereedschappen, titels en Instellingen zijn weer groen."
+      ]
+    },
+    {
+      "v": 304,
+      "datum": "2026-09-13",
+      "nadpis": "Kadaster met Terug, console van de eigenaar zonder valse vergrendeling, gouden Pro; portofoon, aanwezigheid en horloge weg",
+      "body": [
+        "<b>Kadaster — waar ik nu sta</b> opent in een venster van de app met de knop <b>Terug</b> (kaart iKatastr.cz). Vroeger sprong het naar de browser en kon je niet terug. De keuze in Instellingen stuurt de knop „In de browser”.",
+        "<b>Console van de eigenaar:</b> „Te veel sleutelpogingen, probeer het over een uur” kwam ook met de juiste sleutel — de server telde elke consoleaanvraag als gokpoging. Nu telt hij alleen foute sleutels.",
+        "<b>Pro op het oog:</b> het goud van de bloem gaat verder door de app — de pil bovenaan, de schakelaar Kaart/AR, venstertitels, iconen en titels in Gereedschappen, schakelaars en tabbladen in Instellingen, het label PRO op de knop Gereedschappen.",
+        "<b>De statusbubbel</b> kan niet meer worden uitgeschakeld (de knop „Bubbel uitschakelen” en de schakelaar in Instellingen zijn weg); verborgen zijn ook de schakelaars van oude panelen die zonder haar niets te bedienen hadden.",
+        "<b>Weg:</b> Portofoon, Aanwezigheid (ook de snelkoppeling van het beginscherm) en Garmin-horloge — op verzoek, in de toekomst komen we er eventueel op terug. De wegwijzers „Bedrijf” en „Overdrachten en apparaten” zijn daarmee verdwenen; Bedrijf en accounts en Project versturen/laden staan rechtstreeks in de lijst."
+      ]
+    },
+    {
+      "v": 303,
+      "datum": "2026-09-13",
+      "nadpis": "De wizard toont waar te tikken, de bloem zonder overbodige wegwijzers, de console met grafieken en melding",
+      "body": [
+        "<b>De wizard voor de eerste meting</b> vinkt nu elke stap zichtbaar af en op het doel brandt een ring „tik hier” (knop +, punt op de kaart, Leid me erheen).",
+        "<b>Gereedschapswiel:</b> wegwijzers (Weer en licht, GNSS-signaal…) klappen rechtstreeks uit in blaadjes als ze passen; samengevoegd blijft alleen wat zou overlopen.",
+        "<b>Basis × Pro</b> heeft bovenaan een eenvoudig visueel overzicht (vijf Pro-gebieden), de lange tabel is ingeklapt.",
+        "<b>Eigenaar:</b> de console opent alleen bij de eerste keer binnenkomen vanzelf; Mensen heeft sortering en filters (laatst actief, gebruiken het meest, nieuwste, Met Pro, geblokkeerd); nieuwe <b>Grafieken — 30 dagen</b> en <b>Melding voor de ontwikkeling</b> (berichten, beoordelingen, fouten en versies in één te kopiëren tekst).",
+        "<b>Talen:</b> alles nieuws (wizard, Werkt alles?, beoordeling, Waar ik werk) en een paar oude resten zijn vertaald naar EN/DE/PL.",
+        "Kleinigheden: vensters schijnen niet meer door (Geschiedenis, Nieuwsbrief), leesbare hulpteksten in velden in het lichte thema, decimale komma bij afstanden in puntenlijsten, Jaarboek „jun/jul” en „1 dag”; het contact uit De auteur schrijven wordt bij het account onthouden."
+      ]
+    },
+    {
+      "v": 302,
+      "datum": "2026-09-13",
+      "nadpis": "Voor de bèta: wizard voor de eerste meting, Werkt alles?, lichtere start",
+      "body": [
+        "<b>De wizard voor de eerste meting</b> bij de eerste start: vijf stappen boven de live app (positie en kompas, nauwkeurigheid, eerste punt, zijn kaart, Leid me erheen) — ze vinken zichzelf af. Je vindt hem ook in de Interactieve handleiding.",
+        "<b>Werkt alles?</b> (Gereedschappen, Instellingen → Onderhoud): GPS, kompas, camera, opslag, versie en de laatste fouten als groene/rode regels, met één tik naar de auteur.",
+        "<b>Contact van jou</b> (Waar ik werk → Contact, optioneel) — de auteur heeft iemand om te vragen als je een melding stuurt; De auteur schrijven vult het vooraf in.",
+        "<b>De derde dag met de app</b> vraagt één keer „Hoe bevalt het?” (sterren + een zin).",
+        "<b>De start is 113 kB lichter</b> (handleiding, updategeschiedenis, coördinatenlijst en taakwizard worden pas na het eerste beeld gedownload).",
+        "<b>De statuspil</b> snijdt de melding niet meer af — azimut en nauwkeurigheid wijken eerder.",
+        "<b>Eigenaar:</b> bij mensen in de console de appversie, telefoon en contact."
+      ]
+    },
+    {
+      "v": 301,
+      "datum": "2026-09-13",
+      "nadpis": "Controle na de doorloop: twee kleinigheden",
+      "body": [
+        "<b>Volumes en hoogtelijnen:</b> het wieltje „Inklappen” lag rechtstreeks op het kruisje van het venster — nu staat het ernaast en een lange titel breekt af.",
+        "<b>Schets / tachymetrie:</b> de overgang „er is meer” op de knoppenbalk bedekte na het doorscrollen de laatste knop (export)."
+      ]
+    },
+    {
+      "v": 300,
+      "datum": "2026-09-13",
+      "nadpis": "Doorloop van de app: de app tutoyeert overal, versie in Over de app, kleinigheden",
+      "body": [
+        "<b>De app tutoyeert overal</b> — de laatste vensters die vousvoyeerden (De auteur schrijven, punten delen, berekeningen, kompaskalibratie, opslagwaarschuwing…) spreken zoals de rest. De vertalingen EN/DE/PL kloppen erbij.",
+        "<b>Over de app toont de werkelijke versie</b> (vroeger stond er voor altijd „1.9”) en de <b>Updategeschiedenis</b> heeft de records v286–v299 aangevuld.",
+        "<b>Puntkaart:</b> de lijsten „Puntengroep” en „Punten in de buurt” zeggen dat een tik de kaart opent (geen navigatie).",
+        "<b>De wizard Bedrijf en accounts</b> beschrijft niet meer de opgeheven „beperkte modus”; de poort doorstaat een tik op „Meer opties” meteen na de start.",
+        "<b>Het DTM-venster</b> heeft een kop en een kruisje zoals de andere vensters; de Pro-kaart heeft geen overbodig „Inklappen” meer.",
+        "<b>Statuspil:</b> „Doorgaan: …” past erin; een geweigerde schermvergrendeling (achtergrond, spaarmodus) wordt niet als fout gemeld.",
+        "<b>Basis in het Pro-overzicht</b> somt alle vrije gereedschappen op; de actiebalk in Tachymetrie geeft aan dat hij scrolt; de links bij profielen hebben een groter doel; de datum in de Nieuwsbrief is menselijk."
+      ]
+    },
+    {
+      "v": 299,
+      "datum": "2026-09-12",
+      "nadpis": "Zoeken in Instellingen houdt de getypte tekst vast, lichtere start",
+      "body": [
+        "<b>Zoeken in Instellingen</b> wiste de eerste letters als je meteen na het openen begon te typen — gecorrigeerd.",
+        "<b>De start van de app is 36 kB lichter</b>: de inhoud van de puntkaart wordt pas bij het eerste openen van de kaart gedownload.",
+        "<b>De puntkaart in het lichte thema</b> is leesbaar (vroeger witte letters op wit)."
+      ]
+    },
+    {
+      "v": 297,
+      "datum": "2026-09-12",
+      "nadpis": "Puntkaart: schets boven de orthofoto, slepen aan de strook",
+      "body": [
+        "<b>De omgevingsschets ligt boven de orthofoto met perceelgrenzen</b> (ondergrond van ČÚZK), buurpunten tot 150 m, controlematen en schaal.",
+        "<b>De hoogte wordt ook bij waterpaspunten getoond</b> — het grondslagnet van ČÚZK heeft die bij alle lagen, de app negeerde haar vroeger bij waterpassing.",
+        "<b>De puntkaart sleep je aan de strook</b> omhoog over het hele scherm en weer omlaag.",
+        "<b>Eigenaar:</b> een nieuwe versie gaat pas naar de anderen na „Vrijgeven aan de anderen” in de console — een release kan worden afgeremd als er iets misgaat."
+      ]
+    },
+    {
+      "v": 295,
+      "datum": "2026-09-12",
+      "nadpis": "De puntkaart is een overzicht, geen navigatie",
+      "body": [
+        "<b>Een tik op een punt</b> (op de kaart, in de clusterlijst, in Punten in de buurt) opent de <b>puntkaart</b> en leidt niet. De navigatie start je vanuit de kaart met de knop <b>Leid me erheen</b>; beschikbaar zijn ook <b>Controlepunt</b> en <b>Uitgezet</b>.",
+        "<b>De kaart als mozaïek:</b> Y/X in grote letters met het soorticoon, nauwkeurigheid in kleur, status, hoogte, afstand tot mij, wanneer en waarvandaan gemeten, project, foto's.",
+        "<b>Meetschets van de omgeving:</b> buurpunten, controlematen ertussen, percelen en de markering „jij” als je in beeld bent."
+      ]
+    },
+    {
+      "v": 291,
+      "datum": "2026-09-12",
+      "nadpis": "Face ID voor de eigenaar, bedrijf wisselen bij het inloggen",
+      "body": [
+        "<b>De eigenaar van de app logt in met Face ID / vingerafdruk</b> in plaats van een lange sleutel over te schrijven (wordt aangeboden na de eerste keer inloggen met de sleutel).",
+        "<b>Bedrijf wisselen</b> staat ook op het inlogscherm — als het apparaat meer bedrijven of werkruimtes kent.",
+        "<b>Eigenaar:</b> overzicht, dagboek, kalender, back-up en de blik door de ogen van een account in de console; gouden thema van de eigenaarsvensters."
+      ]
+    },
+    {
+      "v": 290,
+      "datum": "2026-09-12",
+      "nadpis": "Doorloop van de app: veertien correcties van wat niet werkte of niet klopte",
+      "body": [
+        "<b>Poort → „Meer opties” was een dood scherm</b> (over de wizard lag de startoverlay) — werkt.",
+        "<b>Het wieltje „Inklappen” in Veldboeken</b> schoof over de knop Sluiten; wegwijzers midden op het scherm hebben geen wieltje.",
+        "<b>Het paneel Oppervlakte meten</b> lag over het verticale dok en scheen door de andere vensters heen.",
+        "<b>Zoeken in Gereedschappen:</b> de groepstitels schoven op een hoop naar boven — bij het zoeken zijn ze weg, alleen de tegels blijven.",
+        "<b>De vensters grondslagnet, noorden uitlijnen, projectpakket en dubbele meting</b> vullen het hele scherm zoals de andere (vroeger scheen de HUD erdoorheen).",
+        "<b>De statuspil</b> heeft kortere teksten en een kruisje met een groter doel; het foutenlogboek heeft knoppen 2×2.",
+        "<b>De auteur schrijven:</b> het veld Contact had geen stijl."
+      ]
+    },
+    {
+      "v": 288,
+      "datum": "2026-09-12",
+      "nadpis": "Pro op aanvraag, vergrendelde gereedschappen helemaal onderaan, kompas volgens de sensor",
+      "body": [
+        "<b>De Pro-versie koop je niet, je vraagt hem aan:</b> een Pro-kaart over het hele scherm, de knop <b>Pro aanvragen</b> (naam, contact, bericht) — de eigenaar schakelt hem in. Wie een sleutel heeft, schrijft die daar over.",
+        "<b>Vergrendelde gereedschappen staan in Gereedschappen helemaal onderaan</b> in één sectie „In de Pro-versie”; de groepen bovenaan bestaan alleen uit wat gratis is.",
+        "<b>Het gereedschapswiel</b> heeft voor elke groep hetzelfde aantal blaadjes (lege gestreept), Terug staat precies onderaan.",
+        "<b>Bedrijf wisselen al op het startscherm</b>, als het apparaat meer bedrijven kent.",
+        "<b>Het kompas meldde „zwijgt”, ook al draaide de kaart</b> — de bewaking volgt nu echt de gebeurtenissen van de sensor."
+      ]
+    },
+    {
+      "v": 286,
+      "datum": "2026-09-11",
+      "nadpis": "De app heet QTRIG; Basis gratis, de rest in Pro",
+      "body": [
+        "<b>Nieuwe naam QTRIG en nieuw icoon</b> (Q als meetdoel). Adres, gegevens en projecten veranderen niet.",
+        "<b>Basis gratis = 21 taken voor het veld:</b> meten, oppervlakte, controlematen, nauwkeurige GPS, uitzetten volgens lijst, veldboek, gebreken, prullenbak, kompas, noorden, GNSS, weer, kadaster waar ik sta, grondslagnet, overdrachten, project wisselen, handboek, rekenmachine. <b>As, polair punt, geo-foto, project importeren, briefing en gebaren zitten in Pro.</b>",
+        "<b>Lagen:</b> gratis Kaart/Orthofoto en draaien; kadaster, Naar mij, Oppervlakte meten, Offline opslaan en Doel tonen zitten in Pro.",
+        "<b>Kruisjes sluiten weer vensters</b> (regressie van 8-9).",
+        "<b>De eigenaar van de app logt in met de naam VLASTNIK</b> en wachtwoord = sleutel; één icoon, alles ontgrendeld."
+      ]
+    },
+    {
+      "v": 283,
+      "datum": "2026-09-09",
+      "nadpis": "Het kompas werkt weer, Gereedschappen zijn opgeruimd, de start is vlotter",
+      "body": [
+        "<b>Het kompas vraagt niet meer op het verkeerde moment.</b> De app vroeg om toegang tot beweging en oriëntatie meteen bij de start — maar een iPhone laat zo'n vraag niet door en antwoordt „geweigerd”, ook al heeft niemand het je gevraagd. Daaruit kwam het venster „Kompas heeft geen toestemming” en een dode pijl in de navigatie tot het einde van de sessie. Nu vraagt de app pas bij de eerste aanraking en na een weigering probeert hij het één keer opnieuw.",
+        "<b>Gereedschappen zijn ingedeeld.</b> Meer dan zestig tegels lagen op één hoop onder de titel „Veldgereedschappen”. Nu staan ze in tien groepen naar wat je ermee doet — Meten, Nieuw punt bepalen, Uitzetten, Registreren, AR uitlijnen, Omstandigheden bekijken, Kadaster en ondergronden, Voor vertrek, Bedrijf en papieren, Handboek. En <b>De auteur schrijven</b> staat vast meteen bovenaan, boven het zoeken.",
+        "<b>Verre punten in AR.</b> Nieuw gereedschap (AR uitlijnen → <b>Verre punten in AR</b>): je trekt met je vinger een rechthoek op de kaart en de punten erbinnen worden in AR ook buiten het ingestelde bereik getoond — bijvoorbeeld een basisstation twee kilometer verderop. De selectie overleeft het afsluiten van de app.",
+        "<b>Vinger op de kaart houden = afstand tot jou.</b> Er wordt een lijn getrokken van jouw positie naar de vinger en de afstand wordt getoond. Vult het meten met twee vingers aan, dat tussen twee plekken op de kaart meet.",
+        "<b>Updaten zonder knop.</b> De nieuwe versie neemt de app zelf bij de start — je hoeft hem alleen te sluiten en opnieuw te openen. De balk bovenaan kondigt alleen nog aan, er wordt niet op getikt. En de back-upherinnering springt niet meer over de app: ze is verhuisd naar Instellingen → Onderhoud.",
+        "<b>Vlottere start.</b> Het downloaden van punten van ČÚZK vergeleek elk gedownload element met alle punten in het project — bij duizend punten waren dat meer dan tweeënhalf miljoen vergelijkingen en dat was de eerste seconden aan de app te merken. Bovendien werd vóór het eerste beeld 56 kB minder code gedownload.",
+        "<b>Bediening:</b> de sluitveeg in het venster Lagen laat het paneel niet meer opzij geschoven hangen, kruisjes hebben een eerlijk aanraakdoel (en worden in de handschoenmodus groter) en een veeg over de inhoud van een venster start niet meer per ongeluk de snelkoppeling van een ander gereedschap.",
+        "<b>Op de kaart bleef bij het genavigeerde punt alleen de afstand</b> — de graden zijn weg, de richting is aan de lijn zelf te zien."
+      ]
+    },
+    {
+      "v": 282,
+      "datum": "2026-09-08",
+      "nadpis": "Eenvoudige modus: de app achter twee knoppen",
+      "body": [
+        "<b>Schakel hem in bij Instellingen → Uiterlijk → Bediening.</b> Kaart, camera, dok en gereedschappen verdwijnen en op het scherm blijven alleen twee grote knoppen: <b>Punt toevoegen</b> en <b>Navigeren naar een punt</b>. Het is voor een dag waarop je alleen een plek moet markeren en terug moet lopen — of als je de app aan iemand in handen geeft. Terug naar de volledige app leidt de link <b>Hele app</b> rechtsboven.",
+        "<b>Punt toevoegen</b> = naam (biedt zelf het volgende nummer in de reeks aan) en een van twee knoppen: <b>Uit GPS</b> — middelt zes seconden ter plaatse en toont de spreiding van de monsters — of <b>Handmatig</b> voor Y en X in S-JTSK. Dan alleen Opslaan. Het punt wordt in het project precies zo opgeslagen als vanuit de volledige app, inclusief waar het is ontstaan.",
+        "<b>Navigeren naar een punt</b> toont de projectpunten <b>van dichtstbijzijnd naar verst</b>. Na een tik staat over het hele scherm een pijl en een grote afstand — niets meer. Als de telefoon geen richting meldt, verzint de pijl niets: hij geeft je de azimut als getal.",
+        "<b>Spaart de batterij:</b> met de modus aan gaat de camera uit en wordt de kaart niet hertekend. Als je hem uitschakelt, keert de app precies terug naar de weergave waarin hij was."
+      ]
+    },
+    {
+      "v": 278,
+      "datum": "2026-09-06",
+      "nadpis": "Snellere start: de app bouwt bij het inschakelen niet meer wat niet te zien is",
+      "body": [
+        "<b>De punten op de kaart worden in batches getekend, vanaf de dichtstbijzijnde.</b> Bij een project van duizend punten werden vroeger bij elke start negenhonderd markeringen tegelijk opgebouwd en stond de telefoon daarbij stil. Nu is de omgeving waar je staat meteen zichtbaar en de rest wordt bijgetekend als de browser even rust heeft — <b>de blokkering bij de start is gehalveerd</b> (gemeten 1 952 → 910 ms).",
+        "<b>Het venster Gereedschappen wordt pas na de eerste aanraking samengesteld.</b> De takenlijst en het tegelraster werden tot nu toe meteen bij het inschakelen gebouwd, hoewel niemand ernaar keek; dat kostte 0,5 s. Naar Gereedschappen leidt altijd nog één tik, dus ze zijn klaar voordat je er komt — en wie de app niet aanraakt, krijgt ze toch.",
+        "<b>Uitgestelde modules zitten het eerste beeld niet meer in de weg.</b> De wachtrij van 2,3 MB extra code werd 0,7 s na het laden van de pagina gestart, dus precies in de laatste meters van de start. Nu wacht ze langer; wie de app meteen gaat gebruiken, dwingt haar toch zelf af."
+      ]
+    },
+    {
+      "v": 277,
+      "datum": "2026-09-05",
+      "nadpis": "Meer bij de hand: „Meer” onder de tabbladen, melding met context en de transformatie van lege Gereedschappen",
+      "body": [
+        "<b>„Meer” is eindelijk zichtbaar.</b> Handleiding en rondleiding, Opslaan voor offline, Over de app, Geschiedenis, QR delen en Nieuwsbrief hingen achter Instellingen → onderhoud → de voorlaatste knop. Nu staan ze <b>in een strook meteen onder de tabbladen van Instellingen</b>, naast <b>De auteur schrijven</b> — vanuit elk tabblad en zonder scrollen.",
+        "<b>Een bericht aan de auteur kan bijvoegen wat de app net deed.</b> Een nieuw vakje stuurt het geopende venster, het laatste gereedschap, het aantal punten, het project, de status van signaal en GPS en de laatste drie fouten uit het Foutenlogboek mee. Zonder dat was „het werkt niet” niet te achterhalen; kan worden uitgevinkt.",
+        "<b>Vanuit het Foutenlogboek meld je met één tik.</b> De knop <b>Naar de auteur van de app sturen</b> opent een bericht vooraf ingevuld met de foutenlijst en de omstandigheden — je hoeft alleen bij te schrijven wat er gebeurde. Delen en kopiëren van het hele logboek blijft.",
+        "<b>Lege Gereedschappen zijn niet meer stom.</b> In de beperkte modus (zonder inloggen) verschijnt in plaats van een leeg raster een kaart met wat de app nu kan, wat er na het inloggen bijkomt — en de knop Inloggen."
+      ]
+    },
+    {
+      "v": 276,
+      "datum": "2026-09-05",
+      "nadpis": "De auteur schrijven kan nu met twee tikken — en ook zonder inloggen",
+      "body": [
+        "<b>De regel „Klopt er iets niet, of ontbreekt er iets? De auteur schrijven” staat nu in Instellingen meteen onder het zoeken en in de voettekst van Gereedschappen.</b> Tot nu toe leidde de enige weg via Instellingen → Onderhoud → de laatste knop, en wie niet is ingelogd, kwam er helemaal niet bij — hoewel hij een bericht mag sturen.",
+        "<b>Snelkoppeling met een gebaar.</b> In <b>Gebaren en snelkoppelingen</b> is de actie <b>De auteur schrijven</b> bijgekomen, zodat een fout met handschoenen in één veeg kan worden gemeld, niet in twee vensters.",
+        "<b>Uniforme naam.</b> Overal staat nu <b>De auteur schrijven</b> in plaats van „Schrijf me” — bij een app die je via een link krijgt, is uit „me” niet op te maken aan wie je schrijft."
+      ]
+    },
+    {
+      "v": 275,
+      "datum": "2026-09-05",
+      "nadpis": "As uitzetten: geknikte as met metrering en piketten per meter",
+      "body": [
+        "<b>De as kan geknikt zijn, niet alleen een rechte lijn A→B.</b> In het gereedschap (vroeger „Lijn uitzetten”, nu <b>As uitzetten</b>) worden de punten in volgorde vanaf het begin ingevoerd en met de knop <b>Knik toevoegen</b> komen er zoveel bij als nodig. De metrering loopt <b>over de knikken</b> — het tweede segment sluit aan waar het eerste eindigde, niet vanaf nul.",
+        "<b>De aflezing vindt zelf het segment waarop je staat.</b> Behalve metrering en loodrechte afstand schrijft het venster op welk segment je bent (en tussen welke punten), hoeveel er nog is <b>tot de knik</b> en hoeveel <b>tot het einde van de as</b>. Hetzelfde zie je in de ingeklapte strook en in de camera — de cijfers lopen nergens uiteen.",
+        "<b>De metrering van het beginpunt brengt de cijfers in lijn met het ontwerp.</b> Als het vak begint op km 1,200, voer je 1200 in en rekent de app 1200…1400 in plaats van 0…200 — en het uit te zetten punt voer je meteen in de ontwerpmetrering in.",
+        "<b>De hele as per meter uitzetten.</b> Een nieuwe opdracht strooit piketten in het project met een regelmatige stap (per 10, 25, 50 m) over het hele vak inclusief het einde, optioneel verschoven van de as. Ze worden genoemd naar de metrering (ST1225), zodat de uitzetchecklist ze meteen afvinkt.",
+        "<b>In de camera worden ook de knikken getekend.</b> De as in AR volgt de geknikte route (de hoek wordt niet afgesneden), de hoekpunten hebben eigen ringetjes en het voetpunt van de loodlijn meldt de metrering inclusief de verschuiving van het beginpunt."
+      ]
+    },
+    {
+      "v": 274,
+      "datum": "2026-09-05",
+      "nadpis": "Na de algehele doorloop van de app: een handmatige positie van de kaart is geen meting meer, de prullenbak zet een heel project terug",
+      "body": [
+        "<b>Een handmatige positie van de kaart doet zich niet voor als gemeten punt.</b> Als je de positie op de kaart had aangetikt, vloeide ze in de GPS-middeling en werd opgeslagen alsof een satelliet haar had gemeten. Nu is een handmatig ingevoerde positie gescheiden en wordt niet als meting opgeslagen.",
+        "<b>De prullenbak bewaart alle gegevens van het project.</b> Het verwijderen van een project veegde vroeger ook gegevensfamilies weg die de prullenbak niet kon terugzetten. Nu wordt het hele project in de prullenbak opgeslagen.",
+        "<b>Het uitstellen van modules werkt weer.</b> De app moest zware gereedschappen pas laden op het moment dat je ze opent — maar ze werden toch allemaal meteen na de start opgehaald. De start is weer zoals hij had moeten zijn.",
+        "<b>Bestand delen loopt via één enkele weg.</b> Export, rapport en back-up eindigen in hetzelfde systeemdeelvenster, niet in tien omwegen per gereedschap."
+      ]
+    },
+    {
+      "v": 273,
+      "datum": "2026-09-03",
+      "nadpis": "Volgens meldingen uit het veld: het gereedschapswiel toont hetzelfde niet meer twee keer en de console van de eigenaar keert terug",
+      "body": [
+        "<b>In het gereedschapswiel („bloem”) staat een samengevoegd gereedschap ÉÉN keer.</b> Tot nu toe stond daar de wegwijzer <b>Bedrijf</b> en er meteen naast nog steeds Aanwezigheid, Chat, Portofoon en Accounts apart — hetzelfde twee keer. Het wiel haalde de lijst via een omweg die van de samenvoeging niet wist. Nu geldt overal dezelfde regel: in de takenlijst, in het raster en in het wiel is een wegwijzer één item dat je openklikt. Het zoeken vindt de afzonderlijke gereedschappen nog steeds.",
+        "<b>De console van de eigenaar keert na het sluiten van een gereedschap vanzelf terug.</b> Wie er iets uit opende, raakte haar kwijt — na het sluiten van dat venster bleef een lege kaart en naar de volgende blik leidde alleen een lang indrukken van het teken en de sleutel. Nu opent de console weer waar je was gebleven.",
+        "<b>De bedrijfscontrole op de achtergrond gooit niemand meer uit de meting.</b> De app vraagt de server één keer per minuut naar de instellingen van het bedrijf; als die aanvraag mislukte (storing, oudere token), stuurde hij de landmeter midden in het werk naar het inlogscherm. Nu wordt zo'n antwoord alleen geregistreerd en schrijft het bedrijfspaneel erover — niemand wordt uit de app gegooid.",
+        "<b>Als het bedrijfsbeheer mislukt, zegt de app waarom.</b> Bij het verwijderen en bewerken van accounts verscheen alleen „Verwijderen mislukt”. Nu is te zien dat <b>de server op een oudere versie draait</b> die deze actie nog niet kan (en dat het account in plaats daarvan kan worden <b>Geblokkeerd</b>), en ook dat de telefoon niet meer als bedrijfsadmin is ingelogd.",
+        "<b>De handleiding voor het Garmin-horloge beschreef het koppelen omgekeerd.</b> Ze beloofde een knop „Code genereren” en overschrijven in Garmin Connect — maar de code toont tegenwoordig het <b>horloge</b> en wordt in de app overgeschreven. Nu klopt de handleiding en is het deel <b>Voorbereiden voor het horloge</b> (kaart en punten vóór vertrek) toegevoegd."
+      ]
+    },
+    {
+      "v": 272,
+      "datum": "2026-09-03",
+      "nadpis": "Doorloop van de app: de prullenbak slikt niet meer de helft van de verwijderde punten in en het zoeken toont niet wat de admin heeft verboden",
+      "body": [
+        "<b>De prullenbak kan ook massaal verwijderen aan.</b> Als je in het paneel Punten meerdere punten tegelijk verwijderde, beloofde de app „Herstellen kan 30 dagen uit de prullenbak” — maar er pasten maar de <b>laatste 15</b> in en de rest verdween voorgoed. Bij massaal verwijderen wordt „Ongedaan maken” bovendien met opzet niet getoond, dus de prullenbak is daar de enige redding. Nu past er een hele dag werk in (400 records) en wordt de ruimte bewaakt op grootte, niet op aantal.",
+        "<b>Het zoeken onthult niet meer gereedschappen die de rol niet heeft.</b> Bij een medewerker aan wie de admin een categorie had verboden, lichtten bij het typen in het zoeken de verboden tegels twee seconden op en doofden weer. Een tik startte weliswaar niets, maar de app toonde wat hij niet mocht tonen.",
+        "<b>Een gereedschap wordt gevonden onder de naam die de app zelf toont.</b> Een tegel en een rij in de takenlijst kunnen verschillend heten („Spraaknotities” × „Een spraaknotitie”) en er werd alleen op de tegelnaam gezocht. Wie zocht wat hij in de app las, vond niets — en bij verborgen gereedschappen is zoeken de enige weg ernaartoe.",
+        "<b>Een geblokkeerd account wordt echt binnen een minuut uitgelogd.</b> De admin leest bij het blokkeren dat het account ook wordt uitgelogd op de telefoon waar het net is ingelogd. Tot nu toe gold dat pas na een herstart van de app — de geblokkeerde persoon had de meting nog open. Nu worden de bedrijfsinstellingen één keer per minuut vergeleken (op de achtergrond en offline gebeurt er niets)."
+      ]
+    },
+    {
+      "v": 271,
+      "datum": "2026-09-03",
+      "nadpis": "Inloggen en bedrijf zonder doodlopende wegen, kortere gereedschapslijst, rondkijken over het hele scherm",
+      "body": [
+        "<b>Uit de beperkte modus leidt een weg terug.</b> Wie de app zonder inloggen startte, bleef erin opgesloten — het woord „inloggen” stond nergens op het scherm. Nu brandt onderaan boven de werkbalk de strook <b>Beperkte modus — Inloggen</b>, waarmee je altijd naar het inlogscherm komt.",
+        "<b>Iedereen wisselt van bedrijf, niet alleen de admin.</b> In het bedrijfspaneel is de sectie <b>Bedrijven</b> bijgekomen: een lijst van bedrijven waarbij je ooit bent ingelogd, wisselen (altijd tegen wachtwoord) en <b>+ Nog een bedrijf koppelen (code)</b>. De groene balk bovenaan heeft de knop <b>Inloggen / wisselen</b> altijd — vroeger alleen voor wie al een tweede bedrijf had.",
+        "<b>De melding „Server niet bereikbaar” liegt niet meer.</b> In drie van de vier gevallen draaide de server en ontbrak alleen de toegang van deze telefoon. Nu wordt onderscheiden <b>geen signaal</b>, <b>telefoon niet bij de server ingelogd</b>, <b>toegang verlopen</b> en <b>serverfout</b> — en bij elke melding staat een knop die het oplost. Een lege Aanwezigheid schrijft ook of ze leeg is omdat niemand heeft geklokt, of omdat de gegevens niet zijn gedownload.",
+        "<b>De gereedschapslijst is een kwart korter</b> (80 regels naar 59). Verwante dingen worden nu vertegenwoordigd door één regel die je openklikt: <b>Mijn cijfers</b>, <b>Dagnotitie</b>, <b>Bedrijf</b>, <b>Ondergronden en kadaster</b>, <b>Overdrachten en apparaten</b> — naast de eerdere wegwijzers. Er is niets verdwenen, het wordt alleen niet meer een voor een opgesomd.",
+        "<b>Ondergrondse leidingen en Spraaknotitie zijn uit het aanbod weg.</b> Ze blijven in de app en je vindt ze via zoeken, alleen nemen ze geen plaats meer in tussen de gereedschappen die je gebruikt.",
+        "<b>Uit de puntkaart is de strook „Eén bepaling — niet gecontroleerd” verdwenen.</b> Ze brandde bij bijna elk punt en een punt dat een minuut geleden is opgeslagen berispen om een tweede bepaling heeft geen zin. De afwijking en het oordeel blijven waar je er zelf om vraagt — in het gereedschap <b>Puntcontrole</b>.",
+        "<b>Rondkijken draait over het hele scherm</b> en er is de lijst <b>Om je heen</b> bijgekomen (buurpercelen en hoe ver ze zijn). Met de knop <b>In de camera tonen</b> klapt het venster in tot een pil bij de onderrand, zodat het beeld zichtbaar is; in de camera liggen de grenzen op de grond (er wordt met het terrein gerekend) en de lijnen zijn eindelijk ook in de zon zichtbaar.",
+        "<b>Vensters knipperen bij het openen niet meer.</b> De inhoud verschijnt pas als hij klaar is — tot nu toe werd het venster getekend voordat de rest erin was gestort, en alles erin sprong.",
+        "<b>De waarschuwing „Zwakke GPS” tik je met één tik weg — en ze blijft weg.</b> Het kruisje staat nu rechtstreeks in de statusbubbel (vroeger leidde de weg via het detail en de meldingskaart, dus drie tikken). En vooral: het wegtikken wordt niet meer ongedaan gemaakt door één enkele tik van goed signaal. De nauwkeurigheid in het veld springt rond 10 m (9 → 12 → 9 m), zodat de waarschuwing na „Begrepen” na een paar seconden steeds terugkwam; nu wordt ze pas vergeten na drie minuten aaneengesloten goed signaal — of meteen als het signaal <b>duidelijk</b> verslechtert, want dat is een nieuwe situatie.",
+        "<b>De statusbubbel is een tikje groter.</b> Na het afslanken was ze te mager; er zijn twee lettertjes in de hoogte bijgekomen, en toch houdt ze de tekst op één regel."
+      ]
+    },
+    {
+      "v": 270,
+      "datum": "2026-08-31",
+      "nadpis": "Slanke statusbubbel, Jaarboek over het hele scherm, update één keer per dag, snellere gebaren en een gereedschap opent ook bij een snelle tik",
+      "body": [
+        "<b>Een gereedschap opent ook als je meteen na de start op de tegel tikt.</b> De app haalt een deel van de gereedschappen pas na de start op, zodat hij snel opstart. Wie sneller was dan de app, tikte in het niets — naar buiten toe gebeurde er niets en het leek alsof het gereedschap kapot was. Nu wordt zo'n tik vastgehouden en opent het gereedschap vanzelf zodra het klaar is.",
+        "<b>De balk „Nieuwe versie” zeurt niet meer bij elke start.</b> Ze verschijnt hoogstens één keer per dag. Bijwerken kan altijd handmatig: <b>Meer → Updategeschiedenis</b>, bovenaan staat de groene knop <b>Bijwerken</b> — en zolang een nieuwe versie wacht, brandt bij dat item een badge.",
+        "<b>De statusbubbel is weer een slanke pil.</b> Ze was verdubbeld omdat de melding erin over twee regels brak. Nu wordt de tekst liever afgekort met drie puntjes en blijven de getallen — nauwkeurigheid en azimut — op hun plek.",
+        "<b>Jaarboek en „Punten op elkaar” openden IN PLAATS VAN de kaart.</b> In gesplitst wrong het venster zich als derde strook tussen camera en kaart en de camera erboven draaide door. Beide vensters draaien nu over het hele scherm zoals alle andere.",
+        "<b>Gebaren reageren eerder.</b> Na het activeringsgebaar volstaat voor elke pijl van de snelkoppeling een kortere veeg (34 px in plaats van 54) en hoeft hij niet zo precies horizontaal of verticaal te zijn. Het gereedschap start bovendien meteen — tot nu toe werd twee tienden van een seconde gewacht, alleen om de indicator te tonen.",
+        "<b>In het bedrijf is te zien wanneer de personenlijst niet van de server is gedownload.</b> Vroeger werd in zo'n geval stilletjes de oude lijst uit het geheugen van de telefoon getoond — het leek alsof de mensen verdwenen waren. Nu staat bovenaan waarom (geen signaal / niet-ingelogde telefoon / verlopen toegang) en wat je eraan doet, plus de knop <b>Lijst van de server laden</b>."
+      ]
+    },
+    {
+      "v": 265,
+      "datum": "2026-08-29",
+      "nadpis": "Jaarboek, trainer, offline vectorkaart, rondkijken en nieuwe uiterlijken",
+      "body": [
+        "Nieuw <b>Jaarboek</b> in Gereedschappen: het jaar en de maand in cijfers — hoeveel je hebt gelopen en geklommen, hoeveel punten je hebt gemeten, hoeveel dagen je in het veld was — en een <b>kaart van alle punten die je in het jaar hebt gemeten</b>, gekleurd per maand. Onderaan stille badges voor wat gelukt is. Alles blijft in de telefoon, er wordt niets verstuurd.",
+        "<b>Punten op elkaar</b>: als jullie met twee aan een project werken, herkent de app nu dat jullie beiden hetzelfde punt hebben gemeten, en vraagt het. Als je bevestigt, wordt de tweede bepaling gebruikt als <b>controlemeting</b> — de collega heeft je punt daarmee eigenlijk gecontroleerd. Een bericht naar de bedrijfschat gaat bovendien zonder signaal niet meer verloren: het wordt opgeslagen en vanzelf verzonden. En de app zegt nu bij elke nauwkeurigheid <b>waar ze vandaan komt</b> — of iemand haar heeft gemeten, of dat de telefoon het alleen denkt.",
+        "Onder dat alles is de app <b>gestopt met bevriezen bij grote berekeningen</b> — volumes en ander zwaar rekenwerk lopen apart, zodat je intussen de kaart kunt blijven verschuiven.",
+        "<b>Veldtrainer</b> — oefenen met uitzetten in het droge. De app strooit punten uit, jij gaat ze uitzetten en hij zegt op hoeveel centimeter je zat. <b>Buiten</b> op echte GPS, of <b>thuis in de kamer</b>: daar is alleen de positie verzonnen, je loopt door een knop vast te houden en je gaat waarheen de telefoon wijst — kompas en camera zijn echt, dus je traint precies wat je buiten doet. Ook een gesimuleerde GPS-onnauwkeurigheid kan worden ingeschakeld, want een punt dat op het scherm klopt, hoeft nog niet op de grond te kloppen. Niets uit de trainer wordt in het project opgeslagen en de verzonnen positie komt niet in de metingen terecht.",
+        "<b>Vectorkaart offline</b> — een getekende ondergrond, niet als afbeelding gedownload. De uitsnede <b>pak je in vanaf kantoor</b> (GPS is daarvoor niet nodig) en in het veld heb je hem zonder signaal, scherp op elk zoomniveau. Een gemeente met omgeving komt op enkele MB in plaats van honderden. De gegevens komen van OpenStreetMap — voor oriëntatie, niet om af te meten.",
+        "<b>Rondkijken</b> — een modus om rond te kijken, zonder project en zonder meting. Zegt op welk perceel je staat (nummer, grondsoort, oppervlakte), hoe ver de grens is, op welke hoogte je bent en waar de zon staat — en toont in de camera <b>perceellabels boven hun vlak</b>. Als de grens dichterbij is dan de GPS-nauwkeurigheid, geeft hij eerlijk toe dat hij niet weet welk perceel het is.",
+        "<b>Dagposter</b> — de dag als één afbeelding om te delen: het gelopen spoor getekend als lijn, punten als stippen, weer en vier grote getallen. Je vindt hem ook onderaan in het Daglogboek. De gelopen kilometers en hoogtemeters komen uit de mobiele GPS, dus indicatief.",
+        "Twee nieuwe uiterlijken in <b>Instellingen → Uiterlijk → Kleurtint</b>. <b>Blauwdruk</b> tekent de hele app en de kaart over tot een landmeetkundige tekening — lichte lijnen op donkerblauw, vensters op millimeterpapier. <b>Nacht</b> is een rood palet helemaal zonder blauw: in het donker verpest het de aanpassing van het oog niet (dat halve uur voor je iets ziet) en het scherm straalt minder. Ook de kaart, de markeringen en het camerabeeld worden gedempt.",
+        "De nachtmodus kan <b>zichzelf na het donker worden inschakelen</b> en 's ochtends weer terugtreden — dat schakel je meteen onder de tintkeuze. De tijden berekent de app offline uit je positie (burgerlijke schemering), je eigen tintkeuze overschrijft hij niet: als je 's nachts een andere kiest, zwijgt de automatiek tot het middaguur.",
+        "Nieuw gereedschap <b>Noorden op de zon</b> (Gereedschappen → AR en kalibratie). Het kompas in de telefoon is een magnetometer en bij wapening, rails of auto's wijst het gerust twintig graden ernaast. Alle bestaande manieren om het noorden uit te lijnen hebben een bekend punt in het zicht nodig — midden in een veld is er geen. Deze heeft alleen een zichtbare zon nodig: je richt erop (of langs je eigen schaduw, je hoeft niet in de zon te kijken), houdt drie seconden vast en de app lijnt het noorden uit. Eerlijk: uit de hand komt het op ±3–5°, dus het is een redding waar er niets is om je op te oriënteren, geen vervanging voor oriëntatie op een punt.",
+        "Nieuw gereedschap <b>Punt uit twee foto's</b> (Gereedschappen → Meten). Bepaalt een punt waar je niet naartoe kunt — een hoek achter een hek, een dak, een schoorsteen, de overkant van de rivier. Anders dan bij voorwaartse snijding hoef je niet stil met het kruis te richten: op elk standpunt maak je alleen een foto en op het doel tik je in het bevroren beeld, met je vinger en rustig, gerust pas in de auto. Als je op de foto ook één bekend punt markeert, valt de kompasfout uit het resultaat weg; zonder markeert de app het als indicatief en zegt waarom.",
+        "Nieuw <b>Schat het</b> (Gereedschappen → Hulpmiddelen) — drie korte disciplines waarbij je eerst schat en pas daarna de waarheid uit de sensoren hoort: loop een opgegeven afstand, draai naar een opgegeven azimut, schat de afstand tot een punt. Tijdens de poging toont de app expres niet wat je moet schatten. Naast score en reeks is het een werkvaardigheid: wie weet hoe dertig meter eruitziet en waar het zuidwesten is, herkent een domme fout voordat hij hem opslaat. Je kunt het ook op een wandeling zonder project spelen."
+      ]
+    },
+    {
+      "v": 264,
+      "datum": "2026-08-29",
+      "nadpis": "Andere talen, postbus voor berichten, snellere start en puntcontrole",
+      "body": [
+        "De app kan <b>Engels, Duits en Pools</b>. De taal wordt zelf gekozen volgens de telefoon en omgeschakeld in <b>Instellingen → Uiterlijk</b> helemaal bovenaan; op het inlogscherm is daarvoor een ringetje rechtsboven. Het omschakelen is onmiddellijk, de app herstart niet. De vakterminologie is landmeetkundig vertaald, niet uit het woordenboek.",
+        "Nieuw <b>Schrijf me</b> („Meer” of Instellingen → Onderhoud): stuur de auteur wat niet werkt, wat ontbreekt of wat u zou veranderen. <b>U hoeft niet ingelogd te zijn</b> en <b>het werkt ook zonder signaal</b> — het bericht wacht in de telefoon en gaat vanzelf weg zodra er verbinding is.",
+        "<b>Dichtstbijzijnd bekend punt</b>: officiële punten (trigonometrisch, verdichting, waterpas) gesorteerd op afstand, met richting en windrichting. Met de knop <b>Anker</b> worden de coördinaten meteen vooraf ingevuld in de GPS-verschuiving op een bekend punt — vroeger moesten ze met de hand worden overgeschreven.",
+        "<b>Controlemeting</b>: u markeert een punt ter controle, na 25 minuten meldt de app zich en u laat het een tweede keer bepalen. Uit het verschil van beide bepalingen berekent hij de <b>werkelijke nauwkeurigheid</b> — anders dan σ uit één opstelling omvat die ook de systematische fout. Dan kiest u of u het oorspronkelijke houdt, middelt, of overschrijft.",
+        "<b>Project inpakken</b>: met één knop downloadt het punten, kaart, kadaster, orthofoto en hoogtemodel <b>rond het middelpunt van het project</b> — niet rond de plek waar u nu staat. Eindelijk kan een rit vanaf kantoor worden voorbereid.",
+        "<b>Het Kwaliteitsrapport</b> heeft een nieuwe kolom <b>Controle</b> met de gecontroleerde nauwkeurigheid van het punt en een uitleg hoe die te lezen.",
+        "Kleinigheden: nauwkeurigere statusbubbel en nauwkeurigheidssilhouet, verbeterde gebaren als snelkoppelingen naar gereedschappen, bedrijfschat, updategeschiedenis en weer; het Garmin-horloge leest QR beter.",
+        "De app <b>opent sneller</b>. Negen gereedschappen die de hele dag meestal niet eens worden geopend, worden nu pas na het tekenen opgehaald — het eerste beeld verschijnt ongeveer een derde eerder en voordat de app klaar is, verstrijkt een halve seconde minder. Er ontbreekt niets: de gereedschappen staan op hun plek, ze worden alleen op de achtergrond geladen.",
+        "<b>Puntcontrole</b> (nieuw gereedschap in Registreren). De spreiding van de meting zegt hoe rustig de meting was — niet of het punt juist is. De GPS-fout in de telefoon is tijdens één opstelling steeds dezelfde kant op verschoven, dus tweehonderd rustige aflezingen kunnen tweehonderd aflezingen ernaast zijn. De enige echte controle is een <b>tweede bepaling met tussentijd</b>. De puntkaart meldt nu meteen „Gecontroleerd door een tweede bepaling · Δ 12 cm (grens 39 cm)” of „Eén bepaling — niet gecontroleerd” en het nieuwe gereedschap toont het hele project tegelijk.",
+        "<b>Uitzetrapport</b> (nieuw gereedschap in Uitzetten). Als je een punt afvinkt, noteert de app nu ook <b>waar je werkelijk stond</b> — en maakt daar een tabel ontwerp → werkelijkheid van met ΔY, ΔX, positieafwijking en grensafwijking volgens de kwaliteitscode. Kan worden afgedrukt, als PDF opgeslagen of naar CSV geëxporteerd. Rijen waar de telefoon een slechtere nauwkeurigheid had dan de helft van de grens worden gemarkeerd als <b>niet-overtuigend</b> — een oordeel waarop je niet kunt vertrouwen is erger dan geen.",
+        "In <b>Gereedschappen</b> is nu te zien welk gereedschap de projectpunten aanraakt: zulke tegels hebben bij de onderrand een strookje. De andere tonen alleen.",
+        "<b>Het Foutenlogboek</b> kan met één tik worden verstuurd, inclusief de omstandigheden (appversie, type telefoon, staat van netwerk en GPS, niet-geladen modules). Coördinaten, namen van projecten en punten worden niet verstuurd."
+      ]
+    },
+    {
+      "v": 263,
+      "datum": "2026-08-29",
+      "nadpis": "Correctie: het inloggen liep vast op „te veel pogingen”",
+      "body": [
+        "Gecorrigeerd: de app kon ook een <b>juist wachtwoord</b> weigeren met de melding over veel pogingen, en wel meteen — zonder de server überhaupt te vragen. Het waren twee gebreken die elkaar voedden.",
+        "Ten eerste: de telefoon telde <b>echt elk antwoord van de server als verkeerd wachtwoord</b>. Dus ook dat wat zegt „te veel pogingen, wacht”. Eén vergrendeling op de server voegde zo ook fouten toe in de telefoon en de vergrendelingen telden op.",
+        "Ten tweede: de foutenteller in de telefoon <b>daalde nooit</b> en werd alleen door een geslaagde inlog gewist. Wie over negen fouten kwam, kreeg vanaf dat moment na elke volgende mislukking een vergrendeling van een kwartier — en kon niet tot een succes komen, omdat de app ook het juiste wachtwoord weigerde. Het was een val zonder uitgang.",
+        "Nu wordt de teller na <b>30 minuten rust vergeten</b> en als poging om het wachtwoord te raden telt alleen een echt geweigerd wachtwoord. De bescherming tegen het raden van de pincode blijft ongewijzigd: vijf pogingen gratis, daarna verdubbelt het wachten tot 15 minuten.",
+        "Wie in die val zat, logt na de update meteen in — de vastgelopen teller wordt vanzelf weggegooid."
+      ]
+    },
+    {
+      "v": 262,
+      "datum": "2026-08-29",
+      "nadpis": "GPS-nauwkeurigheidssilhouet, kwaliteitsrapport en snellere start",
+      "body": [
+        "Nieuw <b>nauwkeurigheidssilhouet</b> in de linkerbovenhoek: een figuur die op de grond staat en eromheen een cirkel hoe groot de positieonzekerheid nu is. Een cirkel vlak bij de voeten betekent goed, een cirkel over de hele kaart „je bent ergens hier”. De gestippelde markering staat vast en komt overeen met 5 m, zodat het zonder rekenen te lezen is: <b>binnen de stippellijn = meten, erbuiten = wachten</b>. Drempels en kleuren zijn dezelfde als bij de statusbubbel. Uitschakelen kan in Instellingen → Uiterlijk.",
+        "Nieuw gereedschap <b>Kwaliteitsrapport</b>: bij elk punt is te zien waarmee het is gemeten, wat de standaardfout is, de <b>spreiding van de aflezingen σ</b> en <b>hoeveel epochen</b> zijn gebruikt. De app berekende dat al eerder, maar bij het punt kwam daarvan maar één getal — nu is het aantoonbaar en kan het als rapport (.txt) of tabel (.csv) naar kantoor worden geëxporteerd. Handmatig ingevoerde punten hebben geen spreiding en een streepje.",
+        "<b>De app start sneller</b>: twintig gereedschappen en exports die pas op verzoek openen (voorschriften, nieuwsbrief, back-ups, kalibratie, exports DXF/KML/CSV) worden pas na het tekenen geladen. Vóór het eerste beeld wordt zo 277 kB en 20 bestanden minder verwerkt. Er is niets verdwenen — de eerste aanraking van de werkbalk of Gereedschappen haalt de rest in één keer op.",
+        "Gecorrigeerd: <b>volle groene knoppen</b> hadden in de donkere modus witte tekst met een contrast van maar 3,35 : 1 — in de felle zon onleesbaar. Nu 4,82 : 1, en op dezelfde manier zijn negen andere plekken rechtgezet (actieve tabbladen, segmenten, balk van de nieuwe versie).",
+        "Gecorrigeerd: de knop <b>„Inklappen”</b> verscheen bij sommige vensters helemaal niet — het invoegen mislukte als de titel van het venster een eigen omhulsel had.",
+        "Binnenin: <b>fouten die de app met opzet overslaat</b> om in het veld niet vast te lopen, worden nu in het Foutenlogboek geschreven (meer dan 1500 plekken). Vroeger verdwenen ze spoorloos en een klacht uit het veld had niets om zich aan vast te grijpen. Ook is er een controle in CI bijgekomen die kleuren en contrast bewaakt, zodat twee eerdere fouten met de lichte modus niet stilletjes kunnen terugkomen."
+      ]
+    },
+    {
+      "v": 260,
+      "datum": "2026-08-29",
+      "nadpis": "Afstand tot het punt op de scheidingsrand en updategeschiedenis",
+      "body": [
+        "Bij het navigeren naar een punt is de <b>afstand verhuisd naar de scheidingsrand</b> tussen camera en kaart: de strook kleurt in naarmate je nadert, en de kleur zegt hoe ver je bent (wit → zand onder 25 m → amber onder 2 m → groen op het punt). In gesplitst neemt ze zo geen plaats van de camera of de kaart; in AR over het hele scherm zit ze bij de onderrand.",
+        "Gecorrigeerd: in de felle zon was de afstand praktisch onzichtbaar — donkere tekst op een bijna zwarte plaat.",
+        "Gecorrigeerd: de schuifregelaar <b>Doorzichtigheid van de pijl</b> maakte ook het label met gegevens doorzichtig. Nu betreft hij alleen de pijl.",
+        "Nieuw venster <b>Updategeschiedenis</b> (Meer, of Instellingen → Onderhoud) — wat er in de app wanneer is bijgekomen, sinds de eerste versie."
+      ]
+    },
+    {
+      "v": 259,
+      "datum": "2026-08-29",
+      "nadpis": "Bedrijven wisselen, AR-navigatie en lichte modus",
+      "body": [
+        "Het wisselen van bedrijf laat in het beheer niet meer het vorige bedrijf hangen — na het wisselen sluit het paneel en opent opnieuw met het nieuwe (vroeger leek het alsof wisselen niet werkte).",
+        "Nieuwe tegel <b>Project wisselen</b> in Gereedschappen (Hulpmiddelen) — van project wisselen met één tik zonder het lopende werk te verlaten.",
+        "AR-navigatie: pijl en afstand worden ook getoond als het genavigeerde punt verborgen is door een filter, zoeken of de vlag „verbergen”. Vroeger liep de navigatie in dat geval alleen op de kaart.",
+        "Lichte modus: 38 plekken gecorrigeerd waar de tekst onleesbaar was — knoppen, waarschuwingen, het paneel „Kaart en lagen” in de zon, de vensters Voorschriften, Coördinatenlijst en Nieuwsbrief.",
+        "Bij de balk „Nieuwe versie” is het uitklapmenu <b>Wat is er nieuw</b> bijgekomen (dit venster)."
+      ]
+    },
+    {
+      "v": 258,
+      "datum": "2026-08-29",
+      "nadpis": "Gebaren als snelkoppelingen naar gereedschappen",
+      "body": [
+        "Door een gebaar over het scherm te tekenen open je het gekozen gereedschap — stel je in bij Instellingen."
+      ]
+    },
+    {
+      "v": 257,
+      "datum": "2026-08-29",
+      "nadpis": "Inklappen, schetsen, één back-up, nauwkeuriger weer",
+      "body": [
+        "Inklappen kan nu bij alle gereedschappen, niet alleen bij sommige.",
+        "Meer mogelijkheden in de schets.",
+        "Back-ups samengevoegd tot één.",
+        "Het weer wordt gecorrigeerd volgens echte waarnemingen van stations."
+      ]
+    },
+    {
+      "v": 255,
+      "datum": "2026-08-09",
+      "nadpis": "Correctie van het lezen van QR-codes",
+      "body": [
+        "Versie 254 brak het lezen van alle QR-codes — gecorrigeerd."
+      ]
+    },
+    {
+      "v": 254,
+      "datum": "2026-08-09",
+      "nadpis": "Vier correcties uit feedback uit het veld",
+      "body": [
+        "Kleinigheden gemeld tijdens het werk buiten."
+      ]
+    },
+    {
+      "v": 252,
+      "datum": "2026-08-09",
+      "nadpis": "Garmin-horloge",
+      "body": [
+        "Naar het horloge gaan ook online gedownloade ČÚZK-punten, niet alleen eigen.",
+        "De kaart in het horloge reikt verder en er is te zien hoeveel punten zijn gekozen.",
+        "Punten gemeten met het horloge worden roze op de kaart getekend en hebben een eigen schakelaar in de lijst."
+      ]
+    },
+    {
+      "v": 251,
+      "datum": "2026-08-09",
+      "nadpis": "Kaart en punten naar het horloge met één knop",
+      "body": [
+        "De kaart in het horloge reikt verder en er is te zien hoeveel punten zijn gekozen.",
+        "Eén knop stuurt kaart en gekozen punten tegelijk naar het horloge.",
+        "De kaart downloadt het horloge van waar dan ook — de telefoon maakt de tegels zelf."
+      ]
+    },
+    {
+      "v": 245,
+      "datum": "2026-08-09",
+      "nadpis": "Garmin-horloge",
+      "body": [
+        "App voor Garmin Forerunner: koppelen, overdracht van punten en meten rechtstreeks vanaf het horloge.",
+        "De koppelcode toont het horloge, hij wordt in de telefoon overgeschreven."
+      ]
+    },
+    {
+      "v": 244,
+      "datum": "2026-08-09",
+      "nadpis": "Samenvoeging van alle branches in uitvoering",
+      "body": [
+        "Al het onafgemaakte samengevoegd tot één versie."
+      ]
+    },
+    {
+      "v": 243,
+      "datum": "2026-08-09",
+      "nadpis": "Coördinatenlijst voor kantoor",
+      "body": [
+        "Instelbare tekstexport van coördinaten met voorinstellingen en voorbeeld — het enige „Groma/Kokeš-formaat” bestaat namelijk niet."
+      ]
+    },
+    {
+      "v": 242,
+      "datum": "2026-08-09",
+      "nadpis": "Begrijpelijkere namen van gereedschappen",
+      "body": [
+        "Samengevoegde paren gereedschappen die bijna hetzelfde deden.",
+        "De uit te zetten lijn in de camera opgenomen in Gereedschappen."
+      ]
+    },
+    {
+      "v": 241,
+      "datum": "2026-08-09",
+      "nadpis": "Beeldhoek van de camera uit de brandpuntsafstand",
+      "body": [
+        "De beeldhoek kan ook uit de brandpuntsafstand van de lens worden ingevoerd, niet alleen gemeten."
+      ]
+    },
+    {
+      "v": 240,
+      "datum": "2026-08-09",
+      "nadpis": "Opruiming van gereedschappen volgens een echte doorloop",
+      "body": [
+        "Zes weinig gebruikte gereedschappen apart gezet en een deel hernoemd."
+      ]
+    },
+    {
+      "v": 239,
+      "datum": "2026-08-09",
+      "nadpis": "Het gereedschapswiel is een bloem",
+      "body": [
+        "De blaadjes reiken tot de randen van het scherm, grotere letters en gecentreerde opschriften."
+      ]
+    },
+    {
+      "v": 238,
+      "datum": "2026-08-09",
+      "nadpis": "Mijn activiteit en massaal opruimen van gereedschappen",
+      "body": [
+        "De app meet welke gereedschappen je echt gebruikt en sorteert ze daarnaar."
+      ]
+    },
+    {
+      "v": 237,
+      "datum": "2026-08-09",
+      "nadpis": "Buitenmodus en handschoenen",
+      "body": [
+        "De buitenmodus laat ook de kaart licht (vroeger werd ze donker en was ze in de zon niet te zien).",
+        "Schuifregelaars voor bediening met handschoenen.",
+        "Snellere start."
+      ]
+    },
+    {
+      "v": 236,
+      "datum": "2026-08-09",
+      "nadpis": "Weer verankerd op ČHMÚ-stations",
+      "body": [
+        "De voorspelling wordt gecorrigeerd volgens echte metingen van vijf ČHMÚ-stations.",
+        "De afwijking wordt apart berekend voor het ochtend-, dag- en avonddeel van de dag."
+      ]
+    },
+    {
+      "v": 235,
+      "datum": "2026-08-09",
+      "nadpis": "Wiel en Gebreken",
+      "body": [
+        "Het kruis in het midden van het wiel springt niet meer tussen de cirkels en is aan de rand gevoeliger.",
+        "Gebreken hebben een volle achtergrond — leesbaar ook boven de camera."
+      ]
+    },
+    {
+      "v": 234,
+      "datum": "2026-08-09",
+      "nadpis": "Instellingen met een veeg, Kompas en Weer",
+      "body": [
+        "Instellingen sluiten met een veeg over het scherm.",
+        "Gecorrigeerd zoeken in Instellingen.",
+        "Kompas als apart gereedschap en Weer zonder muur van tekst."
+      ]
+    },
+    {
+      "v": 233,
+      "datum": "2026-08-09",
+      "nadpis": "Lichtrand van de scheidingslijn",
+      "body": [
+        "De scheidingslijn tussen camera en kaart is afgeslankt tot een lichtlijn — camera en kaart kregen 8 px beeld terug.",
+        "Gereedschappen een slot lager in de werkbalk, zodat ze met de duim bereikbaar zijn."
+      ]
+    },
+    {
+      "v": 232,
+      "datum": "2026-08-09",
+      "nadpis": "Prestaties en robuustheid",
+      "body": [
+        "De app las in rust de opslag 190× per seconde — nu een fractie daarvan.",
+        "Versterkte kritieke plekken, zodat één fout niet het hele scherm onderuithaalt."
+      ]
+    },
+    {
+      "v": 231,
+      "datum": "2026-08-09",
+      "nadpis": "Gereedschapswiel",
+      "body": [
+        "Gereedschappen worden gekozen met een veeg van de vinger vanaf de werkbalk, zonder een venster te openen.",
+        "De linkerhandmodus gecorrigeerd — vensters stonden helemaal buiten het scherm."
+      ]
+    },
+    {
+      "v": 230,
+      "datum": "2026-08-08",
+      "nadpis": "Zijregister in Instellingen",
+      "body": [
+        "In Instellingen is een zijregister bijgekomen.",
+        "In de werkbalk staat in plaats van „Meer” rechtstreeks de kaartbediening — die wordt in het veld voortdurend gebruikt."
+      ]
+    },
+    {
+      "v": 228,
+      "datum": "2026-08-08",
+      "nadpis": "Scheidingslijn in gesplitst",
+      "body": [
+        "De verhouding camera/kaart sleep je met de vinger, met aanslagen op 25 / 50 / 75 %.",
+        "Drie correcties gemeld uit het veld."
+      ]
+    },
+    {
+      "v": 226,
+      "datum": "2026-08-08",
+      "nadpis": "Batterijbesparing in AR",
+      "body": [
+        "De camera draait in 720p en hoogstens 30 beelden per seconde — op het scherm niet te onderscheiden, de batterij gaat een stuk langer mee.",
+        "De app start in de modus Kaart."
+      ]
+    },
+    {
+      "v": 225,
+      "datum": "2026-08-08",
+      "nadpis": "Regenwaarschuwing",
+      "body": [
+        "Waarschuwing voor regen ook uit de kortetermijnvoorspelling van de radar."
+      ]
+    },
+    {
+      "v": 224,
+      "datum": "2026-08-08",
+      "nadpis": "Weer uit Tsjechische modellen",
+      "body": [
+        "De modellen ČHMÚ ALADIN en AROME en andere ensembles zijn bijgekomen — voor Tsjechië duidelijk nauwkeuriger."
+      ]
+    },
+    {
+      "v": 223,
+      "datum": "2026-08-08",
+      "nadpis": "Wizard voor een eigen profiel",
+      "body": [
+        "Uitgelijnde elementen in Instellingen en een wizard die je profiel samenstelt aan de hand van een paar vragen."
+      ]
+    },
+    {
+      "v": 222,
+      "datum": "2026-08-08",
+      "nadpis": "Eén statusbalk in plaats van twee",
+      "body": [
+        "Het hoofdscherm heeft één statusbalk — meer ruimte voor het beeld."
+      ]
+    },
+    {
+      "v": 221,
+      "datum": "2026-08-08",
+      "nadpis": "Instellingen op één regel tabbladen",
+      "body": [
+        "Tabbladen op één regel en een apart tabblad Profielen."
+      ]
+    },
+    {
+      "v": 220,
+      "datum": "2026-08-08",
+      "nadpis": "Gereedschappen als één enkele weergave",
+      "body": [
+        "Vier verschillende manieren om gereedschappen te ordenen zijn vervangen door één lijst met inklapbare groepen."
+      ]
+    },
+    {
+      "v": 218,
+      "datum": "2026-08-08",
+      "nadpis": "Startscherm en positie van de kaart",
+      "body": [
+        "Nieuw startscherm en een balk die op een nieuwe versie wijst.",
+        "<b>Positie van de kaart</b>: onder bomen en tussen huizen lees je de positie af door op de orthofoto te tikken, als de GPS slechter is dan wat je zelf ziet."
+      ]
+    },
+    {
+      "v": 217,
+      "datum": "2026-08-08",
+      "nadpis": "Zes fouten gevonden door de app te starten",
+      "body": [
+        "Een audit door echt in de browser te starten vond zes fouten die statische controles niet vingen."
+      ]
+    },
+    {
+      "v": 209,
+      "datum": "2026-08-08",
+      "nadpis": "Vijf nieuwe gereedschappen",
+      "body": [
+        "<b>Geo-foto</b> — foto met positie en azimut.",
+        "<b>Portofoon</b> en melding „Man Down”.",
+        "<b>Spraakcodering</b> van punten.",
+        "<b>Navigatie binnen in een gebouw</b>, waar de GPS ophoudt.",
+        "<b>Rondgang van de ontgraving</b>."
+      ]
+    },
+    {
+      "v": 208,
+      "datum": "2026-08-07",
+      "nadpis": "Accounts, Face ID en ochtendbriefing",
+      "body": [
+        "Onthouden inloggen en Face ID.",
+        "Bedrijfsprojecten met machtigingen.",
+        "<b>Vandaag in het veld</b> — één kaart met weer, GNSS-vensters en punten over de termijn."
+      ]
+    },
+    {
+      "v": 207,
+      "datum": "2026-07-27",
+      "nadpis": "Meldingencentrum en zoeken",
+      "body": [
+        "Gereedschappen kunnen worden doorlopen als een takenlijst („wat wil ik doen”), niet alleen als tegelraster.",
+        "Zoeken rechtstreeks in Instellingen."
+      ]
+    },
+    {
+      "v": 170,
+      "datum": "2026-07-18",
+      "nadpis": "Brute verbetering van de nauwkeurigheid",
+      "body": [
+        "<b>Verankering van AR op het standpunt</b> (achterwaartse snijding) — einde van het meterdansen van de markeringen.",
+        "<b>Helmert-transformatie</b> naar een lokaal stelsel.",
+        "<b>Foto-totaalstation</b>, ondergrondse leidingen, meetjournaal en projectoverdracht.",
+        "<b>Polair punt</b> (polaire methode) en de wizard Vrij standpunt."
+      ]
+    },
+    {
+      "v": 164,
+      "datum": "2026-07-12",
+      "nadpis": "Weergavewiel en edge-to-edge",
+      "body": [
+        "Wisselen AR / Gesplitst / Kaart met een ringetje in de hoek.",
+        "De inhoud reikt tot de randen van het scherm, boven en onder."
+      ]
+    },
+    {
+      "v": 152,
+      "datum": "2026-07-12",
+      "nadpis": "Epochen en Hoogte van een object",
+      "body": [
+        "<b>Epochen / verplaatsingsmonitoring</b> — hermeten van punten in de tijd en bewaken van termijnen.",
+        "<b>Hoogte van een object</b> uit de camera."
+      ]
+    },
+    {
+      "v": 123,
+      "datum": "2026-06-20",
+      "nadpis": "Herontwerp en QC-inspecteur",
+      "body": [
+        "Nieuw uiterlijk: verticale werkbalk, tegels in Instellingen, vensters over het hele scherm.",
+        "<b>QC-inspecteur</b> — kwaliteitscode uit de bereikte nauwkeurigheid en een poort die een punt slechter dan het projectdoel niet laat opslaan."
+      ]
+    },
+    {
+      "v": 64,
+      "datum": "2026-06-14",
+      "nadpis": "Schets, tachymetrie en QR",
+      "body": [
+        "<b>Schets / tachymetrie</b>: punten in lokale projectie, verbindingslijnen, schaal, PNG-export.",
+        "Punten delen via <b>QR-code</b> zonder server.",
+        "Ongedaan maken (undo) ook voor het verwijderen van punten en projecten."
+      ]
+    },
+    {
+      "v": 1,
+      "datum": "2026-06-13",
+      "nadpis": "Eerste versie",
+      "body": [
+        "Punten in de camera, kaart met orthofoto en kadaster, punten downloaden van ČÚZK, afstanden meten."
+      ]
+    }
+  ]
+}
