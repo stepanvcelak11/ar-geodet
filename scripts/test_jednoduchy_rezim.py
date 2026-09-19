@@ -255,7 +255,7 @@ async def test_provoz(ctx):
 
     # --- D) seznam: poradi od nejblizsiho + vzdalenosti sedi
     st = await page.evaluate("""() => {
-        const radky = [...document.querySelectorAll('#ag-jr-seznam .jr-radek')];
+        const radky = [...document.querySelectorAll('#ag-jr-seznam .jr-radek:not(.jr-radek-ur)')];   // uredni body (arPoints) maji vlastni blok U
         const jm = radky.map(r => r.querySelector('.jr-radek-jm').innerText.trim());
         const vz = radky.map(r => r.querySelector('.jr-radek-vzd').innerText.trim());
         const d = {};
@@ -275,7 +275,7 @@ async def test_provoz(ctx):
 
     # --- E) navigace: uhel sipky = azimut - smer
     await page.evaluate("() => { smoothedHeading = 90; }")   # telefon miri na vychod
-    await page.click('#ag-jr-seznam .jr-radek:last-child')
+    await page.evaluate("() => { [...document.querySelectorAll('#ag-jr-seznam .jr-radek')].find(r => r.querySelector('.jr-radek-jm').innerText.trim() === 'JR2').click(); }")
     await page.wait_for_timeout(700)
     st = await page.evaluate("""() => {
         const p = persistentCustomPoints.find(q => q.name === 'JR2');
@@ -308,6 +308,41 @@ async def test_provoz(ctx):
         varovani: document.getElementById('ag-jr-pozn').classList.contains('jr-varovani')
     })""")
     ok('bez kompasu se misto sipky rekne azimut', 'azimutu' in st['pozn'] and st['varovani'], st)
+
+    # --- U) UREDNI BODY v seznamu (19. 9. 2026, prani: „navigovat i k cuzk bodum, ne jen mym vlastnim")
+    # dva body CUZK v arPoints (TB 30 m, NIVEL 12 m) → v seznamu se stitkem druhu, serazene s mymi podle vzdalenosti,
+    # klepnuti naviguje na uredni bod; schovany (hidden) se nenabizi; po odebrani seznam zpet na 2 radky
+    await page.evaluate("() => { smoothedHeading = 0; }")
+    await page.click('#ag-jr-go [data-jr-zpet="list"]')
+    await page.wait_for_timeout(300)
+    st = await page.evaluate("""() => {
+        const m = 1 / 111320;
+        arPoints.push({ id: 'u_tb', name: '0912-31', lat: userLat + 30 * m, lng: userLng, type: 'polohovy', cat: 'TB', hidden: false, currentDist: 0 });
+        arPoints.push({ id: 'u_niv', name: 'Kf1-12.1', lat: userLat + 12 * m, lng: userLng, type: 'vyskovy', cat: 'NIVEL', hidden: false, currentDist: 0 });
+        arPoints.push({ id: 'u_skryty', name: 'SKRYTY', lat: userLat + 5 * m, lng: userLng, type: 'polohovy', cat: 'PBPP', hidden: true, currentDist: 0 });
+        document.querySelector('#ag-jr-list [data-jr-zpet="home"]').click(); document.getElementById('ag-jr-jit').click();
+        return new Promise(res => setTimeout(() => {
+            const radky = [...document.querySelectorAll('#ag-jr-seznam .jr-radek')];
+            res({ jm: radky.map(r => r.querySelector('.jr-radek-jm').firstChild.textContent.trim()), kat: radky.map(r => (r.querySelector('.jr-radek-kat') || {}).textContent || ''),
+                  ur: radky.map(r => r.classList.contains('jr-radek-ur')), tip: !!document.querySelector('#ag-jr-seznam .jr-uredni-tip') });
+        }, 700));
+    }""")
+    ok('uredni body jsou v seznamu se stitkem druhu (TB, nivelacni), schovany ne, serazene s mymi podle vzdalenosti',
+       'SKRYTY' not in st['jm'] and st['kat'].count('TB') >= 1 and st['kat'].count('nivelační') >= 1 and st['jm'][0] == 'JR1' and st['jm'][1] == 'Kf1-12.1' and st['ur'][1] and not st['ur'][0] and st['jm'].index('0912-31') > 1 and not st['tip'], st)
+    await page.click('#ag-jr-seznam .jr-radek-ur')
+    await page.wait_for_timeout(600)
+    st = await page.evaluate("""() => ({ videt: document.getElementById('ag-jr-go').classList.contains('jr-vidno'), nazev: document.getElementById('ag-jr-cilnazev').innerText.trim(),
+        vzd: document.getElementById('ag-jr-vzd').innerText.replace(/\\s+/g, ' ').trim() })""")
+    ok('klepnuti na uredni bod naviguje (nazev Kf1-12.1, ~12 m)', st['videt'] and st['nazev'] == 'Kf1-12.1' and st['vzd'].startswith('12'), st)
+    await page.click('#ag-jr-go [data-jr-zpet="list"]')
+    await page.wait_for_timeout(300)
+    st = await page.evaluate("""() => { arPoints = arPoints.filter(p => !/^u_/.test(p.id)); document.querySelector('#ag-jr-list [data-jr-zpet="home"]').click(); document.getElementById('ag-jr-jit').click();
+        return new Promise(res => setTimeout(() => res({ n: document.querySelectorAll('#ag-jr-seznam .jr-radek:not(.jr-radek-ur)').length, ur: document.querySelectorAll('#ag-jr-seznam .jr-radek-ur').length, tip: !!document.querySelector('#ag-jr-seznam .jr-uredni-tip') }), 500)); }""")
+    ok('po odebrani: 2 moje radky; tip „uredni body se stahnou podle polohy" prave kdyz zadny uredni bod neni', st['n'] == 2 and st['tip'] == (st['ur'] == 0), st)
+    await page.evaluate("() => { document.querySelector('#ag-jr-list [data-jr-zpet=\"home\"]').click(); document.getElementById('ag-jr-jit').click(); }")
+    await page.wait_for_timeout(300)
+    await page.evaluate("() => { [...document.querySelectorAll('#ag-jr-seznam .jr-radek')].find(r => r.querySelector('.jr-radek-jm').innerText.trim() === 'JR2').click(); }")
+    await page.wait_for_timeout(400)
 
     # --- F) odchod z rezimu
     await page.evaluate("() => { smoothedHeading = 0; }")

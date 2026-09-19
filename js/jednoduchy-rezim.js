@@ -12,8 +12,11 @@
 //   • PŘIDAT BOD  → název (předvyplněný dalším číslem série) + jedna volba
 //                   „Z GPS" (6 s průměrování na místě) nebo „Ručně" (Y, X
 //                   v S-JTSK) → ULOŽIT.
-//   • NAVIGOVAT   → seznam bodů zakázky OD NEJBLIŽŠÍHO PO NEJVZDÁLENĚJŠÍ,
-//                   po klepnutí celoobrazovková šipka + vzdálenost.
+//   • NAVIGOVAT   → seznam bodů OD NEJBLIŽŠÍHO PO NEJVZDÁLENĚJŠÍ — moje body zakázky
+//                   a od 19. 9. 2026 i ÚŘEDNÍ BODY (ČÚZK: TB, ZhB, PPBP, nivelační, tíhové)
+//                   stažené kolem mé polohy (arPoints; stahuje je logika.js podle GPS
+//                   i v tomhle režimu), s malým štítkem druhu; po klepnutí
+//                   celoobrazovková šipka + vzdálenost.
 //   • malý odkaz „Celá appka" vpravo nahoře → zpátky do plné appky.
 //
 // NEINVAZIVNÍ: NEEDITUJE logika.js ani grafika.js. Body ukládá JEDINOU
@@ -58,6 +61,21 @@
     function zapnuto() { try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; } }
     function nastav(v) { try { localStorage.setItem(KEY, v ? '1' : '0'); } catch (e) { swallow(e, 'nastav'); } }
     function maFix() { try { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); } catch (e) { return false; } }
+    // úřední body (ČÚZK) stažené kolem mé polohy — vše v arPoints, co není moje (CUSTOM) ani schované
+    function uredni() {
+        try {
+            if (typeof arPoints === 'undefined' || !Array.isArray(arPoints)) return [];
+            var out = [], viden = {};
+            for (var i = 0; i < arPoints.length; i++) {
+                var p = arPoints[i];
+                if (!p || p.cat === 'CUSTOM' || p.hidden || typeof p.lat !== 'number' || typeof p.lng !== 'number' || viden[p.id]) continue;
+                viden[p.id] = 1; out.push(p);
+            }
+            return out;
+        } catch (e) { return []; }
+    }
+    function katLabel(c) { return { TB: 'TB', ZHB: 'ZhB', PBPP: 'PPBP', NIVEL: 'nivelační', TIHA: 'tíhový' }[c] || 'úřední'; }
+    var UREDNICH_MAX = 80;             // v seznamu nejvýš 80 nejbližších úředních bodů (hledáním se najde kterýkoli)
     function body() {
         try { return (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) ? persistentCustomPoints : []; }
         catch (e) { return []; }
@@ -405,7 +423,7 @@
         filtr = '';
         var h = root.querySelector('#ag-jr-hledat');
         h.value = '';
-        h.hidden = body().length <= 12;    // u hrstky bodů je hledání jen překážka navíc
+        h.hidden = (body().length + uredni().length) <= 12;    // u hrstky bodů je hledání jen překážka navíc
         ukaz('list');
         vykresliSeznam();
     }
@@ -414,36 +432,51 @@
     // do objektu bodu, odešla by při nejbližším uložení do JSON.stringify
     // (persistentCustomPoints se ukládá celé) a usadila by se v zakázce i v exportu.
     function serazene() {
-        var pts = body().map(function (p) { return { id: p.id, name: p.name || 'Bod', lat: p.lat, lng: p.lng, d: null }; });
-        if (filtr) pts = pts.filter(function (p) { return p.name.toLowerCase().indexOf(filtr) >= 0; });
+        var pts = body().map(function (p) { return { id: p.id, name: p.name || 'Bod', lat: p.lat, lng: p.lng, d: null, kat: null }; });
+        var ur = uredni().map(function (p) { return { id: p.id, name: p.name || 'Bod', lat: p.lat, lng: p.lng, d: null, kat: p.cat || 'X' }; });
+        if (filtr) { var f = function (p) { return p.name.toLowerCase().indexOf(filtr) >= 0; }; pts = pts.filter(f); ur = ur.filter(f); }
+        var podle;
         if (maFix()) {
-            pts.forEach(function (p) { p.d = vzdal(userLat, userLng, p.lat, p.lng); });
-            pts.sort(function (a, b) { return a.d - b.d; });
+            pts.concat(ur).forEach(function (p) { p.d = vzdal(userLat, userLng, p.lat, p.lng); });
+            podle = function (a, b) { return a.d - b.d; };
         } else {
-            pts.sort(function (a, b) { return a.name.localeCompare(b.name, 'cs', { numeric: true }); });
+            podle = function (a, b) { return a.name.localeCompare(b.name, 'cs', { numeric: true }); };
         }
+        ur.sort(podle);
+        if (!filtr && ur.length > UREDNICH_MAX) ur = ur.slice(0, UREDNICH_MAX);
+        pts = pts.concat(ur); pts.sort(podle);
         return pts;
     }
 
     function vykresliSeznam() {
         var box = root.querySelector('#ag-jr-seznam');
         var pts = serazene();
+        var html = '';
         if (!pts.length) {
-            box.innerHTML = '<div class="jr-prazdno">' + (body().length
+            html = '<div class="jr-prazdno">' + ((body().length + uredni().length)
                 ? 'Žádný bod tomu hledání neodpovídá.'
                 : 'Zatím tu není žádný bod.<br>Ulož si první tlačítkem <b>Přidat bod</b>.') + '</div>';
-            return;
         }
-        var html = '';
         pts.forEach(function (p) {
-            html += '<button type="button" class="jr-radek" data-jr-id="' + esc(p.id) + '">'
-                + '<span class="jr-radek-jm">' + esc(p.name || 'Bod') + '</span>'
+            html += '<button type="button" class="jr-radek' + (p.kat ? ' jr-radek-ur' : '') + '" data-jr-id="' + esc(p.id) + '">'
+                + '<span class="jr-radek-jm">' + esc(p.name || 'Bod') + (p.kat ? ' <span class="jr-radek-kat">' + esc(katLabel(p.kat)) + '</span>' : '') + '</span>'
                 + '<span class="jr-radek-vzd" data-jr-d="' + esc(p.id) + '">' + popisD(p.d) + '</span>'
                 + '</button>';
         });
+        // úřední body ještě nejsou (appka je stahuje podle GPS sama; bez signálu z offline oblasti) → nabídnout stažení teď
+        if (!filtr && !uredni().length) {
+            html += '<div class="jr-prazdno jr-uredni-tip">Úřední body (ČÚZK) kolem tebe se stáhnou samy podle polohy.'
+                + (maFix() && typeof initFetch === 'function' ? '<br><button type="button" class="jr-maly" id="ag-jr-stahnout">Stáhnout okolí teď</button>' : '') + '</div>';
+        }
         box.innerHTML = html;
         Array.prototype.forEach.call(box.querySelectorAll('[data-jr-id]'), function (b) {
             b.addEventListener('click', function () { naviguj(b.getAttribute('data-jr-id')); });
+        });
+        var st = box.querySelector('#ag-jr-stahnout');
+        if (st) st.addEventListener('click', function () {
+            st.disabled = true; st.textContent = 'Stahuji…';
+            try { var r = initFetch(userLat, userLng); if (r && r.then) r.then(function () { vykresliSeznam(); }, function () { vykresliSeznam(); }); else setTimeout(vykresliSeznam, 4000); }
+            catch (e) { swallow(e, 'stahnout'); setTimeout(vykresliSeznam, 4000); }
         });
     }
 
@@ -460,7 +493,7 @@
         if (!maFix()) return;
         var box = root.querySelector('#ag-jr-seznam');
         var mapa = {};
-        body().forEach(function (p) { mapa[p.id] = vzdal(userLat, userLng, p.lat, p.lng); });
+        body().concat(uredni()).forEach(function (p) { mapa[p.id] = vzdal(userLat, userLng, p.lat, p.lng); });
         Array.prototype.forEach.call(box.querySelectorAll('[data-jr-d]'), function (s) {
             var d = mapa[s.getAttribute('data-jr-d')];
             var t = popisD(d == null ? null : d);
@@ -471,7 +504,7 @@
     // ---- NAVIGACE ----------------------------------------------------------------
     function naviguj(id) {
         var p = null;
-        body().forEach(function (q) { if (q.id === id) p = q; });
+        body().concat(uredni()).forEach(function (q) { if (!p && q.id === id) p = q; });
         if (!p) return;
         cil = p; doma = false;
         _uhel = 0; _vzdText = null; _poznText = null;

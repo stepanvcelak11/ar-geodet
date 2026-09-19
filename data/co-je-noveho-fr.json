@@ -2,6 +2,14 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 377,
+      "datum": "2026-09-19",
+      "nadpis": "Mode simple : navigation aussi vers les points officiels",
+      "body": [
+        "<b>Mode simple → Naviguer vers le point</b> propose, en plus de tes points, les <b>points officiels ČÚZK</b> téléchargés autour de toi (TB, ZhB, PPBP, nivellement, gravité) — avec une étiquette de type, triés avec les tiens par distance, au plus les 80 plus proches (la recherche trouve n’importe lequel). Tant que les environs ne sont pas téléchargés, un bouton « Télécharger les environs maintenant » est là."
+      ]
+    },
+    {
       "v": 376,
       "datum": "2026-09-19",
       "nadpis": "Bande de navigation au sol à la place de la flèche 3D",

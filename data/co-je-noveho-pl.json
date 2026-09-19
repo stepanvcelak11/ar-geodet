@@ -2,6 +2,14 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 377,
+      "datum": "2026-09-19",
+      "nadpis": "Tryb prosty: nawigacja także do punktów urzędowych",
+      "body": [
+        "<b>Tryb prosty → Nawiguj do punktu</b> oprócz twoich punktów pokazuje też <b>urzędowe punkty ČÚZK</b> pobrane wokół ciebie (TB, ZhB, PPBP, niwelacyjne, grawimetryczne) — z etykietą rodzaju, posortowane razem z twoimi według odległości, najwyżej 80 najbliższych (wyszukiwanie znajdzie każdy). Dopóki okolica nie jest pobrana, jest przycisk „Pobierz okolicę teraz”."
+      ]
+    },
+    {
       "v": 376,
       "datum": "2026-09-19",
       "nadpis": "Pas nawigacyjny na ziemi zamiast strzałki 3D",

@@ -2,6 +2,14 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 377,
+      "datum": "2026-09-19",
+      "nadpis": "Simple mode: navigate to official points too",
+      "body": [
+        "<b>Simple mode → Navigate to point</b> now lists, besides your own points, the <b>official ČÚZK points</b> downloaded around you (TB, ZhB, PPBP, levelling, gravity) — with a type tag, sorted with yours by distance, the 80 nearest at most (search finds any). Until the surroundings are downloaded there is a “Download surroundings now” button."
+      ]
+    },
+    {
       "v": 376,
       "datum": "2026-09-19",
       "nadpis": "Ground navigation band instead of the 3D arrow",

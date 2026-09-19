@@ -2,6 +2,14 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 377,
+      "datum": "2026-09-19",
+      "nadpis": "Einfacher Modus: Navigation auch zu amtlichen Punkten",
+      "body": [
+        "<b>Einfacher Modus → Zum Punkt navigieren</b> listet neben deinen Punkten jetzt auch die <b>amtlichen ČÚZK-Punkte</b> aus deiner Umgebung (TB, ZhB, PPBP, Nivellement, Schwere) — mit Typ-Etikett, nach Entfernung zusammen mit deinen sortiert, höchstens die 80 nächsten (die Suche findet jeden). Solange die Umgebung nicht geladen ist, gibt es die Taste „Umgebung jetzt laden“."
+      ]
+    },
+    {
       "v": 376,
       "datum": "2026-09-19",
       "nadpis": "Navigationsband am Boden statt 3D-Pfeil",

@@ -2,6 +2,14 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 377,
+   "datum": "2026-09-19",
+   "nadpis": "Jednoduchý režim: navigace i na úřední body",
+   "body": [
+    "<b>Jednoduchý režim → Navigovat k bodu</b> nabízí kromě tvých bodů i <b>úřední body ČÚZK</b> stažené kolem tebe (TB, ZhB, PPBP, nivelační, tíhové) — se štítkem druhu, seřazené s tvými podle vzdálenosti, nejvýš 80 nejbližších (hledáním najdeš kterýkoli). Dokud se okolí nestáhlo, je tam tlačítko „Stáhnout okolí teď“."
+   ]
+  },
+  {
    "v": 376,
    "datum": "2026-09-19",
    "nadpis": "Navigační pás na zemi místo 3D šipky",
