@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-09-18",
-  "uvodnik": "Vydání 18. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-09-19",
+  "uvodnik": "Vydání 19. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,30 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "Why Team Depth Is Becoming Surveyors’ Best Defense Against Project Delays",
+      "perex": "Every firm knows the feeling. A job is booked, the client expects a field crew.",
+      "telo": "Every firm knows the feeling. A job is booked, the client expects a field crew. Then one surveyor calls in sick. Another is stuck finishing a job that ran long. The one person registered to sign off on the report is on leave. Nothing about the work itself has changed, but the schedule slips anyway. The firm’s capacity to deliver was resting on a handful of specific people, not a team that could absorb the gap. Depth Isn’t the Same as Headcount It’s easy to conflate “team depth” with simply having more staff, but the two aren’t the same thing. A firm can carry a large payroll and still have a single point of failure at every stage of a job. One senior reviews all the tricky boundary calls, on",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/18/why-team-depth-is-becoming-surveyors-best-defense-against-project-delays/?utm_source=rss&utm_medium=rss&utm_campaign=why-team-depth-is-becoming-surveyors-best-defense-against-project-delays",
+      "datum": "2026-09-18"
+    },
+    {
+      "rubrika": "Akce",
+      "top": false,
+      "nadpis": "NV5 to Showcase Power of Geospatial Analysis for Vegetation Management at Trees & Utilities Conference",
+      "perex": "Comprehensive remote sensing and analytics solution, and AR demo, demonstrate how geospatial insights improve safety, reliability and community alignment Hollywood, Fla., September 17, 2026 – NV5 , a…",
+      "telo": "Comprehensive remote sensing and analytics solution, and AR demo, demonstrate how geospatial insights improve safety, reliability and community alignment Hollywood, Fla., September 17, 2026 – NV5 , a TiC Solutions company and leading provider of geospatial software and services, will feature its end-to-end vegetation management solutions for electric utilities at the Trees & Utilities Conference, the leading event for utility professionals, urban foresters, and industry leaders dedicated to balancing reliable energy with environmental stewardship. NV5 also will join with ComEd for a session about how leveraging data and remote sensing help align vegetation management efforts with community n",
+      "body": [],
+      "proc": "",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/09/18/nv5-to-showcase-power-of-geospatial-analysis-for-vegetation-management-at-trees-utilities-conference/?utm_source=rss&utm_medium=rss&utm_campaign=nv5-to-showcase-power-of-geospatial-analysis-for-vegetation-management-at-trees-utilities-conference",
+      "datum": "2026-09-18"
     },
     {
       "rubrika": "Technologie",
@@ -72,30 +96,6 @@
       "proc": "",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/09/15/vexcel-imaging-launches-ultracam-condor-5-0-with-the-worlds-largest-aerial-camera-footprint/?utm_source=rss&utm_medium=rss&utm_campaign=vexcel-imaging-launches-ultracam-condor-5-0-with-the-worlds-largest-aerial-camera-footprint",
-      "datum": "2026-09-15"
-    },
-    {
-      "rubrika": "Z praxe",
-      "top": false,
-      "nadpis": "Topcon Launches Innovations Supporting Integrated Geomatics Workflows at INTERGEO 2026",
-      "perex": "Topcon Positioning Systems announces additions to its geomatics portfolio designed to support integrated digital workflows for survey, construction, and infrastructure projects.",
-      "telo": "Topcon Positioning Systems announces additions to its geomatics portfolio designed to support integrated digital workflows for survey, construction, and infrastructure projects. The new solutions expand Topcon’s geospatial ecosystem, including reality capture, positioning, data management, monitoring, and subsurface intelligence technologies to improve accuracy and the flow of information on projects. The announcement was made in conjunction with INTERGEO 2026, the trade fair for geodesy, geoinformation, and land management, taking place September 15–17 in Munich, Germany. “Industry professionals are looking for flexible technologies that fit within their existing processes,” said Neil Vanca",
-      "body": [],
-      "proc": "",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/surveying/topcon-launches-innovations-supporting-integrated-geomatics-workflows-at-intergeo-2026/",
-      "datum": "2026-09-15"
-    },
-    {
-      "rubrika": "Přístroje",
-      "top": false,
-      "nadpis": "Calian Strengthens Precision GNSS Antenna Portfolio with New Survey and Anti-Jamming Antenna Solutions",
-      "perex": "Calian, a leader in high-precision GNSS antenna technology, today announced the expansion of its precision positioning and resilient PNT portfolio with three innovative antenna solutions: the new Accu…",
-      "telo": "Calian, a leader in high-precision GNSS antenna technology, today announced the expansion of its precision positioning and resilient PNT portfolio with three innovative antenna solutions: the new Accutenna® 4 (AC4) pole mount antenna (AC4990PXF), the latest pole mount Controlled Reception Pattern Antenna (CRPA) (CR8894PXF+), and the AJ979XF+-MAR full-band anti-jamming antenna. These solutions address the evolving requirements of surveying, mapping, critical infrastructure, marine, autonomy, public safety and defence users who require both precision positioning and GNSS resilience in increasingly challenging RF environments. Together, the AC4990PXF, CR8894PXF+, and AJ979XF+-MAR full-band anti",
-      "body": [],
-      "proc": "",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/gnsslocation-tech/calian-strengthens-precision-gnss-antenna-portfolio-with-new-survey-and-anti-jamming-antenna-solutions/",
       "datum": "2026-09-15"
     }
   ]
