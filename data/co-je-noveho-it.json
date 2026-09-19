@@ -2,6 +2,14 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 383,
+      "datum": "2026-09-19",
+      "nadpis": "Mappa vettoriale propria completata per tutta l’Europa — tutti i 45 paesi",
+      "body": [
+        "<b>I dati della mappa sono caricati per tutti i 45 paesi del registro</b> (release GitHub «mapa-data»): i paesi grandi in parti — Germania 7, Francia 6, Italia, Polonia, Spagna e Gran Bretagna 4, Turchia e Ucraina 3, Finlandia, Paesi Bassi, Norvegia, Romania e Svezia 2; il resto in un unico file. L’app sceglie da sola la parte giusta in base alla posizione (data/mapa-dily.json), niente da impostare. Finisce così il messaggio «non ci sono ancora dati per questo paese»: mappa vettoriale, vista 3D, percorso sul terreno e Dove si può misurare funzionano ovunque in Europa."
+      ]
+    },
+    {
       "v": 382,
       "datum": "2026-09-19",
       "nadpis": "L’app parla portoghese",

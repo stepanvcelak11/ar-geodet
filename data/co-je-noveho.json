@@ -2,6 +2,14 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 383,
+   "datum": "2026-09-19",
+   "nadpis": "Vlastní vektorová mapa hotová pro celou Evropu — všech 45 zemí",
+   "body": [
+    "<b>Data mapy jsou nahraná pro všech 45 zemí registru</b> (vydání GitHubu „mapa-data“): velké země v dílech — Německo 7, Francie 6, Itálie, Polsko, Španělsko a Británie 4, Turecko a Ukrajina 3, Finsko, Nizozemsko, Norsko, Rumunsko a Švédsko 2; ostatní jedním souborem. Appka si podle polohy vybere správný díl sama (data/mapa-dily.json), nastavovat nic nemusíš. Tím končí hláška „data pro tuhle zemi ještě nejsou“ — vektorová mapa, 3D pohled, trasa terénem a Kde se dá měřit fungují kdekoli v Evropě."
+   ]
+  },
+  {
    "v": 382,
    "datum": "2026-09-19",
    "nadpis": "Appka umí portugalsky",

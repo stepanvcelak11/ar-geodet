@@ -2,6 +2,14 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 383,
+      "datum": "2026-09-19",
+      "nadpis": "Own vector map finished for all of Europe — all 45 countries",
+      "body": [
+        "<b>Map data are uploaded for all 45 countries of the registry</b> (GitHub release “mapa-data”): large countries in parts — Germany 7, France 6, Italy, Poland, Spain and Britain 4, Türkiye and Ukraine 3, Finland, the Netherlands, Norway, Romania and Sweden 2; the rest as a single file. The app picks the right part by position on its own (data/mapa-dily.json), nothing to set up. That ends the message “no map data for this country yet” — the vector map, the 3D view, the terrain route and Where you can measure work anywhere in Europe."
+      ]
+    },
+    {
       "v": 382,
       "datum": "2026-09-19",
       "nadpis": "The app speaks Portuguese",
