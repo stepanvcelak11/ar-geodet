@@ -101,8 +101,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=373">
-    <link rel="stylesheet" href="css/style.css?v=373">
+    <link rel="stylesheet" href="css/tokens.css?v=374">
+    <link rel="stylesheet" href="css/style.css?v=374">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -233,7 +233,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=373">
+    <link rel="stylesheet" href="css/vylepseni.css?v=374">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -967,6 +967,7 @@
                     </div>
                     <button class="btn btn-secondary" style="margin-top: 18px;" onclick="document.getElementById('compass-modal').style.display='none'; showCompassCalibHint(true);"><svg class="icon"><use href="#i-rotate-ccw"/></svg> Jak zkalibrovat kompas</button>
                     <button class="btn btn-secondary" style="margin-top: 10px;" onclick="openSunCheck()"><svg class="icon"><use href="#i-sun"/></svg> Zkontrolovat kompas podle Slunce</button>
+                    <button class="btn btn-secondary" style="margin-top: 10px;" onclick="openPolarisCheck()"><svg class="icon"><use href="#i-star"/></svg> Zkontrolovat kompas podle Severky (v noci)</button>
                 </div>
             </div>
             <button class="btn btn-secondary" style="margin-top: 15px;" onclick="document.getElementById('compass-modal').style.display='none'">Zavřít</button>

@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 374,
+   "datum": "2026-09-19",
+   "nadpis": "Souhvězdí za glóbem, sever podle Severky, kartička o astronomické orientaci",
+   "body": [
+    "<b>Souhvězdí za glóbem (3D pohled).</b> Hvězdy a 17 souhvězdí (Ursa Major, Cassiopeia, Orion, Crux, Scorpius…) leží na skutečné nebeské sféře: obloha za Zemí odpovídá dnešnímu hvězdnému času a místu, kam se díváš, posune se s glóbem a otočí s ním. Mléčná dráha jde po skutečné galaktické rovině. Jen pro radost — nic se z toho neměří.",
+    "<b>Kontrola kompasu podle Severky.</b> Noční sourozenec kontroly podle Slunce (Kompas → Zkontrolovat podle Severky): namíříš zadní kameru na Polárku a appka řekne odchylku kompasu. Severka je do 1° od pravého severu a ten zbytek appka dopočítá z času a polohy — bez magnetky, bez signálu, bez deklinace. Ukáže i výšku Severky nad obzorem (= tvoje zeměpisná šířka) a jak ji najít od Velkého vozu.",
+    "<b>Geo kartička „Severka = pravý sever“</b> v Učit se: proč jsou hvězdy nejstarší geodetická síť (azimut, šířka, délka, Laplaceovy body)."
+   ]
+  },
+  {
    "v": 373,
    "datum": "2026-09-19",
    "nadpis": "Vesmír za glóbem ve 3D pohledu",

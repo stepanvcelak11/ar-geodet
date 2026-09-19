@@ -2,6 +2,16 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 374,
+      "datum": "2026-09-19",
+      "nadpis": "Sternbilder hinter dem Globus, Nord nach dem Polarstern, Karte zur astronomischen Orientierung",
+      "body": [
+        "<b>Sternbilder hinter dem Globus (3D-Ansicht).</b> Sterne und 17 Sternbilder (Ursa Major, Cassiopeia, Orion, Crux, Scorpius…) liegen auf der echten Himmelskugel: der Himmel hinter der Erde entspricht der heutigen Sternzeit und dem Ort, auf den du schaust, er wandert mit dem Globus und dreht sich mit. Die Milchstraße folgt der echten galaktischen Ebene. Nur zur Freude — gemessen wird daraus nichts.",
+        "<b>Kompasskontrolle anhand des Polarsterns.</b> Das nächtliche Geschwister der Kontrolle nach der Sonne (Kompass → Anhand des Polarsterns prüfen): richte die Rückkamera auf den Polarstern, und die App nennt die Abweichung des Kompasses. Der Polarstern steht innerhalb von 1° vom geografischen Norden, den Rest rechnet die App aus Zeit und Position — ohne Magnetometer, ohne Signal, ohne Deklination. Sie zeigt auch die Höhe des Polarsterns über dem Horizont (= deine Breite) und wie man ihn vom Großen Wagen aus findet.",
+        "<b>Geo-Karte „Polarstern = geografischer Norden“</b> unter Lernen: warum die Sterne das älteste geodätische Netz sind (Azimut, Breite, Länge, Laplace-Punkte)."
+      ]
+    },
+    {
       "v": 373,
       "datum": "2026-09-19",
       "nadpis": "Weltraum hinter dem Globus in der 3D-Ansicht",

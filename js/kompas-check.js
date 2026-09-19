@@ -5,6 +5,7 @@
 //      nebo (Android) z oscilace headingu (kmita na miste = sum, ne plynule otaceni).
 //   2) Kontrola podle Slunce: z casu + GPS spocteme azimut Slunce a porovname s tim,
 //      kam podle kompasu miri zadni kamera. Plne offline, nezavisle na magnetometru.
+//   3) Kontrola podle Severky (19. 9. 2026): totez v noci — azimut Polaris z hvezdneho casu.
 // Cte globaly z logika.js (currentHeading, userLat, userLng, appStarted) za behu.
 
 (function () {
@@ -241,6 +242,97 @@
         }
         rows.innerHTML = html;
     }
+
+    // ---------- 3) KONTROLA PODLE SEVERKY (19. 9. 2026, přání uživatele: „udělej sever podle Severky") ----------
+    // Noční sourozenec kontroly podle Slunce. Severka (Polaris) stojí do 1° od nebeského pólu, takže její
+    // azimut je pravý sever ±1° — a ten zbytek se dá spočítat přesně: hodinový úhel z hvězdného času
+    // (GMST) a polohy, azimut ze sférického trojúhelníku. Bez magnetometru, bez deklinace, bez signálu;
+    // tak se historicky orientovaly geodetické sítě (Laplaceovy body). Souřadnice Severky se posouvají
+    // precesí (~0,28°/rok v RA), proto se berou pro aktuální rok od J2000 (RA 37,95°, Dec 89,264°).
+    function polarisPos(date, lat, lng) {
+        const rad = Math.PI / 180;
+        const roky = (date.getTime() - Date.UTC(2000, 0, 1, 12)) / 31557600000;
+        const ra = 37.95 + 0.283 * roky, dec = 89.264 + 0.0041 * roky;
+        const dny = (date.getTime() - Date.UTC(2000, 0, 1, 12)) / 86400000;
+        const gmst = ((280.46061837 + 360.98564736629 * dny) % 360 + 360) % 360;
+        const H = (gmst + lng - ra) * rad, f = lat * rad, d = dec * rad;
+        const sinh = Math.sin(f) * Math.sin(d) + Math.cos(f) * Math.cos(d) * Math.cos(H);
+        const E = -Math.cos(d) * Math.sin(H), N = Math.cos(f) * Math.sin(d) - Math.sin(f) * Math.cos(d) * Math.cos(H);
+        const az = (Math.atan2(E, N) / rad + 360) % 360;
+        return { az: az, el: Math.asin(Math.max(-1, Math.min(1, sinh))) / rad, ha: ((H / rad) % 360 + 360) % 360 };
+    }
+
+    let polModal = null, polTimer = null;
+
+    function buildPolarisModal() {
+        polModal = document.createElement('div');
+        polModal.className = 'modal-overlay';
+        polModal.id = 'polaris-check-modal'; polModal.setAttribute('data-ag-needs', 'kompas gps');
+        polModal.innerHTML =
+            '<div class="modal-content">'
+            + '<h3 style="color:var(--accent); margin-top:0;">Kontrola kompasu podle Severky</h3>'
+            + '<div class="modal-body">'
+            + '<p style="font-size:calc(13px * var(--ag-font-scale, 1)); line-height:1.4; margin:0 0 10px;">Namíř <b>zadní kameru</b> telefonu na Severku a drž telefon svisle. Severka je do 1° od pravého severu — zbytek appka dopočítá z času a polohy. Funguje v noci, bez signálu a bez magnetky.</p>'
+            + '<p style="font-size:calc(12px * var(--ag-font-scale, 1)); line-height:1.4; margin:0 0 14px; opacity:.8;">Jak ji najít: prodluž zadní stěnu Velkého vozu (od Meraku přes Dubhe) pětkrát — první jasnější hvězda je Severka. Výška nad obzorem = tvoje zeměpisná šířka.</p>'
+            + '<div id="polaris-check-rows"></div>'
+            + '</div>'
+            + '<button class="btn btn-secondary" style="margin-top:15px;" onclick="closePolarisCheck()">Zavřít</button>'
+            + '</div>';
+        document.body.appendChild(polModal);
+    }
+
+    function renderPolaris() {
+        const rows = document.getElementById('polaris-check-rows');
+        if (!rows) return;
+        const lat = (typeof userLat !== 'undefined') ? userLat : null;
+        const lng = (typeof userLng !== 'undefined') ? userLng : null;
+        if (lat == null || lng == null) {
+            rows.innerHTML = '<div style="color:var(--warning); font-size:calc(14px * var(--ag-font-scale, 1));">Čekám na GPS polohu…</div>';
+            return;
+        }
+        const now = new Date(), p = polarisPos(now, lat, lng), s = sunPos(now, lat, lng);
+        const head = (typeof currentHeading !== 'undefined' && currentHeading != null) ? currentHeading : null;
+        function row(l, v, c) { return '<div class="rdt"><span class="rdt-l">' + l + '</span><span class="rdt-v"' + (c ? ' style="color:' + c + ';"' : '') + '>' + v + '</span></div>'; }
+        const azTxt = ((p.az > 180 ? p.az - 360 : p.az) >= 0 ? '+' : '') + (p.az > 180 ? p.az - 360 : p.az).toFixed(1).replace('.', ',') + '°';
+        let html = '';
+        if (p.el < 3) {
+            html += '<div style="color:var(--warning); font-size:calc(14px * var(--ag-font-scale, 1)); margin-bottom:10px;">Severka je tu pod obzorem nebo příliš nízko — je vidět jen na severní polokouli.</div>';
+        } else {
+            if (s.el > -6) html += '<div style="color:var(--warning); font-size:calc(13px * var(--ag-font-scale, 1)); margin-bottom:10px;">Ještě je světlo — Severku uvidíš až po soumraku. Hodnoty níže platí už teď.</div>';
+            html += row('Azimut Severky (od severu)', azTxt);
+            html += row('Výška Severky (nad obzorem)', p.el.toFixed(0) + '°');
+            if (head != null) {
+                html += row('Tvůj směr (kompas)', head.toFixed(0) + '°');
+                const dev = _adiff(head, p.az);
+                const ad = Math.abs(dev);
+                let col = 'var(--accent)', verdict = 'Kompas sedí dobře ✓';
+                if (ad > 20) { col = 'var(--danger)'; verdict = 'Velká odchylka — kompas rušen/nezkalibrovaný'; }
+                else if (ad > 8) { col = 'var(--warning)'; verdict = 'Mírná odchylka — zvaž rekalibraci (osmička)'; }
+                html += row('Odchylka', (dev > 0 ? '+' : '') + dev.toFixed(0) + '°', col);
+                html += '<div style="margin-top:10px; font-size:calc(13px * var(--ag-font-scale, 1)); color:' + col + '; font-weight:600;">' + verdict + '</div>';
+            } else {
+                html += '<div style="color:var(--warning); font-size:calc(13px * var(--ag-font-scale, 1)); margin-top:8px;">Čekám na údaj z kompasu… (povol pohyb/orientaci)</div>';
+            }
+        }
+        rows.innerHTML = html;
+    }
+
+    window.openPolarisCheck = function () {
+        const cm = document.getElementById('settings-modal');
+        if (cm) cm.style.display = 'none';
+        const km = document.getElementById('compass-modal');
+        if (km) km.style.display = 'none';
+        if (!polModal) buildPolarisModal();
+        polModal.style.display = 'flex';
+        renderPolaris();
+        if (polTimer) (window.AG && AG.clearUiInterval ? AG.clearUiInterval : clearInterval)(polTimer);
+        polTimer = (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(renderPolaris, 250);
+    };
+    window.closePolarisCheck = function () {
+        if (polTimer) { (window.AG && AG.clearUiInterval ? AG.clearUiInterval : clearInterval)(polTimer); polTimer = null; }
+        if (polModal) polModal.style.display = 'none';
+    };
+    window.AGKompasCheck = { sunPos: sunPos, polarisPos: polarisPos };
 
     window.openSunCheck = function () {
         const cm = document.getElementById('settings-modal');

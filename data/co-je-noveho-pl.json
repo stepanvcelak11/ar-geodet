@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 374,
+      "datum": "2026-09-19",
+      "nadpis": "Gwiazdozbiory za globem, północ według Gwiazdy Polarnej, karta o orientacji astronomicznej",
+      "body": [
+        "<b>Gwiazdozbiory za globem (widok 3D).</b> Gwiazdy i 17 gwiazdozbiorów (Ursa Major, Cassiopeia, Orion, Crux, Scorpius…) leżą na prawdziwej sferze niebieskiej: niebo za Ziemią odpowiada dzisiejszemu czasowi gwiazdowemu i miejscu, na które patrzysz, przesuwa się z globem i obraca z nim. Droga Mleczna biegnie po prawdziwej płaszczyźnie galaktycznej. Tylko dla przyjemności — nic się z tego nie mierzy.",
+        "<b>Kontrola kompasu według Gwiazdy Polarnej.</b> Nocne rodzeństwo kontroli według Słońca (Kompas → Sprawdź według Gwiazdy Polarnej): wyceluj tylny aparat w Polarną, a aplikacja poda odchyłkę kompasu. Polarna jest w granicach 1° od prawdziwej północy, resztę aplikacja doliczy z czasu i pozycji — bez magnetometru, bez sygnału, bez deklinacji. Pokaże też wysokość Polarnej nad horyzontem (= twoja szerokość) i jak ją znaleźć od Wielkiego Wozu.",
+        "<b>Karta geo „Gwiazda Polarna = prawdziwa północ”</b> w Ucz się: dlaczego gwiazdy to najstarsza sieć geodezyjna (azymut, szerokość, długość, punkty Laplace’a)."
+      ]
+    },
+    {
       "v": 373,
       "datum": "2026-09-19",
       "nadpis": "Kosmos za globem w widoku 3D",

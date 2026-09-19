@@ -2,6 +2,16 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 374,
+      "datum": "2026-09-19",
+      "nadpis": "Constelaciones tras el globo, norte por la Polar, ficha sobre orientación astronómica",
+      "body": [
+        "<b>Constelaciones tras el globo (vista 3D).</b> Estrellas y 17 constelaciones (Ursa Major, Cassiopeia, Orion, Crux, Scorpius…) están sobre la esfera celeste real: el cielo detrás de la Tierra corresponde al tiempo sidéreo de hoy y al lugar que miras, se desplaza con el globo y gira con él. La Vía Láctea sigue el plano galáctico real. Solo por gusto — no se mide nada con ello.",
+        "<b>Control de la brújula por la Polar.</b> El hermano nocturno del control por el Sol (Brújula → Comprobar por la Polar): apunta la cámara trasera a la Polar y la app dice la desviación de la brújula. La Polar está a menos de 1° del norte verdadero y el resto lo calcula la app con la hora y la posición — sin magnetómetro, sin señal, sin declinación. Muestra también la altura de la Polar sobre el horizonte (= tu latitud) y cómo hallarla desde el Carro.",
+        "<b>Ficha geo «Polar = norte verdadero»</b> en Aprender: por qué las estrellas son la red geodésica más antigua (acimut, latitud, longitud, puntos de Laplace)."
+      ]
+    },
+    {
       "v": 373,
       "datum": "2026-09-19",
       "nadpis": "Espacio detrás del globo en la vista 3D",

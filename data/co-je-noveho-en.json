@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 374,
+      "datum": "2026-09-19",
+      "nadpis": "Constellations behind the globe, north by Polaris, a card on astronomical orientation",
+      "body": [
+        "<b>Constellations behind the globe (3D view).</b> Stars and 17 constellations (Ursa Major, Cassiopeia, Orion, Crux, Scorpius…) lie on the real celestial sphere: the sky behind the Earth matches today’s sidereal time and the place you look at, it moves with the globe and turns with it. The Milky Way follows the real galactic plane. Just for pleasure — nothing is measured from it.",
+        "<b>Compass check by Polaris.</b> The night sibling of the check by the Sun (Compass → Check by Polaris): aim the rear camera at Polaris and the app tells the compass deviation. Polaris is within 1° of true north and the app computes the rest from time and position — no magnetometer, no signal, no declination. It also shows the height of Polaris above the horizon (= your latitude) and how to find it from the Big Dipper.",
+        "<b>Geo card “Polaris = true north”</b> in Learn: why the stars are the oldest geodetic network (azimuth, latitude, longitude, Laplace points)."
+      ]
+    },
+    {
       "v": 373,
       "datum": "2026-09-19",
       "nadpis": "Space behind the globe in the 3D view",

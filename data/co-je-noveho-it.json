@@ -2,6 +2,16 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 374,
+      "datum": "2026-09-19",
+      "nadpis": "Costellazioni dietro il globo, nord con la Stella Polare, scheda sull’orientamento astronomico",
+      "body": [
+        "<b>Costellazioni dietro il globo (vista 3D).</b> Stelle e 17 costellazioni (Ursa Major, Cassiopeia, Orion, Crux, Scorpius…) stanno sulla vera sfera celeste: il cielo dietro la Terra corrisponde al tempo siderale di oggi e al luogo che guardi, si sposta con il globo e ruota con esso. La Via Lattea segue il vero piano galattico. Solo per piacere — non si misura nulla.",
+        "<b>Controllo della bussola con la Stella Polare.</b> Il fratello notturno del controllo con il Sole (Bussola → Controlla con la Polare): punta la fotocamera posteriore verso la Polare e l’app dice lo scarto della bussola. La Polare è entro 1° dal nord vero e il resto l’app lo calcola da ora e posizione — senza magnetometro, senza segnale, senza declinazione. Mostra anche l’altezza della Polare sull’orizzonte (= la tua latitudine) e come trovarla dal Grande Carro.",
+        "<b>Scheda geo «Polare = nord vero»</b> in Impara: perché le stelle sono la rete geodetica più antica (azimut, latitudine, longitudine, punti di Laplace)."
+      ]
+    },
+    {
       "v": 373,
       "datum": "2026-09-19",
       "nadpis": "Lo spazio dietro il globo nella vista 3D",

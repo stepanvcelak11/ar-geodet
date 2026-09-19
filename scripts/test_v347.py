@@ -230,6 +230,16 @@ async def beh(url):
             return { cv: true, pred: pred, op: cv.style.opacity, vis: cv.style.visibility, tr: cv.style.transform, sky: !!m.getStyle().sky, ctverec: cv.width === cv.height && cv.width > 0,
                 uplnek: AGPohled3d.faze(new Date(Date.UTC(2025, 8, 7, 18, 9))), nov: AGPohled3d.faze(new Date(Date.UTC(2025, 7, 23, 6, 6))) }; }""")
         ok('F4d vesmir za globem: canvas pod mapou (ctverec), pri z17,5 schovany, pri z0,5 viditelny a otoceny o -bearing, styl ma sky, faze Mesice sedi (uplnek 0,5 / nov 0)', f4d and f4d['cv'] and f4d['pred']['op'] == '0' and f4d['pred']['vis'] == 'hidden' and f4d['op'] == '1' and f4d['vis'] == 'visible' and 'rotate(-30' in f4d['tr'] and f4d['sky'] and f4d['ctverec'] and abs(f4d['uplnek'] - 0.5) < 0.03 and (f4d['nov'] < 0.03 or f4d['nov'] > 0.97), f4d)
+        # v374 (19. 9. 2026): souhvezdi na skutecne sfere — z rovniku je Severka na hornim okraji (y≈1, z≈0),
+        # z 50° s. s. je na privracene strane (z<0 = schovana); >= 15 souhvezdi s carami
+        f4e = await page.evaluate("""() => { var S = AGPohled3d.souhvezdi(), P0 = AGPohled3d.obloha(0, 14.4, new Date())(37.95, 89.26), P50 = AGPohled3d.obloha(50, 14.4, new Date())(37.95, 89.26);
+            return { n: S.length, cary: S.every(s => s[1].length >= 3 && s[2].length >= 2 && s[2].every(l => l[0] < s[1].length && l[1] < s[1].length)), y0: P0.y, z0: P0.z, z50: P50.z }; }""")
+        ok('F4e souhvezdi: >= 15 s platnymi carami, Severka z rovniku nahore na okraji, z 50° s. s. na privracene strane', f4e and f4e['n'] >= 15 and f4e['cary'] and f4e['y0'] > 0.99 and abs(f4e['z0']) < 0.02 and abs(f4e['z50'] + 0.766) < 0.01, f4e)
+        # kontrola kompasu podle Severky: azimut Polaris kolisa max ±0,85–1,1° (Praha), vyska ≈ sirka ±0,8°; modal se otevre a zavre
+        f4f = await page.evaluate("""() => { var P = AGKompasCheck.polarisPos, mx = 0, mn = 99, mxe = -99; for (var h = 0; h < 24; h += 0.25) { var p = P(new Date(Date.UTC(2026, 8, 19, h)), 50.075, 14.438); var a = p.az > 180 ? p.az - 360 : p.az; mx = Math.max(mx, Math.abs(a)); mn = Math.min(mn, p.el); mxe = Math.max(mxe, p.el); }
+            var jih = P(new Date(), -33.9, 151.2); openPolarisCheck(); var m = document.getElementById('polaris-check-modal'); var otev = m && getComputedStyle(m).display === 'flex', txt = (document.getElementById('polaris-check-rows') || {}).textContent || ''; closePolarisCheck();
+            return { mx: mx, mn: mn, mxe: mxe, jih: jih.el, otev: otev, txt: txt.slice(0, 240), zavren: m.style.display === 'none', tlac: !!document.querySelector('[onclick="openPolarisCheck()"]') }; }""")
+        ok('F4f Severka: azimut ±0,85–1,1° a vyska 49,3–50,9° v Praze, v Sydney pod obzorem, modal Kontrola podle Severky (radek Azimut Severky) + tlacitko v kompasu', f4f and 0.85 <= f4f['mx'] <= 1.1 and 49.3 <= f4f['mn'] and f4f['mxe'] <= 50.9 and f4f['jih'] < 0 and f4f['otev'] and 'Azimut Severky' in f4f['txt'] and f4f['zavren'] and f4f['tlac'], f4f)
         await page.evaluate("() => { try { closeBottomSheet(); } catch (e) {} AGPohled3d.zavri(); }")
         ok('F4c po zavreni 3D trida body zmizi', await page.evaluate("() => !document.body.classList.contains('ag-3d-open')"))
         await page.evaluate("() => { try { closeBottomSheet(); } catch (e) {} highlightedPointId = null; previewMode('dark'); }")

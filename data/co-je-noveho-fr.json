@@ -2,6 +2,16 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 374,
+      "datum": "2026-09-19",
+      "nadpis": "Constellations derrière le globe, nord d’après la Polaire, fiche sur l’orientation astronomique",
+      "body": [
+        "<b>Constellations derrière le globe (vue 3D).</b> Les étoiles et 17 constellations (Ursa Major, Cassiopeia, Orion, Crux, Scorpius…) sont sur la vraie sphère céleste : le ciel derrière la Terre correspond au temps sidéral du jour et à l’endroit que tu regardes, il se déplace avec le globe et tourne avec lui. La Voie lactée suit le vrai plan galactique. Juste pour le plaisir — rien n’en est mesuré.",
+        "<b>Contrôle de la boussole d’après l’étoile Polaire.</b> Le jumeau nocturne du contrôle d’après le Soleil (Boussole → Contrôler d’après la Polaire) : vise la Polaire avec la caméra arrière et l’appli donne l’écart de la boussole. La Polaire est à moins de 1° du nord vrai et l’appli calcule le reste à partir de l’heure et de la position — sans magnétomètre, sans signal, sans déclinaison. Elle montre aussi la hauteur de la Polaire au-dessus de l’horizon (= ta latitude) et comment la trouver depuis la Grande Casserole.",
+        "<b>Fiche géo « Polaire = nord vrai »</b> dans Apprendre : pourquoi les étoiles sont le plus ancien réseau géodésique (azimut, latitude, longitude, points de Laplace)."
+      ]
+    },
+    {
       "v": 373,
       "datum": "2026-09-19",
       "nadpis": "L’espace derrière le globe dans la vue 3D",

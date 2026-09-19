@@ -187,8 +187,8 @@
     }
 
     // ---- VESMÍR ZA GLÓBEM (19. 9. 2026, přání uživatele: „při oddálení globu vesmír, měsíc atd.") ----
-    // MapLibre kreslí mimo kouli průhledně, takže POD mapou leží vlastní canvas: hvězdy (pevný seed —
-    // obloha je pokaždé stejná, žádné blikání), pás Mléčné dráhy, MĚSÍC SE SKUTEČNOU FÁZÍ K DNEŠKU
+    // MapLibre kreslí mimo kouli průhledně, takže POD mapou leží vlastní canvas: hvězdy a SOUHVĚZDÍ na skutečné
+    // nebeské sféře (pevný seed drobných hvězd — žádné blikání), pás Mléčné dráhy po galaktické rovině, MĚSÍC SE SKUTEČNOU FÁZÍ K DNEŠKU
     // (dorůstá = svítí pravá strana, jak ho vidíme z Evropy) a Slunce jako záře v rohu. Canvas je čtverec
     // přes úhlopříčku obrazovky a otáčí se s bearingem mapy (jen CSS transform), takže když glóbus
     // otočíš, pootočí se i hvězdy. Kreslí se JEDNOU (a po změně velikosti okna), nic neanimuje —
@@ -217,27 +217,84 @@
         for (var i = 0; i < 9; i++) { var a = r() * 2 * Math.PI, d = r() * R * 0.8, kr = R * (0.06 + r() * 0.13); ctx.beginPath(); ctx.arc(x + Math.cos(a) * d, y + Math.sin(a) * d, kr, 0, 2 * Math.PI); ctx.fillStyle = 'rgba(120,126,145,' + (0.18 + r() * 0.2).toFixed(2) + ')'; ctx.fill(); }
         ctx.restore();
     }
-    function kresliVesmir(cv, w, h) {
+    // SOUHVĚZDÍ (19. 9. 2026, přání uživatele: „souhvězdí za glóbem, jen design, nikoliv využití"). Leží na
+    // SKUTEČNÉ nebeské sféře: střed pohledu = bod oblohy „za Zemí" (deklinace −lat, rektascenze = hvězdný čas
+    // antipodu), promítnutý stereograficky; při posunu glóbu se obloha posune, při otočení se otočí. Sever
+    // nahoře = nebeský sever nahoře. Z Evropy jsou tedy kolem koule vidět JIŽNÍ souhvězdí (Crux, Scorpius,
+    // Canis Major…) — tak by to viděl někdo, kdo se dívá na Zemi z vesmíru. Jména latinsky (mezinárodní,
+    // bez překladu). Jasné hvězdy J2000 [RA°, Dec°]; čáry = dvojice indexů.
+    var SOUHVEZDI = [
+        ['Ursa Major', [[165.93, 61.75], [165.46, 56.38], [178.46, 53.69], [183.86, 57.03], [193.51, 55.96], [200.98, 54.93], [206.89, 49.31]], [[0, 1], [1, 2], [2, 3], [3, 0], [3, 4], [4, 5], [5, 6]]],
+        ['Ursa Minor', [[37.95, 89.26], [263.05, 86.59], [251.49, 82.04], [236.01, 77.79], [222.68, 74.16], [230.18, 71.83], [244.37, 75.76]], [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 3]]],
+        ['Cassiopeia', [[2.29, 59.15], [10.13, 56.54], [14.18, 60.72], [21.45, 60.24], [28.60, 63.67]], [[0, 1], [1, 2], [2, 3], [3, 4]]],
+        ['Cepheus', [[319.64, 62.59], [322.16, 70.56], [354.84, 77.63], [342.42, 66.20], [332.71, 58.20]], [[0, 1], [1, 2], [2, 3], [3, 4], [4, 0]]],
+        ['Orion', [[88.79, 7.41], [81.28, 6.35], [83.00, -0.30], [84.05, -1.20], [85.19, -1.94], [86.94, -9.67], [78.63, -8.20]], [[0, 1], [1, 2], [2, 3], [3, 4], [4, 0], [4, 5], [5, 6], [6, 2]]],
+        ['Cygnus', [[310.36, 45.28], [305.56, 40.26], [311.55, 33.97], [296.24, 45.13], [292.68, 27.96]], [[0, 1], [1, 4], [3, 1], [1, 2]]],
+        ['Lyra', [[279.23, 38.78], [281.19, 37.61], [282.52, 33.36], [284.74, 32.69], [283.63, 36.90]], [[0, 1], [1, 2], [2, 3], [3, 4], [4, 1]]],
+        ['Aquila', [[297.70, 8.87], [296.56, 10.61], [298.83, 6.41], [291.37, 3.11], [286.35, 13.86], [286.56, -4.88], [302.83, -0.82]], [[1, 0], [0, 2], [0, 3], [3, 4], [3, 5], [2, 6]]],
+        ['Leo', [[152.09, 11.97], [151.83, 16.76], [154.99, 19.84], [154.17, 23.42], [146.46, 23.77], [168.53, 20.52], [177.26, 14.57], [168.56, 15.43]], [[0, 1], [1, 2], [2, 3], [3, 4], [2, 5], [5, 6], [6, 7], [7, 0], [5, 7]]],
+        ['Boötes', [[213.92, 19.18], [221.25, 27.07], [228.88, 33.31], [225.49, 40.39], [218.02, 38.31], [217.96, 30.37], [208.67, 18.40]], [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [0, 6]]],
+        ['Gemini', [[113.65, 31.89], [116.33, 28.03], [110.03, 21.98], [99.43, 16.40], [100.98, 25.13], [95.74, 22.51]], [[1, 2], [2, 3], [0, 4], [4, 5]]],
+        ['Taurus', [[68.98, 16.51], [81.57, 28.61], [84.41, 21.14], [64.95, 15.63], [65.73, 17.54], [67.15, 19.18], [67.17, 15.87], [60.17, 12.49]], [[1, 5], [5, 4], [4, 3], [3, 6], [6, 0], [0, 2], [3, 7]]],
+        ['Canis Major', [[101.29, -16.72], [95.67, -17.96], [104.66, -28.97], [107.10, -26.39], [111.02, -29.30]], [[0, 1], [0, 3], [3, 2], [3, 4]]],
+        ['Scorpius', [[247.35, -26.43], [240.08, -22.62], [241.36, -19.81], [239.71, -26.11], [245.30, -25.59], [248.97, -28.22], [252.54, -34.29], [252.97, -38.05], [253.65, -42.36], [258.04, -43.24], [264.33, -43.00], [265.62, -39.03], [263.40, -37.10]], [[2, 1], [1, 3], [1, 4], [4, 0], [0, 5], [5, 6], [6, 7], [7, 8], [8, 9], [9, 10], [10, 11], [11, 12]]],
+        ['Crux', [[186.65, -63.10], [191.93, -59.69], [187.79, -57.11], [183.79, -58.75]], [[0, 2], [1, 3]]],
+        ['Pegasus', [[346.19, 15.21], [345.94, 28.08], [3.31, 15.18], [2.10, 29.09], [326.05, 9.88]], [[0, 1], [1, 3], [3, 2], [2, 0], [0, 4]]],
+        ['Andromeda', [[2.10, 29.09], [17.43, 35.62], [30.97, 42.33]], [[0, 1], [1, 2]]]
+    ];
+    function gmst(d) { var dny = (d.getTime() - Date.UTC(2000, 0, 1, 12)) / 864e5; return ((280.46061837 + 360.98564736629 * dny) % 360 + 360) % 360; }
+    // promítání: [RA, Dec] → {x, y (jednotková rovina obrazovky: x = východ, y = sever), z (>0 = za Zemí)}
+    function obloha(lat0, lng0, d) {
+        var R = Math.PI / 180, th = (lng0 + gmst(d)) * R, la = lat0 * R;
+        var r = [Math.cos(la) * Math.cos(th), Math.cos(la) * Math.sin(th), Math.sin(la)];
+        var e = [-Math.sin(th), Math.cos(th), 0];
+        var n = [-Math.sin(la) * Math.cos(th), -Math.sin(la) * Math.sin(th), Math.cos(la)];
+        return function (ra, dec) {
+            var a = ra * R, dl = dec * R, s = [Math.cos(dl) * Math.cos(a), Math.cos(dl) * Math.sin(a), Math.sin(dl)];
+            return { x: s[0] * e[0] + s[1] * e[1] + s[2] * e[2], y: s[0] * n[0] + s[1] * n[1] + s[2] * n[2], z: -(s[0] * r[0] + s[1] * r[1] + s[2] * r[2]) };
+        };
+    }
+    // galaktická rovina (Mléčná dráha): pól J2000 RA 192,86° Dec 27,13°, střed RA 266,40° Dec −28,94°
+    function galakticky(l, b) {
+        var R = Math.PI / 180, p = [Math.cos(27.13 * R) * Math.cos(192.86 * R), Math.cos(27.13 * R) * Math.sin(192.86 * R), Math.sin(27.13 * R)];
+        var c = [Math.cos(-28.94 * R) * Math.cos(266.40 * R), Math.cos(-28.94 * R) * Math.sin(266.40 * R), Math.sin(-28.94 * R)];
+        var cp = c[0] * p[0] + c[1] * p[1] + c[2] * p[2]; c = [c[0] - cp * p[0], c[1] - cp * p[1], c[2] - cp * p[2]];
+        var cl = Math.sqrt(c[0] * c[0] + c[1] * c[1] + c[2] * c[2]); c = [c[0] / cl, c[1] / cl, c[2] / cl];
+        var q = [p[1] * c[2] - p[2] * c[1], p[2] * c[0] - p[0] * c[2], p[0] * c[1] - p[1] * c[0]];
+        var L = l * R, B = b * R, v = [], i;
+        for (i = 0; i < 3; i++) v[i] = Math.cos(B) * (Math.cos(L) * c[i] + Math.sin(L) * q[i]) + Math.sin(B) * p[i];
+        return [Math.atan2(v[1], v[0]) / R, Math.asin(Math.max(-1, Math.min(1, v[2]))) / R];
+    }
+    function kresliVesmir(cv, w, h, stred) {
         var side = Math.ceil(Math.sqrt(w * w + h * h)), dpr = Math.min(window.devicePixelRatio || 1, 2);
-        cv.width = Math.round(side * dpr); cv.height = cv.width; cv.style.width = cv.style.height = side + 'px';
+        if (cv.width !== Math.round(side * dpr)) { cv.width = Math.round(side * dpr); cv.height = cv.width; cv.style.width = cv.style.height = side + 'px'; }
         var ctx = cv.getContext('2d'); if (!ctx) return; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        var cx = side / 2, cy = side / 2, r = nahoda(VESMIR_SEED);
+        var cx = side / 2, cy = side / 2, r = nahoda(VESMIR_SEED), K = side * 0.36;
+        var P = obloha(stred ? stred.lat : 50, stred ? stred.lng : 15, new Date());
+        function bod(ra, dec) { var s = P(ra, dec); if (s.z < -0.55) return null; var k = K / (1 + s.z); return { x: cx + s.x * k, y: cy - s.y * k, z: s.z }; }
         var bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, side * 0.7); bg.addColorStop(0, '#0a0e1c'); bg.addColorStop(1, '#03040a');
         ctx.fillStyle = bg; ctx.fillRect(0, 0, side, side);
-        // Mléčná dráha: šikmý měkký pás + hustší drobné hvězdy v něm
-        ctx.save(); ctx.translate(cx, cy); ctx.rotate(-0.6);
-        var md = ctx.createLinearGradient(0, -side * 0.16, 0, side * 0.16); md.addColorStop(0, 'rgba(160,175,220,0)'); md.addColorStop(0.5, 'rgba(160,175,220,.10)'); md.addColorStop(1, 'rgba(160,175,220,0)');
-        ctx.fillStyle = md; ctx.fillRect(-side, -side * 0.16, side * 2, side * 0.32);
-        for (var i = 0; i < side * 0.9; i++) { var px = (r() - 0.5) * side * 1.5, py = (r() - 0.5) * side * 0.22; ctx.fillStyle = 'rgba(210,220,255,' + (0.15 + r() * 0.35).toFixed(2) + ')'; ctx.fillRect(px, py, 1, 1); }
-        ctx.restore();
-        // hvězdy: různá velikost a jas, pár do modra / do žluta; ty nejjasnější mají křížek paprsků
-        var n = Math.round(side * side / 2600);
-        for (var j = 0; j < n; j++) {
-            var sx = r() * side, sy = r() * side, vel = 0.4 + Math.pow(r(), 3) * 1.6, jas = 0.35 + r() * 0.65, tn = r();
+        // Mléčná dráha: měkká záře podél galaktické roviny + hustší drobné hvězdy v pásu ±10°
+        var i, g, q;
+        for (i = 0; i < 360; i += 5) { g = galakticky(i, 0); q = bod(g[0], g[1]); if (!q) continue; var mg = ctx.createRadialGradient(q.x, q.y, 0, q.x, q.y, side * 0.09); mg.addColorStop(0, 'rgba(160,175,220,.07)'); mg.addColorStop(1, 'rgba(160,175,220,0)'); ctx.fillStyle = mg; ctx.fillRect(q.x - side * 0.09, q.y - side * 0.09, side * 0.18, side * 0.18); }
+        for (i = 0; i < 1400; i++) { g = galakticky(r() * 360, (r() + r() + r() - 1.5) * 9); q = bod(g[0], g[1]); if (!q) continue; ctx.fillStyle = 'rgba(210,220,255,' + (0.15 + r() * 0.35).toFixed(2) + ')'; ctx.fillRect(q.x, q.y, 1, 1); }
+        // hvězdy rovnoměrně po sféře: různá velikost a jas, pár do modra / do žluta; nejjasnější mají křížek paprsků
+        for (i = 0; i < 1800; i++) {
+            q = bod(r() * 360, Math.asin(2 * r() - 1) * 180 / Math.PI); var vel = 0.4 + Math.pow(r(), 3) * 1.6, jas = 0.35 + r() * 0.65, tn = r();
+            if (!q) continue;
             ctx.fillStyle = tn < 0.12 ? 'rgba(170,200,255,' + jas.toFixed(2) + ')' : tn < 0.2 ? 'rgba(255,230,190,' + jas.toFixed(2) + ')' : 'rgba(255,255,255,' + jas.toFixed(2) + ')';
-            ctx.beginPath(); ctx.arc(sx, sy, vel, 0, 2 * Math.PI); ctx.fill();
-            if (vel > 1.7) { ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.fillRect(sx - vel * 3, sy - 0.5, vel * 6, 1); ctx.fillRect(sx - 0.5, sy - vel * 3, 1, vel * 6); }
+            ctx.beginPath(); ctx.arc(q.x, q.y, vel, 0, 2 * Math.PI); ctx.fill();
+            if (vel > 1.7) { ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.fillRect(q.x - vel * 3, q.y - 0.5, vel * 6, 1); ctx.fillRect(q.x - 0.5, q.y - vel * 3, 1, vel * 6); }
         }
+        // souhvězdí: tenké spojnice, jasnější hvězdy, latinské jméno u těžiště (jen když je většina vidět)
+        ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(150,170,230,.38)'; ctx.font = '500 10px system-ui, sans-serif'; ctx.textAlign = 'center';
+        SOUHVEZDI.forEach(function (sz) {
+            var pts = sz[1].map(function (hv) { return bod(hv[0], hv[1]); }), vid = pts.filter(Boolean), sx = 0, sy = 0;
+            if (vid.length < Math.ceil(sz[1].length / 2)) return;
+            ctx.beginPath(); sz[2].forEach(function (ln) { var a = pts[ln[0]], b = pts[ln[1]]; if (a && b) { ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); } }); ctx.stroke();
+            vid.forEach(function (p) { sx += p.x; sy += p.y; ctx.fillStyle = 'rgba(235,240,255,.95)'; ctx.beginPath(); ctx.arc(p.x, p.y, 1.9, 0, 2 * Math.PI); ctx.fill(); });
+            ctx.fillStyle = 'rgba(175,190,225,.6)'; ctx.fillText(sz[0], sx / vid.length, sy / vid.length + 16);
+        });
         // Slunce: teplá záře z levého horního rohu (Země je osvětlená zleva shora — kam padá i stín terénu)
         var sl = ctx.createRadialGradient(cx - w * 0.55, cy - h * 0.55, 0, cx - w * 0.55, cy - h * 0.55, side * 0.45); sl.addColorStop(0, 'rgba(255,236,190,.22)'); sl.addColorStop(0.3, 'rgba(255,236,190,.06)'); sl.addColorStop(1, 'rgba(255,236,190,0)');
         ctx.fillStyle = sl; ctx.fillRect(0, 0, side, side);
@@ -248,7 +305,8 @@
         if (!st.globus) return;
         var cv = document.createElement('canvas'); cv.id = 'ag3d-vesmir'; cv.setAttribute('aria-hidden', 'true');
         el3.insertBefore(cv, el3.firstChild);
-        function velikost() { try { kresliVesmir(cv, el3.clientWidth || window.innerWidth, el3.clientHeight || window.innerHeight); } catch (e) { swallow(e, 'vesmir'); } }
+        var _t = null;
+        function kresli() { try { var c = m.getCenter(); kresliVesmir(cv, el3.clientWidth || window.innerWidth, el3.clientHeight || window.innerHeight, { lat: c.lat, lng: c.lng }); } catch (e) { swallow(e, 'vesmir'); } }
         function stav() {
             try {
                 var z = m.getZoom(), o = Math.max(0, Math.min(1, (13.5 - z) / 2));   // plně do z11,5, pryč od z13,5
@@ -256,8 +314,10 @@
                 cv.style.transform = 'translate(-50%,-50%) rotate(' + (-m.getBearing()).toFixed(1) + 'deg)';
             } catch (e) { /* nic */ }
         }
-        velikost(); stav();
-        m.on('zoom', stav); m.on('rotate', stav); m.on('resize', function () { velikost(); stav(); });
+        kresli(); stav();
+        m.on('zoom', stav); m.on('rotate', stav); m.on('resize', function () { kresli(); stav(); });
+        // po posunu glóbu se obloha překreslí (jen když je vidět, a ne častěji než 1×/300 ms)
+        m.on('moveend', function () { if (cv.style.visibility === 'hidden') return; clearTimeout(_t); _t = setTimeout(kresli, 300); });
         return cv;
     }
 
@@ -372,7 +432,7 @@
         });
     }
     window.agOpenPohled3d = otevri;
-    window.AGPohled3d = { otevri: otevri, zavri: zavri, mapa: function () { return m3; }, styl: styl, nastaveni: function () { return st; }, karta: karta, naviguj: naviguj, chodnikyGeo: chodnikyGeo, sloupkyGeo: sloupkyGeo, trasaGeo: trasaGeo, dmr: function () { return _dmr; }, faze: faze };
+    window.AGPohled3d = { otevri: otevri, zavri: zavri, mapa: function () { return m3; }, styl: styl, nastaveni: function () { return st; }, karta: karta, naviguj: naviguj, chodnikyGeo: chodnikyGeo, sloupkyGeo: sloupkyGeo, trasaGeo: trasaGeo, dmr: function () { return _dmr; }, faze: faze, souhvezdi: function () { return SOUHVEZDI; }, obloha: obloha };
 
     function register() {
         try { if (typeof window.agRegisterFieldTool === 'function') window.agRegisterFieldTool({ id: 'pohled-3d', label: '3D pohled', icon: ICON, cat: 'Katastr a data', onClick: function () { otevri(); }, order: 9 }); } catch (e) { swallow(e, 'register'); }

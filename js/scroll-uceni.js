@@ -39,6 +39,7 @@
         { n: 'Nivelační značka je ve zdi', d: 'Čepová nebo hřebová značka ve fasádě — výška se vztahuje k hornímu okraji čepu / k hlavě hřebu. V mapě je bod „na zdi", ve 3D ho uvidíš jako sloupek nad terénem.' },
         { n: 'Kódy kvality 3–8', d: 'Kód 3 = mxy 0,14 m (měřeno v terénu), kód 8 = mxy 1,0 m (digitalizace staré mapy). Než hledáš bod podle katastru, podívej se na kód — u 6–8 hledáš plochu, ne bod.' },
         { n: 'Čas a Slunce jako záloha severu', d: 'Známý čas + poloha = azimut Slunce na desetinu stupně. Když kompas ujíždí, stín tyče je spolehlivější než magnetometr.' },
+        { n: 'Severka = pravý sever', d: 'Hvězdy jsou nejstarší geodetická síť: azimut ze Severky, šířka z její výšky nad obzorem, délka z času průchodu hvězdy poledníkem — tak se orientovaly Laplaceovy body i S-JTSK. Severka je do 1° od pólu, zbytek se dopočítá z času; magnetka lže o stupně, Severka ne. V appce: Kompas → Zkontrolovat podle Severky.' },
         { n: 'Ověř si pásmo pásmem', d: 'Každá oměrná z appky je jen tak dobrá, jak dobrá je poloha telefonu. Než zapíšeš, přeměř jednu délku pásmem — je to 20 sekund a rozhodne to o všem ostatním.' },
         { n: 'Trasa terénem obchází, ale neví o všem', d: 'Budovy, voda, dálnice, koleje a tvoje ruční překážky ano; čerstvý výkop nebo hromada ne — označ je jako Překážku a trasa je obejde.' }
     ];
