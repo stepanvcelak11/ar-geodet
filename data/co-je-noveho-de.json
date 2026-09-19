@@ -2,6 +2,15 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 382,
+      "datum": "2026-09-19",
+      "nadpis": "Die App spricht Portugiesisch",
+      "body": [
+        "<b>Portugiesisch.</b> Die achte Sprache neben Englisch, Deutsch, Polnisch, Spanisch, Italienisch, Französisch und Niederländisch — Kern und die ganze Erweiterung (6 700 Texte), die „?“-Anleitungen bei den Werkzeugen, Vorschriften, Übungsaufgaben, Geo-Karten, Ländernamen und diese Änderungsliste (alle Versionen). Europäisches Portugiesisch (Du-Form, „telemóvel“, Anführungszeichen «»); ein auf Portugiesisch eingestelltes Telefon wählt es selbst, sonst Einstellungen → Aussehen. Datum und Zahlen laufen in pt-PT.",
+        "Die Fachbegriffe sind vermessungstechnisch, nicht wörterbuchmäßig (implantação, irradiação, interseção inversa, estação livre, medidas de controlo, nivelamento, rede geodésica, cadastro, parcela); Eigennamen bleiben (ČÚZK, ČHMÚ, S-JTSK, Bpv, Verordnungsnummern). Damit ist E7 aus der 4. Bewertungsrunde fertig: Niederländisch + Portugiesisch."
+      ]
+    },
+    {
       "v": 381,
       "datum": "2026-09-19",
       "nadpis": "Die App spricht Niederländisch",

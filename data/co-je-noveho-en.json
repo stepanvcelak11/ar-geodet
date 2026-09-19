@@ -2,6 +2,15 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 382,
+      "datum": "2026-09-19",
+      "nadpis": "The app speaks Portuguese",
+      "body": [
+        "<b>Portuguese.</b> The eighth language alongside English, German, Polish, Spanish, Italian, French and Dutch — core and the whole extension (6,700 texts), the “?” guides at tools, Regulations, Practice tasks, Geo cards, country names and this list of changes (all releases). European Portuguese (informal “tu”, “telemóvel”, «» quotes); a phone set to Portuguese picks it by itself, otherwise Settings → Appearance. Dates and numbers follow pt-PT.",
+        "The terminology is surveying, not dictionary (implantação, irradiação, interseção inversa, estação livre, medidas de controlo, nivelamento, rede geodésica, cadastro, parcela); proper names stay (ČÚZK, ČHMÚ, S-JTSK, Bpv, decree numbers). That completes E7 from the 4th evaluation round: Dutch + Portuguese."
+      ]
+    },
+    {
       "v": 381,
       "datum": "2026-09-19",
       "nadpis": "The app speaks Dutch",

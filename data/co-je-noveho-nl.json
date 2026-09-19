@@ -2,6 +2,15 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 382,
+      "datum": "2026-09-19",
+      "nadpis": "De app spreekt Portugees",
+      "body": [
+        "<b>Portugees.</b> De achtste taal naast Engels, Duits, Pools, Spaans, Italiaans, Frans en Nederlands — kern en de hele uitbreiding (6 700 teksten), de handleidingen „?” bij de gereedschappen, Voorschriften, Oefenopgaven, Geo-kaartjes, landnamen en deze lijst van wijzigingen (alle versies). Europees Portugees (je-vorm, „telemóvel”, aanhalingstekens «»); een telefoon die op Portugees staat kiest het zelf, anders Instellingen → Uiterlijk. Datums en getallen in pt-PT.",
+        "De terminologie is landmeetkundig, niet uit het woordenboek (implantação, irradiação, interseção inversa, estação livre, medidas de controlo, nivelamento, rede geodésica, cadastro, parcela); eigennamen blijven (ČÚZK, ČHMÚ, S-JTSK, Bpv, nummers van besluiten). Daarmee is E7 uit de 4e beoordelingsronde klaar: Nederlands + Portugees."
+      ]
+    },
+    {
       "v": 381,
       "datum": "2026-09-19",
       "nadpis": "De app spreekt Nederlands",

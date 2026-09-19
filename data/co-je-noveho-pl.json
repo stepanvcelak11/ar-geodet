@@ -2,6 +2,15 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 382,
+      "datum": "2026-09-19",
+      "nadpis": "Aplikacja mówi po portugalsku",
+      "body": [
+        "<b>Portugalski.</b> Ósmy język obok angielskiego, niemieckiego, polskiego, hiszpańskiego, włoskiego, francuskiego i niderlandzkiego — rdzeń i całe rozszerzenie (6 700 tekstów), instrukcje „?” przy narzędziach, Przepisy, Zadania ćwiczeniowe, Geo-fiszki, nazwy krajów i ta lista zmian (wszystkie wydania). Portugalski europejski (forma „ty”, „telemóvel”, cudzysłowy «»); telefon ustawiony na portugalski wybierze go sam, inaczej Ustawienia → Wygląd. Daty i liczby w pt-PT.",
+        "Terminologia jest geodezyjna, nie słownikowa (implantação, irradiação, interseção inversa, estação livre, medidas de controlo, nivelamento, rede geodésica, cadastro, parcela); nazwy własne zostają (ČÚZK, ČHMÚ, S-JTSK, Bpv, numery rozporządzeń). Tym samym E7 z 4. rundy oceny jest gotowe: niderlandzki + portugalski."
+      ]
+    },
+    {
       "v": 381,
       "datum": "2026-09-19",
       "nadpis": "Aplikacja mówi po niderlandzku",
