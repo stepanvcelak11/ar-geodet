@@ -7,7 +7,7 @@
 //   • PODKLAD jako dvě karty se vzorkem (Mapa · Ortofoto) + karta Katastr (přepínač vrstvy):
 //     Mapa = vlastní vektorová mapa (js/mapa-vektor.js) a podklad „osm" — když se vektor nedá
 //     zapnout (slabší telefon, bez dat), zůstává pod kartou tiše rastr OSM, karta svítí dál;
-//     pod kartami styl vektorové mapy (Podle motivu · Den · Noc · Modrotisk · Tisk) a řádek
+//     pod kartami styl vektorové mapy (Podle motivu · Den · Noc · Tisk) a řádek
 //     „Země měření". Karta „Mapa (rastr OSM)" jako samostatná volba ZRUŠENA 18. 9. 2026
 //     (uživatel: „ta moje mapa vizuálně funguje líp, obyčejnou mapu pryč"); mapa() zůstává
 //     jako API pro testy a pojistku.

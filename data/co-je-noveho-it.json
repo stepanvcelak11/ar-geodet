@@ -2,6 +2,17 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 384,
+      "datum": "2026-09-19",
+      "nadpis": "Confini delle particelle e marciapiedi direttamente nella tua mappa; stile Cianotipia rimosso",
+      "body": [
+        "<b>Confini dei terreni nella mappa.</b> La scheda <b>Catasto</b> (Livelli → Base) disegna sopra la tua mappa vettoriale confini e numeri delle particelle come <b>linee nel colore dello stile</b> — leggibili sulla mappa scura, senza tratteggi e simboli dell'immagine WMS. Le particelle si scaricano da RÚIAN ČÚZK per dove guardi (da zoom 16, a pezzi di ~300 m, ogni pezzo una sola volta) e restano nel telefono. Gli edifici non stanno più «in mezzo al nulla»: vedi di chi è la recinzione e dove il confine arriva alla strada. Sopra l'ortofoto e all'estero il catasto resta com'era (WMS).",
+        "<b>Marciapiedi e attraversamenti come bordo lungo la strada.</b> La tua mappa li disegna con una linea sottile continua accanto alla carreggiata (attraversamenti tratteggiati) invece di un «sentiero» grosso tratteggiato: vedi dove passa il bordo lungo cui si può camminare.",
+        "<b>La calibrazione camminando lungo un bordo</b> usa queste linee: con il Catasto acceso, un tocco entro 4 m da un confine di particella si aggancia subito, senza aspettare la rete (confine DKM ±0,3 m); senza catasto si aggancia al marciapiede della mappa, ma quello in OpenStreetMap è disegnato a mano (±2 m); la finestra lo dice e consiglia Catasto o ortofoto.",
+        "<b>Stile della mappa vettoriale:</b> solo Secondo il tema · Giorno · Notte · Stampa. La Cianotipia è sparita (su richiesta); il tema Cianotipia riceve sulla mappa la variante notturna."
+      ]
+    },
+    {
       "v": 383,
       "datum": "2026-09-19",
       "nadpis": "Mappa vettoriale propria completata per tutta l’Europa — tutti i 45 paesi",

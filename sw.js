@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v383';   // 19. 9. noc: mapa Evropy hotova, vsech 45 zemi (mapa-dily.json)
+const SHELL_CACHE = 'argeodet-shell-v384';   // 19. 9. noc: parcely a chodniky ve vlastni mape, modrotisk pryc
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=383',
-    './css/style.css?v=383',
-    './css/vylepseni.css?v=383',
+    './css/tokens.css?v=384',
+    './css/style.css?v=384',
+    './css/vylepseni.css?v=384',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -151,6 +151,7 @@ const ASSETS_TO_CACHE = [
     './js/zeme-svet.js',
     './js/mapa-styl.js',
     './js/mapa-vektor.js',
+    './js/mapa-parcely.js',
     './js/hrany.js',
     './js/prichyceni.js',
     './js/hrana-auto.js',

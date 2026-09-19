@@ -101,8 +101,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=383">
-    <link rel="stylesheet" href="css/style.css?v=383">
+    <link rel="stylesheet" href="css/tokens.css?v=384">
+    <link rel="stylesheet" href="css/style.css?v=384">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -233,7 +233,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=383">
+    <link rel="stylesheet" href="css/vylepseni.css?v=384">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -1097,13 +1097,13 @@
                             <i class="ms-swatch sw-orto" aria-hidden="true"></i><b>Ortofoto</b><small>snímek ČÚZK</small>
                         </button>
                         <button type="button" id="btn-katastr" class="ms-pod-c ms-pod-vrstva" onclick="toggleKatastr()" data-ms-pro="cadastre-vector">
-                            <i class="ms-swatch sw-katastr" aria-hidden="true"></i><b>Katastr</b><small>parcely přes podklad; klepnutí = vlastník</small>
+                            <i class="ms-swatch sw-katastr" aria-hidden="true"></i><b>Katastr</b><small>hranice a čísla parcel; klepnutí = vlastník</small>
                         </button>
                     </div>
                     <div class="ms-pod-styl" id="ms-styl" hidden>
                         <span>Styl vektorové mapy</span>
                         <div class="ms-seg" role="group" aria-label="Styl vektorové mapy">
-                            <button type="button" data-styl="auto">Podle motivu</button><button type="button" data-styl="den">Den</button><button type="button" data-styl="noc">Noc</button><button type="button" data-styl="modrotisk">Modrotisk</button><button type="button" data-styl="tisk">Tisk</button>
+                            <button type="button" data-styl="auto">Podle motivu</button><button type="button" data-styl="den">Den</button><button type="button" data-styl="noc">Noc</button><button type="button" data-styl="tisk">Tisk</button>
                         </div>
                     </div>
                     <div class="ms-zeme" id="ms-zeme" hidden><svg class="icon"><use href="#i-globe"/></svg><span id="ms-zeme-t"></span><button type="button" onclick="try{openSettings();if(window.AGSettings&&AGSettings.reveal&&document.getElementById('s-zeme'))AGSettings.reveal('s-zeme');else switchTab('tab-mapa',document.querySelector('[data-tab=\'tab-mapa\']'));}catch(e){openSettings();}">Změnit</button></div>
@@ -1388,6 +1388,7 @@
          záměrně nejsou (1 MB, beta). Odpojitelné: smaž oba řádky + soubory. -->
     <script type="ag/lazy" data-src="js/mapa-styl.js"></script>
     <script type="ag/lazy" data-src="js/mapa-vektor.js"></script>
+    <script type="ag/lazy" data-src="js/mapa-parcely.js"></script>
     <!-- PŘESNOST Z MAPY (16. 9. 2026): js/hrany.js = rohy a hrany z parcel RÚIAN, budov vektorové
          mapy a výkresu DXF (jen čtení); js/prichyceni.js = nový bod do 0,6 m od rohu → nabídne
          souřadnice z mapy (P2); js/hrana-auto.js = chůze ≥ 20 m souběžně s hranou → korekce GPS

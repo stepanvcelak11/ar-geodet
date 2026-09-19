@@ -129,10 +129,12 @@
     function styl() {
         // 3D jde podle MOTIVU APPKY (tmavý = noc, světlý = den), ne podle ručně zvoleného stylu 2D mapy —
         // uživatel 18. 9. 2026: „i když mám motiv tmavý, 3D se zobrazuje světlé" (měl u mapy styl Den).
-        // Výjimka: modrotisk a tisk jsou záměrné „papírové" pohledy, ty se drží i ve 3D.
+        // Výjimka: tisk je záměrný „papírový" pohled, ten se drží i ve 3D (modrotisk zrušen 19. 9. 2026).
         var v = (window.AGMapaVektor && AGMapaVektor.varianta()) || 'den';
-        try { if (v !== 'modrotisk' && v !== 'tisk') { var b = document.body.classList; v = b.contains('theme-blueprint') ? 'modrotisk' : (b.contains('light-mode') && !b.contains('theme-night')) ? 'den' : 'noc'; } } catch (e) { /* nechat */ }
+        try { if (v !== 'tisk') { var b = document.body.classList; v = (b.contains('light-mode') && !b.contains('theme-night') && !b.contains('theme-blueprint')) ? 'den' : 'noc'; } } catch (e) { /* nechat */ }
         var S = AGMapaStyl.vytvor(v, AGMapaVektor.url());
+        // chodníky má 2D styl od v384 vlastní (tenká čára); tady jsou v metrech na terénu (níž) — stejná id nesmí být dvakrát
+        S.layers = S.layers.filter(function (l) { return l.id !== 'chodniky' && l.id !== 'prechody'; });
         var P = AGMapaStyl.PALETY[v] || AGMapaStyl.PALETY.den;
         var svetly = v === 'den' || v === 'tisk';
         S.sources.body = { type: 'geojson', data: bodyGeo() };
@@ -155,7 +157,7 @@
         // 2D výplň budov nahradí extruze (výška z OSM, jinak odhad); hrana zůstává
         var iBud = S.layers.findIndex(function (l) { return l.id === 'budovy'; });
         var extruze = { id: 'budovy-3d', type: 'fill-extrusion', source: 'pm', 'source-layer': 'buildings', minzoom: 13,
-            paint: { 'fill-extrusion-color': v === 'modrotisk' ? '#1d4a8f' : (v === 'tisk' ? '#cfcfcf' : P.budova), 'fill-extrusion-opacity': 0.9,
+            paint: { 'fill-extrusion-color': v === 'tisk' ? '#cfcfcf' : P.budova, 'fill-extrusion-opacity': 0.9,
                 'fill-extrusion-height': ['coalesce', ['get', 'height'], 8], 'fill-extrusion-base': ['coalesce', ['get', 'min_height'], 0], 'fill-extrusion-vertical-gradient': true } };
         if (iBud >= 0) S.layers.splice(iBud, 1, extruze); else S.layers.push(extruze);
         // zeleň: les 12 m, křoví 2,5 m — poloprůhledně, ať pod tím zůstane vidět terén i body

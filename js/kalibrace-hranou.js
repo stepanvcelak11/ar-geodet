@@ -43,6 +43,16 @@
 //     se už nebere. Rozdíl obou chůzí je zároveň hlídač: nad 1 m appka řekne,
 //     že GPS dnes plave a měření mezi tím je nejisté.
 //
+// 3. KOLO (19. 9. 2026, uživatel: „hrany podél silnice, který se dá kalibrovat za chůze … abych je
+// mohl vidět a případně využívat pro tu kalibraci"):
+//   • PARCELY Z VLASTNÍ MAPY: když karta Katastr kreslí hranice vektorově (js/mapa-parcely.js),
+//     jsou parcely už v telefonu — klepnutí do 4 m se na hranici přichytí HNED, bez dotazu
+//     na RÚIAN (snapParcelyMapy). Živé dotažení zůstává pro ortofoto / rastr.
+//   • CHODNÍK Z MAPY: vlastní mapa nově kreslí chodníky a přechody (OSM) jako hranu podél
+//     silnice; klepnutí do 4 m od ní se přichytí na nejbližší místo čáry (snapChodnik) —
+//     ale jen když nechytil katastr, a čára platí za „uliční mapu" (±2 m, LINE_ACC.osm):
+//     chodník v OSM je kreslený od ruky, katastr nebo ortofoto jsou přesnější a okno to říká.
+//
 // Vstup: dlaždice „Kalibrace chůzí po hraně" v Nástrojích (Přesné měření),
 // načítá se až na klepnutí. Odstranění: smaž js/kalibrace-hranou.js + záznam v
 // js/lazy-tools.js a js/tools-registry.js (+ data/navody.json), přegeneruj sw.js.
@@ -380,6 +390,41 @@
         }
         return best;
     }
+    // parcely, které už má vlastní mapa (karta Katastr + vektor, js/mapa-parcely.js): bez sítě
+    function snapParcelyMapy(ll) {
+        var P = window.AGMapaParcely; if (!P || !P.aktivni || !P.aktivni()) return null;
+        var arr = []; try { arr = P.parcely() || []; } catch (e) { swallow(e, 'parcelyMapy'); return null; }
+        var m = mPerDeg(ll.lat), dl = KAT_SNAP_M / m.lat, dg = KAT_SNAP_M / m.lng, best = null;
+        for (var i = 0; i < arr.length; i++) {
+            var pc = arr[i], r0 = pc.rings && pc.rings[0]; if (!r0 || !r0.length) continue;
+            // hrubý odhad: klepnutí musí být uvnitř obálky parcely rozšířené o dosah přichycení
+            var minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+            for (var k = 0; k < r0.length; k++) { var q = r0[k]; if (q.lat < minLat) minLat = q.lat; if (q.lat > maxLat) maxLat = q.lat; if (q.lng < minLng) minLng = q.lng; if (q.lng > maxLng) maxLng = q.lng; }
+            if (ll.lat < minLat - dl || ll.lat > maxLat + dl || ll.lng < minLng - dg || ll.lng > maxLng + dg) continue;
+            var sn = snapNaHranici(ll, pc);
+            if (sn && (!best || sn.d < best.d)) best = sn;
+        }
+        return best;
+    }
+    // chodník / přechod z vlastní mapy (OSM): nejbližší místo čáry do KAT_SNAP_M; jen když je vektor na mapě
+    function snapChodnik(ll) {
+        var MV = window.AGMapaVektor, el = document.getElementById('map');
+        if (!MV || !MV.cary || !el || !el.classList.contains('base-vektor')) return null;
+        var kinds = (window.AGMapaStyl && AGMapaStyl.CHODNIKY) || ['sidewalk', 'crossing'];
+        var lines = []; try { lines = MV.cary('roads', ['path']) || []; } catch (e) { swallow(e, 'chodniky'); return null; }
+        var m = mPerDeg(ll.lat), best = null;
+        lines.forEach(function (ln) {
+            var kd = ln.vlastnosti && ln.vlastnosti.kind_detail; if (kinds.indexOf(kd) < 0) return;
+            for (var i = 0; i + 1 < ln.length; i++) {
+                var ax = (ln[i].lng - ll.lng) * m.lng, ay = (ln[i].lat - ll.lat) * m.lat, bx = (ln[i + 1].lng - ll.lng) * m.lng, by = (ln[i + 1].lat - ll.lat) * m.lat;
+                var dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy;
+                var tt = L2 > 0 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / L2)) : 0;
+                var px = ax + tt * dx, py = ay + tt * dy, d = Math.hypot(px, py);
+                if (d <= KAT_SNAP_M && (!best || d < best.d)) best = { d: d, lat: ll.lat + py / m.lat, lng: ll.lng + px / m.lng, kd: kd };
+            }
+        });
+        return best;
+    }
     function nearFirst(ll) {
         if (_verts.length < 3) return false;
         var m = mPerDeg(ll.lat), f = _verts[0];
@@ -406,7 +451,7 @@
         if (vm === 'ar') { agAlert('Mapa', 'Přepni na mapu nebo dělené zobrazení, pak klepni do mapy.'); return; }
         _verts = []; drawLine();
         _katCache = null; _katLive = [];
-        var kat = 0, ukm = 0, base = baseLayerKind();
+        var kat = 0, ukm = 0, chod = 0, base = baseLayerKind();
         _src = { kind: base, acc: LINE_ACC[base] };
         var dlg = byId(DLG_ID); if (dlg) dlg.style.display = 'none';
         _pickOn = true;
@@ -420,9 +465,10 @@
         function isClosed() { return _verts.length >= 4 && new Line(_verts).closed; }
         function txt() {
             var t = byId('ag-hr-bar-txt'), ok = byId('ag-hr-bar-ok'), cl = byId('ag-hr-bar-close'); if (!t) return;
-            if (_verts.length === 0) t.innerHTML = 'Klepni na <b>začátek</b> čáry, po které půjdeš' + (katastrOn() ? '<br><small>Katastr je zapnutý — klepnutí do 4 m od hranice parcely se na ni přichytí</small>' : (base === 'osm' ? '<br><small style="color:var(--warning,#fbbf24)">Máš uliční mapu — přepni na ortofoto, tam hranu vidíš (±0,3 m místo metrů)</small>' : ''));
+            var vek = false; try { vek = document.getElementById('map').classList.contains('base-vektor'); } catch (e) { /* nic */ }
+            if (_verts.length === 0) t.innerHTML = 'Klepni na <b>začátek</b> čáry, po které půjdeš' + (katastrOn() ? '<br><small>Katastr je zapnutý — klepnutí do 4 m od hranice parcely se na ni přichytí' + (vek ? '; chodník z mapy chytí taky (jen ±2 m)' : '') + '</small>' : (vek ? '<br><small>Chodník z mapy se přichytí (±2 m) — přesnější je zapnout Katastr (hranice ±0,3 m) nebo ortofoto</small>' : (base === 'osm' ? '<br><small style="color:var(--warning,#fbbf24)">Máš uliční mapu — přepni na ortofoto, tam hranu vidíš (±0,3 m místo metrů)</small>' : '')));
             else if (_verts.length === 1) t.innerHTML = 'Teď <b>konec</b> (nebo další lomový bod)';
-            else { var ln = new Line(_verts); t.innerHTML = '<b>' + _verts.length + ' body</b> · ' + fmt(ln.len, 0) + ' m · ' + (ln.closed ? 'uzavřený tvar → celý vektor' : (ln.spread() >= ANGLE_2D ? 'lomená → celý vektor' : 'rovná → jen kolmá složka')) + (kat ? ' · ' + kat + '× hranice katastru' : '') + '<br><small>další lom, Uzavřít tvar (obvod, plusko), nebo Hotovo</small>'; }
+            else { var ln = new Line(_verts); t.innerHTML = '<b>' + _verts.length + ' body</b> · ' + fmt(ln.len, 0) + ' m · ' + (ln.closed ? 'uzavřený tvar → celý vektor' : (ln.spread() >= ANGLE_2D ? 'lomená → celý vektor' : 'rovná → jen kolmá složka')) + (kat ? ' · ' + kat + '× hranice katastru' : '') + (chod ? ' · ' + chod + '× chodník z mapy (±2 m)' : '') + '<br><small>další lom, Uzavřít tvar (obvod, plusko), nebo Hotovo</small>'; }
             if (ok) ok.style.display = _verts.length >= 2 ? '' : 'none';
             if (cl) cl.style.display = (_verts.length >= 3 && !isClosed()) ? '' : 'none';
         }
@@ -431,6 +477,7 @@
             bar.remove(); _pickOn = false;
             if (cancel) { _verts = []; clearLine(); _src = null; }
             else if (kat) _src = ukm ? { kind: 'ukm', acc: LINE_ACC.ukm } : { kind: 'katastr', acc: LINE_ACC.katastr };
+            else if (chod) _src = { kind: 'osm', acc: LINE_ACC.osm };
             _katCache = null; _katLive = [];
             if (dlg) dlg.style.display = 'flex';
             render();
@@ -449,13 +496,18 @@
             if (isClosed()) return;                       // uzavřený tvar už další body nebere
             if (nearFirst(ll)) { closeShape(); return; }  // klepnutí k prvnímu vrcholu = uzavřít
             var sn = snapKatastr(ll);
+            // parcely už načtené vlastní mapou (karta Katastr + vektor): přichytit hned, bez sítě
+            if (!sn && katastrOn()) { var sp = snapParcelyMapy(ll); if (sp) { sn = sp; if (sp.zdroj === 2) ukm++; } }
             if (sn) { ll = { lat: sn.lat, lng: sn.lng }; kat++; }
+            // chodník / přechod z vlastní mapy (±2 m) — jen když katastr nechytil
+            var sc = null;
+            if (!sn) { sc = snapChodnik(ll); if (sc) { ll = { lat: sc.lat, lng: sc.lng }; chod++; } }
             var v = { lat: ll.lat, lng: ll.lng };
             _verts.push(v);
             drawLine(); txt();
             // bez stažených parcel, ale s katastrem na mapě: hranici dotáhnout živě a
             // vrchol na ni posunout, jakmile odpověď dorazí (vrchol už v čáře je, jen se posune)
-            if (!sn && katastrOn() && navigator.onLine !== false) {
+            if (!sn && !sc && katastrOn() && navigator.onLine !== false) {
                 var hotovo = function (parc) {
                     if (!parc || !_pickOn || _verts.indexOf(v) < 0) return;
                     var s2 = snapNaHranici(ll, parc); if (!s2) return;
@@ -740,7 +792,7 @@
     }
 
     // ---- registrace ----------------------------------------------------------------------
-    window.AGHrana = { open: open, _test: { Line: Line, solve: solve, ANGLE_2D: ANGLE_2D, interpShift: interpShift, betweenCandidates: betweenCandidates, reapply: reapply, prevShiftFor: prevShiftFor, pointTime: pointTime, LINE_ACC: LINE_ACC, snapNaHranici: snapNaHranici, fetchParcela: fetchParcela } };
+    window.AGHrana = { open: open, _test: { Line: Line, solve: solve, ANGLE_2D: ANGLE_2D, interpShift: interpShift, betweenCandidates: betweenCandidates, reapply: reapply, prevShiftFor: prevShiftFor, pointTime: pointTime, LINE_ACC: LINE_ACC, snapNaHranici: snapNaHranici, fetchParcela: fetchParcela, snapParcelyMapy: snapParcelyMapy, snapChodnik: snapChodnik } };
     function register() {
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'kalibrace-hranou', label: 'Kalibrace chůzí po hraně', icon: ICON, cat: 'AR a kalibrace', onClick: open, order: 71 });

@@ -24,8 +24,9 @@
 // Knihovny (js/lib/maplibre-gl-5.24.0.js + css, pmtiles-4.5.0.js, maplibre-gl-leaflet)
 // se stahují AŽ při zapnutí, ne při startu.
 //
-// STYL: 'auto' = podle motivu appky (tmavý → noc, modrotisk → modrotisk, jinak den),
-// nebo napevno den/noc/modrotisk/tisk. Třída .base-osm (invertování rastru v tmavém
+// STYL: 'auto' = podle motivu appky (tmavý i modrotisk → noc, jinak den), nebo napevno
+// den/noc/tisk (varianta modrotisk zrušena 19. 9. 2026 — uložená volba spadne na 'auto').
+// Třída .base-osm (invertování rastru v tmavém
 // motivu, css/motivy-teren.css) se na plátno MapLibre nevztahuje — kreslíme rovnou barvy.
 //
 // DATA: adresa souboru PMTiles je v nastavení (agMapaVektor_v1.url); výchozí je worker
@@ -94,7 +95,7 @@
     }
 
     var st = { zap: true, styl: 'auto', url: '' };   // zap: výchozí ZAPNUTO (18. 9. 2026), uložená volba má přednost
-    try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && typeof s === 'object') { if (s.zap != null) st.zap = !!s.zap; if (s.styl) st.styl = s.styl; if (s.url) st.url = String(s.url); } } catch (e) { swallow(e, 'load'); }
+    try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && typeof s === 'object') { if (s.zap != null) st.zap = !!s.zap; if (s.styl && s.styl !== 'modrotisk') st.styl = s.styl; if (s.url) st.url = String(s.url); } } catch (e) { swallow(e, 'load'); }
     function uloz() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { swallow(e, 'save'); } }
     function url() { return st.url || (URL_ZAKLAD + soubor()); }
     function lite() { return !!(window.AGLite && AGLite.lite); }
@@ -134,8 +135,7 @@
     // ---- varianta stylu podle motivu ---------------------------------------------------
     function variantaAuto() {
         var b = document.body.classList;
-        if (b.contains('theme-blueprint')) return 'modrotisk';
-        if (b.contains('theme-night') || !b.contains('light-mode')) return 'noc';
+        if (b.contains('theme-blueprint') || b.contains('theme-night') || !b.contains('light-mode')) return 'noc';
         return 'den';
     }
     function varianta() { return (st.styl && st.styl !== 'auto') ? st.styl : variantaAuto(); }

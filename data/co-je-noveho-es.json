@@ -2,6 +2,17 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 384,
+      "datum": "2026-09-19",
+      "nadpis": "Límites de parcelas y aceras directamente en tu propio mapa; estilo Cianotipo eliminado",
+      "body": [
+        "<b>Límites de parcelas en el mapa.</b> La tarjeta <b>Catastro</b> (Capas → Base) dibuja sobre tu mapa vectorial los límites y números de parcela como <b>líneas en el color del estilo</b> — legibles en el mapa oscuro, sin tramas ni símbolos de la imagen WMS. Las parcelas se descargan de RÚIAN ČÚZK para donde miras (desde zoom 16, en trozos de ~300 m, cada trozo una sola vez) y se quedan en el teléfono. Los edificios ya no están «en medio de nada»: ves de quién es la valla y dónde llega el límite a la vía. Sobre la ortofoto y en el extranjero el catastro sigue como antes (WMS).",
+        "<b>Aceras y pasos como borde a lo largo de la calle.</b> Tu propio mapa los dibuja con una línea fina continua junto a la calzada (pasos a trazos) en vez de una «senda» gruesa a trazos: ves por dónde va el borde por el que se puede caminar.",
+        "<b>La calibración caminando por un borde</b> usa estas líneas: con el Catastro activo, un toque a menos de 4 m de un límite de parcela se ajusta al instante, sin esperar a la red (límite DKM ±0,3 m); sin catastro se ajusta a la acera del mapa, pero esa está dibujada a mano en OpenStreetMap (±2 m); la ventana lo dice y recomienda Catastro u ortofoto.",
+        "<b>Estilo del mapa vectorial:</b> solo Según tema · Día · Noche · Impresión. El Cianotipo desaparece (a petición); el tema Cianotipo recibe en el mapa la variante nocturna."
+      ]
+    },
+    {
       "v": 383,
       "datum": "2026-09-19",
       "nadpis": "Mapa vectorial propio terminado para toda Europa — los 45 países",

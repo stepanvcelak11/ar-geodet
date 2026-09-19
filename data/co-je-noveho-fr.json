@@ -2,6 +2,17 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 384,
+      "datum": "2026-09-19",
+      "nadpis": "Limites de parcelles et trottoirs directement dans ta propre carte ; style Cyanotype retiré",
+      "body": [
+        "<b>Limites de parcelles dans la carte.</b> La carte <b>Cadastre</b> (Couches → Fond) dessine au‑dessus de ta carte vectorielle les limites et numéros de parcelles comme des <b>lignes dans la couleur du style</b> — lisibles sur la carte sombre, sans hachures ni symboles de l'image WMS. Les parcelles sont chargées depuis RÚIAN ČÚZK pour l'endroit que tu regardes (à partir du zoom 16, par morceaux de ~300 m, chaque morceau une seule fois) et restent dans le téléphone. Les bâtiments ne sont plus « au milieu de rien » : tu vois à qui est la clôture et où la limite rejoint la voie. Au‑dessus de l'orthophoto et à l'étranger, le cadastre reste comme avant (WMS).",
+        "<b>Trottoirs et passages comme bord le long de la route.</b> Ta propre carte les dessine en trait fin continu à côté de la chaussée (passages en pointillés) au lieu d'un « sentier » épais en pointillés : tu vois où passe le bord le long duquel on peut marcher.",
+        "<b>L'étalonnage en marchant le long d'un bord</b> utilise ces lignes : avec le Cadastre activé, un appui à moins de 4 m d'une limite de parcelle s'accroche tout de suite, sans attendre le réseau (limite DKM ±0,3 m) ; sans cadastre, il s'accroche au trottoir de la carte — mais celui‑ci est dessiné à la main dans OpenStreetMap (±2 m), la fenêtre le dit et recommande le Cadastre ou l'orthophoto.",
+        "<b>Style de la carte vectorielle :</b> seulement Selon le thème · Jour · Nuit · Impression. Le Cyanotype a disparu (à la demande) ; le thème Cyanotype reçoit pour la carte la variante nuit."
+      ]
+    },
+    {
       "v": 383,
       "datum": "2026-09-19",
       "nadpis": "Carte vectorielle maison terminée pour toute l’Europe — les 45 pays",

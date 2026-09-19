@@ -2,6 +2,17 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 384,
+      "datum": "2026-09-19",
+      "nadpis": "Parcel boundaries and sidewalks right in your own map; Blueprint style removed",
+      "body": [
+        "<b>Parcel boundaries in the map.</b> The <b>Cadastre</b> card (Layers → Basemap) now draws parcel boundaries and numbers over your own vector map as <b>lines in the style's colour</b> — readable on the dark map, without the hatching and symbols of the WMS image. Parcels are fetched from ČÚZK RÚIAN for where you look (from zoom 16, in ~300 m chunks, each chunk once) and stay on the phone. Buildings no longer stand “in the middle of nothing” — you see whose fence it is and where the boundary meets the road. Over the Orthophoto and abroad the cadastre stays as before (WMS).",
+        "<b>Sidewalks and crossings as an edge along the road.</b> Your own map draws them as a thin solid line beside the carriageway (crossings dashed) instead of a thick dashed “path” — you see where the edge you can walk along runs.",
+        "<b>Walk-along-edge calibration</b> uses these lines: with the Cadastre on, a tap within 4 m of a parcel boundary snaps immediately, no network wait (DKM boundary ±0.3 m); without the cadastre it snaps to a sidewalk from the map — but that one is hand-drawn in OpenStreetMap (±2 m), the window says so and recommends the Cadastre or orthophoto.",
+        "<b>Vector map style:</b> only By theme · Day · Night · Print. Blueprint is gone (on request); the Blueprint theme gets the night variant of the map."
+      ]
+    },
+    {
       "v": 383,
       "datum": "2026-09-19",
       "nadpis": "Own vector map finished for all of Europe — all 45 countries",

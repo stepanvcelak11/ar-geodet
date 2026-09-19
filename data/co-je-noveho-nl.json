@@ -2,6 +2,17 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 384,
+      "datum": "2026-09-19",
+      "nadpis": "Perceelgrenzen en stoepen rechtstreeks in je eigen kaart; stijl Blauwdruk verwijderd",
+      "body": [
+        "<b>Perceelgrenzen in de kaart.</b> De kaart <b>Kadaster</b> (Lagen → Ondergrond) tekent boven je eigen vectorkaart perceelgrenzen en -nummers als <b>lijnen in de kleur van de stijl</b> — leesbaar op de donkere kaart, zonder arceringen en symbolen van het WMS-beeld. Percelen worden opgehaald uit RÚIAN ČÚZK voor waar je kijkt (vanaf zoom 16, in stukken van ~300 m, elk stuk één keer) en blijven in de telefoon. Gebouwen staan niet meer „midden in het niets” — je ziet van wie het hek is en waar de grens de weg raakt. Boven de orthofoto en in het buitenland blijft het kadaster zoals het was (WMS).",
+        "<b>Stoepen en oversteekplaatsen als rand langs de weg.</b> Je eigen kaart tekent ze als dunne doorgetrokken lijn naast de rijbaan (oversteekplaatsen gestreept) in plaats van een dik gestreept „pad” — je ziet waar de rand loopt waarlangs je kunt lopen.",
+        "<b>Kalibratie door langs een rand te lopen</b> gebruikt deze lijnen: met het Kadaster aan klikt een tik binnen 4 m van een perceelgrens meteen vast, zonder wachten op het netwerk (grens DKM ±0,3 m); zonder kadaster klikt de stoep uit de kaart vast — maar die is in OpenStreetMap uit de hand getekend (±2 m), het venster zegt het en raadt Kadaster of orthofoto aan.",
+        "<b>Stijl van de vectorkaart:</b> alleen Volgens thema · Dag · Nacht · Afdruk. Blauwdruk is weg (op verzoek); het thema Blauwdruk krijgt bij de kaart de nachtvariant."
+      ]
+    },
+    {
       "v": 383,
       "datum": "2026-09-19",
       "nadpis": "Eigen vectorkaart klaar voor heel Europa — alle 45 landen",

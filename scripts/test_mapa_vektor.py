@@ -7,7 +7,7 @@
      knihovny se dotahnou, v Leafletu je platno MapLibre (#map.base-vektor), styl nacteny,
      v dlazdicich jsou budovy (querySourceFeatures > 0) a vykreslene prvky (queryRenderedFeatures),
      AGMapaVektor.budovy() vraci polygony s vyskou, prepnuti Ortofoto a zpet mapu neztrati
-  C  styl: tmavy motiv → varianta noc (pozadi tmave), rucni „modrotisk" → setStyle,
+  C  styl: tmavy motiv → varianta noc (pozadi tmave), rucni „tisk" → setStyle (modrotisk zrusen 19. 9. 2026),
      „tisk" → bile pozadi; styl „den" ma 4 varianty a vsechny projdou validaci vrstev
   D  vypnuti vrati rastr OSM; nastaveni prezije reload (localStorage)
   E  VYKRES DXF JAKO VRSTVA (M3): tabulka LAYER s barvami ACI, LWPOLYLINE jako retezec, osa se
@@ -181,14 +181,14 @@ async def beh(url):
 
         # ================= C: styly ================================================
         ok('C1 svetly motiv → varianta den', await page.evaluate("() => AGMapaVektor.varianta() === 'den' || AGMapaVektor.varianta() === 'noc'"), await page.evaluate("() => [AGMapaVektor.varianta(), document.body.className]"))
-        for v in ('noc', 'modrotisk', 'tisk', 'den'):
+        for v in ('noc', 'tisk', 'den'):
             await page.evaluate("() => AGMapaVektor.nastav({ styl: %s })" % json.dumps(v))
             await cekej(page, "AGMapaVektor.mapa() && AGMapaVektor.mapa().getStyle() && AGMapaVektor.mapa().getStyle().name.endsWith(%s)" % json.dumps(v), 20)
             pal = await page.evaluate("() => AGMapaStyl.PALETY[%s].zem" % json.dumps(v))
             got = await page.evaluate("() => { var m = AGMapaVektor.mapa(); var l = m.getStyle().layers[0]; return [m.getStyle().name, l.paint['background-color']]; }")
             ok('C2 styl „%s": setStyle prosel, pozadi = paleta' % v, got and got[0].endswith(v) and got[1] == pal, got)
-        vals = await page.evaluate("() => AGMapaStyl.VARIANTY.map(v => { var s = AGMapaStyl.vytvor(v, 'x.pmtiles'); return [v, s.layers.length, s.layers.every(l => l.id && l.type && (l.type === 'background' || (l.source === 'pm' && l['source-layer'])))]; })")
-        ok('C3 vsechny 4 varianty stylu maji stejne vrstvy a kazda vrstva ma zdroj', all(x[2] for x in vals) and len(set(x[1] for x in vals)) == 1 and vals[0][1] >= 20, vals)
+        vals = await page.evaluate("() => AGMapaStyl.VARIANTY.map(v => { var s = AGMapaStyl.vytvor(v, 'x.pmtiles'); return [v, s.layers.length, s.layers.every(l => l.id && l.type && (l.type === 'background' || (l.source === 'pm' && l['source-layer']) || l.source === 'parcely'))]; })")
+        ok('C3 vsechny 3 varianty stylu maji stejne vrstvy a kazda vrstva ma zdroj', all(x[2] for x in vals) and len(set(x[1] for x in vals)) == 1 and vals[0][1] >= 20, vals)
         await page.evaluate("() => AGMapaVektor.nastav({ styl: 'auto' })")
 
         # ================= D: vypnuti + persistence ================================

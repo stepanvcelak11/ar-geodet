@@ -2,6 +2,17 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 384,
+      "datum": "2026-09-19",
+      "nadpis": "Limites de parcelas e passeios diretamente no teu próprio mapa; estilo Cianotipia removido",
+      "body": [
+        "<b>Limites de parcelas no mapa.</b> O cartão <b>Cadastro</b> (Camadas → Fundo) desenha sobre o teu mapa vetorial os limites e números das parcelas como <b>linhas na cor do estilo</b> — legíveis no mapa escuro, sem tracejados nem símbolos da imagem WMS. As parcelas são descarregadas do RÚIAN ČÚZK para onde olhas (a partir do zoom 16, em pedaços de ~300 m, cada pedaço uma só vez) e ficam no telemóvel. Os edifícios já não estão «no meio de nada»: vês de quem é a vedação e onde o limite chega à via. Sobre a ortofoto e no estrangeiro o cadastro fica como antes (WMS).",
+        "<b>Passeios e passadeiras como bordo ao longo da estrada.</b> O teu próprio mapa desenha-os com uma linha fina contínua junto à faixa de rodagem (passadeiras a tracejado) em vez de um «trilho» grosso tracejado: vês por onde passa o bordo ao longo do qual se pode caminhar.",
+        "<b>A calibração a andar ao longo de um bordo</b> usa estas linhas: com o Cadastro ligado, um toque a menos de 4 m de um limite de parcela ajusta-se logo, sem esperar pela rede (limite DKM ±0,3 m); sem cadastro ajusta-se ao passeio do mapa — mas esse está desenhado à mão no OpenStreetMap (±2 m), a janela di-lo e recomenda o Cadastro ou a ortofoto.",
+        "<b>Estilo do mapa vetorial:</b> só Segundo o tema · Dia · Noite · Impressão. A Cianotipia desapareceu (a pedido); o tema Cianotipia recebe no mapa a variante noturna."
+      ]
+    },
+    {
       "v": 383,
       "datum": "2026-09-19",
       "nadpis": "Mapa vetorial próprio concluído para toda a Europa — todos os 45 países",

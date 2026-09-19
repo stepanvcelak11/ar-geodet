@@ -2,6 +2,17 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 384,
+   "datum": "2026-09-19",
+   "nadpis": "Hranice parcel a chodníky přímo ve vlastní mapě; styl Modrotisk pryč",
+   "body": [
+    "<b>Hranice pozemků v mapě.</b> Karta <b>Katastr</b> (Vrstvy → Podklad) kreslí nad vlastní vektorovou mapou hranice a čísla parcel jako <b>čáry v barvě stylu</b> — v tmavé mapě čitelné, bez šraf a značek z obrázku WMS. Parcely se stahují z RÚIAN ČÚZK podle toho, kam se díváš (od přiblížení 16, po kouskách ~300 m, každý kousek jen jednou), a zůstávají v telefonu. Budovy už nestojí „uprostřed ničeho“ — vidíš, čí je plot a kde vede hranice ke komunikaci. Nad Ortofotem a v cizině zůstává katastr jako dřív (WMS).",
+    "<b>Chodníky a přechody jako hrana podél silnice.</b> Vlastní mapa je kreslí tenkou plnou čarou vedle vozovky (přechody čárkovaně) místo tlusté čárkované „pěšiny“ — vidíš, kudy vede hrana, po které se dá jít.",
+    "<b>Kalibrace chůzí po hraně</b> tyhle čáry používá: se zapnutým Katastrem se klepnutí do 4 m od hranice parcely přichytí hned, bez čekání na síť (hranice DKM ±0,3 m); bez katastru se chytí chodník z mapy — ale ten je z OpenStreetMap kreslený od ruky (±2 m), okno to říká a doporučí Katastr nebo ortofoto.",
+    "<b>Styl vektorové mapy:</b> jen Podle motivu · Den · Noc · Tisk. Modrotisk je pryč (na přání); motiv Modrotisk dostane u mapy noční variantu."
+   ]
+  },
+  {
    "v": 383,
    "datum": "2026-09-19",
    "nadpis": "Vlastní vektorová mapa hotová pro celou Evropu — všech 45 zemí",

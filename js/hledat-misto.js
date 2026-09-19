@@ -109,7 +109,7 @@
             '#' + OV_ID + ' .aghm-content{display:flex;flex-direction:column;max-height:88vh;}',
             '.aghm-title{margin:0 0 8px;color:var(--accent);font-family:var(--font-display,sans-serif);}',
             '.aghm-q{display:flex;gap:6px;}',
-            '.aghm-q input{flex:1;min-width:0;font-size:calc(15px * var(--ag-font-scale,1));padding:10px 12px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:var(--bg-2,rgba(0,0,0,0.25));color:inherit;}',
+            '.aghm-q input{flex:1;min-width:0;font-size:calc(15px * var(--ag-font-scale,1));padding:10px 12px;border-radius:10px;border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:var(--surface-1);color:inherit;}',
             '.aghm-q button{flex:0 0 auto;padding:0 14px;border-radius:10px;}',
             '.aghm-hint{color:var(--text-muted,#9aa1ac);font-size:calc(12px * var(--ag-font-scale,1));line-height:1.45;margin:6px 2px 2px;}',
             '#' + OV_ID + ' .aghm-body{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-top:8px;}',

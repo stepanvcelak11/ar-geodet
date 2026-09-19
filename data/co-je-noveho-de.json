@@ -2,6 +2,17 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 384,
+      "datum": "2026-09-19",
+      "nadpis": "Flurstücksgrenzen und Gehwege direkt in der eigenen Karte; Stil Blaupause entfernt",
+      "body": [
+        "<b>Grundstücksgrenzen in der Karte.</b> Die Karte <b>Kataster</b> (Ebenen → Grundkarte) zeichnet über der eigenen Vektorkarte Flurstücksgrenzen und -nummern als <b>Linien in der Farbe des Stils</b> — auf der dunklen Karte lesbar, ohne Schraffuren und Symbole des WMS-Bildes. Die Flurstücke kommen aus RÚIAN des ČÚZK für den Ausschnitt, den du ansiehst (ab Zoom 16, in Stücken von ~300 m, jedes Stück nur einmal), und bleiben im Telefon. Gebäude stehen nicht mehr „mitten im Nichts“ — du siehst, wessen Zaun das ist und wo die Grenze zur Straße verläuft. Über dem Orthofoto und im Ausland bleibt das Kataster wie bisher (WMS).",
+        "<b>Gehwege und Übergänge als Kante entlang der Straße.</b> Die eigene Karte zeichnet sie als dünne durchgezogene Linie neben der Fahrbahn (Übergänge gestrichelt) statt als dicken gestrichelten „Pfad“ — du siehst, wo die Kante verläuft, an der du entlanggehen kannst.",
+        "<b>Kalibrierung durch Gehen entlang einer Kante</b> nutzt diese Linien: mit eingeschaltetem Kataster rastet ein Tipp bis 4 m von einer Flurstücksgrenze sofort ein, ohne Warten aufs Netz (Grenze DKM ±0,3 m); ohne Kataster rastet der Gehweg aus der Karte ein — der ist aber in OpenStreetMap von Hand gezeichnet (±2 m), das Fenster sagt es und empfiehlt Kataster oder Orthofoto.",
+        "<b>Stil der Vektorkarte:</b> nur Nach Thema · Tag · Nacht · Druck. Blaupause ist weg (auf Wunsch); das Thema Blaupause bekommt bei der Karte die Nachtvariante."
+      ]
+    },
+    {
       "v": 383,
       "datum": "2026-09-19",
       "nadpis": "Eigene Vektorkarte fertig für ganz Europa — alle 45 Länder",

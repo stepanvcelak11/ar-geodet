@@ -2,6 +2,17 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 384,
+      "datum": "2026-09-19",
+      "nadpis": "Granice działek i chodniki bezpośrednio we własnej mapie; styl Blueprint usunięty",
+      "body": [
+        "<b>Granice działek na mapie.</b> Karta <b>Kataster</b> (Warstwy → Podkład) rysuje nad własną mapą wektorową granice i numery działek jako <b>linie w kolorze stylu</b> — czytelne na ciemnej mapie, bez kreskowań i znaków z obrazu WMS. Działki pobierane są z RÚIAN ČÚZK dla miejsca, na które patrzysz (od zoomu 16, kawałkami ~300 m, każdy kawałek raz), i zostają w telefonie. Budynki nie stoją już „pośrodku niczego” — widzisz, czyj to płot i gdzie granica dochodzi do drogi. Nad ortofotomapą i za granicą kataster zostaje jak dotąd (WMS).",
+        "<b>Chodniki i przejścia jako krawędź wzdłuż drogi.</b> Własna mapa rysuje je cienką ciągłą linią obok jezdni (przejścia kreskowane) zamiast grubej kreskowanej „ścieżki” — widzisz, którędy biegnie krawędź, po której da się iść.",
+        "<b>Kalibracja marszem wzdłuż krawędzi</b> korzysta z tych linii: przy włączonym Katastrze dotknięcie do 4 m od granicy działki przyciąga się od razu, bez czekania na sieć (granica DKM ±0,3 m); bez katastru przyciąga się chodnik z mapy — ale ten w OpenStreetMap jest rysowany od ręki (±2 m), okno o tym mówi i zaleca Kataster albo ortofotomapę.",
+        "<b>Styl mapy wektorowej:</b> tylko Według motywu · Dzień · Noc · Druk. Blueprint zniknął (na życzenie); motyw Blueprint dostaje na mapie wariant nocny."
+      ]
+    },
+    {
       "v": 383,
       "datum": "2026-09-19",
       "nadpis": "Własna mapa wektorowa gotowa dla całej Europy — wszystkie 45 krajów",
