@@ -339,7 +339,7 @@
         h += radek('Hranice', p.zdroj === 1 ? 'DKM — digitální, na cm až dm' : (p.zdroj === 2 ? 'UKM — z analogové mapy, na metry' : (p.dkm ? 'digitální (DKM/KMD)' : 'v k.ú. ještě není digitální mapa')));
         if (p.platiod) { try { var dt = new Date(+p.platiod); if (!isNaN(dt)) h += radek('Platí od', dt.toLocaleDateString('cs-CZ')); } catch (e) { /* nic */ } }
         if (p.adresa && p.adresa.adresa) h += radek('Adresa' + (p.adresa.d > 5 ? ' (' + Math.round(p.adresa.d) + ' m)' : ''), esc(p.adresa.adresa));
-        if (p.teren != null) h += radek('Terén (DMR 5G)', p.teren.toFixed(1).replace('.', ',') + ' m Bpv');
+        if (p.teren != null) { var ti = (typeof window.terrainElevInfo === 'function') ? window.terrainElevInfo() : { zdroj: 'DMR 5G', system: 'Bpv' }; h += radek('Terén (' + ti.zdroj + ')', p.teren.toFixed(1).replace('.', ',') + ' m ' + ti.system); }
         if (p.stavba) {
             var so = p.stavba, typ = so.typstavebnihoobjektukod;
             var cislo = so.cisladomovni ? ((typ === 2 ? 'č.e. ' : 'č.p. ') + String(so.cisladomovni).replace(/,/g, ', ')) : 'bez čísla popisného';
@@ -380,9 +380,75 @@
     }
 
     // ---- vstup ---------------------------------------------------------------------------
+    // ---- MIMO ČR (19. 9. 2026, E4): PL (ULDK), FR (apicarto), NL (PDOK) přes js/zdroje-zemi.js ----
+    function zemeKod() { try { return (window.AGSour && AGSour.kod && AGSour.kod()) || 'CZ'; } catch (e) { return 'CZ'; } }
+    function T(s) { try { return (window.AGJazyk && AGJazyk.t) ? AGJazyk.t(s) : s; } catch (e) { return s; } }
+    function vymeraMistni(rings) {   // shoelace v místním systému země (AGSour), m²
+        try {
+            if (!rings || !rings.length || !window.AGSour || !AGSour.doMistnich) return null;
+            var a = 0, spatne = false;
+            rings.forEach(function (ring, ri) {   // první prstenec = obvod, další = díry (odečíst)
+                var pts = ring.map(function (c) { var m = AGSour.doMistnich(c[0], c[1]); return [m.y, m.x]; }), s = 0;
+                for (var i = 0, j = pts.length - 1; i < pts.length; j = i++) s += (pts[j][0] * pts[i][1]) - (pts[i][0] * pts[j][1]);
+                if (!isFinite(s)) spatne = true;
+                a += (ri === 0 ? 1 : -1) * Math.abs(s) / 2;
+            });
+            return (spatne || !isFinite(a) || a <= 0) ? null : Math.round(a);
+        } catch (e) { return null; }
+    }
+    function vykresliCizi(p) {
+        var t = _ov.querySelector('#agpk-title'), sub = _ov.querySelector('#agpk-sub'), body = _ov.querySelector('#agpk-body'), acts = _ov.querySelector('#agpk-acts');
+        acts.innerHTML = '';
+        if (!p) {
+            t.textContent = T('Parcela'); sub.textContent = '';
+            body.innerHTML = '<div class="agpk-note">' + esc(T('Tady katastr žádnou parcelu nevede — klepni dovnitř parcely (na hranici to nemusí sednout).')) + '</div>';
+            return;
+        }
+        t.textContent = T('Parcela') + ' ' + p.cislo;
+        var s = []; if (p.ku) s.push(p.ku); if (p.obec) s.push(p.obec); if (p.kraj) s.push(p.kraj);
+        sub.textContent = s.join(' · ');
+        var h = '';
+        if (p.vymera != null) h += radek(T('Výměra'), num(p.vymera) + ' m²' + (p.vymera >= 5000 ? ' <small>(' + (p.vymera / 10000).toFixed(2).replace('.', ',') + ' ha)</small>' : ''));
+        var vg = vymeraMistni(p.rings);
+        if (vg != null) h += radek(T('Výměra z grafiky'), num(vg) + ' m²' + (p.vymera ? ' <small>(' + ((vg - p.vymera) >= 0 ? '+' : '−') + num(Math.abs(vg - p.vymera)) + ' m²)</small>' : ''));
+        if (p.id) h += radek(T('Identifikátor'), esc(p.id));
+        h += radek(T('Zdroj'), esc(p.zdroj));
+        h += '<div class="agpk-note">' + esc(T('Vlastníka a věcná břemena dává jen katastrální portál té země — tlačítko dole ho otevře.')) + '</div>';
+        body.innerHTML = h;
+        acts.innerHTML = (p.odkaz ? '<button type="button" class="btn btn-blue" data-act="portal">' + esc(T('Katastr země')) + ' ↗</button>' : '')
+            + '<button type="button" class="btn btn-secondary" data-act="kopie">' + esc(T('Zkopírovat číslo parcely')) + '</button>';
+        var pb = acts.querySelector('[data-act="portal"]'); if (pb) pb.addEventListener('click', function () { try { window.open(p.odkaz, '_blank', 'noopener'); } catch (e) { swallow(e, 'portal'); } });
+    }
+    function tapCizi(lat, lng, kod) {
+        var seq = ++_seq;
+        _posledni = { lat: lat, lng: lng, cislo: '', kuNazev: '', kuKod: null, vymera: null };
+        open();
+        _ov.querySelector('#agpk-title').textContent = T('Parcela');
+        _ov.querySelector('#agpk-sub').textContent = '';
+        _ov.querySelector('#agpk-acts').innerHTML = '';
+        _ov.querySelector('#agpk-body').innerHTML = '<div class="agpk-wait">' + esc(T('Hledám parcelu v katastru země…')) + '</div>';
+        smazZvyrazneni();
+        AGZdroje.parcela(lat, lng).then(function (p) {
+            if (seq !== _seq) return;
+            if (p) { _posledni = { lat: lat, lng: lng, cislo: p.cislo, kuNazev: p.obec, kuKod: null, vymera: p.vymera, rings: p.rings }; zvyrazni(_posledni); }
+            vykresliCizi(p);
+        }).catch(function (e) {
+            if (seq !== _seq) return;
+            swallow(e, 'tapCizi');
+            vykresli(null, T('Katastr země teď neodpověděl') + ' (' + (e && e.message ? e.message : 'síť') + '). ' + T('Zkus to za chvíli.'));
+        });
+        return true;
+    }
+
     function tap(lat, lng) {
         if (!isFinite(lat) || !isFinite(lng)) return false;
         if (navigator.onLine === false) { toast('Údaje o parcele potřebují signál — teď jsi offline.'); return false; }
+        var kod = zemeKod();
+        if (kod !== 'CZ') {
+            if (window.AGZdroje && AGZdroje.maParcelu && AGZdroje.maParcelu(kod)) return tapCizi(lat, lng, kod);
+            toast(T('Parcelu klepnutím tu neumím — v mapě je jen obraz katastru, portál země otevře nástroj Katastr.'));
+            return false;
+        }
         var seq = ++_seq;
         _posledni = { lat: lat, lng: lng, cislo: '', kuNazev: '', kuKod: null, vymera: null };
         open();

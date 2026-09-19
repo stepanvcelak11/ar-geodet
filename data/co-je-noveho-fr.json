@@ -2,6 +2,16 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 379,
+      "datum": "2026-09-19",
+      "nadpis": "Points officiels en France et en Espagne, parcelle au toucher en PL/FR/NL, altitude du terrain dans toute l’Europe",
+      "body": [
+        "<b>Points officiels désormais aussi en France et en Espagne.</b> La fiche prétendait que seuls quatre pays publient leur canevas — c’est faux. En France, l’appli télécharge les points IGN (réseau RBF, réseau de détail RDF et <b>387 mille repères de nivellement</b> avec état et altitude NGF-IGN69), en Espagne les sommets ROI et REGENTE et les repères de nivellement REDNAP (IGN España, altitudes orthométriques). Chaque point renvoie à sa fiche/reseña (PDF) — « Ouvrir le croquis » dans la fiche du point. Six pays avec points officiels : Tchéquie, Slovaquie, Suisse, Pays-Bas, France, Espagne.",
+        "<b>Parcelle au toucher aussi hors de Tchéquie.</b> En Pologne (ULDK GUGiK), en France (IGN apicarto) et aux Pays-Bas (Kadaster PDOK), un toucher sur la carte avec le cadastre activé montre le numéro de parcelle, la commune, la contenance (et la surface d’après la limite pour contrôle), surligne la limite et ouvre le portail du pays d’un bouton. La fiche « Tu mesures en » le dit à côté de Cadastre.",
+        "<b>Altitude du terrain dans toute l’Europe.</b> Avant, seulement ČÚZK DMR 5G, ailleurs « impossible à obtenir ». Maintenant selon le pays : Suisse swissALTI3D (±0,5 m, LN02), France RGE ALTI (±0,5 m, NGF-IGN69), ailleurs tuiles EU-DEM/SRTM (±5 m — indicatif seulement ; l’appli le dit dans Nouveau point et n’écrase pas l’altitude GPS). Nouveau point, parcelle et paquet de chantier le partagent ; la note sur le « scan 2009–2013 » ne reste qu’avec DMR 5G."
+      ]
+    },
+    {
       "v": 378,
       "datum": "2026-09-19",
       "nadpis": "À l’étranger sans tchèque et sans ČÚZK : ce qui n’est que tchèque se cache ou bascule",

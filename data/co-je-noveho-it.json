@@ -2,6 +2,16 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 379,
+      "datum": "2026-09-19",
+      "nadpis": "Punti ufficiali in Francia e Spagna, particella al tocco in PL/FR/NL, quota del terreno in tutta Europa",
+      "body": [
+        "<b>Punti ufficiali anche in Francia e Spagna.</b> La scheda diceva che solo quattro paesi pubblicano la rete geodetica — non è vero. In Francia l’app scarica i punti IGN (rete RBF, rete di dettaglio RDF e <b>387 mila capisaldi di livellazione</b> con stato e quota NGF-IGN69), in Spagna i vertici ROI e REGENTE e i segnali di livellazione REDNAP (IGN España, quote ortometriche). Ogni punto rimanda alla sua fiche/reseña (PDF) — «Apri schizzo» nella scheda. Sei paesi con punti ufficiali: Cechia, Slovacchia, Svizzera, Paesi Bassi, Francia, Spagna.",
+        "<b>Particella al tocco anche fuori dalla Cechia.</b> In Polonia (ULDK GUGiK), Francia (IGN apicarto) e Paesi Bassi (Kadaster PDOK) un tocco sulla mappa con il catasto attivo mostra numero di particella, comune, superficie (e la superficie dal confine come controllo), evidenzia il confine e apre il portale del paese con un pulsante. La scheda «Stai misurando in» lo dice accanto a Catasto.",
+        "<b>Quota del terreno in tutta Europa.</b> Prima solo ČÚZK DMR 5G, altrove «impossibile ottenere». Ora per paese: Svizzera swissALTI3D (±0,5 m, LN02), Francia RGE ALTI (±0,5 m, NGF-IGN69), altrove tasselli EU-DEM/SRTM (±5 m — solo indicativo; l’app lo dice nel Nuovo punto e non sovrascrive la quota GPS). Nuovo punto, particella e pacchetto lavoro lo condividono; la nota sulla «scansione 2009–2013» resta solo con DMR 5G."
+      ]
+    },
+    {
       "v": 378,
       "datum": "2026-09-19",
       "nadpis": "All’estero senza ceco e senza ČÚZK: ciò che è solo ceco si nasconde o cambia",

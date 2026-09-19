@@ -2,6 +2,16 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 379,
+      "datum": "2026-09-19",
+      "nadpis": "Puntos oficiales en Francia y España, parcela con un toque en PL/FR/NL, altura del terreno en toda Europa",
+      "body": [
+        "<b>Puntos oficiales también en Francia y España.</b> La tarjeta decía que solo cuatro países publican su red geodésica — no es cierto. En Francia la app descarga puntos IGN (red RBF, red de detalle RDF y <b>387 mil señales de nivelación</b> con estado y altura NGF-IGN69), en España los vértices ROI y REGENTE y las señales de nivelación REDNAP (IGN España, alturas ortométricas). Cada punto enlaza a su ficha/reseña (PDF) — «Abrir croquis» en la tarjeta. Seis países con puntos oficiales: Chequia, Eslovaquia, Suiza, Países Bajos, Francia, España.",
+        "<b>Parcela con un toque también fuera de Chequia.</b> En Polonia (ULDK GUGiK), Francia (IGN apicarto) y Países Bajos (Kadaster PDOK), un toque en el mapa con el catastro activado muestra el número de parcela, el municipio, la superficie (y la superficie del límite como control), resalta el límite y abre el portal del país con un botón. La tarjeta «Estás midiendo en» lo indica junto a Catastro.",
+        "<b>Altura del terreno en toda Europa.</b> Antes solo ČÚZK DMR 5G, en otros lugares «no se puede obtener». Ahora según el país: Suiza swissALTI3D (±0,5 m, LN02), Francia RGE ALTI (±0,5 m, NGF-IGN69), en otros lugares teselas EU-DEM/SRTM (±5 m — solo orientativo; la app lo dice en Nuevo punto y no sobrescribe la altura del GPS). Nuevo punto, parcela y paquete de trabajo lo comparten; la nota sobre el «escaneo 2009–2013» queda solo con DMR 5G."
+      ]
+    },
+    {
       "v": 378,
       "datum": "2026-09-19",
       "nadpis": "En el extranjero sin checo y sin ČÚZK: lo que es solo checo se oculta o se cambia",

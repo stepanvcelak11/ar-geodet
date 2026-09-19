@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 379,
+      "datum": "2026-09-19",
+      "nadpis": "Official points in France and Spain, parcel by tap in PL/FR/NL, terrain height across Europe",
+      "body": [
+        "<b>Official points now also in France and Spain.</b> The card claimed only four countries publish geodetic control — not true. In France the app downloads IGN points (RBF network, RDF detail network and <b>387 thousand levelling benchmarks</b> with state and NGF-IGN69 height), in Spain the ROI and REGENTE vertices and REDNAP levelling marks (IGN España, orthometric heights). Every point links to its fiche/reseña (PDF) — “Open sketch” in the card. Six countries with official points: Czechia, Slovakia, Switzerland, Netherlands, France, Spain.",
+        "<b>Parcel by tap outside Czechia too.</b> In Poland (ULDK GUGiK), France (IGN apicarto) and the Netherlands (Kadaster PDOK) a tap on the map with the cadastre on shows the parcel number, municipality, area (and the area from the boundary as a check), highlights the boundary and opens the national portal with a button. The “You are measuring in” card says so next to Cadastre.",
+        "<b>Terrain height across Europe.</b> Before only ČÚZK DMR 5G, elsewhere “cannot be obtained”. Now by country: Switzerland swissALTI3D (±0.5 m, LN02), France RGE ALTI (±0.5 m, NGF-IGN69), elsewhere EU-DEM/SRTM tiles (±5 m — approximate only; the app says so in New point and does not overwrite the GPS height). New point, parcel and the job package share it; the note about the “2009–2013 scan” stays with DMR 5G only."
+      ]
+    },
+    {
       "v": 378,
       "datum": "2026-09-19",
       "nadpis": "Abroad without Czech and without ČÚZK: what is Czech-only hides or switches",

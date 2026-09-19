@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 379,
+      "datum": "2026-09-19",
+      "nadpis": "Punkty urzędowe we Francji i Hiszpanii, działka stuknięciem w PL/FR/NL, wysokość terenu w całej Europie",
+      "body": [
+        "<b>Punkty urzędowe także we Francji i Hiszpanii.</b> Karta twierdziła, że osnowę publikują tylko cztery kraje — to nieprawda. We Francji aplikacja pobiera punkty IGN (sieć RBF, sieć szczegółowa RDF i <b>387 tysięcy reperów niwelacyjnych</b> ze stanem i wysokością NGF-IGN69), w Hiszpanii wierzchołki ROI i REGENTE oraz znaki niwelacji REDNAP (IGN España, wysokości ortometryczne). Każdy punkt ma link do fiche/reseñy (PDF) — w karcie „Otwórz szkic”. Sześć krajów z punktami urzędowymi: Czechy, Słowacja, Szwajcaria, Holandia, Francja, Hiszpania.",
+        "<b>Działka stuknięciem także poza Czechami.</b> W Polsce (ULDK GUGiK), Francji (IGN apicarto) i Holandii (Kadaster PDOK) stuknięcie w mapę z włączonym katastrem pokaże numer działki, gminę, powierzchnię (i powierzchnię z granicy dla kontroli), podświetli granicę i przyciskiem otworzy portal kraju. Karta „Mierzysz w kraju” mówi o tym przy katastrze.",
+        "<b>Wysokość terenu w całej Europie.</b> Wcześniej tylko ČÚZK DMR 5G, gdzie indziej „nie da się ustalić”. Teraz według kraju: Szwajcaria swissALTI3D (±0,5 m, LN02), Francja RGE ALTI (±0,5 m, NGF-IGN69), gdzie indziej kafelki EU-DEM/SRTM (±5 m — tylko orientacyjnie; aplikacja mówi to w Nowym punkcie i nie nadpisuje wysokości z GPS). Nowy punkt, działka i paczka zlecenia korzystają z tego samego; uwaga o „skanie 2009–2013” zostaje tylko przy DMR 5G."
+      ]
+    },
+    {
       "v": 378,
       "datum": "2026-09-19",
       "nadpis": "Za granicą bez czeskiego i bez ČÚZK: co jest tylko czeskie, chowa się lub przełącza",

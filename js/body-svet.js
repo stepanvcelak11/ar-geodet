@@ -13,11 +13,23 @@
 //   NL  Kadaster RDinfo přes PDOK WFS (rdinfo:punten): Rijksdriehoekspunten (kostelní věže, GPS
 //       kernnet), bbox v EPSG:4326, souřadnice RD v xrd/yrd, foto bodu (afbeelding) → „Otevřít nákres".
 //       Jen polohové (NAP výškové značky nemají otevřenou službu).
-// Ostatní země (PL, AT, DE, FR, HU…): stát body nezveřejňuje jako data (geoportály chtějí klíč
-// nebo platbu, PL/DE vrací 401/404) — tam zůstávají jen vlastní body. Ať to lidi vědí, říká to
-// panel Body (grafika.js) i hláška po přejezdu hranice (zdroje-zemi.js).
+//   FR  IGN Géoplateforme WFS 2.0 (data.geopf.fr/wfs/ows, bez klíče, CORS) — OVĚŘENO 19. 9. 2026 (E3):
+//       IGNF_GEODESIE:site-rbf (2 141 GNSS bodů RBF → TB), point-rdf (podrobná síť RDF → ZHB),
+//       rn (387 281 nivelačních repérů → NIVEL, výška NGF-IGN69 v `altitude`). Každý má stav („BON ETAT",
+//       „IMPRENABLE", „DETRUIT") a odkaz na fiche PDF → „Otevřít nákres". BBOX u site-rbf/point-rdf
+//       v pořadí lat,lon; vrstva rn BBOX ignoruje → filtr CQL `lambda BETWEEN … AND phi BETWEEN …`.
+//       Tři dotazy naráz (z.urls), výsledky se slijí.
+//   ES  IGN España WMS 1.3.0 (www.ign.es/wms-inspire/redes-geodesicas, CORS) — OVĚŘENO 19. 9. 2026 (E3):
+//       GetFeatureInfo INFO_FORMAT=application/json, vrstvy RED_ROI (síť ROI → TB), RED_REGENTE (→ TB),
+//       RED_NAP (nivelace → NIVEL). Trik jako u SK: bbox 2R v EPSG:3857 jako obrázek 50 px, I=J=25,
+//       BUFFER=25 (GeoServer víc nepustí) → tolerance = R. Atributy se u NAP jmenují jinak
+//       (latitud_etrs89, altitud_elipsoidal, ortometrica) než u ROI (lat_etrs89, alt_elip, alt_orto);
+//       reseña PDF → „Otevřít nákres".
+// Ostatní země (PL, AT, DE, HU, SI, NO, EE…): stát body nezveřejňuje jako data (geoportály chtějí
+// klíč nebo platbu, PL/DE vrací 401/404 — zkoušeno 18. a 19. 9. 2026) — tam zůstávají jen vlastní
+// body. Ať to lidi vědí, říká to panel Body (grafika.js) i karta „Měříš v zemi" (zdroje-zemi.js).
 //
-// CO DĚLÁ: když je země měření (AGSour) CH nebo NL a mám polohu, stáhne body do R metrů, přemapuje
+// CO DĚLÁ: když je země měření (AGSour) CH, NL, FR nebo ES a mám polohu, stáhne body do R metrů, přemapuje
 // na kategorie appky a vloží do arPoints jako úřední body (stejný tvar jako agCuzkBod / body-sk:
 // name, cat, druh, vyska, ku, rawData, zdroj, vrstva = kód země). Znovu po přesunu > 800 m.
 // Odstranění: smaž js/body-svet.js + <script> v index.html.
@@ -94,13 +106,76 @@
                 vrstva: 'NL', druh: gps ? 'Rijksdriehoekspunt (GPS kernnet)' : 'Rijksdriehoekspunt', zdroj: 'Kadaster RDinfo', nazevBodu: str(p.benaming), vyska: null, popis: str(p.beheerinfo) };
         }
     };
-    var ZEME = { CH: CH, NL: NL };
+    // ---- FR: IGN Géoplateforme (WFS) ------------------------------------------------------
+    var L93 = '+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs';
+    var FR = {
+        kod: 'FR', zdroj: 'IGN (géodésie)', R: 1200,
+        URL: 'https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&OUTPUTFORMAT=application/json&COUNT=400&TYPENAMES=IGNF_GEODESIE:',
+        urls: function (lat, lng) {
+            var dlat = FR.R / 111320, dlng = FR.R / (111320 * Math.cos(lat * Math.PI / 180));
+            var la0 = (lat - dlat).toFixed(5), la1 = (lat + dlat).toFixed(5), lo0 = (lng - dlng).toFixed(5), lo1 = (lng + dlng).toFixed(5);
+            var bbox = '&BBOX=' + la0 + ',' + lo0 + ',' + la1 + ',' + lo1;   // lat,lon (urn EPSG:4326)
+            return [FR.URL + 'site-rbf' + bbox, FR.URL + 'point-rdf' + bbox,
+                FR.URL + 'rn&CQL_FILTER=' + encodeURIComponent('lambda BETWEEN ' + lo0 + ' AND ' + lo1 + ' AND phi BETWEEN ' + la0 + ' AND ' + la1)];
+        },
+        seznam: function (d) { return (d && d.features) || []; },
+        bod: function (f) {
+            var p = f.properties || {}, g = f.geometry && f.geometry.coordinates;
+            if (!g || !isFinite(g[0]) || !isFinite(g[1])) return null;
+            var lat = g[1], lng = g[0]; if (Math.abs(lat) > 90) { lat = g[0]; lng = g[1]; }
+            var typ = /^rn\./.test(f.id || '') ? 'rn' : (/^point-rdf/.test(f.id || '') ? 'rdf' : 'rbf');
+            var name = str(p.nom) || str(p.id); if (!name) return null;
+            var raw = {}; Object.keys(p).forEach(function (k) { raw[k] = p[k]; });
+            var xy = zpet(L93, lat, lng); if (xy) { raw.E_L93 = Math.round(xy.x * 100) / 100; raw.N_L93 = Math.round(xy.y * 100) / 100; }
+            var vyska = typ === 'rn' ? num(p.altitude) : null; if (vyska != null) raw.VYSKA = vyska;
+            if (str(p.url)) raw.GEODETICKE_UDAJE = str(p.url);
+            var etat = str(p.etat) || '';
+            var druh = typ === 'rn' ? 'Repère de nivellement (NGF-IGN69)' : (typ === 'rdf' ? 'Point RDF (réseau de détail)' : 'Site RBF (GNSS)');
+            if (etat) druh += ' · ' + etat;
+            return { id: 'fr_' + typ + '_' + (p.id != null ? p.id : name), name: name, lat: lat, lng: lng, cat: typ === 'rn' ? 'NIVEL' : (typ === 'rdf' ? 'ZHB' : 'TB'), type: typ === 'rn' ? 'vyskovy' : 'polohovy',
+                rawData: raw, hidden: false, currentDist: 0, bestAccuracy: null, vrstva: 'FR', druh: druh, zdroj: 'IGN (géodésie)', nazevBodu: str(p.groupe_info) || null, ku: str(p.insee) || null, vyska: vyska, popis: etat || null };
+        }
+    };
+
+    // ---- ES: IGN España (WMS GetFeatureInfo) ----------------------------------------------
+    var ES = {
+        kod: 'ES', zdroj: 'IGN España', R: 2000,
+        URL: 'https://www.ign.es/wms-inspire/redes-geodesicas',
+        vrstvy: 'RED_ROI,RED_REGENTE,RED_NAP',
+        url: function (lat, lng) {
+            var x = lng * 20037508.34 / 180, y = Math.log(Math.tan((90 + lat) * Math.PI / 360)) / (Math.PI / 180) * 20037508.34 / 180, R = ES.R;
+            return ES.URL + '?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=' + ES.vrstvy + '&QUERY_LAYERS=' + ES.vrstvy + '&CRS=EPSG:3857'
+                + '&BBOX=' + (x - R).toFixed(1) + ',' + (y - R).toFixed(1) + ',' + (x + R).toFixed(1) + ',' + (y + R).toFixed(1)
+                + '&WIDTH=50&HEIGHT=50&I=25&J=25&BUFFER=25&INFO_FORMAT=application/json&FEATURE_COUNT=300';
+        },
+        seznam: function (d) { return (d && d.features) || []; },
+        bod: function (f) {
+            var p = f.properties || {}, id = String(f.id || '');
+            var nap = /^RED_NAP/.test(id), reg = /^RED_REGENTE/.test(id);
+            var lat = num(nap ? p.latitud_etrs89 : p.lat_etrs89), lng = num(nap ? p.longitud_etrs89 : p.long_etrs89);
+            if ((lat == null || lng == null) && f.geometry && f.geometry.coordinates) {   // záloha: geometrie ve 3857
+                var gx = num(f.geometry.coordinates[0]), gy = num(f.geometry.coordinates[1]);
+                if (gx != null && gy != null) { lng = gx * 180 / 20037508.34; lat = Math.atan(Math.exp(gy * Math.PI / 20037508.34)) * 360 / Math.PI - 90; }
+            }
+            if (lat == null || lng == null) return null;
+            var name = (p.numero != null ? String(p.numero) : '') || str(p.nombre); if (!name) return null;
+            var raw = {}; Object.keys(p).forEach(function (k) { if (k !== 'bbox') raw[k] = p[k]; });
+            var vyska = num(nap ? p.ortometrica : p.alt_orto); if (vyska != null) { vyska = Math.round(vyska * 1000) / 1000; raw.VYSKA = vyska; }
+            if (str(p.resena)) raw.GEODETICKE_UDAJE = str(p.resena);
+            var druh = nap ? 'Señal de nivelación REDNAP' + (str(p.tipo) ? ' (' + p.tipo + ')' : '') : (reg ? 'Vértice REGENTE (GNSS)' : 'Vértice geodésico ROI');
+            return { id: 'es_' + (nap ? 'nap' : (reg ? 'reg' : 'roi')) + '_' + name, name: name, lat: lat, lng: lng, cat: nap ? 'NIVEL' : 'TB', type: nap ? 'vyskovy' : 'polohovy',
+                rawData: raw, hidden: false, currentDist: 0, bestAccuracy: null, vrstva: 'ES', druh: druh, zdroj: 'IGN España', nazevBodu: str(p.nombre), ku: str(p.municipio) || str(p.nombre_muni), vyska: vyska, popis: str(p.linea) || null };
+        }
+    };
+    var ZEME = { CH: CH, NL: NL, FR: FR, ES: ES };
 
     function stahni(z, lat, lng) {
-        var q = z.url(lat, lng); if (!q) return Promise.reject(new Error('proj4'));
-        return fetch(q, { mode: 'cors' }).then(function (r) { if (!r.ok) throw new Error(z.zdroj + ' ' + r.status); return r.json(); }).then(function (d) {
+        var qs = z.urls ? z.urls(lat, lng) : [z.url(lat, lng)];
+        if (!qs || !qs.length || qs.some(function (q) { return !q; })) return Promise.reject(new Error('proj4'));
+        var jeden = function (q) { return fetch(q, { mode: 'cors' }).then(function (r) { if (!r.ok) throw new Error(z.zdroj + ' ' + r.status); return r.json(); }); };
+        return Promise.all(qs.map(jeden)).then(function (ds) {
             var mapa = {};
-            z.seznam(d).forEach(function (f) { var b = z.bod(f); if (b) mapa[b.id] = b; });
+            ds.forEach(function (d) { z.seznam(d).forEach(function (f) { var b = z.bod(f); if (b) mapa[b.id] = b; }); });
             return Object.keys(mapa).map(function (k) { return mapa[k]; });
         });
     }
@@ -129,6 +204,8 @@
     }
     function hlaska(z, n) {
         if (z.kod === 'CH') return 'Švýcarsko: ' + n + ' bodů swisstopo v okolí (LFP1, LFP2, HFP). Výšky LN02.';
+        if (z.kod === 'FR') return 'Francie: ' + n + ' bodů IGN v okolí (RBF, RDF, nivelační repéry). Výšky NGF-IGN69.';
+        if (z.kod === 'ES') return 'Španělsko: ' + n + ' bodů IGN v okolí (ROI, REGENTE, REDNAP). Výšky ortometrické.';
         return 'Nizozemsko: ' + n + ' bodů Kadaster RDinfo v okolí (Rijksdriehoekspunten). Jen polohové.';
     }
     // pro panel Body a hlášku po přejezdu hranice: kde stát body zveřejňuje

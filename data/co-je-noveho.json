@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 379,
+   "datum": "2026-09-19",
+   "nadpis": "Úřední body ve Francii a Španělsku, parcela klepnutím v PL/FR/NL, výška terénu v celé Evropě",
+   "body": [
+    "<b>Úřední body už i ve Francii a Španělsku.</b> Karta tvrdila, že bodové pole zveřejňují jen čtyři země — neplatí to. Ve Francii appka stáhne body IGN (síť RBF, podrobná síť RDF a <b>387 tisíc nivelačních repérů</b> se stavem a výškou NGF-IGN69), ve Španělsku vrcholy ROI a REGENTE a značky nivelace REDNAP (IGN España, výšky ortometrické). Každý bod má odkaz na fiche/reseñu (PDF) — v kartě jako „Otevřít nákres“. Šest zemí s úředními body: Česko, Slovensko, Švýcarsko, Nizozemsko, Francie, Španělsko.",
+    "<b>Parcela klepnutím i mimo Česko.</b> V Polsku (ULDK GUGiK), Francii (IGN apicarto) a Nizozemsku (Kadaster PDOK) klepnutí do mapy se zapnutým katastrem ukáže číslo parcely, obec, výměru (a výměru z hranice pro kontrolu), zvýrazní hranici a tlačítkem otevře portál země. Karta „Měříš v zemi“ to u katastru říká.",
+    "<b>Výška terénu v celé Evropě.</b> Dřív jen ČÚZK DMR 5G, jinde „nelze zjistit“. Teď podle země: Švýcarsko swissALTI3D (±0,5 m, LN02), Francie RGE ALTI (±0,5 m, NGF-IGN69), jinde dlaždice EU-DEM/SRTM (±5 m — jen orientačně, appka to u Nového bodu říká a výšku bodu z GPS nepřepisuje). Nový bod, parcela i balíček zakázky to sdílí; poznámka o „skenu 2009–2013“ zůstává jen u DMR 5G."
+   ]
+  },
+  {
    "v": 378,
    "datum": "2026-09-19",
    "nadpis": "V cizině bez češtiny a bez ČÚZK: co je jen české, se schová nebo přepne",

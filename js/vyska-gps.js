@@ -33,6 +33,7 @@
 
     function f2(v) { return (Math.round(v * 100) / 100).toFixed(2).replace('.', ','); }
     function el(id) { return document.getElementById(id); }
+    function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
 
     function styles() {
         if (el('agvz-style')) return;
@@ -86,32 +87,41 @@
         var vs = 'Bpv'; try { var _z = window.AGSour && AGSour.ZEME[AGSour.kod()]; if (_z && _z.vyska && _z.vyska.nazev) vs = _z.vyska.nazev; } catch (e) { vs = 'Bpv'; }
         h += '<div class="agvz-r"><span>' + (vs === 'Bpv' ? T('Výška z GPS (Bpv)') : T('Výška z GPS') + ' (' + vs + ')') + '</span><b>' + (gpsZ == null ? '—' : (f2(gpsZ) + ' m'))
             + (gpsSig != null ? ' <span style="opacity:.7">±' + f2(gpsSig) + '</span>' : '') + '</b></div>';
-        h += '<div class="agvz-r"><span>' + T('Výška terénu DMR 5G') + '</span><b>'
-            + (state === 'wait' ? T('zjišťuji…') : (dmr == null ? '—' : (f2(dmr) + ' m <span style="opacity:.7">±' + f2(DMR_SIGMA) + '</span>'))) + '</b></div>';
+        var info = (typeof window.terrainElevInfo === 'function') ? window.terrainElevInfo() : { kod: 'CZ', zdroj: 'DMR 5G', sigma: DMR_SIGMA, system: 'Bpv', presne: true };
+        var sig = info.sigma || DMR_SIGMA;
+        h += '<div class="agvz-r"><span>' + (info.zdroj === 'DMR 5G' ? T('Výška terénu DMR 5G') : T('Výška terénu') + ' ' + info.zdroj) + '</span><b>'
+            + (state === 'wait' ? T('zjišťuji…') : (dmr == null ? '—' : (f2(dmr) + ' m <span style="opacity:.7">±' + f2(sig) + '</span>'))) + '</b></div>';
         if (gpsZ != null && dmr != null) {
             var d = gpsZ - dmr;
-            var big = Math.abs(d) > Math.max(2.5, 2 * (gpsSig || 2));
+            var big = Math.abs(d) > Math.max(2.5, 2 * (gpsSig || 2), 2 * sig);
             h += '<div class="agvz-r agvz-d"><span>' + T('Rozdíl GPS − terén') + '</span><b class="' + (big ? 'agvz-warn' : '') + '">'
                 + (d >= 0 ? '+' : '−') + f2(Math.abs(d)) + ' m</b></div>';
             h += '<div class="agvz-btns">'
-                + '<button type="button" id="agvz-use">Vzít výšku z DMR (' + f2(dmr) + ')</button>'
+                + (info.presne ? '<button type="button" id="agvz-use">' + (info.zdroj === 'DMR 5G' ? 'Vzít výšku z DMR (' + f2(dmr) + ')' : T('Vzít výšku terénu') + ' (' + f2(dmr) + ')') + '</button>' : '')
                 + '<button type="button" class="agvz-sec" id="agvz-keep">' + T('Nechat GPS') + '</button>'
                 + '</div>';
-            h += '<div class="agvz-n">DMR 5G je <b>terén z leteckého skenu 2009–2013</b>, ne dnešní povrch. '
-                + 'Na hotové pláni a v otevřeném terénu je o řád přesnější než GPS z mobilu; '
-                + '<b class="agvz-warn">za finišerem, na náspu, mostě nebo zásypu ho neber</b> — tam měří starý terén.'
-                + (big ? ' Rozdíl je velký: buď stojíš na něčem novém, nebo je výška z GPS mimo.' : '') + '</div>';
+            if (info.zdroj === 'DMR 5G') {
+                h += '<div class="agvz-n">DMR 5G je <b>terén z leteckého skenu 2009–2013</b>, ne dnešní povrch. '
+                    + 'Na hotové pláni a v otevřeném terénu je o řád přesnější než GPS z mobilu; '
+                    + '<b class="agvz-warn">za finišerem, na náspu, mostě nebo zásypu ho neber</b> — tam měří starý terén.'
+                    + (big ? ' Rozdíl je velký: buď stojíš na něčem novém, nebo je výška z GPS mimo.' : '') + '</div>';
+            } else if (info.presne) {
+                h += '<div class="agvz-n">' + esc(T('Terén z národního laserového modelu')) + ' (' + esc(info.zdroj) + ', ' + esc(info.system) + '). '
+                    + esc(T('V otevřeném terénu je přesnější než GPS z mobilu; na náspu, mostě nebo čerstvém zásypu ho neber.')) + (big ? ' ' + esc(T('Rozdíl je velký: buď stojíš na něčem novém, nebo je výška z GPS mimo.')) : '') + '</div>';
+            } else {
+                h += '<div class="agvz-n">' + esc(T('Terén jen orientačně')) + ' (' + esc(info.zdroj) + ', ±' + f2(sig) + ' m, ' + esc(info.system) + ') — ' + esc(T('tahle země nemá otevřený přesný výškopis; výšku bodu nech z GPS, terén slouží jen jako kontrola hrubé chyby.')) + '</div>';
+            }
         } else if (state === 'off') {
-            h += '<div class="agvz-n">' + T('Výšku terénu se nepodařilo zjistit (bez internetu a mimo uloženou oblast).') + ' '
+            h += '<div class="agvz-n">' + T(info.kod === 'CZ' ? 'Výšku terénu se nepodařilo zjistit (bez internetu a mimo uloženou oblast).' : 'Výšku terénu se nepodařilo zjistit (bez internetu, nebo služba výškopisu neodpověděla).') + ' '
                 + T('Zůstává výška z GPS. Tip: stažením okolí pro offline se výškopis uloží i pro tenhle bod.') + '</div>';
         }
         box.innerHTML = h;
         var u = el('agvz-use');
         if (u) u.addEventListener('click', function () {
             var z = el('custom-z'); if (z && dmr != null) { z.value = f2(dmr).replace(',', '.'); window._agZSrc = 'dmr'; }   // js/ref-calibration.js: na výšku z DMR se posun GPS nepřičítá
-            box.querySelector('.agvz-btns').outerHTML = '<div class="agvz-n">✓ Výška přepsána hodnotou z DMR 5G ('
-                + f2(dmr) + ' m). Můžeš ji ještě ručně upravit.</div>';
-            try { if (typeof quickToast === 'function') quickToast('Výška z DMR 5G: ' + f2(dmr) + ' m'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vyska-gps:render'); }
+            box.querySelector('.agvz-btns').outerHTML = '<div class="agvz-n">✓ ' + esc(T('Výška přepsána hodnotou z terénu')) + ' (' + esc(info.zdroj) + ', '
+                + f2(dmr) + ' m). ' + esc(T('Můžeš ji ještě ručně upravit.')) + '</div>';
+            try { if (typeof quickToast === 'function') quickToast(T('Výška z terénu') + ' (' + info.zdroj + '): ' + f2(dmr) + ' m'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vyska-gps:render'); }
         });
         var k = el('agvz-keep');
         if (k) k.addEventListener('click', function () {

@@ -2,6 +2,16 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 379,
+      "datum": "2026-09-19",
+      "nadpis": "Amtliche Punkte in Frankreich und Spanien, Parzelle per Tipp in PL/FR/NL, Geländehöhe in ganz Europa",
+      "body": [
+        "<b>Amtliche Punkte jetzt auch in Frankreich und Spanien.</b> Die Karte behauptete, nur vier Länder veröffentlichen ihr Festpunktfeld — stimmt nicht. In Frankreich lädt die App IGN-Punkte (RBF-Netz, RDF-Verdichtungsnetz und <b>387 Tausend Nivellementpunkte</b> mit Zustand und Höhe NGF-IGN69), in Spanien die Vertices ROI und REGENTE und die REDNAP-Nivellementmarken (IGN España, orthometrische Höhen). Jeder Punkt verweist auf seine Fiche/Reseña (PDF) — „Skizze öffnen“ in der Karte. Sechs Länder mit amtlichen Punkten: Tschechien, Slowakei, Schweiz, Niederlande, Frankreich, Spanien.",
+        "<b>Parzelle per Tipp auch außerhalb Tschechiens.</b> In Polen (ULDK GUGiK), Frankreich (IGN apicarto) und den Niederlanden (Kadaster PDOK) zeigt ein Tipp in die Karte bei eingeschaltetem Kataster Parzellennummer, Gemeinde, Fläche (und die Fläche aus der Grenze zur Kontrolle), hebt die Grenze hervor und öffnet per Button das Portal des Landes. Die Karte „Du misst in“ sagt es beim Kataster.",
+        "<b>Geländehöhe in ganz Europa.</b> Vorher nur ČÚZK DMR 5G, anderswo „nicht ermittelbar“. Jetzt nach Land: Schweiz swissALTI3D (±0,5 m, LN02), Frankreich RGE ALTI (±0,5 m, NGF-IGN69), anderswo Kacheln EU-DEM/SRTM (±5 m — nur zur Orientierung; die App sagt es beim Neuen Punkt und überschreibt die GPS-Höhe nicht). Neuer Punkt, Parzelle und Auftragspaket teilen es; der Hinweis auf den „Scan 2009–2013“ bleibt nur bei DMR 5G."
+      ]
+    },
+    {
       "v": 378,
       "datum": "2026-09-19",
       "nadpis": "Im Ausland ohne Tschechisch und ohne ČÚZK: was nur tschechisch ist, wird versteckt oder umgeschaltet",

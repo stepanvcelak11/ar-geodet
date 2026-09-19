@@ -84,6 +84,70 @@
         return true;
     }
 
+    // ---- PARCELA V BODĚ MIMO ČR (19. 9. 2026, E4) ------------------------------------------------
+    // Klik do parcely (js/parcela-klik.js) uměl jen RÚIAN. Otevřené dotazy „parcela pod bodem", ověřené
+    // naostro 19. 9. 2026 (CORS v pořádku):
+    //   PL  ULDK GUGiK  GetParcelByXY&xy=lon,lat,4326 → „0\nid|vojvodství|powiat|gmina|obręb|číslo|SRID=4326;POLYGON(…)"
+    //   FR  apicarto IGN /api/cadastre/parcelle?geom={Point} → GeoJSON (numero, section, nom_com, contenance m², idu)
+    //   NL  PDOK WFS kadastralekaart Perceel — CQL_FILTER služba ignoruje, funguje malý bbox v CRS84;
+    //       z výsledků se vezme parcela, která bod opravdu obsahuje (kadastraleGemeenteWaarde, sectie,
+    //       perceelnummer, kadastraleGrootteWaarde m²).
+    // Vrací {cislo, sekce, obec, ku, vymera, rings [[lat,lng]…], zdroj, odkaz} nebo null (bod mimo parcelu).
+    function ringsZWkt(wkt) {
+        var m = /POLYGON\s*\(\((.*?)\)\)/i.exec(wkt || ''); if (!m) return [];
+        return [m[1].split(',').map(function (p) { var c = p.trim().split(/\s+/); return [parseFloat(c[1]), parseFloat(c[0])]; }).filter(function (c) { return isFinite(c[0]) && isFinite(c[1]); })];
+    }
+    function ringsZGeoJson(g) {
+        if (!g) return [];
+        var polys = g.type === 'MultiPolygon' ? g.coordinates : (g.type === 'Polygon' ? [g.coordinates] : []);
+        var out = []; polys.forEach(function (poly) { (poly || []).forEach(function (ring) { out.push(ring.map(function (c) { return [c[1], c[0]]; })); }); });
+        return out;
+    }
+    function vBodu(rings, lat, lng) {   // ray casting po vnějším prstenci
+        if (!rings || !rings.length) return false; var r = rings[0], uvnitr = false;
+        for (var i = 0, j = r.length - 1; i < r.length; j = i++) {
+            var yi = r[i][0], xi = r[i][1], yj = r[j][0], xj = r[j][1];
+            if (((yi > lat) !== (yj > lat)) && (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi)) uvnitr = !uvnitr;
+        }
+        return uvnitr;
+    }
+    function fetchJson(u, ms) {
+        var ctrl = (typeof AbortController === 'function') ? new AbortController() : null, t = ctrl ? setTimeout(function () { ctrl.abort(); }, ms || 12000) : null;
+        return fetch(u, { mode: 'cors', signal: ctrl ? ctrl.signal : undefined }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }).finally(function () { if (t) clearTimeout(t); });
+    }
+    var PARCELY = {
+        PL: function (lat, lng) {
+            return fetchJson('https://uldk.gugik.gov.pl/?request=GetParcelByXY&xy=' + lng.toFixed(6) + ',' + lat.toFixed(6) + ',4326&result=id,voivodeship,county,commune,region,parcel,geom_wkt&srid=4326').then(function (t) {
+                var l = String(t).split('\n'); if (l[0].trim() !== '0' || !l[1]) return null;
+                var c = l[1].split('|');
+                return { cislo: c[5] || c[0], id: c[0], obec: c[3] || '', ku: (c[4] ? 'obręb ' + c[4] : '') + (c[2] ? (c[4] ? ', ' : '') + c[2] : ''), kraj: c[1] || '', vymera: null, rings: ringsZWkt(c[6]), zdroj: 'ULDK (GUGiK)', odkaz: 'https://mapy.geoportal.gov.pl/imap/Imgp_2.html?gpmap=gp0' };
+            });
+        },
+        FR: function (lat, lng) {
+            return fetchJson('https://apicarto.ign.fr/api/cadastre/parcelle?geom=' + encodeURIComponent(JSON.stringify({ type: 'Point', coordinates: [+lng.toFixed(6), +lat.toFixed(6)] }))).then(function (t) {
+                var d = JSON.parse(t), f = d && d.features && d.features[0]; if (!f) return null;
+                var p = f.properties || {};
+                return { cislo: (p.section || '') + ' ' + (p.numero || ''), id: p.idu || '', obec: p.nom_com || '', ku: p.code_insee ? 'INSEE ' + p.code_insee + (p.feuille ? ', feuille ' + p.feuille : '') : '', kraj: p.code_dep ? 'dép. ' + p.code_dep : '', vymera: (p.contenance != null && isFinite(p.contenance)) ? +p.contenance : null, rings: ringsZGeoJson(f.geometry), zdroj: 'IGN apicarto (Parcellaire Express)', odkaz: 'https://www.geoportail.gouv.fr/carte?c=' + lng.toFixed(6) + ',' + lat.toFixed(6) + '&z=18&l0=CADASTRALPARCELS.PARCELLAIRE_EXPRESS::GEOPORTAIL:OGC:WMTS(1)&permalink=yes' };
+            });
+        },
+        NL: function (lat, lng) {
+            var d = 0.00012;
+            return fetchJson('https://service.pdok.nl/kadaster/kadastralekaart/wfs/v5_0?service=WFS&version=2.0.0&request=GetFeature&typeNames=kadastralekaart:Perceel&count=10&outputFormat=application/json&bbox=' + (lng - d).toFixed(6) + ',' + (lat - d).toFixed(6) + ',' + (lng + d).toFixed(6) + ',' + (lat + d).toFixed(6) + ',urn:ogc:def:crs:OGC:1.3:CRS84&srsName=EPSG:4326').then(function (t) {   // srsName: bez něj geometrie v RD (EPSG:28992)
+                var dj = JSON.parse(t), fs = (dj && dj.features) || []; if (!fs.length) return null;
+                var f = null; for (var i = 0; i < fs.length; i++) { if (vBodu(ringsZGeoJson(fs[i].geometry), lat, lng)) { f = fs[i]; break; } }
+                if (!f) f = fs[0];
+                var p = f.properties || {};
+                return { cislo: (p.kadastraleGemeenteWaarde || '') + ' ' + (p.sectie || '') + ' ' + (p.perceelnummer != null ? p.perceelnummer : ''), id: p.identificatieLokaalID || '', obec: p.kadastraleGemeenteWaarde || '', ku: p.AKRKadastraleGemeenteCodeWaarde ? 'AKR ' + p.AKRKadastraleGemeenteCodeWaarde : '', kraj: '', vymera: (p.kadastraleGrootteWaarde != null && isFinite(p.kadastraleGrootteWaarde)) ? +p.kadastraleGrootteWaarde : null, rings: ringsZGeoJson(f.geometry), zdroj: 'Kadaster (PDOK)', odkaz: 'https://kadastralekaart.com/kaart?lat=' + lat.toFixed(6) + '&lng=' + lng.toFixed(6) + '&zoom=18' };
+            });
+        }
+    };
+    function parcela(lat, lng) {
+        var kod = 'CZ'; try { kod = (window.AGSour && AGSour.kod()) || 'CZ'; } catch (e) { kod = 'CZ'; }
+        var fn = PARCELY[kod]; if (!fn) return null;
+        return fn(lat, lng).then(function (p) { if (p) { p.kod = kod; p.lat = lat; p.lng = lng; } return p; });
+    }
+    function maParcelu(kod) { return !!PARCELY[kod]; }
+
     var _origOrto = null, _origKat = null, _aktualni = 'CZ', _vrstvaOrto = null;
     function toast(m) { try { if (typeof window.agInfo === 'function') window.agInfo(m); } catch (e) { /* nic */ } }
     function T(t) { try { return (window.AGJazyk && AGJazyk.t) ? AGJazyk.t(t) : t; } catch (e) { return t; } }
@@ -141,9 +205,9 @@
         if (z && z.vyska) h += row(T('Výšky'), esc(z.vyska.nazev));
         h += row(T('Úřední body'), uz ? esc(T('ano') + ' — ' + uz) + '<br><span style="opacity:.8;font-size:.92em;">' + esc(T('appka je stáhne kolem tebe.')) + '</span>'
             : esc(T('ne')) + '<br><span style="opacity:.8;font-size:.92em;">' + esc(T('Úřední body tu stát nezveřejňuje — v mapě jsou jen tvoje body (Nový bod, import, výkres).')) + '</span>', !!uz);
-        h += row(T('Katastr'), kat ? esc(T('ano') + ' — ' + kat.nazev) : esc(T('ne — parcely tu nemám')), !!kat);
+        h += row(T('Katastr'), kat ? esc(T('ano') + ' — ' + kat.nazev) + (PARCELY[kod] ? '<br><span style="opacity:.8;font-size:.92em;">' + esc(T('klepnutím do mapy zjistíš číslo a hranici parcely')) + '</span>' : '') : esc(T('ne — parcely tu nemám')), !!kat);
         h += row(T('Ortofoto'), esc(T(orto.nazev)));
-        h += '</div><p style="margin:10px 0 0;font-size:.92em;opacity:.85;">' + esc(T('Úřední body zveřejňují jako data jen Česko, Slovensko, Švýcarsko a Nizozemsko. Jinde se dnes měří roverem ze státní sítě a body si geodet zakládá sám — appka tu pracuje s tvými body, výkresem a kalibracemi.')) + '</p>';
+        h += '</div><p style="margin:10px 0 0;font-size:.92em;opacity:.85;">' + esc(T('Úřední body zveřejňují jako data Česko, Slovensko, Švýcarsko, Nizozemsko, Francie a Španělsko. Jinde se dnes měří roverem ze státní sítě a body si geodet zakládá sám — appka tu pracuje s tvými body, výkresem a kalibracemi.')) + '</p>';
         h += '<p style="margin:8px 0 0;font-size:.85em;opacity:.65;">' + esc(T('Zemi změníš v Nastavení → Mapa a body → Země měření.')) + '</p>';
         return { title: T('Měříš v zemi') + ': ' + T(jm), html: h };
     }
@@ -178,5 +242,5 @@
     function start() { var idle = window.requestIdleCallback || function (f) { return setTimeout(f, 1200); }; idle(function () { podleZeme(true); }); }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
-    window.AGZdroje = { ZDROJE: ZDROJE, ESRI: ESRI, PORTALY: PORTALY, portal: portal, prepni: prepni, podleZeme: podleZeme, aktualni: function () { return _aktualni; }, ma: function (kod) { return !!ZDROJE[kod]; }, uvod: uvod, uvodHtml: uvodHtml, naplanujUvod: naplanujUvod, UVOD_KLIC: UVOD_KLIC };
+    window.AGZdroje = { ZDROJE: ZDROJE, ESRI: ESRI, PORTALY: PORTALY, portal: portal, parcela: parcela, maParcelu: maParcelu, prepni: prepni, podleZeme: podleZeme, aktualni: function () { return _aktualni; }, ma: function (kod) { return !!ZDROJE[kod]; }, uvod: uvod, uvodHtml: uvodHtml, naplanujUvod: naplanujUvod, UVOD_KLIC: UVOD_KLIC };
 })();
