@@ -2,6 +2,16 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 376,
+      "datum": "2026-09-19",
+      "nadpis": "Banda de navegación en el suelo en vez de la flecha 3D",
+      "body": [
+        "<b>Banda de flechas en el suelo.</b> La flecha hacia el objetivo en la cámara RA es ahora una banda de cuatro chevrones tumbados en el suelo que <b>se curva hacia el punto</b> como un navegador de coche: el más cercano es el mayor, los lejanos se desvanecen y a tu espalda se enrosca en un cambio de sentido (y se pone rojo). Sin saltos entre cuatro dibujos a 35° y 110°; ves cuánto girar.",
+        "La etiqueta con el nombre del punto y la distancia va sobre la banda con un blanco dorado y ya no tapa la flecha. Dentro de ±10° la banda se aclara y el blanco late. Color y tamaño de Ajustes → Cámara RA siguen valiendo; la elección de forma de flecha no tiene sentido con la banda y desaparece.",
+        "Elegido el 19 de septiembre entre cuatro propuestas (banda en el suelo · anillo · baliza · flecha nueva)."
+      ]
+    },
+    {
       "v": 375,
       "datum": "2026-09-19",
       "nadpis": "Sol, Luna y planetas tras el globo, el cielo se mueve fluido",

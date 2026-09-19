@@ -2,6 +2,16 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 376,
+      "datum": "2026-09-19",
+      "nadpis": "Navigationsband am Boden statt 3D-Pfeil",
+      "body": [
+        "<b>Pfeilband am Boden.</b> Der Pfeil zum Ziel in der AR-Kamera ist jetzt ein Band aus vier auf dem Boden liegenden Chevrons, das sich <b>zum Punkt hin biegt</b> wie eine Autonavigation: der nächste ist der größte, die weiteren verblassen, hinter dem Rücken rollt es sich zur Wende ein (und wird rot). Keine Sprünge mehr zwischen vier Zeichnungen bei 35° und 110°; du siehst, wie weit du dich drehen musst.",
+        "Das Etikett mit Punktname und Entfernung sitzt über dem Band mit goldenem Ziel und verdeckt den Pfeil nicht mehr. Innerhalb ±10° wird das Band heller und das Ziel pulsiert. Farbe und Größe aus Einstellungen → AR-Kamera gelten weiter; die Pfeilform-Wahl ergibt beim Band keinen Sinn und ist weg.",
+        "Am 19. 9. aus vier Vorschlägen gewählt (Band am Boden · Ring · Leuchtfeuer · neuer Pfeil)."
+      ]
+    },
+    {
       "v": 375,
       "datum": "2026-09-19",
       "nadpis": "Sonne, Mond und Planeten hinter dem Globus, Himmel läuft flüssig",

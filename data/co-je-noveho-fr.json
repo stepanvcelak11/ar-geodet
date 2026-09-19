@@ -2,6 +2,16 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 376,
+      "datum": "2026-09-19",
+      "nadpis": "Bande de navigation au sol à la place de la flèche 3D",
+      "body": [
+        "<b>Bande de flèches au sol.</b> La flèche vers la cible dans la caméra RA est désormais une bande de quatre chevrons posés au sol qui <b>se courbe vers le point</b> comme un GPS de voiture : le plus proche est le plus grand, les suivants s’estompent, et dans ton dos elle s’enroule en demi-tour (et passe au rouge). Plus de sauts entre quatre dessins à 35° et 110° ; tu vois de combien tourner.",
+        "L’étiquette avec le nom du point et la distance se place au-dessus de la bande avec une cible dorée et ne couvre plus la flèche. Dans la tolérance ±10° la bande s’éclaircit et la cible pulse. Couleur et taille de Réglages → Caméra RA restent valables ; le choix de la forme de flèche n’a plus de sens avec la bande et disparaît.",
+        "Choisi le 19 septembre parmi quatre propositions (bande au sol · anneau · balise · nouvelle flèche)."
+      ]
+    },
+    {
       "v": 375,
       "datum": "2026-09-19",
       "nadpis": "Soleil, Lune et planètes derrière le globe, ciel fluide",

@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 376,
+   "datum": "2026-09-19",
+   "nadpis": "Navigační pás na zemi místo 3D šipky",
+   "body": [
+    "<b>Pás šipek na zemi.</b> Šipka k cíli v AR kameře je nově pás čtyř šipek položených na zem, který se <b>ohýbá směrem k bodu</b> jako navigace v autě: nejbližší je největší, vzdálenější blednou, za zády se stočí do otočky (a zčervená). Žádné skoky mezi čtyřmi kresbami při 35° a 110°, vidíš, jak moc se otočit.",
+    "Štítek se jménem bodu a vzdáleností sedí nad pásem se zlatým terčem a už šipku nepřekrývá. V toleranci ±10° pás zesvětlá a terč pulzuje. Barva a velikost z Nastavení → AR kamera platí dál; volba tvaru šipky u pásu nemá smysl, zmizela.",
+    "Vybráno 19. 9. ze čtyř návrhů (pás na zemi · prstenec · maják · nová šipka)."
+   ]
+  },
+  {
    "v": 375,
    "datum": "2026-09-19",
    "nadpis": "Slunce, Měsíc a planety za glóbem, obloha jede plynule",

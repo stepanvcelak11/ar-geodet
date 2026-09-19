@@ -1,0 +1,37 @@
+/* ===== QTRIG — NAVIGAČNÍ PÁS NA ZEMI (odpojitelná vrstva, js/nav-pas.js, 19. 9. 2026) =====
+   Pás chevronů místo 3D šipky: štítek nahoře (column-reverse), pás pod ním; perspektiva
+   mírnější než u staré šipky (52° místo 65°), ať má pás výšku a nesplácne se.
+   Odstranění: smaž tento soubor + js/nav-pas.js + jejich řádky v index.html.
+   ============================================================================================ */
+/* HUD ukotvený ke spodku kamery (ne na 75 % výšky se středem): pás roste odspodu nahoru */
+body.ag-nav-pas #ar-hud { flex-direction: column-reverse; gap: 6px; top: auto; bottom: 2%; transform: translateX(-50%); }
+body.ag-nav-pas #ar-hud-arrow-container {
+    margin-bottom: 0;
+    transform: perspective(700px) rotateX(52deg);
+    transform-origin: top center;      /* sražení směrem od štítku dolů; prázdný spodek boxu po perspektivě ukrojí záporný okraj níž */
+    margin-bottom: calc(var(--arrow-size) * -0.42);
+    transition: none;
+}
+body.ag-nav-pas #ar-hud-arrow-container > svg { display: none; }
+body.ag-nav-pas #ar-hud-arrow-container > #arrow-pas {
+    display: block;
+    width: calc(var(--arrow-size) * 1.9);
+    height: calc(var(--arrow-size) * 2.05);
+    overflow: visible;
+}
+#arrow-pas .pas-chevron { fill: var(--color-arrow); stroke: rgba(255, 255, 255, .45); stroke-width: 1.5; stroke-linejoin: round; }
+#arrow-pas .pas-stin { fill: rgba(0, 0, 0, .35); }
+body.ag-nav-pas #ar-hud.pas-zady .pas-chevron { fill: #ef4444; }
+body.ag-nav-pas #ar-hud.pas-tol .pas-chevron { stroke: rgba(255, 255, 255, .85); stroke-width: 2.5; }
+/* štítek: zlatý terč na spodní hraně = konec pásu; v toleranci pulzuje (jen transform + opacity) */
+body.ag-nav-pas #ar-hud-info { position: relative; transition: transform .2s ease-out, background .3s ease, color .3s ease; }
+body.ag-nav-pas #ar-hud-info::after {
+    content: ""; position: absolute; left: 50%; bottom: -7px; width: 14px; height: 14px; border-radius: 50%;
+    background: #fbbf24; border: 2px solid #1a1400; transform: translateX(-50%); box-shadow: 0 0 0 3px rgba(251, 191, 36, .35);
+}
+@keyframes pas-terc { 0%, 100% { transform: translateX(-50%) scale(1); opacity: 1; } 50% { transform: translateX(-50%) scale(1.35); opacity: .75; } }
+body.ag-nav-pas #ar-hud.pas-tol #ar-hud-info::after { animation: pas-terc 1.2s ease-in-out infinite; }
+/* nad 90° už konec pásu neleží pod štítkem (stáčí se dolů) — terč schovat, za zády je štítek lemovaný červeně */
+body.ag-nav-pas #ar-hud.pas-dal #ar-hud-info::after, body.ag-nav-pas #ar-hud.pas-zady #ar-hud-info::after { display: none; }
+body.ag-nav-pas #ar-hud.pas-zady #ar-hud-info { border-color: rgba(239, 68, 68, .7); box-shadow: 0 0 0 2px rgba(239, 68, 68, .25); }
+@media (prefers-reduced-motion: reduce) { body.ag-nav-pas #ar-hud.pas-tol #ar-hud-info::after { animation: none; } }

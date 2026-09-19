@@ -1,5 +1,13 @@
 {
  "_": "Díly vektorové mapy po zemích (generuje scripts/mapa-evropa.py): kód země → seznam {f: soubor bez .pmtiles, bbox: [lon0, lat0, lon1, lat1]}. Země, která tu není, má jeden soubor <kód>.pmtiles. Čte js/mapa-vektor.js.",
  "dily": {
+  "FI": [
+   {"f": "fi-1", "bbox": [20.622, 59.816, 26.489, 69.893]},
+   {"f": "fi-2", "bbox": [26.489, 60.413, 31.537, 70.065]}
+  ],
+  "RO": [
+   {"f": "ro-1", "bbox": [20.242, 43.696, 25.092, 48.087]},
+   {"f": "ro-2", "bbox": [25.092, 43.671, 29.706, 48.263]}
+  ]
  }
 }

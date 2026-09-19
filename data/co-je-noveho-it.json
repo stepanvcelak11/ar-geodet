@@ -2,6 +2,16 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 376,
+      "datum": "2026-09-19",
+      "nadpis": "Fascia di navigazione a terra al posto della freccia 3D",
+      "body": [
+        "<b>Fascia di frecce a terra.</b> La freccia verso il punto nella fotocamera RA è ora una fascia di quattro chevron adagiati a terra che <b>si piega verso il punto</b> come un navigatore per auto: il più vicino è il più grande, i lontani sbiadiscono, alle tue spalle si arrotola in un’inversione (e diventa rosso). Niente più salti fra quattro disegni a 35° e 110°; vedi di quanto girarti.",
+        "L’etichetta con nome del punto e distanza sta sopra la fascia con un bersaglio dorato e non copre più la freccia. Entro ±10° la fascia si schiarisce e il bersaglio pulsa. Colore e dimensione da Impostazioni → Fotocamera RA valgono ancora; la scelta della forma della freccia non ha senso con la fascia ed è sparita.",
+        "Scelto il 19 settembre fra quattro proposte (fascia a terra · anello · faro · freccia nuova)."
+      ]
+    },
+    {
       "v": 375,
       "datum": "2026-09-19",
       "nadpis": "Sole, Luna e pianeti dietro il globo, cielo fluido",

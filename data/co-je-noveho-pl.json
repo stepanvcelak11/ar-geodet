@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 376,
+      "datum": "2026-09-19",
+      "nadpis": "Pas nawigacyjny na ziemi zamiast strzałki 3D",
+      "body": [
+        "<b>Pas strzałek na ziemi.</b> Strzałka do celu w kamerze AR to teraz pas czterech szewronów leżących na ziemi, który <b>wygina się w stronę punktu</b> jak nawigacja w aucie: najbliższy jest największy, dalsze bledną, za plecami zwija się w zawrót (i czerwienieje). Bez skoków między czterema rysunkami przy 35° i 110°; widzisz, o ile się obrócić.",
+        "Etykieta z nazwą punktu i odległością siedzi nad pasem ze złotym celem i nie zasłania już strzałki. W tolerancji ±10° pas jaśnieje, a cel pulsuje. Kolor i rozmiar z Ustawienia → Kamera AR nadal działają; wybór kształtu strzałki przy pasie nie ma sensu, zniknął.",
+        "Wybrane 19 września z czterech propozycji (pas na ziemi · pierścień · latarnia · nowa strzałka)."
+      ]
+    },
+    {
       "v": 375,
       "datum": "2026-09-19",
       "nadpis": "Słońce, Księżyc i planety za globusem, niebo płynnie",

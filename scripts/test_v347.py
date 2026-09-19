@@ -353,6 +353,26 @@ async def beh(url):
             return { podchod: t1 && { delka: t1.delka, nedos: t1.nedosazitelne, lomu: t1.body.length }, metro: t2 && { delka: t2.delka, nedos: t2.nedosazitelne } }; }""" % (LAT, LNG))
         ok('K1 podchod (path v tunelu) skrz budovu = trasa ~40 m rovne; metro pod budovou = obchazka (> 46 m)', k1 and k1['podchod'] and k1['podchod']['delka'] < 46 and not k1['podchod']['nedos'] and k1['metro'] and k1['metro']['delka'] > 46, k1)
 
+        # ================= L: NAVIGACNI PAS NA ZEMI (v376, 19. 9. 2026, vybrano A ze ctyr navrhu) =====
+        # modul js/nav-pas.js kresli pas 4 chevronu misto 3D sipky; hacek v renderAR (AGNavPas.snimek). Bez kamery
+        # se HUD vynuti a modul se vola primo: pas se ohyba (d se meni), stitek se posouva za konec pasu, stavy
+        # pas-tol (±10°) / pas-dal (>90°) / pas-zady (>135°), stare SVG schovane, volba tvaru sipky v Nastaveni schovana
+        l1 = await page.evaluate("""() => { var hud = document.getElementById('ar-hud'); hud.style.display = 'flex';
+            var ok0 = AGNavPas.snimek(0), d0 = AGNavPas.cesty()[0].getAttribute('d'), px0 = AGNavPas.stav().px, s0 = AGNavPas.stav().stav;
+            AGNavPas.snimek(75); var d75 = AGNavPas.cesty()[0].getAttribute('d'), d75k = AGNavPas.cesty()[3].getAttribute('d'), px75 = AGNavPas.stav().px, s75 = AGNavPas.stav().stav;
+            AGNavPas.snimek(110); var s110 = AGNavPas.stav().stav; AGNavPas.snimek(-170); var s170 = AGNavPas.stav().stav, px170 = AGNavPas.stav().px;
+            AGNavPas.snimek(-170.3); var stejne = AGNavPas.stav().posl;
+            var pas = document.getElementById('arrow-pas'), r = pas.getBoundingClientRect(), cam = document.getElementById('camera-container').getBoundingClientRect();
+            var stare = ['arrow-straight', 'arrow-left', 'arrow-right', 'arrow-uturn'].map(function (i) { return getComputedStyle(document.getElementById(i)).display; });
+            var sel = document.getElementById('v-arrow-shape');
+            hud.style.display = 'none';
+            return { ok0: ok0, telo: document.body.classList.contains('ag-nav-pas'), cest: AGNavPas.cesty().length, ohyb: d0 !== d75, blizky: d75 !== d75k, px0: px0, px75: px75, px170: px170, s0: s0, s75: s75, s110: s110, s170: s170, stejne: stejne,
+                stare: stare, selSchovany: !!(sel && sel.hidden), fill: getComputedStyle(AGNavPas.cesty()[0]).fill }; }""")
+        hook = 'AGNavPas.snimek(diff)' in open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'js', 'grafika.js'), encoding='utf-8').read()
+        ok('L1 navigacni pas: modul + telo.ag-nav-pas, 4 chevrony, pas se ohyba (0° ≠ 75°), stitek se posouva za konec (px 0 → >10 → zaporne pri −170°), stavy tol/dal/zady, prekres jen pri zmene ≥1°, stare sipky display none, volba tvaru schovana, barva z --color-arrow',
+           l1 and l1['ok0'] and l1['telo'] and l1['cest'] == 4 and l1['ohyb'] and l1['blizky'] and l1['px0'] == 0 and l1['px75'] > 10 and l1['px170'] < 0 and l1['s0'] == 'pas-tol' and l1['s75'] == '' and l1['s110'] == 'pas-dal' and l1['s170'] == 'pas-zady' and l1['stejne'] == -170
+           and all(x == 'none' for x in l1['stare']) and l1['selSchovany'] and l1['fill'] not in ('', 'none') and hook, l1)
+
         pe = [c for c in chyby if c.startswith('pageerror')]
         ok('Z zadna chyba stranky za cely beh', not pe, pe[:4])
         await br.close()

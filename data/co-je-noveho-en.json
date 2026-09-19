@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 376,
+      "datum": "2026-09-19",
+      "nadpis": "Ground navigation band instead of the 3D arrow",
+      "body": [
+        "<b>A band of arrows on the ground.</b> The arrow to the target in the AR camera is now a band of four chevrons lying on the ground that <b>bends toward the point</b> like a car navigation: the nearest is the biggest, the farther ones fade, and behind your back it curls into a U-turn (and turns red). No more jumps between four drawings at 35° and 110°; you see how much to turn.",
+        "The label with the point name and distance sits above the band with a gold target and no longer covers the arrow. Within ±10° the band brightens and the target pulses. Colour and size from Settings → AR camera still apply; the arrow-shape choice makes no sense for a band and is gone.",
+        "Chosen on 19 Sept from four proposals (ground band · ring · beacon · new arrow)."
+      ]
+    },
+    {
       "v": 375,
       "datum": "2026-09-19",
       "nadpis": "Sun, Moon and planets behind the globe, sky moves smoothly",

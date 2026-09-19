@@ -101,8 +101,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=375">
-    <link rel="stylesheet" href="css/style.css?v=375">
+    <link rel="stylesheet" href="css/tokens.css?v=376">
+    <link rel="stylesheet" href="css/style.css?v=376">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -233,7 +233,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=375">
+    <link rel="stylesheet" href="css/vylepseni.css?v=376">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -261,6 +261,7 @@
     <!-- JEDNODUCHÝ REŽIM — celoobrazovkový přebal „jen bod + navigace"
          (odpojitelné: smaž tento řádek + css/jednoduchy-rezim.css + js/jednoduchy-rezim.js) -->
     <link rel="stylesheet" href="css/jednoduchy-rezim.css">
+    <link rel="stylesheet" href="css/nav-pas.css">
     <!-- TOKENOVÁ VRSTVA ČITELNOSTI — venkovní režim + rukavice přes design tokeny;
          MUSÍ být POSLEDNÍ css (přepisuje tokeny). Náhled: nahledy-kontrast.html.
          Odpojitelné: smaž tento řádek + css/tokens-outdoor.css -->
@@ -1236,6 +1237,9 @@
          ukazatel na hraně displeje, když je cíl mimo záběr kamery.
          Odpojitelné: smaž tento řádek + js/cil-navigace.js. MUSÍ být po grafika.js. -->
     <script defer src="js/cil-navigace.js"></script>
+    <!-- NAVIGAČNÍ PÁS NA ZEMI (19. 9. 2026, vybráno ze čtyř návrhů): pás chevronů místo 3D šipky k cíli.
+         Odpojitelné: smaž tento řádek + js/nav-pas.js + css/nav-pas.css. Háček v grafika.js (AGNavPas.snimek). -->
+    <script defer src="js/nav-pas.js"></script>
     <!-- HISTORIE AKTUALIZACI (odpojitelne: smaz tento radek + js/historie-aktualizaci.js)
          — prohlizitelny soupis zmen z nabidky Vice a z Nastaveni → Udrzba. Bere data
          ze STEJNEHO data/co-je-noveho.json jako roletka u listy Nova verze, at

@@ -2653,7 +2653,10 @@
                 // barvu NEnastavovat inline na bilou — na slunci (body.cam-light) ma stitek svetle
                 // pozadi a bily text by nesel precist; barvu ridi CSS (#ar-hud-info + cam-light)
                 arHudDist.style.color = ''; arHudInfo.style.borderColor = 'rgba(255,255,255,0.4)';
-                if (Math.abs(diff) <= 35) { arrStraight.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg) rotateZ(${diff}deg)`; } else if (diff < -35 && diff >= -110) { arrLeft.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; } else if (diff > 35 && diff <= 110) { arrRight.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; } else { arrUturn.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; }
+                // NAVIGAČNÍ PÁS NA ZEMI (js/nav-pas.js, 19. 9. 2026): když je modul načtený, kreslí pás chevronů on
+                // a stará čtveřice šipek zůstává schovaná; bez modulu se kreslí přesně jako dřív.
+                if (window.AGNavPas && AGNavPas.snimek(diff)) { /* pás */ }
+                else if (Math.abs(diff) <= 35) { arrStraight.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg) rotateZ(${diff}deg)`; } else if (diff < -35 && diff >= -110) { arrLeft.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; } else if (diff > 35 && diff <= 110) { arrRight.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; } else { arrUturn.style.display = 'block'; arHudArrowContainer.style.transform = `perspective(800px) rotateX(65deg)`; }
                 arHudDist.innerText = `${highlightedPointData.dist.toFixed(1).replace('.', ',')} m`;
                 arHudName.innerText = `#${highlightedPointData.name}`;
 
