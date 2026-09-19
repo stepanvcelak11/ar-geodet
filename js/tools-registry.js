@@ -80,6 +80,10 @@
 //         (js/ucty.js) a `job-transfer`. Kdo má Pro, může pozvat člověka bez
 //         Pro, aby mu dělal na zakázce — ten se přihlásí a předá data, ale
 //         žádný Pro nástroj tím nedostane. Proto `job-transfer` NENÍ `pro`.
+//   zeme  ['CZ'] = nástroj má smysl jen v těchto zemích (data, která jinde nejsou —
+//         ČÚZK bodové pole, RÚIAN, české vyhlášky). Jinde ho seznam úkonů nekreslí
+//         (jako hidden), hledáním se dál najde. Bez `zeme` = všude. (19. 9. 2026, E2:
+//         v Amsterdamu se nabízelo „Stáhnout okres, kraj nebo celou ČR".)
 //   hub   1 = dlaždici vyrábí jako rozcestník js/tools-hub.js (jen pro kontrolora)
 //   notile 1 = není dlaždice v Nástrojích, návod se otevírá odjinud (jen pro kontrolora)
 //   noverb 1 = záměrně bez slovesa, zůstává v „Dalších nástrojích“ (jen pro kontrolora)
@@ -334,9 +338,9 @@
         { k: 'podklady-katastr', pro: 1, w: 1, verb: 'Katastr a podklady', vl: 'Podklady a katastr', vh: 'parcely, body z výřezu, offline mapa, sbalení zakázky', hub: 1,
           keys: 'podklady katastr parcely hranice vektor vyrez body offline mapa osm sbalit balicek zakazka prohlidka okoli rozcestnik',
           help: { t: 'Podklady a katastr' } },
-        { k: 'cadastre-vector', fn: 'agOpenCadastreVector', pro: 1, w: 1, inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Parcely do mapy a do AR', keys: 'katastr vektor hranice parcely dxf import mapa kn', net: 1,
+        { k: 'cadastre-vector', zeme: ['CZ'], fn: 'agOpenCadastreVector', pro: 1, w: 1, inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Parcely do mapy a do AR', keys: 'katastr vektor hranice parcely dxf import mapa kn', net: 1,
           help: { t: 'Katastr — parcely' } },
-        { k: 'cadastre-area', pro: 1, w: 1, inhub: 'podklady-katastr', verb: 'Katastr a podklady', vl: 'Stáhnout body z výřezu mapy', keys: 'stahnout body vyrez oblast okoli bodove pole import mapa', net: 1,
+        { k: 'cadastre-area', zeme: ['CZ'], pro: 1, w: 1, inhub: 'podklady-katastr', verb: 'Katastr a podklady', vl: 'Stáhnout body z výřezu mapy', keys: 'stahnout body vyrez oblast okoli bodove pole import mapa', net: 1,
           help: { t: 'Stáhnout body z výřezu mapy' } },
         { k: 'prohlidka', pro: 1, hidden: 1, inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Prohlídka okolí', vh: 'co je kolem mě — bez zakázky', keys: 'prohlidka okoli kde stojim parcela hranice rozhlednout se zvedni telefon vychazka prochazka soused plot vyska slunce laik ukazat', net: 1,
           help: { t: 'Prohlídka okolí' } },
@@ -344,7 +348,7 @@
           help: { t: 'Vektorová mapa offline' } },
         { k: 'balicek-zakazky', fn: 'openBalicekZakazky', pro: 1, inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Sbalit zakázku pro terén', vh: 'mapa, katastr a body kolem ZAKÁZKY, ne kolem mě', keys: 'sbalit balicek offline pred vyjezdem stahnout mapu katastr body zakazka kancelar wifi priprava',
           help: { t: 'Sbalit zakázku' } },
-        { k: 'oblasti-offline', fn: 'agOpenOblasti', pro: 1, inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Stáhnout okres, kraj nebo celou ČR', vh: 'všechny úřední body + přehledová mapa v telefonu, bez signálu', keys: 'stahnout okres kraj cela cr republika oblast offline body bodove pole mapa telefon bez signalu plynule nacitani balicek',
+        { k: 'oblasti-offline', zeme: ['CZ'], fn: 'agOpenOblasti', pro: 1, inhub: 'podklady-katastr', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Stáhnout okres, kraj nebo celou ČR', vh: 'všechny úřední body + přehledová mapa v telefonu, bez signálu', keys: 'stahnout okres kraj cela cr republika oblast offline body bodove pole mapa telefon bez signalu plynule nacitani balicek',
           help: { t: 'Stáhnout oblast' } },
         // Lovci bodů: od 18. 9. 2026 v „Učit se" (uživatel: „s tím se člověk hraje, neměří")
         { k: 'lovci-bodu', fn: 'agOpenLovci', cat: 'Pomůcky', verb: 'Učit se', vl: 'Lovci bodů', vh: 'sbírka objevených úředních bodů, ocenění, lov', keys: 'lovci bodu sbirka objevene body oceneni odznaky lov lovit hra skore kamen dne nasel jsem ho',
@@ -356,7 +360,7 @@
         { k: 'project-import', fn: 'agOpenProjectImport', pro: 1, w: 1, cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Import projektu', vh: 'DXF, situace', keys: 'import projekt oblast stazeni csv dxf soubor nahrat',
           help: { t: 'Import projektu (DXF)' } },
         // Náčrt na mapě (N2, 17. 9. 2026): oficiální náčrt ČÚZK položený dvěma klepnutími na katastr
-        { k: 'nacrt-na-mapu', fn: 'agOpenNacrtNaMapu', cat: 'Vytyčování a náčrt', verb: 'Katastr a podklady', vl: 'Náčrt bodu na mapě', vh: 'oficiální náčrt ČÚZK položený na katastr, v mapě i v AR', keys: 'nacrt mistopis cuzk mapa katastr polozit georeference bod dohledani hledani roh budovy ar',
+        { k: 'nacrt-na-mapu', zeme: ['CZ'], fn: 'agOpenNacrtNaMapu', cat: 'Vytyčování a náčrt', verb: 'Katastr a podklady', vl: 'Náčrt bodu na mapě', vh: 'oficiální náčrt ČÚZK položený na katastr, v mapě i v AR', keys: 'nacrt mistopis cuzk mapa katastr polozit georeference bod dohledani hledani roh budovy ar',
           help: { t: 'Náčrt bodu na mapě' } },
         { k: 'geo-overlay', fn: 'agOpenGeoOverlay', pro: 1, cat: 'Katastr a data', verb: 'Katastr a podklady', vl: 'Podložit plán do mapy', vh: 'georeference obrázku', keys: 'podklad georeference obrazek plan situace vykres overlay',
           help: { t: 'Vlastní podklad' } },
@@ -406,7 +410,7 @@
         { k: 'prirucka', verb: 'Příručka a výpočty', vl: 'Příručka', vh: 'předpisy a odchylky, postupy měření, slovník', hub: 1,
           keys: 'prirucka predpisy postupy slovnik odchylky kody lhuty navody tahak pojmy zkratky rozcestnik',
           help: { t: 'Příručka' } },
-        { k: 'predpisy', inhub: 'prirucka', verb: 'Příručka a výpočty', vl: 'Předpisy a odchylky', keys: 'predpisy vyhlaska odchylky kody lhuty tahak normy trida presnosti',
+        { k: 'predpisy', zeme: ['CZ', 'SK'], inhub: 'prirucka', verb: 'Příručka a výpočty', vl: 'Předpisy a odchylky', keys: 'predpisy vyhlaska odchylky kody lhuty tahak normy trida presnosti',
           help: { t: 'Předpisy & odchylky' } },
         { k: 'postupy', inhub: 'prirucka', cat: 'Pomůcky', verb: 'Příručka a výpočty', vl: 'Postupy měření', keys: 'postupy navody checklisty pracovni kroky jak na',
           help: { t: 'Postupy měření' } },

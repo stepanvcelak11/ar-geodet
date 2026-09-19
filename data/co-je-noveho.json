@@ -2,6 +2,17 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 378,
+   "datum": "2026-09-19",
+   "nadpis": "V cizině bez češtiny a bez ČÚZK: co je jen české, se schová nebo přepne",
+   "body": [
+    "<b>Start v cizině už nehlásí česky.</b> Po prvním spuštění v Berlíně, Paříži, Varšavě nebo Madridu naskakoval český dialog „Jsi v zemi…“ i v německé či francouzské appce (závod dvou modulů). Teď se vždy ukáže přeložená karta <b>Měříš v zemi</b> — s názvem země ve tvém jazyce. Panel Body říká <b>Mé body (MGI / Austria GK)</b>, ne „(S-JTSK)“; u Nového bodu je výškový systém země místo „(Bpv)“; hláška „GPS nedodává čerstvé fixy (N s)“ je přeložená.",
+    "<b>Mimo Česko se na ČÚZK nesahá.</b> Při startu v Amsterdamu šlo 31 dotazů na české bodové pole nad Nizozemskem. Nástroje, které mají data jen doma — <b>Stáhnout okres, kraj nebo celou ČR</b>, Stáhnout body z výřezu, Parcely do mapy a AR, Náčrt bodu na mapě, Předpisy (ČR/SK) — se v cizině v seznamu nekreslí (hledáním se najdou). <b>Katastr — kde stojím</b> místo iKatastru otevře portál té země (ZBGIS, Géoportail, BEV, map.geo.admin.ch, Geoportal.gov.pl…), s polohou, kde to portál umí. Počasí volá DWD (Bright Sky) jen tam, kde má stanice.",
+    "<b>Jednoduchý režim</b> už hned po startu neukazuje „Něco se pokazilo (updateInfoPanel is not defined)“ — první GPS fix předběhl načtení grafiky; v tomhle režimu se technické toasty neukazují vůbec (jdou do Protokolu chyb).",
+    "<b>CI zase hlídá.</b> Testy byly od v373 červené jen kvůli testu k v372, který chtěl přesné číslo vydání; opraveno a kontrola vydání hlídá, aby to žádný test nedělal znovu."
+   ]
+  },
+  {
    "v": 377,
    "datum": "2026-09-19",
    "nadpis": "Jednoduchý režim: navigace i na úřední body",

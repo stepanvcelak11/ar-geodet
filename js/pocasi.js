@@ -3492,8 +3492,10 @@
             function (j) { var s = parseMetno(j); return s ? [s] : []; },
             function () { return []; }    // met.no smí selhat (CORS/síť) — celek jede dál
         );
-        var pBs = fetchJson(brightskyUrl(pos.lat, pos.lon), FETCH_MS).then(
-            function (j) { var s = parseBrightsky(j); return s ? [s] : []; },
+        // Bright Sky = DWD stanice: Německo a sousedé; v Madridu nebo Římě je to prázdný dotaz (19. 9. 2026, E2)
+        var bsZde = ['DE', 'AT', 'CH', 'CZ', 'PL', 'NL', 'BE', 'LU', 'DK', 'LI', 'FR'].indexOf(zemeKod(pos.lat, pos.lon)) !== -1;
+        var pBs = (bsZde ? fetchJson(brightskyUrl(pos.lat, pos.lon), FETCH_MS) : Promise.resolve(null)).then(
+            function (j) { var s = j && parseBrightsky(j); return s ? [s] : []; },
             function () { return []; }    // Bright Sky smí selhat — celek jede dál
         );
         // ensembly: z paměti, pokud jsou čerstvé (do hodiny), jinak stáhnout

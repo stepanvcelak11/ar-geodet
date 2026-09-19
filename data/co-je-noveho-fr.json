@@ -2,6 +2,17 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 378,
+      "datum": "2026-09-19",
+      "nadpis": "À l’étranger sans tchèque et sans ČÚZK : ce qui n’est que tchèque se cache ou bascule",
+      "body": [
+        "<b>Le démarrage à l’étranger ne parle plus tchèque.</b> Le premier démarrage à Berlin, Paris, Varsovie ou Madrid affichait un dialogue tchèque « Jsi v zemi… » même dans l’appli allemande ou française (course entre deux modules). Maintenant la fiche traduite <b>Tu mesures en</b> apparaît toujours — avec le nom du pays dans ta langue. Le panneau Points dit <b>Mes points (RGF93 / Lambert-93)</b>, pas « (S-JTSK) » ; le Nouveau point montre le système d’altitudes du pays au lieu de « (Bpv) » ; le message « Le GPS ne fournit pas de fixes récents (N s) » est traduit.",
+        "<b>Hors de Tchéquie, l’appli n’appelle pas ČÚZK.</b> Un démarrage à Amsterdam envoyait 31 requêtes au canevas tchèque au-dessus des Pays-Bas. Les outils dont les données n’existent qu’à la maison — <b>Télécharger un district, une région ou toute la Tchéquie</b>, Télécharger les points de la vue carte, Parcelles sur la carte et en RA, Croquis du point sur la carte, Réglementation (CZ/SK) — ne sont pas dessinés dans la liste à l’étranger (la recherche les trouve). <b>Cadastre — où je me trouve</b> ouvre le portail du pays au lieu d’iKatastr (ZBGIS, Géoportail, BEV, map.geo.admin.ch, Geoportal.gov.pl…), avec ta position là où le portail le permet. La météo n’appelle DWD (Bright Sky) que là où il a des stations.",
+        "<b>Le mode simple</b> n’affiche plus « Quelque chose a cassé (updateInfoPanel is not defined) » juste après le démarrage — le premier fix GPS a devancé le chargement du graphisme ; dans ce mode, les toasts techniques ne s’affichent pas du tout (ils vont dans le journal des erreurs).",
+        "<b>La CI veille à nouveau.</b> Les tests étaient rouges depuis v373 uniquement à cause du test de v372, qui exigeait le numéro exact de version ; corrigé, et le contrôle de version veille à ce qu’aucun test ne le refasse."
+      ]
+    },
+    {
       "v": 377,
       "datum": "2026-09-19",
       "nadpis": "Mode simple : navigation aussi vers les points officiels",

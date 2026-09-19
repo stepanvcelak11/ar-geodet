@@ -126,7 +126,7 @@ jobs:
                    test_ucty_prostory test_v283 test_jednoduchy_rezim test_prodej \
                    test_opravy_11_9 test_vlastnik_data test_konzole_2 \
                    test_zpresneni_gps test_akustika test_hrana test_v316 test_v318 test_v329 \
-                   test_presne_mereni test_v332 test_pruchod_15_9 test_v338 test_v339 test_zeme test_android test_mapa_vektor test_v342 test_nacrt_na_mapu test_v347 test_v354 test_v355 test_v356 test_v358 test_jazyky_data test_v360 test_v365 test_v368 test_v371 test_slabsi_dosah test_v372; do
+                   test_presne_mereni test_v332 test_pruchod_15_9 test_v338 test_v339 test_zeme test_android test_mapa_vektor test_v342 test_nacrt_na_mapu test_v347 test_v354 test_v355 test_v356 test_v358 test_jazyky_data test_v360 test_v365 test_v368 test_v371 test_slabsi_dosah test_v372 test_v378; do
             i=$((i + 1))
             if [ $((i % 3)) -ne $(( ${{ matrix.proud }} % 3 )) ]; then continue; fi
             echo "::group::$t"

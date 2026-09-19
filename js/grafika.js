@@ -229,6 +229,8 @@
             var f = document.getElementById('agk-frame'); if (f) f.src = 'about:blank';
         }
         function openKatastr() {
+            // mimo ČR portál té země (js/zdroje-zemi.js), ne iKatastr.cz na cizích souřadnicích (19. 9. 2026, E2)
+            try { if (window.AGZdroje && AGZdroje.portal && AGZdroje.portal()) return; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:openKatastr:portal'); }
             if(!userLat || !userLng) return agInfo("Čekám na GPS pozici...");
             var src = visSettings.katastrSource || 'mapycz';
             var m = katastrOkno();
@@ -1159,6 +1161,8 @@
             // panel se zobrazi DRIV nez se stavi obsah — renderManageList() jinak vidi
             // zavreny modal a prekresleni by jen odlozil (viz _mngVisible)
             document.getElementById('manage-modal').style.display = 'flex';
+            // systém souřadnic země, ne natvrdo S-JTSK — ve Vídni tu bylo „Meine Punkte (S-JTSK)" (19. 9. 2026, E1)
+            try { const _mc = document.getElementById('manage-crs'); if (_mc) _mc.textContent = '(' + ((window.AGSour && AGSour.crs()) ? AGSour.crs().nazev : 'S-JTSK') + ')'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:manage-crs'); }
             _renderManageListNow();
             // Dokumentace bodu (poznamka/fotka) lezi v IndexedDB. Driv se na kazdy radek
             // posilal vlastni dotaz, tedy u zakazky s tisici body tisic dotazu. Ted se

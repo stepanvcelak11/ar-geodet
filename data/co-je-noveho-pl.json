@@ -2,6 +2,17 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 378,
+      "datum": "2026-09-19",
+      "nadpis": "Za granicą bez czeskiego i bez ČÚZK: co jest tylko czeskie, chowa się lub przełącza",
+      "body": [
+        "<b>Start za granicą nie mówi już po czesku.</b> Po pierwszym uruchomieniu w Berlinie, Paryżu, Warszawie czy Madrycie pojawiał się czeski dialog „Jsi v zemi…” nawet w niemieckiej lub francuskiej aplikacji (wyścig dwóch modułów). Teraz zawsze pokazuje się przetłumaczona karta <b>Mierzysz w kraju</b> — z nazwą kraju w twoim języku. Panel Punkty mówi <b>Moje punkty (PL-2000)</b>, nie „(S-JTSK)”; w Nowym punkcie jest układ wysokości kraju zamiast „(Bpv)”; komunikat „GPS nie dostarcza świeżych fiksów (N s)” jest przetłumaczony.",
+        "<b>Poza Czechami aplikacja nie odpytuje ČÚZK.</b> Start w Amsterdamie wysyłał 31 zapytań do czeskiej osnowy nad Holandią. Narzędzia, które mają dane tylko w domu — <b>Pobierz powiat, kraj lub całe Czechy</b>, Pobierz punkty z widoku mapy, Działki na mapie i w AR, Szkic punktu na mapie, Przepisy (CZ/SK) — za granicą nie są rysowane na liście (wyszukiwanie je znajdzie). <b>Kataster — gdzie stoję</b> zamiast iKatastru otwiera portal danego kraju (ZBGIS, Géoportail, BEV, map.geo.admin.ch, Geoportal.gov.pl…), z pozycją tam, gdzie portal to umie. Pogoda woła DWD (Bright Sky) tylko tam, gdzie ma stacje.",
+        "<b>Tryb prosty</b> zaraz po starcie nie pokazuje już „Coś poszło nie tak (updateInfoPanel is not defined)” — pierwszy fix GPS wyprzedził ładowanie grafiki; w tym trybie techniczne dymki w ogóle się nie pokazują (idą do Protokołu błędów).",
+        "<b>CI znów pilnuje.</b> Testy były czerwone od v373 tylko przez test do v372, który wymagał dokładnego numeru wydania; naprawione, a kontrola wydania pilnuje, by żaden test już tego nie robił."
+      ]
+    },
+    {
       "v": 377,
       "datum": "2026-09-19",
       "nadpis": "Tryb prosty: nawigacja także do punktów urzędowych",

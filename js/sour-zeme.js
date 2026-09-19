@@ -227,9 +227,13 @@
         try { document.dispatchEvent(new CustomEvent('ag:zeme', { detail: { pred: pred, po: po, zeme: aktivni() } })); } catch (e) { swallow(e, 'event'); }
         try {
             var z = aktivni(), c = crsPro(z, _lat, _lng);
-            // od 18. 9. 2026 noc to říká karta „Měříš v zemi" (js/zdroje-zemi.js, i s úředními body a podklady);
-            // tahle hláška zůstává jen jako záloha, když modul zdrojů není načtený
-            if (typeof window.agInfo === 'function' && pred && !window.AGZdroje) window.agInfo('Jsi v zemi: ' + z.nazev + '. Souřadnice ' + c.nazev + ', výšky ' + z.vyska.nazev + '.');
+            // Od 18. 9. 2026 noc to říká karta „Měříš v zemi" (js/zdroje-zemi.js, i s úředními body a podklady).
+            // ⚠ Dřív tu byla ČESKÁ záložní hláška „Jsi v zemi…" pro případ, že modul zdrojů ještě není
+            //   načtený — a přesně to byl běžný případ: první start v Berlíně, Paříži, Varšavě, Amsterdamu,
+            //   Madridu i Římě dostal český dialog v německé/francouzské appce (19. 9. 2026, E1). Modul je
+            //   odložený (ag/lazy), takže se tu jen přivolá — po načtení kartu naplánuje sám (naplanujUvod).
+            if (!window.AGZdroje && po !== 'CZ') { try { if (window.AGLazy && AGLazy.need) AGLazy.need('js/zdroje-zemi.js'); } catch (e2) { swallow(e2, 'need'); } }
+            void c;
         } catch (e) { swallow(e, 'toast'); }
     }
     function hranice(json) { if (json && typeof json === 'object') { _hranice = json; if (_lat != null) { _tsPoloha = 0; _lastLat = null; poloha(_lat, _lng); } } }

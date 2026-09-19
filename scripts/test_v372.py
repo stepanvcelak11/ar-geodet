@@ -70,8 +70,12 @@ def staticke():
         ok('T2/T5 slovník %s: nové cesty a stavy' % l, 'Signál slabý' in d and 'Data chodí' in d and any('Nástroje → Zaznamenat → Obnovit smazaný bod' in k for k in d) and not any('Více → ' in k for k in d), [k for k in d if 'Více → ' in k][:3])
     for f in ['co-je-noveho.json'] + ['co-je-noveho-%s.json' % l for l in core['poradi']]:
         d = json.load(io.open(os.path.join(ROOT, 'data', f), encoding='utf-8'))
-        ok('Co je nového v372: %s' % f, d['verze'][0]['v'] == 372 and len(d['verze'][0]['body']) == 6)
-    ok('SHELL_CACHE v372', "argedet" not in src('sw.js') and "'argeodet-shell-v372'" in src('sw.js'))
+        # ⚠ NE „první záznam je v372": ten test padal každé další vydání (v373–v377 měly
+        #   červené CI jen kvůli němu, 19. 9. 2026 G1). Hlídá se, že záznam v372 EXISTUJE.
+        z = [v for v in d['verze'] if v.get('v') == 372]
+        ok('Co je nového v372: %s' % f, len(z) == 1 and len(z[0]['body']) == 6)
+    m = re.search(r"argeodet-shell-v(\d+)", src('sw.js'))
+    ok('SHELL_CACHE >= v372', "argedet" not in src('sw.js') and bool(m) and int(m.group(1)) >= 372)
 
 
 VIS_TEXTS = """() => {

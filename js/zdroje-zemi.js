@@ -38,6 +38,52 @@
         ES: { orto: wms('https://www.ign.es/wms-inspire/pnoa-ma', 'OI.OrthoimageCoverage', 'image/jpeg', '© IGN España (PNOA)', 'PNOA') }
     };
 
+    // ---- KATASTRÁLNÍ PORTÁLY (19. 9. 2026, E2) --------------------------------------------------
+    // Nástroj „Katastr — kde právě stojím" otevíral v Paříži a Varšavě iKatastr.cz (český katastr
+    // na cizích souřadnicích). Mimo ČR se místo toho otevře portál té země — s polohou, kde to
+    // adresa umí (SK ZBGIS pos=, FR Géoportail c=, CH map.geo.admin.ch center= v LV95, NL
+    // kadastralekaart lat/lng), jinde aspoň úvodní stránka. Bez portálu → jen hláška.
+    var PORTALY = {
+        SK: { n: 'ZBGIS kataster', u: function (la, lo) { return 'https://zbgis.skgeodesy.sk/mkzbgis/sk/kataster?pos=' + la.toFixed(6) + ',' + lo.toFixed(6) + ',18'; } },
+        PL: { n: 'Geoportal.gov.pl', u: function () { return 'https://mapy.geoportal.gov.pl/imap/Imgp_2.html?gpmap=gp0'; } },
+        AT: { n: 'BEV Kataster', u: function () { return 'https://kataster.bev.gv.at/'; } },
+        DE: { n: 'Geoportal.de', u: function () { return 'https://www.geoportal.de/'; } },
+        CH: { n: 'map.geo.admin.ch', u: function (la, lo) { var e = null; try { var m = window.AGSour && AGSour.doMistnich(la, lo); if (m) e = m; } catch (x) { e = null; } return 'https://map.geo.admin.ch/#/map?lang=de&layers=ch.kantone.cadastralwebmap-farbe' + (e ? '&center=' + Math.round(e.y) + ',' + Math.round(e.x) + '&z=12' : ''); } },
+        LI: { n: 'map.geo.admin.ch', u: function () { return 'https://map.geo.admin.ch/#/map?lang=de&layers=ch.kantone.cadastralwebmap-farbe'; } },
+        FR: { n: 'Géoportail (cadastre)', u: function (la, lo) { return 'https://www.geoportail.gouv.fr/carte?c=' + lo.toFixed(6) + ',' + la.toFixed(6) + '&z=18&l0=CADASTRALPARCELS.PARCELLAIRE_EXPRESS::GEOPORTAIL:OGC:WMTS(1)&permalink=yes'; } },
+        NL: { n: 'Kadastrale kaart', u: function (la, lo) { return 'https://kadastralekaart.com/kaart?lat=' + la.toFixed(6) + '&lng=' + lo.toFixed(6) + '&zoom=18'; } },
+        BE: { n: 'CadGIS', u: function () { return 'https://eservices.minfin.fgov.be/ecad-web/'; } },
+        LU: { n: 'Geoportail.lu', u: function (la, lo) { return 'https://map.geoportail.lu/theme/cadastre_hertzien?lang=fr'; } },
+        ES: { n: 'Sede Catastro', u: function () { return 'https://www1.sedecatastro.gob.es/Cartografia/mapa.aspx'; } },
+        IT: { n: 'Agenzia Entrate — cartografia', u: function () { return 'https://geoportale.cartografia.agenziaentrate.gov.it/'; } },
+        HU: { n: 'Lechner — térképek', u: function () { return 'https://www.e-epites.hu/'; } },
+        SI: { n: 'e-Prostor', u: function () { return 'https://ipi.eprostor.gov.si/jgp/'; } },
+        HR: { n: 'Katastar.hr', u: function () { return 'https://oss.uredjenazemlja.hr/'; } },
+        GB: { n: 'HM Land Registry map', u: function () { return 'https://search-property-information.service.gov.uk/'; } },
+        IE: { n: 'Tailte Éireann', u: function () { return 'https://www.landdirect.ie/'; } },
+        SE: { n: 'Lantmäteriet Min karta', u: function () { return 'https://minkarta.lantmateriet.se/'; } },
+        NO: { n: 'Norgeskart', u: function (la, lo) { return 'https://norgeskart.no/#!?project=norgeskart&layers=1002,1015&zoom=16&lat=' + la.toFixed(5) + '&lon=' + lo.toFixed(5); } },
+        FI: { n: 'Karttapaikka', u: function () { return 'https://asiointi.maanmittauslaitos.fi/karttapaikka/'; } },
+        EE: { n: 'Maa-amet kaardirakendus', u: function () { return 'https://xgis.maaamet.ee/xgis2/page/app/kataster'; } },
+        LV: { n: 'Kadastrs.lv', u: function () { return 'https://www.kadastrs.lv/'; } },
+        LT: { n: 'Regia.lt', u: function () { return 'https://www.regia.lt/map/regia_public'; } },
+        PT: { n: 'DGT — cadastro', u: function () { return 'https://bupi.gov.pt/'; } },
+        BG: { n: 'КАИС — кадастър', u: function () { return 'https://kais.cadastre.bg/'; } },
+        GR: { n: 'Ktimatologio', u: function () { return 'https://www.ktimatologio.gr/'; } },
+    };
+    function portal() {
+        var kod = 'CZ'; try { kod = (window.AGSour && AGSour.kod()) || 'CZ'; } catch (e) { kod = 'CZ'; }
+        if (kod === 'CZ') return false;
+        var la = null, lo = null; try { la = window.userLat; lo = window.userLng; } catch (e) { la = null; }
+        var p = PORTALY[kod];
+        if (!p) { try { if (typeof quickToast === 'function') quickToast(T('Katastr tu stát online nenabízí — v mapě zůstává vrstva Katastr, pokud ji země má.')); } catch (e) { /* nic */ } return true; }
+        var u = null; try { u = (la != null && lo != null) ? p.u(la, lo) : p.u(0, 0); } catch (e) { u = null; }
+        if (!u) return true;
+        try { window.open(u, '_blank', 'noopener'); } catch (e) { swallow(e, 'portal'); }
+        try { if (typeof quickToast === 'function') quickToast(T('Katastr země') + ': ' + p.n + ' ↗'); } catch (e) { /* nic */ }
+        return true;
+    }
+
     var _origOrto = null, _origKat = null, _aktualni = 'CZ', _vrstvaOrto = null;
     function toast(m) { try { if (typeof window.agInfo === 'function') window.agInfo(m); } catch (e) { /* nic */ } }
     function T(t) { try { return (window.AGJazyk && AGJazyk.t) ? AGJazyk.t(t) : t; } catch (e) { return t; } }
@@ -96,10 +142,10 @@
         h += row(T('Úřední body'), uz ? esc(T('ano') + ' — ' + uz) + '<br><span style="opacity:.8;font-size:.92em;">' + esc(T('appka je stáhne kolem tebe.')) + '</span>'
             : esc(T('ne')) + '<br><span style="opacity:.8;font-size:.92em;">' + esc(T('Úřední body tu stát nezveřejňuje — v mapě jsou jen tvoje body (Nový bod, import, výkres).')) + '</span>', !!uz);
         h += row(T('Katastr'), kat ? esc(T('ano') + ' — ' + kat.nazev) : esc(T('ne — parcely tu nemám')), !!kat);
-        h += row(T('Ortofoto'), esc(orto.nazev));
+        h += row(T('Ortofoto'), esc(T(orto.nazev)));
         h += '</div><p style="margin:10px 0 0;font-size:.92em;opacity:.85;">' + esc(T('Úřední body zveřejňují jako data jen Česko, Slovensko, Švýcarsko a Nizozemsko. Jinde se dnes měří roverem ze státní sítě a body si geodet zakládá sám — appka tu pracuje s tvými body, výkresem a kalibracemi.')) + '</p>';
         h += '<p style="margin:8px 0 0;font-size:.85em;opacity:.65;">' + esc(T('Zemi změníš v Nastavení → Mapa a body → Země měření.')) + '</p>';
-        return { title: T('Měříš v zemi') + ': ' + jm, html: h };
+        return { title: T('Měříš v zemi') + ': ' + T(jm), html: h };
     }
     function uvod(kod, vzdy) {
         if (!kod || kod === 'CZ') return false;
@@ -132,5 +178,5 @@
     function start() { var idle = window.requestIdleCallback || function (f) { return setTimeout(f, 1200); }; idle(function () { podleZeme(true); }); }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
-    window.AGZdroje = { ZDROJE: ZDROJE, ESRI: ESRI, prepni: prepni, podleZeme: podleZeme, aktualni: function () { return _aktualni; }, ma: function (kod) { return !!ZDROJE[kod]; }, uvod: uvod, uvodHtml: uvodHtml, naplanujUvod: naplanujUvod, UVOD_KLIC: UVOD_KLIC };
+    window.AGZdroje = { ZDROJE: ZDROJE, ESRI: ESRI, PORTALY: PORTALY, portal: portal, prepni: prepni, podleZeme: podleZeme, aktualni: function () { return _aktualni; }, ma: function (kod) { return !!ZDROJE[kod]; }, uvod: uvod, uvodHtml: uvodHtml, naplanujUvod: naplanujUvod, UVOD_KLIC: UVOD_KLIC };
 })();

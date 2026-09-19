@@ -82,7 +82,9 @@
         var box = ensureBox(); if (!box) return;
         var h = '';
         var T = function (s) { try { return window.AGJazyk ? AGJazyk.t(s) : s; } catch (e) { return s; } };   // živé innerHTML míjí překladač (T6)
-        h += '<div class="agvz-r"><span>' + T('Výška z GPS (Bpv)') + '</span><b>' + (gpsZ == null ? '—' : (f2(gpsZ) + ' m'))
+        // výškový systém země z registru — v Rakousku tu stálo „(Bpv)" a „DMR 5G" (19. 9. 2026, E1)
+        var vs = 'Bpv'; try { var _z = window.AGSour && AGSour.ZEME[AGSour.kod()]; if (_z && _z.vyska && _z.vyska.nazev) vs = _z.vyska.nazev; } catch (e) { vs = 'Bpv'; }
+        h += '<div class="agvz-r"><span>' + (vs === 'Bpv' ? T('Výška z GPS (Bpv)') : T('Výška z GPS') + ' (' + vs + ')') + '</span><b>' + (gpsZ == null ? '—' : (f2(gpsZ) + ' m'))
             + (gpsSig != null ? ' <span style="opacity:.7">±' + f2(gpsSig) + '</span>' : '') + '</b></div>';
         h += '<div class="agvz-r"><span>' + T('Výška terénu DMR 5G') + '</span><b>'
             + (state === 'wait' ? T('zjišťuji…') : (dmr == null ? '—' : (f2(dmr) + ' m <span style="opacity:.7">±' + f2(DMR_SIGMA) + '</span>'))) + '</b></div>';

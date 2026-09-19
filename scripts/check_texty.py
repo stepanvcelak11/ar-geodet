@@ -76,8 +76,30 @@ def main():
                 if rx.search(kod):
                     nalezy.append((rel, i, kod.strip()[:110], proc))
                     break
+    # --- TESTY PŘIBITÉ NA ČÍSLO VYDÁNÍ (19. 9. 2026, G1) ---------------------------------
+    # test_v372.py chtěl `verze[0]['v'] == 372` a `'argeodet-shell-v372'` — a od v373 shazoval
+    # CI pět vydání za sebou, aniž si toho kdo všiml. Test vydání smí chtít „záznam existuje"
+    # a „SHELL_CACHE >= N", nikdy rovnost s aktuálním číslem.
+    PRIBITE = [
+        (re.compile(r"\['verze'\]\[0\]\['v'\]\s*==\s*\d+"), u"chce, aby PRVNÍ záznam Co je nového byl jeho verze — spadne s příštím vydáním; hledej záznam podle v"),
+        (re.compile(r"'argeodet-shell-v\d+'\s+in\s+src"), u"chce přesné SHELL_CACHE — spadne s příštím vydáním; porovnávej >="),
+    ]
+    for jm in sorted(os.listdir(os.path.join(ROOT, 'scripts'))):
+        if not (jm.startswith('test_') and jm.endswith('.py')):
+            continue
+        try:
+            radky = io.open(os.path.join(ROOT, 'scripts', jm), encoding='utf-8', errors='replace').read().split('\n')
+        except OSError:
+            continue
+        for i, r in enumerate(radky, 1):
+            if KOMENTAR.match(r):
+                continue
+            for rx, proc in PRIBITE:
+                if rx.search(r):
+                    nalezy.append(('scripts/' + jm, i, r.strip()[:110], proc))
+                    break
     if nalezy:
-        print('CHYBA: hlášky ukazují na zrušené menu „Více" (%d):' % len(nalezy))
+        print('CHYBA: hlášky ukazují na zrušené menu „Více" nebo test přibitý na číslo vydání (%d):' % len(nalezy))
         for rel, i, uk, proc in nalezy:
             print('  %s:%d  %s' % (rel, i, uk))
             print('      → %s' % proc)

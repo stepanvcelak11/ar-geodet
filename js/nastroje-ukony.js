@@ -97,13 +97,20 @@
     //   inhub  = položka rozcestníku — v seznamu ji zastupuje řádek rozcestníku
     //   hidden = „ať to není vidět" (řádek ani dlaždice); najde se dál hledáním
     //   noverb = zamerne bez slovesa, na stránku „Další" PATŘÍ
-    var INHUB = {}, NOVERB = {}, HIDDEN = {}, HUB = {};
+    var INHUB = {}, NOVERB = {}, HIDDEN = {}, HUB = {}, ZEME = {};
     ((window.AGReg && window.AGReg.all()) || []).forEach(function (r) {
         if (r.inhub) INHUB[r.k] = r.inhub;
         if (r.noverb) NOVERB[r.k] = 1;
         if (r.hidden) HIDDEN[r.k] = 1;
         if (r.hub) HUB[r.k] = 1;
+        if (r.zeme && r.zeme.length) ZEME[r.k] = r.zeme;
     });
+    // NÁSTROJ MIMO SVOU ZEMI (19. 9. 2026, E2): `zeme` v registru říká, kde má nástroj data
+    // (ČÚZK, RÚIAN, české vyhlášky). Ve Vídni nebo Amsterdamu se řádek nekreslí — stejně jako
+    // hidden, hledáním se najde. Země z registru zemí (js/sour-zeme.js), bez něj = Česko.
+    function zemeKod() { try { return (window.AGSour && AGSour.kod && AGSour.kod()) || 'CZ'; } catch (e) { return 'CZ'; } }
+    function mimoZemi(k) { var z = ZEME[k]; return !!(z && z.indexOf(zemeKod()) === -1); }
+    function skryto(k) { return !!(HIDDEN[k] || mimoZemi(k)); }
     // POJISTKA: když se js/tools-hub.js nenačte (je lazy, nebo ho někdo odpojil),
     // jeho dlaždice v mřížce není — položky by pak zmizely ÚPLNĚ. Proto se položka
     // skryje jen tehdy, když dlaždice jejího rozcestníku OPRAVDU existuje.
@@ -394,7 +401,7 @@
         try { own = (window.AGVlastnik && AGVlastnik.isOn && AGVlastnik.isOn()) ? '1' : '0'; } catch (e) { own = '0'; }
         try { kdo = (window.AGProfilOsoby && AGProfilOsoby.get()) || ''; } catch (e) { kdo = ''; }
         try { if (window.AGGesta && AGGesta.get) { var gg = AGGesta.get(); gz = (gg.off ? 'x' : gg.prefix) + JSON.stringify(gg.map || {}); } } catch (e) { gz = ''; }
-        return out.join(',') + '|f:' + favKeys().join(',') + '|p:' + profileKeys().join(',') + '|pro:' + pro + '|own:' + own + '|kdo:' + kdo + '|g:' + gz;
+        return out.join(',') + '|f:' + favKeys().join(',') + '|p:' + profileKeys().join(',') + '|pro:' + pro + '|own:' + own + '|kdo:' + kdo + '|g:' + gz + '|z:' + zemeKod();
     }
 
     // ---- řádek nástroje -------------------------------------------------------------------
@@ -452,7 +459,7 @@
     function hubPolozky(hubId) {
         var keys = [];
         try { keys = (window.AGReg && AGReg.hubItems) ? AGReg.hubItems(hubId) : []; } catch (e) { keys = []; }
-        return keys.filter(function (k) { return !HIDDEN[k] && !!findTile(k) && !zamceno(k); });
+        return keys.filter(function (k) { return !skryto(k) && !!findTile(k) && !zamceno(k); });
     }
     // podtitulek řádku rozcestníku = výčet toho, co se pod ním OPRAVDU rozbalí
     // (registr skládá výčet bez ohledu na licenci — v Základu by sliboval Pro položky)
@@ -713,7 +720,7 @@
         var zamcene = [];
         poradiSkupin().forEach(function (grp) {
             var live = grp.items.filter(function (it) {
-                return !HIDDEN[it.k] && !vHubu(it.k) && !!findTile(it.k);
+                return !skryto(it.k) && !vHubu(it.k) && !!findTile(it.k);
             });
             if (!live.length) return;                       // celá skupina chybí (role/odpojený modul)
             var volne = live.filter(function (it) {
@@ -732,7 +739,7 @@
                     var hk = [];
                     try { hk = (window.AGReg && AGReg.hubItems) ? AGReg.hubItems(it.k) : []; } catch (e) { hk = []; }
                     hk.forEach(function (k) {
-                        if (HIDDEN[k] || !findTile(k) || !zamceno(k) || used[k]) return;
+                        if (skryto(k) || !findTile(k) || !zamceno(k) || used[k]) return;
                         var r = (window.AGReg && AGReg.get(k)) || {};
                         used[k] = 1;
                         zamcene.push({ it: { k: k, l: r.vl || tileLabel(findTile(k)), h: it.l + (r.vh ? ' · ' + r.vh : '') }, verb: grp.t });
@@ -747,7 +754,7 @@
         var tiles = g.querySelectorAll('.tool-tile');
         for (var i = 0; i < tiles.length; i++) {
             var k = tileKey(tiles[i]);
-            if (!k || used[k] || KNOWN[k] || HIDDEN[k] || vHubu(k)) continue;
+            if (!k || used[k] || KNOWN[k] || skryto(k) || vHubu(k)) continue;
             // Stejná dvě skrytí jako ve findTile(): tahle smyčka sahá na dlaždice přímo.
             if (tiles[i].hasAttribute('data-agucty')) continue;
             if (tiles[i].hasAttribute('data-ag-hidden')) continue;
@@ -772,7 +779,7 @@
                         var hk2 = [];
                         try { hk2 = (window.AGReg && AGReg.hubItems) ? AGReg.hubItems(it.k) : []; } catch (e) { hk2 = []; }
                         hk2.forEach(function (k) {
-                            if (HIDDEN[k] || !findTile(k) || !zamceno(k) || used[k]) return;
+                            if (skryto(k) || !findTile(k) || !zamceno(k) || used[k]) return;
                             var r = (window.AGReg && AGReg.get(k)) || {};
                             used[k] = 1;
                             zamcene.push({ it: { k: k, l: r.vl || tileLabel(findTile(k)), h: it.l + (r.vh ? ' · ' + r.vh : '') }, verb: d.grp.t });
@@ -968,7 +975,7 @@
         has: function (k) { return !!findTile(k); },
         // PATŘÍ NÁSTROJ DO NABÍDKY? = has() + pravidlo rozcestníků a `hidden`.
         vVypisu: function (k) {
-            if (HIDDEN[k]) return false;
+            if (skryto(k)) return false;
             if (vHubu(k)) return false;
             return !!findTile(k);
         }

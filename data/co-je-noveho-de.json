@@ -2,6 +2,17 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 378,
+      "datum": "2026-09-19",
+      "nadpis": "Im Ausland ohne Tschechisch und ohne ČÚZK: was nur tschechisch ist, wird versteckt oder umgeschaltet",
+      "body": [
+        "<b>Der Start im Ausland spricht nicht mehr Tschechisch.</b> Beim ersten Start in Berlin, Paris, Warschau oder Madrid erschien ein tschechischer Dialog „Jsi v zemi…“ auch in der deutschen oder französischen App (Wettlauf zweier Module). Jetzt erscheint immer die übersetzte Karte <b>Du misst in</b> — mit dem Ländernamen in deiner Sprache. Das Panel Punkte sagt <b>Meine Punkte (MGI / Austria GK)</b>, nicht „(S-JTSK)“; beim Neuen Punkt steht das Höhensystem des Landes statt „(Bpv)“; die Meldung „GPS liefert keine frischen Fixes (N s)“ ist übersetzt.",
+        "<b>Außerhalb Tschechiens wird ČÚZK nicht aufgerufen.</b> Ein Start in Amsterdam schickte 31 Anfragen an das tschechische Festpunktfeld über den Niederlanden. Werkzeuge, deren Daten nur zu Hause existieren — <b>Bezirk, Region oder ganz Tschechien laden</b>, Punkte aus dem Kartenausschnitt laden, Parzellen in Karte und AR, Punktskizze auf der Karte, Vorschriften (CZ/SK) — werden im Ausland in der Liste nicht gezeichnet (die Suche findet sie weiter). <b>Kataster — wo ich stehe</b> öffnet statt iKatastr das Portal des Landes (ZBGIS, Géoportail, BEV, map.geo.admin.ch, Geoportal.gov.pl…), mit Position, wo das Portal es kann. Das Wetter ruft DWD (Bright Sky) nur dort, wo es Stationen hat.",
+        "<b>Der einfache Modus</b> zeigt gleich nach dem Start nicht mehr „Etwas ist schiefgegangen (updateInfoPanel is not defined)“ — der erste GPS-Fix überholte das Laden der Grafik; in diesem Modus werden technische Toasts gar nicht gezeigt (sie gehen ins Fehlerprotokoll).",
+        "<b>CI wacht wieder.</b> Die Tests waren seit v373 nur wegen des Tests zu v372 rot, der die genaue Versionsnummer verlangte; behoben, und die Versionsprüfung achtet darauf, dass das kein Test mehr tut."
+      ]
+    },
+    {
       "v": 377,
       "datum": "2026-09-19",
       "nadpis": "Einfacher Modus: Navigation auch zu amtlichen Punkten",

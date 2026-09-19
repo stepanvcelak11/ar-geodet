@@ -1790,7 +1790,12 @@ if ('serviceWorker' in navigator) {
                 }
             } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:fetchGeodata:oblast'); }
 
-            if (!zTelefonu) {
+            // MIMO ČESKO SE NA ČÚZK NESAHÁ (19. 9. 2026, E2): při startu v Amsterdamu šlo 31 dotazů na
+            // ags.cuzk.gov.cz nad Nizozemskem — nic nevrátí, jen stojí data a spouští „Body z ČÚZK nedošly".
+            // Cizí úřední body mají vlastní moduly (js/body-sk.js, js/body-svet.js), které se ptají registru.
+            let mimoCZ = false;
+            try { mimoCZ = !!(window.AGSour && AGSour.kod && AGSour.kod() !== 'CZ'); } catch (e) { mimoCZ = false; }
+            if (!zTelefonu && !mimoCZ) {
                 // 2) JEDEN DOTAZ identify(layers=all). Do 15. 9. 2026 se posílalo 5 dotazů po
                 //    vrstvách + identify navíc, tedy 6 kol na síť při každé dávce za chůze.
                 //    identify vrátí VŠECHNY vrstvy naráz: tolerance je v pixelech obrázku,
@@ -1846,7 +1851,7 @@ if ('serviceWorker' in navigator) {
             if ((lastFetchNetworkError || lastFetchServerError) && officialCount === 0) {
                 const why = lastFetchNetworkError ? 'nedostupné / offline' : 'neodpovídá (limit?)';
                 document.getElementById('info').innerHTML = `<div class="rdt"><span class="rdt-l">ČÚZK</span><span class="rdt-v" style="color:var(--danger);">${why}</span></div>`;
-            } else { updateInfoPanel(); }
+            } else if (typeof updateInfoPanel === 'function') { updateInfoPanel(); }
         }
 
 
@@ -1923,7 +1928,10 @@ if ('serviceWorker' in navigator) {
                     currentGpsAccuracy = position.coords.accuracy;
                     // pri rucni poloze plati presnost odectu z mapy, ne presnost GPS
                     if (_mp && _mp.active) currentGpsAccuracy = _mp.acc;
-                    updateInfoPanel();
+                    // ⚠ typeof: první fix (cache polohy, power-save.js _startOne) přišel dřív, než se
+                    //   vyhodnotila grafika.js, a v jednoduchém režimu to vyhodilo toast „Něco se
+                    //   pokazilo (power-save:_startOne: updateInfoPanel is not defined)" (19. 9. 2026, G2).
+                    if (typeof updateInfoPanel === 'function') updateInfoPanel();
                     // SEMAFOR DUVERY POLOHY: timestamp posledniho fixu pro js/gps-trust.js.
                     // Bez nej se zamrzla GPS (tunel, iOS suspend) nepozna — userLat/acc drzi
                     // posledni hodnotu a AR/mereni tise jede ze stare polohy.

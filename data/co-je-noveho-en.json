@@ -2,6 +2,17 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 378,
+      "datum": "2026-09-19",
+      "nadpis": "Abroad without Czech and without ČÚZK: what is Czech-only hides or switches",
+      "body": [
+        "<b>Starting abroad no longer speaks Czech.</b> The first start in Berlin, Paris, Warsaw or Madrid showed a Czech dialog “Jsi v zemi…” even in the German or French app (a race between two modules). Now the translated <b>You are measuring in</b> card always appears — with the country name in your language. The Points panel says <b>My points (MGI / Austria GK)</b>, not “(S-JTSK)”; the New point form shows the country’s height system instead of “(Bpv)”; the message “GPS is not delivering fresh fixes (N s)” is translated.",
+        "<b>Outside Czechia the app does not call ČÚZK.</b> A start in Amsterdam sent 31 requests to the Czech control-point service over the Netherlands. Tools whose data exist only at home — <b>Download a district, region or all of Czechia</b>, Download points from the map view, Parcels on the map and in AR, Point sketch on the map, Regulations (CZ/SK) — are not drawn in the list abroad (search still finds them). <b>Cadastre — where I stand</b> opens that country’s portal instead of iKatastr (ZBGIS, Géoportail, BEV, map.geo.admin.ch, Geoportal.gov.pl…), with your position where the portal supports it. Weather calls DWD (Bright Sky) only where it has stations.",
+        "<b>Simple mode</b> no longer shows “Something went wrong (updateInfoPanel is not defined)” right after start — the first GPS fix overtook the graphics loading; in this mode technical toasts are not shown at all (they go to the error log).",
+        "<b>CI watches again.</b> Tests were red since v373 only because of the v372 test, which required the exact release number; fixed, and the release check makes sure no test does that again."
+      ]
+    },
+    {
       "v": 377,
       "datum": "2026-09-19",
       "nadpis": "Simple mode: navigate to official points too",

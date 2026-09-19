@@ -2,6 +2,17 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 378,
+      "datum": "2026-09-19",
+      "nadpis": "All’estero senza ceco e senza ČÚZK: ciò che è solo ceco si nasconde o cambia",
+      "body": [
+        "<b>L’avvio all’estero non parla più ceco.</b> Il primo avvio a Berlino, Parigi, Varsavia o Madrid mostrava un dialogo ceco «Jsi v zemi…» anche nell’app tedesca o francese (una corsa tra due moduli). Ora compare sempre la scheda tradotta <b>Stai misurando in</b> — con il nome del paese nella tua lingua. Il pannello Punti dice <b>I miei punti (ETRS89 / UTM)</b>, non «(S-JTSK)»; nel Nuovo punto c’è il sistema di quote del paese al posto di «(Bpv)»; il messaggio «Il GPS non fornisce fix recenti (N s)» è tradotto.",
+        "<b>Fuori dalla Cechia l’app non chiama ČÚZK.</b> Un avvio ad Amsterdam mandava 31 richieste alla rete geodetica ceca sopra i Paesi Bassi. Gli strumenti che hanno dati solo a casa — <b>Scarica distretto, regione o tutta la Cechia</b>, Scarica punti dalla vista mappa, Particelle su mappa e in RA, Schizzo del punto sulla mappa, Normativa (CZ/SK) — all’estero non compaiono nell’elenco (la ricerca li trova). <b>Catasto — dove mi trovo</b> apre il portale del paese invece di iKatastr (ZBGIS, Géoportail, BEV, map.geo.admin.ch, Geoportal.gov.pl…), con la posizione dove il portale lo consente. Il meteo chiama DWD (Bright Sky) solo dove ha stazioni.",
+        "<b>La modalità semplice</b> non mostra più «Qualcosa è andato storto (updateInfoPanel is not defined)» subito dopo l’avvio — il primo fix GPS ha superato il caricamento della grafica; in questa modalità gli avvisi tecnici non compaiono affatto (vanno nel registro errori).",
+        "<b>La CI vigila di nuovo.</b> I test erano rossi da v373 solo per il test di v372, che pretendeva il numero esatto di versione; corretto, e il controllo di versione vigila che nessun test lo rifaccia."
+      ]
+    },
+    {
       "v": 377,
       "datum": "2026-09-19",
       "nadpis": "Modalità semplice: navigazione anche ai punti ufficiali",

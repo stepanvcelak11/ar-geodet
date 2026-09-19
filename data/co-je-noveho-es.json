@@ -2,6 +2,17 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 378,
+      "datum": "2026-09-19",
+      "nadpis": "En el extranjero sin checo y sin ČÚZK: lo que es solo checo se oculta o se cambia",
+      "body": [
+        "<b>Arrancar en el extranjero ya no habla checo.</b> El primer arranque en Berlín, París, Varsovia o Madrid mostraba un diálogo checo «Jsi v zemi…» incluso en la app alemana o francesa (carrera entre dos módulos). Ahora siempre aparece la tarjeta traducida <b>Estás midiendo en</b> — con el nombre del país en tu idioma. El panel Puntos dice <b>Mis puntos (ETRS89 / UTM)</b>, no «(S-JTSK)»; en Nuevo punto aparece el sistema de alturas del país en lugar de «(Bpv)»; el aviso «El GPS no entrega fixes recientes (N s)» está traducido.",
+        "<b>Fuera de Chequia la app no llama a ČÚZK.</b> Un arranque en Ámsterdam enviaba 31 peticiones a la red geodésica checa sobre Países Bajos. Las herramientas cuyos datos solo existen en casa — <b>Descargar distrito, región o toda Chequia</b>, Descargar puntos de la vista del mapa, Parcelas en el mapa y en RA, Croquis del punto en el mapa, Normativa (CZ/SK) — no se dibujan en la lista en el extranjero (la búsqueda las encuentra). <b>Catastro — donde estoy</b> abre el portal del país en lugar de iKatastr (ZBGIS, Géoportail, BEV, map.geo.admin.ch, Geoportal.gov.pl…), con tu posición donde el portal lo permite. El tiempo llama a DWD (Bright Sky) solo donde tiene estaciones.",
+        "<b>El modo sencillo</b> ya no muestra «Algo ha fallado (updateInfoPanel is not defined)» nada más arrancar — el primer fix GPS adelantó a la carga de los gráficos; en este modo los avisos técnicos no se muestran (van al registro de errores).",
+        "<b>La CI vuelve a vigilar.</b> Los tests estaban en rojo desde v373 solo por el test de v372, que exigía el número exacto de versión; corregido, y la comprobación de versión vigila que ningún test lo vuelva a hacer."
+      ]
+    },
+    {
       "v": 377,
       "datum": "2026-09-19",
       "nadpis": "Modo sencillo: navegar también a puntos oficiales",

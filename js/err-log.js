@@ -59,6 +59,8 @@
         //   Zapíše se do protokolu (diagnostika), ale uživateli se neukáže — stejně jako IMG dlaždice
         //   OSM/ČÚZK níže, které se nezapisují vůbec.
         if (SITOVA.test(String(msg))) return;
+        // JEDNODUCHÝ REŽIM (19. 9. 2026, G2): toast posílá do Nástrojů, které tam nejsou — jen protokol.
+        try { if (localStorage.getItem('agJednoduchy_v1') === '1') return; } catch (e) { /* nic */ }
         if (now - _lastToast > TOAST_MIN_GAP || sig !== _lastSig) {
             _lastToast = now; _lastSig = sig;
             // toast až po startu (quickToast je v logika.js, která se teprve načte)
