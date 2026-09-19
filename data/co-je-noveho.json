@@ -2,6 +2,17 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 380,
+   "datum": "2026-09-19",
+   "nadpis": "Najít místo nebo adresu, odkaz na bod kolegovi, RTK sítě po zemích, „Jen se podívat“ na bráně",
+   "body": [
+    "<b>Najít místo nebo adresu</b> (Nástroje → Před výjezdem, nebo tlačítko v panelu Vrstvy): adresa, obec nebo název místa (OpenStreetMap, celý svět) a mapa tam skočí. Souřadnice napíšeš, jak tě napadne — <b>50,0755 14,4378</b>, <b>50°04'32\"N 14°26'16\"E</b>, nebo dvojici v systému země, ve které měříš (S‑JTSK Y X, Lambert‑93, UTM). U výsledku vybereš: Vzít jako mou polohu (okolí se stáhne odsud), Uložit jako bod, Navigovat sem, Zkopírovat odkaz. Připravíš si tak mapu doma před výjezdem kamkoli v Evropě.",
+    "<b>Odkaz na bod kolegovi.</b> V kartě každého bodu je <b>Poslat odkaz na bod</b>; kdo ho otevře, tomu se bod uloží do zakázky a appka ho k němu naviguje — na iPhonu i Androidu, v jakékoli zemi (<code>…?bod=lat,lng,název</code>; Android otevře i odkazy <code>geo:</code>). Opraveno k tomu: mimo Česko a Slovensko se u importu, odkazu i jednoduchého režimu nekontroluje rozsah S‑JTSK — v Německu dřív každý bod „vypadl z rozsahu“ a neuložil se.",
+    "<b>Odkud vzít korekce.</b> Karta „Měříš v zemi“ a Nastavení → Země měření říkají, která RTK síť v zemi je (CZEPOS, SKPOS, ASG‑EUPOS, SAPOS, APOS, swipos, RGP/Teria, NETPOS, ERGNSS, SWEPOS, CPOS, OS Net…), kdo ji provozuje, kde se přihlásit a kde je pro geodety zdarma — 38 zemí.",
+    "<b>Brána: „Jen se podívat — bez účtu, data zůstanou v telefonu“.</b> Jedno klepnutí založí lokální účet bez hesla a appka se spustí; kdo dostal odkaz, nemusí nejdřív vyplňovat formulář. Účet s obnovovacím kódem si založí kdykoli později (Nastavení → Účet → Přepnout uživatele → Odhlásit → Založit účet)."
+   ]
+  },
+  {
    "v": 379,
    "datum": "2026-09-19",
    "nadpis": "Úřední body ve Francii a Španělsku, parcela klepnutím v PL/FR/NL, výška terénu v celé Evropě",

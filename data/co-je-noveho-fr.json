@@ -2,6 +2,17 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 380,
+      "datum": "2026-09-19",
+      "nadpis": "Trouver un lieu ou une adresse, lien du point pour un collègue, réseaux RTK par pays, « Juste regarder » à l’entrée",
+      "body": [
+        "<b>Trouver un lieu ou une adresse</b> (Outils → Avant le départ, ou le bouton du panneau Couches) : adresse, commune ou nom du lieu (OpenStreetMap, monde entier) et la carte y saute. Les coordonnées s’écrivent comme tu veux — <b>50,0755 14,4378</b>, <b>50°04'32\"N 14°26'16\"E</b>, ou une paire dans le système du pays où tu mesures (S‑JTSK Y X, Lambert‑93, UTM). Sur le résultat, choisis : Prendre comme ma position (les environs se téléchargent de là), Enregistrer comme point, Naviguer ici, Copier le lien. Tu prépares ainsi la carte chez toi avant de partir n’importe où en Europe.",
+        "<b>Lien du point pour un collègue.</b> Chaque fiche de point a <b>Envoyer le lien du point</b> ; qui l’ouvre reçoit le point dans son chantier et l’appli l’y guide — sur iPhone et Android, dans tout pays (<code>…?bod=lat,lng,nom</code> ; Android ouvre aussi les liens <code>geo:</code>). Corrigé au passage : hors de Tchéquie et Slovaquie, l’import, le lien et le mode simple ne vérifient plus la plage S‑JTSK — en Allemagne, chaque point « sortait de la plage » et n’était pas enregistré.",
+        "<b>Où prendre les corrections.</b> La fiche « Tu mesures en » et Réglages → Pays de mesure disent quel réseau RTK a le pays (CZEPOS, SKPOS, ASG‑EUPOS, SAPOS, APOS, swipos, RGP/Teria, NETPOS, ERGNSS, SWEPOS, CPOS, OS Net…), qui l’exploite, où s’inscrire et où c’est gratuit pour les géomètres — 38 pays.",
+        "<b>Entrée : « Juste regarder — sans compte, les données restent dans le téléphone ».</b> Un toucher crée un compte local sans mot de passe et l’appli démarre ; qui a reçu un lien n’a pas à remplir d’abord un formulaire. Un compte avec code de récupération se crée à tout moment (Réglages → Compte → Changer d’utilisateur → Se déconnecter → Créer un compte)."
+      ]
+    },
+    {
       "v": 379,
       "datum": "2026-09-19",
       "nadpis": "Points officiels en France et en Espagne, parcelle au toucher en PL/FR/NL, altitude du terrain dans toute l’Europe",

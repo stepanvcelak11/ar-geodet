@@ -2,6 +2,17 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 380,
+      "datum": "2026-09-19",
+      "nadpis": "Znajdź miejsce lub adres, link do punktu dla kolegi, sieci RTK według krajów, „Tylko popatrzeć” na bramie",
+      "body": [
+        "<b>Znajdź miejsce lub adres</b> (Narzędzia → Przed wyjazdem lub przycisk w panelu Warstwy): adres, miejscowość lub nazwa miejsca (OpenStreetMap, cały świat), a mapa tam skoczy. Współrzędne wpiszesz, jak chcesz — <b>50,0755 14,4378</b>, <b>50°04'32\"N 14°26'16\"E</b> albo parę w układzie kraju, w którym mierzysz (S‑JTSK Y X, Lambert‑93, UTM, PL‑2000). Przy wyniku wybierz: Weź jako moją pozycję (okolica pobierze się stamtąd), Zapisz jako punkt, Nawiguj tutaj, Skopiuj link. Mapę przygotujesz w domu przed wyjazdem gdziekolwiek w Europie.",
+        "<b>Link do punktu dla kolegi.</b> W karcie każdego punktu jest <b>Wyślij link do punktu</b>; kto go otworzy, temu punkt zapisze się do zlecenia i aplikacja go do niego poprowadzi — na iPhonie i Androidzie, w każdym kraju (<code>…?bod=lat,lng,nazwa</code>; Android otworzy też linki <code>geo:</code>). Przy okazji naprawione: poza Czechami i Słowacją import, link ani tryb prosty nie sprawdzają już zakresu S‑JTSK — w Niemczech każdy punkt „wypadał z zakresu” i się nie zapisywał.",
+        "<b>Skąd wziąć korekcje.</b> Karta „Mierzysz w kraju” i Ustawienia → Kraj pomiaru mówią, jaka sieć RTK jest w kraju (CZEPOS, SKPOS, ASG‑EUPOS, SAPOS, APOS, swipos, RGP/Teria, NETPOS, ERGNSS, SWEPOS, CPOS, OS Net…), kto ją prowadzi, gdzie się zarejestrować i gdzie jest dla geodetów bezpłatna — 38 krajów.",
+        "<b>Brama: „Tylko popatrzeć — bez konta, dane zostają w telefonie”.</b> Jedno stuknięcie zakłada lokalne konto bez hasła i aplikacja startuje; kto dostał link, nie musi najpierw wypełniać formularza. Konto z kodem odzyskiwania założy kiedykolwiek później (Ustawienia → Konto → Przełącz użytkownika → Wyloguj → Załóż konto)."
+      ]
+    },
+    {
       "v": 379,
       "datum": "2026-09-19",
       "nadpis": "Punkty urzędowe we Francji i Hiszpanii, działka stuknięciem w PL/FR/NL, wysokość terenu w całej Europie",

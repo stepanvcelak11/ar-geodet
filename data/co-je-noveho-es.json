@@ -2,6 +2,17 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 380,
+      "datum": "2026-09-19",
+      "nadpis": "Buscar lugar o dirección, enlace del punto para un compañero, redes RTK por país, «Solo mirar» en la puerta",
+      "body": [
+        "<b>Buscar lugar o dirección</b> (Herramientas → Antes de salir, o el botón del panel Capas): dirección, municipio o nombre del lugar (OpenStreetMap, todo el mundo) y el mapa salta allí. Las coordenadas se escriben como quieras — <b>50,0755 14,4378</b>, <b>50°04'32\"N 14°26'16\"E</b>, o un par en el sistema del país donde mides (S‑JTSK Y X, Lambert‑93, UTM). En el resultado eliges: Usar como mi posición (el entorno se descarga desde allí), Guardar como punto, Navegar aquí, Copiar enlace. Así preparas el mapa en casa antes de salir a cualquier lugar de Europa.",
+        "<b>Enlace del punto para un compañero.</b> Cada tarjeta de punto tiene <b>Enviar enlace del punto</b>; quien lo abra tendrá el punto guardado en el trabajo y la app le navegará hasta él — en iPhone y Android, en cualquier país (<code>…?bod=lat,lng,nombre</code>; Android abre también enlaces <code>geo:</code>). Corregido de paso: fuera de Chequia y Eslovaquia ya no se comprueba el rango S‑JTSK en importación, enlaces ni modo sencillo — en Alemania cada punto «se salía del rango» y no se guardaba.",
+        "<b>De dónde sacar correcciones.</b> La tarjeta «Estás midiendo en» y Ajustes → País de medición dicen qué red RTK tiene el país (CZEPOS, SKPOS, ASG‑EUPOS, SAPOS, APOS, swipos, RGP/Teria, NETPOS, ERGNSS, SWEPOS, CPOS, OS Net…), quién la opera, dónde registrarse y dónde es gratis para topógrafos — 38 países.",
+        "<b>Puerta: «Solo mirar — sin cuenta, los datos se quedan en el móvil».</b> Un toque crea una cuenta local sin contraseña y la app arranca; quien recibió un enlace no tiene que rellenar antes un formulario. La cuenta con código de recuperación se puede crear en cualquier momento (Ajustes → Cuenta → Cambiar usuario → Cerrar sesión → Crear cuenta)."
+      ]
+    },
+    {
       "v": 379,
       "datum": "2026-09-19",
       "nadpis": "Puntos oficiales en Francia y España, parcela con un toque en PL/FR/NL, altura del terreno en toda Europa",

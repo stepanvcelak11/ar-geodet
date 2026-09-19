@@ -2,6 +2,17 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 380,
+      "datum": "2026-09-19",
+      "nadpis": "Trova luogo o indirizzo, link del punto a un collega, reti RTK per paese, «Dai solo un’occhiata» all’ingresso",
+      "body": [
+        "<b>Trova luogo o indirizzo</b> (Strumenti → Prima di partire, o il pulsante nel pannello Livelli): indirizzo, comune o nome del luogo (OpenStreetMap, tutto il mondo) e la mappa ci salta. Le coordinate le scrivi come vuoi — <b>50,0755 14,4378</b>, <b>50°04'32\"N 14°26'16\"E</b>, o una coppia nel sistema del paese in cui misuri (S‑JTSK Y X, Lambert‑93, UTM). Sul risultato scegli: Usa come mia posizione (i dintorni si scaricano da lì), Salva come punto, Naviga qui, Copia link. Così prepari la mappa a casa prima di partire per qualsiasi posto in Europa.",
+        "<b>Link del punto a un collega.</b> Ogni scheda punto ha <b>Invia link del punto</b>; chi lo apre si ritrova il punto salvato nel lavoro e l’app lo guida lì — su iPhone e Android, in qualsiasi paese (<code>…?bod=lat,lng,nome</code>; Android apre anche link <code>geo:</code>). Corretto insieme: fuori da Cechia e Slovacchia importazione, link e modalità semplice non controllano più l’intervallo S‑JTSK — in Germania ogni punto «usciva dall’intervallo» e non si salvava.",
+        "<b>Dove prendere le correzioni.</b> La scheda «Stai misurando in» e Impostazioni → Paese di misura dicono quale rete RTK ha il paese (CZEPOS, SKPOS, ASG‑EUPOS, SAPOS, APOS, swipos, RGP/Teria, NETPOS, ERGNSS, SWEPOS, CPOS, OS Net…), chi la gestisce, dove registrarsi e dove è gratis per i geometri — 38 paesi.",
+        "<b>Ingresso: «Dai solo un’occhiata — senza account, i dati restano sul telefono».</b> Un tocco crea un account locale senza password e l’app parte; chi ha ricevuto un link non deve prima compilare un modulo. L’account con codice di recupero si crea quando vuoi (Impostazioni → Account → Cambia utente → Esci → Crea account)."
+      ]
+    },
+    {
       "v": 379,
       "datum": "2026-09-19",
       "nadpis": "Punti ufficiali in Francia e Spagna, particella al tocco in PL/FR/NL, quota del terreno in tutta Europa",

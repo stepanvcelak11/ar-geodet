@@ -160,6 +160,15 @@
         co.style.cssText = 'font-size:calc(12px * var(--ag-font-scale,1));opacity:.85;margin:-2px 2px 8px;';
         co.innerHTML = '<span></span> <button type="button" class="btn btn-secondary" style="display:inline-block;width:auto;margin:6px 0 0;padding:7px 12px;font-size:calc(12.5px * var(--ag-font-scale,1));"></button>';   // .ag-btn-mini neexistovala → tlačítko bez stylu (18. 9. 2026 noc)
         co.querySelector('span').textContent = 'Úřední body zveřejňují jako data Česko, Slovensko, Švýcarsko, Nizozemsko, Francie a Španělsko; jinde jsou v mapě jen tvoje body.';
+        // RTK síť země (E8): kde vzít korekce — z js/zdroje-zemi.js (lazy), doplní se, až je načtený
+        try {
+            var rtk = document.getElementById('s-zeme-rtk');
+            if (!rtk) { rtk = document.createElement('div'); rtk.id = 's-zeme-rtk'; rtk.style.cssText = 'font-size:calc(12px * var(--ag-font-scale,1));opacity:.85;margin:4px 2px 8px;'; co.parentNode.insertBefore(rtk, co.nextSibling); }
+            var napln = function () { var k = AGSour.kod(), r = window.AGZdroje && AGZdroje.rtkPro ? AGZdroje.rtkPro(k) : null; if (!r) { rtk.textContent = ''; return; }
+                rtk.innerHTML = '<span>' + (window.AGJazyk ? AGJazyk.t('Korekce RTK') : 'Korekce RTK') + ': <b>' + r.n.replace(/[<>]/g, '') + '</b>' + (r.zdarma ? ' · ' + (window.AGJazyk ? AGJazyk.t('(pro geodety zdarma)') : '(pro geodety zdarma)') : '') + ' — <a href="' + r.u.replace(/"/g, '') + '" target="_blank" rel="noopener" style="color:var(--accent);">' + r.p.replace(/[<>]/g, '') + ' ↗</a></span>'; };
+            napln(); document.addEventListener('ag:zeme', napln);
+            if (!window.AGZdroje && window.AGLazy && AGLazy.need) AGLazy.need('js/zdroje-zemi.js', napln);
+        } catch (e) { swallow(e, 'rtk'); }
         var coBtn = co.querySelector('button'); coBtn.textContent = 'Co tu appka umí';
         coBtn.addEventListener('click', function () {
             var k = sel.value === 'auto' ? AGSour.kod() : sel.value;

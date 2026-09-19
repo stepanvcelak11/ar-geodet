@@ -36,6 +36,10 @@
         try {
             if (!window.GeoCore || typeof GeoCore.toMistni !== 'function') return true;
             if (typeof lat !== 'number' || typeof lng !== 'number' || !isFinite(lat) || !isFinite(lng)) return true;
+            // ⚠ ROZSAH KŘOVÁKA PLATÍ JEN V ČESKU A NA SLOVENSKU (19. 9. 2026, E6): v Německu vrací
+            //   GeoCore.toMistni UTM (E ~400 000, N ~5 800 000) a každý bod padal jako „mimo rozsah
+            //   S-JTSK" — import, odkaz na bod i jednoduchý režim v cizině neuložily nic.
+            try { var _k = window.AGSour && AGSour.kod ? AGSour.kod() : 'CZ'; if (_k !== 'CZ' && _k !== 'SK') return true; } catch (e) { /* bez registru = ČR */ }
             // GeoCore vrací {y, x} kladné a v ověřeném pořadí os — proto tu už není
             // heuristika „menší = Y, větší = X", která u zahraničních souřadnic selhávala.
             const sj = GeoCore.toMistni(lat, lng);

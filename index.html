@@ -101,8 +101,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=379">
-    <link rel="stylesheet" href="css/style.css?v=379">
+    <link rel="stylesheet" href="css/tokens.css?v=380">
+    <link rel="stylesheet" href="css/style.css?v=380">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -233,7 +233,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=379">
+    <link rel="stylesheet" href="css/vylepseni.css?v=380">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -1398,6 +1398,9 @@
     <!-- HLÍDAČ OKOLÍ (16. 9. 2026, B2): u budovy / uvnitř / pod stromy / u kolejí / u ruční překážky
          řekne, co to dělá s GPS; překážky dvěma klepnutími (tlačítko v panelu Vrstvy). -->
     <script type="ag/lazy" data-src="js/hlidac-okoli.js"></script>
+    <!-- NAJÍT MÍSTO NEBO ADRESU + ODKAZ NA BOD (19. 9. 2026, E6): Photon/OSM, souřadnice v jakémkoli zápisu,
+         ?bod=lat,lng,název → cíl navigace; „Poslat odkaz na bod" v kartě (odpojitelné: smaž tento řádek + js/hledat-misto.js). -->
+    <script type="ag/lazy" data-src="js/hledat-misto.js"></script>
     <!-- TRASA K BODU PODLE TERÉNU + PROFIL (17. 9. 2026, B1 + B3): A* nad daty vektorové mapy
          a překážek; háčky v cil-navigace.js a grafika.js (AGTrasa) — bez modulu zůstává přímka. -->
     <script type="ag/lazy" data-src="js/trasa-terenem.js"></script>

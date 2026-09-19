@@ -148,6 +148,51 @@
     }
     function maParcelu(kod) { return !!PARCELY[kod]; }
 
+    // ---- KDE VZÍT KOREKCE: RTK SÍTĚ PO ZEMÍCH (19. 9. 2026, E8) ----------------------------------
+    // Karta v cizině říkala „jinde se měří roverem ze státní sítě" — ale kterou sítí a kde se přihlásit,
+    // neřekla. Jen informace a odkaz na provozovatele, žádné přihlašování; `zdarma` = pro registrované
+    // geodety bez poplatku (stav 2026, může se měnit — proto odkaz).
+    var RTK = {
+        CZ: { n: 'CZEPOS', p: 'Zeměměřický úřad', u: 'https://czepos.cuzk.cz/' },
+        SK: { n: 'SKPOS', p: 'GKÚ Bratislava', u: 'https://skpos.gku.sk/' },
+        PL: { n: 'ASG-EUPOS', p: 'GUGiK', u: 'https://www.asgeupos.pl/', zdarma: true },
+        DE: { n: 'SAPOS', p: 'zeměměřické úřady spolkových zemí (AdV)', u: 'https://sapos.de/', zdarma: true },
+        AT: { n: 'APOS', p: 'BEV', u: 'https://www.bev.gv.at/Services/APOS.html' },
+        CH: { n: 'swipos', p: 'swisstopo', u: 'https://www.swisstopo.admin.ch/de/swipos' },
+        LI: { n: 'swipos', p: 'swisstopo', u: 'https://www.swisstopo.admin.ch/de/swipos' },
+        FR: { n: 'RGP (IGN) · Teria · Orphéon · Centipede', p: 'IGN + soukromé sítě; Centipede RTK zdarma (INRAE)', u: 'https://rgp.ign.fr/', zdarma: true },
+        NL: { n: 'NETPOS', p: 'Kadaster', u: 'https://www.kadaster.nl/zakelijk/registraties/basisregistraties/rijksdriehoeksmeting/netpos', zdarma: true },
+        BE: { n: 'FLEPOS (Vlámsko) · WALCORS (Valonsko) · GNSSBrussels', p: 'regiony', u: 'https://www.vlaanderen.be/flepos', zdarma: true },
+        LU: { n: 'SPSLux', p: 'ACT', u: 'https://act.public.lu/fr/gps/spslux.html', zdarma: true },
+        ES: { n: 'ERGNSS', p: 'IGN España (+ regionální sítě)', u: 'https://www.ign.es/web/ign/portal/gds-gnss-estaciones-permanentes', zdarma: true },
+        PT: { n: 'ReNEP', p: 'DGT', u: 'https://renep.dgterritorio.gov.pt/', zdarma: true },
+        IT: { n: 'ItalPoS · sítě regionů (např. SPIN3 GNSS)', p: 'Leica/regiony', u: 'https://www.gnssitaly.com/' },
+        SI: { n: 'SIGNAL', p: 'GURS', u: 'https://www.gu-signal.si/', zdarma: true },
+        HR: { n: 'CROPOS', p: 'DGU', u: 'https://cropos.hr/' },
+        HU: { n: 'GNSSnet.hu', p: 'Lechner', u: 'https://www.gnssnet.hu/' },
+        RO: { n: 'ROMPOS', p: 'ANCPI', u: 'https://rompos.ro/', zdarma: true },
+        BG: { n: 'BULiPOS · SmartNet', p: 'soukromé sítě', u: 'https://www.bulipos.eu/' },
+        GR: { n: 'HEPOS', p: 'Ktimatologio', u: 'https://www.hepos.gr/' },
+        GB: { n: 'OS Net (přes partnery: Trimble VRS Now, Leica SmartNet…)', p: 'Ordnance Survey', u: 'https://www.ordnancesurvey.co.uk/products/os-net' },
+        IE: { n: 'Tailte Éireann (OSi) Active GNSS', p: 'Tailte Éireann', u: 'https://www.tailte.ie/surveying/' },
+        DK: { n: 'GPSnet.dk · SmartNet', p: 'soukromé sítě', u: 'https://www.gpsnet.dk/' },
+        SE: { n: 'SWEPOS', p: 'Lantmäteriet', u: 'https://www.lantmateriet.se/swepos' },
+        NO: { n: 'CPOS', p: 'Kartverket', u: 'https://www.kartverket.no/til-lands/posisjon/cpos' },
+        FI: { n: 'FINPOS · Trimnet · HxGN SmartNet', p: 'Maanmittauslaitos + soukromé', u: 'https://www.maanmittauslaitos.fi/en/finpos' },
+        EE: { n: 'ESTPOS', p: 'Maa-amet', u: 'https://estpos.maaamet.ee/', zdarma: true },
+        LV: { n: 'LatPos', p: 'LĢIA', u: 'https://latpos.lgia.gov.lv/', zdarma: true },
+        LT: { n: 'LitPOS', p: 'GIS-Centras', u: 'https://www.litpos.lt/' },
+        RS: { n: 'AGROS', p: 'RGZ', u: 'https://agros.rgz.gov.rs/' },
+        BA: { n: 'BIHPOS · SRPOS', p: 'FGU / RUGIPP', u: 'https://www.fgu.com.ba/' },
+        MK: { n: 'MAKPOS', p: 'AREC', u: 'https://makpos.katastar.gov.mk/' },
+        UA: { n: 'ZAKPOS · System.NET', p: 'soukromé sítě', u: 'https://zakpos.zakgeo.com.ua/' },
+        TR: { n: 'TUSAGA-Aktif (CORS-TR)', p: 'HGM / TKGM', u: 'https://www.tusaga-aktif.gov.tr/' },
+        IS: { n: 'IceCORS', p: 'Landmælingar Íslands', u: 'https://www.lmi.is/' },
+        MD: { n: 'MOLDPOS', p: 'ARFC', u: 'https://moldpos.md/' },
+        BY: { n: 'ССТП (Белгеодезия)', p: 'Belgeodesy', u: 'https://www.geo.by/' }
+    };
+    function rtkPro(kod) { return RTK[kod] || null; }
+
     var _origOrto = null, _origKat = null, _aktualni = 'CZ', _vrstvaOrto = null;
     function toast(m) { try { if (typeof window.agInfo === 'function') window.agInfo(m); } catch (e) { /* nic */ } }
     function T(t) { try { return (window.AGJazyk && AGJazyk.t) ? AGJazyk.t(t) : t; } catch (e) { return t; } }
@@ -207,6 +252,9 @@
             : esc(T('ne')) + '<br><span style="opacity:.8;font-size:.92em;">' + esc(T('Úřední body tu stát nezveřejňuje — v mapě jsou jen tvoje body (Nový bod, import, výkres).')) + '</span>', !!uz);
         h += row(T('Katastr'), kat ? esc(T('ano') + ' — ' + kat.nazev) + (PARCELY[kod] ? '<br><span style="opacity:.8;font-size:.92em;">' + esc(T('klepnutím do mapy zjistíš číslo a hranici parcely')) + '</span>' : '') : esc(T('ne — parcely tu nemám')), !!kat);
         h += row(T('Ortofoto'), esc(T(orto.nazev)));
+        var rt = rtkPro(kod);
+        if (rt) h += row(T('Korekce RTK'), esc(rt.n) + (rt.zdarma ? ' <span style="opacity:.75;font-size:.9em;">' + esc(T('(pro geodety zdarma)')) + '</span>' : '') + '<br><a href="' + esc(rt.u) + '" target="_blank" rel="noopener" style="color:var(--accent);font-size:.92em;">' + esc(rt.p) + ' ↗</a>', true);
+        else h += row(T('Korekce RTK'), esc(T('síť neznám — zeptej se místního zeměměřického úřadu')));
         h += '</div><p style="margin:10px 0 0;font-size:.92em;opacity:.85;">' + esc(T('Úřední body zveřejňují jako data Česko, Slovensko, Švýcarsko, Nizozemsko, Francie a Španělsko. Jinde se dnes měří roverem ze státní sítě a body si geodet zakládá sám — appka tu pracuje s tvými body, výkresem a kalibracemi.')) + '</p>';
         h += '<p style="margin:8px 0 0;font-size:.85em;opacity:.65;">' + esc(T('Zemi změníš v Nastavení → Mapa a body → Země měření.')) + '</p>';
         return { title: T('Měříš v zemi') + ': ' + T(jm), html: h };
@@ -242,5 +290,5 @@
     function start() { var idle = window.requestIdleCallback || function (f) { return setTimeout(f, 1200); }; idle(function () { podleZeme(true); }); }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
-    window.AGZdroje = { ZDROJE: ZDROJE, ESRI: ESRI, PORTALY: PORTALY, portal: portal, parcela: parcela, maParcelu: maParcelu, prepni: prepni, podleZeme: podleZeme, aktualni: function () { return _aktualni; }, ma: function (kod) { return !!ZDROJE[kod]; }, uvod: uvod, uvodHtml: uvodHtml, naplanujUvod: naplanujUvod, UVOD_KLIC: UVOD_KLIC };
+    window.AGZdroje = { ZDROJE: ZDROJE, ESRI: ESRI, PORTALY: PORTALY, portal: portal, parcela: parcela, maParcelu: maParcelu, RTK: RTK, rtkPro: rtkPro, prepni: prepni, podleZeme: podleZeme, aktualni: function () { return _aktualni; }, ma: function (kod) { return !!ZDROJE[kod]; }, uvod: uvod, uvodHtml: uvodHtml, naplanujUvod: naplanujUvod, UVOD_KLIC: UVOD_KLIC };
 })();

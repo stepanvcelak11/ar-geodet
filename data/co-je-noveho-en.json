@@ -2,6 +2,17 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 380,
+      "datum": "2026-09-19",
+      "nadpis": "Find a place or address, point link for a colleague, RTK networks by country, “Just have a look” on the gate",
+      "body": [
+        "<b>Find a place or address</b> (Tools → Before leaving, or the button in the Layers panel): address, town or place name (OpenStreetMap, worldwide) and the map jumps there. Type coordinates any way — <b>50.0755 14.4378</b>, <b>50°04'32\"N 14°26'16\"E</b>, or a pair in the system of the country you measure in (S‑JTSK Y X, Lambert‑93, UTM). At a result choose: Use as my position (surroundings download from there), Save as point, Navigate here, Copy link. Prepare the map at home before leaving for anywhere in Europe.",
+        "<b>Point link for a colleague.</b> Every point card has <b>Send point link</b>; whoever opens it gets the point saved into the job and the app navigates to it — on iPhone and Android, in any country (<code>…?bod=lat,lng,name</code>; Android also opens <code>geo:</code> links). Fixed alongside: outside Czechia and Slovakia the S‑JTSK range is no longer checked on import, links and simple mode — in Germany every point used to “fall out of range” and was not saved.",
+        "<b>Where to get corrections.</b> The “You are measuring in” card and Settings → Measurement country say which RTK network the country has (CZEPOS, SKPOS, ASG‑EUPOS, SAPOS, APOS, swipos, RGP/Teria, NETPOS, ERGNSS, SWEPOS, CPOS, OS Net…), who runs it, where to sign up and where it is free for surveyors — 38 countries.",
+        "<b>Gate: “Just have a look — no account, data stays on the phone”.</b> One tap creates a local account without a password and the app starts; whoever got a link does not have to fill in a form first. An account with a recovery code can be created any time later (Settings → Account → Switch user → Log out → Create account)."
+      ]
+    },
+    {
       "v": 379,
       "datum": "2026-09-19",
       "nadpis": "Official points in France and Spain, parcel by tap in PL/FR/NL, terrain height across Europe",

@@ -384,6 +384,8 @@
           help: { t: 'Co s sebou' } },
         { k: 'bezpecnost', fn: 'agOpenBezpecnost', pro: 1, hidden: 1, verb: 'Před výjezdem', vl: 'Bezpečnost a rizika', keys: 'bezpecnost bozp riziko vedro pitny rezim bourka blesk vesta soumrak mraz vitr sos poloha pomoc',
           help: { t: 'Bezpečnost' } },
+        { k: 'hledat-misto', fn: 'agOpenHledatMisto', cat: 'Katastr a data', verb: 'Před výjezdem', vl: 'Najít místo nebo adresu', vh: 'adresa, obec, souřadnice v jakémkoli zápisu — mapa tam skočí; odkaz na bod kolegovi', keys: 'hledat misto adresa souradnice najit geokodovani kam jet odkaz na bod sdilet poslat kolegovi photon',
+          help: { t: 'Najít místo nebo adresu' } },
         { k: 'kde-je', pro: 1, verb: 'Před výjezdem', vl: 'Kde co mám', vh: 'báze, stativ, materiál — i auto', keys: 'auto parkovani kde stoji baze stativ material najit zpatky navigace znacka',
           help: { t: 'Kde co mám' } },
 

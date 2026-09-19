@@ -2621,6 +2621,12 @@
             //   vypsalo „modul není načtený" a uživatel hlásil, že tlačítko nic nedělá.
             //   Firma je Pro, takže v Základu nemá co nabídnout: radši žádné tlačítko
             //   než tlačítko, které nefunguje.
+            // „JEN SE PODÍVAT" (19. 9. 2026, G3 — vybráno uživatelem): bez účtu appka neotevřela nic;
+            //   kdo dostal odkaz v cizině, viděl formulář a musel věřit, že to stojí za to. Tohle NENÍ
+            //   návrat hosta — jedním klepnutím vznikne LOKÁLNÍ účet bez hesla (firma „jen tento telefon",
+            //   admin bez PINu), data zůstávají v telefonu; účet s obnovovacím kódem jde založit kdykoli
+            //   z brány po odhlášení. Ve vydání Základ tlačítko není (lokální firma = ucty-admin, Pro).
+            (jeVydaniZaklad() ? '' : '<button type="button" class="agg-alt" id="agg-look">Jen se podívat — bez účtu, data zůstanou v telefonu</button>') +
             (jeVydaniZaklad() ? '' : '<button type="button" class="agg-alt" id="agg-new">Další možnosti</button>') +
             // ⚠ ŽÁDNÁ OBNOVA HESLA (rozhodnutí uživatele): registrace nechce e-mail,
             //   takže není kam poslat odkaz. Musí to být napsané TADY, u hesla,
@@ -2766,6 +2772,28 @@
             }
         };
         ov.querySelector('#agg-reg').onclick = function () { showRegister(gateApi); };
+        var aggLook = ov.querySelector('#agg-look');
+        if (aggLook) aggLook.onclick = function () {
+            // lokální firma s jediným adminem bez PINu — stejný tvar jako wizardLocal v js/ucty-admin.js
+            try {
+                var f = {
+                    enabled: true, firmName: 'Jen tento telefon', createdTs: Date.now(), autoLockMin: 0, lokalniNahled: true,
+                    users: [{ id: 'u' + Date.now(), name: 'Já', role: 'admin', salt: '', pinHash: '', noPin: true }],
+                    perms: defaultPerms()
+                };
+                saveFirm(f);
+                setSess({ userId: f.users[0].id, ts: Date.now() });
+                usageLog('login', 'nahled');
+                ov.remove();
+                unprelock();
+                try { applyPerms(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:agg-look'); }
+                enterApp();
+                setTimeout(function () { toast('Appka běží bez účtu — všechno zůstává v tomhle telefonu. Účet s obnovovacím kódem si založíš kdykoli: Nastavení → Účet → Přepnout uživatele / zamknout → Odhlásit → Založit účet.'); }, 1800);
+            } catch (e) {
+                window.AG && AG.swallow && AG.swallow(e, 'ucty:agg-look');
+                errEl.textContent = 'Nepodařilo se spustit bez účtu — zkus Založit účet.';
+            }
+        };
 
         // Pozvánka z odkazu: otevřít přihlašovací pole, vyplnit, co víme, a
         // postavit kurzor na heslo. Vyplňuje se AŽ TADY, na konci — showJoin()

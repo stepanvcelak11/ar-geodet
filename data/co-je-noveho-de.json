@@ -2,6 +2,17 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 380,
+      "datum": "2026-09-19",
+      "nadpis": "Ort oder Adresse finden, Punktlink für Kollegen, RTK-Netze nach Land, „Nur mal schauen“ am Tor",
+      "body": [
+        "<b>Ort oder Adresse finden</b> (Werkzeuge → Vor der Abfahrt, oder Button im Panel Ebenen): Adresse, Ort oder Name (OpenStreetMap, weltweit), und die Karte springt hin. Koordinaten schreibst du, wie du willst — <b>50,0755 14,4378</b>, <b>50°04'32\"N 14°26'16\"E</b> oder ein Paar im System des Messlandes (S‑JTSK Y X, Lambert‑93, UTM). Beim Ergebnis wählst du: Als meine Position (die Umgebung wird von dort geladen), Als Punkt speichern, Hierher navigieren, Link kopieren. So bereitest du die Karte zu Hause vor der Fahrt irgendwohin in Europa vor.",
+        "<b>Punktlink für Kollegen.</b> Jede Punktkarte hat <b>Punktlink senden</b>; wer ihn öffnet, bekommt den Punkt in den Auftrag und die App navigiert dorthin — auf iPhone und Android, in jedem Land (<code>…?bod=lat,lng,Name</code>; Android öffnet auch <code>geo:</code>-Links). Dazu behoben: außerhalb Tschechiens und der Slowakei wird bei Import, Link und einfachem Modus der S‑JTSK-Bereich nicht mehr geprüft — in Deutschland „fiel“ vorher jeder Punkt „aus dem Bereich“ und wurde nicht gespeichert.",
+        "<b>Woher Korrekturen nehmen.</b> Die Karte „Du misst in“ und Einstellungen → Messland sagen, welches RTK-Netz das Land hat (CZEPOS, SKPOS, ASG‑EUPOS, SAPOS, APOS, swipos, RGP/Teria, NETPOS, ERGNSS, SWEPOS, CPOS, OS Net…), wer es betreibt, wo man sich anmeldet und wo es für Vermesser kostenlos ist — 38 Länder.",
+        "<b>Tor: „Nur mal schauen — ohne Konto, Daten bleiben im Telefon“.</b> Ein Tipp legt ein lokales Konto ohne Passwort an und die App startet; wer einen Link bekommen hat, muss nicht erst ein Formular ausfüllen. Ein Konto mit Wiederherstellungscode lässt sich jederzeit später anlegen (Einstellungen → Konto → Benutzer wechseln → Abmelden → Konto anlegen)."
+      ]
+    },
+    {
       "v": 379,
       "datum": "2026-09-19",
       "nadpis": "Amtliche Punkte in Frankreich und Spanien, Parzelle per Tipp in PL/FR/NL, Geländehöhe in ganz Europa",
