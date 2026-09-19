@@ -2,6 +2,16 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 375,
+      "datum": "2026-09-19",
+      "nadpis": "Sol, Luna y planetas tras el globo, el cielo se mueve fluido",
+      "body": [
+        "<b>El espacio tras el globo se mueve fluido.</b> Las estrellas y constelaciones antes se redibujaban solo al terminar el desplazamiento (saltaban); ahora siguen al globo cuadro a cuadro (catálogo de estrellas precalculado, un cuadro cuesta unos ms).",
+        "<b>Sol, Luna y cinco planetas</b> (Mercurio, Venus, Marte, Júpiter, Saturno) en sus lugares reales del cielo para la fecha y hora de hoy: la Luna con la fase correcta y el lado iluminado hacia el Sol, el Sol con corona, Saturno con anillo. Un cuerpo que quedaría fuera de la pantalla estrecha se atrae al borde en la dirección donde realmente está — como «objetivo fuera de la franja» en RA.",
+        "Campo de visión más amplio alrededor de la esfera. Sigue siendo solo decoración — no se mide nada con ello."
+      ]
+    },
+    {
       "v": 374,
       "datum": "2026-09-19",
       "nadpis": "Constelaciones tras el globo, norte por la Polar, ficha sobre orientación astronómica",

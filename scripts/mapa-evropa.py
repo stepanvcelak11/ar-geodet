@@ -216,11 +216,18 @@ def nahraj(tok, rel, src, name, slozka):
 def vyrizni(exe, src, polys, out, slozka):
     reg = out + '.region.geojson'
     json.dump(roztah(polys), open(reg, 'w', encoding='utf-8'))
-    if os.path.exists(out):
-        os.remove(out)
     t0 = time.time()
-    r = subprocess.run([exe, 'extract', src, out, '--region=' + reg])
-    if r.returncode != 0 or not os.path.exists(out):
+    # 3 pokusy: Cloudflare občas zavře spojení uprostřed stahování (18. 9. BG, 19. 9. NL) a jinak by
+    # se země vzdala a čekala na další celý průchod --vse
+    for pokus in range(3):
+        if os.path.exists(out):
+            os.remove(out)
+        r = subprocess.run([exe, 'extract', src, out, '--region=' + reg])
+        if r.returncode == 0 and os.path.exists(out):
+            break
+        log(slozka, 'výřez selhal (%d/3):' % (pokus + 1), os.path.basename(out))
+        time.sleep(30)
+    else:
         return None
     log(slozka, 'výřez', os.path.basename(out), '%.2f GB za %.0f s' % (os.path.getsize(out) / 1024 ** 3, time.time() - t0))
     return os.path.getsize(out)

@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 375,
+      "datum": "2026-09-19",
+      "nadpis": "Sun, Moon and planets behind the globe, sky moves smoothly",
+      "body": [
+        "<b>Space behind the globe moves smoothly.</b> Stars and constellations used to redraw only after a pan ended (they jumped); now they follow the globe frame by frame (precomputed star catalogue, a frame costs a few ms).",
+        "<b>Sun, Moon and five planets</b> (Mercury, Venus, Mars, Jupiter, Saturn) at their real places in the sky for today’s date and hour: the Moon with the correct phase and its lit side facing the Sun, the Sun with a corona, Saturn with rings. A body that would fall outside the narrow screen is pulled to the edge in the direction where it really is — like “target off the strip” in AR.",
+        "Wider field of view around the globe. Still decoration only — nothing is measured from it."
+      ]
+    },
+    {
       "v": 374,
       "datum": "2026-09-19",
       "nadpis": "Constellations behind the globe, north by Polaris, a card on astronomical orientation",

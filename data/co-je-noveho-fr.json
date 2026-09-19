@@ -2,6 +2,16 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 375,
+      "datum": "2026-09-19",
+      "nadpis": "Soleil, Lune et planètes derrière le globe, ciel fluide",
+      "body": [
+        "<b>L’espace derrière le globe est fluide.</b> Les étoiles et constellations ne se redessinaient qu’à la fin du déplacement (elles sautaient) ; elles suivent désormais le globe image par image (catalogue d’étoiles précalculé, une image coûte quelques ms).",
+        "<b>Soleil, Lune et cinq planètes</b> (Mercure, Vénus, Mars, Jupiter, Saturne) à leur vraie place dans le ciel pour la date et l’heure du jour : la Lune avec la bonne phase et le côté éclairé vers le Soleil, le Soleil avec sa couronne, Saturne avec son anneau. Un astre qui tomberait hors de l’écran étroit est ramené au bord dans la direction où il se trouve vraiment — comme « cible hors de la bande » en RA.",
+        "Champ de vision plus large autour de la sphère. Toujours de la décoration — rien n’est mesuré avec."
+      ]
+    },
+    {
       "v": 374,
       "datum": "2026-09-19",
       "nadpis": "Constellations derrière le globe, nord d’après la Polaire, fiche sur l’orientation astronomique",

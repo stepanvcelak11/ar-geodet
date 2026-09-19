@@ -2,6 +2,16 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 375,
+      "datum": "2026-09-19",
+      "nadpis": "Sonne, Mond und Planeten hinter dem Globus, Himmel läuft flüssig",
+      "body": [
+        "<b>Weltraum hinter dem Globus flüssig.</b> Sterne und Sternbilder wurden früher erst nach dem Ende des Verschiebens neu gezeichnet (sie sprangen); jetzt laufen sie Bild für Bild mit dem Globus mit (vorberechneter Sternkatalog, ein Bild kostet wenige ms).",
+        "<b>Sonne, Mond und fünf Planeten</b> (Merkur, Venus, Mars, Jupiter, Saturn) an ihren echten Orten am Himmel für heutiges Datum und Stunde: der Mond mit richtiger Phase und der beleuchteten Seite zur Sonne, die Sonne mit Korona, Saturn mit Ring. Ein Körper, der auf dem schmalen Bildschirm außerhalb läge, wird zum Rand gezogen — in die Richtung, wo er wirklich ist, wie „Ziel außerhalb des Bandes“ in AR.",
+        "Weiteres Sichtfeld um die Kugel. Weiterhin nur Dekoration — nichts wird daraus gemessen."
+      ]
+    },
+    {
       "v": 374,
       "datum": "2026-09-19",
       "nadpis": "Sternbilder hinter dem Globus, Nord nach dem Polarstern, Karte zur astronomischen Orientierung",

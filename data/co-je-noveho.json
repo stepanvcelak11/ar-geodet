@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 375,
+   "datum": "2026-09-19",
+   "nadpis": "Slunce, Měsíc a planety za glóbem, obloha jede plynule",
+   "body": [
+    "<b>Vesmír za glóbem plynule.</b> Hvězdy a souhvězdí se dřív překreslily až po skončení posunu (poskočily); teď jedou s glóbem snímek po snímku (katalog hvězd je předpočítaný, jeden snímek stojí pár ms).",
+    "<b>Slunce, Měsíc a pět planet</b> (Merkur, Venuše, Mars, Jupiter, Saturn) na skutečných místech oblohy k dnešnímu dni a hodině: Měsíc se správnou fází a osvětlenou stranou ke Slunci, Slunce s korónou, Saturn s prstencem. Těleso, které by na úzké obrazovce padlo mimo záběr, se přitáhne ke kraji ve směru, kde skutečně je — jako „cíl mimo pásku“ v AR.",
+    "Širší zorné pole kolem koule. Pořád jen dekorace — nic se z toho neměří."
+   ]
+  },
+  {
    "v": 374,
    "datum": "2026-09-19",
    "nadpis": "Souhvězdí za glóbem, sever podle Severky, kartička o astronomické orientaci",
