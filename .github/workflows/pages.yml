@@ -117,6 +117,7 @@ jobs:
           python scripts/gen_sw_assets.py
           python scripts/vydani.py --pro --po
           node scripts/minify-lazy.mjs
+          node scripts/obfuscate.mjs
 
       # Obě vydání se testují ZVLÁŠŤ. Kdyby se pouštěl smoke jen nad Základem
       # (ten je rizikovější, mažou se v něm soubory), rozbité Pro by se nasadilo
@@ -135,7 +136,7 @@ jobs:
                    --exclude '/play' --exclude '/garmin' --exclude '/_archiv' \
                    --exclude '/logo-navrhy' --exclude '/nahledy-*' --exclude '/navrhy-*' \
                    --exclude '/test-fullscreen*' --exclude '/manifest-test*' \
-                   --exclude '/tests.html' \
+                   --exclude '/tests.html' --exclude '/_obfmaps' \
                    ./ _site/pro/
 
       # Zdroje zpátky do původního stavu, ať Základ nestaví nad přepsaným
@@ -156,6 +157,7 @@ jobs:
           python scripts/gen_sw_assets.py
           python scripts/vydani.py --zaklad --po
           node scripts/minify-lazy.mjs
+          node scripts/obfuscate.mjs
 
       # Rozpočet startu se v release-check.yml měří nad ZDROJI, jenže uživatel
       # venku dostává tenhle balíček. Do 5. 9. 2026 to byly dvě různé appky:
@@ -182,6 +184,20 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+      # Source mapy k obfuskovanému kódu — NENASAZUJÍ se na web (to by obfuskaci
+      # prozradilo), jen se schovají sem jako artefakt. Když přijde „Hlášení pro
+      # vývoj" se stack trace plnou „_0x3f2a is not a function", stáhne se mapa
+      # k té verzi a řádky se přeloží zpátky na původní. Bez toho by byl vlastník
+      # u chyb z terénu slepý.
+      - name: Source mapy obfuskace (jen artefakt, ne na web)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: obfuscation-sourcemaps
+          path: _obfmaps/
+          retention-days: 30
+          if-no-files-found: warn
+
       # Do nasazované kopie nepatří vývojářské věci. js/*.js se nasazují a MUSÍ
       # se nasazovat: v bundlu je jen eager jádro, kdežto odložené nástroje
       # (script type="ag/lazy") a nástroje s děleným načítáním (js/lazy-tools.js)
@@ -206,7 +222,7 @@ jobs:
                    --exclude '/play' --exclude '/garmin' --exclude '/_archiv' \
                    --exclude '/logo-navrhy' --exclude '/nahledy-*' --exclude '/navrhy-*' \
                    --exclude '/test-fullscreen*' --exclude '/manifest-test*' \
-                   --exclude '/tests.html' \
+                   --exclude '/tests.html' --exclude '/_obfmaps' \
                    ./ _site/
           echo "Velikost nasazované kopie:"; du -sh _site _site/pro
 

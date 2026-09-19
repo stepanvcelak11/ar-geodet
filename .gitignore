@@ -45,3 +45,6 @@ _diag/
 playwright-report/
 test-results/
 .playwright/
+
+# Obfuskace: source mapy z CI (jen artefakt, nikdy do repa ani na web)
+_obfmaps/
