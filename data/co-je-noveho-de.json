@@ -2,6 +2,15 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 373,
+      "datum": "2026-09-19",
+      "nadpis": "Weltraum hinter dem Globus in der 3D-Ansicht",
+      "body": [
+        "<b>Wenn du die 3D-Ansicht bis zum Globus herauszoomst, liegt dahinter der Weltraum:</b> Sterne, das Band der Milchstraße und der <b>Mond in seiner echten Phase</b> für heute (zunehmend = rechte Seite beleuchtet, wie von Europa aus gesehen), um die Erde ein blauer Atmosphärensaum und Sonnenlicht von links oben — aus derselben Richtung, die das Gelände beleuchtet. Drehst du den Globus mit zwei Fingern, drehen sich die Sterne mit.",
+        "Der Himmel wird einmal gezeichnet, nichts darin ist animiert — er kostet keinen Akku. Beim Hineinzoomen in die flache Karte blendet er sich aus; in der gekippten Ansicht hat der Himmel über dem Horizont jetzt die Farbe des Themas statt des bloßen Hintergrunds."
+      ]
+    },
+    {
       "v": 372,
       "datum": "2026-09-18",
       "nadpis": "Dritte Runde: Start ohne Signal ohne „Etwas ist schiefgelaufen“, Hinweise führen dorthin, wo es ist, Verbindungsstatus aus echten Daten",

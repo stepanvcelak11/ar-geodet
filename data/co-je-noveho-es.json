@@ -2,6 +2,15 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 373,
+      "datum": "2026-09-19",
+      "nadpis": "Espacio detrás del globo en la vista 3D",
+      "body": [
+        "<b>Cuando alejas la vista 3D hasta el globo, detrás está el espacio:</b> estrellas, la banda de la Vía Láctea y la <b>Luna en su fase real</b> de hoy (creciente = lado derecho iluminado, como se ve desde Europa), un borde azul de atmósfera alrededor de la Tierra y la luz del Sol desde arriba a la izquierda — la misma dirección que ilumina el terreno. Si giras el globo con dos dedos, las estrellas giran con él.",
+        "El cielo se dibuja una vez y nada en él se anima, así que no gasta batería. Al acercar de nuevo al mapa plano se oculta; en la vista inclinada el cielo sobre el horizonte tiene ahora el color del tema en vez del fondo desnudo."
+      ]
+    },
+    {
       "v": 372,
       "datum": "2026-09-18",
       "nadpis": "Tercera ronda: inicio sin señal sin «Algo salió mal», las pistas llevan donde están las cosas, estado de conexión según datos reales",

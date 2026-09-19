@@ -141,6 +141,12 @@
         S.sources.ja = { type: 'geojson', data: polohaGeo() };
         S.sources.trasa = { type: 'geojson', data: trasaGeo() };
         if (st.globus) S.projection = { type: ['interpolate', ['linear'], ['zoom'], 12, 'vertical-perspective', 14, 'mercator'] };
+        // Obloha: kolem koule modravý lem atmosféry (MapLibre `sky.atmosphere-blend`, drží do z12, kde
+        // koule přechází v placku), v naklopené placce nad obzorem nebe v barvě motivu (dřív tam byla
+        // jen holá barva pozadí). Vesmír za koulí kreslí vlastní canvas — viz vesmir() níž.
+        S.sky = { 'sky-color': svetly ? '#8fc4f4' : '#0b1220', 'horizon-color': svetly ? '#e6f0fa' : '#233150', 'fog-color': svetly ? '#e6f0fa' : '#233150',
+            'fog-ground-blend': 0.92, 'horizon-fog-blend': 0.85, 'sky-horizon-blend': 0.7,
+            'atmosphere-blend': ['interpolate', ['linear'], ['zoom'], 0, 1, 10, 1, 12, 0] };
         if (st.teren) {
             S.sources.teren = { type: 'raster-dem', tiles: [TEREN_URL], encoding: 'terrarium', tileSize: 256, maxzoom: 15, attribution: 'Terén: Mapzen/AWS' };
             S.terrain = { source: 'teren', exaggeration: 1.0 };
@@ -178,6 +184,81 @@
             { id: 'ja-kruh', type: 'circle', source: 'ja', paint: { 'circle-radius': 9, 'circle-color': '#22d3ee', 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 3 } }
         );
         return S;
+    }
+
+    // ---- VESMÍR ZA GLÓBEM (19. 9. 2026, přání uživatele: „při oddálení globu vesmír, měsíc atd.") ----
+    // MapLibre kreslí mimo kouli průhledně, takže POD mapou leží vlastní canvas: hvězdy (pevný seed —
+    // obloha je pokaždé stejná, žádné blikání), pás Mléčné dráhy, MĚSÍC SE SKUTEČNOU FÁZÍ K DNEŠKU
+    // (dorůstá = svítí pravá strana, jak ho vidíme z Evropy) a Slunce jako záře v rohu. Canvas je čtverec
+    // přes úhlopříčku obrazovky a otáčí se s bearingem mapy (jen CSS transform), takže když glóbus
+    // otočíš, pootočí se i hvězdy. Kreslí se JEDNOU (a po změně velikosti okna), nic neanimuje —
+    // baterie. Od z≈12 nahoru se schová (tam je stejně placka přes celou obrazovku); v mercatoru se o
+    // nebe nad obzorem stará MapLibre (S.sky ve styl()).
+    var VESMIR_SEED = 20260919;
+    function faze(d) {   // fáze Měsíce 0 = nov, 0,25 = první čtvrt, 0,5 = úplněk (nov 6. 1. 2000 18:14 UTC, synodický měsíc 29,530589 d)
+        var dny = ((d || new Date()).getTime() - Date.UTC(2000, 0, 6, 18, 14)) / 864e5;
+        return ((dny / 29.530588853) % 1 + 1) % 1;
+    }
+    function nahoda(seed) { var a = seed >>> 0; return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+    function mesic(ctx, x, y, R, f) {
+        var c = Math.cos(2 * Math.PI * f), vpravo = f < 0.5;   // c: +1 nov … 0 čtvrt … −1 úplněk
+        var g = ctx.createRadialGradient(x, y, R * 0.9, x, y, R * 2.4); g.addColorStop(0, 'rgba(214,224,255,.16)'); g.addColorStop(1, 'rgba(214,224,255,0)');
+        ctx.fillStyle = g; ctx.fillRect(x - R * 2.4, y - R * 2.4, R * 4.8, R * 4.8);
+        ctx.beginPath(); ctx.arc(x, y, R, 0, 2 * Math.PI); ctx.fillStyle = '#1a1d29'; ctx.fill();   // neosvětlená část (popelavý svit)
+        ctx.save(); ctx.beginPath(); ctx.arc(x, y, R, 0, 2 * Math.PI); ctx.clip();
+        ctx.beginPath();   // osvětlená část = půlkruh na svítící straně + elipsa terminátoru (srpek: vyboulená ke svítící straně, vypouklý: od ní)
+        if (vpravo) { ctx.arc(x, y, R, -Math.PI / 2, Math.PI / 2, false); ctx.ellipse(x, y, R * Math.abs(c), R, 0, Math.PI / 2, -Math.PI / 2, c > 0); }
+        else { ctx.arc(x, y, R, Math.PI / 2, 3 * Math.PI / 2, false); ctx.ellipse(x, y, R * Math.abs(c), R, 0, -Math.PI / 2, Math.PI / 2, c > 0); }
+        ctx.closePath();
+        var lg = ctx.createLinearGradient(x - R, y - R, x + R, y + R); lg.addColorStop(0, '#f2f3f6'); lg.addColorStop(1, '#c9ccd6');
+        ctx.fillStyle = lg; ctx.fill();
+        ctx.clip();   // krátery jen na osvětlené části
+        var r = nahoda(VESMIR_SEED + 7);
+        for (var i = 0; i < 9; i++) { var a = r() * 2 * Math.PI, d = r() * R * 0.8, kr = R * (0.06 + r() * 0.13); ctx.beginPath(); ctx.arc(x + Math.cos(a) * d, y + Math.sin(a) * d, kr, 0, 2 * Math.PI); ctx.fillStyle = 'rgba(120,126,145,' + (0.18 + r() * 0.2).toFixed(2) + ')'; ctx.fill(); }
+        ctx.restore();
+    }
+    function kresliVesmir(cv, w, h) {
+        var side = Math.ceil(Math.sqrt(w * w + h * h)), dpr = Math.min(window.devicePixelRatio || 1, 2);
+        cv.width = Math.round(side * dpr); cv.height = cv.width; cv.style.width = cv.style.height = side + 'px';
+        var ctx = cv.getContext('2d'); if (!ctx) return; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        var cx = side / 2, cy = side / 2, r = nahoda(VESMIR_SEED);
+        var bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, side * 0.7); bg.addColorStop(0, '#0a0e1c'); bg.addColorStop(1, '#03040a');
+        ctx.fillStyle = bg; ctx.fillRect(0, 0, side, side);
+        // Mléčná dráha: šikmý měkký pás + hustší drobné hvězdy v něm
+        ctx.save(); ctx.translate(cx, cy); ctx.rotate(-0.6);
+        var md = ctx.createLinearGradient(0, -side * 0.16, 0, side * 0.16); md.addColorStop(0, 'rgba(160,175,220,0)'); md.addColorStop(0.5, 'rgba(160,175,220,.10)'); md.addColorStop(1, 'rgba(160,175,220,0)');
+        ctx.fillStyle = md; ctx.fillRect(-side, -side * 0.16, side * 2, side * 0.32);
+        for (var i = 0; i < side * 0.9; i++) { var px = (r() - 0.5) * side * 1.5, py = (r() - 0.5) * side * 0.22; ctx.fillStyle = 'rgba(210,220,255,' + (0.15 + r() * 0.35).toFixed(2) + ')'; ctx.fillRect(px, py, 1, 1); }
+        ctx.restore();
+        // hvězdy: různá velikost a jas, pár do modra / do žluta; ty nejjasnější mají křížek paprsků
+        var n = Math.round(side * side / 2600);
+        for (var j = 0; j < n; j++) {
+            var sx = r() * side, sy = r() * side, vel = 0.4 + Math.pow(r(), 3) * 1.6, jas = 0.35 + r() * 0.65, tn = r();
+            ctx.fillStyle = tn < 0.12 ? 'rgba(170,200,255,' + jas.toFixed(2) + ')' : tn < 0.2 ? 'rgba(255,230,190,' + jas.toFixed(2) + ')' : 'rgba(255,255,255,' + jas.toFixed(2) + ')';
+            ctx.beginPath(); ctx.arc(sx, sy, vel, 0, 2 * Math.PI); ctx.fill();
+            if (vel > 1.7) { ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.fillRect(sx - vel * 3, sy - 0.5, vel * 6, 1); ctx.fillRect(sx - 0.5, sy - vel * 3, 1, vel * 6); }
+        }
+        // Slunce: teplá záře z levého horního rohu (Země je osvětlená zleva shora — kam padá i stín terénu)
+        var sl = ctx.createRadialGradient(cx - w * 0.55, cy - h * 0.55, 0, cx - w * 0.55, cy - h * 0.55, side * 0.45); sl.addColorStop(0, 'rgba(255,236,190,.22)'); sl.addColorStop(0.3, 'rgba(255,236,190,.06)'); sl.addColorStop(1, 'rgba(255,236,190,0)');
+        ctx.fillStyle = sl; ctx.fillRect(0, 0, side, side);
+        // Měsíc vpravo nahoře (při bearingu 0), velikost podle kratší strany obrazovky
+        mesic(ctx, cx + w * 0.30, cy - h * 0.28, Math.max(14, Math.min(w, h) * 0.055), faze());
+    }
+    function vesmir(m, el3) {
+        if (!st.globus) return;
+        var cv = document.createElement('canvas'); cv.id = 'ag3d-vesmir'; cv.setAttribute('aria-hidden', 'true');
+        el3.insertBefore(cv, el3.firstChild);
+        function velikost() { try { kresliVesmir(cv, el3.clientWidth || window.innerWidth, el3.clientHeight || window.innerHeight); } catch (e) { swallow(e, 'vesmir'); } }
+        function stav() {
+            try {
+                var z = m.getZoom(), o = Math.max(0, Math.min(1, (13.5 - z) / 2));   // plně do z11,5, pryč od z13,5
+                cv.style.opacity = o; cv.style.visibility = o > 0 ? 'visible' : 'hidden';
+                cv.style.transform = 'translate(-50%,-50%) rotate(' + (-m.getBearing()).toFixed(1) + 'deg)';
+            } catch (e) { /* nic */ }
+        }
+        velikost(); stav();
+        m.on('zoom', stav); m.on('rotate', stav); m.on('resize', function () { velikost(); stav(); });
+        return cv;
     }
 
     // ---- okno ---------------------------------------------------------------------------------
@@ -253,6 +334,7 @@
             var p = (bod && typeof bod.lat === 'number') ? bod : (poloha() || (function () { try { var c = map.getCenter(); return { lat: c.lat, lng: c.lng }; } catch (e) { return { lat: 49.8, lng: 15.5 }; } })());
             m3 = new maplibregl.Map({ container: 'ag3d-mapa', style: styl(), center: [p.lng, p.lat], zoom: 17.5, pitch: st.pitch, bearing: heading(), attributionControl: false, maxPitch: 75, antialias: false });
             m3.touchZoomRotate.enableRotation(); m3.dragRotate.enable();
+            vesmir(m3, el);   // hvezdy + Mesic pod koulí (schované, dokud je mapa přiblížená)
             m3.on('error', function (ev) { swallow(ev && ev.error, 'maplibre'); });
             m3.on('click', function (ev) {
                 try {
@@ -290,7 +372,7 @@
         });
     }
     window.agOpenPohled3d = otevri;
-    window.AGPohled3d = { otevri: otevri, zavri: zavri, mapa: function () { return m3; }, styl: styl, nastaveni: function () { return st; }, karta: karta, naviguj: naviguj, chodnikyGeo: chodnikyGeo, sloupkyGeo: sloupkyGeo, trasaGeo: trasaGeo, dmr: function () { return _dmr; } };
+    window.AGPohled3d = { otevri: otevri, zavri: zavri, mapa: function () { return m3; }, styl: styl, nastaveni: function () { return st; }, karta: karta, naviguj: naviguj, chodnikyGeo: chodnikyGeo, sloupkyGeo: sloupkyGeo, trasaGeo: trasaGeo, dmr: function () { return _dmr; }, faze: faze };
 
     function register() {
         try { if (typeof window.agRegisterFieldTool === 'function') window.agRegisterFieldTool({ id: 'pohled-3d', label: '3D pohled', icon: ICON, cat: 'Katastr a data', onClick: function () { otevri(); }, order: 9 }); } catch (e) { swallow(e, 'register'); }

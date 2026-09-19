@@ -2,6 +2,15 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 373,
+   "datum": "2026-09-19",
+   "nadpis": "Vesmír za glóbem ve 3D pohledu",
+   "body": [
+    "<b>Když ve 3D pohledu oddálíš mapu do koule, je za ní vesmír:</b> hvězdy, pás Mléčné dráhy a <b>Měsíc ve skutečné fázi</b> k dnešnímu dni (dorůstá = svítí pravá strana, jak ho vidíme z Evropy), kolem Země modrý lem atmosféry a světlo Slunce z levého horního rohu — stejně, jako svítí na terén. Když glóbus otočíš dvěma prsty, pootočí se i hvězdy.",
+    "Obloha je nakreslená jednou a nic v ní neanimuje, takže baterii nestojí nic. Při přiblížení zpátky do placky se schová; v naklopeném pohledu je nad obzorem nebe v barvě motivu místo holého pozadí."
+   ]
+  },
+  {
    "v": 372,
    "datum": "2026-09-18",
    "nadpis": "Třetí kolo: start bez signálu bez „Něco se pokazilo“, rozcestníky vedou tam, kde to je, stav spojení podle dat",

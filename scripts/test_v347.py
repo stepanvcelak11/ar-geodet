@@ -223,6 +223,13 @@ async def beh(url):
         ok('F4 „Karta bodu" vysune klasickou kartu NAD 3D (z-index > 100002), 3D zustava otevrene, navigace bezi dal', f4 and f4['otevrene3d'] and f4['tridaBody'] and f4['karta'] and f4['z'] > 100002 and f4['cil'] == 'vys1', f4)
         f4b = await page.evaluate("() => { try { closeBottomSheet(); } catch (e) {} var m = AGPohled3d.mapa(); var p = arPoints.find(x => x.id === 'vys1'); var pp = m.project([p.lng, p.lat]); m.fire('click', { point: { x: pp.x + 9, y: pp.y + 9 }, lngLat: m.unproject([pp.x + 9, pp.y + 9]) }); return { karta: document.getElementById('bottom-sheet').classList.contains('open'), mini: !document.getElementById('ag3d-karta').hidden }; }")
         ok('F4b klepnuti 9 px vedle bodu (tolerance ±14 px) otevre kartu bodu', f4b and f4b['karta'] and f4b['mini'], f4b)
+        # v373 (19. 9. 2026): vesmir za globem — canvas pod mapou, schovany pri priblizeni, viditelny a otoceny
+        # s bearingem pri oddaleni; styl ma sky (atmosfera); faze Mesice = 0,5 pri uplnku 7. 9. 2025 (18:09 UTC), ~0 pri novu 23. 8. 2025 (stredni synodicky mesic, ±0,7 dne)
+        f4d = await page.evaluate("""() => { var m = AGPohled3d.mapa(), cv = document.getElementById('ag3d-vesmir'); if (!cv) return { cv: false };
+            var pred = { op: cv.style.opacity, vis: cv.style.visibility }; m.jumpTo({ zoom: 0.5, bearing: 30, pitch: 0 });
+            return { cv: true, pred: pred, op: cv.style.opacity, vis: cv.style.visibility, tr: cv.style.transform, sky: !!m.getStyle().sky, ctverec: cv.width === cv.height && cv.width > 0,
+                uplnek: AGPohled3d.faze(new Date(Date.UTC(2025, 8, 7, 18, 9))), nov: AGPohled3d.faze(new Date(Date.UTC(2025, 7, 23, 6, 6))) }; }""")
+        ok('F4d vesmir za globem: canvas pod mapou (ctverec), pri z17,5 schovany, pri z0,5 viditelny a otoceny o -bearing, styl ma sky, faze Mesice sedi (uplnek 0,5 / nov 0)', f4d and f4d['cv'] and f4d['pred']['op'] == '0' and f4d['pred']['vis'] == 'hidden' and f4d['op'] == '1' and f4d['vis'] == 'visible' and 'rotate(-30' in f4d['tr'] and f4d['sky'] and f4d['ctverec'] and abs(f4d['uplnek'] - 0.5) < 0.03 and (f4d['nov'] < 0.03 or f4d['nov'] > 0.97), f4d)
         await page.evaluate("() => { try { closeBottomSheet(); } catch (e) {} AGPohled3d.zavri(); }")
         ok('F4c po zavreni 3D trida body zmizi', await page.evaluate("() => !document.body.classList.contains('ag-3d-open')"))
         await page.evaluate("() => { try { closeBottomSheet(); } catch (e) {} highlightedPointId = null; previewMode('dark'); }")

@@ -21,6 +21,9 @@
 #ag3d .ag3d-top span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: .95; }
 #ag3d .ag3d-x { width: 40px; height: 40px; border-radius: 12px; border: 0; background: rgba(0,0,0,.45); color: #fff; font-size: 18px; }
 #ag3d-mapa { position: absolute; inset: 0; }
+/* vesmír za glóbem (19. 9. 2026): čtverec přes úhlopříčku, otáčí se s bearingem; pod mapou (MapLibre kreslí mimo kouli průhledně) */
+#ag3d-vesmir { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 0; pointer-events: none; opacity: 0; visibility: hidden; transition: opacity .25s; }
+#ag3d-mapa { z-index: 1; }
 #ag3d .ag3d-bar {
     position: absolute; left: 0; right: 0; z-index: 3;
     bottom: calc(30px + env(safe-area-inset-bottom, 0px));

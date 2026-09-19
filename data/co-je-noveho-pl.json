@@ -2,6 +2,15 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 373,
+      "datum": "2026-09-19",
+      "nadpis": "Kosmos za globem w widoku 3D",
+      "body": [
+        "<b>Gdy w widoku 3D oddalisz mapę do globu, za nim jest kosmos:</b> gwiazdy, pas Drogi Mlecznej i <b>Księżyc w prawdziwej fazie</b> na dziś (przybywa = świeci prawa strona, jak widać z Europy), wokół Ziemi niebieska obwódka atmosfery i światło Słońca z lewego górnego rogu — z tej samej strony, z której oświetla teren. Gdy obrócisz glob dwoma palcami, obrócą się i gwiazdy.",
+        "Niebo jest narysowane raz i nic w nim nie animuje, więc nie kosztuje baterii. Przy przybliżeniu z powrotem do płaskiej mapy się chowa; w pochylonym widoku niebo nad horyzontem ma teraz kolor motywu zamiast gołego tła."
+      ]
+    },
+    {
       "v": 372,
       "datum": "2026-09-18",
       "nadpis": "Trzecia runda: start bez sygnału bez „Coś poszło nie tak”, wskazówki prowadzą tam, gdzie to jest, stan połączenia z prawdziwych danych",

@@ -2,6 +2,15 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 373,
+      "datum": "2026-09-19",
+      "nadpis": "Space behind the globe in the 3D view",
+      "body": [
+        "<b>When you zoom the 3D view out into a globe, space lies behind it:</b> stars, the band of the Milky Way and the <b>Moon in its real phase</b> for today (waxing = right side lit, as seen from Europe), a blue rim of atmosphere around the Earth and sunlight from the top left — the same direction that lights the terrain. Rotate the globe with two fingers and the stars turn with it.",
+        "The sky is drawn once and nothing in it animates, so it costs no battery. It hides when you zoom back into the flat map; in the tilted view the sky above the horizon now has the theme colour instead of a bare background."
+      ]
+    },
+    {
       "v": 372,
       "datum": "2026-09-18",
       "nadpis": "Third round: start without signal without “Something went wrong”, hints lead where things are, connection state from real data",

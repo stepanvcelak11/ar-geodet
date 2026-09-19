@@ -2,6 +2,15 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 373,
+      "datum": "2026-09-19",
+      "nadpis": "L’espace derrière le globe dans la vue 3D",
+      "body": [
+        "<b>Quand tu dézoomes la vue 3D jusqu’au globe, l’espace est derrière :</b> des étoiles, la bande de la Voie lactée et la <b>Lune dans sa phase réelle</b> du jour (croissante = côté droit éclairé, comme on la voit depuis l’Europe), un liseré bleu d’atmosphère autour de la Terre et la lumière du Soleil venant d’en haut à gauche — la même direction qui éclaire le terrain. Si tu fais tourner le globe à deux doigts, les étoiles tournent avec lui.",
+        "Le ciel est dessiné une seule fois et rien n’y est animé : il ne coûte rien à la batterie. En rezoomant vers la carte plate, il se cache ; dans la vue inclinée, le ciel au-dessus de l’horizon prend désormais la couleur du thème au lieu du fond nu."
+      ]
+    },
+    {
       "v": 372,
       "datum": "2026-09-18",
       "nadpis": "Troisième tour : démarrage sans signal sans « Quelque chose a mal tourné », les indications mènent là où c’est, état de connexion d’après les vraies données",
