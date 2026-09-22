@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-09-21",
-  "uvodnik": "Vydání 21. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-09-22",
+  "uvodnik": "Vydání 22. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,30 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Online Thought Leadership Event to Explore the Future of GeoAI and Geospatial Data & Analysis",
+      "perex": "September 15, 2026 – The geospatial industry has never had more data at its fingertips.",
+      "telo": "September 15, 2026 – The geospatial industry has never had more data at its fingertips. Lidar, SAR, spectral imagery, drones, satellites, and real-time sensors are capturing the physical world at unprecedented scale and detail. But data is no longer the biggest challenge. “The real challenge is helping decision-makers understand what matters in their data and what action they should take,” said Dan Gruidel, Vice President, Strategy & Business Development at NV5. “Success is no longer measured by how much data you have. It’s measured by how quickly you transform that data into action.” That shift, from data acquisition to operational intelligence, is at the center of Geo Sessions 2026 , a vir",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/21/online-thought-leadership-event-to-explore-the-future-of-geoai-and-geospatial-data-analysis/?utm_source=rss&utm_medium=rss&utm_campaign=online-thought-leadership-event-to-explore-the-future-of-geoai-and-geospatial-data-analysis",
+      "datum": "2026-09-22"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Outsight Crosses the Milestone of 280 Million Annual Passengers Under Real-Time Measurement at Airports Worldwide",
+      "perex": "Unique airports, similar needs, the same platform: dozens of airports run Outsight’s Spatial Intelligence Platform, switching to the new generation of passenger flow measurement Paris, 21st September 2026.",
+      "telo": "Unique airports, similar needs, the same platform: dozens of airports run Outsight’s Spatial Intelligence Platform, switching to the new generation of passenger flow measurement Paris, 21st September 2026. Outsight, the global leader in infrastructure-based Physical AI, announces that more than 280 million annual passengers now travel under the real-time measurement of its Spatial Intelligence Platform, processing over 2 terabytes of 3D data every minute. Airports everywhere share similar needs: knowing continuously, and in real time, how passengers move through their facilities. They are answering those needs with the same platform. Among the dozens of airports running the platform, some of",
+      "body": [],
+      "proc": "",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/09/21/outsight-crosses-the-milestone-of-280-million-annual-passengers-under-real-time-measurement-at-airports-worldwide/?utm_source=rss&utm_medium=rss&utm_campaign=outsight-crosses-the-milestone-of-280-million-annual-passengers-under-real-time-measurement-at-airports-worldwide",
+      "datum": "2026-09-21"
     },
     {
       "rubrika": "Z praxe",
@@ -72,30 +96,6 @@
       "proc": "",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/09/15/trimble-unveils-st30-smart-target-for-optical-surveying/?utm_source=rss&utm_medium=rss&utm_campaign=trimble-unveils-st30-smart-target-for-optical-surveying",
-      "datum": "2026-09-15"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "Vexcel Imaging Launches UltraCam Condor 5.0",
-      "perex": "Graz, Austria • September 15, 2026 — Live from Intergeo 2026 in Munich, Vexcel Imaging today announced the UltraCam Condor 5.0 , a new aerial mapping system designed for wide-area and nationwide geosp…",
-      "telo": "Graz, Austria • September 15, 2026 — Live from Intergeo 2026 in Munich, Vexcel Imaging today announced the UltraCam Condor 5.0 , a new aerial mapping system designed for wide-area and nationwide geospatial data collection. With up to 83,000 pixels across the flight strip, the Condor 5.0 captures more ground in a single pass than any aerial mapping system to date. Combined with a new reconstruction approach in UltraMap designed for challenging image geometries, it delivers reliable photogrammetric-grade DSM, DTM, and orthophoto products across the largest aerial footprint ever deployed for mapping. The UltraCam Condor 5.0 will be available in multiple models with cross-track image widths rang",
-      "body": [],
-      "proc": "",
-      "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/09/15/vexcel-imaging-launches-ultracam-condor-5-0-with-the-worlds-largest-aerial-camera-footprint/?utm_source=rss&utm_medium=rss&utm_campaign=vexcel-imaging-launches-ultracam-condor-5-0-with-the-worlds-largest-aerial-camera-footprint",
-      "datum": "2026-09-15"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "Vexcel Imaging Launches UltraCam Condor 5.0 with the World’s Largest Aerial Camera Footprint",
-      "perex": "Graz, Austria • September 15, 2026 — Live from Intergeo 2026 in Munich, Vexcel Imaging today announced the UltraCam Condor 5.0 , a new aerial mapping system designed for wide-area and nationwide geosp…",
-      "telo": "Graz, Austria • September 15, 2026 — Live from Intergeo 2026 in Munich, Vexcel Imaging today announced the UltraCam Condor 5.0 , a new aerial mapping system designed for wide-area and nationwide geospatial data collection. With up to 83,000 pixels across the flight strip, the Condor 5.0 captures more ground in a single pass than any aerial mapping system to date. Combined with a new reconstruction approach in UltraMap designed for challenging image geometries, it delivers reliable photogrammetric-grade DSM, DTM, and orthophoto products across the largest aerial footprint ever deployed for mapping. The UltraCam Condor 5.0 will be available in multiple models with cross-track image widths rang",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/15/vexcel-imaging-launches-ultracam-condor-5-0-with-the-worlds-largest-aerial-camera-footprint/?utm_source=rss&utm_medium=rss&utm_campaign=vexcel-imaging-launches-ultracam-condor-5-0-with-the-worlds-largest-aerial-camera-footprint",
       "datum": "2026-09-15"
     }
   ]
