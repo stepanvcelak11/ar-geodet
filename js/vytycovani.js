@@ -111,7 +111,16 @@ function renderStakeoutList() {
     const bar = document.getElementById('stk-progress-bar'); if (bar) bar.style.width = (cands.length ? Math.round(doneCount / cands.length * 100) : 0) + '%';
     const txt = document.getElementById('stk-progress-txt'); if (txt) txt.innerText = doneCount + ' / ' + cands.length;
     if (!cands.length) {
-        listDiv.innerHTML = '<p style="text-align:center; opacity:0.7; font-size:calc(13px * var(--ag-font-scale, 1));">Žádné body k vytyčení.<br>Naimportuj nebo vlož vlastní body, případně vypni filtr „Jen vlastní body".</p>';
+        // PRÁZDNÝ STAV S CESTOU DÁL (23. 9. 2026, n2): dřív jen věta. Teď rovnou tlačítka na to, co chybí —
+        // nahrát seznam, přečíst ho z fotky, případně vypnout filtr, když úřední body v okolí jsou.
+        const _b = 'style="width:auto;margin:0;padding:10px 14px;"';
+        listDiv.innerHTML = '<div class="ag-empty-body" style="text-align:center;padding:14px 6px;"><p style="margin:0 0 4px;font-weight:700;">Žádné body k vytyčení</p>'
+            + '<p style="margin:0 0 14px;opacity:.75;font-size:calc(13px * var(--ag-font-scale, 1));">Nahraj seznam bodů ze souboru, přečti ho z fotky, nebo vlož body ručně.</p>'
+            + '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">'
+            + '<button type="button" class="btn btn-primary" ' + _b + ' onclick="document.getElementById(\'import-file\').click()">Nahrát ze souboru</button>'
+            + '<button type="button" class="btn btn-secondary" ' + _b + ' onclick="if (window.AGLazy && AGLazy.need) AGLazy.need(\'js/foto-body.js\', function () { window.AGFotoBody && AGFotoBody.open(); });">Body z fotky</button>'
+            + (stakeoutOnlyCustom ? '<button type="button" class="btn btn-secondary" ' + _b + ' onclick="var c = document.getElementById(\'stk-only-custom\'); if (c) { c.checked = false; } stakeoutOnlyCustom = false; renderStakeoutList();">Ukázat i úřední body</button>' : '')
+            + '</div></div>';
         return;
     }
     cands.forEach(({ pt, d }) => {

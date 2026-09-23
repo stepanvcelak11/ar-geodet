@@ -104,6 +104,27 @@
             } catch (e) { res(null); }
         });
     }
+    function insety() {
+        try {
+            var d = document.createElement('div');
+            d.style.cssText = 'position:fixed;left:0;top:0;width:1px;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);';
+            document.body.appendChild(d);
+            var cs = getComputedStyle(d), r = { top: parseFloat(cs.paddingTop) || 0, bottom: parseFloat(cs.paddingBottom) || 0 };
+            d.remove();
+            return r;
+        } catch (e) { return { top: 0, bottom: 0 }; }
+    }
+    function displej() {
+        var ua = String(navigator.userAgent || ''), iphone = /iPhone/.test(ua), mobil = iphone || /Android|iPad/.test(ua);
+        var zPlochy = navigator.standalone === true;
+        try { zPlochy = zPlochy || window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: fullscreen)').matches; } catch (e) { swallow(e, 'display-mode'); }
+        var ins = insety(), vyrez = (ins.top || ins.bottom) ? ' · ' + t('výřez') + ' ' + Math.round(ins.top) + ' / ' + Math.round(ins.bottom) + ' px' : '';
+        var stara = false; try { stara = !!(window.AGCelaObrazovka && AGCelaObrazovka.staraIkona && AGCelaObrazovka.staraIkona()); } catch (e) { swallow(e, 'stara'); }
+        if (stara) return { k: 'displej', st: 'warn', b: t('Displej'), s: t('Nahoře zůstává černý pruh — ikona na ploše je z doby před celou obrazovkou. Podrž ikonu → Odstranit z plochy, pak v Safari Sdílet → Přidat na plochu. Data zůstanou.') };
+        if (zPlochy) return { k: 'displej', st: 'ok', b: t('Displej'), s: t('celá obrazovka (spuštěno z plochy)') + vyrez + ' · ' + innerWidth + '×' + innerHeight };
+        if (mobil) return { k: 'displej', st: 'warn', b: t('Displej'), s: t('Appka běží v prohlížeči, ne z plochy — přidej si ji na plochu (Sdílet → Přidat na plochu): celá obrazovka a víc místa.') + vyrez };
+        return { k: 'displej', st: 'ok', b: t('Displej'), s: t('okno prohlížeče') + ' · ' + innerWidth + '×' + innerHeight };
+    }
     function mb(b) { return (b / 1048576).toFixed(b < 10485760 ? 1 : 0).replace('.', ',') + ' MB'; }   // česky s čárkou
 
     function sesbirat() {
@@ -147,6 +168,10 @@
                 + (sto && sto.quota ? ' · ' + t(mb(sto.usage) + ' z ' + mb(sto.quota)) : '');
             if (sto && sto.quota && sto.usage / sto.quota > 0.85) uSt = 'bad';
             rows.push({ k: 'uloziste', st: uSt, b: t('Úložiště'), s: uTx });
+
+            // 5b) displej (23. 9. 2026, n4): jede appka přes celý displej? Na iPhonu si iOS vzhled
+            //     lišty pamatuje z doby přidání ikony — stará ikona = černý pruh pod Dynamic Islandem.
+            rows.push(displej());
 
             // 6) účet
             var U = window.AGUcty, cu = null, fm = null, cloud = false;

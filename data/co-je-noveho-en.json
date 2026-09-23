@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 387,
+      "datum": "2026-09-23",
+      "nadpis": "Display in “Is everything working?”, empty lists with a way forward, start-error guard",
+      "body": [
+        "<b>Is everything working?</b> has a new <b>Display</b> row: whether the app runs full screen, how big the notch is and whether it was started from the home screen. If the iPhone icon still keeps the old black bar, the row is orange and says how to add the icon again.",
+        "<b>Empty lists with a way forward:</b> an empty Setting-out checklist offers Load from file, Points from a photo and Show official points too; an empty Setting-out report opens the checklist directly.",
+        "<b>Start-error guard:</b> every release is now started in six variants before deployment (dark, light, simple mode, Basic, abroad, weaker phone) and must leave nothing in the error log. That is exactly how two “Something went wrong” toasts slipped through."
+      ]
+    },
+    {
       "v": 386,
       "datum": "2026-09-23",
       "nadpis": "Points from a photo: several at once, photos from the gallery, better number reading",

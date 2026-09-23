@@ -267,7 +267,11 @@
         if (!rs.length) {
             sou.innerHTML = '';
             box.innerHTML = '<p style="text-align:center; opacity:0.7;">V téhle zakázce zatím není odškrtnutý žádný vytyčený bod. '
-                + 'Odškrtávají se ve <b>Vytyčovacím checklistu</b> nebo tlačítkem <b>Vytyčeno ✓</b> v kartě bodu.</p>';
+                + 'Odškrtávají se ve <b>Vytyčovacím checklistu</b> nebo tlačítkem <b>Vytyčeno ✓</b> v kartě bodu.</p>'
+                // cesta dál (23. 9. 2026, n2)
+                + '<div style="text-align:center;margin-top:12px;"><button type="button" class="btn btn-primary" style="width:auto;margin:0;padding:10px 16px;" id="ag-pv-go-check">Otevřít Vytyčovací checklist</button></div>';
+            var go = document.getElementById('ag-pv-go-check');
+            if (go) go.onclick = function () { try { var m = go.closest('.modal-overlay'); if (m) m.style.display = 'none'; var otevri = function () { if (typeof window.openStakeoutModal === 'function') window.openStakeoutModal(); }; if (typeof window.openStakeoutModal === 'function') otevri(); else if (window.AGLazy && AGLazy.need) AGLazy.need('js/vytycovani.js', otevri); } catch (e) { /* nic */ } };
             return;
         }
         var ok = 0, mimoM = 0, nejisto = 0, bez = 0;

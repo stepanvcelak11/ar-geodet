@@ -2,6 +2,16 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 387,
+      "datum": "2026-09-23",
+      "nadpis": "Écran dans « Tout fonctionne ? », listes vides avec une suite, garde des erreurs au démarrage",
+      "body": [
+        "<b>Tout fonctionne ?</b> a une nouvelle ligne <b>Écran</b> : si l’appli tourne en plein écran, la taille de l’encoche et si elle a été lancée depuis l’écran d’accueil. Si l’icône de l’iPhone garde l’ancienne bande noire, la ligne est orange et explique comment rajouter l’icône.",
+        "<b>Listes vides avec une suite :</b> une liste d’implantation vide propose Charger depuis un fichier, Points depuis une photo et Afficher aussi les points officiels ; un rapport d’implantation vide ouvre directement la liste.",
+        "<b>Garde des erreurs au démarrage :</b> chaque version est maintenant lancée en six variantes avant la mise en ligne (sombre, clair, mode simple, Base, étranger, téléphone plus faible) et ne doit rien laisser dans le journal d’erreurs. C’est exactement ainsi que deux messages « Un problème est survenu » étaient passés."
+      ]
+    },
+    {
       "v": 386,
       "datum": "2026-09-23",
       "nadpis": "Points depuis une photo : plusieurs à la fois, photo aussi depuis la galerie, meilleure lecture des chiffres",

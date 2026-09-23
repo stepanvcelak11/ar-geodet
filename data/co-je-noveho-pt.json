@@ -2,6 +2,16 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 387,
+      "datum": "2026-09-23",
+      "nadpis": "Ecrã em «Está tudo a funcionar?», listas vazias com próximo passo, vigia de erros no arranque",
+      "body": [
+        "<b>Está tudo a funcionar?</b> tem uma nova linha <b>Ecrã</b>: se a app corre em ecrã inteiro, o tamanho do recorte e se foi aberta a partir do ecrã principal. Se o ícone do iPhone ainda mantém a barra preta antiga, a linha fica laranja e explica como voltar a adicionar o ícone.",
+        "<b>Listas vazias com próximo passo:</b> uma lista de implantação vazia oferece Carregar de ficheiro, Pontos de uma foto e Mostrar também pontos oficiais; um relatório de implantação vazio abre logo a lista.",
+        "<b>Vigia de erros no arranque:</b> cada versão é agora iniciada em seis variantes antes de ser publicada (escuro, claro, modo simples, Base, estrangeiro, telemóvel mais fraco) e não pode deixar nada no registo de erros. Foi exatamente assim que dois avisos «Algo correu mal» escaparam."
+      ]
+    },
+    {
       "v": 386,
       "datum": "2026-09-23",
       "nadpis": "Pontos de uma foto: vários de uma vez, foto também da galeria, melhor leitura de números",

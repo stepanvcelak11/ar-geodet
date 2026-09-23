@@ -2,6 +2,16 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 387,
+      "datum": "2026-09-23",
+      "nadpis": "Scherm in „Werkt alles?”, lege lijsten met een vervolgstap, bewaker voor startfouten",
+      "body": [
+        "<b>Werkt alles?</b> heeft een nieuwe regel <b>Scherm</b>: of de app volledig scherm draait, hoe groot de uitsparing is en of hij vanaf het beginscherm is gestart. Houdt het iPhone-pictogram nog de oude zwarte balk, dan is de regel oranje en staat erbij hoe je het pictogram opnieuw toevoegt.",
+        "<b>Lege lijsten met een vervolgstap:</b> een lege uitzet-checklist biedt Laden uit bestand, Punten uit foto en Ook officiële punten tonen; een leeg uitzetrapport opent meteen de checklist.",
+        "<b>Bewaker voor startfouten:</b> elke versie wordt nu vóór publicatie in zes varianten gestart (donker, licht, eenvoudige modus, Basis, buitenland, zwakkere telefoon) en mag niets in het foutenlogboek achterlaten. Precies zo waren twee meldingen „Er ging iets mis” doorgeglipt."
+      ]
+    },
+    {
       "v": 386,
       "datum": "2026-09-23",
       "nadpis": "Punten uit foto: meerdere tegelijk, foto ook uit de galerij, beter lezen van getallen",

@@ -2,6 +2,16 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 387,
+      "datum": "2026-09-23",
+      "nadpis": "Display in „Funktioniert alles?“, leere Listen mit Weg nach vorn, Wächter für Startfehler",
+      "body": [
+        "<b>Funktioniert alles?</b> hat eine neue Zeile <b>Display</b>: ob die App im Vollbild läuft, wie groß die Aussparung ist und ob sie vom Home-Bildschirm gestartet wurde. Hält das iPhone-Symbol noch den alten schwarzen Balken, ist die Zeile orange und sagt, wie man das Symbol neu hinzufügt.",
+        "<b>Leere Listen mit Weg nach vorn:</b> eine leere Absteck-Checkliste bietet Aus Datei laden, Punkte aus Foto und Auch amtliche Punkte zeigen; ein leeres Absteckprotokoll öffnet direkt die Checkliste.",
+        "<b>Wächter für Startfehler:</b> jede Version wird jetzt vor der Bereitstellung in sechs Varianten gestartet (dunkel, hell, einfacher Modus, Basis, Ausland, schwächeres Telefon) und darf nichts im Fehlerprotokoll hinterlassen. Genau so waren zwei „Etwas ist schiefgelaufen“-Meldungen durchgerutscht."
+      ]
+    },
+    {
       "v": 386,
       "datum": "2026-09-23",
       "nadpis": "Punkte aus Foto: mehrere auf einmal, Foto auch aus der Galerie, besseres Lesen der Zahlen",

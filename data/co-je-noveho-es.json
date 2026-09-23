@@ -2,6 +2,16 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 387,
+      "datum": "2026-09-23",
+      "nadpis": "Pantalla en «¿Funciona todo?», listas vacías con salida, vigilante de errores al iniciar",
+      "body": [
+        "<b>¿Funciona todo?</b> tiene una nueva fila <b>Pantalla</b>: si la app va a pantalla completa, el tamaño de la muesca y si se abrió desde la pantalla de inicio. Si el icono del iPhone mantiene la franja negra antigua, la fila sale naranja y explica cómo volver a añadir el icono.",
+        "<b>Listas vacías con salida:</b> una lista de replanteo vacía ofrece Cargar desde archivo, Puntos desde foto y Mostrar también puntos oficiales; un informe de replanteo vacío abre directamente la lista.",
+        "<b>Vigilante de errores al iniciar:</b> cada versión se inicia ahora en seis variantes antes de publicarse (oscuro, claro, modo sencillo, Básica, extranjero, móvil más débil) y no puede dejar nada en el registro de errores. Justo así se colaron dos avisos «Algo ha fallado»."
+      ]
+    },
+    {
       "v": 386,
       "datum": "2026-09-23",
       "nadpis": "Puntos desde foto: varios a la vez, foto también de la galería, mejor lectura de números",

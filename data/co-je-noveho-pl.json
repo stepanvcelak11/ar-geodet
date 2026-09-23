@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 387,
+      "datum": "2026-09-23",
+      "nadpis": "Ekran w „Czy wszystko działa?”, puste listy z dalszym krokiem, strażnik błędów startu",
+      "body": [
+        "<b>Czy wszystko działa?</b> ma nowy wiersz <b>Ekran</b>: czy aplikacja działa na pełnym ekranie, jak duże jest wycięcie i czy uruchomiono ją z ekranu początkowego. Gdy ikona na iPhonie trzyma stary czarny pasek, wiersz jest pomarańczowy i mówi, jak dodać ikonę ponownie.",
+        "<b>Puste listy z dalszym krokiem:</b> pusta lista kontrolna wytyczenia proponuje Wczytaj z pliku, Punkty ze zdjęcia i Pokaż też punkty urzędowe; pusty protokół wytyczenia otwiera od razu listę.",
+        "<b>Strażnik błędów startu:</b> każde wydanie jest teraz przed wdrożeniem uruchamiane w sześciu wariantach (ciemny, jasny, tryb prosty, Podstawowa, za granicą, słabszy telefon) i nie może zostawić nic w protokole błędów. Właśnie tak prześlizgnęły się dwa komunikaty „Coś poszło nie tak”."
+      ]
+    },
+    {
       "v": 386,
       "datum": "2026-09-23",
       "nadpis": "Punkty ze zdjęcia: kilka naraz, zdjęcie także z galerii, lepsze czytanie liczb",
