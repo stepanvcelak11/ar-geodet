@@ -370,6 +370,9 @@
         // Kde se dá měřit (P3, 16. 9. 2026): mapa kvality GPS ze stínění budov a lesa
         { k: 'kvalita-gps-mapa', fn: 'agOpenKvalitaGpsMapa', cat: 'Přesné měření', verb: 'Přesné měření', vl: 'Kde se dá měřit', vh: 'mapa stínění oblohy budovami a lesem', keys: 'kvalita gps mapa stineni obloha budovy les kde merit odrazy multipath prijem',
           help: { t: 'Kde se dá měřit' } },
+        { k: 'terenni-zkouska', fn: 'agOpenTerenniZkouska', cat: 'Měření', verb: 'Přesné měření', vl: 'Terénní zkouška telefonu', vh: '5 minut venku: GPS, kompas, kamera, známý bod — na kolik metrů tvůj telefon měří',
+          keys: 'terenni zkouska test telefonu presnost overit gps rozptyl kompas slunce kamera fov znamy bod kolik metru meri muj telefon',
+          help: { t: 'Terénní zkouška telefonu' } },
         // 3D pohled (M2, 16. 9. 2026): budovy do výšky, terén, body a výkres nad vektorovou mapou
         { k: 'pohled-3d', fn: 'agOpenPohled3d', cat: 'Katastr a data', verb: 'Katastr a podklady', vl: '3D pohled', vh: 'budovy do výšky, terén, výkres a body šikmo shora', keys: '3d pohled budovy vyska teren naklopeni perspektiva rohy budov osa vykres mapa vektor',
           help: { t: '3D pohled' } },

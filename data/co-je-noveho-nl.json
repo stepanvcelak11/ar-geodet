@@ -2,6 +2,16 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 389,
+      "datum": "2026-09-23",
+      "nadpis": "Veldtest van de telefoon, snellere start",
+      "body": [
+        "<b>Veldtest van de telefoon</b> (Gereedschap → Precies meten): vijf minuten buiten en je weet op hoeveel meter je telefoon meet. Gps 60 s op één plek, kompas tegen de zon, beeldhoek van de camera en een bekend punt in de buurt. Het resultaat „Je telefoon meet op ±X m” stuur je met één tik naar de auteur.",
+        "<b>Snellere start:</b> tien onderdelen van de app die het eerste scherm niet nodig heeft (kompascontrole, oppervlaktemeting, prullenbak, synchronisatie, inklapbaar paneel, visuele AR-tracking, Helmert, navigatiedoel, zoeken) laden pas na de eerste weergave. 298 kB minder vóór het eerste beeld.",
+        "<b>Betrouwbaarder publiceren:</b> een fout bij het verpakken van de app verholpen waardoor een nieuwe versie soms niet op het web kwam."
+      ]
+    },
+    {
       "v": 388,
       "datum": "2026-09-23",
       "nadpis": "Gereedschap voor een punt direct vanuit de kaart, overal hetzelfde sluiten",

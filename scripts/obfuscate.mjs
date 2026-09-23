@@ -93,6 +93,25 @@ if (!CHECK_ONLY) { try { mkdirSync(MAPDIR, { recursive: true }); } catch (e) { }
 // //# sourceMappingURL=... na konci nasazeného kódu smazat (mapu do webu nedáváme)
 const STRIP_MAP = /\n?\/\/# sourceMappingURL=.*$/;
 
+// ⚠⚠ VLASTNÍ PREFIX GLOBÁLŮ PRO KAŽDÝ SOUBOR (23. 9. 2026 — nasazení v388 spadlo na smoke:
+//   „TypeError: Cannot read properties of undefined (reading 'charAt')“ jen v zabalené verzi).
+//   Obfuskátor ke každému souboru přidá na NEJVYŠŠÍ úroveň pomocné funkce (pole řetězců
+//   a jeho dekodér) s náhodným jménem `_0x…`. Klasické <script> sdílejí globální prostor,
+//   takže když si dva z 220 souborů vylosují stejné jméno, pozdější přepíše dřívější
+//   a dekodér prvního souboru čte CIZÍ pole → undefined.charAt. Je to los při každém
+//   sestavení (v387 prošla, v388 ne). identifiersPrefix je přesně na tohle („use this
+//   option when you want to obfuscate multiple files“); renameGlobals zůstává vypnuté,
+//   prefix dostanou jen nově vzniklé globály obfuskátoru.
+const _prefixy = new Set();
+function prefixPro(rel) {
+    let h = 5381;
+    for (let i = 0; i < rel.length; i++) h = ((h * 33) ^ rel.charCodeAt(i)) >>> 0;
+    let p = 'q' + h.toString(36);
+    while (_prefixy.has(p)) p += 'x';
+    _prefixy.add(p);
+    return p;
+}
+
 let before = 0, after = 0, n = 0;
 const fails = [];
 for (const rel of files) {
@@ -101,7 +120,7 @@ for (const rel of files) {
     // už obfuskovaný (druhý průchod PRO→ZÁKLAD nad týmž stromem) přeskočit podle značky
     if (src.startsWith('/*o*/')) { after += statSync(abs).size; before += statSync(abs).size; continue; }
     try {
-        const res = JsObf.obfuscate(src, { ...OPTS, sourceMapFileName: rel.replace(/[\/\\]/g, '_') });
+        const res = JsObf.obfuscate(src, { ...OPTS, identifiersPrefix: prefixPro(rel), sourceMapFileName: rel.replace(/[\/\\]/g, '_') });
         let code = res.getObfuscatedCode().replace(STRIP_MAP, '');
         const out = '/*o*/' + code;
         before += Buffer.byteLength(src, 'utf8'); after += Buffer.byteLength(out, 'utf8'); n++;

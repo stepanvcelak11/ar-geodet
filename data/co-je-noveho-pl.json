@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 389,
+      "datum": "2026-09-23",
+      "nadpis": "Test telefonu w terenie, szybszy start",
+      "body": [
+        "<b>Test telefonu w terenie</b> (Narzędzia → Dokładny pomiar): pięć minut na zewnątrz i wiesz, z jaką dokładnością mierzy twój telefon. GPS 60 s w jednym miejscu, kompas względem Słońca, kąt widzenia kamery i znany punkt w pobliżu. Wynik „Twój telefon mierzy z dokładnością ±X m” można jednym stuknięciem wysłać autorowi.",
+        "<b>Szybszy start:</b> dziesięć części aplikacji, których pierwszy ekran nie potrzebuje (kontrola kompasu, pomiar powierzchni, kosz, synchronizacja, zwijany panel, wizualne śledzenie AR, Helmert, cel nawigacji, wyszukiwanie), wczytuje się dopiero po pierwszym narysowaniu. O 298 kB mniej przed pierwszym obrazem.",
+        "<b>Bardziej niezawodne wdrażanie:</b> poprawiony błąd pakowania aplikacji, przez który nowa wersja czasem nie trafiała do sieci."
+      ]
+    },
+    {
       "v": 388,
       "datum": "2026-09-23",
       "nadpis": "Narzędzia do punktu prosto z jego karty, wszędzie takie samo zamykanie",

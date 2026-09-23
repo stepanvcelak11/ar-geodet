@@ -101,8 +101,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=388">
-    <link rel="stylesheet" href="css/style.css?v=388">
+    <link rel="stylesheet" href="css/tokens.css?v=389">
+    <link rel="stylesheet" href="css/style.css?v=389">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -233,7 +233,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=388">
+    <link rel="stylesheet" href="css/vylepseni.css?v=389">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -1236,7 +1236,7 @@
     <!-- CÍL NAVIGACE: zvýrazněný bod v mapě (aureola + spojnice + „Ukázat cíl") a
          ukazatel na hraně displeje, když je cíl mimo záběr kamery.
          Odpojitelné: smaž tento řádek + js/cil-navigace.js. MUSÍ být po grafika.js. -->
-    <script defer src="js/cil-navigace.js"></script>
+    <script type="ag/lazy" data-src="js/cil-navigace.js"></script>
     <!-- NAVIGAČNÍ PÁS NA ZEMI (19. 9. 2026, vybráno ze čtyř návrhů): pás chevronů místo 3D šipky k cíli.
          Odpojitelné: smaž tento řádek + js/nav-pas.js + css/nav-pas.css. Háček v grafika.js (AGNavPas.snimek). -->
     <script defer src="js/nav-pas.js"></script>
@@ -1305,13 +1305,17 @@
          protokol-vytyceni.js, kalkulacka.js, vylepseni.js a záloha bodů z logika.js. -->
     <script type="ag/lazy" data-src="js/sdilet-soubor.js"></script>
     <script type="ag/lazy" data-src="js/export.js"></script>
-    <script defer src="js/kompas-check.js"></script>
+    <!-- RYCHLEJŠÍ START (23. 9. 2026, n6 z 5. hodnocení): 10 modulů, které první obrazovka nepotřebuje (kontrola
+         kompasu, měření plochy, koš, cloud-sync, mini-panel, vizuální sledování AR, Helmert, cíl navigace, hledání
+         ve Více a v Nastavení), se načítá AŽ ZA PRVNÍM VYKRESLENÍM (ag/lazy, fronta se pustí sama). Každý z nich je
+         z jádra volán přes window.X && … — ověřeno grepem; scripts/test_start_bez_chyb.py hlídá start v 6 podobách. -->
+    <script type="ag/lazy" data-src="js/kompas-check.js"></script>
     <script type="ag/lazy" data-src="js/zaloha.js"></script>
     <!-- POJISTKA DAT (odpojitelné: smaž tento řádek + js/auto-zaloha.js) — připomínka zálohy proti iOS mazání; MUSÍ být za zaloha.js -->
     <script type="ag/lazy" data-src="js/auto-zaloha.js"></script>
     <script defer src="js/undo.js"></script>
     <!-- KOŠ (odpojitelné: smaž tento řádek + js/kos.js) — 30denní obnova smazaných zakázek/bodů; MUSÍ být za undo.js -->
-    <script defer src="js/kos.js"></script>
+    <script type="ag/lazy" data-src="js/kos.js"></script>
     <!-- PROTOKOL KVALITY (odpojitelné) — k bodu se ukládá i rozptyl odečtů (σ) a počet
          epoch, ne jen výsledné ±. Nástroj z toho udělá doložitelný protokol (txt/CSV).
          ag/lazy: dotáhne se až po vykreslení appky, obalení saveCustomPoint stihne. -->
@@ -1356,7 +1360,7 @@
     <script type="ag/lazy" data-src="js/calib-profiles.js" data-css="css/calib-profiles.css"></script>
     <script type="ag/lazy" data-src="js/ref-calibration.js" data-css="css/ref-calibration.css"></script>
     <script type="ag/lazy" data-src="js/sky-obstruction.js" data-css="css/sky-obstruction.css"></script>
-    <script defer src="js/cadastre-area.js"></script>
+    <script type="ag/lazy" data-src="js/cadastre-area.js"></script>
     <!-- BODOVÉ POLE (odpojitelné: smaž tento řádek + js/bodove-pole.js + css/bodove-pole.css)
          — nejbližší úřední body ČÚZK: kam dojít na ověření a jedním ťukem kotva pro Posun GPS -->
     <script type="ag/lazy" data-src="js/bodove-pole.js"></script>
@@ -1372,7 +1376,7 @@
          grafika.js: čte jeho agScreenToLatLng a initARMarkers. -->
     <script type="ag/lazy" data-src="js/ar-dosah.js"></script>
     <!-- VIZUÁLNÍ STABILIZACE AR / SLAM-lite #2 (odpojitelné: smaž tento řádek + js/ar-visual-track.js) — optický tok + WebXR kotvení, drží AR mezi GPS/kompas fixy; default vypnuto -->
-    <script defer src="js/ar-visual-track.js"></script>
+    <script type="ag/lazy" data-src="js/ar-visual-track.js"></script>
     <script defer src="js/theme-dark.js"></script>
     <!-- VÝŠKOPIS DMR 5G (odpojitelné: smaž tento řádek + js/dmr-terrain.js) — od 11. 9. 2026 jen
          datová služba terrainElevAsync (výška bodu z mapy, balíček zakázky, počasí); terénní AR
@@ -1417,6 +1421,9 @@
     <!-- BODY Z FOTKY (23. 9. 2026, n8): Vyfotit / Z galerie (i víc fotek), dva průchody OCR, každý řádek = bod,
          přehled s fotkou a opravou hodnot. Odpojitelné: smaž tento řádek + js/foto-body.js (dlaždice spadne na #ocr-file). -->
     <script type="ag/lazy" data-src="js/foto-body.js"></script>
+    <!-- TERÉNNÍ ZKOUŠKA TELEFONU (23. 9. 2026, n5): 5 minut venku — GPS 60 s, kompas × Slunce, FOV, známý bod → „telefon
+         měří na ±X m“ + poslat autorovi. Odpojitelné: smaž tento řádek + js/terenni-zkouska.js + záznam v registru. -->
+    <script type="ag/lazy" data-src="js/terenni-zkouska.js"></script>
     <!-- ÚŘEDNÍ BODY NA SLOVENSKU (18. 9. 2026): ŠTS / ŠNS / ŠGS / ŠPS z WMS GKÚ SR (GetFeatureInfo geo+json),
          když je země měření SK. Odpojitelné: smaž tento řádek + js/body-sk.js. -->
     <script type="ag/lazy" data-src="js/body-sk.js"></script>
@@ -1498,7 +1505,7 @@
     <script type="ag/lazy" data-src="js/rajon.js"></script>
     <!-- js/free-station.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->
     <!-- LOKALIZACE (HELMERT) #3 (odpojitelné: smaž tento řádek + js/localization-helmert.js) — srovnání systematiky GPS přes staveniště 2D podobnostní transformací -->
-    <script defer src="js/localization-helmert.js"></script>
+    <script type="ag/lazy" data-src="js/localization-helmert.js"></script>
     <!-- PODZEMNÍ SÍTĚ #7 (odpojitelné: smaž tento řádek + js/utility-networks.js) — trasy sítí pod terénem v AR z DXF/GeoJSON -->
     <script type="ag/lazy" data-src="js/utility-networks.js"></script>
     <!-- PŘENOS ZAKÁZKY .argeo #6 (odpojitelné: smaž tento řádek + js/job-transfer.js) — export/import celé zakázky bez serveru -->
@@ -1571,7 +1578,7 @@
          odečteš z ortofota přesněji než z GPS; MUSÍ být za js/map-tools.js (adopce tlačítka do panelu) -->
     <script defer src="js/poloha-z-mapy.js"></script>
     <!-- CHYTRÉ VYHLEDÁVÁNÍ V „VÍCE" (odpojitelné: smaž tento řádek + js/app-search.js) — napiš „předpisy" a rovnou se otevřou -->
-    <script defer src="js/app-search.js"></script>
+    <script type="ag/lazy" data-src="js/app-search.js"></script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + js/vylepseni.js + css/vylepseni.css) — musí být POSLEDNÍ modul kvůli override -->
     <script type="ag/lazy" data-src="js/pdf-protocol.js"></script>
     <script defer src="js/vylepseni.js"></script>
@@ -1584,7 +1591,7 @@
     <script type="ag/lazy" data-src="js/ucty-admin.js"></script>
     <!-- Docházka (js/dochazka.js) ZRUŠENA 13. 9. 2026 na přání uživatele („docházku dej pryč"); firemní chat ZRUŠEN 11. 9. 2026 — cesty /chat a /usage t=shift na serveru zůstávají nevolané. -->
     <!-- ŽIVÁ SYNCHRONIZACE BODŮ VE FIRMĚ (odpojitelné: smaž tento řádek + js/cloud-sync.js) — opt-in per zakázka v Nastavení → Data; potřebuje js/ucty.js (cloudová firma) -->
-    <script defer src="js/cloud-sync.js"></script>
+    <script type="ag/lazy" data-src="js/cloud-sync.js"></script>
     <!-- ZÁVADY / HLÁŠENÍ PORUCH (odpojitelné) — nálezy v terénu: foto+kategorie+závažnost, mapa/AR, protokol -->
     <script type="ag/lazy" data-src="js/zavady.js"></script>
     <!-- RANNÍ BRÍFINK „Dnešek v terénu" (odpojitelné: smaž tento řádek + js/brifink.js) — 1× denně po startu: počasí, GNSS okna dne + Kp, monitoring po termínu, zpravodaj -->
@@ -1659,7 +1666,7 @@
          načtené od startu, protože průběžně měří (nesmí jít do lazy dávky) -->
     <script type="ag/lazy" data-src="js/moje-aktivita.js"></script>
     <!-- HLEDÁNÍ V NASTAVENÍ + krátký výchozí pohled (odpojitelné, window.AGSettings) -->
-    <script defer src="js/nastaveni-hledani.js"></script>
+    <script type="ag/lazy" data-src="js/nastaveni-hledani.js"></script>
     <!-- POŘÁDEK V NASTAVENÍ (odpojitelné, window.AGSettingsOrder) — moduly si do záložek
          přisypávají řádky přes appendChild, takže končily pod „Pokročilé" v pořadí
          načtení skriptů; tohle je srovná do pevných sekcí. MUSÍ být až za moduly,
@@ -1751,7 +1758,7 @@
          a vlastní canvas vrstva v mapě; sbalení výřezu funguje i z kanceláře -->
     <script type="ag/lazy" data-src="js/vektor-mapa.js"></script>
     <!-- SBALITELNÝ NÁSTROJ (odpojitelné) — živá čísla v proužku nahoře místo modálu -->
-    <script defer src="js/mini-panel.js"></script>
+    <script type="ag/lazy" data-src="js/mini-panel.js"></script>
     <!-- DVA TERÉNNÍ MOTIVY (odpojitelné) — „Modrotisk" (appka jako výkres) a noční
          červený režim, který se umí sám zapnout po občanském soumraku.
          ZŮSTÁVÁ `defer`, NE ag/lazy: kdo má některý z nich uložený, musí ho mít

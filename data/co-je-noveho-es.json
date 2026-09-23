@@ -2,6 +2,16 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 389,
+      "datum": "2026-09-23",
+      "nadpis": "Prueba de campo del móvil, inicio más rápido",
+      "body": [
+        "<b>Prueba de campo del móvil</b> (Herramientas → Medición precisa): cinco minutos fuera y sabrás con cuántos metros mide tu móvil. GPS 60 s en un mismo sitio, brújula frente al Sol, ángulo de visión de la cámara y un punto conocido cercano. El resultado «Tu móvil mide con ±X m» se envía al autor con un toque.",
+        "<b>Inicio más rápido:</b> diez partes de la app que la primera pantalla no necesita (comprobación de brújula, medición de áreas, papelera, sincronización, panel plegable, seguimiento visual AR, Helmert, destino de navegación, búsqueda) se cargan después del primer dibujo. 298 kB menos antes de la primera imagen.",
+        "<b>Publicación más fiable:</b> corregido un error de empaquetado por el que a veces una versión nueva no llegaba a la web."
+      ]
+    },
+    {
       "v": 388,
       "datum": "2026-09-23",
       "nadpis": "Herramientas de un punto directamente desde su ficha, el mismo cierre en todas partes",

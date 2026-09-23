@@ -149,9 +149,16 @@ INDEX = os.path.join(ROOT, 'index.html')
 #   brana bezi PRED startem appky (bez prihlaseni se nic dalsiho nenacte). K tomu logika.js
 #   +2 kB (Novy bod: prumer GPS sam, R1) a grafika.js +0,3 kB (terce znacek, R2).
 #   Kandidati na odlozeni zustavaji: js/localization-helmert.js (46 kB) — OVERIT SPUSTENIM.
-LIMIT_JS_KB = 2232
+# SNIZENO 23.9.2026 (n6 z 5. hodnoceni, vybrano): 2232 -> 1960 kB, 76 -> 60 souboru. Duvod:
+#   10 modulu, ktere prvni obrazovka nepotrebuje, jde az za prvnim vykreslenim (ag/lazy):
+#   kompas-check, cadastre-area, kos, cloud-sync, mini-panel, ar-visual-track,
+#   localization-helmert (konecne OVERENO spustenim), cil-navigace, app-search,
+#   nastaveni-hledani = -298 kB (2185 -> 1887 kB). Strop se snizuje, aby se usetrene
+#   potichu nevratilo; rezerva ~70 kB na bezny rust. scripts/test_start_bez_chyb.py
+#   hlida, ze start v 6 podobach nezanecha nic v protokolu chyb.
+LIMIT_JS_KB = 1960
 LIMIT_CSS_KB = 320
-LIMIT_JS_SOUBORU = 76
+LIMIT_JS_SOUBORU = 60
 
 # Cizi knihovny neumime zmensit ani odlozit (mapa je bez nich prazdna), ale maji
 # byt videt v soupisu, aby bylo jasne, kolik z rozpoctu zabiraji.

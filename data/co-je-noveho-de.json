@@ -2,6 +2,16 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 389,
+      "datum": "2026-09-23",
+      "nadpis": "Feldtest des Telefons, schnellerer Start",
+      "body": [
+        "<b>Feldtest des Telefons</b> (Werkzeuge → Präzises Messen): fünf Minuten draußen und du weißt, auf wie viele Meter dein Telefon misst. GPS 60 s an einer Stelle, Kompass gegen die Sonne, Bildwinkel der Kamera und ein bekannter Punkt in der Nähe. Das Ergebnis „Dein Telefon misst auf ±X m“ lässt sich mit einem Tipp an den Autor senden.",
+        "<b>Schnellerer Start:</b> zehn Teile der App, die der erste Bildschirm nicht braucht (Kompassprüfung, Flächenmessung, Papierkorb, Synchronisierung, einklappbares Feld, visuelles AR-Tracking, Helmert, Navigationsziel, Suche), laden erst nach dem ersten Zeichnen. 298 kB weniger vor dem ersten Bild.",
+        "<b>Zuverlässigere Bereitstellung:</b> ein Fehler beim Verpacken der App behoben, durch den eine neue Version gelegentlich nicht ins Web kam."
+      ]
+    },
+    {
       "v": 388,
       "datum": "2026-09-23",
       "nadpis": "Werkzeuge zu einem Punkt direkt aus seiner Karte, überall gleiches Schließen",

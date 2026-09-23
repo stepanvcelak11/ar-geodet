@@ -182,7 +182,7 @@ async def beh(url):
         schov_v_seznamu = [k for k in SCHOVANE if c and k in c['vsechny']]
         ok('C1 žádný schovaný nástroj v seznamu úkonů', c and not schov_v_seznamu, schov_v_seznamu)
         ok('C2 Srovnat AR = jen Kompas + Srovnat sever', c and c['strany'].get('Srovnat AR') == ['kompas', 'agOpenCalibrate'], c and c['strany'].get('Srovnat AR'))
-        ok('C3 Přesné měření = průvodce, Přesná GPS, Opravit GPS, Dvěma telefony, Kontrolní měření, Kde se dá měřit', c and c['strany'].get('Přesné měření') == ['presne-mereni', 'brutal-gps', 'opravit-gps', 'dva-telefony', 'dvoji-mereni', 'kvalita-gps-mapa'], c and c['strany'].get('Přesné měření'))
+        ok('C3 Přesné měření = průvodce, Přesná GPS, Opravit GPS, Dvěma telefony, Kontrolní měření, Kde se dá měřit, Terénní zkouška', c and c['strany'].get('Přesné měření') == ['presne-mereni', 'brutal-gps', 'opravit-gps', 'dva-telefony', 'dvoji-mereni', 'kvalita-gps-mapa', 'terenni-zkouska'], c and c['strany'].get('Přesné měření'))
         ok('C4 řádek Opravit GPS vypisuje své položky', c and c['hubRow'] and 'chůzí po hraně' in c['hubRow'] and 'z mapy za chůze' in c['hubRow'] and 'podle známého bodu' in c['hubRow'], c and c['hubRow'])
         ok('C5 „Proč ±2,7 m?" bere živou přesnost GPS (rozbalený Signál GNSS)', c and c['proc'] and 'Proč ±2,7 m?' in c['proc'], c and c['proc'])
         ok('C6 hubItems bez schovaných (sky-obstruction), Podklady mají ar-dosah, ne prohlidku', c and 'sky-obstruction' not in c['hubItems'] and 'ar-dosah' in c['pod'] and 'prohlidka' not in c['pod'] and 'vektor-mapa' not in c['pod'], c and (c['hubItems'], c['pod']))
