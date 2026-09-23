@@ -135,7 +135,9 @@ async def beh(url):
         c1 = await page.evaluate("() => [AGJazyk.t('ještě 40 m'), AGJazyk.t('postůj ještě 5 s'), AGJazyk.t('čekám na GPS')]")
         ok('C1 t(): „ještě 40 m" → „40 m to go", „postůj ještě 5 s", „čekám na GPS"', c1 == ['40 m to go', 'stand still 5 s more', 'waiting for GPS'], c1)
         await page.evaluate("() => { const pt = arPoints.find(x => x && x.id === 'p_ppbp'); showDetails(pt, 40); }")
-        await page.wait_for_timeout(3500)
+        # ⚠ tlačítko přidává ODLOŽENÝ js/karta-bodu-plus.js — od v389 je ve frontě o 10 modulů víc a na pomalém
+        #   runneru CI se za pevných 3,5 s nestihlo (lokálně ano) → čekat na tlačítko, ne na hodiny (23. 9. 2026)
+        await T.cekej(page, "Array.from(document.querySelectorAll('#bottom-sheet button')).some(b => /found/i.test(b.textContent))", 40)
         c2 = await page.evaluate("() => Array.from(document.querySelectorAll('#bottom-sheet button')).map(b => b.textContent.replace(/\\s+/g, ' ').trim()).find(t => /found/i.test(t))")
         ok('C2 tlacitko „I found it" v karte bez ceskeho zbytku', c2 and 'ještě' not in c2 and 'to go' in c2, c2)
         await br.close()
