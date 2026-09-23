@@ -2,6 +2,17 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 385,
+      "datum": "2026-09-23",
+      "nadpis": "App im Vollbild — auch unter der Dynamic Island; Korrekturen aus einem Durchgang",
+      "body": [
+        "<b>Vollbild auf dem iPhone.</b> Kamera und Karte laufen jetzt bis unter die Uhr und die Dynamic Island, oben gibt es keinen schwarzen Balken mehr. Das iPhone merkt sich das Aussehen vom Hinzufügen des Symbols — wer die App schon auf dem Home-Bildschirm hat, sieht einmal einen Tipp: Symbol entfernen und in Safari erneut Teilen → Zum Home-Bildschirm (Punkte und Einstellungen bleiben).",
+        "<b>Einstellungen:</b> Die Kopfzeile verdeckt das Feld „In Einstellungen suchen“ nicht mehr.",
+        "<b>Weniger „Etwas ist schiefgelaufen“ beim Start:</b> zwei Fehler behoben (Zeile RTK-Netz in den Einstellungen, GPS-Mittelungsfeld, bevor die App fertig gezeichnet hat).",
+        "<b>Meine Punkte</b> ohne Punkte bieten jetzt gleich „Punkt hinzufügen“ und „Aus Datei laden“; die Schaltflächen auf dem Anmeldebildschirm sind gleich breit; die Meldung ohne Signal in der Lageskizze ist kein abgeschnittener Kreis mehr."
+      ]
+    },
+    {
       "v": 384,
       "datum": "2026-09-19",
       "nadpis": "Flurstücksgrenzen und Gehwege direkt in der eigenen Karte; Stil Blaupause entfernt",

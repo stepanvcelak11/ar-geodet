@@ -2,6 +2,17 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 385,
+      "datum": "2026-09-23",
+      "nadpis": "Aplikacja na całym ekranie — także pod Dynamic Island; poprawki z przeglądu",
+      "body": [
+        "<b>Pełny ekran na iPhonie.</b> Kamera i mapa sięgają teraz pod zegar i Dynamic Island, u góry nie ma już czarnego paska. iPhone pamięta wygląd z chwili dodania ikony — kto ma już aplikację na ekranie początkowym, zobaczy jednorazową wskazówkę: usuń ikonę i w Safari ponownie wybierz Udostępnij → Do ekranu początkowego (punkty i ustawienia zostaną).",
+        "<b>Ustawienia:</b> nagłówek nie zasłania już pola „Szukaj w ustawieniach”.",
+        "<b>Mniej komunikatów „Coś poszło nie tak” przy starcie:</b> poprawione dwa błędy (wiersz sieci RTK w Ustawieniach, panel uśredniania GPS, zanim aplikacja się narysowała).",
+        "<b>Moje punkty</b> bez punktów od razu proponują „Dodaj punkt” i „Wczytaj z pliku”; przyciski na ekranie logowania mają tę samą szerokość; komunikat bez sygnału w szkicu terenowym nie jest już uciętym kółkiem."
+      ]
+    },
+    {
       "v": 384,
       "datum": "2026-09-19",
       "nadpis": "Granice działek i chodniki bezpośrednio we własnej mapie; styl Blueprint usunięty",

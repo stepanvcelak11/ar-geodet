@@ -2,6 +2,17 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 385,
+      "datum": "2026-09-23",
+      "nadpis": "App a schermo intero, anche sotto la Dynamic Island; correzioni da un giro di controllo",
+      "body": [
+        "<b>Schermo intero su iPhone.</b> Fotocamera e mappa ora arrivano sotto l’orologio e la Dynamic Island, in alto non c’è più la barra nera. L’iPhone ricorda l’aspetto del momento in cui è stata aggiunta l’icona: se hai già l’app nella schermata Home vedrai una volta un consiglio: rimuovi l’icona e in Safari tocca di nuovo Condividi → Aggiungi alla schermata Home (punti e impostazioni restano).",
+        "<b>Impostazioni:</b> l’intestazione non copre più il campo «Cerca nelle impostazioni».",
+        "<b>Meno «Qualcosa è andato storto» all’avvio:</b> corretti due errori (riga della rete RTK nelle Impostazioni, pannello della media GPS prima che l’app finisse di disegnarsi).",
+        "<b>I miei punti</b> senza punti offrono subito «Aggiungi punto» e «Carica da file»; i pulsanti della schermata di accesso hanno la stessa larghezza; l’avviso senza segnale nello Schizzo di campagna non è più un cerchio tagliato."
+      ]
+    },
+    {
       "v": 384,
       "datum": "2026-09-19",
       "nadpis": "Confini delle particelle e marciapiedi direttamente nella tua mappa; stile Cianotipia rimosso",

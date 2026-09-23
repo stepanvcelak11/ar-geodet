@@ -1384,7 +1384,7 @@
             const listDiv = document.getElementById('manage-list');
             if (!listDiv) return;
             listDiv.innerHTML = '';
-            if (persistentCustomPoints.length === 0) { listDiv.innerHTML = '<p style="text-align:center;">Žádné body v této zakázce.</p>'; renderHiddenPointsRow(listDiv); renderLinesList(listDiv); return; }
+            if (persistentCustomPoints.length === 0) { listDiv.innerHTML = '<div class="ag-empty-body" style="text-align:center;padding:26px 8px 10px;"><svg class="icon" style="width:34px;height:34px;color:var(--accent);opacity:.8;"><use href="#i-map-pin"/></svg><p style="margin:10px 0 4px;font-weight:700;">Žádné body v této zakázce</p><p style="margin:0 0 16px;font-size:calc(13px * var(--ag-font-scale,1));color:var(--text-muted);">Ulož bod tam, kde stojíš, nebo nahraj seznam souřadnic (CSV, TXT, JSON, VFK).</p><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;"><button type="button" class="btn btn-primary" style="width:auto;padding:11px 18px;margin:0;" onclick="closeManageModal();openNewPointModal();">+ Přidat bod</button><button type="button" class="btn btn-secondary" style="width:auto;padding:11px 18px;margin:0;" onclick="document.getElementById(\'import-file\').click()">Nahrát ze souboru</button></div></div>'; /* prázdný stav s cestou dál (23. 9. 2026) — dřív jen věta a nic */ renderHiddenPointsRow(listDiv); renderLinesList(listDiv); return; }
             // SOUHRN ZAKAZKY: tri cisla, ktera appka uz zna a nikde nerikala —
             // kolik bodu, jak presne se meri a kolik bodu jde ven bez kodu.
             // Pocita se pres VSECHNY body zakazky, ne pres filtr: je to stav zakazky,

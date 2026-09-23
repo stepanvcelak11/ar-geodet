@@ -227,7 +227,7 @@ async def beh(url):
 
         print('--- H) jazyk systému bez uložené volby ---')
         # (na přání 18. 9. večer: „ať se aplikace zapíná v jazyce systému, pokud ho má, jinak anglicky")
-        for loc, want, slovo in [('de-DE', 'de', 'AR-Kamera'), ('fr-FR', 'fr', 'Caméra RA'), ('nl-NL', 'en', 'AR camera'), ('cs-CZ', 'cs', 'AR kamera'), ('sk-SK', 'cs', 'AR kamera')]:
+        for loc, want, slovo in [('de-DE', 'de', 'AR-Kamera'), ('fr-FR', 'fr', 'Caméra RA'), ('nl-NL', 'nl', 'AR-camera'), ('cs-CZ', 'cs', 'AR kamera'), ('sk-SK', 'cs', 'AR kamera')]:
             ctx = await br.new_context(locale=loc, viewport={'width': 390, 'height': 844}, has_touch=True, is_mobile=True,
                                        geolocation={'latitude': LAT, 'longitude': LNG, 'accuracy': 3}, permissions=['geolocation'], service_workers='block')
             page = await ctx.new_page()

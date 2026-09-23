@@ -1731,7 +1731,9 @@
             '  color:var(--text-color,#e6e8eb);border-radius:13px;padding:13px 22px;min-width:230px;box-sizing:border-box;',
             '  font:600 13.5px/1 var(--font-ui,system-ui);cursor:pointer;transition:transform .12s ease,border-color .15s ease;}',
             '#ag-gate .agg-alt:active{transform:scale(.97);border-color:var(--accent,#2f9e74);}',
-            '#ag-gate #agg-show-join{width:min(330px,88vw);}',
+            // všechna tlačítka brány STEJNĚ ŠIROKÁ (23. 9. 2026: každé měl jinou šířku podle textu = rozházený sloupec)
+            '#ag-gate #agg-show-join,#ag-gate #agg-reg,#ag-gate #agg-look,#ag-gate #agg-new{width:min(330px,88vw);}',
+            '#ag-gate .agg-alt{line-height:1.3;}',
             '#ag-gate .agg-note{max-width:330px;text-align:center;font:500 11.5px/1.5 var(--font-ui,system-ui);color:var(--text-muted,#9aa1ac);}',
             // karta u prazdne mrizky Nastroju (viz applyPerms, bod 4)
             '.ag-tools-empty{margin:8px 2px 4px;padding:16px 16px 18px;border-radius:14px;text-align:center;',

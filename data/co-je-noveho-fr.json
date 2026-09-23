@@ -2,6 +2,17 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 385,
+      "datum": "2026-09-23",
+      "nadpis": "Appli en plein écran — même sous la Dynamic Island ; corrections d’un passage en revue",
+      "body": [
+        "<b>Plein écran sur iPhone.</b> La caméra et la carte vont maintenant jusque sous l’horloge et la Dynamic Island, plus de bande noire en haut. L’iPhone garde l’apparence du moment où l’icône a été ajoutée : si tu as déjà l’appli sur l’écran d’accueil, tu verras une fois un conseil : supprime l’icône et, dans Safari, touche de nouveau Partager → Sur l’écran d’accueil (points et réglages sont conservés).",
+        "<b>Réglages :</b> l’en-tête ne cache plus le champ « Rechercher dans les réglages ».",
+        "<b>Moins de « Un problème est survenu » au démarrage :</b> deux erreurs corrigées (ligne du réseau RTK dans les Réglages, panneau de moyenne GPS avant la fin du dessin de l’appli).",
+        "<b>Mes points</b> sans points proposent directement « Ajouter un point » et « Charger depuis un fichier » ; les boutons de l’écran de connexion ont la même largeur ; le message sans signal du Croquis de repérage n’est plus un cercle tronqué."
+      ]
+    },
+    {
       "v": 384,
       "datum": "2026-09-19",
       "nadpis": "Limites de parcelles et trottoirs directement dans ta propre carte ; style Cyanotype retiré",

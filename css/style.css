@@ -1992,14 +1992,18 @@ body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
    — obojí je pryč i s rejstříkem js/nastaveni-lista.js. Ovládací prvky uvnitř (.st-row,
    .st-slider, .st-chips, .set-h, details.adv) se nemění. */
 #settings-modal .set-head {
+    /* Sticky s top:0 a VÝŘEZ JAKO VNITŘNÍ ODSAZENÍ HLAVIČKY (23. 9. 2026, celá obrazovka):
+       dřív top:env(safe-area) + padding-top kontejneru = výřez se započítal DVAKRÁT
+       (Chrome i WebKit berou sticky od hrany obsahu) → hlavička sjela o 59 px a zakryla
+       pole „Hledat v nastavení“. Kontejner teď nahoře odsazení nemá (viz 1) níž). */
     position: sticky;
-    top: env(safe-area-inset-top, 0px);
+    top: 0;
     z-index: 5;
     display: flex;
     align-items: center;
     gap: 8px;
     margin: 0 calc(-1 * max(20px, env(safe-area-inset-right, 0px))) 10px calc(-1 * max(20px, env(safe-area-inset-left, 0px)));
-    padding: 14px max(20px, env(safe-area-inset-right, 0px)) 10px max(20px, env(safe-area-inset-left, 0px));
+    padding: calc(env(safe-area-inset-top, 0px) + 14px) max(20px, env(safe-area-inset-right, 0px)) 10px max(20px, env(safe-area-inset-left, 0px));
     border-bottom: 1px solid var(--glass-border);
     /* ÚPLNĚ neprůhledné: přes alfu se pod hlavičkou prorolovávaly řádky */
     background: rgb(14, 18, 24);
@@ -3176,7 +3180,7 @@ body.ag-glove .mngr-act { padding: 13px 8px; }
     /* Horní odsazení PATŘÍ NADPISU, ne kontejneru: sticky prvek se nesmí dostat nad
        obsahovou plochu svého rodiče, takže těch 20 px padding vyrobilo nad pruhem
        záložek štěrbinu, kterou se prorolovávaly nadpisy sekcí a řádky nastavení. */
-    padding-top: env(safe-area-inset-top, 0px);
+    padding-top: 0;   /* výřez nese hlavička .set-head (její padding-top) */
 }
 #settings-modal .modal-content::-webkit-scrollbar { width: 6px; }
 #settings-modal .modal-content::-webkit-scrollbar-thumb {

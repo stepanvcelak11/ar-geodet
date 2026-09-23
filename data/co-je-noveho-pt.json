@@ -2,6 +2,17 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 385,
+      "datum": "2026-09-23",
+      "nadpis": "App em ecrã inteiro — também por baixo da Dynamic Island; correções de uma revisão",
+      "body": [
+        "<b>Ecrã inteiro no iPhone.</b> A câmara e o mapa vão agora até por baixo do relógio e da Dynamic Island; em cima já não há barra preta. O iPhone lembra-se do aspeto do momento em que o ícone foi adicionado — quem já tem a app no ecrã principal verá uma dica uma só vez: remove o ícone e no Safari toca de novo em Partilhar → Adicionar ao ecrã principal (pontos e definições mantêm-se).",
+        "<b>Definições:</b> o cabeçalho já não tapa o campo «Pesquisar nas definições».",
+        "<b>Menos «Algo correu mal» no arranque:</b> dois erros corrigidos (linha da rede RTK nas Definições, painel da média GPS antes de a app terminar de se desenhar).",
+        "<b>Os meus pontos</b> sem pontos oferecem logo «Adicionar ponto» e «Carregar de ficheiro»; os botões do ecrã de entrada têm a mesma largura; a mensagem sem sinal no Croqui de campo já não é um círculo cortado."
+      ]
+    },
+    {
       "v": 384,
       "datum": "2026-09-19",
       "nadpis": "Limites de parcelas e passeios diretamente no teu próprio mapa; estilo Cianotipia removido",

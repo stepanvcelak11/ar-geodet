@@ -1397,7 +1397,7 @@ if ('serviceWorker' in navigator) {
             if (_mpu && _mpu.active && _mpu.lat != null) {
                 gpsSamples = [];
                 gpsAvgResult = { lat: _mpu.lat, lng: _mpu.lng, n: 0, total: 0, sigma: null, sterr: _mpu.acc, acc: _mpu.acc, coarse: false, alt: null, altSterr: null, altN: 0, manual: true, ts: Date.now() };
-                updateGpsAvgPanel();
+                if (typeof updateGpsAvgPanel === 'function') updateGpsAvgPanel();
                 return;
             }
             // HRUBY FIX: presnost horsi nez GPS_COARSE_ACC = sitova/fused poloha (Wi-Fi/cell), ne
@@ -1406,7 +1406,7 @@ if ('serviceWorker' in navigator) {
             // a appka rekne "cekam na satelitni fix". Mame-li uz dobre vzorky, hruby fix ignorujeme.
             const GPS_COARSE_ACC = 20;
             if (acc && acc > GPS_COARSE_ACC) {
-                if (!gpsSamples.length) { gpsAvgResult = { coarse: true, acc: acc, n: 0, total: 0, manual: false, ts: Date.now() }; updateGpsAvgPanel(); }
+                if (!gpsSamples.length) { gpsAvgResult = { coarse: true, acc: acc, n: 0, total: 0, manual: false, ts: Date.now() }; if (typeof updateGpsAvgPanel === 'function') updateGpsAvgPanel(); }
                 return;
             }
             if (gpsSamples.length) {
@@ -1507,7 +1507,7 @@ if ('serviceWorker' in navigator) {
             // jakekoli brany (protokol vytyceni, Helmert, offset, kontrola vrstvy...),
             // takze do dokumentu na stavbu slo cislo z jine hodiny. Ptejte se agAvgFresh().
             gpsAvgResult = { lat: lat0 + wy / mLat, lng: lng0 + wx / mLng, n: used.length, total: total, sigma: sigma, sterr: sterr, acc: meanAcc, coarse: false, alt: altMean, altSterr: altSterr, altN: altN, manual: false, ts: Date.now() };
-            updateGpsAvgPanel();
+            if (typeof updateGpsAvgPanel === 'function') updateGpsAvgPanel();
         }
         // SPOLECNA BRANA CERSTVOSTI pro vsechny ctenare gpsAvgResult (#22). Vraci false
         // i pro rucni polohu z mapy tam, kde volajici chce jen skutecne mereni

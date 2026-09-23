@@ -499,7 +499,7 @@
         if (!window.AGMapaVektor || !window.AGMapaStyl) { return agAlert({ title: '3D pohled', message: 'Vektorová mapa se v této verzi nenačetla — zkus appku znovu otevřít (Nástroje → Funguje mi všechno?).' }); }
         var zap = AGMapaVektor.stav() === 'zapnuto' ? Promise.resolve(true) : AGMapaVektor.zapni();
         zap.then(function (ok) {
-            if (!ok) { agAlert({ title: '3D pohled', message: 'Vektorová mapa se nezapnula: ' + (AGMapaVektor.chyba() || 'neznámá chyba') + '. Až bude signál, klepni na 3D znovu — mapa se zapne sama (ručně: Vrstvy → Podklad → Mapa).' }); return; }
+            if (!ok) { agAlert({ title: '3D pohled', message: 'Vektorová mapa se nezapnula: ' + (AGMapaVektor.chyba() || 'neznámá chyba').replace(/\.\s*$/, '') + '. Až bude signál, klepni na 3D znovu — mapa se zapne sama (ručně: Vrstvy → Podklad → Mapa).' }); return; }
             // stylopis si připojí sám (lazy-tools ho dává jen při otevření z dlaždice)
             if (!document.querySelector('link[href$="css/pohled-3d.css"]')) { var lk = document.createElement('link'); lk.rel = 'stylesheet'; lk.href = 'css/pohled-3d.css'; document.head.appendChild(lk); }
             if (!el) { el = document.createElement('div'); el.id = 'ag3d'; document.body.appendChild(el); }

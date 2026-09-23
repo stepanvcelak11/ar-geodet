@@ -40,7 +40,7 @@ body.light-mode #agn { --agn-bar: rgba(250, 250, 248, .94); --agn-line: rgba(0, 
     text-align: center; font: 600 calc(12px * var(--ag-font-scale, 1)) inherit; color: #fff;
     pointer-events: none; min-height: 16px;
 }
-#agn .agn-info:not(:empty) { display: inline-block; left: 50%; transform: translateX(-50%); right: auto; max-width: 92vw; padding: 6px 12px; border-radius: 999px; background: rgba(20,24,28,.85); }
+#agn .agn-info:not(:empty) { display: inline-block; left: 50%; transform: translateX(-50%); right: auto; width: max-content; max-width: calc(100vw - 32px); padding: 7px 14px; border-radius: 14px; text-align: center; line-height: 1.35;   /* 999px u dvouřádkové hlášky = kolečko s uříznutým textem (23. 9. 2026) */ background: rgba(20,24,28,.85); }
 #agn .agn-paleta {
     position: absolute; z-index: 1001; left: 0; right: 0; bottom: calc(66px + env(safe-area-inset-bottom, 0px));
     display: flex; gap: 6px; padding: 8px 10px; overflow-x: auto; -webkit-overflow-scrolling: touch;

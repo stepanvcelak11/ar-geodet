@@ -163,7 +163,7 @@
         // RTK síť země (E8): kde vzít korekce — z js/zdroje-zemi.js (lazy), doplní se, až je načtený
         try {
             var rtk = document.getElementById('s-zeme-rtk');
-            if (!rtk) { rtk = document.createElement('div'); rtk.id = 's-zeme-rtk'; rtk.style.cssText = 'font-size:calc(12px * var(--ag-font-scale,1));opacity:.85;margin:4px 2px 8px;'; co.parentNode.insertBefore(rtk, co.nextSibling); }
+            if (!rtk) { rtk = document.createElement('div'); rtk.id = 's-zeme-rtk'; rtk.style.cssText = 'font-size:calc(12px * var(--ag-font-scale,1));opacity:.85;margin:4px 2px 8px;'; co.appendChild(rtk); }   // co ještě není v DOM (parentNode null → toast „Něco se pokazilo“ při každém startu, 23. 9. 2026)
             var napln = function () { var k = AGSour.kod(), r = window.AGZdroje && AGZdroje.rtkPro ? AGZdroje.rtkPro(k) : null; if (!r) { rtk.textContent = ''; return; }
                 rtk.innerHTML = '<span>' + (window.AGJazyk ? AGJazyk.t('Korekce RTK') : 'Korekce RTK') + ': <b>' + r.n.replace(/[<>]/g, '') + '</b>' + (r.zdarma ? ' · ' + (window.AGJazyk ? AGJazyk.t('(pro geodety zdarma)') : '(pro geodety zdarma)') : '') + ' — <a href="' + r.u.replace(/"/g, '') + '" target="_blank" rel="noopener" style="color:var(--accent);">' + r.p.replace(/[<>]/g, '') + ' ↗</a></span>'; };
             napln(); document.addEventListener('ag:zeme', napln);

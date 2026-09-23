@@ -2,6 +2,17 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 385,
+      "datum": "2026-09-23",
+      "nadpis": "Full-screen app — even under the Dynamic Island; fixes from a walkthrough",
+      "body": [
+        "<b>Full screen on iPhone.</b> The camera and the map now run under the clock and the Dynamic Island, no more black bar at the top. The iPhone remembers the look from when the icon was added — if you already have the app on the home screen, you will see a one-time tip: remove the icon and in Safari tap Share → Add to Home Screen again (points and settings stay).",
+        "<b>Settings:</b> the header no longer covers the “Search settings” field.",
+        "<b>Fewer “Something went wrong” messages at start:</b> two errors fixed (RTK network row in Settings, GPS averaging panel before the app finished drawing).",
+        "<b>My points</b> with no points now offer “Add point” and “Load from file” right away; the buttons on the sign-in screen have the same width; the no-signal message in the Site sketch is no longer a clipped circle."
+      ]
+    },
+    {
       "v": 384,
       "datum": "2026-09-19",
       "nadpis": "Parcel boundaries and sidewalks right in your own map; Blueprint style removed",

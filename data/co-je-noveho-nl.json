@@ -2,6 +2,17 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 385,
+      "datum": "2026-09-23",
+      "nadpis": "App op het hele scherm — ook onder het Dynamic Island; correcties uit een controleronde",
+      "body": [
+        "<b>Volledig scherm op de iPhone.</b> Camera en kaart lopen nu door tot onder de klok en het Dynamic Island, bovenaan is geen zwarte balk meer. De iPhone onthoudt het uiterlijk van het moment waarop het pictogram werd toegevoegd — wie de app al op het beginscherm heeft, ziet één keer een tip: verwijder het pictogram en tik in Safari opnieuw op Deel → Zet op beginscherm (punten en instellingen blijven).",
+        "<b>Instellingen:</b> de kop bedekt het veld „Zoeken in instellingen” niet meer.",
+        "<b>Minder „Er ging iets mis” bij het starten:</b> twee fouten verholpen (regel RTK-netwerk in Instellingen, GPS-middelingspaneel voordat de app klaar was met tekenen).",
+        "<b>Mijn punten</b> zonder punten bieden meteen „Punt toevoegen” en „Laden uit bestand”; de knoppen op het inlogscherm zijn even breed; de melding zonder signaal in de Terreinschets is geen afgesneden cirkel meer."
+      ]
+    },
+    {
       "v": 384,
       "datum": "2026-09-19",
       "nadpis": "Perceelgrenzen en stoepen rechtstreeks in je eigen kaart; stijl Blauwdruk verwijderd",

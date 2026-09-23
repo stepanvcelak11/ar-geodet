@@ -84,7 +84,9 @@ def staticke():
         if not any(v.get('v') == 384 for v in j.get('verze', [])):
             chybi.append(f or 'cs')
     ok('E5 Co je noveho v384 ve vsech 9 souborech', not chybi, chybi)
-    ok('E6 SHELL_CACHE = v384', "SHELL_CACHE = 'argeodet-shell-v384'" in src('sw.js'))
+    # ⚠ NE rovnost: pribite cislo verze shodi test pri KAZDEM dalsim vydani (23. 9. 2026 u v385)
+    _m = re.search(r"SHELL_CACHE = 'argeodet-shell-v(\d+)'", src('sw.js'))
+    ok('E6 SHELL_CACHE >= v384', bool(_m) and int(_m.group(1)) >= 384, _m and _m.group(0))
     ok('E7 pohled-3d a mapa-vektor bez varianty modrotisk', "'modrotisk'" not in src('js/pohled-3d.js') and "return 'modrotisk'" not in src('js/mapa-vektor.js'))
 
 
@@ -184,6 +186,8 @@ async def beh(url):
         ok('D1 klepnuti 2 m od spolecne hrany parcel → prichyceni na hranu (bez site)', d and 1.5 < d[0] < 2.5 and abs(d[1] - LNG) < 1e-7, d)
         d2 = await page.evaluate("() => AGHrana._test.snapParcelyMapy({ lat: %f, lng: %f })" % (LAT, LNG + 10 * m_lng))
         ok('D2 10 m od hrany → nic', d2 is None, d2)
+        # po setView z C8 (z14 → z17) se dlazdice teprve nacitaji — bez cekani D3 obcas nevidel zadny chodnik (23. 9. 2026)
+        await T.cekej(page, "AGMapaVektor.cary('roads', ['path']).some(l => l.vlastnosti.kind_detail === 'sidewalk' && l.length >= 2)", 20)
         c = await page.evaluate("""() => { var ls = AGMapaVektor.cary('roads', ['path']).filter(l => l.vlastnosti.kind_detail === 'sidewalk' && l.length >= 2);
             if (!ls.length) return { chyba: 'zadny chodnik' };
             var l = ls[0], a = l[0], b = l[1], mid = { lat: (a.lat + b.lat) / 2, lng: (a.lng + b.lng) / 2 };
