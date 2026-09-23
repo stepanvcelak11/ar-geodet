@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-09-22",
-  "uvodnik": "Vydání 22. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-09-23",
+  "uvodnik": "Vydání 23. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,54 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Outsight Accelerates in Asia-Pacific: New Singapore Hub Joins Hong Kong to Serve the Region’s Airports",
+      "perex": "Sales, engineering, delivery and customer success now operate from two offices in the region, in the same working hours as the airports they serve Singapore, 23rd Sept 2026.",
+      "telo": "Sales, engineering, delivery and customer success now operate from two offices in the region, in the same working hours as the airports they serve Singapore, 23rd Sept 2026. Outsight , the global leader in infrastructure-based Physical AI, has opened an office in Singapore to serve airport operators across Asia-Pacific. The new hub joins the company’s Hong Kong office, doubling Outsight’s footprint in a region where terminal expansion and modernisation programmes are running at pace. The Singapore office, at 36 Carpenter Street, opened on 6 July 2026 and is led by Jeremy Camilleri, Director of Operations APAC. It operates as a fully-owned subsidiary of Outsight SA, headquartered in France. A",
+      "body": [],
+      "proc": "",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/09/23/outsight-accelerates-in-asia-pacific-new-singapore-hub-joins-hong-kong-to-serve-the-regions-airports/?utm_source=rss&utm_medium=rss&utm_campaign=outsight-accelerates-in-asia-pacific-new-singapore-hub-joins-hong-kong-to-serve-the-regions-airports",
+      "datum": "2026-09-23"
+    },
+    {
+      "rubrika": "Přístroje",
+      "top": false,
+      "nadpis": "Dr. Alison Brown Receives Kepler Award",
+      "perex": "The Institute of Navigation recognizes Dr.",
+      "telo": "The Institute of Navigation recognizes Dr. Alison Brown with prestigious Johannes Kepler Award at the ION GNSS+ 2026 Conference for her sustained record of pioneering technical innovations, operational deployments, strategic leadership, and PNT community advancement. Dr. Alison Brown’s career spans more than 40 years of pioneering contributions to satellite navigation technology and applications. She has developed and demonstrated hardware and software capabilities for military and commercial systems, including WAAS Ground Uplink station equipment and algorithms, GPS jammer location (JLOC) systems, ultra-low power GPS tracking sensors, cooperative networked acquisition techniques to speed ac",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/22/dr-alison-brown-receives-kepler-award/?utm_source=rss&utm_medium=rss&utm_campaign=dr-alison-brown-receives-kepler-award",
+      "datum": "2026-09-22"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "ASPRS and the ASPRS Foundation Announce New ASPRS Geospatial Science Research Grant",
+      "perex": "Baton Rouge, LA, September 21, 2026 : The Awards Committee of the American Society for Photogrammetry and Remote Sensing (ASPRS) and the ASPRS Foundation announce a new Geospatial Research Grant for t…",
+      "telo": "Baton Rouge, LA, September 21, 2026 : The Awards Committee of the American Society for Photogrammetry and Remote Sensing (ASPRS) and the ASPRS Foundation announce a new Geospatial Research Grant for the 2027 application cycle. The initial grant will be funded at a maximum $25,000 level, with potential for a second-year funding at the same level if proposed and the awardee’s stated project milestones are being met. This grant is designed to support research by graduate students pursuing degrees in the geospatial sciences at the Master’s and PhD levels, with preference given to PhD students. Preference is also given to those students planning on a career in teaching. The grant has been establi",
+      "body": [],
+      "proc": "",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/09/22/asprs-and-the-asprs-foundation-announce-new-asprs-geospatial-science-research-grant/?utm_source=rss&utm_medium=rss&utm_campaign=asprs-and-the-asprs-foundation-announce-new-asprs-geospatial-science-research-grant",
+      "datum": "2026-09-22"
+    },
+    {
+      "rubrika": "Přístroje",
+      "top": false,
+      "nadpis": "OpenWorks Engineering Expands Into US Market",
+      "perex": "After over a decade of supporting US defense and security organizations, OpenWorks opens regional headquarters in Virginia and announces plan for Detroit manufacturing facility Ashburn, Virginia, Sept…",
+      "telo": "After over a decade of supporting US defense and security organizations, OpenWorks opens regional headquarters in Virginia and announces plan for Detroit manufacturing facility Ashburn, Virginia, Sept. 22, 2026 – OpenWorks Engineering , a global leader in C-UAS, air defense, and surveillance technology, today announces the launch of its United States regional headquarters in Ashburn, Virginia, and future plans to expand its manufacturing footprint on American soil with a facility in Detroit, Michigan. OpenWorks is deepening its presence in this market in response to growing US demand for its Autonomous Vision Systems solutions, as well as strengthening its relationships with existing custome",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/22/openworks-engineering-expands-into-us-market/?utm_source=rss&utm_medium=rss&utm_campaign=openworks-engineering-expands-into-us-market",
+      "datum": "2026-09-22"
     },
     {
       "rubrika": "Technologie",
@@ -49,54 +97,6 @@
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/09/18/why-team-depth-is-becoming-surveyors-best-defense-against-project-delays/?utm_source=rss&utm_medium=rss&utm_campaign=why-team-depth-is-becoming-surveyors-best-defense-against-project-delays",
       "datum": "2026-09-18"
-    },
-    {
-      "rubrika": "Akce",
-      "top": false,
-      "nadpis": "NV5 to Showcase Power of Geospatial Analysis for Vegetation Management at Trees & Utilities Conference",
-      "perex": "Comprehensive remote sensing and analytics solution, and AR demo, demonstrate how geospatial insights improve safety, reliability and community alignment Hollywood, Fla., September 17, 2026 – NV5 , a…",
-      "telo": "Comprehensive remote sensing and analytics solution, and AR demo, demonstrate how geospatial insights improve safety, reliability and community alignment Hollywood, Fla., September 17, 2026 – NV5 , a TiC Solutions company and leading provider of geospatial software and services, will feature its end-to-end vegetation management solutions for electric utilities at the Trees & Utilities Conference, the leading event for utility professionals, urban foresters, and industry leaders dedicated to balancing reliable energy with environmental stewardship. NV5 also will join with ComEd for a session about how leveraging data and remote sensing help align vegetation management efforts with community n",
-      "body": [],
-      "proc": "",
-      "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/09/18/nv5-to-showcase-power-of-geospatial-analysis-for-vegetation-management-at-trees-utilities-conference/?utm_source=rss&utm_medium=rss&utm_campaign=nv5-to-showcase-power-of-geospatial-analysis-for-vegetation-management-at-trees-utilities-conference",
-      "datum": "2026-09-18"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Golden Software Enhances Usability for Faster, More Efficient 3D Visualization in Surfer Surface Mapping Software",
-      "perex": "Golden, Colorado, 16 September 2026 – Golden Software has focused on enhanced usability in the latest version of its Surfer mapping and 3D visualization software package released today.",
-      "telo": "Golden, Colorado, 16 September 2026 – Golden Software has focused on enhanced usability in the latest version of its Surfer mapping and 3D visualization software package released today. New and long-time Surfer users will find it is faster and easier to make high-quality subsurface maps that accurately visualize their 3D data sets. Slice your models along any vector path, generate crisp 2D contour and image profiles in seconds, and export report-ready images or grids with a single click. “We made Surfer easier to use by streamlining the map creation workflow,” said Kari Dickenson, Surfer Product Manager. “Starting with the redesigned ribbon tab on the homepage, the new version of Surfer chan",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/16/golden-software-enhances-usability-for-faster-more-efficient-3d-visualization-in-surfer-surface-mapping-software/?utm_source=rss&utm_medium=rss&utm_campaign=golden-software-enhances-usability-for-faster-more-efficient-3d-visualization-in-surfer-surface-mapping-software",
-      "datum": "2026-09-16"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Merrick & Company and Teledyne Optech Strengthen Strategic Partnership to Advance Geospatial Innovation",
-      "perex": "Colorado – September 15, 2026 – Merrick & Company is strengthening its longstanding strategic partnership with Teledyne Optech (Teledyne), reinforcing a decade-long collaboration focused on advancing…",
-      "telo": "Colorado – September 15, 2026 – Merrick & Company is strengthening its longstanding strategic partnership with Teledyne Optech (Teledyne), reinforcing a decade-long collaboration focused on advancing geospatial technology, improving data collection capabilities, and delivering greater value to clients. Merrick’s latest investment in Teledyne’s next-generation airborne mapping technology represents another milestone in a relationship built on innovation, trust, and a shared commitment to continuous improvement. As part of the continued partnership, Merrick recently integrated Teledyne’s dual Galaxy Edge+ G2 lidar sensor suite and upgraded aerial imaging capabilities into its geospatial operat",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/16/merrick-company-and-teledyne-optech-strengthen-strategic-partnership-to-advance-geospatial-innovation/?utm_source=rss&utm_medium=rss&utm_campaign=merrick-company-and-teledyne-optech-strengthen-strategic-partnership-to-advance-geospatial-innovation",
-      "datum": "2026-09-16"
-    },
-    {
-      "rubrika": "Přístroje",
-      "top": false,
-      "nadpis": "Trimble Unveils ST30 Smart Target for Optical Surveying",
-      "perex": "New surveying system represents leap forward in field technology to maximize daily output and solve common challenges with confidence Munich and Westminster, Colo., Sept. 15, 2026 — Trimble today anno…",
-      "telo": "New surveying system represents leap forward in field technology to maximize daily output and solve common challenges with confidence Munich and Westminster, Colo., Sept. 15, 2026 — Trimble today announced the launch of the Trimble ® ST30 smart target, a new-generation surveying system. This system breaks new ground by integrating optical and subscription-based GNSS functionality into a single smart target solution. Setting a new standard for traceability, redundancy, versatility and safety, the ST30 introduces key innovations, including tilt compensation and automatic rod height measurements. It is the first smart target on the market to offer fully integrated, high-accuracy GNSS functional",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/15/trimble-unveils-st30-smart-target-for-optical-surveying/?utm_source=rss&utm_medium=rss&utm_campaign=trimble-unveils-st30-smart-target-for-optical-surveying",
-      "datum": "2026-09-15"
     }
   ]
 }
