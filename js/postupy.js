@@ -226,7 +226,7 @@
         var ov = ensureOverlay();
         _view = 'list';
         ov.querySelector('#ag-pm-title').textContent = 'Postupy měření';
-        ov.querySelector('#ag-pm-back').textContent = 'Zavřít';
+        if (window.AGModalClose && AGModalClose.kulate) AGModalClose.kulate(ov.querySelector('#ag-pm-back'), 'Zavřít'); else ov.querySelector('#ag-pm-back').textContent = 'Zavřít';   // jednotný křížek (n1)
         var b = ov.querySelector('#ag-pm-body');
         var h = '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));color:var(--text-muted,#9aa1ac);line-height:1.5;margin:2px 2px 12px;">Krok za krokem podle oficiálních postupů (Návod pro obnovu KO, katastrální vyhláška, vyhláška o zeměměřictví). Klepni na metodu.</p>';
         POSTUPY.forEach(function (p) {
@@ -246,7 +246,7 @@
         var ov = ensureOverlay();
         _view = 'detail';
         ov.querySelector('#ag-pm-title').textContent = p.t;
-        ov.querySelector('#ag-pm-back').textContent = '‹ Zpět';
+        if (window.AGModalClose && AGModalClose.kulate) AGModalClose.kulate(ov.querySelector('#ag-pm-back'), '‹ Zpět'); else ov.querySelector('#ag-pm-back').textContent = '‹ Zpět';
         var b = ov.querySelector('#ag-pm-body');
         var h = '<p style="font-size:calc(13px * var(--ag-font-scale, 1));line-height:1.55;color:var(--text-muted,#9aa1ac);margin:2px 2px 8px;">' + esc(p.kdy) + '</p>';
         h += '<div class="ag-pm-sec">Postup (odškrtávej)</div>';

@@ -2,6 +2,15 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 388,
+   "datum": "2026-09-23",
+   "nadpis": "Nástroje k bodu přímo z karty, stejné zavírání všude",
+   "body": [
+    "<b>Nástroje k tomuto bodu.</b> V kartě bodu je nový řádek, který otevře Nástroje s tím bodem: nahoře jsou tři nástroje, které k němu dávají smysl. U vlastního bodu kontrolní měření, vytyčovací checklist a protokol vytyčení, u úředního srovnání severu podle bodu, kontrolní měření a rajón.",
+    "<b>Stejné zavírání ve všech oknech.</b> Zápisníky, Postupy měření, Náčrt/Tachymetrie a Počasí mají teď stejný kulatý křížek vpravo nahoře jako ostatní nástroje (dřív textové „Zavřít“, hranaté × a v Počasí křížek vlevo)."
+   ]
+  },
+  {
    "v": 387,
    "datum": "2026-09-23",
    "nadpis": "Displej v „Funguje mi všechno?“, prázdné seznamy s cestou dál, hlídač chyb startu",

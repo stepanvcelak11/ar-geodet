@@ -2,6 +2,15 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 388,
+      "datum": "2026-09-23",
+      "nadpis": "Werkzeuge zu einem Punkt direkt aus seiner Karte, überall gleiches Schließen",
+      "body": [
+        "<b>Werkzeuge für diesen Punkt.</b> Die Punktkarte hat eine neue Zeile, die die Werkzeuge mit diesem Punkt öffnet: oben stehen drei Werkzeuge, die dazu passen. Beim eigenen Punkt Kontrollmessung, Absteck-Checkliste und Absteckprotokoll, beim amtlichen Punkt Nord nach dem Punkt ausrichten, Kontrollmessung und polares Anhängen.",
+        "<b>Gleiches Schließen in allen Fenstern.</b> Feldbücher, Messabläufe, Skizze/Tachymetrie und Wetter haben jetzt dasselbe runde Schließen-Kreuz oben rechts wie die übrigen Werkzeuge (vorher Text „Schließen“, eckiges × und beim Wetter das Kreuz links)."
+      ]
+    },
+    {
       "v": 387,
       "datum": "2026-09-23",
       "nadpis": "Display in „Funktioniert alles?“, leere Listen mit Weg nach vorn, Wächter für Startfehler",

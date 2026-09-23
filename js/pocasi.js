@@ -2643,7 +2643,6 @@
         _ui.id = 'ag-wx-overlay';
         _ui.innerHTML =
             '<div class="wx-top">' +
-                '<button type="button" class="wx-x" id="ag-wx-close" aria-label="Zavřít">×</button>' +
                 '<div class="wx-search-wrap">' +
                     '<input type="text" id="ag-wx-search" placeholder="Hledat místo…" autocomplete="off" spellcheck="false">' +
                     '<div id="ag-wx-results" class="wx-results" style="display:none"></div>' +
@@ -2651,6 +2650,8 @@
                 '<button type="button" class="wx-loc" id="ag-wx-mappick" title="Počasí v místě na mapě" aria-label="Počasí v místě na mapě">' + ICON_PIN + '</button>' +
                 '<button type="button" class="wx-loc" id="ag-wx-myloc" title="Moje poloha" aria-label="Moje poloha">' + ICON_LOC + '</button>' +
                 '<button type="button" class="wx-loc" id="ag-wx-refresh" title="Aktualizovat počasí" aria-label="Aktualizovat počasí">' + ICON_REFRESH + '</button>' +
+                // křížek VPRAVO jako v ostatních oknech (23. 9. 2026, n1; dřív vlevo před hledáním)
+                '<button type="button" class="wx-x agmc-x agmc-in" id="ag-wx-close" aria-label="Zavřít"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
             '</div>' +
             '<div id="ag-wx-offline" class="wx-offline" style="display:none"></div>' +
             '<div id="ag-wx-body" style="display:none">' +

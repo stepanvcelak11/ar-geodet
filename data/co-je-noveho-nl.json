@@ -2,6 +2,15 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 388,
+      "datum": "2026-09-23",
+      "nadpis": "Gereedschap voor een punt direct vanuit de kaart, overal hetzelfde sluiten",
+      "body": [
+        "<b>Gereedschap voor dit punt.</b> De puntkaart heeft een nieuwe regel die Gereedschap opent met dat punt: bovenaan staan drie gereedschappen die erbij passen. Bij een eigen punt de controlemeting, de uitzet-checklist en het uitzetrapport; bij een officieel punt het noorden uitlijnen op het punt, de controlemeting en de polaire meting.",
+        "<b>Hetzelfde sluiten in alle vensters.</b> Veldboeken, Meetprocedures, Schets/Tachymetrie en Weer hebben nu dezelfde ronde sluitknop rechtsboven als de andere gereedschappen (eerst een tekst „Sluiten”, een vierkante × en bij Weer het kruisje links)."
+      ]
+    },
+    {
       "v": 387,
       "datum": "2026-09-23",
       "nadpis": "Scherm in „Werkt alles?”, lege lijsten met een vervolgstap, bewaker voor startfouten",

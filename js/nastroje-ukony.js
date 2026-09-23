@@ -321,6 +321,115 @@
         box.appendChild(item({ l: 'Pokračovat: ' + rec.label, h: 'naposledy použitý nástroj' }, function () { run(rec.key); }));
         return box;
     }
+    // NÁSTROJE PODLE KARTY BODU (23. 9. 2026, n7 z 5. hodnocení): s otevřenou kartou bodu jsou
+    // na Moje nahoře tři nástroje, které k TOMU bodu dávají smysl — místo celého seznamu. Vlastní
+    // bod se vytyčuje a kontroluje, úředním se srovnává AR a staví se na něm. Zamčené Pro se
+    // přeskočí, bere se prvních 3, které v appce opravdu jsou.
+    var K_BODU = {
+        vlastni: ['dvoji-mereni', 'openStakeoutModal', 'protokol-vytyceni', 'offset-point', 'openMeasureModal'],
+        uredni: ['orient-point', 'dvoji-mereni', 'rajon', 'openMeasureModal']
+    };
+    // ⚠ OTEVŘENÍ NÁSTROJŮ KARTU BODU ZAVŘE (a vynuluje activePointIdForModal) dřív, než se seznam
+    //   postaví. Karta se proto sleduje sama: poslední otevřený bod + kdy se karta zavřela, a bod
+    //   se „zamkne“ v okamžiku otevření okna Nástrojů (_bodOkna, viz sync), dokud se okno nezavře.
+    var _karta = { id: null, zavreno: 0 }, _bodOkna = null, _bodVynucen = null;
+    function hlidejKartu() {
+        // okno Nástrojů: v OKAMŽIKU otevření si vzít bod karty (karta se vzápětí zavře)
+        var tm = modal();
+        if (tm && tm.getAttribute('data-uk-bod') !== '1') {
+            tm.setAttribute('data-uk-bod', '1');
+            // ⚠ hlavní okno: otevřenost řídí třída .ag-open (inline display se nemusí změnit)
+            var otevreno = function () { return tm.classList.contains('ag-open') || !!(tm.style.display && tm.style.display !== 'none' && !tm.classList.contains('ag-closed')); };
+            var bylo = otevreno();
+            try {
+                new MutationObserver(function () {
+                    var je = otevreno();
+                    if (je && !bylo) { _bodOkna = _bodVynucen != null ? _bodVynucen : bodPriOtevreni(); _bodVynucen = null; }
+                    if (!je) _bodOkna = null;
+                    bylo = je;
+                }).observe(tm, { attributes: true, attributeFilter: ['style', 'class'] });
+            } catch (e) { swallow(e, 'hlidejKartu:okno'); }
+        }
+        var bs = document.getElementById('bottom-sheet');
+        if (!bs || bs.getAttribute('data-uk-karta') === '1') return;
+        bs.setAttribute('data-uk-karta', '1');
+        try {
+            new MutationObserver(function () {
+                if (bs.classList.contains('open')) { try { _karta.id = (typeof activePointIdForModal !== 'undefined') ? activePointIdForModal : null; } catch (e) { _karta.id = null; } _karta.zavreno = 0; }
+                else if (_karta.id != null && !_karta.zavreno) _karta.zavreno = Date.now();
+            }).observe(bs, { attributes: true, attributeFilter: ['class'] });
+        } catch (e) { swallow(e, 'hlidejKartu'); }
+    }
+    function bodPriOtevreni() {
+        try {
+            var bs = document.getElementById('bottom-sheet'), id = null;
+            if (bs && bs.classList.contains('open') && typeof activePointIdForModal !== 'undefined' && activePointIdForModal != null) id = activePointIdForModal;
+            else if (_karta.id != null && (!_karta.zavreno || Date.now() - _karta.zavreno < 2000)) id = _karta.id;
+            return id;
+        } catch (e) { return null; }
+    }
+    function bodKarty() {
+        try {
+            var id = _bodOkna;
+            if (id == null || typeof arPoints === 'undefined') return null;
+            for (var i = 0; i < arPoints.length; i++) if (arPoints[i].id === id) return arPoints[i];
+        } catch (e) { swallow(e, 'bodKarty'); }
+        return null;
+    }
+    // ⚠ HLAVNÍ VSTUP JE ŘÁDEK V KARTĚ BODU: s otevřenou kartou první klepnutí mimo ni kartu jen
+    //   zavře (polykač kliku), takže „otevřít Nástroje, když je karta nahoře“ v praxi nenastane.
+    //   Řádek „Nástroje k tomuto bodu ›“ otevře Nástroje rovnou s tímhle bodem.
+    function tlacitkoKarty() {
+        try {
+            var body = document.getElementById('det-body'); if (!body) return;
+            var id = (typeof activePointIdForModal !== 'undefined') ? activePointIdForModal : null;
+            if (id == null) return;
+            if (!document.getElementById('ag-kb-nastroje-css')) {
+                var st = document.createElement('style'); st.id = 'ag-kb-nastroje-css';
+                st.textContent = '#ag-kb-nastroje{display:flex;align-items:center;justify-content:space-between;width:100%;margin:0 0 12px;padding:10px 12px;border-radius:10px;'
+                    + 'border:1px solid var(--glass-border,rgba(255,255,255,0.12));background:transparent;color:var(--accent);font:inherit;font-weight:600;'
+                    + 'font-size:calc(13.5px * var(--ag-font-scale,1));text-align:left;cursor:pointer;min-height:var(--tap-min,44px);}';
+                document.head.appendChild(st);
+            }
+            var b = document.getElementById('ag-kb-nastroje');
+            if (!b) { b = document.createElement('button'); b.type = 'button'; b.id = 'ag-kb-nastroje'; }
+            b.innerHTML = '<span><svg class="icon" style="width:15px;height:15px;vertical-align:-3px;margin-right:6px;"><use href="#i-ruler"/></svg>' + esc('Nástroje k tomuto bodu') + '</span><span aria-hidden="true">›</span>';
+            b.onclick = function (e) {
+                e.preventDefault(); e.stopPropagation();
+                _bodVynucen = id;
+                try { if (typeof closeBottomSheet === 'function') closeBottomSheet(); } catch (er) { swallow(er, 'karta:close'); }
+                var m = modal(); if (m) m.style.display = 'flex';
+            };
+            var kotva = document.getElementById('ag-kb-share') || document.getElementById('ag-kb-hint') || document.getElementById('ag-kb-acts');
+            if (kotva && kotva.parentNode === body) kotva.insertAdjacentElement('afterend', b); else body.appendChild(b);
+        } catch (e) { swallow(e, 'tlacitkoKarty'); }
+    }
+    function obalKartu() {
+        var n = 0, t = setInterval(function () {
+            if (typeof window.showDetails === 'function') {
+                clearInterval(t);
+                var puv = window.showDetails;
+                window.showDetails = function () { var r = puv.apply(this, arguments); setTimeout(tlacitkoKarty, 80); return r; };
+            } else if (++n > 40) clearInterval(t);
+        }, 500);
+    }
+    function bodBlock() {
+        var pt = bodKarty(); if (!pt) return null;
+        var vlastni = pt.cat === 'CUSTOM' || pt.type === 'custom';
+        var keys = (vlastni ? K_BODU.vlastni : K_BODU.uredni).filter(function (k) { return findTile(k) && !zamceno(k) && !mimoZemi(k); }   /* hidden ze seznamu nevadí — tady jde o bod */).slice(0, 3);
+        if (!keys.length) return null;
+        var box = document.createElement('section');
+        box.className = 'ag-uk-g ag-uk-bod';
+        var h = document.createElement('div');
+        h.className = 'ag-uk-h';
+        h.innerHTML = '<span><span>K bodu</span> ' + esc(pt.name || '') + '</span><span class="ag-uk-hint">' + esc(vlastni ? 'vlastní bod' : 'úřední bod') + '</span>';
+        box.appendChild(h);
+        keys.forEach(function (k) {
+            var r = (window.AGReg && AGReg.get(k)) || {};
+            box.appendChild(item({ l: r.vl || tileLabel(findTile(k)), h: r.vh || '' }, function () { run(k); }, iconOf(k), k));
+        });
+        return box;
+    }
     // Průvodce úkolem („Poradit, co použít") — dole na Moje, nestojí v cestě.
     function footBlock() {
         var box = document.createElement('div');
@@ -401,7 +510,7 @@
         try { own = (window.AGVlastnik && AGVlastnik.isOn && AGVlastnik.isOn()) ? '1' : '0'; } catch (e) { own = '0'; }
         try { kdo = (window.AGProfilOsoby && AGProfilOsoby.get()) || ''; } catch (e) { kdo = ''; }
         try { if (window.AGGesta && AGGesta.get) { var gg = AGGesta.get(); gz = (gg.off ? 'x' : gg.prefix) + JSON.stringify(gg.map || {}); } } catch (e) { gz = ''; }
-        return out.join(',') + '|f:' + favKeys().join(',') + '|p:' + profileKeys().join(',') + '|pro:' + pro + '|own:' + own + '|kdo:' + kdo + '|g:' + gz + '|z:' + zemeKod();
+        return out.join(',') + '|f:' + favKeys().join(',') + '|p:' + profileKeys().join(',') + '|pro:' + pro + '|own:' + own + '|kdo:' + kdo + '|g:' + gz + '|z:' + zemeKod() + '|b:' + ((bodKarty() || {}).id || '');   // n7: jiná karta bodu = jiné nástroje nahoře
     }
 
     // ---- řádek nástroje -------------------------------------------------------------------
@@ -646,6 +755,8 @@
 
         // ---- MOJE --------------------------------------------------------------------------------
         var moje = page(PAGE_MOJE, 'Moje', '★ Moje');
+        var bb = bodBlock();
+        if (bb) moje.appendChild(bb);
         var nb = nowBlock();
         if (nb) moje.appendChild(nb);
         // VLASTNÍK APLIKACE ÚPLNĚ NAHOŘE (12. 9. 2026): dlaždice vlastnik-* padaly do
@@ -702,7 +813,7 @@
         moje.appendChild(footBlock());
         // Moje bez obsahu (nic naposledy, nic připnutého, žádný profil) → okno se otevře na prvním
         // slovesu, ať je hned vidět nástroj a ne prázdná stránka s poučkou
-        var mojePrazdne = !nb && !favs.length && !vlast.length && !(pl && profileKeys().filter(function (k) { return findTile(k); }).length);
+        var mojePrazdne = !bb && !nb && !favs.length && !vlast.length && !(pl && profileKeys().filter(function (k) { return findTile(k); }).length);
 
         // ---- SLOVESA: jedno sloveso = jedna stránka ---------------------------------------------
         // ⚠ ČTYŘI SLOVESA POD „DALŠÍ" (18. 9. 2026, N3): pásek měl 14 záložek a na 390 px se jich
@@ -884,6 +995,7 @@
         var _otevreno = !!(_m && _m.style.display && _m.style.display !== 'none');
         // Okno se OTEVÍRÁ NA MOJE (rozhodnutí 15. 9. 2026) — ne tam, kde se naposledy
         // listovalo. Rozbalené rozcestníky se sbalí, ať je stránka zase krátká.
+        if (!_otevreno) _bodOkna = null;   // n7: bod se zamyká pozorovatelem v hlidejKartu()
         if (_otevreno && !_byloOtevreno) { curPage = PAGE_MOJE; sbalHuby(); if (host) go(PAGE_MOJE, true); }
         var _prvniOtevreni = _otevreno && !_byloOtevreno;
         _byloOtevreno = _otevreno;
@@ -921,6 +1033,7 @@
     function init() {
         try { sync(); } catch (e) { console.warn('[nastroje-ukony] init', e); }
         try { hlidejOtevreni(); } catch (e) { console.warn('[nastroje-ukony] hlidejOtevreni', e); }
+        try { hlidejKartu(); } catch (e) { swallow(e, 'init:karta'); }
         (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () {
             try { hlidejOtevreni(); } catch (e) { swallow(e, 'tik-obs'); }
         }, 3000);
@@ -956,11 +1069,17 @@
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPozdeji);
     else initPozdeji();
+    // Karta bodu se hlídá HNED (levné, jeden pozorovatel) — sestavení seznamu je odložené za první
+    // dotek, ale kartu otevřenou před prvním otevřením Nástrojů musí n7 znát.
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { try { hlidejKartu(); } catch (e) { swallow(e, 'karta:dcl'); } });
+    else { try { hlidejKartu(); } catch (e) { swallow(e, 'karta'); } }
+    obalKartu();
     window.addEventListener('load', function () { setTimeout(initPozdeji, 500); });
 
     // groups/run/has zůstávají venku: gesta (js/gesta-zkratky.js) vybírají ze STEJNÉ
     // mapy sloves a spouštějí nástroje STEJNOU cestou (klik na původní dlaždici).
     window.AGUkony = {
+        _karta: function () { return { karta: _karta, bodOkna: _bodOkna }; },   // pro testy (n7)
         rebuild: build,
         setView: function () { sync(); },   // no-op po zrušení přepínače pohledů (starší volání)
         groups: GROUPS,

@@ -170,7 +170,8 @@
     }
     function setHead(title, backLabel, canExport) {
         _ov.querySelector('#ag-zb-title').textContent = title;
-        _ov.querySelector('#ag-zb-back').textContent = backLabel;
+        var _bb = _ov.querySelector('#ag-zb-back');
+        if (window.AGModalClose && AGModalClose.kulate) AGModalClose.kulate(_bb, backLabel); else _bb.textContent = backLabel;   // „Zavřít“ = jednotný křížek (n1)
         _ov.querySelector('#ag-zb-exp').style.display = canExport ? '' : 'none';
     }
     function open() { ensureOverlay(); renderHome(); _ov.classList.add('open'); }

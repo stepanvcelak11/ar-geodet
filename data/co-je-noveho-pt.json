@@ -2,6 +2,15 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 388,
+      "datum": "2026-09-23",
+      "nadpis": "Ferramentas de um ponto diretamente do seu cartão, o mesmo fecho em todo o lado",
+      "body": [
+        "<b>Ferramentas para este ponto.</b> O cartão do ponto tem uma linha nova que abre as Ferramentas com esse ponto: em cima ficam três ferramentas que fazem sentido para ele. Num ponto próprio, a medição de controlo, a lista de implantação e o relatório de implantação; num oficial, alinhar o norte pelo ponto, a medição de controlo e a irradiação.",
+        "<b>O mesmo fecho em todas as janelas.</b> Cadernetas, Procedimentos de medição, Croqui/Taqueometria e Tempo têm agora o mesmo X redondo em cima à direita que as restantes ferramentas (antes, um texto «Fechar», um × quadrado e, no Tempo, o X à esquerda)."
+      ]
+    },
+    {
       "v": 387,
       "datum": "2026-09-23",
       "nadpis": "Ecrã em «Está tudo a funcionar?», listas vazias com próximo passo, vigia de erros no arranque",

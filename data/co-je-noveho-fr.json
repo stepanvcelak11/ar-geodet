@@ -2,6 +2,15 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 388,
+      "datum": "2026-09-23",
+      "nadpis": "Outils d’un point directement depuis sa fiche, la même fermeture partout",
+      "body": [
+        "<b>Outils pour ce point.</b> La fiche du point a une nouvelle ligne qui ouvre les Outils avec ce point : en haut figurent trois outils qui s’y prêtent. Pour un point perso, la mesure de contrôle, la liste d’implantation et le rapport d’implantation ; pour un point officiel, l’alignement du nord sur le point, la mesure de contrôle et le rayonnement.",
+        "<b>La même fermeture dans toutes les fenêtres.</b> Carnets, Procédures de mesure, Croquis/Tachéométrie et Météo ont maintenant la même croix ronde en haut à droite que les autres outils (avant : un texte « Fermer », une × carrée et, dans Météo, la croix à gauche)."
+      ]
+    },
+    {
       "v": 387,
       "datum": "2026-09-23",
       "nadpis": "Écran dans « Tout fonctionne ? », listes vides avec une suite, garde des erreurs au démarrage",

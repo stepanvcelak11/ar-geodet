@@ -2,6 +2,15 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 388,
+      "datum": "2026-09-23",
+      "nadpis": "Strumenti per un punto direttamente dalla sua scheda, la stessa chiusura ovunque",
+      "body": [
+        "<b>Strumenti per questo punto.</b> La scheda del punto ha una nuova riga che apre gli Strumenti con quel punto: in alto ci sono tre strumenti adatti. Per un punto proprio la misura di controllo, la checklist di tracciamento e il protocollo di tracciamento; per uno ufficiale l’allineamento del nord sul punto, la misura di controllo e l’irradiamento.",
+        "<b>La stessa chiusura in tutte le finestre.</b> Libretti, Procedure di misura, Schizzo/Tacheometria e Meteo hanno ora la stessa X rotonda in alto a destra degli altri strumenti (prima un testo «Chiudi», una × quadrata e, nel Meteo, la X a sinistra)."
+      ]
+    },
+    {
       "v": 387,
       "datum": "2026-09-23",
       "nadpis": "Schermo in «Funziona tutto?», liste vuote con un passo successivo, guardiano degli errori all’avvio",

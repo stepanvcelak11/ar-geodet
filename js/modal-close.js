@@ -119,6 +119,18 @@
             '#settings-modal:not(.ag-open) > .agmc-x,#manage-modal:not(.ag-open) > .agmc-x,',
             '#tools-modal:not(.ag-open) > .agmc-x,#custom-modal-overlay:not(.ag-open) > .agmc-x{pointer-events:none;visibility:hidden;}',
             'body.light-mode .agmc-x:active{background:#eceef1;}',
+            // JEDNOTNÉ ZAVÍRÁNÍ I V OKNECH MODULŮ (23. 9. 2026, n1 z 5. hodnocení): Zápisníky a Postupy
+            // měly textové „Zavřít“ (66×44), Náčrt/Tachymetrie hranaté × (36 px), Počasí × VLEVO.
+            // Teď dostanou tentýž křížek jako ostatní okna, jen vložený do jejich hlavičky (ne absolutně).
+            '.agmc-x.agmc-in{position:relative !important;top:auto !important;right:auto !important;left:auto !important;',
+            '  width:40px !important;height:40px !important;min-height:40px !important;border-radius:50% !important;padding:0 !important;',
+            '  flex:none;margin:0;font-size:0 !important;order:99;}',
+            // okna s vlastním pravidlem podle id (#tachy-x, .wx-x, #ag-zb-head button…) by desku přebila
+            '.agmc-x.agmc-in,#tachy-x.agmc-x,#ag-wx-close.agmc-x,#ag-zb-head .agmc-x,#ag-pm-head .agmc-x{background:#1b2028 !important;',
+            '  border:1px solid rgba(255,255,255,0.22) !important;color:#f2f4f7 !important;box-shadow:0 2px 10px rgba(0,0,0,0.45) !important;}',
+            'body.light-mode .agmc-x.agmc-in,body.light-mode #tachy-x.agmc-x,body.light-mode #ag-wx-close.agmc-x,',
+            'body.light-mode #ag-zb-head .agmc-x,body.light-mode #ag-pm-head .agmc-x{background:#ffffff !important;',
+            '  border-color:rgba(15,23,42,0.28) !important;color:#141821 !important;box-shadow:0 2px 10px rgba(15,23,42,0.22) !important;}',
             '.agmc-x svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;}',
             // levá ruka: křížek přejde na druhou stranu jako ostatní ovládání
             'body.left-hand .agmc-x{right:auto;left:calc(env(safe-area-inset-left,0px) + 10px);}',
@@ -754,5 +766,22 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
 
-    window.AGModalClose = { close: closeOverlay, scan: scanAll };
+    // Tlačítko modulu → standardní kulatý křížek (label = text, který by tam jinak byl). Jiný popisek
+    // (např. „‹ Zpět“ v podstránce) vrátí tlačítko do textové podoby — zpět je jiná akce než zavřít.
+    function kulate(btn, label) {
+        if (!btn) return;
+        injectStyles();
+        var zavrit = !label || /^(zavřít|zavrit|×|✕)$/i.test(String(label).trim());
+        if (zavrit) {
+            btn.classList.add('agmc-x', 'agmc-in');
+            btn.setAttribute('aria-label', 'Zavřít');
+            if (btn.innerHTML !== X_SVG) btn.innerHTML = X_SVG;
+        } else {
+            btn.classList.remove('agmc-x', 'agmc-in');
+            btn.removeAttribute('aria-label');
+            btn.textContent = label;
+        }
+    }
+
+    window.AGModalClose = { close: closeOverlay, scan: scanAll, kulate: kulate };
 })();

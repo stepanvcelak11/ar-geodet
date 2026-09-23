@@ -2,6 +2,15 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 388,
+      "datum": "2026-09-23",
+      "nadpis": "Narzędzia do punktu prosto z jego karty, wszędzie takie samo zamykanie",
+      "body": [
+        "<b>Narzędzia do tego punktu.</b> Karta punktu ma nowy wiersz, który otwiera Narzędzia z tym punktem: na górze są trzy narzędzia, które do niego pasują. Przy własnym punkcie pomiar kontrolny, lista kontrolna wytyczenia i protokół wytyczenia, przy urzędowym ustawienie północy według punktu, pomiar kontrolny i domiar biegunowy.",
+        "<b>Takie samo zamykanie we wszystkich oknach.</b> Dzienniki, Procedury pomiaru, Szkic/Tachimetria i Pogoda mają teraz ten sam okrągły krzyżyk w prawym górnym rogu co pozostałe narzędzia (wcześniej tekst „Zamknij”, kwadratowy × i w Pogodzie krzyżyk po lewej)."
+      ]
+    },
+    {
       "v": 387,
       "datum": "2026-09-23",
       "nadpis": "Ekran w „Czy wszystko działa?”, puste listy z dalszym krokiem, strażnik błędów startu",

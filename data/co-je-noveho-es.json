@@ -2,6 +2,15 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 388,
+      "datum": "2026-09-23",
+      "nadpis": "Herramientas de un punto directamente desde su ficha, el mismo cierre en todas partes",
+      "body": [
+        "<b>Herramientas para este punto.</b> La ficha del punto tiene una fila nueva que abre Herramientas con ese punto: arriba aparecen tres herramientas que tienen sentido para él. Para un punto propio, la medición de control, la lista de replanteo y el informe de replanteo; para uno oficial, alinear el norte con el punto, la medición de control y la radiación.",
+        "<b>El mismo cierre en todas las ventanas.</b> Libretas, Procedimientos de medición, Croquis/Taquimetría y Tiempo tienen ahora el mismo botón redondo de cerrar arriba a la derecha que el resto de herramientas (antes, un texto «Cerrar», una × cuadrada y, en Tiempo, la × a la izquierda)."
+      ]
+    },
+    {
       "v": 387,
       "datum": "2026-09-23",
       "nadpis": "Pantalla en «¿Funciona todo?», listas vacías con salida, vigilante de errores al iniciar",

@@ -2,6 +2,15 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 388,
+      "datum": "2026-09-23",
+      "nadpis": "Tools for a point straight from its card, the same close button everywhere",
+      "body": [
+        "<b>Tools for this point.</b> The point card has a new row that opens Tools with that point: at the top are three tools that make sense for it. For your own point the check measurement, the setting-out checklist and the setting-out report; for an official point aligning north by the point, the check measurement and a radial survey.",
+        "<b>The same close button in every window.</b> Notebooks, Survey procedures, Sketch/Tachymetry and Weather now have the same round close button at the top right as the other tools (before: a text “Close”, a square × and, in Weather, a close button on the left)."
+      ]
+    },
+    {
       "v": 387,
       "datum": "2026-09-23",
       "nadpis": "Display in “Is everything working?”, empty lists with a way forward, start-error guard",

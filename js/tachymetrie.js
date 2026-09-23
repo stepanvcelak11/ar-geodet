@@ -174,7 +174,7 @@
         m.innerHTML = `
             <div id="tachy-top">
                 <span class="tt-title"><svg class="icon"><use href="#i-grid"/></svg> Náčrt / Tachymetrie</span>
-                <button id="tachy-x" onclick="closeTachymetrie()" aria-label="Zavřít">×</button>
+                <button id="tachy-x" class="agmc-x agmc-in" onclick="closeTachymetrie()" aria-label="Zavřít"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
             </div>
             <div id="tachy-modes">
                 <button class="tm-btn" id="tachy-view" onclick="tachySetMode('view')"><svg class="icon"><use href="#i-map-pin"/></svg> Zobrazit</button>
