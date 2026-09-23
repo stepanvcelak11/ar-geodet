@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 386,
+   "datum": "2026-09-23",
+   "nadpis": "Body z fotky: víc bodů naráz, fotka i z galerie, lepší čtení čísel",
+   "body": [
+    "<b>Z jedné fotky víc bodů.</b> Seznam souřadnic, štítek nebo výpis z totálky: každý řádek s číslem, Y a X se uloží jako bod. V přehledu klepneš na bod, na fotce se zvýrazní jeho řádek, hodnoty jde opravit a nechtěné body odškrtnout.",
+    "<b>Fotka z galerie.</b> „Z fotky“ teď nabídne Vyfotit, nebo Vybrat z galerie (i víc fotek naráz). Nový nástroj <b>Body z fotky</b> je i v Nástrojích → Určit nový bod.",
+    "<b>Lepší OCR.</b> Fotka se čte dvakrát (vyrovnaný stín a místní práh), opravují se záměny O→0, l→1, S→5, B→8, mezery po tisících i ztracená desetinná tečka. Na zkušebních fotkách přečte 28 bodů z 31 (dřív 3). Body, které stojí za kontrolu (dva pokusy se liší, bod daleko od ostatních, chybí X), jsou označené oranžově."
+   ]
+  },
+  {
    "v": 385,
    "datum": "2026-09-23",
    "nadpis": "Appka přes celý displej — i pod Dynamic Islandem; opravy z průchodu",

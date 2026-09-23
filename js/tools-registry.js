@@ -193,6 +193,9 @@
           help: { t: 'Krokový offset' } },
         { k: 'ar-resection', pro: 1, hidden: 1, w: 1, cat: 'AR a kalibrace', verb: 'Určit nový bod', vl: 'Resekcí ze známých bodů', vh: 'určí i sever', keys: 'resekce protinani zpet stanovisko volne zname body',
           help: { t: 'Resekce ze známých bodů' } },
+        { k: 'body-z-fotky', fn: 'agOpenBodyZFotky', cat: 'Měření', verb: 'Určit nový bod', vl: 'Body z fotky', vh: 'seznam souřadnic nebo štítek — vyfoť nebo vyber z galerie, víc bodů naráz',
+          keys: 'fotka foto galerie ocr precist seznam souradnic stitek protokol vypis tabulka body z fotky obrazek snimek naskenovat prepsat',
+          help: { t: 'Body z fotky' } },
         { k: 'free-station', pro: 1, verb: 'Určit nový bod', vl: 'Volným stanoviskem', vh: 'průvodce krok za krokem', keys: 'volne stanovisko pruvodce resekce prechodne',
           help: { t: 'Volné stanovisko (průvodce)' } },
 

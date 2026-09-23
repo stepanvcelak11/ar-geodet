@@ -2,6 +2,16 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 386,
+      "datum": "2026-09-23",
+      "nadpis": "Punti da foto: più punti insieme, foto anche dalla galleria, lettura dei numeri migliore",
+      "body": [
+        "<b>Più punti da una foto.</b> Elenco di coordinate, etichetta o stampa della stazione totale: ogni riga con numero, Y e X viene salvata come punto. Nel riepilogo tocchi un punto e la sua riga si evidenzia sulla foto; i valori si correggono e i punti non voluti si tolgono.",
+        "<b>Foto dalla galleria.</b> «Da foto» ora offre Scatta foto o Scegli dalla galleria (anche più foto). Il nuovo strumento <b>Punti da foto</b> è anche in Strumenti → Determina un nuovo punto.",
+        "<b>OCR migliore.</b> La foto viene letta due volte (ombra compensata e soglia locale); si correggono gli scambi O→0, l→1, S→5, B→8, le migliaia separate da spazi e un punto decimale perso. Sulle foto di prova legge 28 punti su 31 (prima 3). I punti da controllare (due tentativi diversi, punto lontano dagli altri, manca X) sono segnati in arancione."
+      ]
+    },
+    {
       "v": 385,
       "datum": "2026-09-23",
       "nadpis": "App a schermo intero, anche sotto la Dynamic Island; correzioni da un giro di controllo",

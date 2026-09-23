@@ -2,6 +2,16 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 386,
+      "datum": "2026-09-23",
+      "nadpis": "Punten uit foto: meerdere tegelijk, foto ook uit de galerij, beter lezen van getallen",
+      "body": [
+        "<b>Meerdere punten uit één foto.</b> Coördinatenlijst, etiket of afdruk van de total station: elke regel met nummer, Y en X wordt als punt opgeslagen. In het overzicht tik je op een punt en de regel wordt op de foto gemarkeerd; waarden kun je verbeteren en ongewenste punten uitvinken.",
+        "<b>Foto uit de galerij.</b> „Uit foto” biedt nu Foto maken of Kiezen uit galerij (ook meerdere foto’s). Het nieuwe gereedschap <b>Punten uit foto</b> staat ook in Gereedschap → Nieuw punt bepalen.",
+        "<b>Betere OCR.</b> De foto wordt twee keer gelezen (schaduw gelijkgetrokken en lokale drempel); verwisselingen O→0, l→1, S→5, B→8, duizendtallen met spaties en een verloren decimaalteken worden verbeterd. Op testfoto’s leest hij 28 van de 31 punten (eerst 3). Punten die controle verdienen (twee pogingen verschillen, punt ver van de andere, X ontbreekt) zijn oranje gemarkeerd."
+      ]
+    },
+    {
       "v": 385,
       "datum": "2026-09-23",
       "nadpis": "App op het hele scherm — ook onder het Dynamic Island; correcties uit een controleronde",
