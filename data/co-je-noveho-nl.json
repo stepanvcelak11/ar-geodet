@@ -2,6 +2,16 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 391,
+      "datum": "2026-09-24",
+      "nadpis": "iPhone: geen balk onderaan en een leesbare bel bovenaan",
+      "body": [
+        "<b>Geen balk onderaan.</b> Na de overstap naar volledig scherm had de app op het beginscherm van de iPhone een strook onderaan: iOS geeft de paginahoogte kleiner op met de statusbalk. De app vult nu het hele scherm; kaart, camera en puntkaart lopen tot de onderrand.",
+        "<b>Leesbare bel.</b> iOS vervaagt de strook net onder de klok; de statusbel en de bovenste bediening beginnen nu daaronder.",
+        "In „Werkt alles?” toont de regel Scherm de gemeten hoogtes (pagina, 100vh, scherm) — klopt er op een iPhone iets niet, stuur het dan gewoon door."
+      ]
+    },
+    {
       "v": 390,
       "datum": "2026-09-24",
       "nadpis": "De hoofdknop van het gereedschap onderaan bij je duim",

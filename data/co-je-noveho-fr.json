@@ -2,6 +2,16 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 391,
+      "datum": "2026-09-24",
+      "nadpis": "iPhone : plus de bande en bas et bulle lisible en haut",
+      "body": [
+        "<b>Plus de bande en bas.</b> Après le passage en plein écran, l’appli sur l’écran d’accueil de l’iPhone montrait une bande en bas : iOS indique une hauteur de page réduite de la barre d’état. L’appli remplit maintenant tout l’écran ; carte, caméra et fiche du point vont jusqu’au bord inférieur.",
+        "<b>Bulle lisible.</b> iOS floute la bande juste sous l’horloge ; la bulle d’état et les commandes du haut commencent maintenant en dessous.",
+        "Dans « Tout fonctionne ? », la ligne Écran affiche les hauteurs mesurées (page, 100vh, écran) — si quelque chose ne colle pas sur un iPhone, il suffit de l’envoyer."
+      ]
+    },
+    {
       "v": 390,
       "datum": "2026-09-24",
       "nadpis": "Le bouton principal de l’outil en bas, sous le pouce",

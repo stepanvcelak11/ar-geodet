@@ -2,6 +2,16 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 391,
+      "datum": "2026-09-24",
+      "nadpis": "iPhone: sem barra em baixo e bolha legível em cima",
+      "body": [
+        "<b>Sem barra em baixo.</b> Depois de passar a ecrã inteiro, a app no ecrã principal do iPhone mostrava uma faixa em baixo: o iOS indica a altura da página menor pela barra de estado. A app ocupa agora o ecrã inteiro; mapa, câmara e cartão do ponto chegam à borda inferior.",
+        "<b>Bolha legível.</b> O iOS desfoca a faixa logo abaixo do relógio; a bolha de estado e os controlos de cima começam agora por baixo dela.",
+        "Em «Está tudo a funcionar?» a linha Ecrã mostra as alturas medidas (página, 100vh, ecrã) — se nalgum iPhone algo não bater certo, basta enviar."
+      ]
+    },
+    {
       "v": 390,
       "datum": "2026-09-24",
       "nadpis": "O botão principal da ferramenta em baixo, junto ao polegar",

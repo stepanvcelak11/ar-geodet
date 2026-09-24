@@ -2,6 +2,16 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 391,
+      "datum": "2026-09-24",
+      "nadpis": "iPhone: niente barra in basso e bolla leggibile in alto",
+      "body": [
+        "<b>Niente barra in basso.</b> Dopo il passaggio a schermo intero, l’app dalla schermata Home dell’iPhone mostrava una fascia in basso: iOS indica l’altezza della pagina ridotta della barra di stato. L’app ora riempie tutto lo schermo; mappa, fotocamera e scheda del punto arrivano al bordo inferiore.",
+        "<b>Bolla leggibile.</b> iOS sfoca la fascia subito sotto l’orologio; la bolla di stato e i comandi in alto ora iniziano sotto.",
+        "In «Funziona tutto?» la riga Schermo mostra le altezze misurate (pagina, 100vh, schermo): se su qualche iPhone qualcosa non torna, basta inviarla."
+      ]
+    },
+    {
       "v": 390,
       "datum": "2026-09-24",
       "nadpis": "Il pulsante principale dello strumento in basso, sotto il pollice",

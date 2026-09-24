@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 391,
+   "datum": "2026-09-24",
+   "nadpis": "iPhone: bez pruhu dole a čitelná bublina nahoře",
+   "body": [
+    "<b>Žádný pruh dole.</b> Po přepnutí na celou obrazovku se na iPhonu z plochy objevil pás dole: iOS hlásí výšku stránky o stavový řádek menší. Appka si teď výšku dorovná na celý displej, mapa, kamera i karta bodu sahají až na spodní hranu.",
+    "<b>Čitelná bublina.</b> Pás těsně pod hodinami iOS rozostřuje; stavová bublina a horní ovládání začínají až pod ním.",
+    "Ve „Funguje mi všechno?“ ukazuje řádek Displej naměřené výšky (stránka, 100vh, displej) — kdyby se na nějakém iPhonu něco nesešlo, stačí poslat."
+   ]
+  },
+  {
    "v": 390,
    "datum": "2026-09-24",
    "nadpis": "Hlavní tlačítko nástroje dole u palce",

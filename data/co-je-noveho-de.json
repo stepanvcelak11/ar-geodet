@@ -2,6 +2,16 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 391,
+      "datum": "2026-09-24",
+      "nadpis": "iPhone: kein Balken unten und lesbare Blase oben",
+      "body": [
+        "<b>Kein Balken unten.</b> Nach dem Umstieg auf Vollbild zeigte die App vom Home-Bildschirm auf dem iPhone unten einen Streifen: iOS meldet die Seitenhöhe um die Statusleiste kleiner. Die App füllt jetzt das ganze Display; Karte, Kamera und Punktkarte reichen bis zum unteren Rand.",
+        "<b>Lesbare Blase.</b> iOS verwischt den Streifen direkt unter der Uhr; Statusblase und obere Bedienelemente beginnen jetzt darunter.",
+        "In „Funktioniert alles?“ zeigt die Zeile Display die gemessenen Höhen (Seite, 100vh, Display) — falls es auf einem iPhone nicht passt, einfach senden."
+      ]
+    },
+    {
       "v": 390,
       "datum": "2026-09-24",
       "nadpis": "Die Haupttaste des Werkzeugs unten am Daumen",

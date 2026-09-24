@@ -31,6 +31,9 @@ body.light-mode .modal-content select:focus { background: rgba(0, 0, 0, 0.06); }
 *, *::before, *::after { box-sizing: border-box; }
 
 html { background-color: #0e1216; }
+/* iPhone z plochy se zkráceným viewportem (index.html setH, --ios-gap): prvky přilepené ke spodní
+   hraně přes position:fixed by končily nad pruhem → posunout o chybějící výšku dolů (24. 9. 2026). */
+html.ag-ios-gap #bottom-sheet { bottom: calc(-1 * var(--ios-gap, 0px)) !important; }
 html, body {
     /* KOŘEN V NORMÁLNÍM TOKU — KLÍČ K EDGE-TO-EDGE NA iOS (test-fullscreen.html v7):
        position:fixed/overflow:hidden na kořeni způsobí, že iOS standalone hlásí
@@ -161,7 +164,7 @@ body {
 
 #menu-toggle-btn {
     position: absolute;
-    top: max(var(--hud-top), env(safe-area-inset-top));
+    top: max(var(--hud-top), var(--safe-top));
     right: var(--hud-side);
     z-index: var(--z-menu, 10000);
     display: none;
@@ -177,7 +180,7 @@ body {
 
 #info {
     position: absolute;
-    top: max(var(--hud-top), env(safe-area-inset-top));
+    top: max(var(--hud-top), var(--safe-top));
     left: var(--hud-side);
     z-index: 9999;
     display: none;
@@ -228,7 +231,7 @@ body {
 
 #compass-debug {
     position: absolute;
-    top: max(calc(var(--hud-top) + 60px), calc(env(safe-area-inset-top) + 60px));
+    top: max(calc(var(--hud-top) + 60px), calc(var(--safe-top) + 60px));
     left: var(--hud-side);
     z-index: 9999;
     display: none;
@@ -250,7 +253,7 @@ body {
     /* FIXED, ne absolute — stejný důvod jako #bottom-sheet: zavřené menu odsunuté
        mimo obrazovku (right:-320px / -100%) nesmí tvořit scrollovatelný přesah kořene. */
     position: fixed;
-    top: max(calc(var(--hud-top) + 55px), calc(env(safe-area-inset-top) + 55px));
+    top: max(calc(var(--hud-top) + 55px), calc(var(--safe-top) + 55px));
     right: -320px;
     width: 250px;
     z-index: var(--z-menu, 10000);
@@ -1226,7 +1229,7 @@ details[open] summary::after { content: " ⌄"; }
 .modal-content h2 svg,
 .modal-content h3 svg { width: 21px; height: 21px; flex: none; vertical-align: -0.2em; margin-right: 6px; }
 
-#gps-avg { position: absolute; top: max(calc(var(--hud-top) + 100px), calc(env(safe-area-inset-top) + 100px)); left: var(--hud-side); z-index: 9999; padding: 8px 14px; font-size: calc(12px * var(--ag-font-scale, 1)); font-weight: 600; line-height: 1.5; display: none; transform: scale(var(--menu-scale)); transform-origin: top left; pointer-events: none; font-variant-numeric: tabular-nums; max-width: 78%; }
+#gps-avg { position: absolute; top: max(calc(var(--hud-top) + 100px), calc(var(--safe-top) + 100px)); left: var(--hud-side); z-index: 9999; padding: 8px 14px; font-size: calc(12px * var(--ag-font-scale, 1)); font-weight: 600; line-height: 1.5; display: none; transform: scale(var(--menu-scale)); transform-origin: top left; pointer-events: none; font-variant-numeric: tabular-nums; max-width: 78%; }
 /* CHYBA (opraveno): pri declutteru HUD se panel #gps-avg zuzil na jeden radek a
    detailni radky .ga-row se presunuly do modalu #gpsavg-modal — selektory ale zustaly
    vazane na #gps-avg, takze uz na nic nesedely a radky v modalu byly BEZ layoutu
@@ -2236,7 +2239,7 @@ body.ag-glove #settings-modal .set-cat { min-height: 64px; }
 #compass-debug {
     left: var(--hud-side);
     right: auto;
-    top: max(var(--hud-top), env(safe-area-inset-top));
+    top: max(var(--hud-top), var(--safe-top));
     transform-origin: top left;
     padding: 5px 11px;
     border-radius: var(--r-pill);
@@ -2245,14 +2248,14 @@ body.ag-glove #settings-modal .set-cat { min-height: 64px; }
 #gps-avg {
     left: auto;
     right: var(--hud-side);
-    top: max(var(--hud-top), env(safe-area-inset-top));
+    top: max(var(--hud-top), var(--safe-top));
     transform-origin: top right;
     padding: 5px 11px;
     border-radius: var(--r-pill);
     font-size: calc(11.5px * var(--ag-font-scale, 1));
 }
 #info {
-    top: max(calc(var(--hud-top) + 42px), calc(env(safe-area-inset-top) + 42px));
+    top: max(calc(var(--hud-top) + 42px), calc(var(--safe-top) + 42px));
     left: var(--hud-side);
     padding: 7px 12px;
     border-radius: var(--r-lg);

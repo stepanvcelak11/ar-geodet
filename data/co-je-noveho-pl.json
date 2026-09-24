@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 391,
+      "datum": "2026-09-24",
+      "nadpis": "iPhone: bez paska na dole i czytelny dymek u góry",
+      "body": [
+        "<b>Bez paska na dole.</b> Po przejściu na pełny ekran aplikacja z ekranu początkowego na iPhonie miała pas na dole: iOS podaje wysokość strony mniejszą o pasek stanu. Aplikacja wypełnia teraz cały ekran; mapa, kamera i karta punktu sięgają dolnej krawędzi.",
+        "<b>Czytelny dymek.</b> iOS rozmywa pas tuż pod zegarem; dymek stanu i górne sterowanie zaczynają się teraz poniżej.",
+        "W „Czy wszystko działa?” wiersz Ekran pokazuje zmierzone wysokości (strona, 100vh, ekran) — gdyby na jakimś iPhonie coś się nie zgadzało, wystarczy wysłać."
+      ]
+    },
+    {
       "v": 390,
       "datum": "2026-09-24",
       "nadpis": "Główny przycisk narzędzia na dole pod kciukiem",

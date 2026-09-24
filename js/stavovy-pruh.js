@@ -269,7 +269,7 @@
             //   pismo 12,5px a hlavne odsazeni hlavicky 7px svisle. Puvodni bublina
             //   z 7193091 mela `border-radius:999px`, pismo 11px a odsazeni 4px.
             //   NEZVETSOVAT bez skutecneho duvodu — merit vysku, ne jen „vypada to ok".
-            '#ag-sp{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 4px);z-index:645;',
+            '#ag-sp{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 4px + min(env(safe-area-inset-top,0px), 16px));z-index:645;',
             '  display:none;flex-direction:column;border-radius:999px;overflow:hidden;cursor:pointer;',
             '  background:var(--glass-bg,rgba(18,22,28,0.88));border:1px solid var(--glass-border,rgba(255,255,255,0.12));',
             '  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 2px 10px rgba(0,0,0,0.35);',

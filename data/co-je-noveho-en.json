@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 391,
+      "datum": "2026-09-24",
+      "nadpis": "iPhone: no bar at the bottom and a readable bubble at the top",
+      "body": [
+        "<b>No bar at the bottom.</b> After switching to full screen, the home-screen app on iPhone showed a band at the bottom: iOS reports the page height smaller by the status bar. The app now fills the whole display; map, camera and the point card reach the bottom edge.",
+        "<b>Readable bubble.</b> iOS blurs the band just below the clock; the status bubble and the top controls now start below it.",
+        "In “Is everything working?” the Display row shows the measured heights (page, 100vh, display) — if something does not add up on some iPhone, just send it."
+      ]
+    },
+    {
       "v": 390,
       "datum": "2026-09-24",
       "nadpis": "The main tool button down by your thumb",

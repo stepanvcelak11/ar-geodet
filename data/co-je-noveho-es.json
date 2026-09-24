@@ -2,6 +2,16 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 391,
+      "datum": "2026-09-24",
+      "nadpis": "iPhone: sin franja abajo y burbuja legible arriba",
+      "body": [
+        "<b>Sin franja abajo.</b> Tras pasar a pantalla completa, la app en la pantalla de inicio del iPhone mostraba una franja abajo: iOS indica la altura de la página menor en la barra de estado. La app ya ocupa toda la pantalla; mapa, cámara y ficha del punto llegan al borde inferior.",
+        "<b>Burbuja legible.</b> iOS difumina la franja justo debajo del reloj; la burbuja de estado y los controles superiores empiezan ahora por debajo.",
+        "En «¿Funciona todo?» la fila Pantalla muestra las alturas medidas (página, 100vh, pantalla); si en algún iPhone algo no cuadra, basta con enviarlo."
+      ]
+    },
+    {
       "v": 390,
       "datum": "2026-09-24",
       "nadpis": "El botón principal de la herramienta abajo, junto al pulgar",

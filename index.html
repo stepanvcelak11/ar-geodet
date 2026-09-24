@@ -18,7 +18,30 @@
                 // dáme --app-vh = tato výška, fallback innerHeight.
                 var h = d.clientHeight || window.innerHeight;
                 if (!h) return;
-                d.style.setProperty('--app-vh', h + 'px');
+                // ⚠⚠ PRUH DOLE NA iPHONU Z PLOCHY (24. 9. 2026, po přepnutí na black-translucent: „nemám ten
+                //   pruh nahoře, ale přesunul se dolů“). iOS ve standalone s průhlednou lištou hlásí výšku
+                //   stránky o stavový řádek MENŠÍ (např. 793 z 852), obsah ale začíná úplně nahoře → dole
+                //   zbyde prázdný pás přesně vysoký jako stavový řádek. Appka z plochy zabírá VŽDY celý
+                //   displej, takže tam věříme výšce displeje (screen) a 100vh, ne zkrácené stránce.
+                //   Mimo iOS z plochy (Android, prohlížeč) se nic nemění.
+                var full = h, gap = 0, vh = 0, sc = 0;
+                if (window.navigator.standalone === true) {
+                    try {
+                        var pr = document.createElement('div');
+                        pr.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:100vh;visibility:hidden;pointer-events:none;';
+                        d.appendChild(pr); vh = pr.getBoundingClientRect().height; d.removeChild(pr);
+                    } catch (e2) {}
+                    try { sc = (window.innerWidth <= window.innerHeight ? screen.height : screen.width) || 0; } catch (e3) {}
+                    full = Math.max(h, vh, sc);
+                    gap = full - h > 8 ? full - h : 0;
+                    if (!gap) full = h;
+                }
+                window.AGVyska = { stranka: h, vh100: vh, displej: sc, pouzito: full, dorovnano: gap, inner: window.innerHeight };
+                d.style.setProperty('--app-vh', full + 'px');
+                d.style.setProperty('--ios-gap', gap + 'px');
+                d.classList.toggle('ag-ios-gap', gap > 0);
+                d.style.height = gap ? full + 'px' : '';
+                if (document.body) document.body.style.height = gap ? full + 'px' : '';
             } catch (e) {}
         }
         // Zámek scrollu: kořen bez overflow:hidden → kdyby cokoli přeteklo,
@@ -101,8 +124,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=390">
-    <link rel="stylesheet" href="css/style.css?v=390">
+    <link rel="stylesheet" href="css/tokens.css?v=391">
+    <link rel="stylesheet" href="css/style.css?v=391">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -233,7 +256,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=390">
+    <link rel="stylesheet" href="css/vylepseni.css?v=391">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je

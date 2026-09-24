@@ -97,6 +97,11 @@
        POZOR: nový pevný font-size psát rovnou přes calc(...), jinak se škálovat nebude. */
     --ag-font-scale: 1;
     --hud-top: 55px;
+    /* --safe-top: horní hrana pro HUD na iPhonu s výřezem. Pás těsně pod stavovým řádkem iOS u průhledné
+       lišty rozostřuje, takže bublina a horní ovládání musí začít až pod ním: výřez + 20 px, jen když výřez
+       je (min(inset, 20px)); na Androidu / v prohlížeči = 0. --hud-top přepisuje grafika.js z nastavení,
+       proto zvlášť — pravidla berou max(var(--hud-top), var(--safe-top)) (24. 9. 2026). */
+    --safe-top: calc(env(safe-area-inset-top, 0px) + min(env(safe-area-inset-top, 0px), 20px));
     --hud-side: 15px;
     --hud-scale: 1;
 

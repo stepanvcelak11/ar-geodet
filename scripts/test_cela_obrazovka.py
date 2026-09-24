@@ -122,7 +122,27 @@ async def beh(url):
         ok('N1 hlavička Nastavení: nadpis pod výřezem, pole hledání pod hlavičkou (nezakryté)',
            n1['h2'] >= TOP and n1['h2'] < TOP + 40 and (n1['search'] is None or n1['search'] >= n1['headBot'] - 1), n1)
 
+        sp = await page.evaluate("() => { const e = document.getElementById('ag-sp'); return e ? Math.round(e.getBoundingClientRect().top) : null; }")
+        ok('B1 stavová bublina pod rozostřeným pásem iOS (≥ výřez + 16 px)', sp is not None and sp >= TOP + 16, sp)
         ok('E1 bez chyb stránky', not chyby, chyby[:4])
+        await ctx.close()
+
+        # G) iPhone z plochy se ZKRÁCENÝM viewportem (24. 9. 2026: „pruh se přesunul dolů“) — iOS hlásí 793 z 852
+        ctx = await br.new_context(locale='cs-CZ', viewport={'width': W, 'height': H - TOP}, screen={'width': W, 'height': H}, has_touch=True, is_mobile=True,
+                                   geolocation={'latitude': V.LAT, 'longitude': V.LNG, 'accuracy': 3}, permissions=['geolocation'], service_workers='block')
+        page = await ctx.new_page()
+        await page.route('**/*', V.route_vse)
+        await page.add_init_script("Object.defineProperty(navigator, 'standalone', { get: () => true });" + boot(tarif='pro') + "localStorage.setItem('agZemeUvod_v1','CZ');")
+        cdp = await ctx.new_cdp_session(page)
+        await cdp.send('Emulation.setSafeAreaInsetsOverride', {'insets': {'top': TOP, 'bottom': BOT, 'left': 0, 'right': 0}})
+        await page.goto(url, wait_until='domcontentloaded', timeout=60000)
+        await V.cekej(page, "document.body.classList.contains('app-started')", 40)
+        await page.wait_for_timeout(1500)
+        g = await page.evaluate("() => ({ v: window.AGVyska, html: Math.round(document.documentElement.getBoundingClientRect().height), map: Math.round(document.getElementById('map-container').getBoundingClientRect().bottom) })")
+        ok('G1 zkrácený viewport z plochy: appka dorovnaná na celý displej (html i mapa do 852 px)', g['v'] and g['v']['dorovnano'] == TOP and g['html'] == H and g['map'] == H, g)
+        await page.evaluate("() => { const p = arPoints.find(x => x); if (p) showDetails(p, 20); }")
+        await page.wait_for_timeout(900)
+        ok('G2 karta bodu sahá na spodní hranu displeje', await page.evaluate("() => Math.round(document.getElementById('bottom-sheet').getBoundingClientRect().bottom)") == H)
         await ctx.close()
         await br.close()
 
