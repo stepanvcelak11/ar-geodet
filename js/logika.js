@@ -851,7 +851,7 @@ if ('serviceWorker' in navigator) {
                 const id = 'cp_' + Date.now() + '_' + Math.round(Math.random() * 1e6);
                 const np = { id: id, name: p.name || 'Bod', lat: p.lat, lng: p.lng, cat: 'CUSTOM', type: 'custom' };
                 if (p.kod) np.kod = String(p.kod).slice(0, 60);
-                if (p.vyska != null && isFinite(p.vyska)) np.vyska = Math.round(p.vyska * 100) / 100;
+                if (p.vyska != null && isFinite(p.vyska)) np.vyska = Math.round(p.vyska * 1000) / 1000;   // na mm (24. 9.: seznamy mají 3 desetinná místa)
                 if (p.acc != null && isFinite(p.acc)) np.acc = Math.round(p.acc * 100) / 100;
                 // #5 provenience: trvale u bodu drž, odkud vznikl (import/přenos/měření) + kdy + přesnost
                 np.prov = (p.prov && typeof p.prov === 'object') ? p.prov : { origin: p.origin || 'import', ts: Date.now(), acc: (np.acc != null ? np.acc : null) };

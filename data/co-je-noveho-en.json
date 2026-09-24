@@ -2,6 +2,14 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 395,
+      "datum": "2026-09-24",
+      "nadpis": "Points from a photo: 3 decimal places",
+      "body": [
+        "The Points from a photo review shows as many decimals as the paper has (up to 3, i.e. millimetres). Previously it rounded everything to 2. The height of imported points is stored to the millimetre."
+      ]
+    },
+    {
       "v": 394,
       "datum": "2026-09-24",
       "nadpis": "Mascot Toti: a total station that guides your learning",

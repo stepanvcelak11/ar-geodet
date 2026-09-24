@@ -87,6 +87,10 @@ async def beh(url):
         r = await page.evaluate("() => AGFotoBody._test.textNaBody('Zakázka Horní Počernice 2026\\nstrana 1/3')")
         ok('P10 text bez souřadnic → 0 bodů', r == [], r)
 
+        r = await page.evaluate("() => AGFotoBody._test.textNaBody('4010  743215.423  1042118.375  245.318')")
+        ok('P11 tři desetinná místa se čtou celá (Y .423, X .375, Z .318)', len(r) == 1 and r[0]['y'] == 743215.423 and r[0]['x'] == 1042118.375 and r[0]['z'] == 245.318, r)
+        d = await page.evaluate("() => [AGFotoBody._test.des(743215.423), AGFotoBody._test.des(743215.42), AGFotoBody._test.des(743215.4), AGFotoBody._test.des(245.318)]")
+        ok('P12 přehled ukáže desetinná místa jako na papíře (3, jinak 2) — ověření 24. 9. „chci na 3“', d == ['743215.423', '743215.42', '743215.40', '245.318'], d)
         # ---------------- U) volba zdroje
         await page.evaluate("() => openNewPointModal()")
         await page.wait_for_timeout(900)

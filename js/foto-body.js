@@ -47,6 +47,9 @@
         for (var i = 0; i < tok.length; i++) { var c = tok[i]; out += (/[\d.,]/.test(c) ? c : (ZAMENY[c] != null ? ZAMENY[c] : c)); }
         return out;
     }
+    // Kolik desetinných míst ukázat: jako na papíře, až 3 (24. 9. 2026, ověření na telefonu:
+    // „zaokrouhluje to na 2 desetinná a já chci na 3“). Dřív natvrdo toFixed(2).
+    function des(v) { var m = Math.round(v * 1000); return (m % 10 !== 0 ? (m / 1000).toFixed(3) : v.toFixed(2)); }
     function cislo(tok) {
         var s = String(tok).replace(/,/g, '.');
         if (!/^[+-]?\d+(\.\d+)?$/.test(s)) return NaN;
@@ -531,11 +534,11 @@
             r.innerHTML = '<input type="checkbox" aria-label="' + esc(t('Uložit tento bod')) + '"' + (b.ulozit ? ' checked' : '') + '>'
                 + '<div class="fb-f">'
                 + '<label>' + esc(t('Číslo')) + '<input data-k="name" type="text" autocomplete="off" value="' + esc(b.name || '') + '"></label>'
-                + '<label>Y<input data-k="y" type="text" inputmode="decimal" value="' + (b.y != null ? b.y.toFixed(2) : '') + '"></label>'
-                + '<label>X<input data-k="x" type="text" inputmode="decimal" value="' + (b.x != null ? b.x.toFixed(2) : '') + '"></label>'
-                + '<label>Z<input data-k="z" type="text" inputmode="decimal" value="' + (b.z != null ? b.z.toFixed(2) : '') + '"></label></div>'
+                + '<label>Y<input data-k="y" type="text" inputmode="decimal" value="' + (b.y != null ? des(b.y) : '') + '"></label>'
+                + '<label>X<input data-k="x" type="text" inputmode="decimal" value="' + (b.x != null ? des(b.x) : '') + '"></label>'
+                + '<label>Z<input data-k="z" type="text" inputmode="decimal" value="' + (b.z != null ? des(b.z) : '') + '"></label></div>'
                 + '<div class="fb-z">' + kontroly(b).map(function (z) { return '<span class="' + (z.c === 'info' ? 'info' : '') + '">' + esc(z.t) + '</span>'; }).join('')
-                + (b.alt ? '<span>' + esc(t('2. pokus:')) + ' ' + esc((b.alt.name || '') + ' ' + (b.alt.y != null ? b.alt.y.toFixed(2) : '') + ' ' + (b.alt.x != null ? b.alt.x.toFixed(2) : '')) + '</span>' : '') + '</div>';
+                + (b.alt ? '<span>' + esc(t('2. pokus:')) + ' ' + esc((b.alt.name || '') + ' ' + (b.alt.y != null ? des(b.alt.y) : '') + ' ' + (b.alt.x != null ? des(b.alt.x) : '')) + '</span>' : '') + '</div>';
             list.appendChild(r);
         });
         var ukaz = function (i) {
@@ -598,6 +601,6 @@
     window.AGFotoBody = {
         open: open,
         // pro testy a jiné moduly
-        _test: { pripravOffline: pripravOffline, ocrPripraveno: ocrPripraveno, prehled: function (body, fotky, texty) { stav = { body: body, fotky: fotky || [], texty: texty || [''] }; prehled(); }, textNaBody: textNaBody, radekNaBod: radekNaBod, tokeny: tokeny, priprav: priprav, prectiFotku: prectiFotku, zpracuj: zpracuj, stav: function () { return stav; } }
+        _test: { des: des, pripravOffline: pripravOffline, ocrPripraveno: ocrPripraveno, prehled: function (body, fotky, texty) { stav = { body: body, fotky: fotky || [], texty: texty || [''] }; prehled(); }, textNaBody: textNaBody, radekNaBod: radekNaBod, tokeny: tokeny, priprav: priprav, prectiFotku: prectiFotku, zpracuj: zpracuj, stav: function () { return stav; } }
     };
 })();

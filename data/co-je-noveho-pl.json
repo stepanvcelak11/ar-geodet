@@ -2,6 +2,14 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 395,
+      "datum": "2026-09-24",
+      "nadpis": "Punkty ze zdjęcia: 3 miejsca po przecinku",
+      "body": [
+        "Przegląd punktów ze zdjęcia pokazuje tyle miejsc po przecinku, ile jest na papierze (do 3, czyli milimetry). Wcześniej wszystko zaokrąglał do 2. Wysokość importowanych punktów zapisuje się z dokładnością do milimetra."
+      ]
+    },
+    {
       "v": 394,
       "datum": "2026-09-24",
       "nadpis": "Maskotka Toti: tachimetr, który prowadzi cię przez naukę",

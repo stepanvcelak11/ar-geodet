@@ -2,6 +2,14 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 395,
+      "datum": "2026-09-24",
+      "nadpis": "Punkte aus Foto: 3 Nachkommastellen",
+      "body": [
+        "Die Übersicht der Punkte aus Foto zeigt so viele Nachkommastellen wie auf dem Papier (bis 3, also Millimeter). Früher wurde alles auf 2 gerundet. Die Höhe importierter Punkte wird auf den Millimeter gespeichert."
+      ]
+    },
+    {
       "v": 394,
       "datum": "2026-09-24",
       "nadpis": "Maskottchen Toti: eine Totalstation begleitet dein Lernen",

@@ -2,6 +2,14 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 395,
+   "datum": "2026-09-24",
+   "nadpis": "Body z fotky: 3 desetinná místa",
+   "body": [
+    "Přehled bodů z fotky ukáže tolik desetinných míst, kolik jich je na papíře (až 3, tedy milimetry). Dřív vše zaokrouhlil na 2. Výška importovaných bodů se ukládá na milimetry."
+   ]
+  },
+  {
    "v": 394,
    "datum": "2026-09-24",
    "nadpis": "Maskot Toti: totálka, která tě provází učením",

@@ -2,6 +2,14 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 395,
+      "datum": "2026-09-24",
+      "nadpis": "Pontos de uma foto: 3 casas decimais",
+      "body": [
+        "A revisão de Pontos de uma foto mostra tantas casas decimais quantas há no papel (até 3, ou seja, milímetros). Antes arredondava tudo a 2. A altitude dos pontos importados é guardada ao milímetro."
+      ]
+    },
+    {
       "v": 394,
       "datum": "2026-09-24",
       "nadpis": "Mascote Toti: uma estação total que te acompanha a aprender",

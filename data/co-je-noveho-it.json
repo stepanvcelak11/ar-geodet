@@ -2,6 +2,14 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 395,
+      "datum": "2026-09-24",
+      "nadpis": "Punti da foto: 3 decimali",
+      "body": [
+        "Il riepilogo dei Punti da foto mostra tanti decimali quanti ce ne sono sulla carta (fino a 3, cioè millimetri). Prima arrotondava tutto a 2. La quota dei punti importati si salva al millimetro."
+      ]
+    },
+    {
       "v": 394,
       "datum": "2026-09-24",
       "nadpis": "Mascotte Toti: una stazione totale che ti accompagna nello studio",
