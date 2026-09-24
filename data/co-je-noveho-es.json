@@ -2,6 +2,18 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 393,
+      "datum": "2026-09-24",
+      "nadpis": "Lectura de fotos sin señal, app probada en modo avión, menos checo en otros idiomas",
+      "body": [
+        "Puntos desde foto: el botón «Preparar para trabajar sin señal» descarga la lectura de fotos por adelantado (en Android con Wi-Fi, sola). Así funciona también en campo sin señal.",
+        "Una prueba nueva arranca la app sin red y comprueba que se inicia y abre las 10 herramientas principales. El geoide, las fronteras de países y las partes del mapa están ahora en la caché sin conexión.",
+        "Inglés y demás idiomas: traducidos los avisos de lluvia y viento, la fecha en Diario del día y Geo-foto, el aviso «El mapa no se activó» y otros restos en checo; una prueba nueva los vigila en todas las herramientas.",
+        "Las ventanas de Puntos desde foto se cierran también con Atrás de Android y la tecla Escape. La estación libre ya no parpadea.",
+        "El consejo sobre la franja negra en iPhone ahora avisa con honestidad: al quitar el icono de la pantalla de inicio, el iPhone borra también el inicio de sesión recordado, Face ID y la clave de propietario. Primero haz copia."
+      ]
+    },
+    {
       "v": 392,
       "datum": "2026-09-24",
       "nadpis": "Corrección: altura desde GPS en la ventana Punto nuevo",

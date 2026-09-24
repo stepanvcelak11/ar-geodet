@@ -386,7 +386,7 @@
         // ZA BĚHU (tick v priznaky.js), kdy zástupce dávno existuje — a přes
         // window.AGLazyTools.open(id) se sem dá vejít i mimo něj.
         if (vypnuty(t)) { toast('Nástroj „' + t.label + '" správce aplikace vypnul.'); return Promise.resolve(); }
-        var slow = setTimeout(function () { toast('Načítám ' + t.label + '…'); }, 250);
+        var slow = setTimeout(function () { toast('Načítám ' + (window.AGJazyk ? AGJazyk.t(t.label) : t.label) + '…'); }, 250);
         loadCss(t.css);                    // styl okna jede s modulem, ne v <head>
         dropStub(t);                       // ať modul nevidí našeho zástupce (viz dropStub)
         return load(t.src).then(function () {

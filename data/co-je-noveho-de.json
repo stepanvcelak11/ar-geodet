@@ -2,6 +2,18 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 393,
+      "datum": "2026-09-24",
+      "nadpis": "Fotoerkennung ohne Empfang, App im Flugmodus geprüft, weniger Tschechisch in anderen Sprachen",
+      "body": [
+        "Punkte aus Foto: Die Schaltfläche „Für Arbeit ohne Empfang vorbereiten“ lädt die Fotoerkennung vorab (unter Android im WLAN automatisch). Dann funktioniert sie auch im Gelände ohne Empfang.",
+        "Ein neuer Test startet die App ohne Netz und prüft, dass sie startet und alle 10 Hauptwerkzeuge öffnet. Geoid, Ländergrenzen und Kartenteile sind jetzt im Offline-Cache.",
+        "Englische und weitere Versionen: Regen- und Windmeldungen, das Datum in Tagesprotokoll und Geo-Foto, die Meldung „Die Karte ließ sich nicht einschalten“ und weitere tschechische Reste übersetzt; ein neuer Test prüft alle Werkzeuge darauf.",
+        "Die Fenster von Punkte aus Foto schließen jetzt auch mit Android-Zurück und der Escape-Taste. Die freie Stationierung flackert nicht mehr.",
+        "Der Tipp zum schwarzen Balken auf dem iPhone warnt jetzt ehrlich: Mit dem Entfernen des Symbols vom Home-Bildschirm löscht das iPhone auch die gemerkte Anmeldung, Face ID und den Eigentümerschlüssel. Vorher sichern."
+      ]
+    },
+    {
       "v": 392,
       "datum": "2026-09-24",
       "nadpis": "Korrektur: Höhe aus GPS im Fenster Neuer Punkt",

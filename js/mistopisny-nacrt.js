@@ -111,7 +111,7 @@
         if (AGMapaVektor.stav() !== 'zapnuto') {
             if (nactiData._zapinam) { info('Zapínám vektorovou mapu…'); return; }
             nactiData._zapinam = true; info('Zapínám vektorovou mapu…');
-            AGMapaVektor.zapni().then(function (ok) { nactiData._zapinam = false; if (ok) nactiData(); else info('Mapa se nezapnula: ' + (AGMapaVektor.chyba() || 'neznámá chyba').replace(/\.\s*$/, '') + '. Ručně: Vrstvy → Podklad → Mapa.'); }).catch(function () { nactiData._zapinam = false; info('Mapa se nezapnula.'); });
+            AGMapaVektor.zapni().then(function (ok) { nactiData._zapinam = false; if (ok) nactiData(); else info((window.AGJazyk ? AGJazyk.t : String)('Mapa se nezapnula:') + ' ' + (window.AGJazyk ? AGJazyk.t : String)(AGMapaVektor.chyba() || 'neznámá chyba') + ' ' + (window.AGJazyk ? AGJazyk.t : String)('Ručně: Vrstvy → Podklad → Mapa.')); }).catch(function () { nactiData._zapinam = false; info('Mapa se nezapnula.'); });
             return;
         }
         var k = 111320, dl = R_DATA / k, dn = R_DATA / (k * Math.cos(pt.lat * Math.PI / 180));
@@ -349,7 +349,7 @@
     function html() {
         var pal = Object.keys(OBJEKTY).map(function (k) { return '<button type="button" data-obj="' + k + '" title="' + esc(OBJEKTY[k].n) + '"' + (k === objTyp ? ' class="on"' : '') + '>' + ikona(k, 28) + '<small>' + esc(OBJEKTY[k].n) + '</small></button>'; }).join('');
         var car = Object.keys(CARY).map(function (k) { var c = CARY[k]; return '<button type="button" data-cara="' + k + '"' + (k === caraTyp ? ' class="on"' : '') + '><i style="border-top:' + (c.w || 2.5) + 'px ' + (c.dash ? 'dashed' : 'solid') + ' ' + c.col + '"></i><small>' + esc(c.n) + '</small></button>'; }).join('');
-        return '<div class="agn-top"><div class="agn-titul"><b>Místopisný náčrt</b><span id="agn-bod">' + esc(pt.name) + (pt.druh ? ' · ' + esc(pt.druh) : '') + '</span></div>'
+        return '<div class="agn-top"><div class="agn-titul"><b>Místopisný náčrt</b><span id="agn-bod">' + esc(pt.name) + (pt.druh ? ' · ' + esc(window.AGJazyk ? AGJazyk.t(pt.druh) : pt.druh) : '') + '</span></div>'
             + '<div class="agn-podklad" role="tablist"><button type="button" data-podklad="papir">Papír</button><button type="button" data-podklad="mapa">Mapa</button><button type="button" data-podklad="orto">Ortofoto</button></div>'
             + '<button type="button" class="agn-x" id="agn-zavrit" aria-label="Zavřít">✕</button></div>'
             + '<div id="agn-mapa"></div>'

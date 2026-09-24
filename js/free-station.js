@@ -85,8 +85,13 @@
         });
     }
 
-    function render() {
+    // Překreslit JEN při změně počtu: interval 700 ms přepisoval innerHTML pořád dokola a
+    // v cizím jazyce text pokaždé na chvíli problikl česky, než ho překladač přeložil.
+    var _lastN = -1;
+    function render(vynutit) {
         var n = customCount();
+        if (!vynutit && n === _lastN) return;
+        _lastN = n;
         var cnt = document.getElementById('agfs-count');
         if (cnt) {
             var col = n >= 3 ? '#34d399' : (n >= 2 ? '#fbbf24' : '#9aa1ac');
@@ -105,7 +110,7 @@
 
     var _liveTimer = null;
     function openTool() {
-        ensureModal(); render();
+        ensureModal(); render(true);
         document.getElementById('agfs-modal').style.display = 'flex';
         // po návratu ze zakládání bodů (brutal-gps / vložit bod) obnovit počet
         if (!_liveTimer) _liveTimer = setInterval(function () {

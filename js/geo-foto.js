@@ -72,7 +72,7 @@
     function fmtT(ts) { try { return new Date(ts).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
     function fmtDT(ts) { var d = new Date(ts); return d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear() + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
     var DAYS_CS = ['neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota'];
-    function fmtDay(ts) { var d = new Date(ts); return DAYS_CS[d.getDay()] + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear(); }
+    function fmtDay(ts) { var d = new Date(ts); try { if (window.AGJazyk && AGJazyk.get() !== 'cs') return d.toLocaleDateString(AGJazyk.locale(), { weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { /* nic */ } return DAYS_CS[d.getDay()] + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear(); }
     function dayKey(ts) { var d = new Date(ts); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
     function fmtNum(v) { return v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
     // S-JTSK počítá VÝHRADNĚ GeoCore: je to jediné místo v appce, které si ověří

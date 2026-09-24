@@ -235,6 +235,7 @@
                 return Tesseract.createWorker('eng', 1, { logger: function (m) { if (m.status === 'recognizing text' && typeof updateOfflineProgress === 'function') updateOfflineProgress(Math.round((m.progress || 0) * 100), 100); } });
             })
             .then(function (w) {
+                try { localStorage.setItem(OCR_LS, String(Date.now())); } catch (e) { /* nic */ }   // stažené = příště i offline
                 // BEZ whitelistu číslic: s ním Tesseract „četl“ každé písmeno jako číslici. Záměny
                 // uvnitř čísel opravuje opravToken(). PSM 6 = souvislý blok (seznam, štítek, tabulka).
                 return w.setParameters({ preserve_interword_spaces: '1', tessedit_pageseg_mode: '6' }).then(function () { return w; });
@@ -352,6 +353,8 @@
         + '#ag-fb-volba .fv b{font-size:calc(16px * var(--ag-font-scale,1));}'
         + '#ag-fb-volba .fv p{margin:0;font-size:calc(12.5px * var(--ag-font-scale,1));color:var(--text-muted,#9aa4a0);}'
         + '#ag-fb-volba .btn{margin:0;display:flex;align-items:center;justify-content:center;gap:8px;}'
+        + '#ag-fb-volba .fb-offline:empty{display:none;}'
+        + '#ag-fb-volba .fb-off-ok{color:var(--accent,#3fcf8e);margin:0;font-size:calc(12.5px * var(--ag-font-scale,1));}'
         + '@media (max-width:420px){#ag-fb .fb-f{grid-template-columns:1fr 1fr;}}';
     function styl() { if (document.getElementById('ag-fb-css')) return; var s = document.createElement('style'); s.id = 'ag-fb-css'; s.textContent = CSS; document.head.appendChild(s); }
 
@@ -363,23 +366,74 @@
         return i;
     }
 
+    // ---- ČTENÍ BEZ SIGNÁLU (24. 9. 2026, b2 ze 6. kola) ------------------------------------
+    // OCR knihovna (~12 MB: tesseract.js + jádro WASM z jsdelivr → SW LIB_CACHE, jazyková data eng
+    // → IndexedDB samotného Tesseractu) se dřív stáhla až při prvním čtení. Kdo to poprvé zkusil
+    // v terénu bez signálu, dostal chybu. Teď se dá připravit předem: tlačítkem v nabídce, nebo
+    // samo na Wi-Fi (Android hlásí typ připojení; iPhone ne → tam jen tlačítkem, ať appka
+    // nestahuje 12 MB přes mobilní data bez ptaní).
+    var OCR_LS = 'agOcrOffline_v1';
+    function ocrPripraveno() { try { return !!localStorage.getItem(OCR_LS); } catch (e) { return false; } }
+    var _priprava = null;
+    function pripravOffline() {
+        if (_priprava) return _priprava;
+        _priprava = (typeof ensureTesseract === 'function' ? ensureTesseract() : Promise.reject(new Error('OCR není k dispozici')))
+            .then(function () { return Tesseract.createWorker('eng', 1); })
+            .then(function (w) { return w.terminate(); })
+            .then(function () { try { localStorage.setItem(OCR_LS, String(Date.now())); } catch (e) { swallow(e, 'ocr-ls'); } return true; })
+            .catch(function (e) { _priprava = null; throw e; });
+        return _priprava;
+    }
+    function naWifi() {
+        try { var c = navigator.connection; return !!(c && (c.type === 'wifi' || c.type === 'ethernet') && !c.saveData); } catch (e) { return false; }
+    }
+    function autoPriprava() {
+        if (ocrPripraveno() || !navigator.onLine || !naWifi()) return;
+        var go = function () { pripravOffline().catch(function (e) { swallow(e, 'auto-priprava'); }); };
+        setTimeout(function () { if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 20000 }); else go(); }, 30000);
+    }
+
+    // Escape (klávesnice, tablet) zavře okno; androidí Zpět řeší js/android.js přes data-ag-okno + data-close
+    function escZavre(ov, fn) {
+        var h = function (e) {
+            if (!ov.isConnected) return document.removeEventListener('keydown', h);
+            if (e.key !== 'Escape' || document.querySelector('.ag-dlg-overlay')) return;
+            if (ov.id === 'ag-fb-volba' || !document.getElementById('ag-fb-volba')) { e.preventDefault(); fn(); document.removeEventListener('keydown', h); }
+        };
+        document.addEventListener('keydown', h);
+    }
+
     // Volba zdroje fotky
     function open(opts) {
         styl();
         opts = opts || {};
         var old = document.getElementById('ag-fb-volba'); if (old) old.remove();
-        var ov = document.createElement('div'); ov.id = 'ag-fb-volba';
+        var ov = document.createElement('div'); ov.id = 'ag-fb-volba'; ov.setAttribute('data-ag-okno', '');
         ov.innerHTML = '<div class="fv" role="dialog" aria-label="' + esc(t('Body z fotky')) + '"><b>' + esc(t('Body z fotky')) + '</b>'
             + '<p>' + esc(t('Seznam souřadnic, štítek nebo výpis — každý řádek s číslem, Y a X se uloží jako bod. Fotku drž rovně a zblízka.')) + '</p>'
             + '<button type="button" class="btn btn-primary" data-k="foto"><svg class="icon"><use href="#i-camera"/></svg>' + esc(t('Vyfotit')) + '</button>'
             + '<button type="button" class="btn btn-secondary" data-k="galerie"><svg class="icon"><use href="#i-folder"/></svg>' + esc(t('Vybrat z galerie (i víc fotek)')) + '</button>'
-            + '<button type="button" class="btn btn-secondary" data-k="zrusit">' + esc(t('Zrušit')) + '</button></div>';
+            + '<div class="fb-offline"></div>'
+            + '<button type="button" class="btn btn-secondary" data-k="zrusit" data-close>' + esc(t('Zrušit')) + '</button></div>';
         document.body.appendChild(ov);
         var zavri = function () { ov.remove(); };
+        escZavre(ov, zavri);
+        var off = ov.querySelector('.fb-offline');
+        var ukazOffline = function () {
+            if (ocrPripraveno()) { off.innerHTML = '<p class="fb-off-ok">✓ ' + esc(t('Čtení fotek funguje i bez signálu.')) + '</p>'; return; }
+            off.innerHTML = '<button type="button" class="btn btn-secondary" data-k="offline">' + esc(t('Připravit pro práci bez signálu (~12 MB)')) + '</button>';
+        };
+        ukazOffline();
         ov.addEventListener('click', function (e) {
             if (e.target === ov) return zavri();
             var b = e.target.closest('button'); if (!b) return;
-            var k = b.getAttribute('data-k'); zavri();
+            var k = b.getAttribute('data-k');
+            if (k === 'offline') {
+                b.disabled = true; b.textContent = t('Stahuji čtení fotek…');
+                pripravOffline().then(ukazOffline).catch(function (er) { b.disabled = false; b.textContent = t('Nepodařilo se — zkus to s internetem znovu'); swallow(er, 'priprava'); });
+                return;
+            }
+            zavri();
             if (k === 'zrusit') return;
             var inp = vstup(k === 'foto', k === 'galerie');
             inp.addEventListener('change', function () {
@@ -454,9 +508,9 @@
     function prehled() {
         styl();
         var old = document.getElementById('ag-fb'); if (old) old.remove();
-        var ov = document.createElement('div'); ov.id = 'ag-fb'; ov.setAttribute('role', 'dialog');
+        var ov = document.createElement('div'); ov.id = 'ag-fb'; ov.setAttribute('role', 'dialog'); ov.setAttribute('data-ag-okno', '');
         var n = stav.body.length;
-        ov.innerHTML = '<div class="fb-head"><h2>' + esc(t('Body z fotky')) + '</h2><button type="button" class="fb-x" aria-label="' + esc(t('Zavřít')) + '">✕</button></div>'
+        ov.innerHTML = '<div class="fb-head"><h2>' + esc(t('Body z fotky')) + '</h2><button type="button" class="fb-x" data-close aria-label="' + esc(t('Zavřít')) + '">✕</button></div>'
             + '<div class="fb-foto"><canvas></canvas></div>'
             + '<div class="fb-sum"></div><div class="fb-list"></div>'
             + '<details><summary>' + esc(t('Co OCR přečetlo (celý text)')) + '</summary><pre></pre></details>'
@@ -510,6 +564,7 @@
         var zavri = function () { ov.remove(); stav = null; };
         ov.querySelector('.fb-x').onclick = zavri;
         ov.querySelector('.fb-cancel').onclick = zavri;
+        escZavre(ov, zavri);
         ov.querySelector('.fb-add').onclick = function () { open({ pridat: true }); };
         save.onclick = function () {
             var arr = stav.body.filter(function (b) { return b.ulozit && b.y != null && b.x != null && inY(b.y) && inX(b.x); }).map(function (b, i) {
@@ -537,9 +592,12 @@
         }
     } catch (e) { swallow(e, 'registr'); }
 
+    // úspěšné čtení online = knihovna je stažená → příště funguje i bez signálu
+    autoPriprava();
+
     window.AGFotoBody = {
         open: open,
         // pro testy a jiné moduly
-        _test: { prehled: function (body, fotky, texty) { stav = { body: body, fotky: fotky || [], texty: texty || [''] }; prehled(); }, textNaBody: textNaBody, radekNaBod: radekNaBod, tokeny: tokeny, priprav: priprav, prectiFotku: prectiFotku, zpracuj: zpracuj, stav: function () { return stav; } }
+        _test: { pripravOffline: pripravOffline, ocrPripraveno: ocrPripraveno, prehled: function (body, fotky, texty) { stav = { body: body, fotky: fotky || [], texty: texty || [''] }; prehled(); }, textNaBody: textNaBody, radekNaBod: radekNaBod, tokeny: tokeny, priprav: priprav, prectiFotku: prectiFotku, zpracuj: zpracuj, stav: function () { return stav; } }
     };
 })();

@@ -52,6 +52,12 @@ EXTRA_ASSETS = [
                                    #   po prvnim spusteni offline spadne zpatky do cestiny)
     './data/navody.json',
     './data/ulohy.json',           # cte js/cvicne-ulohy.js pres fetch (cvicne ulohy s klicem)
+    # GEOID a HRANICE ZEMI uz pri instalaci (24. 9. 2026, test_offline B3): driv se ukladaly az pri prvnim
+    # stazeni online (DICT_CACHE) a stahuje je odlozeny js/zeme-svet.js az po startu — kdo appku nainstaloval
+    # a hned jel do terenu bez signalu, mel vysku z GPS bez EGM2008 (v Brne o 1,7 m vedle) a nepoznal zemi.
+    './data/egm2008.bin',          # ~740 kB, js/zeme-svet.js (AGGeoid)
+    './data/zeme-hranice.json',    # ~160 kB, js/zeme-svet.js → js/sour-zeme.js urciZemi()
+    './data/mapa-dily.json',       # js/mapa-vektor.js: dil mapy velkych zemi (DE, FR…) — offline jinak spatny soubor
     # STYLOPISY ODLOZENYCH NASTROJU: v index.html uz nejsou (blokovaly by
     #   prvni vykresleni), pripojuje si je modul sam pres AG.cssFile().
     './css/bodove-pole.css',

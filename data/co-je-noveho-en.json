@@ -2,6 +2,18 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 393,
+      "datum": "2026-09-24",
+      "nadpis": "Photo reading without signal, app tested in airplane mode, less Czech in other languages",
+      "body": [
+        "Points from a photo: the “Prepare for working without signal” button downloads photo reading in advance (automatically on Wi-Fi on Android). It then works in the field without signal too.",
+        "A new test runs the app with the network off and checks that it starts and opens all 10 main tools. The geoid, country borders and map parts were added to the offline cache.",
+        "English and other versions: rain and wind messages, the date in Day log and Geo-photo, the “The map did not turn on” message and other Czech leftovers are translated; a new test watches all tools for them.",
+        "The Points from a photo windows now also close with Android Back and the Escape key. Free station no longer flickers.",
+        "The tip about the black bar on iPhone now honestly warns: removing the icon from the Home Screen also deletes the remembered login, Face ID and the owner key. Back up first."
+      ]
+    },
+    {
       "v": 392,
       "datum": "2026-09-24",
       "nadpis": "Fix: height from GPS in the New point window",

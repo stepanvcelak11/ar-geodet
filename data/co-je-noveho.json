@@ -2,6 +2,18 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 393,
+   "datum": "2026-09-24",
+   "nadpis": "Čtení fotek bez signálu, appka ověřená v letadlovém režimu, méně češtiny v cizích jazycích",
+   "body": [
+    "Body z fotky: tlačítko „Připravit pro práci bez signálu“ stáhne čtení fotek předem (na Wi-Fi v Androidu samo). Pak funguje i v terénu bez signálu.",
+    "Nový test pouští appku s vypnutou sítí a kontroluje, že nastartuje a otevře se všech 10 hlavních nástrojů. Do offline mezipaměti přibyl geoid, hranice zemí a díly mapy.",
+    "Anglická a další verze: přeloženy hlášky o dešti a větru, datum v Deníku dne a Geo-fotce, hláška „Mapa se nezapnula“ a další zbytky češtiny; nový test je hlídá ve všech nástrojích.",
+    "Okna Body z fotky zavře i androidí Zpět a klávesa Escape. Samostatné stanovisko už neproblikává.",
+    "Rada k černému pruhu na iPhonu teď poctivě varuje: odebráním ikony z plochy iPhone smaže i zapamatované přihlášení, Face ID a klíč vlastníka. Napřed zálohovat."
+   ]
+  },
+  {
    "v": 392,
    "datum": "2026-09-24",
    "nadpis": "Oprava: výška z GPS v okně Nový bod",

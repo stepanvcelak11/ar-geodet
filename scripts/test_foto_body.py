@@ -109,6 +109,14 @@ async def beh(url):
             document.querySelector('#ag-fb-volba [data-k=foto]').click();
         })""")
         ok('U2b Vyfotit: capture=environment', inp2['cap'] == 'environment' and not inp2['multi'], inp2)
+        # O) čtení bez signálu (v393, b2)
+        await page.evaluate("() => { localStorage.removeItem('agOcrOffline_v1'); AGFotoBody.open(); }")
+        o1 = await page.evaluate("() => { const b = document.querySelector('#ag-fb-volba [data-k=offline]'); return b ? b.textContent : null; }")
+        ok('O1 nepřipraveno → tlačítko „Připravit pro práci bez signálu (~12 MB)“', o1 and 'bez signálu' in o1, o1)
+        await page.evaluate("() => { document.getElementById('ag-fb-volba').remove(); localStorage.setItem('agOcrOffline_v1', '1'); AGFotoBody.open(); }")
+        o2 = await page.evaluate("() => { const x = document.querySelector('#ag-fb-volba .fb-off-ok'); return x ? x.textContent : null; }")
+        ok('O2 připraveno → „✓ Čtení fotek funguje i bez signálu.“', o2 and 'bez signálu' in o2, o2)
+        await page.evaluate("() => { const v = document.getElementById('ag-fb-volba'); v && v.remove(); }")
         ok('U3 záložní #ocr-file bez capture (iPhone nabídne i galerii)', await page.evaluate("() => !document.getElementById('ocr-file').hasAttribute('capture')"))
         await page.evaluate("() => { document.querySelectorAll('input[type=file]').forEach(i => { if (!i.id) i.remove(); }); closeCustomModal(); }")
 

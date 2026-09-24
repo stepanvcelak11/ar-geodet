@@ -2,6 +2,18 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 393,
+      "datum": "2026-09-24",
+      "nadpis": "Lettura foto senza segnale, app provata in modalità aereo, meno ceco nelle altre lingue",
+      "body": [
+        "Punti da foto: il pulsante «Prepara per lavorare senza segnale» scarica in anticipo la lettura delle foto (su Android in Wi-Fi da solo). Poi funziona anche sul campo senza segnale.",
+        "Un nuovo test avvia l’app senza rete e verifica che parta e apra tutti i 10 strumenti principali. Geoide, confini degli stati e parti della mappa sono ora nella cache offline.",
+        "Inglese e altre lingue: tradotti gli avvisi di pioggia e vento, la data in Diario del giorno e Geo-foto, l’avviso «La mappa non si è attivata» e altri resti in ceco; un nuovo test li controlla in tutti gli strumenti.",
+        "Le finestre di Punti da foto si chiudono anche con Indietro di Android e il tasto Esc. La stazione libera non sfarfalla più.",
+        "Il consiglio sulla barra nera su iPhone ora avverte onestamente: rimuovendo l’icona dalla schermata Home, l’iPhone cancella anche l’accesso memorizzato, Face ID e la chiave del proprietario. Prima fai un backup."
+      ]
+    },
+    {
       "v": 392,
       "datum": "2026-09-24",
       "nadpis": "Correzione: quota da GPS nella finestra Nuovo punto",

@@ -48,7 +48,7 @@
     function fmtDur(ms) { var m = Math.round(ms / 60000); return Math.floor(m / 60) + ':' + pad2(m % 60) + ' h'; }
     function fmtLen(m) { return m < 995 ? Math.round(m) + ' m' : (m / 1000).toFixed(1).replace('.', ',') + ' km'; }
     var DAYS_CS = ['neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota'];
-    function fmtDay(d) { return DAYS_CS[d.getDay()] + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear(); }
+    function fmtDay(d) { try { if (window.AGJazyk && AGJazyk.get() !== 'cs') return d.toLocaleDateString(AGJazyk.locale(), { weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { /* nic */ } return DAYS_CS[d.getDay()] + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear(); }
     // vzdálenost: globál getDistance z logika.js, jinak vlastní haversine
     function dist(la1, lo1, la2, lo2) {
         try { if (typeof getDistance === 'function') return getDistance(la1, lo1, la2, lo2); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'denik-dne:dist'); }

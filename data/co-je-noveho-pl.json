@@ -2,6 +2,18 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 393,
+      "datum": "2026-09-24",
+      "nadpis": "Odczyt zdjęć bez zasięgu, aplikacja sprawdzona w trybie samolotowym, mniej czeskiego w innych językach",
+      "body": [
+        "Punkty ze zdjęcia: przycisk „Przygotuj do pracy bez zasięgu” pobiera odczyt zdjęć z wyprzedzeniem (na Androidzie przez Wi-Fi sam). Potem działa też w terenie bez zasięgu.",
+        "Nowy test uruchamia aplikację bez sieci i sprawdza, że startuje i otwiera wszystkie 10 głównych narzędzi. Do pamięci offline doszły geoida, granice państw i części mapy.",
+        "Wersja angielska i inne: przetłumaczono komunikaty o deszczu i wietrze, datę w Dzienniku dnia i Geo-zdjęciu, komunikat „Mapa się nie włączyła” i inne resztki czeskiego; nowy test pilnuje ich we wszystkich narzędziach.",
+        "Okna Punktów ze zdjęcia zamyka teraz też androidowe Wstecz i klawisz Escape. Swobodne stanowisko już nie miga.",
+        "Wskazówka o czarnym pasku na iPhonie teraz uczciwie ostrzega: usunięcie ikony z ekranu początkowego kasuje też zapamiętane logowanie, Face ID i klucz właściciela. Najpierw kopia zapasowa."
+      ]
+    },
+    {
       "v": 392,
       "datum": "2026-09-24",
       "nadpis": "Poprawka: wysokość z GPS w oknie Nowy punkt",

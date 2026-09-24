@@ -6,8 +6,11 @@
  * a u staré ikony dál kreslí neprůhlednou lištu — oprava by se u lidí, co appku už mají
  * na ploše, nikdy neprojevila. Poznáme to tak, že appka běží z plochy (navigator.standalone)
  * na iPhonu s výřezem (výška displeje ≥ 812 bodů), a přesto env(safe-area-inset-top) = 0.
- * Pak JEDNOU poradíme ikonu odebrat a přidat znovu (data zůstávají — jsou vázaná na adresu,
- * ne na ikonu).
+ * Pak JEDNOU poradíme ikonu odebrat a přidat znovu.
+ *
+ * ⚠⚠ 24. 9. 2026: dřív tu stálo „data zůstávají, jsou vázaná na adresu“ — NEPLATÍ. Appka z plochy
+ *   má na iPhonu VLASTNÍ úložiště a odebráním ikony se smaže (uživatel přišel o zapamatované
+ *   přihlášení, Face ID i klíč vlastníka). Rada proto varuje a posílá napřed zálohovat.
  *
  * Odpojitelné: smaž tento soubor + řádek <script> v index.html + položku v sw.js.
  */
@@ -44,7 +47,7 @@
             if (!staraIkona()) return;
             localStorage.setItem(KEY, String(Date.now()));
             var msg = t('Appka teď umí jet přes celý displej — i pod hodinami a Dynamic Islandem. iPhone si ale vzhled pamatuje z doby, kdy jsi ikonu přidal na plochu, takže u tvé ikony zůstává nahoře černý pruh.');
-            var jak = t('Oprava: podrž ikonu QTRIG → Odstranit aplikaci → Odstranit z plochy, pak v Safari otevři appku a dej Sdílet → Přidat na plochu. Body, zakázky i nastavení zůstanou.');
+            var jak = t('Oprava: podrž ikonu QTRIG → Odstranit aplikaci → Odstranit z plochy, pak v Safari otevři appku a dej Sdílet → Přidat na plochu.') + '<br><br><b>' + t('POZOR: iPhone s ikonou smaže i to, co je uložené jen v telefonu — zapamatované přihlášení, Face ID a klíč vlastníka (jednou se pak přihlásíš heslem a Face ID zapneš znovu) a body, které nejsou v účtu. Napřed si udělej zálohu: Nastavení → Záloha a údržba.') + '</b>';
             // agAlert bere message jako HTML (texty výš žádné < > nemají)
             if (typeof window.agAlert === 'function') window.agAlert({ title: t('Celá obrazovka'), message: msg + '<br><br>' + jak });
             else if (typeof window.agInfo === 'function') window.agInfo(msg + '\n\n' + jak);

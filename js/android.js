@@ -57,7 +57,7 @@
     function otevrene() {
         var out = [], dlg = [];
         var nodes;
-        try { nodes = document.querySelectorAll('.modal-overlay, .ag-dlg-overlay, [id$="-overlay"], [id$="-modal"], #side-menu.open, #bottom-sheet.open'); } catch (e) { return out; }
+        try { nodes = document.querySelectorAll('.modal-overlay, .ag-dlg-overlay, [id$="-overlay"], [id$="-modal"], [data-ag-okno], #side-menu.open, #bottom-sheet.open'); } catch (e) { return out; }
         for (var i = 0; i < nodes.length; i++) {
             var n = nodes[i];
             if (SKIP[n.id] || !shown(n)) continue;

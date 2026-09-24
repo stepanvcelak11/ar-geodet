@@ -2,6 +2,18 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 393,
+      "datum": "2026-09-24",
+      "nadpis": "Foto’s lezen zonder bereik, app getest in vliegtuigmodus, minder Tsjechisch in andere talen",
+      "body": [
+        "Punten uit foto: de knop „Voorbereiden op werken zonder bereik” downloadt foto-herkenning vooraf (op Android via wifi vanzelf). Daarna werkt het ook in het veld zonder bereik.",
+        "Een nieuwe test start de app zonder netwerk en controleert dat hij opstart en alle 10 hoofdtools opent. Geoïde, landsgrenzen en kaartdelen staan nu in de offline cache.",
+        "Engels en andere talen: meldingen over regen en wind, de datum in Daglog en Geo-foto, de melding „De kaart ging niet aan” en andere Tsjechische resten vertaald; een nieuwe test bewaakt ze in alle tools.",
+        "De vensters van Punten uit foto sluiten nu ook met Android-Terug en de Escape-toets. Vrije standplaats flikkert niet meer.",
+        "De tip over de zwarte balk op de iPhone waarschuwt nu eerlijk: het icoon van het beginscherm verwijderen wist ook de onthouden aanmelding, Face ID en de eigenaarssleutel. Eerst een back-up."
+      ]
+    },
+    {
       "v": 392,
       "datum": "2026-09-24",
       "nadpis": "Correctie: hoogte uit gps in het venster Nieuw punt",

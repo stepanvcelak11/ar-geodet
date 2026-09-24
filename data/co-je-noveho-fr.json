@@ -2,6 +2,18 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 393,
+      "datum": "2026-09-24",
+      "nadpis": "Lecture des photos sans réseau, appli testée en mode avion, moins de tchèque dans les autres langues",
+      "body": [
+        "Points depuis une photo : le bouton « Préparer pour travailler sans réseau » télécharge la lecture des photos à l’avance (seul en Wi-Fi sur Android). Elle fonctionne ensuite aussi sur le terrain sans réseau.",
+        "Un nouveau test lance l’appli sans réseau et vérifie qu’elle démarre et ouvre les 10 outils principaux. Le géoïde, les frontières des pays et les parties de la carte sont désormais dans le cache hors ligne.",
+        "Anglais et autres langues : messages de pluie et de vent, date dans Journal du jour et Géo-photo, message « La carte ne s’est pas activée » et autres restes de tchèque traduits ; un nouveau test les surveille dans tous les outils.",
+        "Les fenêtres de Points depuis une photo se ferment aussi avec Retour d’Android et la touche Échap. La station libre ne clignote plus.",
+        "Le conseil sur la barre noire de l’iPhone prévient désormais honnêtement : retirer l’icône de l’écran d’accueil efface aussi la connexion mémorisée, Face ID et la clé du propriétaire. Sauvegarde d’abord."
+      ]
+    },
+    {
       "v": 392,
       "datum": "2026-09-24",
       "nadpis": "Correctif : altitude GPS dans la fenêtre Nouveau point",
