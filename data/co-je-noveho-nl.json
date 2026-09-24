@@ -2,6 +2,15 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 394,
+      "datum": "2026-09-24",
+      "nadpis": "Mascotte Toti: een total station die je bij het leren begeleidt",
+      "body": [
+        "Geo-kaarten, de puntenquiz, oefentaken en Schat het hebben nu mascotte Toti, een getekende total station op een statief. Hij knippert, kantelt zijn kijker en laat zijn laser flitsen. Bij een goed antwoord springt en draait hij, bij een fout laat hij de kijker hangen. Tik erop voor een tip.",
+        "Eigen teksten: knop ⋯ in de ballon → Bestand met teksten uploaden (.txt of .json). Het sjabloon staat daar ook. De mascotte kan een andere naam krijgen of stil worden gezet."
+      ]
+    },
+    {
       "v": 393,
       "datum": "2026-09-24",
       "nadpis": "Foto’s lezen zonder bereik, app getest in vliegtuigmodus, minder Tsjechisch in andere talen",

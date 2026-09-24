@@ -2,6 +2,15 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 394,
+      "datum": "2026-09-24",
+      "nadpis": "Mascota Toti: una estación total que te acompaña al aprender",
+      "body": [
+        "Las tarjetas Geo, el test de puntos, los ejercicios y Estímalo tienen ahora a la mascota Toti, una estación total dibujada sobre un trípode. Parpadea, inclina el anteojo y hace destellar el láser. Con una respuesta correcta salta y gira; con un error baja el anteojo. Tócala y te dará un consejo.",
+        "Frases propias: botón ⋯ en el bocadillo → Subir archivo con frases (.txt o .json). Ahí también está la plantilla. La mascota se puede renombrar o silenciar."
+      ]
+    },
+    {
       "v": 393,
       "datum": "2026-09-24",
       "nadpis": "Lectura de fotos sin señal, app probada en modo avión, menos checo en otros idiomas",

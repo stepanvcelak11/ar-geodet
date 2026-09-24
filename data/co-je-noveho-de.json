@@ -2,6 +2,15 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 394,
+      "datum": "2026-09-24",
+      "nadpis": "Maskottchen Toti: eine Totalstation begleitet dein Lernen",
+      "body": [
+        "In Geo-Karten, Punkte-Quiz, Übungsaufgaben und Schätz es gibt jetzt das Maskottchen Toti, eine gezeichnete Totalstation auf dem Stativ. Es blinzelt, neigt das Fernrohr und blinkt mit dem Laser. Bei richtiger Antwort springt und dreht es sich, bei einem Fehler lässt es das Fernrohr hängen. Tippe darauf für einen Tipp.",
+        "Eigene Sprüche: Schaltfläche ⋯ in der Sprechblase → Datei mit Sprüchen hochladen (.txt oder .json). Die Vorlage gibt es dort auch. Das Maskottchen lässt sich umbenennen oder stummschalten."
+      ]
+    },
+    {
       "v": 393,
       "datum": "2026-09-24",
       "nadpis": "Fotoerkennung ohne Empfang, App im Flugmodus geprüft, weniger Tschechisch in anderen Sprachen",

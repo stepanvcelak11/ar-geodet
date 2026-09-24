@@ -2,6 +2,15 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 394,
+      "datum": "2026-09-24",
+      "nadpis": "Mascotte Toti: una stazione totale che ti accompagna nello studio",
+      "body": [
+        "Nelle schede Geo, nel quiz dei punti, negli esercizi e in Stimalo c’è ora la mascotte Toti, una stazione totale disegnata su treppiede. Sbatte le palpebre, inclina il cannocchiale e fa lampeggiare il laser. Con la risposta giusta salta e gira, con un errore abbassa il cannocchiale. Toccala e ti darà un consiglio.",
+        "Frasi personali: pulsante ⋯ nel fumetto → Carica file con frasi (.txt o .json). Lì trovi anche il modello. La mascotte si può rinominare o silenziare."
+      ]
+    },
+    {
       "v": 393,
       "datum": "2026-09-24",
       "nadpis": "Lettura foto senza segnale, app provata in modalità aereo, meno ceco nelle altre lingue",

@@ -129,11 +129,15 @@
         });
         return m;
     }
+    // maskot Toti (js/maskot.js, ag/lazy) — když chybí, nic se neděje
+    function maskot(fn) { try { if (window.AGMaskot) return fn(window.AGMaskot); if (window.AGLazy) AGLazy.need('js/maskot.js', function () { if (window.AGMaskot) fn(window.AGMaskot); }); } catch (e) { /* bez maskota */ } }
     function start() { _por = shuffle(Q.slice()); _i = 0; _skore = 0; _odpovezeno = false; render(); }
     function render() {
         var body = document.getElementById('ag-pz-body'), next = document.getElementById('ag-pz-next'); if (!body) return;
         if (_i >= _por.length) {
             ulozBest(_skore);
+            var sk = _skore, cel = _por.length;
+            maskot(function (M) { M.rekni(sk === cel ? 'konec_super' : (sk >= cel * 0.7 ? 'konec_dobre' : 'konec_slabe'), { skore: sk, celkem: cel }); });
             body.innerHTML = '<div class="pz-vys" style="text-align:center;"><b style="font-size:calc(22px * var(--ag-font-scale,1));">' + _skore + ' / ' + _por.length + '</b>'
                 + (_skore === _por.length ? t('Všechno správně. V terénu už tě nic nepřekvapí.') : (_skore >= _por.length * 0.7 ? t('Slušné. Zkus to znovu, pořadí se míchá.') : t('Projdi si vysvětlení a zkus to znovu — pořadí i možnosti se míchají.')))
                 + '<br><small>' + t('nejlepší výsledek') + ': ' + best() + ' / ' + Q.length + '</small></div>';
@@ -150,6 +154,7 @@
     function odpoved(n) {
         var q = _por[_i]; _odpovezeno = true;
         var ok = n === q.n; if (ok) _skore++;
+        maskot(function (M) { M.rekni(ok ? 'spravne' : 'spatne'); });
         document.querySelectorAll('#' + ID + ' .pz-opt').forEach(function (b) {
             b.disabled = true;
             if (b.getAttribute('data-n') === q.n) b.classList.add('ok');
@@ -162,7 +167,7 @@
         var t2 = document.querySelector('#' + ID + ' .pz-top span:last-child'); if (t2) t2.textContent = t('správně') + ': ' + _skore;
     }
     function dalsi() { if (_i >= _por.length) { start(); return; } if (!_odpovezeno) return; _i++; _odpovezeno = false; render(); }
-    function open() { var m = build(); m.style.display = 'flex'; start(); }
+    function open() { var m = build(); m.style.display = 'flex'; start(); maskot(function (M) { M.pripoj(document.getElementById('ag-pz-body'), { pred: true }); }); }
     function close() { var m = document.getElementById(ID); if (m) m.style.display = 'none'; }
 
     function register() {

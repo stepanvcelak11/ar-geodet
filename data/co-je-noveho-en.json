@@ -2,6 +2,15 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 394,
+      "datum": "2026-09-24",
+      "nadpis": "Mascot Toti: a total station that guides your learning",
+      "body": [
+        "Geo cards, the point quiz, practice tasks and Estimate it now have the mascot Toti, a cartoon total station on a tripod. It blinks, tilts its telescope and flashes its laser. It jumps and spins on a correct answer and droops its telescope on a mistake. Tap it for a tip.",
+        "Your own lines: the ⋯ button in the bubble → Upload a file with lines (.txt or .json). The template is there too. The mascot can be renamed or muted."
+      ]
+    },
+    {
       "v": 393,
       "datum": "2026-09-24",
       "nadpis": "Photo reading without signal, app tested in airplane mode, less Czech in other languages",

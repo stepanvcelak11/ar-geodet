@@ -2,6 +2,15 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 394,
+      "datum": "2026-09-24",
+      "nadpis": "Maskotka Toti: tachimetr, który prowadzi cię przez naukę",
+      "body": [
+        "W Geo kartach, quizie punktów, zadaniach ćwiczeniowych i Oszacuj to jest teraz maskotka Toti, rysunkowy tachimetr na statywie. Mruga, pochyla lunetę i błyska laserem. Przy dobrej odpowiedzi podskakuje i się obraca, przy błędzie opuszcza lunetę. Stuknij, a doradzi.",
+        "Własne teksty: przycisk ⋯ w dymku → Wgraj plik z tekstami (.txt lub .json). Wzór pobierzesz tamże. Maskotkę można przemianować albo wyciszyć."
+      ]
+    },
+    {
       "v": 393,
       "datum": "2026-09-24",
       "nadpis": "Odczyt zdjęć bez zasięgu, aplikacja sprawdzona w trybie samolotowym, mniej czeskiego w innych językach",

@@ -2,6 +2,15 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 394,
+      "datum": "2026-09-24",
+      "nadpis": "Mascote Toti: uma estação total que te acompanha a aprender",
+      "body": [
+        "Os cartões Geo, o quiz de pontos, os exercícios e Estima isso têm agora a mascote Toti, uma estação total desenhada num tripé. Pisca os olhos, inclina a luneta e faz piscar o laser. Com a resposta certa salta e roda; com um erro baixa a luneta. Toca e dá-te uma dica.",
+        "Frases próprias: botão ⋯ no balão → Carregar ficheiro com frases (.txt ou .json). O modelo também está lá. A mascote pode ser renomeada ou silenciada."
+      ]
+    },
+    {
       "v": 393,
       "datum": "2026-09-24",
       "nadpis": "Leitura de fotos sem rede, app testada em modo de avião, menos checo noutras línguas",

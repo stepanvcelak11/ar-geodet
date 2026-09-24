@@ -174,11 +174,14 @@
             + '<div id="agsu-feed"><section class="agsu-slot"><div class="agsu-karta t-tip"><h2>Načítám kartičky…</h2></div></section></div>';
     }
     function zavri() { try { if (_io) _io.disconnect(); } catch (e) { /* nic */ } if (el) { el.style.display = 'none'; el.innerHTML = ''; } }
+    // maskot Toti (js/maskot.js, ag/lazy) — když chybí, nic se neděje
+    function maskot(fn) { try { if (window.AGMaskot) return fn(window.AGMaskot); if (window.AGLazy) AGLazy.need('js/maskot.js', function () { if (window.AGMaskot) fn(window.AGMaskot); }); } catch (e) { /* bez maskota */ } }
     function otevri() {
         if (!document.querySelector('link[href$="css/scroll-uceni.css"]')) { var lk = document.createElement('link'); lk.rel = 'stylesheet'; lk.href = 'css/scroll-uceni.css'; document.head.appendChild(lk); }
         if (!el) { el = document.createElement('div'); el.id = 'agsu'; document.body.appendChild(el); el.addEventListener('click', akce); }
         el.innerHTML = html(); el.style.display = 'block';
         el.querySelector('#agsu-zavrit').onclick = zavri;
+        maskot(function (M) { if (el && el.style.display !== 'none') M.pripoj(el, { misto: 'roh' }); });
         el.querySelectorAll('.agsu-filtry button').forEach(function (b) { b.onclick = function () { filtr = b.getAttribute('data-f'); el.querySelectorAll('.agsu-filtry button').forEach(function (x) { x.classList.toggle('on', x === b); }); vykresli(); }; });
         var p = karty.length ? Promise.resolve() : sestav();
         p.then(vykresli).catch(function (e) { swallow(e, 'sestav'); vykresli(); });

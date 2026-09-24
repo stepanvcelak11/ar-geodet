@@ -2,6 +2,15 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 394,
+      "datum": "2026-09-24",
+      "nadpis": "Mascotte Toti : une station totale qui t’accompagne dans l’apprentissage",
+      "body": [
+        "Les fiches Géo, le quiz des points, les exercices et Estime-le ont maintenant la mascotte Toti, une station totale dessinée sur son trépied. Elle cligne des yeux, incline sa lunette et fait clignoter son laser. Bonne réponse : elle saute et tourne ; erreur : elle baisse la lunette. Touche-la pour un conseil.",
+        "Répliques perso : bouton ⋯ dans la bulle → Importer un fichier de répliques (.txt ou .json). Le modèle est là aussi. La mascotte peut être renommée ou rendue muette."
+      ]
+    },
+    {
       "v": 393,
       "datum": "2026-09-24",
       "nadpis": "Lecture des photos sans réseau, appli testée en mode avion, moins de tchèque dans les autres langues",

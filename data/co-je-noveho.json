@@ -2,6 +2,15 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 394,
+   "datum": "2026-09-24",
+   "nadpis": "Maskot Toti: totálka, která tě provází učením",
+   "body": [
+    "V Geo kartičkách, Poznávačce bodů, Cvičných úlohách a Odhadni to je teď maskot Toti, kreslená totální stanice na stativu. Mrká, naklání dalekohled a bliká laserem. Při správné odpovědi vyskočí a otočí se, při chybě svěsí dalekohled. Klepni na něj a poradí ti.",
+    "Vlastní hlášky: tlačítko ⋯ v bublině → Nahrát soubor s hláškami (.txt nebo .json). Vzor si stáhneš tamtéž. Maskota jde přejmenovat nebo ztlumit."
+   ]
+  },
+  {
    "v": 393,
    "datum": "2026-09-24",
    "nadpis": "Čtení fotek bez signálu, appka ověřená v letadlovém režimu, méně češtiny v cizích jazycích",

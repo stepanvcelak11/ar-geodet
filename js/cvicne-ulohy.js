@@ -152,6 +152,7 @@
         });
         if (prazdne && !radky.length) { res.className = 'ul-res bad'; res.innerHTML = t('Vyplň všechny odpovědi.'); return; }
         var s = stav();
+        maskot(function (M) { M.rekni(vse ? 'spravne' : 'spatne'); });
         if (vse) {
             s[u.id] = 'ok'; ulozStav(s);
             res.className = 'ul-res ok'; res.innerHTML = '<b>' + t('Sedí.') + '</b> ' + t('Všechny hodnoty jsou v toleranci.');
@@ -208,10 +209,13 @@
         else if (act === 'calc') doKalkulacky(u);
         else if (act === 'klic') ukazKlic(u);
     }
+    // maskot Toti (js/maskot.js, ag/lazy) — když chybí, nic se neděje
+    function maskot(fn) { try { if (window.AGMaskot) return fn(window.AGMaskot); if (window.AGLazy) AGLazy.need('js/maskot.js', function () { if (window.AGMaskot) fn(window.AGMaskot); }); } catch (e) { /* bez maskota */ } }
     function open(id) {
         var m = build(); m.style.display = 'flex';
         document.getElementById('ag-ul-body').innerHTML = '<p style="opacity:.7;">' + t('Načítám úlohy…') + '</p>';
         nacti(function () { _open = id || null; render(); });
+        maskot(function (M) { M.pripoj(document.getElementById('ag-ul-body'), { pred: true }); });
     }
     function close() { var m = document.getElementById(ID); if (m) m.style.display = 'none'; }
 
