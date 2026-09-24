@@ -2,6 +2,14 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 390,
+      "datum": "2026-09-24",
+      "nadpis": "The main tool button down by your thumb",
+      "body": [
+        "<b>Main action at the bottom.</b> In Object height, Offset point, Pack the job and Download area the main button and Close now sit at the bottom edge within thumb reach. The form stays at the top; before, both buttons hung in the middle with empty space below."
+      ]
+    },
+    {
       "v": 389,
       "datum": "2026-09-23",
       "nadpis": "Phone field test, faster start",

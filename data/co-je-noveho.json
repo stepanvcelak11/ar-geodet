@@ -2,6 +2,14 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 390,
+   "datum": "2026-09-24",
+   "nadpis": "Hlavní tlačítko nástroje dole u palce",
+   "body": [
+    "<b>Hlavní akce dole.</b> Ve Výšce objektu, Offset bodu, Sbalit zakázku a Stáhnout oblast jsou hlavní tlačítko a Zavřít teď u spodní hrany, kam dosáhne palec. Formulář zůstává nahoře, dřív visela obě tlačítka uprostřed a pod nimi byla prázdná plocha."
+   ]
+  },
+  {
    "v": 389,
    "datum": "2026-09-23",
    "nadpis": "Terénní zkouška telefonu, rychlejší start",

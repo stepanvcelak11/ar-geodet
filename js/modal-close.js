@@ -125,6 +125,16 @@
             '.agmc-x.agmc-in{position:relative !important;top:auto !important;right:auto !important;left:auto !important;',
             '  width:40px !important;height:40px !important;min-height:40px !important;border-radius:50% !important;padding:0 !important;',
             '  flex:none;margin:0;font-size:0 !important;order:99;}',
+            // HLAVNÍ AKCE DOLE U PALCE (24. 9. 2026, druhá půlka n1): okno nástroje, kde je hlavní tlačítko
+            // hned nad posledním „Zavřít“ (Výška objektu: formulář, „Spustit zaměřování“, Zavřít), mělo obě
+            // tlačítka uprostřed a pod nimi prázdnou plochu. margin-top:auto je v .modal-content (flex sloupec)
+            // odsune dolů — formulář zůstane nahoře, akce jsou tam, kam dosáhne palec. Nic se nepřesouvá v DOM,
+            // takže modulům, které si okno překreslují, se nic nemění. U obsahu delšího než displej to nic nedělá.
+            // ⚠ .modal-content bývá u nástrojů display:block (rolování) — margin-top:auto pak nic nedělá; proto
+            //   jen TAKOVÁ okna přepnout na flex sloupec, děti bez smršťování (dlouhý obsah dál roluje, nic se nemačká).
+            '.modal-overlay .modal-content:has(> .btn:not(.btn-secondary) + .btn.btn-secondary:last-child){display:flex !important;flex-direction:column;}',
+            '.modal-overlay .modal-content:has(> .btn:not(.btn-secondary) + .btn.btn-secondary:last-child) > *:not(.modal-body){flex-shrink:0;}',   /* .modal-body se smí zmenšit a rolovat */
+            '.modal-overlay .modal-content > .btn:not(.btn-secondary):has(+ .btn.btn-secondary:last-child){margin-top:auto !important;}',
             // okna s vlastním pravidlem podle id (#tachy-x, .wx-x, #ag-zb-head button…) by desku přebila
             '.agmc-x.agmc-in,#tachy-x.agmc-x,#ag-wx-close.agmc-x,#ag-zb-head .agmc-x,#ag-pm-head .agmc-x{background:#1b2028 !important;',
             '  border:1px solid rgba(255,255,255,0.22) !important;color:#f2f4f7 !important;box-shadow:0 2px 10px rgba(0,0,0,0.45) !important;}',

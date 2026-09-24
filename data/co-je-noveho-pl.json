@@ -2,6 +2,14 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 390,
+      "datum": "2026-09-24",
+      "nadpis": "Główny przycisk narzędzia na dole pod kciukiem",
+      "body": [
+        "<b>Główna akcja na dole.</b> W Wysokości obiektu, Punkcie offsetu, Spakuj zlecenie i Pobierz obszar główny przycisk i Zamknij są teraz przy dolnej krawędzi, w zasięgu kciuka. Formularz zostaje u góry; wcześniej oba przyciski wisiały pośrodku, a pod nimi było puste miejsce."
+      ]
+    },
+    {
       "v": 389,
       "datum": "2026-09-23",
       "nadpis": "Test telefonu w terenie, szybszy start",

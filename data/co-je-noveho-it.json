@@ -2,6 +2,14 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 390,
+      "datum": "2026-09-24",
+      "nadpis": "Il pulsante principale dello strumento in basso, sotto il pollice",
+      "body": [
+        "<b>Azione principale in basso.</b> In Altezza dell’oggetto, Punto per offset, Impacchetta la commessa e Scarica area, il pulsante principale e Chiudi sono ora sul bordo inferiore, a portata di pollice. Il modulo resta in alto; prima entrambi i pulsanti stavano a metà con spazio vuoto sotto."
+      ]
+    },
+    {
       "v": 389,
       "datum": "2026-09-23",
       "nadpis": "Prova sul campo del telefono, avvio più rapido",

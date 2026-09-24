@@ -75,6 +75,13 @@ async def beh(url):
             ok('H1 %s: křížek okno zavře' % k, zav)
             await page.evaluate("() => { const m = document.getElementById('tools-modal'); if (m) m.style.display = 'none'; }")
 
+        # H3 (v390): hlavní akce dole u palce — Výška objektu: „Spustit zaměřování“ + Zavřít u spodní hrany
+        await page.evaluate("() => new Promise(r => AGLazy.need('js/vyska-objektu.js', () => { window.agOpenVyskaObjektu(); r(); }))")
+        await page.wait_for_timeout(900)
+        h3 = await page.evaluate("() => { const g = document.getElementById('agvo-go'); const z = g && g.nextElementSibling; if (!g || !z) return null; return { go: Math.round(g.getBoundingClientRect().top), zav: Math.round(z.getBoundingClientRect().bottom), h: innerHeight }; }")
+        ok('H3 Výška objektu: hlavní akce dole u palce (Spustit zaměřování nad Zavřít u spodní hrany)', h3 and h3['go'] > h3['h'] * 0.6 and h3['zav'] > h3['h'] - 120, h3)
+        await page.evaluate("() => { window.agCloseVyskaObjektu && agCloseVyskaObjektu(); }")
+
         # B3: bez karty
         await page.evaluate("() => { closeBottomSheet && closeBottomSheet(); }")
         await page.evaluate("() => document.getElementById('dock-nastroje-btn').click()")

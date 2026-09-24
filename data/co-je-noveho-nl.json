@@ -2,6 +2,14 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 390,
+      "datum": "2026-09-24",
+      "nadpis": "De hoofdknop van het gereedschap onderaan bij je duim",
+      "body": [
+        "<b>Hoofdactie onderaan.</b> Bij Objecthoogte, Offsetpunt, Opdracht inpakken en Gebied downloaden staan de hoofdknop en Sluiten nu aan de onderrand, binnen bereik van je duim. Het formulier blijft bovenaan; eerst hingen beide knoppen in het midden met lege ruimte eronder."
+      ]
+    },
+    {
       "v": 389,
       "datum": "2026-09-23",
       "nadpis": "Veldtest van de telefoon, snellere start",
