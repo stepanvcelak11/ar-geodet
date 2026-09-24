@@ -119,7 +119,7 @@
         var zPlochy = navigator.standalone === true;
         try { zPlochy = zPlochy || window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: fullscreen)').matches; } catch (e) { swallow(e, 'display-mode'); }
         var ins = insety(), vyrez = (ins.top || ins.bottom) ? ' · ' + t('výřez') + ' ' + Math.round(ins.top) + ' / ' + Math.round(ins.bottom) + ' px' : '';
-        try { var V = window.AGVyska; if (V) vyrez += ' · ' + t('výška') + ' ' + Math.round(V.stranka) + ' / 100vh ' + Math.round(V.vh100) + ' / ' + t('displej') + ' ' + Math.round(V.displej) + (V.dorovnano ? ' (' + t('dorovnáno') + ' +' + Math.round(V.dorovnano) + ')' : ''); } catch (e) { swallow(e, 'vyska'); }
+        try { var V = window.AGVyskaDispleje; if (V) vyrez += ' · ' + t('výška') + ' ' + Math.round(V.stranka) + ' / 100vh ' + Math.round(V.vh100) + ' / ' + t('displej') + ' ' + Math.round(V.displej) + (V.dorovnano ? ' (' + t('dorovnáno') + ' +' + Math.round(V.dorovnano) + ')' : ''); } catch (e) { swallow(e, 'vyska'); }
         var stara = false; try { stara = !!(window.AGCelaObrazovka && AGCelaObrazovka.staraIkona && AGCelaObrazovka.staraIkona()); } catch (e) { swallow(e, 'stara'); }
         if (stara) return { k: 'displej', st: 'warn', b: t('Displej'), s: t('Nahoře zůstává černý pruh — ikona na ploše je z doby před celou obrazovkou. Podrž ikonu → Odstranit z plochy, pak v Safari Sdílet → Přidat na plochu. Data zůstanou.') };
         if (zPlochy) return { k: 'displej', st: 'ok', b: t('Displej'), s: t('celá obrazovka (spuštěno z plochy)') + vyrez + ' · ' + innerWidth + '×' + innerHeight };

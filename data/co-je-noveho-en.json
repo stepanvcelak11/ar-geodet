@@ -2,6 +2,14 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 392,
+      "datum": "2026-09-24",
+      "nadpis": "Fix: height from GPS in the New point window",
+      "body": [
+        "In v391 the New point window did not show the terrain height and the choice of height from GPS — the new display diagnostics accidentally took the name that module starts by. Fixed."
+      ]
+    },
+    {
       "v": 391,
       "datum": "2026-09-24",
       "nadpis": "iPhone: no bar at the bottom and a readable bubble at the top",

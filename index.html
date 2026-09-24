@@ -36,7 +36,8 @@
                     gap = full - h > 8 ? full - h : 0;
                     if (!gap) full = h;
                 }
-                window.AGVyska = { stranka: h, vh100: vh, displej: sc, pouzito: full, dorovnano: gap, inner: window.innerHeight };
+                // ⚠ NE window.AGVyska — to jméno patří js/vyska-gps.js (if (window.AGVyska) return → modul by se nespustil; v391)
+                window.AGVyskaDispleje = { stranka: h, vh100: vh, displej: sc, pouzito: full, dorovnano: gap, inner: window.innerHeight };
                 d.style.setProperty('--app-vh', full + 'px');
                 d.style.setProperty('--ios-gap', gap + 'px');
                 d.classList.toggle('ag-ios-gap', gap > 0);
@@ -124,8 +125,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=391">
-    <link rel="stylesheet" href="css/style.css?v=391">
+    <link rel="stylesheet" href="css/tokens.css?v=392">
+    <link rel="stylesheet" href="css/style.css?v=392">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -256,7 +257,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=391">
+    <link rel="stylesheet" href="css/vylepseni.css?v=392">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je

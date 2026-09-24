@@ -89,6 +89,8 @@ async def beh(url):
         err = await page.evaluate("() => { try { return JSON.parse(localStorage.getItem('agErrorLog') || '[]').map(e => e.msg); } catch (e) { return [String(e)]; } }")
         err = [e for e in err if not re.search(r'NetworkError|bez signálu|Failed to fetch', e or '')]
         ok('C1 start bez záznamu v protokolu chyb', not err, err)
+        # ⚠ v391: diagnostika výšky obsadila window.AGVyska a js/vyska-gps.js (if (window.AGVyska) return) se nespustil
+        ok('R0 window.AGVyska patří modulu Výška z GPS (nekoliduje s diagnostikou displeje)', await page.evaluate("() => !!(window.AGVyska && !('stranka' in window.AGVyska) && window.AGVyskaDispleje)"))
         ok('R1 rada „přidej ikonu znovu“ se v Chromu neukáže', await page.evaluate("() => AGCelaObrazovka.staraIkona()") is False)
 
         for vm in ('map', 'ar', 'both'):
@@ -138,7 +140,7 @@ async def beh(url):
         await page.goto(url, wait_until='domcontentloaded', timeout=60000)
         await V.cekej(page, "document.body.classList.contains('app-started')", 40)
         await page.wait_for_timeout(1500)
-        g = await page.evaluate("() => ({ v: window.AGVyska, html: Math.round(document.documentElement.getBoundingClientRect().height), map: Math.round(document.getElementById('map-container').getBoundingClientRect().bottom) })")
+        g = await page.evaluate("() => ({ v: window.AGVyskaDispleje, html: Math.round(document.documentElement.getBoundingClientRect().height), map: Math.round(document.getElementById('map-container').getBoundingClientRect().bottom) })")
         ok('G1 zkrácený viewport z plochy: appka dorovnaná na celý displej (html i mapa do 852 px)', g['v'] and g['v']['dorovnano'] == TOP and g['html'] == H and g['map'] == H, g)
         await page.evaluate("() => { const p = arPoints.find(x => x); if (p) showDetails(p, 20); }")
         await page.wait_for_timeout(900)

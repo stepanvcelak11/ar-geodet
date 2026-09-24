@@ -2,6 +2,14 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 392,
+      "datum": "2026-09-24",
+      "nadpis": "Correctie: hoogte uit gps in het venster Nieuw punt",
+      "body": [
+        "In v391 toonde het venster Nieuw punt de terreinhoogte en de keuze voor hoogte uit gps niet — de nieuwe schermdiagnose nam per ongeluk de naam in waarmee die module start. Verholpen."
+      ]
+    },
+    {
       "v": 391,
       "datum": "2026-09-24",
       "nadpis": "iPhone: geen balk onderaan en een leesbare bel bovenaan",

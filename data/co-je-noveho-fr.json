@@ -2,6 +2,14 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 392,
+      "datum": "2026-09-24",
+      "nadpis": "Correctif : altitude GPS dans la fenêtre Nouveau point",
+      "body": [
+        "En v391, la fenêtre Nouveau point n’affichait pas l’altitude du terrain ni le choix de l’altitude GPS — le nouveau diagnostic d’écran avait pris par erreur le nom par lequel ce module démarre. Corrigé."
+      ]
+    },
+    {
       "v": 391,
       "datum": "2026-09-24",
       "nadpis": "iPhone : plus de bande en bas et bulle lisible en haut",

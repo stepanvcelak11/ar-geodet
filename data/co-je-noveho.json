@@ -2,6 +2,14 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 392,
+   "datum": "2026-09-24",
+   "nadpis": "Oprava: výška z GPS v okně Nový bod",
+   "body": [
+    "Ve v391 se v okně Nový bod neukazovala výška terénu a volba výšky z GPS (Bpv) — nová diagnostika displeje omylem zabrala jméno, podle kterého se ten modul spouští. Opraveno."
+   ]
+  },
+  {
    "v": 391,
    "datum": "2026-09-24",
    "nadpis": "iPhone: bez pruhu dole a čitelná bublina nahoře",

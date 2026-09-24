@@ -2,6 +2,14 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 392,
+      "datum": "2026-09-24",
+      "nadpis": "Korrektur: Höhe aus GPS im Fenster Neuer Punkt",
+      "body": [
+        "In v391 zeigte das Fenster Neuer Punkt die Geländehöhe und die Wahl der Höhe aus GPS nicht — die neue Display-Diagnose belegte versehentlich den Namen, über den dieses Modul startet. Behoben."
+      ]
+    },
+    {
       "v": 391,
       "datum": "2026-09-24",
       "nadpis": "iPhone: kein Balken unten und lesbare Blase oben",
