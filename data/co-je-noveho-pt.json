@@ -2,6 +2,14 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 399,
+      "datum": "2026-09-25",
+      "nadpis": "Pequenas correções de tradução",
+      "body": [
+        "Noutras línguas passam a estar traduzidas a qualidade PDOP dos satélites e a proposta de alto contraste ao sol."
+      ]
+    },
+    {
       "v": 398,
       "datum": "2026-09-25",
       "nadpis": "Cópia na conta: os pontos sobrevivem até a uma reinstalação",

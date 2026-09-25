@@ -2,6 +2,14 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 399,
+      "datum": "2026-09-25",
+      "nadpis": "Drobne poprawki tłumaczeń",
+      "body": [
+        "W innych językach przetłumaczono jakość PDOP satelitów i propozycję wysokiego kontrastu w słońcu."
+      ]
+    },
+    {
       "v": 398,
       "datum": "2026-09-25",
       "nadpis": "Kopia na koncie: punkty przetrwają nawet reinstalację",

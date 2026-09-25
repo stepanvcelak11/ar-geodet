@@ -2,6 +2,14 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 399,
+      "datum": "2026-09-25",
+      "nadpis": "Small translation fixes",
+      "body": [
+        "In other languages the PDOP quality of satellites and the high-contrast offer in bright sun are now translated."
+      ]
+    },
+    {
       "v": 398,
       "datum": "2026-09-25",
       "nadpis": "Backup to account: points survive even a reinstall",

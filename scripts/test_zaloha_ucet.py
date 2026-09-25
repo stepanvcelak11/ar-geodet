@@ -66,6 +66,8 @@ async def beh(url):
         await page.evaluate("() => new Promise(r => AGLazy.need('js/zaloha-ucet.js', r))")
         ok('A1 modul a API zálohy', await V.cekej(page, "!!(window.AGZalohaUcet && window.AGZaloha && AGZaloha.sestav && AGZaloha.obnov)", 60))
         ok('A2 přihlášený účet (boot)', await page.evaluate("() => !!(AGUcty.ucet && AGUcty.ucet())"))
+        # ag_boot automatiku vypíná (falešný token v ostatních testech) — tady ji zapnout
+        await page.evaluate("() => localStorage.setItem('agZalohaUcet_v1', JSON.stringify({}))")
         await page.evaluate("""() => { const arr = []; for (let i = 0; i < 3; i++) { const ll = mistniToLatLng(743200 + i * 5.123, 1042100 + i * 5.456); arr.push({ name: 'ZU' + i, lat: ll.lat, lng: ll.lng, vyska: 250 + i, origin: 'import' }); }
             window.addImportedPoints(arr); localStorage.setItem('agFirmaTok_v1', JSON.stringify({ token: 'TAJNE-TOKEN' })); }""")
         await page.wait_for_timeout(800)

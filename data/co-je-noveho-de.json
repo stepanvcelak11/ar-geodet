@@ -2,6 +2,14 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 399,
+      "datum": "2026-09-25",
+      "nadpis": "Kleine Übersetzungskorrekturen",
+      "body": [
+        "In anderen Sprachen sind jetzt die PDOP-Qualität der Satelliten und das Angebot für hohen Kontrast in der Sonne übersetzt."
+      ]
+    },
+    {
       "v": 398,
       "datum": "2026-09-25",
       "nadpis": "Sicherung ins Konto: Punkte überstehen sogar eine Neuinstallation",

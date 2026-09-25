@@ -49,6 +49,9 @@ _SABLONA = u"""
   // PLOVOUCI TOTI VYPNUTY (25. 9. 2026): na hlavni obrazovce by po startu pozdravil bublinou vlevo dole
   // a mohl zakryt, na co test klika. Test maskota si ho zapina sam (test_maskot).
   if (!localStorage.getItem('agMaskot_v1')) localStorage.setItem('agMaskot_v1', JSON.stringify({ spolecnik: false }));
+  // ZALOHA DO UCTU VYPNUTA (25. 9. 2026): testovaci token je falesny, automatika by volala skutecny
+  // server a konzole by hlasila 401 (test_opravy_11_9 I0, test_v316 Z). test_zaloha_ucet si ji zapina sam.
+  if (!localStorage.getItem('agZalohaUcet_v1')) localStorage.setItem('agZalohaUcet_v1', JSON.stringify({ vyp: true, nabidnutoTs: Date.now() }));
   localStorage.setItem('agTutProSeen', '1');
   localStorage.setItem('agBrifinkAuto', '0');
   localStorage.setItem('agBrifinkLastShown', new Date().toISOString().slice(0, 10));
