@@ -2,6 +2,14 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 404,
+      "datum": "2026-09-25",
+      "nadpis": "Snellere start",
+      "body": [
+        "De vensters Account maken, Wachtwoord vergeten, Account verwijderen, Bedrijven, Ruimtes en Herstelcode laden pas na het eerste beeld. Voor de start downloadt de app 28 kB minder code."
+      ]
+    },
+    {
       "v": 403,
       "datum": "2026-09-25",
       "nadpis": "Inloggen met Face ID dat herinstallatie overleeft",

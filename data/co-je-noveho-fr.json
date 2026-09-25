@@ -2,6 +2,14 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 404,
+      "datum": "2026-09-25",
+      "nadpis": "Démarrage plus rapide",
+      "body": [
+        "Les fenêtres Créer un compte, Mot de passe oublié, Supprimer le compte, Entreprises, Espaces et Code de récupération se chargent après le premier affichage. Avant le démarrage, l’appli télécharge 28 kB de code en moins."
+      ]
+    },
+    {
       "v": 403,
       "datum": "2026-09-25",
       "nadpis": "Connexion avec Face ID qui survit à la réinstallation",

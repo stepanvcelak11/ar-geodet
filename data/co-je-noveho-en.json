@@ -2,6 +2,14 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 404,
+      "datum": "2026-09-25",
+      "nadpis": "Faster start",
+      "body": [
+        "The Create account, Forgotten password, Delete account, Companies, Spaces and Recovery code windows now load after the first screen is drawn. The app downloads and runs 28 kB less code before start."
+      ]
+    },
+    {
       "v": 403,
       "datum": "2026-09-25",
       "nadpis": "Face ID sign-in that survives reinstalling",

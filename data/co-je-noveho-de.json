@@ -2,6 +2,14 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 404,
+      "datum": "2026-09-25",
+      "nadpis": "Schnellerer Start",
+      "body": [
+        "Die Fenster Konto erstellen, Passwort vergessen, Konto löschen, Firmen, Bereiche und Wiederherstellungscode laden erst nach dem ersten Bild. Vor dem Start lädt die App 28 kB weniger Code."
+      ]
+    },
+    {
       "v": 403,
       "datum": "2026-09-25",
       "nadpis": "Anmeldung mit Face ID, die eine Neuinstallation übersteht",

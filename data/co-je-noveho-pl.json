@@ -2,6 +2,14 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 404,
+      "datum": "2026-09-25",
+      "nadpis": "Szybszy start",
+      "body": [
+        "Okna Utwórz konto, Zapomniane hasło, Usuń konto, Firmy, Przestrzenie i Kod odzyskiwania wczytują się dopiero po pierwszym wyświetleniu. Przed startem aplikacja pobiera o 28 kB kodu mniej."
+      ]
+    },
+    {
       "v": 403,
       "datum": "2026-09-25",
       "nadpis": "Logowanie przez Face ID, które przetrwa ponowną instalację",

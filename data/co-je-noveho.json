@@ -2,6 +2,14 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 404,
+   "datum": "2026-09-25",
+   "nadpis": "Rychlejší start",
+   "body": [
+    "Okna Vytvořit účet, Zapomenuté heslo, Smazat účet, Firmy, Prostory a Obnovovací kód se načtou až po prvním vykreslení. Appka před startem stahuje a spouští o 28 kB kódu méně."
+   ]
+  },
+  {
    "v": 403,
    "datum": "2026-09-25",
    "nadpis": "Přihlášení přes Face ID, které přežije přeinstalaci",
