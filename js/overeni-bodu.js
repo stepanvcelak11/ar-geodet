@@ -147,7 +147,7 @@
                 var t = e.target && e.target.closest && e.target.closest('[data-a="check"]');
                 if (!t || !t.closest('#ag-kb-acts')) return;
                 if (!_kartaPt || _kartaPt.id == null) return;
-                _ceka = { id: _kartaPt.id, name: _kartaPt.name || '', ts: Date.now() };
+                _ceka = { id: _kartaPt.id, name: _kartaPt.name || '', ts: Date.now(), lat: _kartaPt.lat, lng: _kartaPt.lng };
             } catch (err) { swallow(err, 'overeni:klik'); }
         }, true);
         window.__agOvClickWrapped = true;
@@ -173,7 +173,11 @@
                 if (!p.prov) p.prov = {};
                 if (p.prov.checkOf == null) {
                     p.prov.checkOf = _ceka.id;
+                    // 25. 9. 2026 (a2): i souřadnice kontrolovaného bodu — úřední bod už za měsíc v paměti být
+                    // nemusí, a mapa tvé přesnosti (js/moje-presnost.js) z nich počítá skutečnou chybu GPS na místě
+                    if (isFinite(_ceka.lat) && isFinite(_ceka.lng)) p.prov.checkRef = { lat: _ceka.lat, lng: _ceka.lng, name: _ceka.name };
                     uloz();
+                    try { if (window.AGMojePresnost && p.prov.checkRef) AGMojePresnost.pridej({ k: 'k:' + p.id, lat: p.lat, lng: p.lng, d: (typeof getDistance === 'function' ? getDistance(p.lat, p.lng, _ceka.lat, _ceka.lng) : NaN), z: 'kontrola', jm: _ceka.name }); } catch (e) { swallow(e, 'overeni:mp'); }
                 }
                 _ceka = null;
             } catch (e) { swallow(e, 'overeni:wrapSave'); }

@@ -2,6 +2,16 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 402,
+      "datum": "2026-09-25",
+      "nadpis": "Mijn nauwkeurigheid: waar je telefoon ernaast zit en hoe anderen meten",
+      "body": [
+        "Nieuwe tool Mijn nauwkeurigheid: elk Controlepunt en stap 4 van de Veldtest onthoudt de echte gps-fout ter plaatse, op de kaart als gekleurde cirkels.",
+        "Bij Nieuw punt vertelt de app hoe de telefoon hier mat volgens de dichtstbijzijnde controle.",
+        "De Veldtest stuurt anoniem alleen model en resultaat, zonder positie, en laat zien hoe anderen met dezelfde telefoon meten."
+      ]
+    },
+    {
       "v": 401,
       "datum": "2026-09-25",
       "nadpis": "Toegankelijkheid: VoiceOver, contrast en tekst tot 200 %",

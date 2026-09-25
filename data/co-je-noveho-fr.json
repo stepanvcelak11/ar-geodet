@@ -2,6 +2,16 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 402,
+      "datum": "2026-09-25",
+      "nadpis": "Ma précision : où ton téléphone se trompe et comment mesurent les autres",
+      "body": [
+        "Nouvel outil Ma précision : chaque Point de contrôle et l’étape 4 du Test de terrain mémorisent l’erreur GPS réelle sur place, sur la carte en cercles colorés.",
+        "Dans Nouveau point, l’appli dit comment le téléphone a mesuré ici selon le contrôle le plus proche.",
+        "Le Test de terrain envoie anonymement seulement le modèle et le résultat, sans position, et montre comment mesurent les autres avec le même téléphone."
+      ]
+    },
+    {
       "v": 401,
       "datum": "2026-09-25",
       "nadpis": "Accessibilité : VoiceOver, contraste et texte jusqu’à 200 %",

@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 402,
+      "datum": "2026-09-25",
+      "nadpis": "My accuracy: where your phone is off and how others measure",
+      "body": [
+        "New tool My accuracy (Tools → Measuring): every Check point and step 4 of the Field test is remembered with the real GPS error at that place. Show on map draws coloured circles (up to 2 m, up to 5 m, more).",
+        "In New point the app tells you how the phone measured here according to your nearest check.",
+        "The Field test anonymously sends only the phone model and the result, no position, and shows how others with the same phone measure. Sharing can be switched off."
+      ]
+    },
+    {
       "v": 401,
       "datum": "2026-09-25",
       "nadpis": "Accessibility: VoiceOver, contrast and text up to 200 %",

@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 402,
+      "datum": "2026-09-25",
+      "nadpis": "Moja dokładność: gdzie myli się twój telefon i jak mierzą inni",
+      "body": [
+        "Nowe narzędzie Moja dokładność: każdy Punkt kontrolny i 4. krok Testu terenowego zapamiętuje rzeczywisty błąd GPS w miejscu, na mapie jako kolorowe koła.",
+        "Przy Nowym punkcie aplikacja powie, jak mierzył tu telefon według najbliższej kontroli.",
+        "Test terenowy wysyła anonimowo tylko model i wynik, bez pozycji, i pokazuje, jak mierzą inni z takim samym telefonem."
+      ]
+    },
+    {
       "v": 401,
       "datum": "2026-09-25",
       "nadpis": "Dostępność: VoiceOver, kontrast i czcionka do 200 %",

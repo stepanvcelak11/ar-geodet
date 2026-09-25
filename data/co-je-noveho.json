@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 402,
+   "datum": "2026-09-25",
+   "nadpis": "Moje přesnost: kde se tvůj telefon plete a jak měří ostatní",
+   "body": [
+    "Nový nástroj Moje přesnost (Nástroje → Měření): každý Kontrolní bod a 4. krok Terénní zkoušky se zapamatuje se skutečnou chybou GPS na místě. Ukázat v mapě nakreslí barevné kruhy (do 2 m, do 5 m, víc).",
+    "U Nového bodu appka řekne, jak tu telefon měřil podle nejbližší tvé kontroly.",
+    "Terénní zkouška posílá anonymně jen model telefonu a výsledek, bez polohy, a ukáže, jak měří ostatní se stejným telefonem. Sdílení jde vypnout."
+   ]
+  },
+  {
    "v": 401,
    "datum": "2026-09-25",
    "nadpis": "Přístupnost: VoiceOver, kontrast a písmo až 200 %",

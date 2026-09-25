@@ -2,6 +2,16 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 402,
+      "datum": "2026-09-25",
+      "nadpis": "A minha precisão: onde o teu telemóvel se engana e como medem os outros",
+      "body": [
+        "Nova ferramenta A minha precisão: cada Ponto de controlo e o passo 4 do Teste de campo guardam o erro real do GPS no local, no mapa como círculos coloridos.",
+        "No Ponto novo a app diz como o telemóvel mediu aqui segundo o controlo mais próximo.",
+        "O Teste de campo envia anonimamente só o modelo e o resultado, sem posição, e mostra como medem outros com o mesmo telemóvel."
+      ]
+    },
+    {
       "v": 401,
       "datum": "2026-09-25",
       "nadpis": "Acessibilidade: VoiceOver, contraste e texto até 200 %",

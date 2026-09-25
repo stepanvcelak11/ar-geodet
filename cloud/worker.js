@@ -192,6 +192,22 @@ async function ensureZalohySchema(env) {
     } catch (e) {}
     _zalohyMig = true;
 }
+// PŘESNOST PODLE MODELU TELEFONU (25. 9. 2026, 6. hodnocení a1): Terénní zkouška telefonu
+// (js/terenni-zkouska.js) pošle anonymně JEN model telefonu a čísla (odhad ±m, 95 % GPS, odchylku
+// kompasu, odchylku na známém bodu) — žádnou polohu, žádný účet. Appka pak řekne „iPhone 15:
+// typicky ±2,8 m (37 zkoušek)“. Veřejné čtení (medián a kvartily), zápis s brzdou na IP.
+let _statsMig = false;
+async function ensureStatsSchema(env) {
+    if (_statsMig) return;
+    try {
+        await env.DB.prepare('CREATE TABLE IF NOT EXISTS phone_stats (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, model TEXT NOT NULL, '
+            + 'os TEXT, odhad REAL, r95 REAL, kompas REAL, bod REAL)').run();
+        await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_ps_model ON phone_stats(model)').run();
+    } catch (e) {}
+    _statsMig = true;
+}
+function kvantil(a, q) { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y); const i = (s.length - 1) * q, lo = Math.floor(i), hi = Math.ceil(i); return Math.round((s[lo] + (s[hi] - s[lo]) * (i - lo)) * 10) / 10; }
+function cisloV(v, min, max) { const n = Number(v); return (isFinite(n) && n >= min && n <= max) ? Math.round(n * 100) / 100 : null; }
 async function guardClear(env, key) {
     await env.DB.prepare('DELETE FROM guard WHERE k=?').bind(key).run();
 }
@@ -1568,7 +1584,40 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 29, recovery: true, zaloha: true, mapa: !!env.MAPA, mapaGithub: true, nacrt: true, dgps: true, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 30, recovery: true, zaloha: true, stats: true, mapa: !!env.MAPA, mapaGithub: true, nacrt: true, dgps: true, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+
+            // ---------------- PŘESNOST PODLE MODELU TELEFONU (a1, 25. 9. 2026) — bez přihlášení ----------------
+            if (path === '/stats/phone' || path === '/stats/phones') {
+                await ensureStatsSchema(env);
+                if (req.method === 'POST' && path === '/stats/phone') {
+                    const b = await req.json().catch(() => null) || {};
+                    const model = String(b.model || '').trim().slice(0, 60);
+                    if (model.length < 2 || !/^[\w\s\-\/.,()+áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]+$/.test(model)) return err(400, 'Neplatný model telefonu.');
+                    const odhad = cisloV(b.odhad, 0.1, 200);
+                    if (odhad == null) return err(400, 'Chybí odhad přesnosti.');
+                    const ip = req.headers.get('CF-Connecting-IP') || '0';
+                    if (!await guardHit(env, 'ps:' + ip, 12, 24 * 3600e3)) return err(429, 'Dnes už bylo zkoušek dost.');
+                    await env.DB.prepare('INSERT INTO phone_stats (ts, model, os, odhad, r95, kompas, bod) VALUES (?,?,?,?,?,?,?)')
+                        .bind(Date.now(), model, String(b.os || '').slice(0, 30), odhad, cisloV(b.r95, 0, 500), cisloV(b.kompas, 0, 180), cisloV(b.bod, 0, 500)).run();
+                    return json({ ok: true });
+                }
+                if (req.method === 'GET' && path === '/stats/phone') {
+                    const model = String(url.searchParams.get('model') || '').trim().slice(0, 60);
+                    if (!model) return err(400, 'Chybí model.');
+                    const rows = (await env.DB.prepare('SELECT odhad FROM phone_stats WHERE model=? AND odhad IS NOT NULL ORDER BY id DESC LIMIT 500').bind(model).all()).results || [];
+                    const a = rows.map(r => r.odhad).filter(x => isFinite(x));
+                    return json({ ok: true, model: model, n: a.length, median: a.length >= 3 ? kvantil(a, 0.5) : null, p25: a.length >= 3 ? kvantil(a, 0.25) : null, p75: a.length >= 3 ? kvantil(a, 0.75) : null });
+                }
+                if (req.method === 'GET' && path === '/stats/phones') {
+                    const rows = (await env.DB.prepare('SELECT model, odhad FROM phone_stats WHERE odhad IS NOT NULL ORDER BY id DESC LIMIT 5000').all()).results || [];
+                    const m = {};
+                    rows.forEach(r => { (m[r.model] = m[r.model] || []).push(r.odhad); });
+                    const out = Object.keys(m).filter(k => m[k].length >= 3).map(k => ({ model: k, n: m[k].length, median: kvantil(m[k], 0.5) }))
+                        .sort((x, y) => y.n - x.n).slice(0, 30);
+                    return json({ ok: true, telefony: out });
+                }
+                return err(405, 'Jen GET/POST.');
+            }
 
             // ---------------- VLASTNÍ MAPA: DATA PMTILES Z R2 (16. 9. 2026) ----------------
             // GET/HEAD /mapa/<soubor>.pmtiles → objekt z R2 bucketu (binding MAPA, viz

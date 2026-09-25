@@ -52,6 +52,7 @@ _SABLONA = u"""
   // ZALOHA DO UCTU VYPNUTA (25. 9. 2026): testovaci token je falesny, automatika by volala skutecny
   // server a konzole by hlasila 401 (test_opravy_11_9 I0, test_v316 Z). test_zaloha_ucet si ji zapina sam.
   if (!localStorage.getItem('agZalohaUcet_v1')) localStorage.setItem('agZalohaUcet_v1', JSON.stringify({ vyp: true, nabidnutoTs: Date.now() }));
+  if (!localStorage.getItem('agMojePresnost_v1')) localStorage.setItem('agMojePresnost_v1', JSON.stringify({ sdilet: false }));   // statistika telefonů (a1) — test_moje_presnost si ji zapíná
   localStorage.setItem('agTutProSeen', '1');
   localStorage.setItem('agBrifinkAuto', '0');
   localStorage.setItem('agBrifinkLastShown', new Date().toISOString().slice(0, 10));

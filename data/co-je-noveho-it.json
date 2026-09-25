@@ -2,6 +2,16 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 402,
+      "datum": "2026-09-25",
+      "nadpis": "La mia precisione: dove sbaglia il tuo telefono e come misurano gli altri",
+      "body": [
+        "Nuovo strumento La mia precisione: ogni Punto di controllo e il passo 4 della Prova sul campo salvano l’errore GPS reale nel luogo, sulla mappa come cerchi colorati.",
+        "In Nuovo punto l’app dice come ha misurato qui il telefono secondo il controllo più vicino.",
+        "La Prova sul campo invia in forma anonima solo modello e risultato, senza posizione, e mostra come misurano gli altri con lo stesso telefono."
+      ]
+    },
+    {
       "v": 401,
       "datum": "2026-09-25",
       "nadpis": "Accessibilità: VoiceOver, contrasto e testo fino al 200 %",

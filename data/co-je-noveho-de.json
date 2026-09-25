@@ -2,6 +2,16 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 402,
+      "datum": "2026-09-25",
+      "nadpis": "Meine Genauigkeit: wo dein Telefon danebenliegt und wie andere messen",
+      "body": [
+        "Neues Werkzeug Meine Genauigkeit: jeder Kontrollpunkt und Schritt 4 des Feldtests wird mit dem echten GPS-Fehler am Ort gespeichert, auf der Karte als farbige Kreise.",
+        "Beim Neuen Punkt sagt die App, wie das Telefon hier laut nächster Kontrolle gemessen hat.",
+        "Der Feldtest sendet anonym nur Modell und Ergebnis, ohne Position, und zeigt, wie andere mit demselben Telefon messen."
+      ]
+    },
+    {
       "v": 401,
       "datum": "2026-09-25",
       "nadpis": "Barrierefreiheit: VoiceOver, Kontrast und Schrift bis 200 %",

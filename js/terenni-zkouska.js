@@ -99,7 +99,7 @@
             var r = rozbor(body);
             if (!r) { vysledek(el, { st: 'bad', tx: t('Nepřišel žádný fix.') }); return; }
             var d = vzd(r.stred, nb.p), a = mistni(r.stred.lat, r.stred.lng), c = mistni(nb.p.lat, nb.p.lng);
-            V.bod = { name: nb.p.name, d: d, dy: a && c ? a.y - c.y : null, dx: a && c ? a.x - c.x : null };
+            V.bod = { name: nb.p.name, d: d, dy: a && c ? a.y - c.y : null, dx: a && c ? a.x - c.x : null, lat: nb.p.lat, lng: nb.p.lng };   // poloha bodu → mapa tvé přesnosti (js/moje-presnost.js)
             vysledek(el, { st: d <= 3 ? 'ok' : d <= 6 ? 'warn' : 'bad', tx: t('Na bodu') + ' ' + (nb.p.name || '') + ' ' + t('ukazuje GPS') + ' ' + cz(d) + ' m ' + t('vedle')
                 + (V.bod.dy != null ? ' (ΔY ' + cz(V.bod.dy, 2) + ' m, ΔX ' + cz(V.bod.dx, 2) + ' m)' : '') });
             souhrn();
@@ -132,6 +132,8 @@
         box.hidden = false;
         box.querySelector('b').textContent = t('Tvůj telefon měří na') + ' ±' + cz(o) + ' m';
         box.querySelector('span').textContent = o <= 3 ? t('Na dohledání bodů výborné — hledej v kruhu ±3 m.') : o <= 6 ? t('Na dohledání bodů dobré — hledej v kruhu kolem značky, pomůže Přesná GPS.') : t('Slabší — zkus volné nebe, Přesnou GPS nebo korekci z mapy; na centimetry je potřeba RTK.');
+        // 25. 9. 2026 (a1/a2): výsledek anonymně do statistiky telefonů + srovnání s ostatními; 4. krok do mapy přesnosti
+        try { var mp = function () { if (window.AGMojePresnost) AGMojePresnost.zkouska(V, o, box); }; if (window.AGMojePresnost) mp(); else if (window.AGLazy && AGLazy.need) AGLazy.need('js/moje-presnost.js', mp); } catch (e) { swallow(e, 'moje-presnost'); }
         try { localStorage.setItem(LS, JSON.stringify({ ts: Date.now(), gps: V.gps && { r95: V.gps.r95, acc: V.gps.acc, n: V.gps.n }, kompas: V.kompas, fov: V.fov, bod: V.bod, odhad: o })); } catch (e) { swallow(e, 'ls'); }
     }
 
