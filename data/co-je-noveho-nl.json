@@ -2,6 +2,16 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 397,
+      "datum": "2026-09-25",
+      "nadpis": "Toti is groter en kletst mee terwijl je werkt",
+      "body": [
+        "Toti woont nu ook op het hoofdscherm (linksonder). Tik erop: hij stelt een quizvraag, legt een begrip uit of vertelt wat de app kan. De quiz houdt de score bij.",
+        "Hij geeft commentaar op wat je doet: opgeslagen, verwijderde en geïmporteerde punten, mijlpalen, de geopende tool, wisselen kaart ↔ camera, gps-nauwkeurigheid, geen bereik en een bijna lege accu.",
+        "In de instellingen van Toti (⋯): spraakzaamheid, uitzetten op het hoofdscherm en optioneel een stem met laserpiep."
+      ]
+    },
+    {
       "v": 396,
       "datum": "2026-09-24",
       "nadpis": "Coördinaten op de millimeter en punten direct uit pdf",

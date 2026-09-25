@@ -2,6 +2,16 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 397,
+      "datum": "2026-09-25",
+      "nadpis": "O Toti está maior e conversa enquanto trabalhas",
+      "body": [
+        "O Toti vive agora também no ecrã principal (em baixo à esquerda). Toca-lhe: faz-te uma pergunta de quiz, explica um termo ou diz-te o que a app sabe fazer. O quiz conta a pontuação.",
+        "Comenta o que fazes: pontos guardados, apagados e importados, marcos, a ferramenta que abres, a troca mapa ↔ câmara, a precisão GPS, a falta de rede e a bateria fraca.",
+        "Nas definições do Toti (⋯): tagarelice, desligá-lo no ecrã principal e voz opcional com apito do laser."
+      ]
+    },
+    {
       "v": 396,
       "datum": "2026-09-24",
       "nadpis": "Coordenadas ao milímetro e pontos diretamente de PDF",

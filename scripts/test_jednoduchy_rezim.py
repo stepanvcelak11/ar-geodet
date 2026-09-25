@@ -232,13 +232,15 @@ async def test_provoz(ctx):
     await page.wait_for_timeout(900)
     st = await page.evaluate("""() => {
         const p = persistentCustomPoints.find(q => q.name === 'JR2');
-        const c = sjtskToLatLng(742000, 1043000);
-        return { je: !!p, dlat: p ? Math.abs(p.lat - c.lat) : null, dlng: p ? Math.abs(p.lng - c.lng) : null,
+        // 25. 9. 2026: zpětný převod se zpřesňuje (mistniToLatLng, Newton) — kontroluje se, že bod
+        // převedený ZPĚT leží na zadaném Y/X (pod 1 mm), ne shoda s nezpřesněným sjtskToLatLng
+        const c = p ? agMistni(p.lat, p.lng) : null;
+        return { je: !!p, dy: c ? Math.abs(c.y - 742000) : null, dx: c ? Math.abs(c.x - 1043000) : null,
                  origin: p && p.prov && p.prov.origin };
     }""")
     ok('rucne zadany bod je v zakazce', st['je'], st)
     ok('rucny bod lezi presne na zadanem Y/X',
-       st['je'] and st['dlat'] < 1e-9 and st['dlng'] < 1e-9, st)
+       st['je'] and st['dy'] < 0.001 and st['dx'] < 0.001, st)
     ok('rucny bod ma provenienci "ruc"', st['origin'] == 'ruc', st['origin'])
 
     # --- H) body se nesmi zaspinit pomocnymi poli ze seznamu

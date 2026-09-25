@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 397,
+   "datum": "2026-09-25",
+   "nadpis": "Toti je větší a kecá ti do práce",
+   "body": [
+    "Toti teď bydlí i na hlavní obrazovce (vlevo dole). Klepni na něj: zeptá se tě kvízovou otázkou, vysvětlí pojem nebo poradí, co appka umí. Kvíz počítá skóre.",
+    "Komentuje, co děláš: uložený, smazaný a importovaný bod, milníky (10, 25, 50… bodů), otevřený nástroj, přepnutí mapa ↔ kamera, přesnost GPS, výpadek signálu, slabou baterii. Ráno pozdraví, po chvíli nečinnosti nabídne otázku.",
+    "V nastavení Totiho (⋯) je upovídanost (jen když klepnu / občas / ukecaný), vypnutí na hlavní obrazovce a volitelně hlas: hlášky čte nahlas a laser pípá."
+   ]
+  },
+  {
    "v": 396,
    "datum": "2026-09-24",
    "nadpis": "Souřadnice na milimetry a body přímo z PDF",

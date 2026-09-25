@@ -46,6 +46,9 @@ _SABLONA = u"""
   // bezna uzivatelska volba (karta Mapa → rastr), zadna zadni vratka; testy mapy si klic
   // prepisuji az PO tomhle bootu (test_mapa_vektor, test_v347, test_v360).
   localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' }));
+  // PLOVOUCI TOTI VYPNUTY (25. 9. 2026): na hlavni obrazovce by po startu pozdravil bublinou vlevo dole
+  // a mohl zakryt, na co test klika. Test maskota si ho zapina sam (test_maskot).
+  if (!localStorage.getItem('agMaskot_v1')) localStorage.setItem('agMaskot_v1', JSON.stringify({ spolecnik: false }));
   localStorage.setItem('agTutProSeen', '1');
   localStorage.setItem('agBrifinkAuto', '0');
   localStorage.setItem('agBrifinkLastShown', new Date().toISOString().slice(0, 10));

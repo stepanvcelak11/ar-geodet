@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 397,
+      "datum": "2026-09-25",
+      "nadpis": "Toti is bigger and chats while you work",
+      "body": [
+        "Toti now also lives on the main screen (bottom left). Tap him: he asks you a quiz question, explains a term or tells you what the app can do. The quiz keeps score.",
+        "He comments on what you do: saved, deleted and imported points, milestones (10, 25, 50… points), the tool you open, switching map ↔ camera, GPS accuracy, lost signal, low battery. He says good morning and offers a question when nothing happens for a while.",
+        "Toti settings (⋯) have chattiness (only when I tap / sometimes / chatty), turning him off on the main screen and an optional voice: he reads his lines out loud and the laser beeps."
+      ]
+    },
+    {
       "v": 396,
       "datum": "2026-09-24",
       "nadpis": "Coordinates to the millimetre and points straight from a PDF",

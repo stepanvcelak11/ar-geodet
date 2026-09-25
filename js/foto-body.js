@@ -709,6 +709,6 @@
     window.AGFotoBody = {
         open: open,
         // pro testy a jiné moduly
-        _test: { des: des, zpracujPdf: zpracujPdf, pdfRadky: pdfRadky, stav: function () { return stav; }, pripravOffline: pripravOffline, ocrPripraveno: ocrPripraveno, prehled: function (body, fotky, texty) { stav = { body: body, fotky: fotky || [], texty: texty || [''] }; prehled(); }, textNaBody: textNaBody, radekNaBod: radekNaBod, tokeny: tokeny, priprav: priprav, prectiFotku: prectiFotku, zpracuj: zpracuj, stav: function () { return stav; } }
+        _test: { des: des, zpracujPdf: zpracujPdf, pdfRadky: pdfRadky, pripravOffline: pripravOffline, ocrPripraveno: ocrPripraveno, prehled: function (body, fotky, texty) { stav = { body: body, fotky: fotky || [], texty: texty || [''] }; prehled(); }, textNaBody: textNaBody, radekNaBod: radekNaBod, tokeny: tokeny, priprav: priprav, prectiFotku: prectiFotku, zpracuj: zpracuj, stav: function () { return stav; } }
     };
 })();

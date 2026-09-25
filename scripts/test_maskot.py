@@ -61,6 +61,9 @@ async def beh(url, lang):
         await page.add_init_script(init)
         await page.goto(url, wait_until='domcontentloaded', timeout=90000)
         await V.cekej(page, "document.body.classList.contains('app-started')", 60)
+        # maskot je ag/lazy — na vytíženém stroji se fronta rozjede až po desítkách sekund; počkat na něj
+        await page.evaluate("() => new Promise(r => AGLazy.need('js/maskot.js', r))")
+        await V.cekej(page, "!!window.AGMaskot", 120)
 
         if lang == 'cs':
             # ---- parser ----
@@ -74,7 +77,7 @@ async def beh(url, lang):
 
         # ---- Poznávačka ----
         await otevri(page, 'poznavacka')
-        ok('A1 [%s] Poznávačka: maskot nad otázkou s úvodní hláškou' % lang, await V.cekej(page, "(() => { const m = document.querySelector('#ag-pz-modal .ag-maskot'); return m && m.getClientRects().length && (m.querySelector('.mk-text').textContent || '').length > 5; })()", 15))
+        ok('A1 [%s] Poznávačka: maskot nad otázkou s úvodní hláškou' % lang, await V.cekej(page, "(() => { const m = document.querySelector('#ag-pz-modal .ag-maskot'); return m && m.getClientRects().length && (m.querySelector('.mk-text').textContent || '').length > 5; })()", 40))
         await page.wait_for_timeout(2500)
         m0 = await page.evaluate(VIDITELNY, '#ag-pz-modal .ag-maskot')
         await shot(page, lang + '_poznavacka_uvod')
@@ -101,12 +104,67 @@ async def beh(url, lang):
         # ---- Cvičné úlohy, Odhadni to, Geo kartičky ----
         for k, sel, nm in [('cvicne-ulohy', '#ag-ul-modal .ag-maskot', 'B1'), ('odhadovacka', '#odhad-modal .ag-maskot', 'B2'), ('scroll-uceni', '#agsu .ag-maskot.mk-roh', 'B3')]:
             await otevri(page, k)
-            hotovo = await V.cekej(page, "(() => { const m = document.querySelector(%s); return m && m.getClientRects().length > 0; })()" % json.dumps(sel), 15)
+            hotovo = await V.cekej(page, "(() => { const m = document.querySelector(%s); return m && m.getClientRects().length > 0; })()" % json.dumps(sel), 40)
             await page.wait_for_timeout(1500)
             await shot(page, lang + '_' + k)
             ok('%s [%s] maskot v nástroji %s' % (nm, lang, k), hotovo)
 
         if lang == 'cs':
+            # ---- TOTI 2: plovoucí společník na hlavní obrazovce (25. 9. 2026) ----
+            await page.evaluate("() => { document.querySelectorAll('.modal-overlay').forEach(m => { m.style.display = 'none'; m.classList.remove('ag-open'); }); const su = document.getElementById('agsu'); if (su) su.style.display = 'none'; }")
+            await page.evaluate("""() => { const s = JSON.parse(localStorage.getItem('agMaskot_v1') || '{}'); s.spolecnik = true; s.ukecanost = 'ukecany'; s.zap = true;
+                localStorage.setItem('agMaskot_v1', JSON.stringify(s)); AGMaskot._test.plovak(); AGMaskot._test.hlidej(); AGMaskot._test.reset(); }""")
+            await page.wait_for_timeout(2500)
+            pv = await page.evaluate("""() => { const p = document.getElementById('ag-maskot-plovak'); if (!p) return null; const b = p.querySelector('.mk-btn').getBoundingClientRect();
+                return { skryt: p.classList.contains('mk-skryt'), w: Math.round(b.width), h: Math.round(b.height), x: Math.round(b.left), dole: Math.round(innerHeight - b.bottom) }; }""")
+            await shot(page, 'cs_plovak')
+            ok('T1 plovoucí Toti na hlavní obrazovce, větší (78×95), vlevo dole', pv and not pv['skryt'] and pv['w'] >= 76 and pv['h'] >= 92 and pv['x'] < 30 and pv['dole'] < 80, pv)
+            await page.evaluate("() => document.querySelector('#ag-maskot-plovak .mk-btn').click()")
+            await page.wait_for_timeout(600)
+            menu = await page.evaluate("() => [...document.querySelectorAll('#ag-maskot-plovak .mk-akce button')].map(b => b.textContent)")
+            await shot(page, 'cs_plovak_menu')
+            ok('T2 klepnutí = nabídka Zeptej se mě / Vysvětli pojem / Poraď / ⋯', menu[:3] == ['Zeptej se mě', 'Vysvětli pojem', 'Poraď'], menu)
+            await page.evaluate("() => document.querySelector('#ag-maskot-plovak .mk-akce button').click()")
+            await page.wait_for_timeout(2500)
+            q = await page.evaluate("() => ({ t: document.querySelector('#ag-maskot-plovak .mk-text').textContent, m: [...document.querySelectorAll('#ag-maskot-plovak .mk-akce button')].map(b => b.textContent) })")
+            await shot(page, 'cs_plovak_kviz')
+            ok('T3 kvíz: otázka z definice pojmu + 3 možnosti', '„' in q['t'] and len(q['m']) == 3, q)
+            spravna = await page.evaluate("""() => { const txt = document.querySelector('#ag-maskot-plovak .mk-text').textContent;
+                const dict = window.agGeoDict || []; const b = [...document.querySelectorAll('#ag-maskot-plovak .mk-akce button')];
+                const hit = b.find(x => { const p = dict.find(d => d.t === x.textContent); return p && txt.indexOf(p.d.replace(/\\s+/g, ' ').trim().slice(0, 25).replace(new RegExp(p.t.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&'), 'gi'), '…')) >= 0; });
+                (hit || b[0]).click(); return !!hit; }""")
+            await page.wait_for_timeout(1500)
+            po = await page.evaluate("() => ({ cls: document.getElementById('ag-maskot-plovak').className, sk: (document.querySelector('#ag-maskot-plovak .mk-skore') || {}).textContent || '', b: [...document.querySelectorAll('#ag-maskot-plovak .mk-akce button')].map(b => b.textContent) })")
+            await shot(page, 'cs_plovak_odpoved')
+            ok('T4 odpověď: nálada + skóre „Kvíz: x / 1“ + Další otázka', ('mk-radost' in po['cls'] or 'mk-smutek' in po['cls']) and '/ 1' in po['sk'] and 'Další otázka' in po['b'], (spravna, po))
+            await page.evaluate("() => AGMaskot.vysvetli()")
+            await page.wait_for_timeout(2500)
+            vy = await page.evaluate("() => ({ t: document.querySelector('#ag-maskot-plovak .mk-text').textContent, b: [...document.querySelectorAll('#ag-maskot-plovak .mk-akce button')].map(b => b.textContent) })")
+            ok('T5 Vysvětli pojem: pojem s definicí + Další pojem', ':' in vy['t'] and len(vy['t']) > 40 and 'Další pojem' in vy['b'], vy)
+            # komentář k uložení bodu
+            await page.evaluate("() => AGMaskot._test.reset()")
+            pred = await page.evaluate("() => document.querySelector('#ag-maskot-plovak .mk-text').textContent")
+            await page.evaluate("""() => { const ll = mistniToLatLng(743300.5, 1042200.25); window.addImportedPoints([{ name: 'KOM-1', lat: ll.lat, lng: ll.lng, origin: 'import' }]); }""")
+            await page.wait_for_timeout(2600)
+            kom = await page.evaluate("() => ({ t: document.querySelector('#ag-maskot-plovak .mk-text').textContent, cls: document.getElementById('ag-maskot-plovak').className })")
+            await shot(page, 'cs_plovak_bod')
+            ok('T6 uložení bodu → Toti to okomentuje', kom['t'] != pred and len(kom['t']) > 5 and 'mk-ticho' not in kom['cls'], kom)
+            # pod otevřeným oknem se schová
+            await page.evaluate("() => openSettings()")
+            await page.wait_for_timeout(2600)
+            ok('T7 otevřené okno (Nastavení) → plovák schovaný', await page.evaluate("() => document.getElementById('ag-maskot-plovak').classList.contains('mk-skryt')"))
+            await page.evaluate("() => { const s = document.getElementById('settings-modal'); s.style.display = 'none'; s.classList.remove('ag-open'); }")
+            await page.wait_for_timeout(2600)
+            ok('T8 okno zavřené → plovák zpátky', await page.evaluate("() => !document.getElementById('ag-maskot-plovak').classList.contains('mk-skryt')"))
+            # tichý režim: bez klepnutí mlčí
+            tichy = await page.evaluate("""() => { const s = JSON.parse(localStorage.getItem('agMaskot_v1')); s.ukecanost = 'tichy'; localStorage.setItem('agMaskot_v1', JSON.stringify(s)); AGMaskot._test.reset();
+                const r = AGMaskot.komentuj('bod_ulozen', { bod: 'X' }); s.ukecanost = 'ukecany'; localStorage.setItem('agMaskot_v1', JSON.stringify(s)); return r; }""")
+            ok('T9 upovídanost „Jen když na něj klepnu“ → sám nekomentuje', tichy is False)
+            # hlas (f5): speechSynthesis se zavolá s textem bubliny
+            hl = await page.evaluate("""() => { const s = JSON.parse(localStorage.getItem('agMaskot_v1')); s.hlas = true; localStorage.setItem('agMaskot_v1', JSON.stringify(s));
+                window.__rec = []; if (window.speechSynthesis) { speechSynthesis.speak = (u) => window.__rec.push({ t: u.text, l: u.lang }); } AGMaskot._test.reset();
+                AGMaskot.komentuj('online', null, { vzdy: true }); s.hlas = false; localStorage.setItem('agMaskot_v1', JSON.stringify(s)); return window.__rec; }""")
+            ok('T10 „Mluví nahlas“: hláška jde do hlasu telefonu v jazyce appky', hl and hl[0]['t'] and hl[0]['l'] == 'cs-CZ', hl)
             # ---- panel ----
             await page.evaluate("() => { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); const su = document.getElementById('agsu'); if (su) su.style.display = 'none'; }")
             await otevri(page, 'poznavacka')

@@ -186,7 +186,7 @@
         if (!_orientId) { if (!msg) msg = 'Vyber orientaci — druhý známý bod, na který zaměříš.'; ok = false; }
         if (_stId && _orientId && _stId !== '__gps__' && _stId === _orientId) { msg = 'Orientace musí být JINÝ bod než stanovisko.'; ok = false; }
         if (!(_dist > 0)) { if (!msg) msg = 'Zadej vodorovnou délku na cíl (pásmo/dálkoměr).'; ok = false; }
-        w.innerHTML = msg;
+        if (w._msg !== msg) { w.innerHTML = msg; w._msg = msg; }   // jen při změně — jinak v cizím jazyce problikne česky (25. 9. 2026)
         if (btn) btn.disabled = !ok;
     }
 

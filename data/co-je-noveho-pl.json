@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 397,
+      "datum": "2026-09-25",
+      "nadpis": "Toti jest większy i gada podczas pracy",
+      "body": [
+        "Toti mieszka teraz też na ekranie głównym (lewy dół). Stuknij go: zada pytanie quizowe, wyjaśni pojęcie albo podpowie, co umie aplikacja. Quiz liczy wynik.",
+        "Komentuje, co robisz: zapisane, usunięte i zaimportowane punkty, kamienie milowe, otwarte narzędzie, przełączenie mapa ↔ kamera, dokładność GPS, brak zasięgu, słabą baterię.",
+        "W ustawieniach Totiego (⋯): gadatliwość, wyłączenie na ekranie głównym i opcjonalnie głos z piknięciem lasera."
+      ]
+    },
+    {
       "v": 396,
       "datum": "2026-09-24",
       "nadpis": "Współrzędne z dokładnością do milimetra i punkty prosto z PDF",

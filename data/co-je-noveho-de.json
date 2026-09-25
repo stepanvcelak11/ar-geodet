@@ -2,6 +2,16 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 397,
+      "datum": "2026-09-25",
+      "nadpis": "Toti ist größer und redet bei der Arbeit mit",
+      "body": [
+        "Toti wohnt jetzt auch auf dem Hauptbildschirm (unten links). Tippe ihn an: Er stellt eine Quizfrage, erklärt einen Begriff oder verrät, was die App kann. Das Quiz zählt Punkte.",
+        "Er kommentiert, was du tust: gespeicherte, gelöschte und importierte Punkte, Meilensteine, das geöffnete Werkzeug, Wechsel Karte ↔ Kamera, GPS-Genauigkeit, fehlenden Empfang, schwachen Akku.",
+        "In Totis Einstellungen (⋯): Gesprächigkeit, Ausschalten auf dem Hauptbildschirm und optional Stimme mit Laser-Piepton."
+      ]
+    },
+    {
       "v": 396,
       "datum": "2026-09-24",
       "nadpis": "Koordinaten auf den Millimeter und Punkte direkt aus PDF",

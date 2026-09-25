@@ -259,7 +259,7 @@
             if (Object.keys(sids).length < 2) { msg = 'Stanoviska musí být aspoň dvě různá místa.'; ok = false; }
             filled.forEach(function (s) { if (s.stId === s.orientId) { msg = 'Na stanovisku se orientuj na JINÝ bod, než na kterém stojíš.'; ok = false; } });
         }
-        w.innerHTML = msg;
+        if (w._msg !== msg) { w.innerHTML = msg; w._msg = msg; }   // jen při změně — jinak v cizím jazyce problikne česky (25. 9. 2026)
         if (btn) btn.disabled = !ok;
     }
 

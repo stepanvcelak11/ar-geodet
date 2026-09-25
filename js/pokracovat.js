@@ -99,10 +99,13 @@
         if (!rec) { AGNotify.clear('pokracovat'); return; }
         var pn = (rec.pid !== pid()) ? projName(rec.pid) : null;
         if (rec.pid !== pid() && !pn) { AGNotify.clear('pokracovat'); return; }   // zakázka už neexistuje
+        var txt = 'Naposledy jsi měl otevřené: ' + rec.label + ' (' + (pn ? 'zakázka ' + pn + ' · ' : '') + relAge(rec.ts) + ')';
+        // jen při změně (25. 9. 2026): dřív se lišta přepisovala každé 2 s a v cizím jazyce na chvíli problikla česky
+        if (txt === refreshBtn._txt && AGNotify.has && AGNotify.has('pokracovat')) return;
+        refreshBtn._txt = txt;
         AGNotify.set('pokracovat', {
             level: 'info', order: 40,
-            text: 'Naposledy jsi měl otevřené: ' + rec.label
-                + ' (' + (pn ? 'zakázka ' + pn + ' · ' : '') + relAge(rec.ts) + ')',
+            text: txt,
             short: 'Pokračovat: ' + rec.label,       // do pilulky (celá věta se tam uřízla)
             action: 'Otevřít',
             onAction: function () { _done = true; AGNotify.clear('pokracovat'); resume(); },
