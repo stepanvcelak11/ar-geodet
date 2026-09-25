@@ -46,7 +46,7 @@ def staticke():
     ok('R1s openNewPointModal spouští agAutoGpsStart', 'agAutoGpsStart();' in g and "closeCustomModal() { document.getElementById('custom-modal-overlay').style.display = 'none'; try { agAutoGpsStop(); }" in g)
     ok('R2s poloměr klepnutí 28 px / rukavice 34 px', "document.body.classList.contains('ag-glove') ? 34 : 28" in g and 'pixelDist <= _tapR' in g)
     w = src('cloud/worker.js')
-    ok('R3s worker: /account/recover + /account/recovery + recovery v /register', "path === '/account/recover'" in w and "path === '/account/recovery'" in w and 'recovery: recovery,' in w and 'v: 28' in w)
+    ok('R3s worker: /account/recover + /account/recovery + recovery v /register', "path === '/account/recover'" in w and "path === '/account/recovery'" in w and 'recovery: recovery,' in w and int((__import__('re').search(r'/health.*?v: (\d+)', w) or [0, 0])[1]) >= 28)   # 25. 9.: worker v29 (záloha do účtu)
     u = src('js/ucty.js')
     ok('R3s ucty.js: brána má „Zapomenuté heslo? Mám obnovovací kód“ a už netvrdí, že heslo nejde obnovit', 'id="agg-forgot">Zapomenuté heslo? Mám obnovovací kód' in u and 'Heslo proto nejde obnovit' not in u)
     ok('R3s O aplikaci: tlačítko Obnovovací kód', 'AGUcty.obnovovaciKod()' in src('index.html'))
