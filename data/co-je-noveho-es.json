@@ -2,6 +2,16 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 400,
+      "datum": "2026-09-25",
+      "nadpis": "Ruta de aprendizaje al estilo Duolingo y Toti como guía",
+      "body": [
+        "Nueva herramienta Ruta de aprendizaje (Herramientas → Ayudas): 18 lecciones cortas en cinco temas. Se desbloquean una tras otra; cada una da puntos y una sin errores, una corona.",
+        "Objetivo diario (1–3 lecciones) y racha de días seguidos. Toti te anima y por la tarde te avisa si la racha va a romperse.",
+        "La guía de la primera medición ahora la dirige Toti."
+      ]
+    },
+    {
       "v": 399,
       "datum": "2026-09-25",
       "nadpis": "Pequeñas correcciones de traducción",

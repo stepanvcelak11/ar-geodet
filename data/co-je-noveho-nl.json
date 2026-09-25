@@ -2,6 +2,16 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 400,
+      "datum": "2026-09-25",
+      "nadpis": "Leerpad zoals Duolingo en Toti als gids",
+      "body": [
+        "Nieuwe tool Leerpad (Tools → Hulpmiddelen): 18 korte lessen in vijf onderwerpen. Ze worden een voor een ontgrendeld; elke les geeft punten, een foutloze een kroon.",
+        "Dagdoel (1–3 lessen) en een reeks dagen op rij. Toti moedigt aan en herinnert je ’s avonds als de reeks dreigt te breken.",
+        "De gids voor de eerste meting wordt nu door Toti geleid."
+      ]
+    },
+    {
       "v": 399,
       "datum": "2026-09-25",
       "nadpis": "Kleine vertaalcorrecties",

@@ -265,6 +265,12 @@
         // definuje globály; zvenku je otevírá jen student-start.js přes `open` níž.
         // (chybovy-rozpocet zůstává v ag/lazy — otevírá ho stavový pruh přes AGLazy.need.)
         {
+            // CESTA UČENÍ (25. 9. 2026, f3): lekce po tématech, denní cíl, série dnů, Toti
+            id: 'cesta-uceni', src: 'js/cesta-uceni.js', label: 'Cesta učení', cat: 'Pomůcky', order: 1,
+            open: 'agOpenCesta',
+            icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7"/></svg>'
+        },
+        {
             id: 'poznavacka', src: 'js/poznavacka.js', label: 'Poznávačka bodů', cat: 'Pomůcky', order: 5,
             open: 'agOpenPoznavacka',
             icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21h6"/><path d="M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/><path d="M12 8v3M10.5 9.5h3"/></svg>'

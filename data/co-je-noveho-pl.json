@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 400,
+      "datum": "2026-09-25",
+      "nadpis": "Ścieżka nauki jak w Duolingo i Toti jako przewodnik",
+      "body": [
+        "Nowe narzędzie Ścieżka nauki (Narzędzia → Pomoce): 18 krótkich lekcji w pięciu tematach. Lekcje odblokowują się po kolei, za każdą są punkty, za bezbłędną korona.",
+        "Dzienny cel (1–3 lekcje) i seria dni z rzędu. Toti kibicuje i wieczorem przypomni, gdyby seria miała się przerwać.",
+        "Przewodnika pierwszego pomiaru prowadzi teraz Toti."
+      ]
+    },
+    {
       "v": 399,
       "datum": "2026-09-25",
       "nadpis": "Drobne poprawki tłumaczeń",

@@ -84,6 +84,9 @@
             'body.light-mode #' + ID + '{background:#fff;border-color:rgba(15,23,42,0.18);box-shadow:0 10px 30px rgba(15,23,42,.22);}',
             'body.left-hand #' + ID + '{left:calc(env(safe-area-inset-left,0px) + 100px);right:max(10px,env(safe-area-inset-right,0px));}',
             '#' + ID + ' .pm-h{display:flex;align-items:center;gap:8px;margin-bottom:8px;}',
+            '#' + ID + ' .pm-toti .ag-maskot{margin:0 0 6px;}',
+            '#' + ID + '.pm-mini .pm-toti{display:none;}',
+            '#' + ID + '.pm-s-totim .pm-i.now .pm-t small{display:none;}',
             '#' + ID + ' .pm-h b{font-size:calc(14px * var(--ag-font-scale,1));flex:1;}',
             '#' + ID + ' .pm-h small{color:var(--text-muted,#9aa1ac);font-size:calc(11.5px * var(--ag-font-scale,1));}',
             '#' + ID + ' .pm-x{width:34px;height:34px;border-radius:50%;border:1px solid var(--glass-border,rgba(255,255,255,0.18));background:transparent;color:inherit;font-size:18px;line-height:1;cursor:pointer;}',
@@ -154,6 +157,10 @@
         d.id = ID;
         d.setAttribute('role', 'dialog');
         d.setAttribute('aria-label', t('Průvodce prvním měřením'));
+        // TOTI PRŮVODCEM (25. 9. 2026, 7. hodnocení f4): nahoře v panelu sedí maskot (js/maskot.js),
+        // radu ke kroku řekne v bublině, splněný krok pochválí, konec oslaví. Obsah panelu se
+        // překresluje do .pm-obsah, ať Toti nezmizí s každým krokem.
+        d.innerHTML = '<div class="pm-toti"></div><div class="pm-obsah"></div>';
         document.body.appendChild(d);
         d.addEventListener('click', function (e) {
             var b = e.target.closest ? e.target.closest('button[data-a]') : null;
@@ -179,13 +186,14 @@
         if (i >= KROKY.length) { _st.hotovo = true; lsSet(_st); }
         else lsSet(_st);
         render();
+        totiKrok();
     }
     function render() {
         var d = build();
         if (!_st) return;
         if (_st.hotovo) {
             d.classList.add('pm-done');
-            d.innerHTML = '<div class="pm-h"><b>' + t('Máš za sebou první měření') + '</b></div>' +
+            obsah(d).innerHTML = '<div class="pm-h"><b>' + t('Máš za sebou první měření') + '</b></div>' +
                 '<div class="pm-fin">' + t('Bod uložený, karta otevřená, navigace vyzkoušená — přesně tohle děláš v terénu. Další nástroje najdeš pod tlačítkem Nástroje, návod ke každému pod „?".') + '</div>' +
                 '<div class="pm-f"><button type="button" class="hl" data-a="fin">' + t('Hotovo, jdu měřit') + '</button></div>';
             return;
@@ -200,7 +208,26 @@
                 '<span class="pm-t">' + esc(t(s.t)) + (now ? '<small>' + esc(t(s.rada)) + '</small>' : '') + '</span></div>';
         });
         h += '</div><div class="pm-f"><button type="button" data-a="skip">' + t('Přeskočit krok') + '</button></div>';
-        d.innerHTML = h;
+        obsah(d).innerHTML = h;
+    }
+    function obsah(d) { var o = d.querySelector('.pm-obsah'); if (!o) { d.innerHTML = '<div class="pm-toti"></div><div class="pm-obsah"></div>'; o = d.querySelector('.pm-obsah'); } return o; }
+    // ---- Toti ----
+    var _totiEl = null, _mluvilKrok = -1;
+    function toti(fn) {
+        var go = function () {
+            var d = el(), h = d && d.querySelector('.pm-toti'); if (!h || !window.AGMaskot) return;
+            if (!_totiEl || !_totiEl.isConnected) { _totiEl = AGMaskot.pripoj(h, { rekni: false }); if (_totiEl) { _totiEl.classList.add('mk-mini'); d.classList.add('pm-s-totim'); } }
+            if (_totiEl) try { fn(AGMaskot, _totiEl); } catch (e) { swallow(e, 'toti'); }
+        };
+        if (window.AGMaskot) go(); else if (window.AGLazy && AGLazy.need) AGLazy.need('js/maskot.js', go);
+    }
+    function totiKrok() {
+        if (!_st) return;
+        if (_st.hotovo) { toti(function (M, m) { M.rekniKat(m, 'pruvodce_konec', null, 'radost'); }); return; }
+        if (_mluvilKrok === _st.krok) return;
+        _mluvilKrok = _st.krok;
+        var kr = KROKY[_st.krok];
+        toti(function (M, m) { M.rekniText(m, t(kr.t) + ': ' + t(kr.rada), 'mluvi'); });
     }
 
     // hlídání: každých 600 ms se podívej, jestli aktuální krok není hotový
@@ -235,6 +262,7 @@
             // odškrtnout HNED (ať je to vidět) a posunout se až za chvíli — jinak kroky, které
             // jsou splněné už při startu (poloha, přesnost), přeskočí bez jediného mrknutí
             oznacHotovo(kr.k, false);
+            toti(function (M, m) { M.rekniKat(m, 'pruvodce_hotovo', null, 'radost'); });
             var dd = el(), row = dd && dd.querySelectorAll('.pm-i')[_st.krok];
             if (row) { row.classList.add('done'); row.classList.remove('now'); var nn = row.querySelector('.pm-n'); if (nn) nn.textContent = '✓'; }
             _pauza = Date.now() + 900;
@@ -259,7 +287,7 @@
         return true;
     }
     function close(dokonceno) {
-        _open = false;
+        _open = false; _totiEl = null; _mluvilKrok = -1;
         var d = el(); if (d) d.remove();
         var r = document.getElementById('ag-pm-ring'); if (r) r.remove();
         if (_st) { if (dokonceno) _st.hotovo = true; _st.zavreno = Date.now(); lsSet(_st); }

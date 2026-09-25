@@ -86,7 +86,7 @@ async def beh(url):
         klice = await page.evaluate("() => { for (let i = 0; i < 3; i++) document.querySelectorAll('#tools-modal .ag-uk-i[aria-expanded=\"false\"]').forEach(h => h.click()); return [...new Set([...document.querySelectorAll('#tools-modal .ag-uk-i[data-k]')].map(e => e.getAttribute('data-k')))]; }")
         ok('A2 v panelu Nástroje je aspoň 40 nástrojů', len(klice) >= 40, len(klice))
         for k in klice:
-            await page.evaluate("() => { document.querySelectorAll('#ag-fb-volba, #ag-fb').forEach(e => e.remove()); document.querySelectorAll('.ag-dlg-overlay').forEach(e => e.remove()); document.querySelectorAll('.modal-overlay').forEach(m => { if (m.id !== 'tools-modal' && getComputedStyle(m).display !== 'none') m.style.display = 'none'; }); }")
+            await page.evaluate("() => { document.querySelectorAll('#ag-fb-volba, #ag-fb').forEach(e => e.remove()); ['ag-cu', 'agsu', 'ag-mk-panel'].forEach(id => { const e = document.getElementById(id); if (e) e.style.display = 'none'; }); document.querySelectorAll('.ag-dlg-overlay').forEach(e => e.remove()); document.querySelectorAll('.modal-overlay').forEach(m => { if (m.id !== 'tools-modal' && getComputedStyle(m).display !== 'none') m.style.display = 'none'; }); }")
             await page.evaluate("() => document.getElementById('dock-nastroje-btn').click()")
             await page.wait_for_timeout(700)
             await page.evaluate("(k) => { for (let i = 0; i < 3; i++) document.querySelectorAll('#tools-modal .ag-uk-i[aria-expanded=\"false\"]').forEach(h => h.click()); const r = document.querySelector('#tools-modal .ag-uk-i[data-k=\"' + k + '\"]'); if (r) { r.scrollIntoView(); r.click(); } }", k)

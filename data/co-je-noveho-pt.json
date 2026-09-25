@@ -2,6 +2,16 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 400,
+      "datum": "2026-09-25",
+      "nadpis": "Percurso de aprendizagem ao estilo Duolingo e o Toti como guia",
+      "body": [
+        "Nova ferramenta Percurso de aprendizagem (Ferramentas → Auxiliares): 18 lições curtas em cinco temas. Desbloqueiam-se uma a uma; cada uma dá pontos e uma sem erros, uma coroa.",
+        "Objetivo diário (1–3 lições) e série de dias seguidos. O Toti torce por ti e à noite lembra-te se a série estiver para se quebrar.",
+        "O guia da primeira medição é agora conduzido pelo Toti."
+      ]
+    },
+    {
       "v": 399,
       "datum": "2026-09-25",
       "nadpis": "Pequenas correções de tradução",

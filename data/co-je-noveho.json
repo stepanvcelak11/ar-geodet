@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 400,
+   "datum": "2026-09-25",
+   "nadpis": "Cesta učení jako v Duolingu a Toti průvodcem",
+   "body": [
+    "Nový nástroj Cesta učení (Nástroje → Pomůcky): 18 krátkých lekcí v pěti tématech (pojmy, body v terénu, předpisy, výpočty, co umí appka). Lekce se odemykají postupně, za každou jsou body, za lekci bez chyby korunka. Co spleteš, vrátí se na konec lekce.",
+    "Denní cíl (1–3 lekce) a série dnů v řadě. Toti fandí v lekcích a večer na hlavní obrazovce připomene, když by série padla. V jeho nabídce je nové tlačítko Lekce.",
+    "Průvodce prvním měřením teď vede Toti: každý krok řekne v bublině, splnění pochválí a konec oslaví."
+   ]
+  },
+  {
    "v": 399,
    "datum": "2026-09-25",
    "nadpis": "Drobné opravy překladů",

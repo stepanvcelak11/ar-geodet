@@ -39,7 +39,9 @@
         // Toti 2: dění v appce
         'pozdrav_rano', 'pozdrav_den', 'pozdrav_vecer', 'pozdrav_noc', 'bod_ulozen', 'milnik', 'bod_smazan', 'import', 'nastroj',
         'nastaveni', 'kamera', 'mapa', 'gps_super', 'gps_spatne', 'offline', 'online', 'baterie', 'jazyk',
-        'otazka_uvod', 'vysvetli_uvod', 'porad_uvod', 'neaktivita', 'menu'];
+        'otazka_uvod', 'vysvetli_uvod', 'porad_uvod', 'neaktivita', 'menu',
+        // průvodce prvním měřením (f4) a cesta učení (f3)
+        'pruvodce_hotovo', 'pruvodce_konec', 'serie_ohrozena'];
     function swallow(e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'maskot:' + kde); } catch (x) { /* nic */ } }
     function t(cs) { try { return window.AGJazyk ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } }
     function jazyk() { try { return (window.AGJazyk && AGJazyk.get()) || 'cs'; } catch (e) { return 'cs'; } }
@@ -174,7 +176,10 @@
             vysvetli_uvod: ['Vysvětlím ti jeden pojem.', 'Malá lekce:', 'Víš, co to je?'],
             porad_uvod: ['Věděl jsi, že appka umí tohle?', 'Tip ode mě:'],
             neaktivita: ['Chvíli se nic neděje. Nezkusíme kvíz?', 'Nuda? Mám pro tebe otázku.'],
-            menu: ['Co pro tebe můžu udělat?', 'Jsem tady! Vyber si.', 'Zeptám se, vysvětlím, nebo poradím?']
+            menu: ['Co pro tebe můžu udělat?', 'Jsem tady! Vyber si.', 'Zeptám se, vysvětlím, nebo poradím?'],
+            pruvodce_hotovo: ['Hotovo! Jdeme dál.', 'Paráda, splněno.', 'Přesně tak. Další krok.', 'Výborně, to bylo rychlé.'],
+            pruvodce_konec: ['První měření máš za sebou! Jsem na tebe hrdý.', 'Bod uložený, navigace vyzkoušená. Teď už jsi geodet s appkou!'],
+            serie_ohrozena: ['Série {n} dní! Dneska ještě chybí lekce, ať o ni nepřijdeš.', 'Hele, {n} dní v řadě by byla škoda zahodit. Jedna lekce a jedeme dál?']
         },
         en: {
             pozdrav_rano: ['Good morning! Coffee done, battery charged? Let us measure.', 'Mornings are the best for measuring, the air is still calm.'],
@@ -199,7 +204,10 @@
             vysvetli_uvod: ['Let me explain a term.', 'A small lesson:'],
             porad_uvod: ['Did you know the app can do this?', 'A tip from me:'],
             neaktivita: ['Nothing is happening. How about a quiz?', 'Bored? I have a question for you.'],
-            menu: ['What can I do for you?', 'I am here! Pick one.']
+            menu: ['What can I do for you?', 'I am here! Pick one.'],
+            pruvodce_hotovo: ['Done! Let us move on.', 'Great, that is done.', 'Exactly. Next step.'],
+            pruvodce_konec: ['Your first measurement is done! I am proud of you.', 'Point saved, navigation tried. Now you are a surveyor with an app!'],
+            serie_ohrozena: ['A {n}-day streak! Today’s lesson is still missing, do not lose it.', '{n} days in a row would be a shame to throw away. One lesson?']
         }
     };
     Object.keys(H2).forEach(function (l) { Object.keys(H2[l]).forEach(function (k) { H[l][k] = H2[l][k]; }); });
@@ -357,6 +365,7 @@
             + 'max-width:min(360px,calc(100vw - 20px));margin:0;pointer-events:none;}'
             + '.ag-maskot.mk-roh > *{pointer-events:auto;}'
             + '.ag-maskot.mk-roh .mk-btn{width:80px;height:97px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.35));}'
+            + '.ag-maskot.mk-mini .mk-btn{width:58px;height:70px;}.ag-maskot.mk-mini .mk-bublina{margin-top:2px;padding:7px 10px;}'
             + '.ag-maskot.mk-roh .mk-bublina{box-shadow:0 8px 24px rgba(0,0,0,.3);transition:opacity .25s ease,transform .25s ease;}'
             + '.ag-maskot.mk-roh.mk-ticho .mk-bublina{opacity:0;transform:translateY(6px);pointer-events:none;}'
             // výrazy
@@ -623,8 +632,26 @@
             { l: t('Zeptej se mě'), fn: function () { kviz(el); } },
             { l: t('Vysvětli pojem'), fn: function () { vysvetli(el); } },
             { l: t('Poraď'), fn: function () { porad(el); } },
+            { l: t('Lekce'), fn: function () { otevriCestu(); } },
             { l: '⋯', fn: function () { panel(); } }
         ] });
+    }
+
+    function otevriCestu() {
+        try {
+            if (typeof window.agOpenCesta === 'function') return window.agOpenCesta();
+            if (window.AGToolsHub && AGToolsHub.run) return AGToolsHub.run('cesta-uceni');
+            if (window.AGLazyTools && AGLazyTools.load) AGLazyTools.load('js/cesta-uceni.js').then(function () { if (window.agOpenCesta) window.agOpenCesta(); });
+        } catch (e) { swallow(e, 'cesta'); }
+    }
+    // série v cestě učení (js/cesta-uceni.js, localStorage agCestaUceni_v1) — večer připomenout, když by padla
+    function serieOhrozena() {
+        try {
+            var c = JSON.parse(localStorage.getItem('agCestaUceni_v1') || 'null'); if (!c || !c.streak || !c.streak.n) return 0;
+            var d = new Date(), f = function (x) { return x.getFullYear() + '-' + ('0' + (x.getMonth() + 1)).slice(-2) + '-' + ('0' + x.getDate()).slice(-2); };
+            var dnes = f(d); d.setDate(d.getDate() - 1); var vcera = f(d);
+            return (c.streak.last === vcera) ? c.streak.n : 0;     // včera splněno, dnes ještě ne
+        } catch (e) { return 0; }
     }
 
     // ---- kvíz a vysvětlování ze slovníku pojmů (grafika.js GEO_DICT) ----
@@ -678,7 +705,7 @@
     // ---- plovoucí Toti na hlavní obrazovce ----
     var _plovak = null;
     // co ho schová: otevřená okna, karta bodu, Geo kartičky (tam je vlastní), dialogy
-    var ZAKRYVA = '.modal-overlay.ag-open, .modal-overlay[style*="flex"], .modal-overlay[style*="block"], .ag-dlg-overlay, #agsu[style*="block"], #ag-fb, #ag-fb-volba, #ag-mk-panel, #bottom-sheet.open, #side-menu.open, #ag-gate, #ag-login';
+    var ZAKRYVA = '.modal-overlay.ag-open, .modal-overlay[style*="flex"], .modal-overlay[style*="block"], .ag-dlg-overlay, #agsu[style*="block"], #ag-fb, #ag-fb-volba, #ag-mk-panel, #bottom-sheet.open, #side-menu.open, #ag-gate, #ag-login, #ag-pm, #ag-cu[style*="flex"]';
     function plovak() {
         if (_plovak && _plovak.isConnected) return _plovak;
         styl();
@@ -771,6 +798,11 @@
                 if (f.acc <= 3 && now - _gpsDobre > 1200000) { if (komentuj('gps_super', { acc: f.acc.toFixed(1).replace('.', ',') })) _gpsDobre = now; }
                 else if (f.acc >= 20 && now - _gpsSpatne > 600000) { if (komentuj('gps_spatne', { acc: Math.round(f.acc) })) _gpsSpatne = now; }
             }
+            var hod = new Date().getHours(), sn = hod >= 17 ? serieOhrozena() : 0;
+            if (sn && _plovak && !_plovak.classList.contains('mk-skryt')) {
+                var s0 = nast(), dn = new Date().toDateString();
+                if (s0.serieDen !== dn && komentuj('serie_ohrozena', { n: sn }, { vzdy: s0.ukecanost !== 'tichy', akce: [{ l: t('Jdu na lekci'), fn: function () { otevriCestu(); } }, { l: t('Teď ne'), fn: function () { _plovak.classList.add('mk-ticho'); akce(_plovak, null); } }] })) { s0 = nast(); s0.serieDen = dn; uloz(s0); }
+            }
             var u = UKEC[nast().ukecanost];
             if (u && document.visibilityState === 'visible' && now - _dotyk > u.idle && now - _otazkaTs > u.gap && _plovak && !_plovak.classList.contains('mk-skryt')) {
                 _otazkaTs = now;
@@ -797,7 +829,10 @@
     })(0);
 
     window.AGMaskot = {
-        pripoj: pripoj, rekni: rekni, nastaveni: panel, komentuj: komentuj, kviz: function () { kviz(plovak()); }, vysvetli: function () { vysvetli(plovak()); },
-        _test: { rozparsuj: rozparsuj, vyber: vyber, hlasky: hlasky, vzor: vzor, H: H, KAT: KAT, plovak: plovak, menu: menu, hlidej: hlidejPlovak, reset: function () { _kom = 0; _otazkaTs = 0; } }
+        pripoj: pripoj, rekni: rekni, nastaveni: panel, komentuj: komentuj, otevriCestu: otevriCestu,
+        // vlastní text (průvodce prvním měřením, cesta učení); kat = hláška z kategorie místo textu
+        rekniText: function (el, text, nalada, o) { rekniDo(el, null, null, nalada || 'mluvi', Object.assign({ text: text }, o || {})); },
+        rekniKat: function (el, kat, data, nalada, o) { rekniDo(el, kat, data, nalada || 'mluvi', o); }, kviz: function () { kviz(plovak()); }, vysvetli: function () { vysvetli(plovak()); },
+        _test: { serieOhrozena: serieOhrozena, rozparsuj: rozparsuj, vyber: vyber, hlasky: hlasky, vzor: vzor, H: H, KAT: KAT, plovak: plovak, menu: menu, hlidej: hlidejPlovak, reset: function () { _kom = 0; _otazkaTs = 0; } }
     };
 })();

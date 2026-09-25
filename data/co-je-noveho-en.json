@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 400,
+      "datum": "2026-09-25",
+      "nadpis": "A Duolingo-style learning path and Toti as your guide",
+      "body": [
+        "New tool Learning path (Tools → Aids): 18 short lessons in five topics (terms, points in the field, regulations, calculations, what the app can do). Lessons unlock one by one, each gives points and a mistake-free one a crown. What you get wrong comes back at the end.",
+        "Daily goal (1–3 lessons) and a streak of days in a row. Toti cheers during lessons and in the evening reminds you on the main screen if the streak is about to break. His menu has a new Lessons button.",
+        "The first measurement guide is now led by Toti: he says each step in his bubble, praises what you complete and celebrates the end."
+      ]
+    },
+    {
       "v": 399,
       "datum": "2026-09-25",
       "nadpis": "Small translation fixes",

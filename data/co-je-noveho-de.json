@@ -2,6 +2,16 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 400,
+      "datum": "2026-09-25",
+      "nadpis": "Lernpfad wie bei Duolingo und Toti als Begleiter",
+      "body": [
+        "Neues Werkzeug Lernpfad (Werkzeuge → Hilfsmittel): 18 kurze Lektionen in fünf Themen. Lektionen werden nacheinander freigeschaltet, jede bringt Punkte, eine fehlerfreie eine Krone.",
+        "Tagesziel (1–3 Lektionen) und Serie der Tage in Folge. Toti feuert an und erinnert abends, wenn die Serie reißen würde.",
+        "Den Assistenten für die erste Messung führt jetzt Toti."
+      ]
+    },
+    {
       "v": 399,
       "datum": "2026-09-25",
       "nadpis": "Kleine Übersetzungskorrekturen",

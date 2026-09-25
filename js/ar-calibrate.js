@@ -168,19 +168,23 @@
         var info = document.getElementById('agcal-live'), btn = document.getElementById('agcal-start');
         if (!info) return;
         var pt = ptById(_selId);
-        if (!pt || !haveUser()) { info.innerHTML = '<span class="agcal-dim">Čekám na GPS polohu a výběr bodu…</span>'; if (btn) btn.disabled = true; return; }
+        // 25. 9. 2026: přepsat jen při změně a popisky přes t() — obnovuje se pořád dokola a v cizím
+        // jazyce by text na chvíli problikl česky, než ho překladač stránky přeloží
+        var T = function (cs) { try { return window.AGJazyk ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } };
+        var nastav = function (h) { if (info._h !== h) { info.innerHTML = h; info._h = h; } };
+        if (!pt || !haveUser()) { nastav('<span class="agcal-dim">' + T('Čekám na GPS polohu a výběr bodu…') + '</span>'); if (btn) btn.disabled = true; return; }
         var bearing = getBearing(userLat, userLng, pt.lat, pt.lng);
         var dist = getDistance(userLat, userLng, pt.lat, pt.lng);
         var h = heading();
         if (h == null) {
-            info.innerHTML = 'Azimut k bodu: <b>' + bearing.toFixed(1) + '°</b> · ' + dist.toFixed(0) + ' m<br><span class="agcal-dim">Kompas zatím nedává směr — podrž telefon svisle.</span>';
+            nastav(T('Azimut k bodu:') + ' <b>' + bearing.toFixed(1) + '°</b> · ' + dist.toFixed(0) + ' m<br><span class="agcal-dim">' + T('Kompas zatím nedává směr — podrž telefon svisle.') + '</span>');
             if (btn) btn.disabled = true; return;
         }
         var delta = adiff(bearing, h);
-        info.innerHTML =
-            'Azimut k bodu: <b>' + bearing.toFixed(1) + '°</b> · ' + dist.toFixed(0) + ' m<br>'
-            + 'Kompas teď: <b>' + h.toFixed(1) + '°</b> · rozdíl '
-            + '<b style="color:' + (Math.abs(delta) > 8 ? '#fbbf24' : '#34d399') + '">' + (delta >= 0 ? '+' : '') + delta.toFixed(1) + '°</b>';
+        nastav(
+            T('Azimut k bodu:') + ' <b>' + bearing.toFixed(1) + '°</b> · ' + dist.toFixed(0) + ' m<br>'
+            + T('Kompas teď:') + ' <b>' + h.toFixed(1) + '°</b> · ' + T('rozdíl') + ' '
+            + '<b style="color:' + (Math.abs(delta) > 8 ? '#fbbf24' : '#34d399') + '">' + (delta >= 0 ? '+' : '') + delta.toFixed(1) + '°</b>');
         if (btn) btn.disabled = false;
     }
 
