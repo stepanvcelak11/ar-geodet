@@ -2,6 +2,14 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 406,
+      "datum": "2026-09-25",
+      "nadpis": "Oplossing: inloggen met Face ID op de server",
+      "body": [
+        "De server met inloggen via Face ID werd door een buildfout niet uitgerold — opgelost. Mijn nauwkeurigheid staat in Tools onder Omstandigheden controleren."
+      ]
+    },
+    {
       "v": 405,
       "datum": "2026-09-25",
       "nadpis": "Officiële punten in Oostenrijk en Duitsland",

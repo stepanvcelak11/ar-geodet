@@ -226,8 +226,6 @@ async function ensurePasskeySchema(env) {
     } catch (e) {}
     _pkMig = true;
 }
-function b64uEnc(buf) { const b = new Uint8Array(buf); let s = ''; for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
-function b64uDec(s) { s = String(s || '').replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; const bin = atob(s); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
 // povolený původ → rpId (doména appky, u testů localhost). Regexem, ne new URL (běží i v testovacím V8)
 function pkPuvod(req, env) {
     const o = req.headers.get('Origin') || '';

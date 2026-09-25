@@ -2,6 +2,14 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 406,
+      "datum": "2026-09-25",
+      "nadpis": "Fix: Face ID sign-in on the server",
+      "body": [
+        "The server with Face ID sign-in did not deploy because of a build error — fixed. My accuracy is now under Check conditions in Tools."
+      ]
+    },
+    {
       "v": 405,
       "datum": "2026-09-25",
       "nadpis": "Official points in Austria and Germany",

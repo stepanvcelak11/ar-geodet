@@ -57,6 +57,13 @@ def main():
     if i_archiv < 0:
         hlaska(u'CHYBI BRANA ARCHIVU — byvaly clen firmy by do ni mohl zapisovat.')
 
+    # ---- 0) zadna funkce dvakrat (25. 9. 2026: b64uEnc/b64uDec dvakrat -> esbuild ve wrangler
+    #   deploy spadl "has already been declared", testovaci V8 to tise snesl) ------------
+    import collections
+    dvakrat = [k for k, v in collections.Counter(re.findall(r'^(?:async )?function (\w+)', src, re.M)).items() if v > 1]
+    if dvakrat:
+        hlaska(u'funkce deklarovana dvakrat (wrangler/esbuild build spadne): %s' % ', '.join(dvakrat))
+
     # ---- 1) seznam placenych cest -----------------------------------------
     m = re.search(r'const PLACENE_CESTY = \[(.*?)\];', src, re.S)
     if not m:

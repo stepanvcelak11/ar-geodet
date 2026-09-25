@@ -2,6 +2,14 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 406,
+      "datum": "2026-09-25",
+      "nadpis": "Correctif : connexion Face ID sur le serveur",
+      "body": [
+        "Le serveur avec connexion Face ID ne s’était pas déployé à cause d’une erreur de build — corrigé. Ma précision est dans Outils, sous Vérifier les conditions."
+      ]
+    },
+    {
       "v": 405,
       "datum": "2026-09-25",
       "nadpis": "Points officiels en Autriche et en Allemagne",

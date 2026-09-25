@@ -2,6 +2,14 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 406,
+      "datum": "2026-09-25",
+      "nadpis": "Korrektur: Anmeldung mit Face ID auf dem Server",
+      "body": [
+        "Der Server mit Face-ID-Anmeldung wurde wegen eines Build-Fehlers nicht bereitgestellt — behoben. Meine Genauigkeit steht in den Werkzeugen unter Bedingungen prüfen."
+      ]
+    },
+    {
       "v": 405,
       "datum": "2026-09-25",
       "nadpis": "Amtliche Punkte in Österreich und Deutschland",

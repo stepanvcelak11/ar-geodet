@@ -2,6 +2,14 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 406,
+      "datum": "2026-09-25",
+      "nadpis": "Poprawka: logowanie przez Face ID na serwerze",
+      "body": [
+        "Serwer z logowaniem przez Face ID nie został wdrożony z powodu błędu kompilacji — naprawione. Moja dokładność jest w Narzędziach w grupie Sprawdź warunki."
+      ]
+    },
+    {
       "v": 405,
       "datum": "2026-09-25",
       "nadpis": "Punkty urzędowe w Austrii i Niemczech",
