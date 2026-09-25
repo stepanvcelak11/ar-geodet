@@ -2,6 +2,16 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 398,
+      "datum": "2026-09-25",
+      "nadpis": "Sauvegarde dans le compte : les points survivent même à une réinstallation",
+      "body": [
+        "Si tu es connecté à un compte, l’appli y sauvegarde seule tes points et réglages : une fois par jour et tous les 20 nouveaux points, sans photos. Le serveur garde les deux dernières sauvegardes.",
+        "Après connexion sur un téléphone vide, l’appli propose la restauration. Les identifiants ne sont pas dans la sauvegarde.",
+        "Réglages → Sauvegarde et maintenance → Sauvegarde dans le compte."
+      ]
+    },
+    {
       "v": 397,
       "datum": "2026-09-25",
       "nadpis": "Toti est plus grand et bavarde pendant que tu travailles",

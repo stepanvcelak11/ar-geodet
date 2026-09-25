@@ -125,8 +125,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=397">
-    <link rel="stylesheet" href="css/style.css?v=397">
+    <link rel="stylesheet" href="css/tokens.css?v=398">
+    <link rel="stylesheet" href="css/style.css?v=398">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -257,7 +257,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=397">
+    <link rel="stylesheet" href="css/vylepseni.css?v=398">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -944,6 +944,16 @@
                      všechno? jsou v Nástrojích a odsud zmizely (HIDE v poradku). -->
                 <div id="tab-udrzba" class="settings-tab" data-title="Záloha a údržba">
                     <div class="set-h">Záloha</div>
+                    <!-- ZÁLOHA DO ÚČTU (25. 9. 2026, b1): plní a obsluhuje js/zaloha-ucet.js (ag/lazy) -->
+                    <div id="ag-zu" class="set-card" style="padding:12px 14px;margin:0 0 10px;">
+                        <div class="st-row" style="margin:0;"><span class="st-lab">Záloha do účtu<small>body a nastavení denně a po každých 20 bodech, bez fotek; po přeinstalaci se obnoví jedním klepnutím</small></span>
+                            <label class="st-sw"><input type="checkbox" id="ag-zu-auto" checked><span class="st-sw-face"></span></label></div>
+                        <div id="ag-zu-stav" style="font-size:calc(12px * var(--ag-font-scale, 1));color:var(--text-muted);line-height:1.45;margin:6px 0 8px;">Načítám…</div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button type="button" class="btn btn-primary" id="ag-zu-ted" style="flex:1 1 140px;margin:0;">Zálohovat teď</button>
+                            <button type="button" class="btn btn-secondary" id="ag-zu-obnov" style="flex:1 1 140px;margin:0;">Obnovit z účtu</button>
+                        </div>
+                    </div>
                     <button class="btn btn-secondary" onclick="exportAllData()"><svg class="icon"><use href="#i-download"/></svg> Stáhnout zálohu (vše)</button>
                     <button class="btn btn-blue" onclick="document.getElementById('restore-file').click()"><svg class="icon"><use href="#i-upload"/></svg> Obnovit ze zálohy</button>
                     <input type="file" id="restore-file" style="display:none" accept=".json,application/json" onchange="importAllData(event)">
@@ -1805,6 +1815,7 @@
          do zmrzlého obrazu místo živého míření křížem. -->
     <script type="ag/lazy" data-src="js/foto-protinani.js"></script>
     <script type="ag/lazy" data-src="js/maskot.js"></script>
+    <script type="ag/lazy" data-src="js/zaloha-ucet.js"></script>
     <!-- ODHADNI TO (odpojitelné) — cvičiště odhadu vzdálenosti a azimutu proti
          skutečným senzorům. -->
     <!-- js/odhadovacka.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->

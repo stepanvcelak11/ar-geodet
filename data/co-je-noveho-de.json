@@ -2,6 +2,16 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 398,
+      "datum": "2026-09-25",
+      "nadpis": "Sicherung ins Konto: Punkte überstehen sogar eine Neuinstallation",
+      "body": [
+        "Wer in einem Konto angemeldet ist, dem sichert die App Punkte und Einstellungen selbst ins Konto: einmal täglich und nach je 20 neuen Punkten, ohne Fotos. Der Server hält die zwei letzten Sicherungen.",
+        "Nach der Anmeldung auf einem leeren Telefon bietet die App die Wiederherstellung an. Anmeldedaten sind nicht in der Sicherung.",
+        "Einstellungen → Sicherung und Wartung → Sicherung ins Konto."
+      ]
+    },
+    {
       "v": 397,
       "datum": "2026-09-25",
       "nadpis": "Toti ist größer und redet bei der Arbeit mit",

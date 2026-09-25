@@ -176,6 +176,22 @@ async function guardHit(env, key, maxN, lockMs) {
     }
     return true;
 }
+// ZÁLOHA DO ÚČTU (25. 9. 2026, 6. hodnocení b1): iOS smí data webové appky smazat (7 dní
+// nepoužívání, přeinstalace ikony — 24. 9. to potkalo vlastníka). Appka proto jednou denně
+// (a po každých 20 nových bodech) pošle zálohu bez fotek sem: gzip + base64, nejvýš 1,5 MB
+// (řádek D1 unese ~2 MB). DVA SLOTY — nová záloha přepíše tu starší, takže poškozená
+// poslední záloha nikdy nesmaže poslední dobrou. Čte jen vlastník účtu (token), smaže se
+// s účtem (/account/delete). Server obsahu nerozumí, jen ho drží.
+let _zalohyMig = false;
+const ZALOHA_MAX = 1500000;
+async function ensureZalohySchema(env) {
+    if (_zalohyMig) return;
+    try {
+        await env.DB.prepare('CREATE TABLE IF NOT EXISTS zalohy (acc_id TEXT NOT NULL, slot INTEGER NOT NULL, ts INTEGER NOT NULL, '
+            + 'size INTEGER NOT NULL, body_n INTEGER, ver TEXT, dev TEXT, data TEXT NOT NULL, PRIMARY KEY (acc_id, slot))').run();
+    } catch (e) {}
+    _zalohyMig = true;
+}
 async function guardClear(env, key) {
     await env.DB.prepare('DELETE FROM guard WHERE k=?').bind(key).run();
 }
@@ -1552,7 +1568,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 28, recovery: true, mapa: !!env.MAPA, mapaGithub: true, nacrt: true, dgps: true, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 29, recovery: true, zaloha: true, mapa: !!env.MAPA, mapaGithub: true, nacrt: true, dgps: true, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
 
             // ---------------- VLASTNÍ MAPA: DATA PMTILES Z R2 (16. 9. 2026) ----------------
             // GET/HEAD /mapa/<soubor>.pmtiles → objekt z R2 bucketu (binding MAPA, viz
@@ -3132,6 +3148,39 @@ export default {
             // KONTAKT PRO AUTORA (13. 9. 2026): nepovinný telefon/e-mail u účtu. Zadává si
             // ho člověk sám (Kde pracuju → Kontakt), vidí ho jen vlastník v konzoli a schránka
             // zpětné vazby si ho předvyplní. Prázdný řetězec = smazat.
+            if (path === '/account/backup') {
+                if (!me.accId) return err(400, 'Účet ještě není založený.');
+                await ensureZalohySchema(env);
+                if (req.method === 'GET') {
+                    const sl = url.searchParams.get('slot');
+                    if (sl != null) {
+                        const r = await env.DB.prepare('SELECT slot, ts, size, body_n, ver, dev, data FROM zalohy WHERE acc_id=? AND slot=?').bind(me.accId, parseInt(sl, 10) || 0).first();
+                        if (!r) return err(404, 'Záloha nenalezena.');
+                        return json(Object.assign({ ok: true }, r));
+                    }
+                    const rows = (await env.DB.prepare('SELECT slot, ts, size, body_n, ver, dev FROM zalohy WHERE acc_id=? ORDER BY ts DESC').bind(me.accId).all()).results || [];
+                    return json({ ok: true, zalohy: rows, max: ZALOHA_MAX });
+                }
+                if (req.method === 'POST') {
+                    const b = await req.json().catch(() => null) || {};
+                    const data = typeof b.data === 'string' ? b.data : '';
+                    if (!data) return err(400, 'Chybí data zálohy.');
+                    if (data.length > ZALOHA_MAX) return err(413, 'Záloha je příliš velká (' + Math.round(data.length / 1024) + ' kB, nejvýš ' + Math.round(ZALOHA_MAX / 1024) + ' kB).');
+                    if (!/^[A-Za-z0-9+/]+={0,2}$/.test(data)) return err(400, 'Data zálohy nejsou base64.');
+                    if (!await guardHit(env, 'zal:' + me.accId, 40, 24 * 3600e3)) return err(429, 'Dnes už bylo záloh dost. Zítra zase.');
+                    const rows = (await env.DB.prepare('SELECT slot, ts FROM zalohy WHERE acc_id=?').bind(me.accId).all()).results || [];
+                    let slot = 0;
+                    if (rows.length === 1) slot = rows[0].slot === 0 ? 1 : 0;
+                    else if (rows.length >= 2) slot = rows.slice().sort((x, y) => x.ts - y.ts)[0].slot;   // přepíše STARŠÍ
+                    const ts = Date.now();
+                    const n = parseInt(b.body_n, 10);
+                    await env.DB.prepare('INSERT OR REPLACE INTO zalohy (acc_id, slot, ts, size, body_n, ver, dev, data) VALUES (?,?,?,?,?,?,?,?)')
+                        .bind(me.accId, slot, ts, data.length, isFinite(n) ? n : null, String(b.ver || '').slice(0, 20), String(b.dev || '').slice(0, 60), data).run();
+                    return json({ ok: true, slot: slot, ts: ts, size: data.length });
+                }
+                return err(405, 'Jen GET/POST.');
+            }
+
             if (path === '/account/contact') {
                 if (!me.accId) return err(400, 'Účet ještě není založený.');
                 await ensureUctySchema(env);
@@ -3198,6 +3247,7 @@ export default {
                     await smaz('DELETE FROM users WHERE id=?', p.uid);
                 }
                 await smaz('DELETE FROM vzkazy WHERE acc_id=?', me.accId);
+                await smaz('DELETE FROM zalohy WHERE acc_id=?', me.accId);   // záloha do účtu (b1)
                 await smaz('UPDATE orders SET acc_id=? WHERE acc_id=?', 'smazano', me.accId);
                 await smaz('DELETE FROM accounts WHERE id=?', me.accId);
                 await guardClear(env, 'del:' + ip);

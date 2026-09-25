@@ -126,7 +126,7 @@ jobs:
                    test_ucty_prostory test_v283 test_jednoduchy_rezim test_prodej \
                    test_opravy_11_9 test_vlastnik_data test_konzole_2 \
                    test_zpresneni_gps test_akustika test_hrana test_v316 test_v318 test_v329 \
-                   test_presne_mereni test_v332 test_pruchod_15_9 test_v338 test_v339 test_zeme test_android test_mapa_vektor test_v342 test_nacrt_na_mapu test_v347 test_v354 test_v355 test_v356 test_v358 test_jazyky_data test_v360 test_v365 test_v368 test_v371 test_slabsi_dosah test_v372 test_v378 test_v379 test_v380 test_v381 test_v382 test_v384 test_cela_obrazovka test_foto_body test_start_bez_chyb test_v387 test_v388 test_v389 test_offline test_cestina_zbytky test_maskot test_desetinna; do
+                   test_presne_mereni test_v332 test_pruchod_15_9 test_v338 test_v339 test_zeme test_android test_mapa_vektor test_v342 test_nacrt_na_mapu test_v347 test_v354 test_v355 test_v356 test_v358 test_jazyky_data test_v360 test_v365 test_v368 test_v371 test_slabsi_dosah test_v372 test_v378 test_v379 test_v380 test_v381 test_v382 test_v384 test_cela_obrazovka test_foto_body test_start_bez_chyb test_v387 test_v388 test_v389 test_offline test_cestina_zbytky test_maskot test_desetinna test_zaloha_ucet; do
             i=$((i + 1))
             if [ $((i % 3)) -ne $(( ${{ matrix.proud }} % 3 )) ]; then continue; fi
             echo "::group::$t"
@@ -157,6 +157,8 @@ jobs:
           python scripts/test_dgps_worker.py
           # Obnovovaci kod uctu (18. 9. 2026, R3): /register vraci kod, /account/recover meni heslo bez tokenu
           python scripts/test_obnova_uctu_worker.py
+          # Zaloha do uctu (25. 9. 2026, b1): /account/backup, 2 sloty, limit, mazani s uctem
+          python scripts/test_zaloha_worker.py
           # Brzda vydani v sw.js: moc zavrena = appka se nikdy neaktualizuje,
           # moc otevrena = kazdy push skace lidem do appky.
           python scripts/test_brzda_vydani.py

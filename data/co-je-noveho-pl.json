@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 398,
+      "datum": "2026-09-25",
+      "nadpis": "Kopia na koncie: punkty przetrwają nawet reinstalację",
+      "body": [
+        "Kto jest zalogowany do konta, temu aplikacja sama robi kopię punktów i ustawień na koncie: raz dziennie i po każdych 20 nowych punktach, bez zdjęć. Serwer trzyma dwie ostatnie kopie.",
+        "Po zalogowaniu na pustym telefonie aplikacja sama zaproponuje przywrócenie. Danych logowania w kopii nie ma.",
+        "Ustawienia → Kopia i konserwacja → Kopia na koncie."
+      ]
+    },
+    {
       "v": 397,
       "datum": "2026-09-25",
       "nadpis": "Toti jest większy i gada podczas pracy",

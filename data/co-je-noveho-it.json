@@ -2,6 +2,16 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 398,
+      "datum": "2026-09-25",
+      "nadpis": "Backup nell’account: i punti sopravvivono anche a una reinstallazione",
+      "body": [
+        "Chi è connesso a un account riceve il backup automatico di punti e impostazioni nell’account: una volta al giorno e ogni 20 nuovi punti, senza foto. Il server conserva gli ultimi due backup.",
+        "Dopo l’accesso su un telefono vuoto l’app propone il ripristino. I dati di accesso non sono nel backup.",
+        "Impostazioni → Backup e manutenzione → Backup nell’account."
+      ]
+    },
+    {
       "v": 397,
       "datum": "2026-09-25",
       "nadpis": "Toti è più grande e chiacchiera mentre lavori",

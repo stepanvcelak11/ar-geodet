@@ -2,6 +2,16 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 398,
+      "datum": "2026-09-25",
+      "nadpis": "Back-up naar account: punten overleven zelfs een herinstallatie",
+      "body": [
+        "Ben je aangemeld bij een account, dan maakt de app zelf een back-up van je punten en instellingen: één keer per dag en na elke 20 nieuwe punten, zonder foto’s. De server bewaart de twee laatste back-ups.",
+        "Na aanmelden op een lege telefoon biedt de app herstel aan. Inloggegevens zitten niet in de back-up.",
+        "Instellingen → Back-up en onderhoud → Back-up naar account."
+      ]
+    },
+    {
       "v": 397,
       "datum": "2026-09-25",
       "nadpis": "Toti is groter en kletst mee terwijl je werkt",

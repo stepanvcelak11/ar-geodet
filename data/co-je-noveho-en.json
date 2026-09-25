@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 398,
+      "datum": "2026-09-25",
+      "nadpis": "Backup to account: points survive even a reinstall",
+      "body": [
+        "If you are signed in to an account, the app backs up your points and settings there by itself: once a day and after every 20 new points, without photos. The server keeps the two latest backups.",
+        "After signing in on an empty phone (new phone, deleted app) the app offers to restore. Sign-in details are not in the backup, they belong to the phone.",
+        "Settings → Backup and maintenance → Backup to account: status, Back up now, Restore from account and a switch."
+      ]
+    },
+    {
       "v": 397,
       "datum": "2026-09-25",
       "nadpis": "Toti is bigger and chats while you work",

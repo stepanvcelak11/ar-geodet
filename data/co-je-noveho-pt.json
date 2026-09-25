@@ -2,6 +2,16 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 398,
+      "datum": "2026-09-25",
+      "nadpis": "Cópia na conta: os pontos sobrevivem até a uma reinstalação",
+      "body": [
+        "Quem tem sessão numa conta recebe cópia automática dos pontos e definições na conta: uma vez por dia e a cada 20 pontos novos, sem fotos. O servidor guarda as duas últimas cópias.",
+        "Ao iniciar sessão num telemóvel vazio, a app propõe restaurar. Os dados de acesso não vão na cópia.",
+        "Definições → Cópia e manutenção → Cópia na conta."
+      ]
+    },
+    {
       "v": 397,
       "datum": "2026-09-25",
       "nadpis": "O Toti está maior e conversa enquanto trabalhas",

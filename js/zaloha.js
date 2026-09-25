@@ -235,7 +235,11 @@
     // přidává hlášku o neúspěchu — tichý pád (velký JSON.stringify se všemi fotkami,
     // plné úložiště) byl to nejhorší, co appka mohla udělat: po kliknutí na
     // „Zálohovat" se prostě nestalo nic.
-    async function _exportAllData() {
+    // SESTAVENÍ ZÁLOHY (25. 9. 2026: vytaženo, ať ho sdílí ruční soubor i záloha do účtu
+    // js/zaloha-ucet.js). opts.bezExtra = bez dalších databází (fotky, hlasovky, žurnál,
+    // rastr podkladu) — do účtu jdou jen data bodů a nastavení, fotky by ho přeplnily.
+    async function _sestav(opts) {
+        opts = opts || {};
         const data = {};
         for (let i = 0; i < localStorage.length; i++) {
             const k = localStorage.key(i);
@@ -248,14 +252,17 @@
         }
         const idb = (typeof idbDumpAll === 'function') ? await idbDumpAll() : {};
         const extra = {};
-        for (const name of Object.keys(EXTRA_DBS)) {
+        if (!opts.bezExtra) for (const name of Object.keys(EXTRA_DBS)) {
             try { const d = await _dumpDb(name, EXTRA_DBS[name]); if (d && d.rows.length) extra[name] = d; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:onerror'); }
         }
-        const d = new Date(); const p = n => String(n).padStart(2, '0');
-        const payload = {
-            app: 'QTRIG', type: 'full-backup', version: 3,
-            exportedAt: d.toISOString(), keys: Object.keys(data).length, data: data, idb: idb, extra: extra
+        return {
+            app: 'QTRIG', type: opts.typ || 'full-backup', version: 3,
+            exportedAt: new Date().toISOString(), keys: Object.keys(data).length, data: data, idb: idb, extra: extra
         };
+    }
+    async function _exportAllData() {
+        const payload = await _sestav();
+        const d = new Date(payload.exportedAt); const p = n => String(n).padStart(2, '0');
         const how = await _ven(`ar-geodet-zaloha-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}.json`, JSON.stringify(payload));
         // Zrušený list sdílení = nic se neuložilo. Razítko se nepíše a pruh připomínky
         // zůstane viset — o to tu celou dobu jde.
@@ -309,6 +316,17 @@
             const msg = `Obnovit zálohu (${keys.length} položek)?\n\nPřepíše současná data této aplikace a stránka se znovu načte.`;
             const ok = (typeof window.agAsk === 'function') ? await agAsk(msg, { danger: true, okText: 'Obnovit' }) : confirm(msg);
             if (!ok) return;
+            try { await _obnov(payload); } catch (err) { agInfo((err && err.message) ? err.message : String(err)); }
+        };
+        r.readAsText(file);
+    };
+    // OBNOVA ZE ZÁLOHY (sdílená: soubor i záloha z účtu). Vyhodí Error se srozumitelnou
+    // zprávou; při úspěchu stránku znovu načte (opts.bezReload = nechá na volajícím).
+    async function _obnov(payload, opts) {
+        opts = opts || {};
+        if (!payload || typeof payload.data !== 'object' || payload.data === null) throw new Error('Tohle nevypadá jako záloha QTRIG.');
+        const keys = Object.keys(payload.data);
+        {
             // Atomicky: snapshot -> smazat -> zapsat; pri chybe (plna kvota) vratit snapshot,
             // aby nikdy nezustal polovicne obnoveny stav (cast klicu novych, cast starych).
             const snapshot = {};
@@ -327,9 +345,8 @@
                 // zaloha nesmi podstrcit svuj token ani odhlasit toho, kdo obnovuje.
                 SECRET_KEYS.forEach(k => { if (typeof snapshot[k] === 'string') localStorage.setItem(k, snapshot[k]); });
             } catch (err) {
-                try { localStorage.clear(); Object.keys(snapshot).forEach(k => localStorage.setItem(k, snapshot[k])); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'zaloha:importAllData'); }
-                agInfo('Obnova se nezdařila (úložiště plné?), původní data byla vrácena beze změny: ' + ((err && err.message) ? err.message : err));
-                return;
+                try { localStorage.clear(); Object.keys(snapshot).forEach(k => localStorage.setItem(k, snapshot[k])); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'zaloha:obnov'); }
+                throw new Error('Obnova se nezdařila (úložiště plné?), původní data byla vrácena beze změny: ' + ((err && err.message) ? err.message : err));
             }
             if (payload.idb && typeof idbRestoreAll === 'function') {
                 try { await idbRestoreAll(payload.idb); }
@@ -342,8 +359,9 @@
                     if (payload.extra[name]) { try { await _restoreDb(name, EXTRA_DBS[name], payload.extra[name]); } catch (e4) { window.AG && AG.swallow && AG.swallow(e4, 'zaloha:importAllData'); } }
                 }
             }
-            location.reload();
-        };
-        r.readAsText(file);
-    };
+            if (!opts.bezReload) location.reload();
+        }
+        return true;
+    }
+    window.AGZaloha = { sestav: _sestav, obnov: _obnov };
 })();

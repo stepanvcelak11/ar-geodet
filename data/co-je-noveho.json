@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 398,
+   "datum": "2026-09-25",
+   "nadpis": "Záloha do účtu: body přežijí i přeinstalaci",
+   "body": [
+    "Kdo je přihlášený k účtu, tomu appka sama zálohuje body a nastavení do účtu: jednou denně a po každých 20 nových bodech, bez fotek. Server drží dvě poslední zálohy.",
+    "Po přihlášení na prázdném telefonu (nový telefon, smazaná appka) appka sama nabídne obnovu. Přihlašovací údaje v záloze nejsou, patří telefonu.",
+    "Nastavení → Záloha a údržba → Záloha do účtu: stav, Zálohovat teď, Obnovit z účtu a vypínač."
+   ]
+  },
+  {
    "v": 397,
    "datum": "2026-09-25",
    "nadpis": "Toti je větší a kecá ti do práce",
