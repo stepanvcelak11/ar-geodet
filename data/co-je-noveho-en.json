@@ -2,6 +2,15 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 396,
+      "datum": "2026-09-24",
+      "nadpis": "Coordinates to the millimetre and points straight from a PDF",
+      "body": [
+        "Settings → Frequent → Coordinate decimals: 2 (cm) or 3 (mm). Applies to the point card, lists, export and reports. Editing a point never cuts off millimetres any more, and converting coordinates there and back is exact to under 0.001 mm (previously up to 1.4 mm).",
+        "New point → From photo → From a PDF: points from a report or coordinate list are taken straight from the PDF text, exactly 1:1, with no reading errors. A scanned PDF is read like a photo."
+      ]
+    },
+    {
       "v": 395,
       "datum": "2026-09-24",
       "nadpis": "Points from a photo: 3 decimal places",

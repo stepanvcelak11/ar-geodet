@@ -373,7 +373,7 @@
         function add(list, t) {
             list.forEach(function (r, i) {
                 var s = toSJTSK(r.lat, r.lng);
-                rows.push([t, i + 1, s ? s.y.toFixed(2) : '', s ? s.x.toFixed(2) : '',
+                rows.push([t, i + 1, s ? agFmtM(s.y) : '', s ? agFmtM(s.x) : '',
                     (r.z != null ? r.z.toFixed(2) : ''), (r.acc != null ? r.acc.toFixed(1) : ''),
                     new Date(r.ts).toISOString()].join(';'));
             });

@@ -26,6 +26,7 @@ sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from ag_boot import boot  # noqa: E402
 import test_v329 as V  # noqa: E402
+import pdf_vzor  # noqa: E402
 from playwright.async_api import async_playwright  # noqa: E402
 
 ROOT = V.ROOT
@@ -91,6 +92,24 @@ async def beh(url):
         ok('P11 tři desetinná místa se čtou celá (Y .423, X .375, Z .318)', len(r) == 1 and r[0]['y'] == 743215.423 and r[0]['x'] == 1042118.375 and r[0]['z'] == 245.318, r)
         d = await page.evaluate("() => [AGFotoBody._test.des(743215.423), AGFotoBody._test.des(743215.42), AGFotoBody._test.des(743215.4), AGFotoBody._test.des(245.318)]")
         ok('P12 přehled ukáže desetinná místa jako na papíře (3, jinak 2) — ověření 24. 9. „chci na 3“', d == ['743215.423', '743215.42', '743215.40', '245.318'], d)
+        # ---------------- D) body přímo z PDF (7. hodnocení f6) — textová vrstva, ne OCR
+        await page.evaluate("() => AGFotoBody.open()")
+        await page.wait_for_timeout(300)
+        ok('D1 ve výběru je „Z PDF“', await page.evaluate("() => !!document.querySelector('#ag-fb-volba [data-k=pdf]')"))
+        async with page.expect_file_chooser() as fc:
+            await page.evaluate("() => document.querySelector('#ag-fb-volba [data-k=pdf]').click()")
+        ch = await fc.value
+        ok('D2 volba souboru bere PDF', 'pdf' in (await ch.element.get_attribute('accept') or ''))
+        await ch.set_files(files=[{'name': 'seznam.pdf', 'mimeType': 'application/pdf', 'buffer': pdf_vzor.pdf(pdf_vzor.SEZNAM)}])
+        prisel = await V.cekej(page, "(() => { const s = AGFotoBody._test.stav(); return !!(s && s.body && s.body.length && document.getElementById('ag-fb')); })()", 60)
+        st = await page.evaluate("() => { const s = AGFotoBody._test.stav(); return s ? s.body.map(b => ({ n: b.name, y: b.y, x: b.x, z: b.z, zdroj: b.zdroj, bbox: !!b.bbox })) : null; }")
+        ok('D3 z PDF 3 body se jmény, sloupce zvlášť i celý řádek', prisel and st and [b['n'] for b in st] == ['4001', '4002', '4003'], st)
+        b1 = (st or [{}])[0]
+        ok('D4 přesně 1:1 i se 3 desetinnými místy (743215.423 / 1042118.375 / 245.318), zdroj pdf, rámeček řádku', b1.get('y') == 743215.423 and b1.get('x') == 1042118.375 and b1.get('z') == 245.318 and b1.get('zdroj') == 'pdf' and b1.get('bbox'), b1)
+        vstupy = await page.evaluate("() => [...document.querySelectorAll('#ag-fb input[data-k=y]')].map(i => i.value)")
+        ok('D5 přehled ukáže 743215.423 (3 místa, jak je v PDF)', '743215.423' in vstupy, vstupy)
+        await page.evaluate("() => { const o = document.getElementById('ag-fb'); if (o) o.remove(); }")
+
         # ---------------- U) volba zdroje
         await page.evaluate("() => openNewPointModal()")
         await page.wait_for_timeout(900)

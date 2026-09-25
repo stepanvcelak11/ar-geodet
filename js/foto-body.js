@@ -416,6 +416,7 @@
             + '<p>' + esc(t('Seznam souřadnic, štítek nebo výpis — každý řádek s číslem, Y a X se uloží jako bod. Fotku drž rovně a zblízka.')) + '</p>'
             + '<button type="button" class="btn btn-primary" data-k="foto"><svg class="icon"><use href="#i-camera"/></svg>' + esc(t('Vyfotit')) + '</button>'
             + '<button type="button" class="btn btn-secondary" data-k="galerie"><svg class="icon"><use href="#i-folder"/></svg>' + esc(t('Vybrat z galerie (i víc fotek)')) + '</button>'
+            + '<button type="button" class="btn btn-secondary" data-k="pdf"><svg class="icon"><use href="#i-file-text"/></svg>' + esc(t('Z PDF (protokol, seznam souřadnic)')) + '</button>'
             + '<div class="fb-offline"></div>'
             + '<button type="button" class="btn btn-secondary" data-k="zrusit" data-close>' + esc(t('Zrušit')) + '</button></div>';
         document.body.appendChild(ov);
@@ -438,6 +439,12 @@
             }
             zavri();
             if (k === 'zrusit') return;
+            if (k === 'pdf') {
+                var ip = vstup(false, false); ip.accept = 'application/pdf,.pdf';
+                ip.addEventListener('change', function () { var f = ip.files && ip.files[0]; ip.remove(); if (f) zpracujPdf(f, opts); });
+                ip.click();
+                return;
+            }
             var inp = vstup(k === 'foto', k === 'galerie');
             inp.addEventListener('change', function () {
                 var files = Array.prototype.slice.call(inp.files || []); inp.remove();
@@ -462,7 +469,15 @@
                 });
             }).then(dalsi);
         };
-        dalsi().then(function () {
+        dalsi().then(function () { dokonci(body, texty, fotky, opts); }).catch(function (e) {
+            if (typeof hideOfflineProgress === 'function') hideOfflineProgress();
+            ukonciWorker();
+            (window.agInfo || alert)(t('Čtení z fotky se nezdařilo:') + ' ' + ((e && e.message) ? e.message : e));
+        });
+    }
+    function dokonci(body, texty, fotky, opts) {
+        opts = opts || {};
+        {
             if (typeof hideOfflineProgress === 'function') hideOfflineProgress();
             ukonciWorker();
             var predchozi = (opts.pridat && stav) ? stav : null;
@@ -478,10 +493,102 @@
             }
             stav = { body: body, fotky: fotky, texty: texty };
             prehled();
+        }
+    }
+
+    // ---- BODY PŘÍMO Z PDF (24. 9. 2026, 7. hodnocení f6) -------------------------------------------
+    // Ověření na iPhonu: „fungovalo mi 16 bodů ze screenshotu PDF“. PDF ale text obsahuje, takže ho
+    // netřeba číst OCR (odhad) — vezme se textová vrstva 1:1, včetně 3 desetinných míst. Stránka se
+    // vykreslí jako „fotka“, takže přehled s rámečky řádků funguje stejně. PDF bez textu (sken) →
+    // stránky se přečtou OCR jako fotky. pdf.js (~1 MB) se stáhne až při prvním PDF, SW ho pak drží
+    // v LIB_CACHE (cdn.jsdelivr.net) → příště i bez signálu.
+    var PDFJS = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/';
+    var MAX_STRAN = 20;
+    var _pdfP = null;
+    function ensurePdf() {
+        if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+        if (!_pdfP) _pdfP = new Promise(function (res, rej) {
+            var sc = document.createElement('script'); sc.src = PDFJS + 'pdf.min.js';
+            sc.onload = function () { try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + 'pdf.worker.min.js'; res(window.pdfjsLib); } catch (e) { _pdfP = null; rej(e); } };
+            sc.onerror = function () { _pdfP = null; rej(new Error(t('Čtečku PDF se nepodařilo stáhnout — první použití potřebuje internet.'))); };
+            document.head.appendChild(sc);
+        });
+        return _pdfP;
+    }
+    // Položky textu jedné stránky → řádky (podle výšky na stránce), zleva doprava; bbox v pixelech vykreslené stránky.
+    function pdfRadky(items, vp) {
+        var it = [];
+        (items || []).forEach(function (s) {
+            if (!s || !s.str || !/\S/.test(s.str)) return;
+            var p = vp.convertToViewportPoint(s.transform[4], s.transform[5]);
+            var h = Math.max(4, Math.abs(s.transform[3] || s.height || 10) * vp.scale);
+            it.push({ s: s.str, x: p[0], y: p[1], w: Math.max(0, (s.width || 0) * vp.scale), h: h });
+        });
+        it.sort(function (a, b) { return (a.y - b.y) || (a.x - b.x); });
+        var L = [];
+        it.forEach(function (o) {
+            var r = L.length ? L[L.length - 1] : null;
+            if (r && Math.abs(r.y - o.y) <= Math.max(2, Math.min(r.h, o.h) * 0.45)) r.items.push(o);
+            else L.push({ y: o.y, h: o.h, items: [o] });
+        });
+        return L.map(function (r) {
+            r.items.sort(function (a, b) { return a.x - b.x; });
+            var txt = '', konec = null, x0 = Infinity, x1 = -Infinity;
+            r.items.forEach(function (o) {
+                if (konec != null && o.x - konec > o.h * 0.12 && !/\s$/.test(txt)) txt += ' ';
+                txt += o.s; konec = o.x + o.w; x0 = Math.min(x0, o.x); x1 = Math.max(x1, o.x + o.w);
+            });
+            return { text: txt.replace(/\s+/g, ' ').trim(), bbox: { x0: x0, y0: r.y - r.h, x1: x1, y1: r.y + r.h * 0.25 }, confidence: 100 };
+        });
+    }
+    function zpracujPdf(file, opts) {
+        opts = opts || {};
+        var body = [], texty = [], fotky = [], bezTextu = [];
+        if (typeof showOfflineProgress === 'function') showOfflineProgress(0, 100, t('Čtu PDF…'), '%');
+        return ensurePdf().then(function (lib) {
+            return file.arrayBuffer().then(function (buf) { return lib.getDocument({ data: new Uint8Array(buf) }).promise; });
+        }).then(function (doc) {
+            var n = Math.min(doc.numPages, MAX_STRAN), i = 0;
+            var dalsi = function () {
+                if (i >= n) return Promise.resolve();
+                var cis = ++i;
+                return doc.getPage(cis).then(function (pg) {
+                    var vp1 = pg.getViewport({ scale: 1 });
+                    var vp = pg.getViewport({ scale: Math.min(3, 1400 / Math.max(vp1.width, vp1.height)) });
+                    var cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
+                    var ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+                    if (typeof showOfflineProgress === 'function') showOfflineProgress(Math.round((cis - 1) / n * 100), 100, t('Čtu PDF…') + ' ' + cis + '/' + n, '%');
+                    return pg.render({ canvasContext: ctx, viewport: vp }).promise.then(function () { return pg.getTextContent(); }).then(function (tc) {
+                        fotky.push(cv);
+                        var lines = pdfRadky(tc.items, vp);
+                        var text = lines.map(function (l) { return l.text; }).join('\n');
+                        if (!/\d{5}/.test(text)) { bezTextu.push(fotky.length - 1); return; }   // sken bez textové vrstvy → OCR níž
+                        var b = textNaBody(text, lines);
+                        b.forEach(function (x) { x.foto = fotky.length - 1; x.zdroj = 'pdf'; x.jistota = x.neuplny ? x.jistota : 'ok'; });
+                        body = body.concat(b); texty.push(text);
+                    });
+                }).then(dalsi);
+            };
+            return dalsi().then(function () {
+                if (!bezTextu.length) return;
+                // sken: stránky bez textu přečíst OCR jako fotky
+                var j = 0;
+                var ocr = function () {
+                    if (j >= bezTextu.length) return Promise.resolve();
+                    var fi = bezTextu[j++];
+                    return prectiFotku(fotky[fi], t('Čtu naskenovanou stránku') + ' ' + j + '/' + bezTextu.length).then(function (r) {
+                        r.body.forEach(function (x) { x.foto = fi; });
+                        body = body.concat(r.body); texty.push(r.text);
+                    }).then(ocr);
+                };
+                return ocr();
+            });
+        }).then(function () {
+            dokonci(body, texty, fotky, opts);
         }).catch(function (e) {
             if (typeof hideOfflineProgress === 'function') hideOfflineProgress();
             ukonciWorker();
-            (window.agInfo || alert)(t('Čtení z fotky se nezdařilo:') + ' ' + ((e && e.message) ? e.message : e));
+            (window.agInfo || alert)(t('PDF se nepodařilo přečíst:') + ' ' + ((e && e.message) ? e.message : e));
         });
     }
 
@@ -513,10 +620,11 @@
         var old = document.getElementById('ag-fb'); if (old) old.remove();
         var ov = document.createElement('div'); ov.id = 'ag-fb'; ov.setAttribute('role', 'dialog'); ov.setAttribute('data-ag-okno', '');
         var n = stav.body.length;
-        ov.innerHTML = '<div class="fb-head"><h2>' + esc(t('Body z fotky')) + '</h2><button type="button" class="fb-x" data-close aria-label="' + esc(t('Zavřít')) + '">✕</button></div>'
+        var zPdf = stav.body.length > 0 && stav.body.every(function (b) { return b.zdroj === 'pdf'; });
+        ov.innerHTML = '<div class="fb-head"><h2>' + esc(zPdf ? t('Body z PDF') : t('Body z fotky')) + '</h2><button type="button" class="fb-x" data-close aria-label="' + esc(t('Zavřít')) + '">✕</button></div>'
             + '<div class="fb-foto"><canvas></canvas></div>'
             + '<div class="fb-sum"></div><div class="fb-list"></div>'
-            + '<details><summary>' + esc(t('Co OCR přečetlo (celý text)')) + '</summary><pre></pre></details>'
+            + '<details><summary>' + esc(zPdf ? t('Text z PDF (celý)') : t('Co OCR přečetlo (celý text)')) + '</summary><pre></pre></details>'
             + '<div class="fb-foot"><button type="button" class="btn btn-primary fb-save"></button>'
             + '<button type="button" class="btn btn-secondary fb-add">' + esc(t('+ Další fotka')) + '</button>'
             + '<button type="button" class="btn btn-secondary fb-cancel">' + esc(t('Zrušit')) + '</button></div>';
@@ -526,7 +634,7 @@
         var sum = ov.querySelector('.fb-sum');
         var nejiste = stav.body.filter(function (b) { return b.jistota !== 'ok' || b.odlehly || b.neuplny; }).length;
         sum.textContent = n
-            ? (t('Nalezeno bodů:') + ' ' + n + (nejiste ? ' · ' + t('k ověření:') + ' ' + nejiste : '') + ' · ' + t('Zkontroluj hodnoty proti fotce, klepnutím na bod ho na ní ukážu.'))
+            ? (t('Nalezeno bodů:') + ' ' + n + (nejiste ? ' · ' + t('k ověření:') + ' ' + nejiste : '') + ' · ' + (zPdf ? t('Přečteno přímo z textu PDF, hodnoty jsou přesná kopie.') : t('Zkontroluj hodnoty proti fotce, klepnutím na bod ho na ní ukážu.')))
             : t('Na fotce se nenašel žádný řádek s číslem, Y a X. Zkus ostřejší záběr zblízka, kolmo na papír, bez stínů — nebo níž rozbal, co OCR přečetlo.');
         stav.body.forEach(function (b, i) {
             b.ulozit = b.ulozit !== false;
@@ -601,6 +709,6 @@
     window.AGFotoBody = {
         open: open,
         // pro testy a jiné moduly
-        _test: { des: des, pripravOffline: pripravOffline, ocrPripraveno: ocrPripraveno, prehled: function (body, fotky, texty) { stav = { body: body, fotky: fotky || [], texty: texty || [''] }; prehled(); }, textNaBody: textNaBody, radekNaBod: radekNaBod, tokeny: tokeny, priprav: priprav, prectiFotku: prectiFotku, zpracuj: zpracuj, stav: function () { return stav; } }
+        _test: { des: des, zpracujPdf: zpracujPdf, pdfRadky: pdfRadky, stav: function () { return stav; }, pripravOffline: pripravOffline, ocrPripraveno: ocrPripraveno, prehled: function (body, fotky, texty) { stav = { body: body, fotky: fotky || [], texty: texty || [''] }; prehled(); }, textNaBody: textNaBody, radekNaBod: radekNaBod, tokeny: tokeny, priprav: priprav, prectiFotku: prectiFotku, zpracuj: zpracuj, stav: function () { return stav; } }
     };
 })();

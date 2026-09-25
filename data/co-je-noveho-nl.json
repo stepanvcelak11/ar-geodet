@@ -2,6 +2,15 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 396,
+      "datum": "2026-09-24",
+      "nadpis": "Coördinaten op de millimeter en punten direct uit pdf",
+      "body": [
+        "Instellingen → Vaak → Decimalen van coördinaten: 2 (cm) of 3 (mm). Geldt voor de puntkaart, lijsten, export en rapporten. Een punt bewerken snijdt geen millimeters meer af en de omrekening heen en terug is exact tot onder 0,001 mm (eerder tot 1,4 mm).",
+        "Nieuw punt → Uit foto → Uit pdf: punten uit een rapport of coördinatenlijst worden direct uit de pdf-tekst overgenomen, exact 1:1, zonder leesfouten. Een gescande pdf wordt als foto gelezen."
+      ]
+    },
+    {
       "v": 395,
       "datum": "2026-09-24",
       "nadpis": "Punten uit foto: 3 decimalen",

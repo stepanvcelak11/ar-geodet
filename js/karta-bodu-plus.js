@@ -25,6 +25,7 @@
 
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function n2(v) { return (Math.round(v * 100) / 100).toFixed(2).replace('.', ','); }
+    function nD(v) { return Number(v).toFixed(window.agDes ? agDes() : 2).replace('.', ','); }   // výška podle volby 2/3 desetinných míst
     function n1(v) { return (Math.round(v * 10) / 10).toFixed(1).replace('.', ','); }
     // userLat aj. jsou v logika.js `let` (lexikální, ne window[...]) — proto Function
     var _gFn = {};
@@ -353,7 +354,7 @@
             return sY < sX ? { y: sY, x: sX } : { y: sX, x: sY };   // Y je vždy to menší
         } catch (e) { return null; }
     }
-    function fmtS(v) { return v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+    function fmtS(v) { return v.toFixed(window.agDes ? agDes() : 2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
     var DRUH_IKONA = {
         CUSTOM: '<path d="M9 3h6l-1 8H10z"/><path d="M11 11l1 10 1-10"/><path d="M5 21h14"/>',
         TB: '<path d="M12 4l9 16H3z"/><circle cx="12" cy="14" r="2"/>',
@@ -385,7 +386,7 @@
         else tile('', 'Přesnost', '<b class="t">neuvedena</b>');
         // (dlaždice „Stav: vytyčeno / nevytyčeno" zrušena 16. 9. 2026 na přání — v kartě nemá co dělat)
         var z = ptElev(pt);
-        tile('', 'Výška Bpv', '<b>' + (z != null ? n2(z) + ' m' : '—') + '</b>');
+        tile('', 'Výška Bpv', '<b>' + (z != null ? nD(z) + ' m' : '—') + '</b>');
         tile('', 'Ode mě', '<b id="ag-kb-dist">— m</b>');
         var kdy = (pt.prov && pt.prov.ts) || pt.mts || null, kdyS = null;
         if (kdy) { try { kdyS = new Date(kdy).toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { } }

@@ -369,8 +369,8 @@
 
             var cells = {
                 name: '#' + (p.name == null ? 'Bod' : p.name),
-                y: sj ? sj.y.toFixed(2) : '—',
-                x: sj ? sj.x.toFixed(2) : '—',
+                y: sj ? agFmtM(sj.y) : '—',
+                x: sj ? agFmtM(sj.x) : '—',
                 acc: accVal != null ? '±' + accVal.toFixed(2) + ' m' + (window.AGQc ? window.AGQc.codeSuffix(accVal) : '') : '—',
                 staked: staked ? 'ANO' : '—'
             };

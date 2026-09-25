@@ -138,6 +138,23 @@ if ('serviceWorker' in navigator) {
             const r = proj4("EPSG:4326", "EPSG:5514", [lng, lat]); return { y: Math.abs(r[0]), x: Math.abs(r[1]) };
         }
         window.agMistni = agMistni;
+        // DESETINNÁ MÍSTA SOUŘADNIC (24. 9. 2026, 7. hodnocení f2 — z ověření: „zaokrouhluje to na 2
+        // desetinná a já chci na 3“): 2 = cm (výchozí), 3 = mm. Body se ukládají přesně (lat/lng),
+        // tohle řídí jen zobrazení, předvyplnění formulářů a export. ⚠ Formulář úpravy bodu MUSÍ
+        // dostat plnou přesnost, jinak uložení tiše uřízne 3. místo.
+        function agDes() { try { return localStorage.getItem('agDesMista_v1') === '3' ? 3 : 2; } catch (e) { return 2; } }
+        function agFmtM(v, d) { v = Number(v); return isFinite(v) ? v.toFixed(d == null ? agDes() : d) : ''; }
+        function agSetDes(d) {
+            try { localStorage.setItem('agDesMista_v1', String(d === 3 ? 3 : 2)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agSetDes'); }
+            var seg = document.getElementById('seg-des');
+            if (seg) seg.querySelectorAll('.st-seg-b').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-des') === String(agDes())); });
+            try { if (typeof renderManageList === 'function') renderManageList(); } catch (e) { /* nic */ }
+            try { document.dispatchEvent(new CustomEvent('ag:des', { detail: { des: agDes() } })); } catch (e) { /* nic */ }
+        }
+        // do FORMULÁŘŮ (úprava bodu, předvyplnění): nikdy méně, než bod skutečně má — bod s mm ukáže 3 místa i při volbě 2,
+        // jinak by „Uložit“ po úpravě názvu tiše uřízlo 3. desetinné místo
+        function agFmtPresne(v) { v = Number(v); if (!isFinite(v)) return ''; var m = Math.round(v * 1000); return (m % 10 !== 0 || agDes() === 3) ? (m / 1000).toFixed(3) : v.toFixed(2); }
+        window.agDes = agDes; window.agFmtM = agFmtM; window.agSetDes = agSetDes; window.agFmtPresne = agFmtPresne;
         // Tvar pole [y, x] pro moduly, které dřív četly proj4 výsledek přes Math.abs(s[0]), Math.abs(s[1]).
         window.agMistniPole = function (lat, lng) { const m = agMistni(lat, lng); return [m.y, m.x]; };
         // Popisky os a výšky podle země ("Y"/"X"/"Bpv" v ČR).
@@ -770,11 +787,11 @@ if ('serviceWorker' in navigator) {
             if (persistentCustomPoints.length === 0) return agInfo("Nemáš žádné body.");
             let lines = persistentCustomPoints.map(pt => {
                 let sj = agMistni(pt.lat, pt.lng);
-                let y = sj.y.toFixed(2), x = sj.x.toFixed(2);
+                let y = agFmtM(sj.y), x = agFmtM(sj.x);
                 let nm = String(pt.name == null ? 'Bod' : pt.name).replace(/[;\r\n]/g, ' ');
                 // kod bodu jako 5. sloupec (kdyz je); bez vysky drzime prazdny sloupec Z, at sedi poradi
                 let kd = pt.kod ? String(pt.kod).replace(/[;\r\n]/g, ' ') : '';
-                return nm + ';' + y + ';' + x + (pt.vyska != null ? ';' + Number(pt.vyska).toFixed(2) : (kd ? ';' : '')) + (kd ? ';' + kd : '');
+                return nm + ';' + y + ';' + x + (pt.vyska != null ? ';' + agFmtM(pt.vyska) : (kd ? ';' : '')) + (kd ? ';' + kd : '');
             });
             const csv = "\uFEFF" + lines.join("\r\n") + "\r\n";
             _exportVen(`body_${activeProjectId}.csv`, 'text/csv', csv);
@@ -786,16 +803,47 @@ if ('serviceWorker' in navigator) {
                 let sj = agMistni(pt.lat, pt.lng);
                 let nm = String(pt.name == null ? 'Bod' : pt.name).replace(/[;\r\n]/g, ' ');
                 let kd = pt.kod ? String(pt.kod).replace(/[;\r\n]/g, ' ') : '';
-                return nm + ';' + sj.y.toFixed(2) + ';' + sj.x.toFixed(2) + (pt.vyska != null ? ';' + Number(pt.vyska).toFixed(2) : (kd ? ';' : '')) + (kd ? ';' + kd : '');
+                return nm + ';' + agFmtM(sj.y) + ';' + agFmtM(sj.x) + (pt.vyska != null ? ';' + agFmtM(pt.vyska) : (kd ? ';' : '')) + (kd ? ';' + kd : '');
             });
             _exportVen(`body_${activeProjectId}.txt`, 'text/plain', lines.join("\r\n") + "\r\n");
         }
         // S-JTSK Y,X (kladne) -> WGS84. Pořadí os podle ROZSAHŮ pro ČR (Y 400-935k,
         // X 935-1300k) — sdílená logika v GeoCore.fromSJTSK; mimo rozsah padá na min/max.
         // Vstup od uživatele / import v rovině TÉ země, kde stojím (v ČR = sjtskToLatLng).
-        function mistniToLatLng(a, b) {
+        function mistniToLatLng0(a, b) {
             try { if (window.GeoCore && GeoCore.fromMistni) return GeoCore.fromMistni(a, b); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:mistniToLatLng'); }
             return sjtskToLatLng(a, b);
+        }
+        // ZPŘESNĚNÍ NA mm (24. 9. 2026, f2 — 3 desetinná místa): zpětný převod rovina → WGS84 nebyl
+        // přesnou inverzí dopředného (agMistni) — tam a zpět až 1,4 mm, takže bod zadaný jako
+        // 1042118.375 se v kartě ukázal .374. Dvě Newtonovy korekce podle dopředného převodu srazí
+        // rozdíl pod 1 µm. Jen když je výchozí rozdíl malý (< 5 cm = tentýž systém) a korekce ho
+        // opravdu zmenší; jinak se vrátí původní výsledek beze změny.
+        function zpresniLL(ll, a, b) {
+            if (!ll || !isFinite(ll.lat) || !isFinite(ll.lng)) return ll;
+            var f = agMistni(ll.lat, ll.lng); if (!f || !isFinite(f.y) || !isFinite(f.x)) return ll;
+            var ty = a, tx = b;
+            if (Math.abs(f.y - b) + Math.abs(f.x - a) < Math.abs(f.y - a) + Math.abs(f.x - b)) { ty = b; tx = a; }
+            var r0 = Math.hypot(f.y - ty, f.x - tx);
+            if (!(r0 < 0.05) || r0 < 1e-6) return ll;
+            var h = 1e-6;
+            for (var i = 0; i < 3; i++) {
+                var f1 = agMistni(ll.lat + h, ll.lng), f2 = agMistni(ll.lat, ll.lng + h);
+                var a11 = (f1.y - f.y) / h, a21 = (f1.x - f.x) / h, a12 = (f2.y - f.y) / h, a22 = (f2.x - f.x) / h;
+                var det = a11 * a22 - a12 * a21; if (!det || !isFinite(det)) break;
+                var ey = ty - f.y, ex = tx - f.x;
+                var n = { lat: ll.lat + (a22 * ey - a12 * ex) / det, lng: ll.lng + (-a21 * ey + a11 * ex) / det };
+                var fn = agMistni(n.lat, n.lng), rn = Math.hypot(fn.y - ty, fn.x - tx);
+                if (!(rn < r0)) break;
+                ll = Object.assign({}, ll, n); f = fn; r0 = rn;
+                if (r0 < 1e-6) break;
+            }
+            return ll;
+        }
+        function mistniToLatLng(a, b) {
+            var ll = mistniToLatLng0(a, b);
+            try { ll = zpresniLL(ll, a, b); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:zpresniLL'); }
+            return ll;
         }
         window.mistniToLatLng = mistniToLatLng;
         function sjtskToLatLng(a, b) {
@@ -957,8 +1005,8 @@ if ('serviceWorker' in navigator) {
             const _mpf = window.AGManualPos;
             if (_mpf && _mpf.active && _mpf.lat != null) {
                 const _sjm = agMistni(_mpf.lat, _mpf.lng);
-                document.getElementById('custom-y').value = _sjm.y.toFixed(2);
-                document.getElementById('custom-x').value = _sjm.x.toFixed(2);
+                document.getElementById('custom-y').value = agFmtPresne(_sjm.y);
+                document.getElementById('custom-x').value = agFmtPresne(_sjm.x);
                 pendingPointAccuracy = _mpf.acc;
                 // origin 'mapa' zaroven VYRADI bod z Helmertovy lokalizace (ta bezi jen nad
                 // 'gps-avg', viz saveCustomPoint) — posunout rucne trefeny roh budovy
@@ -981,8 +1029,8 @@ if ('serviceWorker' in navigator) {
             if (gpsAvgResult && gpsAvgResult.coarse) { return _rekni("Slabý GNSS signál — telefon hlásí síťovou polohu ±" + Math.round(gpsAvgResult.acc) + " m, ne satelitní fix.\n\nVyjdi pod volné nebe a počkej, až se přesnost zlepší pod 20 m.", 'Zatím jen síťová poloha ±' + Math.round(gpsAvgResult.acc) + ' m — čekám na satelitní fix, souřadnice se doplní samy.'); }
             if (!gpsAvgResult || gpsAvgResult.n < 2) { return _rekni("Počkej na ustálení průměrování GPS (stůj chvíli na místě).", 'Průměruji GPS' + (gpsAvgResult && gpsAvgResult.n ? ' (' + gpsAvgResult.n + ' měření)' : '') + ' — stůj chvíli na místě, souřadnice se doplní samy.'); }
             const r = gpsAvgResult; let sjtsk = agMistni(r.lat, r.lng);
-            document.getElementById('custom-y').value = sjtsk.y.toFixed(2);
-            document.getElementById('custom-x').value = sjtsk.x.toFixed(2);
+            document.getElementById('custom-y').value = agFmtPresne(sjtsk.y);
+            document.getElementById('custom-x').value = agFmtPresne(sjtsk.x);
             pendingPointAccuracy = r.sterr;
             window._agPointOrigin = 'gps-avg';   // #2/#5: tenhle bod vzniká z GPS průměru → správná provenience + brána pro Helmert (#3)
             // VYSKA: prumerovana elipsoidicka vyska -> Bpv (odecet undulace geoidu). Chybi-li (desktop), Z necham.
@@ -2189,16 +2237,16 @@ if ('serviceWorker' in navigator) {
                 return;
             }
             if (r.name !== null && !document.getElementById('custom-name').value) document.getElementById('custom-name').value = r.name;
-            if (r.y !== null) document.getElementById('custom-y').value = r.y.toFixed(2);
-            if (r.x !== null) document.getElementById('custom-x').value = r.x.toFixed(2);
+            if (r.y !== null) document.getElementById('custom-y').value = agFmtPresne(r.y);
+            if (r.x !== null) document.getElementById('custom-x').value = agFmtPresne(r.x);
             if (r.z !== null) { const _z = document.getElementById('custom-z'); if (_z && !_z.value) _z.value = r.z.toFixed(2); }
             if (note) {
                 note.style.display = 'block';
                 // OCR cte text z FOTKY, tedy libovolny cizi retezec -> escapovat.
                 const _e = (window.AG && AG.esc) ? AG.esc : function (x) { return String(x == null ? '' : x).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
                 note.innerHTML = 'Přečteno z fotky: ' + (r.name !== null ? 'bod <b>' + _e(r.name) + '</b> · ' : '')
-                    + (r.y !== null ? 'Y <b>' + r.y.toFixed(2) + '</b>' : 'Y se nenašlo') + ' · '
-                    + (r.x !== null ? 'X <b>' + r.x.toFixed(2) + '</b>' : 'X se nenašlo')
+                    + (r.y !== null ? 'Y <b>' + agFmtM(r.y) + '</b>' : 'Y se nenašlo') + ' · '
+                    + (r.x !== null ? 'X <b>' + agFmtM(r.x) + '</b>' : 'X se nenašlo')
                     + (r.z !== null ? ' · Z <b>' + r.z.toFixed(2) + '</b>' : '')
                     + '<br><b>Zkontroluj hodnoty proti originálu</b> — OCR se může splést.';
             }

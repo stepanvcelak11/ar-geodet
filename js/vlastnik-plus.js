@@ -543,7 +543,7 @@
             (j.points || []).forEach(function (p) {
                 var yx = null;
                 try { if (window.GeoCore && GeoCore.toMistni) yx = GeoCore.toMistni(p.lat, p.lng); } catch (e) { yx = null; }
-                radky.push([j.name || j.key, p.name || '', p.kod || '', yx ? yx.y.toFixed(2) : '', yx ? yx.x.toFixed(2) : '', p.lat, p.lng, p.vyska != null ? p.vyska : '', p.acc != null ? p.acc : '', p.uname || '', p.ts ? new Date(p.ts).toISOString() : '']
+                radky.push([j.name || j.key, p.name || '', p.kod || '', yx ? agFmtM(yx.y) : '', yx ? agFmtM(yx.x) : '', p.lat, p.lng, p.vyska != null ? p.vyska : '', p.acc != null ? p.acc : '', p.uname || '', p.ts ? new Date(p.ts).toISOString() : '']
                     .map(function (v) { return String(v == null ? '' : v).replace(/;/g, ','); }).join(';'));
             });
         });

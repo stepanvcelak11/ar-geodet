@@ -2,6 +2,15 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 396,
+      "datum": "2026-09-24",
+      "nadpis": "Coordonnées au millimètre et points directement depuis un PDF",
+      "body": [
+        "Réglages → Fréquent → Décimales des coordonnées : 2 (cm) ou 3 (mm). S’applique à la fiche du point, aux listes, à l’export et aux rapports. Modifier un point ne coupe plus les millimètres et la conversion aller-retour est exacte à moins de 0,001 mm (avant jusqu’à 1,4 mm).",
+        "Nouveau point → Depuis une photo → Depuis un PDF : les points d’un rapport ou d’une liste de coordonnées sont repris directement du texte du PDF, exactement 1:1, sans erreur de lecture. Un PDF scanné est lu comme une photo."
+      ]
+    },
+    {
       "v": 395,
       "datum": "2026-09-24",
       "nadpis": "Points depuis une photo : 3 décimales",

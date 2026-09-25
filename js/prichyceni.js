@@ -45,8 +45,8 @@
     }
     function zapisDoPole(ll) {
         var m = agMistni(ll.lat, ll.lng);
-        document.getElementById('custom-y').value = m.y.toFixed(2);
-        document.getElementById('custom-x').value = m.x.toFixed(2);
+        document.getElementById('custom-y').value = agFmtPresne(m.y);
+        document.getElementById('custom-x').value = agFmtPresne(m.x);
     }
     function fmt(d) { return d.toFixed(2).replace('.', ','); }
 

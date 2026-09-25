@@ -606,7 +606,7 @@
             // ukázalo Y a X prohozené (a geodet by si to opsal do zápisníku).
             var sj = null;
             try { if (window.GeoCore && GeoCore.toMistni) sj = GeoCore.toMistni(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:save'); }
-            var coords = sj ? ('\nY ' + sj.y.toFixed(2) + '  X ' + sj.x.toFixed(2)) : '';
+            var coords = sj ? ('\nY ' + agFmtM(sj.y) + '  X ' + agFmtM(sj.x)) : '';
             var srcTxt = (pouzito.length > 1) ? ('\nSpojeno z ' + pouzito.length + ' sezení') : '';
             // Re-okupace dokončena → z fronty vyřadit JEN sezení, která do bodu vešla.
             // Vzdálená sezení (patřící jinému bodu) tam musí zůstat — paušální

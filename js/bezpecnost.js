@@ -169,7 +169,7 @@
         return 2;
     }
     // souřadnice na displeji jako všude v appce: „741 817,82" (SMS níž zůstává s tečkou — strojově čitelná)
-    function fmtS(v) { return v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+    function fmtS(v) { return v.toFixed(window.agDes ? agDes() : 2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
     function sjtsk(lat, lng) {
         try { if (window.GeoCore && typeof GeoCore.toMistni === 'function') { var r = GeoCore.toMistni(lat, lng); if (r) return { y: r.y, x: r.x }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:sjtsk'); }
         try { if (typeof proj4 === 'function') { var s = window.agMistniPole(lat, lng); return { y: s[0], x: s[1] }; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:sjtsk'); }
@@ -310,7 +310,7 @@
         var lines = ['Potřebuji pomoc / navedení na tuto polohu:'];
         lines.push('GPS: ' + f.lat.toFixed(6) + ', ' + f.lng.toFixed(6) + (f.acc != null ? ' (přesnost ±' + Math.round(f.acc) + ' m)' : ''));
         var s = sjtsk(f.lat, f.lng);
-        if (s) lines.push(agSys() + ' ' + agOsy().osaA + ', ' + agOsy().osaB + ': ' + s.y.toFixed(2) + ', ' + s.x.toFixed(2));
+        if (s) lines.push(agSys() + ' ' + agOsy().osaA + ', ' + agOsy().osaB + ': ' + agFmtM(s.y) + ', ' + agFmtM(s.x));
         lines.push('Mapa: https://www.google.com/maps?q=' + f.lat.toFixed(6) + ',' + f.lng.toFixed(6));
         // Stáří polohy patří DO zprávy: příjemce musí vědět, jestli jede na místo,
         // kde jsem teď, nebo kde jsem naposledy byl.

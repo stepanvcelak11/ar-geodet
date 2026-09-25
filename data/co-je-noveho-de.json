@@ -2,6 +2,15 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 396,
+      "datum": "2026-09-24",
+      "nadpis": "Koordinaten auf den Millimeter und Punkte direkt aus PDF",
+      "body": [
+        "Einstellungen → Häufig → Nachkommastellen der Koordinaten: 2 (cm) oder 3 (mm). Gilt für Punktkarte, Listen, Export und Protokolle. Das Bearbeiten eines Punktes schneidet keine Millimeter mehr ab, und die Umrechnung hin und zurück ist genauer als 0,001 mm (früher bis 1,4 mm).",
+        "Neuer Punkt → Aus Foto → Aus PDF: Punkte aus Protokoll oder Koordinatenliste werden direkt aus dem PDF-Text übernommen, exakt 1:1, ohne Lesefehler. Ein gescanntes PDF wird wie ein Foto gelesen."
+      ]
+    },
+    {
       "v": 395,
       "datum": "2026-09-24",
       "nadpis": "Punkte aus Foto: 3 Nachkommastellen",

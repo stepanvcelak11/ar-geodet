@@ -938,7 +938,7 @@ function calcPrevod() {
         const sj = GeoCore.toSJTSK(lat, lng);
         const utm = proj4('EPSG:4326', 'UTM33N', [lng, lat]);
         document.getElementById('calc-result').innerHTML = _resBox(
-            _row('<b>S-JTSK Y</b>', '<b>' + sj.y.toFixed(2) + '</b>') + _row('<b>S-JTSK X</b>', '<b>' + sj.x.toFixed(2) + '</b>')
+            _row('<b>S-JTSK Y</b>', '<b>' + agFmtM(sj.y) + '</b>') + _row('<b>S-JTSK X</b>', '<b>' + agFmtM(sj.x) + '</b>')
             + _row('WGS84 šířka', lat.toFixed(7) + ' °') + _row('WGS84 délka', lng.toFixed(7) + ' °')
             + _row('UTM 33N E', utm[0].toFixed(2) + ' m') + _row('UTM 33N N', utm[1].toFixed(2) + ' m'));
     } catch (e) { _calcErr(e); }

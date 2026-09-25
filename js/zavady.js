@@ -570,7 +570,7 @@
             + '<div class="ag-zv-kv"><span>Závažnost</span><b style="color:' + sv.color + ';">' + z.sev + ' · ' + sv.label + '</b></div>'
             + '<div class="ag-zv-kv"><span>Zapsáno</span><b>' + fmtTs(z.ts) + '</b></div>'
             + (z.ptName ? '<div class="ag-zv-kv"><span>Bod</span><b>⌖ ' + esc(z.ptName) + '</b></div>' : '')
-            + (sj ? '<div class="ag-zv-kv"><span>' + agSys() + '</span><b>' + agOsy().osaA + ' ' + sj.y.toFixed(2) + ' · ' + agOsy().osaB + ' ' + sj.x.toFixed(2) + '</b></div>' : '')
+            + (sj ? '<div class="ag-zv-kv"><span>' + agSys() + '</span><b>' + agOsy().osaA + ' ' + agFmtM(sj.y) + ' · ' + agOsy().osaB + ' ' + agFmtM(sj.x) + '</b></div>' : '')
             + '<div class="ag-zv-kv"><span>Poloha</span><b>' + (z.posSrc === 'map' ? 'z mapy' : 'GPS' + (z.acc != null ? ' ±' + z.acc + ' m' : '')) + '</b></div>'
             + (d != null ? '<div class="ag-zv-kv"><span>Odsud</span><b>' + fmtDist(d) + '</b></div>' : '')
             + (z.note ? '<p style="font-size:calc(14px * var(--ag-font-scale, 1));line-height:1.5;">' + esc(z.note) + '</p>' : '')
@@ -698,7 +698,7 @@
                 catLabel(z.cat),
                 '"' + String(z.ptName || '').replace(/"/g, '""') + '"',
                 z.sev, (z.resolved ? 'vyreseno' : 'otevreno'),
-                sj ? sj.y.toFixed(2) : '', sj ? sj.x.toFixed(2) : '',
+                sj ? agFmtM(sj.y) : '', sj ? agFmtM(sj.x) : '',
                 (z.acc != null ? z.acc : ''),
                 '"' + String(z.note || '').replace(/"/g, '""') + '"',
                 fmtTs(z.ts), (z.resolvedTs ? fmtTs(z.resolvedTs) : '')
@@ -737,7 +737,7 @@
                     + (z.resolved ? ' <span style="font-weight:400;color:#2c7a4b;">✓ vyřešeno</span>' : '') + '</h2>'
                     + '<table>'
                     + (z.ptName ? '<tr><td>Bod</td><td>' + esc(z.ptName) + '</td></tr>' : '')
-                    + (sj ? '<tr><td>' + agSys() + '</td><td>' + agOsy().osaA + ' ' + sj.y.toFixed(2) + ' · ' + agOsy().osaB + ' ' + sj.x.toFixed(2) + '</td></tr>' : '')
+                    + (sj ? '<tr><td>' + agSys() + '</td><td>' + agOsy().osaA + ' ' + agFmtM(sj.y) + ' · ' + agOsy().osaB + ' ' + agFmtM(sj.x) + '</td></tr>' : '')
                     + '<tr><td>Zapsáno</td><td>' + fmtTs(z.ts) + (z.acc != null ? ' (GPS ±' + z.acc + ' m)' : '') + '</td></tr>'
                     + (z.resolvedTs ? '<tr><td>Vyřešeno</td><td>' + fmtTs(z.resolvedTs) + '</td></tr>' : '')
                     + (z.note ? '<tr><td>Poznámka</td><td>' + esc(z.note) + '</td></tr>' : '')

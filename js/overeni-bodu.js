@@ -382,7 +382,7 @@
             var nm = String(p.name == null ? 'bod' : p.name).replace(/[;\r\n]/g, ' ');
             lines.push([
                 nm,
-                s ? s.y.toFixed(2) : '', s ? s.x.toFixed(2) : '',
+                s ? agFmtM(s.y) : '', s ? agFmtM(s.x) : '',
                 o ? (o.ok ? 'v mezi' : 'MIMO MEZ') : 'neovereno',
                 o ? o.dy.toFixed(3) : '', o ? o.dx.toFixed(3) : '',
                 o ? o.d.toFixed(3) : '', o ? o.mez.toFixed(2) : '',

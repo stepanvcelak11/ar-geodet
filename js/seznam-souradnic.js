@@ -101,22 +101,22 @@
         {
             id: 'groma', nm: 'Groma — obecný seznam (Y X Z)',
             hint: 'Volný formát YXZ: čísla oddělená mezerami. Nejběžnější cesta do Gromy.',
-            cfg: { ord: 'YX', sep: 'space', dec: 2, dsep: '.', z: 'zero', kod: true, tr: false, trv: 3, enc: 'utf8', align: true, ext: 'txt' }
+            cfg: { ord: 'YX', sep: 'space', dec: (window.agDes ? agDes() : 2), dsep: '.', z: 'zero', kod: true, tr: false, trv: 3, enc: 'utf8', align: true, ext: 'txt' }
         },
         {
             id: 'katastr', nm: 'Groma — formát pro katastr',
             hint: 'číslo, Y, X, Z, třída přesnosti. Chybějící výška se píše jako 0.00.',
-            cfg: { ord: 'YX', sep: 'space', dec: 2, dsep: '.', z: 'zero', kod: false, tr: true, trv: 3, enc: 'utf8', align: true, ext: 'txt' }
+            cfg: { ord: 'YX', sep: 'space', dec: (window.agDes ? agDes() : 2), dsep: '.', z: 'zero', kod: false, tr: true, trv: 3, enc: 'utf8', align: true, ext: 'txt' }
         },
         {
             id: 'kokes', nm: 'Kokeš — STX (textový seznam)',
             hint: 'Oddělovač je VŽDY mezera. Kódování Windows-1250 kvůli diakritice v kódech.',
-            cfg: { ord: 'YX', sep: 'space', dec: 2, dsep: '.', z: 'zero', kod: true, tr: false, trv: 3, enc: 'cp1250', align: true, ext: 'stx' }
+            cfg: { ord: 'YX', sep: 'space', dec: (window.agDes ? agDes() : 2), dsep: '.', z: 'zero', kod: true, tr: false, trv: 3, enc: 'cp1250', align: true, ext: 'stx' }
         },
         {
             id: 'excel', nm: 'CSV pro Excel (středník)',
             hint: 'Středník + desetinná čárka + BOM — česky lokalizovaný Excel to otevře rovnou.',
-            cfg: { ord: 'YX', sep: 'semi', dec: 2, dsep: ',', z: 'zero', kod: true, tr: false, trv: 3, enc: 'utf8bom', align: false, ext: 'csv' }
+            cfg: { ord: 'YX', sep: 'semi', dec: (window.agDes ? agDes() : 2), dsep: ',', z: 'zero', kod: true, tr: false, trv: 3, enc: 'utf8bom', align: false, ext: 'csv' }
         },
         { id: 'vlastni', nm: 'Vlastní nastavení', hint: 'Nic se nepřepisuje — nastav si sloupce sám a hlídej náhled.', cfg: null }
     ];

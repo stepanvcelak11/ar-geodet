@@ -302,7 +302,7 @@
         body.innerHTML =
             '<p style="font-size:calc(13px * var(--ag-font-scale, 1));"><b>Došel jsi:</b> ' + _steps + ' kroků, ' + _dist.toFixed(1) + ' m<br>'
             + 'vektor ' + _dE.toFixed(2) + ' m V / ' + _dN.toFixed(2) + ' m S od bodu ' + esc(_startPt.name) + '<br>'
-            + (sj ? 'Y ' + sj.y.toFixed(2) + '  X ' + sj.x.toFixed(2) + '<br>' : '')
+            + (sj ? 'Y ' + agFmtM(sj.y) + '  X ' + agFmtM(sj.x) + '<br>' : '')
             + 'odhad nejistoty <b>±' + u.toFixed(2) + ' m</b></p>'
             + '<input class="bgps-name" id="ag-pdr-name" type="text" placeholder="Název nového bodu (např. ROH1)" style="width:100%; margin:6px 0;">'
             + '<button class="btn" id="ag-pdr-save">✓ Uložit bod B</button>'

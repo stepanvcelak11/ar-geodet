@@ -340,7 +340,7 @@
             save();
             if (window.GeoCore && GeoCore.toMistni) {
                 var s = GeoCore.toMistni(p.lat, p.lng);
-                _prefill = { y: s.y.toFixed(2), x: s.x.toFixed(2), z: (p.vyska != null ? Number(p.vyska).toFixed(2) : '') };
+                _prefill = { y: agFmtPresne(s.y), x: agFmtPresne(s.x), z: (p.vyska != null ? agFmtPresne(p.vyska) : '') };
             }
             _view = { mode: 'detail', itemId: id };
             render();
@@ -439,9 +439,9 @@
             for (var i = 0; i < arPoints.length; i++) if (arPoints[i].id === id) { p = arPoints[i]; break; }
             if (!p || !window.GeoCore || !GeoCore.toMistni) return;
             var s = GeoCore.toMistni(p.lat, p.lng);
-            document.getElementById('ag-ep-y').value = s.y.toFixed(2);
-            document.getElementById('ag-ep-x').value = s.x.toFixed(2);
-            if (p.vyska != null) document.getElementById('ag-ep-z').value = Number(p.vyska).toFixed(2);
+            document.getElementById('ag-ep-y').value = agFmtPresne(s.y);
+            document.getElementById('ag-ep-x').value = agFmtPresne(s.x);
+            if (p.vyska != null) document.getElementById('ag-ep-z').value = agFmtPresne(p.vyska);
             toast('Souřadnice převzaty z bodu „' + p.name + '" — zkontroluj a ulož.');
         } catch (e) {}
     }
@@ -455,8 +455,8 @@
                 if (!window.GeoCore || !GeoCore.toMistni) return toast('Převod do ' + agSys() + ' není dostupný.');
                 var s = GeoCore.toMistni(c.latitude, c.longitude);
                 var yEl = document.getElementById('ag-ep-y'); if (!yEl) return;
-                yEl.value = s.y.toFixed(2);
-                document.getElementById('ag-ep-x').value = s.x.toFixed(2);
+                yEl.value = agFmtPresne(s.y);
+                document.getElementById('ag-ep-x').value = agFmtPresne(s.x);
                 if (c.altitude != null && isFinite(c.altitude)) {
                     var und = 0; try { und = GeoCore.geoidUndulation(c.latitude, c.longitude) || 0; } catch (e2) {}
                     document.getElementById('ag-ep-z').value = (c.altitude - und).toFixed(2);

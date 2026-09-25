@@ -125,8 +125,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=395">
-    <link rel="stylesheet" href="css/style.css?v=395">
+    <link rel="stylesheet" href="css/tokens.css?v=396">
+    <link rel="stylesheet" href="css/style.css?v=396">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -257,7 +257,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=395">
+    <link rel="stylesheet" href="css/vylepseni.css?v=396">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -732,6 +732,12 @@
                     <select id="v-mode" style="display:none;"><option value="light">Světlý režim</option><option value="dark">Tmavý režim</option></select>
                     <div class="st-row"><span class="st-lab">Venkovní režim<small>vysoký kontrast na slunci</small></span>
                         <label class="st-sw"><input type="checkbox" id="s-outdoor"><span class="st-sw-face"></span></label></div>
+                    <div class="st-row"><span class="st-lab">Desetinná místa souřadnic<small>karta bodu, seznamy, export a protokoly; body se ukládají vždy přesně</small></span>
+                        <span class="st-seg" id="seg-des">
+                            <button type="button" class="st-seg-b" data-des="2" onclick="agSetDes(2)">2 (cm)</button>
+                            <button type="button" class="st-seg-b" data-des="3" onclick="agSetDes(3)">3 (mm)</button>
+                        </span>
+                    </div>
                     <label>Druh úředních bodů</label>
                     <div class="st-chips">
                         <!-- swatch = tvar+barva bodu v mapě/AR — chipy jsou zároveň legenda kategorií -->

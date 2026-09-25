@@ -2,6 +2,15 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 396,
+      "datum": "2026-09-24",
+      "nadpis": "Współrzędne z dokładnością do milimetra i punkty prosto z PDF",
+      "body": [
+        "Ustawienia → Częste → Miejsca po przecinku współrzędnych: 2 (cm) lub 3 (mm). Dotyczy karty punktu, list, eksportu i protokołów. Edycja punktu już nie ucina milimetrów, a przeliczenie tam i z powrotem jest dokładne poniżej 0,001 mm (wcześniej do 1,4 mm).",
+        "Nowy punkt → Ze zdjęcia → Z PDF: punkty z protokołu lub listy współrzędnych są brane prosto z tekstu PDF, dokładnie 1:1, bez błędów odczytu. Zeskanowany PDF aplikacja czyta jak zdjęcie."
+      ]
+    },
+    {
       "v": 395,
       "datum": "2026-09-24",
       "nadpis": "Punkty ze zdjęcia: 3 miejsca po przecinku",

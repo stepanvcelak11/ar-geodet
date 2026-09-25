@@ -2,6 +2,15 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 396,
+      "datum": "2026-09-24",
+      "nadpis": "Coordenadas ao milímetro e pontos diretamente de PDF",
+      "body": [
+        "Definições → Frequentes → Casas decimais das coordenadas: 2 (cm) ou 3 (mm). Aplica-se à ficha do ponto, listas, exportação e protocolos. Editar um ponto já não corta milímetros e a conversão de ida e volta é exata abaixo de 0,001 mm (antes até 1,4 mm).",
+        "Ponto novo → De uma foto → De um PDF: os pontos de um protocolo ou lista de coordenadas são tirados diretamente do texto do PDF, exatamente 1:1, sem erros de leitura. Um PDF digitalizado é lido como uma foto."
+      ]
+    },
+    {
       "v": 395,
       "datum": "2026-09-24",
       "nadpis": "Pontos de uma foto: 3 casas decimais",
