@@ -2,6 +2,15 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 405,
+      "datum": "2026-09-25",
+      "nadpis": "Punti ufficiali in Austria e Germania",
+      "body": [
+        "Austria: 56 640 punti trigonometrici BEV con quota sul mare (dati aperti, CC BY 4.0).",
+        "Germania: punti AFIS a Berlino, nel Meclemburgo-Pomerania Anteriore e nel Baden-Württemberg (solo questi Land li pubblicano). Altrove l’app dice che il Land non li pubblica."
+      ]
+    },
+    {
       "v": 404,
       "datum": "2026-09-25",
       "nadpis": "Avvio più veloce",

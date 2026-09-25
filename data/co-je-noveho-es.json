@@ -2,6 +2,15 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 405,
+      "datum": "2026-09-25",
+      "nadpis": "Puntos oficiales en Austria y Alemania",
+      "body": [
+        "Austria: 56 640 vértices trigonométricos del BEV con altitud sobre el mar (datos abiertos, CC BY 4.0).",
+        "Alemania: puntos AFIS en Berlín, Mecklemburgo-Pomerania Occidental y Baden-Wurtemberg (solo estos estados los publican). En otros lugares la app avisa de que el estado no los publica."
+      ]
+    },
+    {
       "v": 404,
       "datum": "2026-09-25",
       "nadpis": "Inicio más rápido",

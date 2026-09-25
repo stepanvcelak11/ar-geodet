@@ -255,7 +255,7 @@
         var rt = rtkPro(kod);
         if (rt) h += row(T('Korekce RTK'), esc(rt.n) + (rt.zdarma ? ' <span style="opacity:.75;font-size:.9em;">' + esc(T('(pro geodety zdarma)')) + '</span>' : '') + '<br><a href="' + esc(rt.u) + '" target="_blank" rel="noopener" style="color:var(--accent);font-size:.92em;">' + esc(rt.p) + ' ↗</a>', true);
         else h += row(T('Korekce RTK'), esc(T('síť neznám — zeptej se místního zeměměřického úřadu')));
-        h += '</div><p style="margin:10px 0 0;font-size:.92em;opacity:.85;">' + esc(T('Úřední body zveřejňují jako data Česko, Slovensko, Švýcarsko, Nizozemsko, Francie a Španělsko. Jinde se dnes měří roverem ze státní sítě a body si geodet zakládá sám — appka tu pracuje s tvými body, výkresem a kalibracemi.')) + '</p>';
+        h += '</div><p style="margin:10px 0 0;font-size:.92em;opacity:.85;">' + esc(T('Úřední body zveřejňují jako data Česko, Slovensko, Švýcarsko, Nizozemsko, Francie, Španělsko a Rakousko (v Německu jen Berlín, Meklenbursko-Přední Pomořansko a Bádensko-Württembersko). Jinde se dnes měří roverem ze státní sítě a body si geodet zakládá sám — appka tu pracuje s tvými body, výkresem a kalibracemi.')) + '</p>';
         h += '<p style="margin:8px 0 0;font-size:.85em;opacity:.65;">' + esc(T('Zemi změníš v Nastavení → Mapa a body → Země měření.')) + '</p>';
         return { title: T('Měříš v zemi') + ': ' + T(jm), html: h };
     }

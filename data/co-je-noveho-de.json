@@ -2,6 +2,15 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 405,
+      "datum": "2026-09-25",
+      "nadpis": "Amtliche Punkte in Österreich und Deutschland",
+      "body": [
+        "Österreich: 56 640 Triangulierungspunkte des BEV mit Höhe über dem Meer (offene Daten, CC BY 4.0).",
+        "Deutschland: AFIS-Punkte in Berlin, Mecklenburg-Vorpommern und Baden-Württemberg (nur diese Länder geben sie frei). Anderswo sagt die App, dass das Land sie nicht veröffentlicht."
+      ]
+    },
+    {
       "v": 404,
       "datum": "2026-09-25",
       "nadpis": "Schnellerer Start",

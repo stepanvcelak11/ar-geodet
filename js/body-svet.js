@@ -25,11 +25,29 @@
 //       BUFFER=25 (GeoServer víc nepustí) → tolerance = R. Atributy se u NAP jmenují jinak
 //       (latitud_etrs89, altitud_elipsoidal, ortometrica) než u ROI (lat_etrs89, alt_elip, alt_orto);
 //       reseña PDF → „Otevřít nákres".
-// Ostatní země (PL, AT, DE, HU, SI, NO, EE…): stát body nezveřejňuje jako data (geoportály chtějí
-// klíč nebo platbu, PL/DE vrací 401/404 — zkoušeno 18. a 19. 9. 2026) — tam zůstávají jen vlastní
-// body. Ať to lidi vědí, říká to panel Body (grafika.js) i karta „Měříš v zemi" (zdroje-zemi.js).
+//   DE  (25. 9. 2026, 6. hodnocení e1) Německo body vede po spolkových zemích (AFIS). Otevřeně, bez klíče
+//       a s CORS je dávají jen tři — OVĚŘENO curlem 25. 9. 2026 u všech 16:
+//       BE  Berlín gdi.berlin.de/services/wfs/afis (GeoServer WFS 2.0, GeoJSON, bbox v EPSG:4326 lat,lon):
+//           Höhenfestpunkte a_/b_/c_afis_hfp1–3 (výška DHHN2016 `hoh2`), Grundnetzpunkte d_/e_/f_afis_ggp1–3
+//           (GNSS body se souřadnicemi UTM33 rew/how), atributy pkn, bezpvm (stabilizace), nal (kde).
+//       MV  Meklenbursko-Přední Pomořansko geodaten-mv.de/dienste/afis_wfs (MapServer, OUTPUTFORMAT=geojson —
+//           `application/json` vrací 400): adv_afis_lfp (polohové, řád, výška), adv_afis_hfp (nivelace);
+//           u každého pdf_url = místopis → „Otevřít nákres".
+//       BW  Bádensko-Württembersko owsproxy.lgl-bw.de (GeoServer): JEN výškové body řádu 1–3; bbox MUSÍ
+//           být v EPSG:25832 (ve 4326 vrátí 0) a souřadnice se berou nativně (SRSNAME=4326 je zaokrouhlí na 1 km).
+//       Víc vrstev v jednom GetFeature nejde (MV pak vrátí slepené GeoJSONy) → dotaz na vrstvu, slije se.
+//       Ostatní spolkové země: služba chce přihlášení (SN, ST, SH, RP = 403), jen obrázek (RP), jen GML NAS
+//       (BB), jen číslo bodu bez souřadnic (BY, HB) nebo nic veřejného (NI, HE, TH, HH, SL). NRW dává jen CSV
+//       celé země (7 MB). Tam appka řekne, že spolková země body nezveřejňuje.
+//   AT  Rakousko: BEV dává trigonometrické body (TP) jako otevřené CSV (CC BY 4.0), ale server NEPOSÍLÁ
+//       CORS a WMS má queryable=0 → scripts/body_at.py CSV předem rozřeže na dlaždice 0,25° v data/body-at/
+//       (86 561 značek, 211 dlaždic); tady se stáhnou jen dlaždice kolem polohy (z.nacti místo z.urls).
+//       Výška = elipsoidická ETRS89 − undulace geoidu (UNDULATION_GRS80 z téhož CSV).
+// Ostatní země (PL, HU, SI, NO, EE…): stát body nezveřejňuje jako data (geoportály chtějí klíč nebo
+// platbu, PL vrací 401 — zkoušeno 18. a 19. 9. 2026) — tam zůstávají jen vlastní body. Ať to lidi
+// vědí, říká to panel Body (grafika.js) i karta „Měříš v zemi" (zdroje-zemi.js).
 //
-// CO DĚLÁ: když je země měření (AGSour) CH, NL, FR nebo ES a mám polohu, stáhne body do R metrů, přemapuje
+// CO DĚLÁ: když je země měření (AGSour) CH, NL, FR, ES, DE nebo AT a mám polohu, stáhne body do R metrů, přemapuje
 // na kategorie appky a vloží do arPoints jako úřední body (stejný tvar jako agCuzkBod / body-sk:
 // name, cat, druh, vyska, ku, rawData, zdroj, vrstva = kód země). Znovu po přesunu > 800 m.
 // Odstranění: smaž js/body-svet.js + <script> v index.html.
@@ -39,7 +57,8 @@
     if (window.AGBodySvet) return;
     var swallow = function (e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'body-svet:' + kde); } catch (e2) { /* nic */ } };
     var ZNOVU_M = 800;
-    var _posl = null, _bezi = false, _tik = null, _pocet = 0, _kod = null;
+    var _posl = null, _bezi = false, _tik = null, _pocet = 0, _kod = null, _deMimo = false;
+    function T(cs) { try { return window.AGJazyk ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } }
 
     function kod() { try { return (window.AGSour && AGSour.kod && AGSour.kod()) || 'CZ'; } catch (e) { return 'CZ'; } }
     function poloha() { try { return (typeof userLat === 'number' && userLat) ? { lat: userLat, lng: userLng } : null; } catch (e) { return null; } }
@@ -167,15 +186,106 @@
                 rawData: raw, hidden: false, currentDist: 0, bestAccuracy: null, vrstva: 'ES', druh: druh, zdroj: 'IGN España', nazevBodu: str(p.nombre), ku: str(p.municipio) || str(p.nombre_muni), vyska: vyska, popis: str(p.linea) || null };
         }
     };
-    var ZEME = { CH: CH, NL: NL, FR: FR, ES: ES };
+
+    // ---- DE: AFIS spolkových zemí (Berlín, MV, BW) ---------------------------------------
+    var UTM32 = '+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs';
+    var DE_OBL = [   // [kód, jméno, jih, sever, západ, východ] — obdélník kolem spolkové země
+        ['BE', 'Berlín', 52.33, 52.68, 13.08, 13.77],
+        ['MV', 'Meklenbursko-Přední Pomořansko', 53.10, 54.69, 10.59, 14.42],
+        ['BW', 'Bádensko-Württembersko', 47.53, 49.80, 7.51, 10.50]
+    ];
+    function deOblasti(lat, lng) { return DE_OBL.filter(function (o) { return lat >= o[2] && lat <= o[3] && lng >= o[4] && lng <= o[5]; }); }
+    var DE = {
+        kod: 'DE', zdroj: 'AFIS (Berlin, MV, BW)', R: 1500,
+        BE: 'https://gdi.berlin.de/services/wfs/afis?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&COUNT=400&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&TYPENAMES=afis:',
+        BE_V: ['a_afis_hfp1', 'b_afis_hfp2', 'c_afis_hfp3', 'd_afis_ggp1', 'e_afis_ggp2', 'f_afis_ggp3'],
+        MV: 'https://www.geodaten-mv.de/dienste/afis_wfs?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&COUNT=400&OUTPUTFORMAT=geojson&SRSNAME=EPSG:4326&TYPENAMES=afismv:',
+        MV_V: ['adv_afis_lfp', 'adv_afis_hfp'],
+        BW: 'https://owsproxy.lgl-bw.de/owsproxy/wfs/WFS_LGL-BW_AFIS_Hoehenfestpunkte?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&COUNT=400&OUTPUTFORMAT=application/json&TYPENAMES=nora:',
+        BW_V: ['v_hoehenfestpunkt_ordnung_1', 'v_hoehenfestpunkt_ordnung_2', 'v_hoehenfestpunkt_ordnung_3'],
+        urls: function (lat, lng) {
+            var dlat = DE.R / 111320, dlng = DE.R / (111320 * Math.cos(lat * Math.PI / 180)), out = [];
+            var b4326 = '&BBOX=' + (lat - dlat).toFixed(5) + ',' + (lng - dlng).toFixed(5) + ',' + (lat + dlat).toFixed(5) + ',' + (lng + dlng).toFixed(5) + ',urn:ogc:def:crs:EPSG::4326';
+            deOblasti(lat, lng).forEach(function (o) {
+                if (o[0] === 'BW') {
+                    var c = zpet(UTM32, lat, lng); if (!c) { out.push(null); return; }
+                    var b = '&BBOX=' + Math.round(c.x - DE.R) + ',' + Math.round(c.y - DE.R) + ',' + Math.round(c.x + DE.R) + ',' + Math.round(c.y + DE.R) + ',urn:ogc:def:crs:EPSG::25832';
+                    DE.BW_V.forEach(function (v) { out.push(DE.BW + v + b); });
+                } else DE[o[0] + '_V'].forEach(function (v) { out.push(DE[o[0]] + v + b4326); });
+            });
+            return out;
+        },
+        seznam: function (d) { return (d && d.features) || []; },
+        bod: function (f, q) {
+            var p = f.properties || {}, g = f.geometry && f.geometry.coordinates;
+            if (!g || !isFinite(g[0]) || !isFinite(g[1])) return null;
+            var zem = /lgl-bw/.test(q) ? 'BW' : (/geodaten-mv/.test(q) ? 'MV' : 'BE');
+            var lat, lng;
+            if (zem === 'BW') { var ll = proj(UTM32, g[0], g[1]); if (!ll) return null; lat = ll.lat; lng = ll.lng; }
+            else { lat = g[1]; lng = g[0]; if (Math.abs(lat) > 90) { lat = g[0]; lng = g[1]; } }
+            var raw = {}; Object.keys(p).forEach(function (k) { if (k !== 'bbox') raw[k] = p[k]; });
+            var name = str(p.punktkennung) || str(p.pkn); if (!name) return null;
+            var hfp = zem === 'BW' || /hfp/.test(q), vyska, druh, popis, znacka, ku;
+            if (zem === 'BE') {
+                vyska = num(p.hoh2); znacka = str(p.bezpvm); popis = str(p.nal);
+                var rad = (/(hfp|ggp)(\d)/.exec(q) || [])[2] || '';
+                druh = hfp ? 'Höhenfestpunkt ' + rad + '. Ordnung (DHHN2016)' : 'Geodätischer Grundnetzpunkt ' + rad + '. Stufe (GNSS)';
+                if (num(p.rew) != null) { raw.E_UTM33 = num(p.rew); raw.N_UTM33 = num(p.how); }
+            } else if (zem === 'MV') {
+                vyska = num(p.hoehe); znacka = str(p.punktvermarkung); popis = str(p.lagebeschreibung);
+                druh = (hfp ? 'Höhenfestpunkt' : 'Lagefestpunkt') + (str(p.ordnung_hoehe) || str(p.ordnung) ? ' ' + (str(p.ordnung_hoehe) || str(p.ordnung)) : '');
+                if (num(p.east) != null) { raw.E_UTM33 = num(p.east); raw.N_UTM33 = num(p.north); }
+                if (str(p.pdf_url)) raw.GEODETICKE_UDAJE = str(p.pdf_url);
+            } else {
+                vyska = num(p.hoehe); znacka = str(p.vermarkung_name); popis = str(p.lagebeschreibung); ku = str(p.gemeinde_name);
+                druh = 'Höhenfestpunkt ' + (str(p.ordnung_name) || '') + ' (DHHN2016)';
+                raw.E_UTM32 = Math.round(g[0] * 1000) / 1000; raw.N_UTM32 = Math.round(g[1] * 1000) / 1000;
+            }
+            if (vyska != null) raw.VYSKA = vyska;
+            return { id: 'de_' + zem.toLowerCase() + '_' + name, name: name, lat: lat, lng: lng, cat: hfp ? 'NIVEL' : 'TB', type: hfp ? 'vyskovy' : 'polohovy',
+                rawData: raw, hidden: false, currentDist: 0, bestAccuracy: null, vrstva: 'DE', druh: druh, zdroj: 'AFIS ' + zem, nazevBodu: null, ku: ku || null, vyska: vyska, znacka: znacka, popis: popis };
+        }
+    };
+
+    // ---- AT: BEV trigonometrické body (dlaždice data/body-at z scripts/body_at.py) --------
+    var _atIdx = null;
+    var AT = {
+        kod: 'AT', zdroj: 'BEV', R: 2000, DIR: 'data/body-at/',
+        nacti: function (lat, lng) {
+            var dlat = AT.R / 111320, dlng = AT.R / (111320 * Math.cos(lat * Math.PI / 180));
+            var idx = _atIdx ? Promise.resolve(_atIdx) : fetch(AT.DIR + 'index.json').then(function (r) { if (!r.ok) throw new Error('BEV ' + r.status); return r.json(); }).then(function (d) { _atIdx = d; return d; });
+            return idx.then(function (ix) {
+                var k = ix.krok || 4, mam = {}, chci = [];
+                (ix.dlazdice || []).forEach(function (t) { mam[t] = 1; });
+                for (var a = Math.floor((lat - dlat) * k); a <= Math.floor((lat + dlat) * k); a++) {
+                    for (var b = Math.floor((lng - dlng) * k); b <= Math.floor((lng + dlng) * k); b++) if (mam[a + '_' + b]) chci.push(a + '_' + b);
+                }
+                return Promise.all(chci.map(function (t) { return fetch(AT.DIR + t + '.json').then(function (r) { if (!r.ok) throw new Error('BEV ' + r.status); return r.json(); }); }));
+            }).then(function (ds) {
+                var out = [];
+                ds.forEach(function (d) { d.forEach(function (z) { if (Math.abs(z[1] - lat) <= dlat && Math.abs(z[2] - lng) <= dlng) out.push(AT.bod(z)); }); });
+                return out;
+            });
+        },
+        bod: function (z) {
+            // [jméno, šířka, délka, výška, řád, stabilizace, místní název, datum měření, střední chyba]
+            var raw = { PUNKT: z[0], ORDNUNG: z[4], STABILISIERUNG: z[5], PUNKTNAME: z[6], MESSDATUM: z[7], M_XYZ: z[8], QUELLE: 'BEV, CC BY 4.0' };
+            if (z[3] != null) raw.VYSKA = z[3];
+            return { id: 'at_' + z[0], name: z[0], lat: z[1], lng: z[2], cat: 'TB', type: 'polohovy', rawData: raw, hidden: false, currentDist: 0, bestAccuracy: null,
+                vrstva: 'AT', druh: 'Triangulierungspunkt' + (z[4] ? ' ' + z[4] + '. Ordnung' : ''), zdroj: 'BEV', nazevBodu: z[6] || null, vyska: z[3], znacka: z[5] || null, popis: null };
+        }
+    };
+    var ZEME = { CH: CH, NL: NL, FR: FR, ES: ES, DE: DE, AT: AT };
 
     function stahni(z, lat, lng) {
+        if (z.nacti) return z.nacti(lat, lng);
         var qs = z.urls ? z.urls(lat, lng) : [z.url(lat, lng)];
-        if (!qs || !qs.length || qs.some(function (q) { return !q; })) return Promise.reject(new Error('proj4'));
+        if (qs && !qs.length) return Promise.resolve([]);   // DE mimo Berlín/MV/BW: spolková země body nezveřejňuje
+        if (!qs || qs.some(function (q) { return !q; })) return Promise.reject(new Error('proj4'));
         var jeden = function (q) { return fetch(q, { mode: 'cors' }).then(function (r) { if (!r.ok) throw new Error(z.zdroj + ' ' + r.status); return r.json(); }); };
         return Promise.all(qs.map(jeden)).then(function (ds) {
             var mapa = {};
-            ds.forEach(function (d) { z.seznam(d).forEach(function (f) { var b = z.bod(f); if (b) mapa[b.id] = b; }); });
+            ds.forEach(function (d, i) { z.seznam(d).forEach(function (f) { var b = z.bod(f, qs[i]); if (b) mapa[b.id] = b; }); });
             return Object.keys(mapa).map(function (k) { return mapa[k]; });
         });
     }
@@ -199,6 +309,10 @@
         return stahni(z, stred.lat, stred.lng).then(function (body) {
             _posl = stred; _kod = z.kod; _pocet = body.length; var n = vloz(body);
             if (n) { try { (window.quickToast || window.agInfo)(hlaska(z, body.length)); } catch (e) { /* nic */ } }
+            else if (z.kod === 'DE' && !deOblasti(stred.lat, stred.lng).length && _deMimo !== true) {
+                _deMimo = true;   // jednou za běh, ne při každém posunu o 800 m
+                try { (window.quickToast || window.agInfo)(T('Tady spolková země úřední body jako data nezveřejňuje. V Německu je appka stáhne jen v Berlíně, Meklenbursku-Předním Pomořansku a Bádensku-Württembersku.')); } catch (e) { /* nic */ }
+            }
             return n;
         }).catch(function (e) { _posl = stred; _kod = z.kod; try { (window.quickToast || window.agInfo)('Úřední body (' + z.zdroj + ') se nepodařilo stáhnout: ' + ((e && e.message) || e)); } catch (e2) { /* nic */ } return 0; }).finally(function () { _bezi = false; });
     }
@@ -206,6 +320,8 @@
         if (z.kod === 'CH') return 'Švýcarsko: ' + n + ' bodů swisstopo v okolí (LFP1, LFP2, HFP). Výšky LN02.';
         if (z.kod === 'FR') return 'Francie: ' + n + ' bodů IGN v okolí (RBF, RDF, nivelační repéry). Výšky NGF-IGN69.';
         if (z.kod === 'ES') return 'Španělsko: ' + n + ' bodů IGN v okolí (ROI, REGENTE, REDNAP). Výšky ortometrické.';
+        if (z.kod === 'DE') return 'Německo: ' + n + ' bodů AFIS v okolí (polohové a výškové body spolkové země). Výšky DHHN2016.';
+        if (z.kod === 'AT') return 'Rakousko: ' + n + ' trigonometrických bodů BEV v okolí. Výšky nad mořem z elipsoidu a geoidu.';
         return 'Nizozemsko: ' + n + ' bodů Kadaster RDinfo v okolí (Rijksdriehoekspunten). Jen polohové.';
     }
     // pro panel Body a hlášku po přejezdu hranice: kde stát body zveřejňuje

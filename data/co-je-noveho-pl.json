@@ -2,6 +2,15 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 405,
+      "datum": "2026-09-25",
+      "nadpis": "Punkty urzędowe w Austrii i Niemczech",
+      "body": [
+        "Austria: 56 640 punktów trygonometrycznych BEV z wysokością n.p.m. (otwarte dane, CC BY 4.0).",
+        "Niemcy: punkty AFIS w Berlinie, Meklemburgii-Pomorzu Przednim i Badenii-Wirtembergii (tylko te landy je udostępniają). Gdzie indziej aplikacja powie, że land ich nie publikuje."
+      ]
+    },
+    {
       "v": 404,
       "datum": "2026-09-25",
       "nadpis": "Szybszy start",

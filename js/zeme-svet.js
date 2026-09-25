@@ -159,7 +159,7 @@
         var co = document.createElement('div'); co.className = 'st-note'; co.id = 's-zeme-co';
         co.style.cssText = 'font-size:calc(12px * var(--ag-font-scale,1));opacity:.85;margin:-2px 2px 8px;';
         co.innerHTML = '<span></span> <button type="button" class="btn btn-secondary" style="display:inline-block;width:auto;margin:6px 0 0;padding:7px 12px;font-size:calc(12.5px * var(--ag-font-scale,1));"></button>';   // .ag-btn-mini neexistovala → tlačítko bez stylu (18. 9. 2026 noc)
-        co.querySelector('span').textContent = 'Úřední body zveřejňují jako data Česko, Slovensko, Švýcarsko, Nizozemsko, Francie a Španělsko; jinde jsou v mapě jen tvoje body.';
+        co.querySelector('span').textContent = 'Úřední body zveřejňují jako data Česko, Slovensko, Švýcarsko, Nizozemsko, Francie, Španělsko a Rakousko (v Německu jen Berlín, Meklenbursko-Přední Pomořansko a Bádensko-Württembersko); jinde jsou v mapě jen tvoje body.';
         // RTK síť země (E8): kde vzít korekce — z js/zdroje-zemi.js (lazy), doplní se, až je načtený
         try {
             var rtk = document.getElementById('s-zeme-rtk');

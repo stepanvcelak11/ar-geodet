@@ -89,11 +89,11 @@ async def route(route_, request):
 
 def staticke():
     bs = src('js/body-svet.js')
-    ok('E3 body-svet.js: FR (WFS IGN) a ES (WMS IGN España) v ZEME', "var ZEME = { CH: CH, NL: NL, FR: FR, ES: ES };" in bs and 'data.geopf.fr/wfs/ows' in bs and 'redes-geodesicas' in bs)
+    ok('E3 body-svet.js: FR (WFS IGN) a ES (WMS IGN España) v ZEME', "var ZEME = { CH: CH, NL: NL, FR: FR, ES: ES, DE: DE, AT: AT };" in bs and 'data.geopf.fr/wfs/ows' in bs and 'redes-geodesicas' in bs)
     ok('E3 body-svet.js: stahni() umí víc adres (FR = 3 vrstvy)', 'z.urls ? z.urls(lat, lng)' in bs and 'Promise.all(qs.map(jeden))' in bs)
-    ok(u'E3 texty: šest zemí s úředními body', u'Francie a Španělsko' in src('js/zdroje-zemi.js') and u'Francie (IGN), Španělsko (IGN)' in src('js/grafika.js') and u'Francie a Španělsko' in src('js/zeme-svet.js'))
+    ok(u'E3 texty: šest zemí s úředními body', u'Francie, Španělsko a Rakousko' in src('js/zdroje-zemi.js') and u'Francie (IGN), Španělsko (IGN)' in src('js/grafika.js') and u'Francie, Španělsko a Rakousko' in src('js/zeme-svet.js'))
     core = nacti('data/jazyky.json'); n = len(core['poradi'])
-    ok(u'E3 jádro: nové věty o šesti zemích přeložené', sum(1 for k in core['t'] if u'Francie a Španělsko' in k or u'Francie (IGN)' in k) == 3 and all(len(core['t'][k]) == n for k in core['t'] if u'Francie' in k))
+    ok(u'E3 jádro: nové věty o šesti zemích přeložené', sum(1 for k in core['t'] if u'Francie, Španělsko a Rakousko' in k or u'Francie (IGN)' in k) == 3 and all(len(core['t'][k]) == n for k in core['t'] if u'Francie' in k))
     ok(u'E3 jádro: vzor „ještě N m" bere i mezery v čísle', any(r[0].startswith(u'^ještě ([') for r in core['re']))
     zz = src('js/zdroje-zemi.js')
     ok('E4 zdroje-zemi.js: PARCELY PL/FR/NL + AGZdroje.parcela/maParcelu', 'var PARCELY = {' in zz and 'uldk.gugik.gov.pl' in zz and 'apicarto.ign.fr' in zz and 'kadastralekaart/wfs' in zz and 'parcela: parcela, maParcelu: maParcelu' in zz)

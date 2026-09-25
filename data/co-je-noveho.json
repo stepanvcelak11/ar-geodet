@@ -2,6 +2,15 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 405,
+   "datum": "2026-09-25",
+   "nadpis": "Úřední body v Rakousku a Německu",
+   "body": [
+    "Rakousko: 56 640 trigonometrických bodů BEV s výškou nad mořem (otevřená data, CC BY 4.0).",
+    "Německo: body AFIS v Berlíně, Meklenbursku-Předním Pomořansku a Bádensku-Württembersku (jen tyhle spolkové země je dávají volně). Jinde appka řekne, že je spolková země nezveřejňuje."
+   ]
+  },
+  {
    "v": 404,
    "datum": "2026-09-25",
    "nadpis": "Rychlejší start",
