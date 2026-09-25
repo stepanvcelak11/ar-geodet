@@ -551,6 +551,11 @@
     }
 
     // po úspěšném /login nebo /firms: konfigurace + token + ověřovadlo + session
+    // js/passkey.js se načte až když je potřeba (brána běží ještě před startem appky, ag/lazy by nestihl)
+    function nactiPasskey(cb) {
+        if (window.AGPasskey) return cb();
+        var s = document.createElement('script'); s.src = 'js/passkey.js'; s.onload = cb; s.onerror = cb; document.head.appendChild(s);
+    }
     function adoptLogin(data, api, pass) {
         adoptConfig(data.config, api, true);   // přihlášení SMÍ změnit firmu
         // ÚČET A JEHO PROSTORY. Chodí to z /login i /register; starší worker je
@@ -2615,6 +2620,8 @@
             // účet dostal při založení (nebo si ho vyrobil v O aplikaci → Účet).
             '  <button type="button" class="agl-ghost" id="agg-forgot">Zapomenuté heslo? Mám obnovovací kód</button>' +
             '</div>' +
+            // PASSKEY (25. 9. 2026, f1): přihlášení Face ID, které přežije přeinstalaci appky (js/passkey.js)
+            ((window.PublicKeyCredential && navigator.credentials && navigator.credentials.get) ? '<button type="button" class="agl-btn" id="agg-pk">Přihlásit přes Face ID</button>' : '') +
             '<button type="button" class="agl-btn" id="agg-show-join">Přihlásit se (mám kód účtu)</button>' +
             '<button type="button" class="agl-btn" id="agg-reg">Založit účet</button>' +
             // ⚠ „DALŠÍ MOŽNOSTI" JEN VE VYDÁNÍ PRO (11. 9. 2026). Tlačítko otevírá
@@ -2653,6 +2660,16 @@
             if (b) b.style.display = 'none';
             ov.querySelector('#agg-join').classList.add('on');
         }
+        var pkBtn = ov.querySelector('#agg-pk');
+        if (pkBtn) pkBtn.onclick = function () {
+            pkBtn.disabled = true; errEl.textContent = 'Ověřuji…'; showJoin();
+            nactiPasskey(function () {
+                if (!window.AGPasskey) { pkBtn.disabled = false; errEl.textContent = 'Přihlášení přes Face ID teď není k dispozici.'; return; }
+                AGPasskey.prihlasit(gateApi).then(function () {
+                    usageLog('login', 'passkey');
+                }, function (e) { pkBtn.disabled = false; errEl.textContent = (e && e.message) || 'Přihlášení přes Face ID se nepovedlo.'; });
+            });
+        };
         ov.querySelector('#agg-show-join').onclick = function () {
             showJoin();
             setTimeout(function () { try { ov.querySelector('#agg-code').focus(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:onclick'); } }, 50);
@@ -2709,6 +2726,7 @@
                     failClear();
                     adoptLogin(r.data, gateApi, pass);   // odstraní i bránu
                     usageLog('login', 'join');
+                    if (jeUcet) nactiPasskey(function () { if (window.AGPasskey) AGPasskey.nabidni(); });   // f1: příště Face ID
                     try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: r.data.user } })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:onclick'); }
                     return;
                 }
@@ -3631,6 +3649,7 @@
         apiUrl: apiUrl,
         DEFAULT_API: DEFAULT_API,
         cloudFetch: cloudFetch,
+        _adoptLogin: adoptLogin,       // js/passkey.js — přihlášení klíčem převezme stejně jako heslo
         adoptLogin: adoptLogin,
         adoptConfig: adoptConfig,
         refreshConfig: refreshConfig,

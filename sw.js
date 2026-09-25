@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v402';   // 25. 9.: Moje přesnost (a1+a2) — statistika telefonů, mapa kontrol, tip u Nového bodu
+const SHELL_CACHE = 'argeodet-shell-v403';   // 25. 9.: Přihlášení přes Face ID (passkey, f1) — přežije přeinstalaci
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=402',
-    './css/style.css?v=402',
-    './css/vylepseni.css?v=402',
+    './css/tokens.css?v=403',
+    './css/style.css?v=403',
+    './css/vylepseni.css?v=403',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -265,6 +265,7 @@ const ASSETS_TO_CACHE = [
     './js/zaloha-ucet.js',
     './js/pristupnost.js',
     './js/moje-presnost.js',
+    './js/passkey.js',
     './js/pocasi.js',
     './css/pocasi.css',
     './js/zapisnik.js',

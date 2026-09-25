@@ -440,7 +440,7 @@
         { k: 'cvicne-ulohy', fn: 'agOpenCvicneUlohy', cat: 'Pomůcky', verb: 'Učit se', vl: 'Cvičné úlohy s klíčem', vh: 'rajón, protínání, polygon, nivelace — spočítej a nech si zkontrolovat',
           keys: 'cvicne ulohy priklady zadani klic vysledek kontrola zapocet zkouska cviceni rajon protinani polygon nivelace student uceni domaci ukol',
           help: { t: 'Cvičné úlohy' } },
-        { k: 'moje-presnost', fn: 'agOpenMojePresnost', cat: 'Měření', verb: 'Zkontrolovat', vl: 'Moje přesnost', vh: 'kde a o kolik se tvůj telefon plete, a jak měří ostatní se stejným',
+        { k: 'moje-presnost', fn: 'agOpenMojePresnost', cat: 'Měření', verb: 'Přesné měření', vl: 'Moje přesnost', vh: 'kde a o kolik se tvůj telefon plete, a jak měří ostatní se stejným',
           keys: 'presnost mapa kontrola chyba gps telefon model statistika moje odchylka kontrolni bod',
           help: { t: 'Moje přesnost' } },
         { k: 'cesta-uceni', fn: 'agOpenCesta', cat: 'Pomůcky', verb: 'Učit se', vl: 'Cesta učení', vh: 'lekce jako v Duolingu, denní cíl a série dnů s Totim',

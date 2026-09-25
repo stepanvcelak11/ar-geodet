@@ -125,8 +125,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=402">
-    <link rel="stylesheet" href="css/style.css?v=402">
+    <link rel="stylesheet" href="css/tokens.css?v=403">
+    <link rel="stylesheet" href="css/style.css?v=403">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -257,7 +257,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=402">
+    <link rel="stylesheet" href="css/vylepseni.css?v=403">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -969,6 +969,12 @@
                 <div id="tab-ucet" class="settings-tab" data-title="Účet a aplikace">
                     <div class="set-h">Účet</div>
                     <div id="set-ucet-proxy"></div>
+                    <!-- PASSKEY (25. 9. 2026, f1): obsluhuje js/passkey.js (ag/lazy); bez účtu nebo podpory zůstane schovaný -->
+                    <div id="set-passkey" class="set-card" hidden style="padding:12px 14px;margin:0 0 10px;">
+                        <div class="st-lab">Přihlášení přes Face ID<small>přístupový klíč v Klíčence na iCloudu — přežije přeinstalaci appky i nový telefon</small></div>
+                        <div id="set-passkey-stav" style="font-size:calc(12px * var(--ag-font-scale, 1));color:var(--text-muted);margin:6px 0 8px;"></div>
+                        <button type="button" class="btn btn-primary" id="set-passkey-zapnout" style="margin:0;">Zapnout přihlášení přes Face ID</button>
+                    </div>
                     <div class="set-h">Aplikace</div>
                     <button class="btn btn-secondary" id="set-about-btn" onclick="document.getElementById('settings-modal').style.display='none'; openAbout();"><svg class="icon"><use href="#i-file-text"/></svg> O aplikaci — verze, licence, zdroje dat</button>
                     <button class="btn btn-secondary" id="set-navod-btn" onclick="document.getElementById('settings-modal').style.display='none'; if (window.startTutorial) startTutorial(); else if (window.AGLazy) AGLazy.need('js/tutorial-pro.js', function () { startTutorial(); });"><svg class="icon"><use href="#i-bulb"/></svg> Návod a prohlídka appky</button>
@@ -1818,6 +1824,7 @@
     <script type="ag/lazy" data-src="js/zaloha-ucet.js"></script>
     <script type="ag/lazy" data-src="js/pristupnost.js"></script>
     <script type="ag/lazy" data-src="js/moje-presnost.js"></script>
+    <script type="ag/lazy" data-src="js/passkey.js"></script>
     <!-- ODHADNI TO (odpojitelné) — cvičiště odhadu vzdálenosti a azimutu proti
          skutečným senzorům. -->
     <!-- js/odhadovacka.js → dělené načítání: položka v MANIFESTu js/lazy-tools.js, stáhne se až na klepnutí na dlaždici -->

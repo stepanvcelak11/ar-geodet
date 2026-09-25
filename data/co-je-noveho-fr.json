@@ -2,6 +2,16 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 403,
+      "datum": "2026-09-25",
+      "nadpis": "Connexion avec Face ID qui survit à la réinstallation",
+      "body": [
+        "L’écran d’accueil a un bouton Se connecter avec Face ID. L’iPhone garde la clé d’accès dans le trousseau iCloud, elle marche donc même après suppression de l’appli ou sur un nouveau téléphone, sans mot de passe.",
+        "Active-la dans Réglages → Compte et appli, ou l’appli la propose après une connexion par mot de passe.",
+        "Propriétaire : activée avec la clé du propriétaire dans le téléphone, le mode propriétaire revient tout seul après la connexion Face ID."
+      ]
+    },
+    {
       "v": 402,
       "datum": "2026-09-25",
       "nadpis": "Ma précision : où ton téléphone se trompe et comment mesurent les autres",

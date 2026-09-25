@@ -93,6 +93,10 @@ def main():
                         # /watch/pair a /watch/hello jsou schvalne PRED prihlasenim
                         # (parovani hodinek na kod, bez tokenu) — tarif se u nich
                         # vymaha az pri praci s daty.
+                        # /stats/phone(s) je VEREJNA anonymni statistika telefonu (25. 9. 2026, a1) —
+                        # jen model + vysledek, zadna firemni data; prefix /stats sdili nahodou.
+                        if re.search(r"path === '/stats/phones?'", radek):
+                            continue
                         if '/watch/pair' in radek or '/watch/hello' in radek:
                             continue
                         hlaska(u'placena cesta se obsluhuje na pozici %d, tedy PRED tarifni '

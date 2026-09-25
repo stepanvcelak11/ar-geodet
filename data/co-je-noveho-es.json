@@ -2,6 +2,16 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 403,
+      "datum": "2026-09-25",
+      "nadpis": "Inicio con Face ID que sobrevive a la reinstalación",
+      "body": [
+        "La pantalla de inicio tiene el botón Entrar con Face ID. El iPhone guarda la llave de acceso en el Llavero de iCloud, así que funciona incluso tras borrar la app o en un teléfono nuevo, sin contraseña.",
+        "Actívalo en Ajustes → Cuenta y app, o la app lo ofrece tras entrar con contraseña.",
+        "Propietario: si lo activas con la clave de propietario en el teléfono, el modo propietario vuelve solo tras entrar con Face ID."
+      ]
+    },
+    {
       "v": 402,
       "datum": "2026-09-25",
       "nadpis": "Mi precisión: dónde se equivoca tu teléfono y cómo miden otros",

@@ -2,6 +2,16 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 403,
+      "datum": "2026-09-25",
+      "nadpis": "Anmeldung mit Face ID, die eine Neuinstallation übersteht",
+      "body": [
+        "Auf dem Startbildschirm gibt es Mit Face ID anmelden. Das iPhone hält den Passkey im iCloud-Schlüsselbund, er funktioniert auch nach dem Löschen der App oder auf einem neuen Telefon, ohne Passwort.",
+        "Einschalten in Einstellungen → Konto und App, oder die App bietet es nach der Anmeldung mit Passwort an.",
+        "Eigentümer: mit dem Eigentümerschlüssel eingeschaltet, kehrt der Eigentümermodus nach der Face-ID-Anmeldung von selbst zurück."
+      ]
+    },
+    {
       "v": 402,
       "datum": "2026-09-25",
       "nadpis": "Meine Genauigkeit: wo dein Telefon danebenliegt und wie andere messen",

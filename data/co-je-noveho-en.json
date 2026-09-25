@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 403,
+      "datum": "2026-09-25",
+      "nadpis": "Face ID sign-in that survives reinstalling",
+      "body": [
+        "The start screen has a Sign in with Face ID button. The iPhone keeps the passkey in iCloud Keychain, so it works even after deleting the app or on a new phone, without a password.",
+        "Turn it on in Settings → Account and app, or the app offers it after a password sign-in.",
+        "Owner: if you turn it on with the owner key in the phone, owner mode comes back by itself after a Face ID sign-in."
+      ]
+    },
+    {
       "v": 402,
       "datum": "2026-09-25",
       "nadpis": "My accuracy: where your phone is off and how others measure",

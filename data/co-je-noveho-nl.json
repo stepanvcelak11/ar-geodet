@@ -2,6 +2,16 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 403,
+      "datum": "2026-09-25",
+      "nadpis": "Inloggen met Face ID dat herinstallatie overleeft",
+      "body": [
+        "Het startscherm heeft de knop Inloggen met Face ID. De iPhone bewaart de toegangssleutel in de iCloud-sleutelhanger, dus het werkt ook na verwijderen van de app of op een nieuwe telefoon, zonder wachtwoord.",
+        "Zet het aan in Instellingen → Account en app, of de app biedt het aan na inloggen met wachtwoord.",
+        "Eigenaar: aangezet met de eigenaarssleutel in de telefoon, komt de eigenaarsmodus na inloggen met Face ID vanzelf terug."
+      ]
+    },
+    {
       "v": 402,
       "datum": "2026-09-25",
       "nadpis": "Mijn nauwkeurigheid: waar je telefoon ernaast zit en hoe anderen meten",

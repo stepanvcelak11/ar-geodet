@@ -208,6 +208,110 @@ async function ensureStatsSchema(env) {
 }
 function kvantil(a, q) { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y); const i = (s.length - 1) * q, lo = Math.floor(i), hi = Math.ceil(i); return Math.round((s[lo] + (s[hi] - s[lo]) * (i - lo)) * 10) / 10; }
 function cisloV(v, min, max) { const n = Number(v); return (isFinite(n) && n >= min && n <= max) ? Math.round(n * 100) / 100 : null; }
+// PŘIHLÁŠENÍ PŘÍSTUPOVÝM KLÍČEM — PASSKEY (25. 9. 2026, 7. hodnocení f1)
+// Proč: Face ID v appce bylo jen zámek nad heslem uloženým v telefonu. Když iPhone data appky smaže
+// (odebrání ikony, 24. 9. to potkalo vlastníka), zmizelo s nimi. Passkey drží iPhone v Klíčence na
+// iCloudu, takže přežije přeinstalaci i nový telefon; server ověří podpis a vydá stejné přihlášení
+// jako /login. Vlastník si při zapnutí může klíč svázat s OWNER_KEY (pošle ho, server porovná) —
+// po přihlášení passkeyem pak dostane klíč vlastníka zpátky do telefonu.
+// Veřejný klíč bere server jako SPKI z response.getPublicKey() (žádné parsování CBOR), jen ES256.
+let _pkMig = false;
+async function ensurePasskeySchema(env) {
+    if (_pkMig) return;
+    try {
+        await env.DB.prepare('CREATE TABLE IF NOT EXISTS passkeys (cred_id TEXT PRIMARY KEY, acc_id TEXT NOT NULL, pub TEXT NOT NULL, alg INTEGER NOT NULL, '
+            + 'owner INTEGER NOT NULL DEFAULT 0, created INTEGER NOT NULL, used INTEGER, name TEXT)').run();
+        await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_pk_acc ON passkeys(acc_id)').run();
+        await env.DB.prepare('CREATE TABLE IF NOT EXISTS pk_challenges (ch TEXT PRIMARY KEY, ts INTEGER NOT NULL, acc_id TEXT, kind TEXT NOT NULL)').run();
+    } catch (e) {}
+    _pkMig = true;
+}
+function b64uEnc(buf) { const b = new Uint8Array(buf); let s = ''; for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+function b64uDec(s) { s = String(s || '').replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; const bin = atob(s); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+// povolený původ → rpId (doména appky, u testů localhost). Regexem, ne new URL (běží i v testovacím V8)
+function pkPuvod(req, env) {
+    const o = req.headers.get('Origin') || '';
+    const m = /^(https?):\/\/([a-z0-9.-]+)(?::\d+)?$/i.exec(o);
+    if (!m) return null;
+    const host = m[2].toLowerCase();
+    const povol = ['stepanvcelak11.github.io'].concat(String((env && env.PK_ORIGINS) || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean));
+    if (m[1] === 'https' && povol.indexOf(host) >= 0) return { origin: o, rpId: host };
+    if (host === 'localhost') return { origin: o, rpId: 'localhost' };
+    return null;
+}
+// ECDSA podpis z WebAuthn je v DER; WebCrypto chce r‖s (2 × 32 B)
+function derNaRaw(der) {
+    const d = new Uint8Array(der); if (d[0] !== 0x30) return null;
+    let i = 2; if (d[1] & 0x80) i = 2 + (d[1] & 0x7f);
+    const cislo = () => { if (d[i++] !== 0x02) return null; const len = d[i++]; let v = d.slice(i, i + len); i += len; while (v.length > 32 && v[0] === 0) v = v.slice(1); if (v.length > 32) return null; const o = new Uint8Array(32); o.set(v, 32 - v.length); return o; };
+    const r = cislo(), s = cislo(); if (!r || !s) return null;
+    const out = new Uint8Array(64); out.set(r, 0); out.set(s, 32); return out;
+}
+function rovne(a, b) { if (a.length !== b.length) return false; let x = 0; for (let i = 0; i < a.length; i++) x |= a[i] ^ b[i]; return x === 0; }
+function pkClientData(b64, typ, ctx, vyzva) {
+    let cd; try { cd = JSON.parse(new TextDecoder().decode(b64uDec(b64))); } catch (e) { return 'Poškozená data klienta.'; }
+    if (cd.type !== typ) return 'Špatný typ požadavku.';
+    if (!vyzva || cd.challenge !== vyzva) return 'Výzva nesedí nebo vypršela.';
+    if (cd.origin !== ctx.origin) return 'Požadavek z jiné stránky.';
+    return null;
+}
+// Registrace: clientData + SPKI veřejný klíč (ES256)
+async function pkOverRegistraci(b, ctx, vyzva) {
+    const e = pkClientData(b.clientDataJSON, 'webauthn.create', ctx, vyzva); if (e) return { ok: false, err: e };
+    if (Number(b.alg) !== -7) return { ok: false, err: 'Podporovaný je jen klíč ES256.' };
+    if (!b.id || String(b.id).length > 400) return { ok: false, err: 'Chybí id klíče.' };
+    try { await crypto.subtle.importKey('spki', b64uDec(b.publicKey), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']); }
+    catch (x) { return { ok: false, err: 'Neplatný veřejný klíč.' }; }
+    return { ok: true };
+}
+// Přihlášení: clientData, rpIdHash, příznaky UP+UV a podpis authenticatorData ‖ SHA-256(clientData)
+async function pkOverPrihlaseni(b, pub, ctx, vyzva) {
+    const e = pkClientData(b.clientDataJSON, 'webauthn.get', ctx, vyzva); if (e) return { ok: false, err: e };
+    const ad = b64uDec(b.authenticatorData);
+    if (ad.length < 37) return { ok: false, err: 'Poškozená data autentizátoru.' };
+    const rpHash = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(ctx.rpId)));
+    if (!rovne(ad.slice(0, 32), rpHash)) return { ok: false, err: 'Klíč patří jiné stránce.' };
+    if ((ad[32] & 0x05) !== 0x05) return { ok: false, err: 'Telefon neověřil, že jsi to ty (Face ID).' };
+    const cdHash = new Uint8Array(await crypto.subtle.digest('SHA-256', b64uDec(b.clientDataJSON)));
+    const data = new Uint8Array(ad.length + 32); data.set(ad, 0); data.set(cdHash, ad.length);
+    const sig = derNaRaw(b64uDec(b.signature)); if (!sig) return { ok: false, err: 'Poškozený podpis.' };
+    let key; try { key = await crypto.subtle.importKey('spki', b64uDec(pub), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']); } catch (x) { return { ok: false, err: 'Uložený klíč je poškozený.' }; }
+    const ok = await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, key, sig, data);
+    return ok ? { ok: true } : { ok: false, err: 'Podpis nesedí.' };
+}
+async function pkVyzva(env, kind, accId) {
+    const u = new Uint8Array(32); crypto.getRandomValues(u);
+    const ch = b64uEnc(u);
+    try { await env.DB.prepare('DELETE FROM pk_challenges WHERE ts<?').bind(Date.now() - 10 * 60e3).run(); } catch (e) {}
+    await env.DB.prepare('INSERT INTO pk_challenges (ch, ts, acc_id, kind) VALUES (?,?,?,?)').bind(ch, Date.now(), accId || null, kind).run();
+    return ch;
+}
+// vyzvedne (a smaže) výzvu z clientData — platí 5 minut, jednou
+async function pkVyzvedni(env, b64cd, kind, accId) {
+    let ch = null; try { ch = JSON.parse(new TextDecoder().decode(b64uDec(b64cd))).challenge; } catch (e) { return null; }
+    const r = await env.DB.prepare('SELECT ch, ts, acc_id, kind FROM pk_challenges WHERE ch=?').bind(String(ch || '')).first();
+    if (!r) return null;
+    await env.DB.prepare('DELETE FROM pk_challenges WHERE ch=?').bind(r.ch).run();
+    if (r.kind !== kind || Date.now() - r.ts > 5 * 60e3) return null;
+    if (accId && r.acc_id !== accId) return null;
+    return r.ch;
+}
+// Stejná odpověď jako /login účtu (token, účet, prostory, konfigurace)
+async function prihlaseniUctu(env, acc, firmId) {
+    const prostory = await prostoryUctu(env, acc.id);
+    let cil = null;
+    if (firmId) cil = prostory.find(p => p.firmId === firmId && !p.archiv) || null;
+    if (!cil) cil = prostory.find(p => p.vlastni && !p.archiv) || prostory.find(p => !p.archiv) || null;
+    if (!cil) return null;
+    await dbRunSoft(env, 'UPDATE users SET last_login=? WHERE id=?', Date.now(), cil.uid);
+    return {
+        token: await makeToken(env, { id: cil.uid, firm_id: cil.firmId }, acc.id),
+        ucet: { id: acc.id, code: acc.code, name: acc.name, tarif: tarifUctu(acc), tarifDo: acc.tarif_do || 0 },
+        user: { id: cil.uid, name: acc.name, role: cil.role },
+        prostory: prostory,
+        config: await configPayload(env, cil.firmId)
+    };
+}
 async function guardClear(env, key) {
     await env.DB.prepare('DELETE FROM guard WHERE k=?').bind(key).run();
 }
@@ -1584,7 +1688,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 30, recovery: true, zaloha: true, stats: true, mapa: !!env.MAPA, mapaGithub: true, nacrt: true, dgps: true, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 31, recovery: true, zaloha: true, stats: true, passkey: true, mapa: !!env.MAPA, mapaGithub: true, nacrt: true, dgps: true, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
 
             // ---------------- PŘESNOST PODLE MODELU TELEFONU (a1, 25. 9. 2026) — bez přihlášení ----------------
             if (path === '/stats/phone' || path === '/stats/phones') {
@@ -2018,6 +2122,32 @@ export default {
                 await guardClear(env, 'log2:' + kod);
                 try { await ownerLog(env, 'heslo-obnoveno', acc.code, 'obnovovacím kódem'); } catch (e) {}
                 return json({ ok: true, recovery: novy });
+            }
+
+            if (req.method === 'POST' && (path === '/passkey/login/start' || path === '/passkey/login/finish')) {
+                await ensurePasskeySchema(env);
+                const ctx = pkPuvod(req, env);
+                if (!ctx) return err(400, 'Přihlášení klíčem jde jen z appky.');
+                const ip = req.headers.get('CF-Connecting-IP') || '0';
+                if (!await guardHit(env, 'pkl:' + ip, 40, 15 * 60e3)) return err(429, 'Příliš mnoho pokusů. Zkus to za 15 minut.');
+                if (path === '/passkey/login/start') return json({ ok: true, challenge: await pkVyzva(env, 'get'), rpId: ctx.rpId, timeout: 60000 });
+                const b = await req.json().catch(() => null) || {};
+                const vyzva = await pkVyzvedni(env, b.clientDataJSON, 'get');
+                if (!vyzva) return err(400, 'Výzva vypršela, zkus to znovu.');
+                const cred = await env.DB.prepare('SELECT * FROM passkeys WHERE cred_id=?').bind(String(b.id || '')).first();
+                if (!cred) return err(401, 'Tenhle klíč server nezná — přihlas se heslem a zapni Face ID znovu.');
+                const v = await pkOverPrihlaseni(b, cred.pub, ctx, vyzva);
+                if (!v.ok) return err(401, v.err);
+                const acc = await dbFirst(env, 'SELECT * FROM accounts WHERE id=?', cred.acc_id);
+                if (!acc) return err(401, 'Účet už neexistuje.');
+                if (acc.disabled) return err(403, 'Účet je zablokovaný.');
+                await env.DB.prepare('UPDATE passkeys SET used=? WHERE cred_id=?').bind(Date.now(), cred.cred_id).run();
+                await dbRunSoft(env, 'UPDATE accounts SET last_login=? WHERE id=?', Date.now(), acc.id);
+                const out = await prihlaseniUctu(env, acc, b.firmId);
+                if (!out) return err(403, 'Účet nemá žádný živý prostor.');
+                if (cred.owner && ownerKeyStav(env) === 'ok') out.ownerKey = String(env.OWNER_KEY);   // vlastník: klíč zpátky do telefonu
+                out.passkey = true;
+                return json(out);
             }
 
             if (req.method === 'POST' && path === '/login') {
@@ -3197,6 +3327,42 @@ export default {
             // KONTAKT PRO AUTORA (13. 9. 2026): nepovinný telefon/e-mail u účtu. Zadává si
             // ho člověk sám (Kde pracuju → Kontakt), vidí ho jen vlastník v konzoli a schránka
             // zpětné vazby si ho předvyplní. Prázdný řetězec = smazat.
+            if (path.indexOf('/passkey/') === 0) {
+                if (!me.accId || !me.acc) return err(400, 'Účet ještě není založený.');
+                await ensurePasskeySchema(env);
+                if (req.method === 'POST' && path === '/passkey/register/start') {
+                    const ctx = pkPuvod(req, env); if (!ctx) return err(400, 'Zapnout jde jen z appky.');
+                    const exist = (await env.DB.prepare('SELECT cred_id FROM passkeys WHERE acc_id=?').bind(me.accId).all()).results || [];
+                    return json({ ok: true, challenge: await pkVyzva(env, 'create', me.accId), rpId: ctx.rpId,
+                        user: { id: b64uEnc(new TextEncoder().encode(me.accId)), name: me.acc.code, displayName: me.acc.name || me.acc.code },
+                        exclude: exist.map(r => r.cred_id) });
+                }
+                if (req.method === 'POST' && path === '/passkey/register/finish') {
+                    const ctx = pkPuvod(req, env); if (!ctx) return err(400, 'Zapnout jde jen z appky.');
+                    const b = await req.json().catch(() => null) || {};
+                    const vyzva = await pkVyzvedni(env, b.clientDataJSON, 'create', me.accId);
+                    if (!vyzva) return err(400, 'Výzva vypršela, zkus to znovu.');
+                    const v = await pkOverRegistraci(b, ctx, vyzva);
+                    if (!v.ok) return err(400, v.err);
+                    const n = (await env.DB.prepare('SELECT COUNT(*) AS n FROM passkeys WHERE acc_id=?').bind(me.accId).first() || {}).n || 0;
+                    if (n >= 10) return err(400, 'Účet má už 10 klíčů — nějaký smaž.');
+                    const owner = (b.ownerKey && ownerKeyStav(env) === 'ok' && timingSafeEq(String(b.ownerKey), String(env.OWNER_KEY))) ? 1 : 0;
+                    await env.DB.prepare('INSERT OR REPLACE INTO passkeys (cred_id, acc_id, pub, alg, owner, created, used, name) VALUES (?,?,?,?,?,?,?,?)')
+                        .bind(String(b.id), me.accId, String(b.publicKey), -7, owner, Date.now(), null, String(b.name || '').slice(0, 60)).run();
+                    return json({ ok: true, owner: !!owner });
+                }
+                if (req.method === 'GET' && path === '/passkey/list') {
+                    const rows = (await env.DB.prepare('SELECT cred_id, created, used, name, owner FROM passkeys WHERE acc_id=? ORDER BY created DESC').bind(me.accId).all()).results || [];
+                    return json({ ok: true, klice: rows.map(r => ({ id: r.cred_id, created: r.created, used: r.used, name: r.name, owner: !!r.owner })) });
+                }
+                if (req.method === 'POST' && path === '/passkey/delete') {
+                    const b = await req.json().catch(() => null) || {};
+                    await env.DB.prepare('DELETE FROM passkeys WHERE cred_id=? AND acc_id=?').bind(String(b.id || ''), me.accId).run();
+                    return json({ ok: true });
+                }
+                return err(404, 'Neznámá akce.');
+            }
+
             if (path === '/account/backup') {
                 if (!me.accId) return err(400, 'Účet ještě není založený.');
                 await ensureZalohySchema(env);
@@ -3297,6 +3463,7 @@ export default {
                 }
                 await smaz('DELETE FROM vzkazy WHERE acc_id=?', me.accId);
                 await smaz('DELETE FROM zalohy WHERE acc_id=?', me.accId);   // záloha do účtu (b1)
+                await smaz('DELETE FROM passkeys WHERE acc_id=?', me.accId);   // přístupové klíče (f1)
                 await smaz('UPDATE orders SET acc_id=? WHERE acc_id=?', 'smazano', me.accId);
                 await smaz('DELETE FROM accounts WHERE id=?', me.accId);
                 await guardClear(env, 'del:' + ip);
