@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 401,
+      "datum": "2026-09-25",
+      "nadpis": "Dostępność: VoiceOver, kontrast i czcionka do 200 %",
+      "body": [
+        "Wszystkie suwaki i pola mają etykiety dla VoiceOver i TalkBack; mapa, kamera, menu i okna są nazwanymi obszarami.",
+        "Poprawiony kontrast. Ustawienia → Wygląd → Rozmiar czcionki sięga teraz 200 %.",
+        "Automatyczny test dostępności (axe) sprawdza dziewięć ekranów przy każdym wydaniu."
+      ]
+    },
+    {
       "v": 400,
       "datum": "2026-09-25",
       "nadpis": "Ścieżka nauki jak w Duolingo i Toti jako przewodnik",

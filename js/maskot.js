@@ -353,7 +353,8 @@
             + 'font-size:calc(13.5px * var(--ag-font-scale,1));line-height:1.45;min-height:22px;}'
             + '.ag-maskot .mk-bublina::before{content:"";position:absolute;left:-7px;top:16px;width:12px;height:12px;background:inherit;'
             + 'border-left:1px solid var(--glass-border,rgba(255,255,255,.14));border-bottom:1px solid var(--glass-border,rgba(255,255,255,.14));transform:rotate(45deg);}'
-            + '.ag-maskot .mk-jmeno{display:block;font-size:calc(11px * var(--ag-font-scale,1));font-weight:700;color:var(--accent,#2f9e74);margin-bottom:2px;letter-spacing:.02em;}'
+            + '.ag-maskot .mk-jmeno{display:block;font-size:calc(11px * var(--ag-font-scale,1));font-weight:700;color:#4ade80;margin-bottom:2px;letter-spacing:.02em;}'
+            + 'body.light-mode .ag-maskot .mk-jmeno{color:#15803d;}body.light-mode .ag-maskot.mk-plovak .mk-jmeno,body.light-mode .ag-maskot.mk-roh .mk-jmeno{color:#4ade80;}'
             + '.ag-maskot .mk-vic{position:absolute;right:4px;top:2px;width:30px;height:30px;border:0;background:none;color:var(--text-muted,#9aa1ac);font-size:18px;line-height:1;cursor:pointer;border-radius:50%;}'
             + '.ag-maskot .mk-vic:active{background:var(--surface-1,rgba(255,255,255,.08));}'
             + 'body.light-mode .ag-maskot .mk-bublina{background:#fff;border-color:rgba(15,23,42,.16);color:#141821;}'
@@ -527,7 +528,7 @@
         var old = document.getElementById('ag-mk-panel'); if (old) old.remove();
         var s = nast();
         var n = 0; Object.keys(s.vlastni).forEach(function (k) { n += (s.vlastni[k] || []).length; });
-        var ov = document.createElement('div'); ov.id = 'ag-mk-panel'; ov.setAttribute('data-ag-okno', ''); ov.setAttribute('role', 'dialog');
+        var ov = document.createElement('div'); ov.id = 'ag-mk-panel'; ov.setAttribute('data-ag-okno', ''); ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', t('Nastavení maskota'));
         ov.innerHTML = '<div class="mkp">'
             + '<h3>' + SVG + '<span>' + esc(t('Maskot')) + ' ' + esc(s.jmeno) + '</span></h3>'
             + '<p>' + esc(t('Provází tě kartičkami, poznávačkou, cvičnými úlohami a odhady. Klepni na něj a poradí ti.')) + '</p>'

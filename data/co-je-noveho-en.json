@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 401,
+      "datum": "2026-09-25",
+      "nadpis": "Accessibility: VoiceOver, contrast and text up to 200 %",
+      "body": [
+        "All sliders and fields have labels for VoiceOver and TalkBack; the map, camera, menu and windows are named regions and your position marker is announced.",
+        "Contrast fixed (the Why? button, the coordinate system in My points, Learning path). Settings → Appearance → Text size now goes up to 200 % and the main windows do not overflow.",
+        "An automatic accessibility test (axe) checks nine screens on every release."
+      ]
+    },
+    {
       "v": 400,
       "datum": "2026-09-25",
       "nadpis": "A Duolingo-style learning path and Toti as your guide",

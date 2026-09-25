@@ -32,7 +32,7 @@
     margin-left: auto;
     flex: 0 0 auto;
     background: rgba(255, 255, 255, 0.10);
-    color: inherit;
+    color: var(--text-color, #eceef2);   /* dřív inherit → na barevném štítku nízký kontrast (axe, c1) */
     border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.16));
     border-radius: 7px;
     padding: 3px 9px;

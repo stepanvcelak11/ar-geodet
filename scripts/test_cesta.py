@@ -98,8 +98,8 @@ async def beh(url):
         ok('L3 konec „Bez chyby!“, XP, korunka, denní cíl splněn, série 1', k['h'] == 'Bez chyby!' and s['xp'] >= 20 and s['hotove'].get('pojmy:0', {}).get('perfekt') and s['dnesN'] == 1 and s['streak']['n'] == 1, k)
         await page.evaluate("() => document.querySelector('#ag-cu .cu-dole .cu-go').click()")
         await page.wait_for_timeout(500)
-        m2 = await page.evaluate("() => { const u = [...document.querySelectorAll('#ag-cu .cu-uzel')]; return { prvni: u[0].textContent, druhyTed: u[1].classList.contains('ted') }; }")
-        ok('M4 po lekci: první ✓ s korunkou, druhá svítí', '✓' in m2['prvni'] and '👑' in m2['prvni'] and m2['druhyTed'], m2)
+        m2 = await page.evaluate("() => { const u = [...document.querySelectorAll('#ag-cu .cu-uzel')]; return { prvni: u[0].textContent, koruna: !!u[0].querySelector('.cu-korunka'), druhyTed: u[1].classList.contains('ted') }; }")
+        ok('M4 po lekci: první ✓ s korunkou, druhá svítí', '✓' in m2['prvni'] and m2['koruna'] and m2['druhyTed'], m2)
 
         # 2. lekce s chybou: vrátí se na konec, bez korunky
         await page.evaluate("() => document.querySelector('#ag-cu .cu-uzel.ted').click()")

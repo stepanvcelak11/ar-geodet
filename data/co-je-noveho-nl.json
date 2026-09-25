@@ -2,6 +2,16 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 401,
+      "datum": "2026-09-25",
+      "nadpis": "Toegankelijkheid: VoiceOver, contrast en tekst tot 200 %",
+      "body": [
+        "Alle schuifregelaars en velden hebben labels voor VoiceOver en TalkBack; kaart, camera, menu en vensters zijn benoemde gebieden.",
+        "Contrast verbeterd. Instellingen → Weergave → Tekstgrootte gaat nu tot 200 %.",
+        "Een automatische toegankelijkheidstest (axe) controleert negen schermen bij elke versie."
+      ]
+    },
+    {
       "v": 400,
       "datum": "2026-09-25",
       "nadpis": "Leerpad zoals Duolingo en Toti als gids",

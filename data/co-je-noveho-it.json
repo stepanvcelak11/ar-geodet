@@ -2,6 +2,16 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 401,
+      "datum": "2026-09-25",
+      "nadpis": "Accessibilità: VoiceOver, contrasto e testo fino al 200 %",
+      "body": [
+        "Tutti i cursori e i campi hanno etichette per VoiceOver e TalkBack; mappa, fotocamera, menu e finestre sono aree con nome.",
+        "Contrasto corretto. Impostazioni → Aspetto → Dimensione testo arriva ora al 200 %.",
+        "Un test automatico di accessibilità (axe) controlla nove schermate a ogni versione."
+      ]
+    },
+    {
       "v": 400,
       "datum": "2026-09-25",
       "nadpis": "Percorso di apprendimento stile Duolingo e Toti come guida",

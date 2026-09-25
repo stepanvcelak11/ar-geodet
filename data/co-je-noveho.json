@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 401,
+   "datum": "2026-09-25",
+   "nadpis": "Přístupnost: VoiceOver, kontrast a písmo až 200 %",
+   "body": [
+    "Všechny posuvníky a pole mají popisky pro VoiceOver a TalkBack, mapa, kamera, menu i okna jsou pojmenované oblasti a značka tvé polohy se ohlásí.",
+    "Opravený kontrast (tlačítko Proč?, souřadnicový systém v Mých bodech, Cesta učení). Nastavení → Vzhled → Velikost písma teď jde až na 200 % a hlavní okna při tom nepřetékají.",
+    "Automatický test přístupnosti (axe) hlídá devět obrazovek při každém vydání."
+   ]
+  },
+  {
    "v": 400,
    "datum": "2026-09-25",
    "nadpis": "Cesta učení jako v Duolingu a Toti průvodcem",

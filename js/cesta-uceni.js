@@ -60,6 +60,13 @@
         return base;
     }
 
+    // ikony jako SVG (v appce žádné emoji jako ikony — test_pruchod_15_9 H1)
+    var IK = {
+        plamen: '<svg class="cu-ik" viewBox="0 0 24 24" aria-hidden="true" style="color:#f97316"><path fill="currentColor" d="M12 2c.9 3.2-.9 5.1-2.2 6.4C8.3 9.9 7 11.6 7 14a5 5 0 0 0 10 0c0-1.9-.9-3.4-1.9-4.4.1 1.6-.7 2.7-1.9 2.9.9-2.3.8-6.1-1.2-10.5z"/></svg>',
+        hvezda: '<svg class="cu-ik" viewBox="0 0 24 24" aria-hidden="true" style="color:#facc15"><path fill="currentColor" d="M12 2.5l2.9 6.1 6.6.8-4.9 4.5 1.3 6.6L12 17.2l-5.9 3.3 1.3-6.6-4.9-4.5 6.6-.8z"/></svg>',
+        zamek: '<svg class="cu-ik" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5" fill="currentColor"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>',
+        koruna: '<svg class="cu-ik" viewBox="0 0 24 24" aria-hidden="true" style="color:#facc15"><path fill="currentColor" d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg>'
+    };
     // ---- zdroje otázek (pool = [{id, make()}], stabilní pořadí) ----
     function poolPojmy() {
         var D = (window.agGeoDict || []).filter(function (p) { return p && p.t && p.d && String(p.t).length <= 48 && String(p.d).length >= 25; })
@@ -125,11 +132,11 @@
     }
 
     var TEMATA = [
-        { id: 'pojmy', t: 'Základní pojmy', barva: '#2f9e74', lekci: 5, na: 6, pool: poolPojmy },
-        { id: 'body', t: 'Body v terénu', barva: '#3b82f6', lekci: 2, na: 5, pool: poolBody },
-        { id: 'predpisy', t: 'Předpisy', barva: '#8b5cf6', lekci: 4, na: 6, pool: poolPredpisy },
-        { id: 'vypocty', t: 'Výpočty', barva: '#f59e0b', lekci: 4, na: 3, pool: poolVypocty },
-        { id: 'appka', t: 'Co umí appka', barva: '#ef4444', lekci: 3, na: 6, pool: poolAppka }
+        { id: 'pojmy', t: 'Základní pojmy', barva: '#1d7a57', lekci: 5, na: 6, pool: poolPojmy },
+        { id: 'body', t: 'Body v terénu', barva: '#2563eb', lekci: 2, na: 5, pool: poolBody },
+        { id: 'predpisy', t: 'Předpisy', barva: '#6d28d9', lekci: 4, na: 6, pool: poolPredpisy },
+        { id: 'vypocty', t: 'Výpočty', barva: '#b45309', lekci: 4, na: 3, pool: poolVypocty },
+        { id: 'appka', t: 'Co umí appka', barva: '#c62828', lekci: 3, na: 6, pool: poolAppka }
     ];
     var _pools = {};
     function pool(tem) { if (!_pools[tem.id]) _pools[tem.id] = tem.pool().catch(function (e) { swallow(e, 'pool:' + tem.id); _pools[tem.id] = null; return []; }); return _pools[tem.id]; }
@@ -164,7 +171,7 @@
             + '#ag-cu .cu-stat select{margin-top:2px;max-width:100%;border-radius:8px;border:1px solid var(--glass-border,rgba(255,255,255,.14));background:transparent;color:inherit;font:inherit;font-size:calc(11px * var(--ag-font-scale,1));}'
             + '#ag-cu .cu-tema{margin:14px 0 8px;padding:12px 14px;border-radius:14px;color:#fff;display:flex;align-items:center;gap:10px;}'
             + '#ag-cu .cu-tema b{flex:1;font-size:calc(16px * var(--ag-font-scale,1));}'
-            + '#ag-cu .cu-tema small{opacity:.9;font-size:calc(12px * var(--ag-font-scale,1));}'
+            + '#ag-cu .cu-tema small{font-weight:700;font-size:calc(12px * var(--ag-font-scale,1));}'
             + '#ag-cu .cu-cesta{display:flex;flex-direction:column;align-items:center;gap:14px;padding:6px 0;}'
             + '#ag-cu .cu-uzel{position:relative;width:70px;height:66px;border-radius:50%;border:0;cursor:pointer;color:#fff;font-size:26px;font-weight:800;'
             + 'box-shadow:0 6px 0 rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}'
@@ -175,6 +182,7 @@
             + '#ag-cu .cu-uzel .cu-start{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:#fff;color:#141821;font-size:12px;font-weight:800;'
             + 'padding:6px 10px;border-radius:10px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.3);letter-spacing:.04em;}'
             + '#ag-cu .cu-uzel .cu-korunka{position:absolute;right:-4px;top:-6px;font-size:18px;}'
+            + '#ag-cu .cu-ik{width:1.1em;height:1.1em;vertical-align:-0.15em;display:inline-block;}#ag-cu .cu-korunka .cu-ik{width:22px;height:22px;}#ag-cu .cu-uzel .cu-ik{width:26px;height:26px;}'
             + '@keyframes cu-puls{0%{transform:scale(.95);opacity:.7}100%{transform:scale(1.25);opacity:0}}'
             + '@media (prefers-reduced-motion:reduce){#ag-cu .cu-uzel.ted::after{animation:none;}}'
             // lekce
@@ -222,8 +230,8 @@
         var s = st(), d = build(), ted = aktualni(s);
         dole().hidden = true; dole().className = 'cu-dole';
         var h = '<div class="cu-stat">'
-            + '<div><b>🔥 ' + (s.streak.n || 0) + '</b><small>' + esc(t('dní v řadě')) + '</small></div>'
-            + '<div><b>⭐ ' + s.xp + '</b><small>XP</small></div>'
+            + '<div><b>' + IK.plamen + ' ' + (s.streak.n || 0) + '</b><small>' + esc(t('dní v řadě')) + '</small></div>'
+            + '<div><b>' + IK.hvezda + ' ' + s.xp + '</b><small>XP</small></div>'
             + '<div><b>' + Math.min(s.dnesN, s.cil) + ' / ' + s.cil + '</b><small>' + esc(t('dnes')) + '</small>'
             + '<select aria-label="' + esc(t('Denní cíl')) + '" data-cil>' + [1, 2, 3].map(function (n) { return '<option value="' + n + '"' + (s.cil === n ? ' selected' : '') + '>' + esc(t('cíl')) + ' ' + n + '</option>'; }).join('') + '</select></div>'
             + '</div>';
@@ -235,8 +243,8 @@
                 var k = klic(tm.id, j), done = s.hotove[k], odem = odemcena(s, k), jeTed = k === ted;
                 h += '<button type="button" class="cu-uzel' + (odem ? '' : ' zamceno') + (jeTed ? ' ted' : '') + '" data-k="' + k + '" style="background:' + tm.barva + ';color:' + (jeTed ? tm.barva : '#fff') + ';transform:translateX(' + POS[j % POS.length] + 'px)"'
                     + ' aria-label="' + esc(t(tm.t) + ' ' + (j + 1) + (done ? ' — ' + t('hotovo') : (odem ? '' : ' — ' + t('zamčeno')))) + '"' + (odem ? '' : ' aria-disabled="true"') + '>'
-                    + '<span style="color:#fff">' + (done ? '✓' : (odem ? '★' : '🔒')) + '</span>'
-                    + (done && done.perfekt ? '<span class="cu-korunka" aria-hidden="true">👑</span>' : '')
+                    + '<span style="color:#fff">' + (done ? '✓' : (odem ? '★' : IK.zamek)) + '</span>'
+                    + (done && done.perfekt ? '<span class="cu-korunka" aria-hidden="true">' + IK.koruna + '</span>' : '')
                     + (jeTed ? '<span class="cu-start">' + esc(t('START')) + '</span>' : '') + '</button>';
             }
             h += '</div>';
@@ -349,8 +357,8 @@
         dole().querySelector('.cu-go').addEventListener('click', mapa);
         var proc = Math.round(L.dobre / Math.max(1, L.celkem) * 100);
         view().innerHTML = '<div class="cu-konec"><h2>' + esc(perfekt ? t('Bez chyby!') : t('Lekce hotová!')) + '</h2>'
-            + '<div class="cu-stat"><div><b>⭐ +' + xp + '</b><small>XP</small></div><div><b>' + proc + ' %</b><small>' + esc(t('napoprvé správně')) + '</small></div>'
-            + '<div><b>🔥 ' + s.streak.n + '</b><small>' + esc(t('dní v řadě')) + '</small></div></div>'
+            + '<div class="cu-stat"><div><b>' + IK.hvezda + ' +' + xp + '</b><small>XP</small></div><div><b>' + proc + ' %</b><small>' + esc(t('napoprvé správně')) + '</small></div>'
+            + '<div><b>' + IK.plamen + ' ' + s.streak.n + '</b><small>' + esc(t('dní v řadě')) + '</small></div></div>'
             + (novaSerie ? '<p>' + esc(t('Dnešní cíl splněný — série pokračuje!')) + '</p>' : '') + '</div>';
         toti(function (M) { M.rekni(perfekt ? 'konec_super' : (proc >= 70 ? 'konec_dobre' : 'konec_slabe'), { skore: L.dobre, celkem: L.celkem }); });
     }
