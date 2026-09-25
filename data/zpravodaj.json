@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-09-24",
-  "uvodnik": "Vydání 24. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-09-25",
+  "uvodnik": "Vydání 25. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,18 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "Original Survey Solutions Hires Ken Sandell in San Diego",
+      "perex": "Project Executive brings extensive construction surveying and reality capture experience to growing firm Original Survey Solutions (OSS) has expanded into Southern California with the hiring of Projec…",
+      "telo": "Project Executive brings extensive construction surveying and reality capture experience to growing firm Original Survey Solutions (OSS) has expanded into Southern California with the hiring of Project Executive Ken Sandell. Sandell brings more than a decade of experience in surveying and construction, most recently serving as Survey Manager for Hoffman Construction’s Layout & Modeling division. His background includes construction surveying, reality capture, scanning, monitoring and modeling for complex construction projects. “A lot of us have worked alongside Ken before, so we know what he can do and how diligently he approaches the work,” says OSS President and CEO Will Paul. “Ken has str",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/24/original-survey-solutions-hires-ken-sandell-in-san-diego/?utm_source=rss&utm_medium=rss&utm_campaign=original-survey-solutions-hires-ken-sandell-in-san-diego",
+      "datum": "2026-09-24"
     },
     {
       "rubrika": "Technologie",
@@ -85,18 +97,6 @@
       "zdroj": "LiDAR Magazine",
       "odkaz": "https://lidarmag.com/2026/09/21/outsight-crosses-the-milestone-of-280-million-annual-passengers-under-real-time-measurement-at-airports-worldwide/?utm_source=rss&utm_medium=rss&utm_campaign=outsight-crosses-the-milestone-of-280-million-annual-passengers-under-real-time-measurement-at-airports-worldwide",
       "datum": "2026-09-21"
-    },
-    {
-      "rubrika": "Z praxe",
-      "top": false,
-      "nadpis": "Why Team Depth Is Becoming Surveyors’ Best Defense Against Project Delays",
-      "perex": "Every firm knows the feeling. A job is booked, the client expects a field crew.",
-      "telo": "Every firm knows the feeling. A job is booked, the client expects a field crew. Then one surveyor calls in sick. Another is stuck finishing a job that ran long. The one person registered to sign off on the report is on leave. Nothing about the work itself has changed, but the schedule slips anyway. The firm’s capacity to deliver was resting on a handful of specific people, not a team that could absorb the gap. Depth Isn’t the Same as Headcount It’s easy to conflate “team depth” with simply having more staff, but the two aren’t the same thing. A firm can carry a large payroll and still have a single point of failure at every stage of a job. One senior reviews all the tricky boundary calls, on",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/18/why-team-depth-is-becoming-surveyors-best-defense-against-project-delays/?utm_source=rss&utm_medium=rss&utm_campaign=why-team-depth-is-becoming-surveyors-best-defense-against-project-delays",
-      "datum": "2026-09-18"
     }
   ]
 }
