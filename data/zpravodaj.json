@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-09-27",
-  "uvodnik": "Vydání 27. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-09-28",
+  "uvodnik": "Vydání 28. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -15,88 +15,88 @@
       "datum": "2026-08-25"
     },
     {
-      "rubrika": "Z praxe",
+      "rubrika": "Technologie",
       "top": false,
-      "nadpis": "Original Survey Solutions Hires Ken Sandell in San Diego",
-      "perex": "Project Executive brings extensive construction surveying and reality capture experience to growing firm Original Survey Solutions (OSS) has expanded into Southern California with the hiring of Projec…",
-      "telo": "Project Executive brings extensive construction surveying and reality capture experience to growing firm Original Survey Solutions (OSS) has expanded into Southern California with the hiring of Project Executive Ken Sandell. Sandell brings more than a decade of experience in surveying and construction, most recently serving as Survey Manager for Hoffman Construction’s Layout & Modeling division. His background includes construction surveying, reality capture, scanning, monitoring and modeling for complex construction projects. “A lot of us have worked alongside Ken before, so we know what he can do and how diligently he approaches the work,” says OSS President and CEO Will Paul. “Ken has str",
+      "nadpis": "Decisions That Matter",
+      "perex": "This month’s edition offers a broad look at how lidar, positioning, and GeoAI integrations continue to evolve.",
+      "telo": "This month’s edition offers a broad look at how lidar, positioning, and GeoAI integrations continue to evolve. This evolution is not simply the result of better technology, but of the ways those tools are being applied to increasingly complex real-world problems. We begin once more in Neuchâtel, Switzerland, where Marc Riedo, Matthew Parkan and Corentin Junod explore the use of high-density aerial lidar and deep learning to better understand forest structure. Their work demonstrates how detailed point clouds can support species classification, resource assessment and increasingly automated forest inventories. On page 20, Kevin Andrews takes us beyond the traditional measure of positioning pe",
       "body": [],
       "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/24/original-survey-solutions-hires-ken-sandell-in-san-diego/?utm_source=rss&utm_medium=rss&utm_campaign=original-survey-solutions-hires-ken-sandell-in-san-diego",
-      "datum": "2026-09-24"
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/09/27/decisions-that-matter/?utm_source=rss&utm_medium=rss&utm_campaign=decisions-that-matter",
+      "datum": "2026-09-28"
     },
     {
       "rubrika": "Technologie",
       "top": false,
-      "nadpis": "Outsight Accelerates in Asia-Pacific: New Singapore Hub Joins Hong Kong to Serve the Region’s Airports",
-      "perex": "Sales, engineering, delivery and customer success now operate from two offices in the region, in the same working hours as the airports they serve Singapore, 23rd Sept 2026.",
-      "telo": "Sales, engineering, delivery and customer success now operate from two offices in the region, in the same working hours as the airports they serve Singapore, 23rd Sept 2026. Outsight , the global leader in infrastructure-based Physical AI, has opened an office in Singapore to serve airport operators across Asia-Pacific. The new hub joins the company’s Hong Kong office, doubling Outsight’s footprint in a region where terminal expansion and modernisation programmes are running at pace. The Singapore office, at 36 Carpenter Street, opened on 6 July 2026 and is led by Jeremy Camilleri, Director of Operations APAC. It operates as a fully-owned subsidiary of Outsight SA, headquartered in France. A",
+      "nadpis": "A Slice of Swiss Trees",
+      "perex": "By combining high-density aerial lidar and deep learning, it becomes possible to reveal the forests of Neuchâtel with an unprecedented level of detail.",
+      "telo": "By combining high-density aerial lidar and deep learning, it becomes possible to reveal the forests of Neuchâtel with an unprecedented level of detail. By leveraging point clouds with over 100 points/m² (ppsm) and very high-resolution derived models, the Neuchâtel government GIS center (SITN) offers products that foresters can use directly, ranging from simple raster products, such as the canopy height model, to the most advanced, derived directly from the 3D point cloud. These methods enable tree crown segmentation, followed by the classification of 20 major tree species using aerial lidar signatures that combine geometry and intensity, achieving an overall classification accuracy of approx",
       "body": [],
       "proc": "",
       "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/09/23/outsight-accelerates-in-asia-pacific-new-singapore-hub-joins-hong-kong-to-serve-the-regions-airports/?utm_source=rss&utm_medium=rss&utm_campaign=outsight-accelerates-in-asia-pacific-new-singapore-hub-joins-hong-kong-to-serve-the-regions-airports",
-      "datum": "2026-09-23"
-    },
-    {
-      "rubrika": "Přístroje",
-      "top": false,
-      "nadpis": "Dr. Alison Brown Receives Kepler Award",
-      "perex": "The Institute of Navigation recognizes Dr.",
-      "telo": "The Institute of Navigation recognizes Dr. Alison Brown with prestigious Johannes Kepler Award at the ION GNSS+ 2026 Conference for her sustained record of pioneering technical innovations, operational deployments, strategic leadership, and PNT community advancement. Dr. Alison Brown’s career spans more than 40 years of pioneering contributions to satellite navigation technology and applications. She has developed and demonstrated hardware and software capabilities for military and commercial systems, including WAAS Ground Uplink station equipment and algorithms, GPS jammer location (JLOC) systems, ultra-low power GPS tracking sensors, cooperative networked acquisition techniques to speed ac",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/22/dr-alison-brown-receives-kepler-award/?utm_source=rss&utm_medium=rss&utm_campaign=dr-alison-brown-receives-kepler-award",
-      "datum": "2026-09-22"
-    },
-    {
-      "rubrika": "Z praxe",
-      "top": false,
-      "nadpis": "ASPRS and the ASPRS Foundation Announce New ASPRS Geospatial Science Research Grant",
-      "perex": "Baton Rouge, LA, September 21, 2026 : The Awards Committee of the American Society for Photogrammetry and Remote Sensing (ASPRS) and the ASPRS Foundation announce a new Geospatial Research Grant for t…",
-      "telo": "Baton Rouge, LA, September 21, 2026 : The Awards Committee of the American Society for Photogrammetry and Remote Sensing (ASPRS) and the ASPRS Foundation announce a new Geospatial Research Grant for the 2027 application cycle. The initial grant will be funded at a maximum $25,000 level, with potential for a second-year funding at the same level if proposed and the awardee’s stated project milestones are being met. This grant is designed to support research by graduate students pursuing degrees in the geospatial sciences at the Master’s and PhD levels, with preference given to PhD students. Preference is also given to those students planning on a career in teaching. The grant has been establi",
-      "body": [],
-      "proc": "",
-      "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/09/22/asprs-and-the-asprs-foundation-announce-new-asprs-geospatial-science-research-grant/?utm_source=rss&utm_medium=rss&utm_campaign=asprs-and-the-asprs-foundation-announce-new-asprs-geospatial-science-research-grant",
-      "datum": "2026-09-22"
-    },
-    {
-      "rubrika": "Přístroje",
-      "top": false,
-      "nadpis": "OpenWorks Engineering Expands Into US Market",
-      "perex": "After over a decade of supporting US defense and security organizations, OpenWorks opens regional headquarters in Virginia and announces plan for Detroit manufacturing facility Ashburn, Virginia, Sept…",
-      "telo": "After over a decade of supporting US defense and security organizations, OpenWorks opens regional headquarters in Virginia and announces plan for Detroit manufacturing facility Ashburn, Virginia, Sept. 22, 2026 – OpenWorks Engineering , a global leader in C-UAS, air defense, and surveillance technology, today announces the launch of its United States regional headquarters in Ashburn, Virginia, and future plans to expand its manufacturing footprint on American soil with a facility in Detroit, Michigan. OpenWorks is deepening its presence in this market in response to growing US demand for its Autonomous Vision Systems solutions, as well as strengthening its relationships with existing custome",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/22/openworks-engineering-expands-into-us-market/?utm_source=rss&utm_medium=rss&utm_campaign=openworks-engineering-expands-into-us-market",
-      "datum": "2026-09-22"
+      "odkaz": "https://lidarmag.com/2026/09/27/a-slice-of-swiss-trees/?utm_source=rss&utm_medium=rss&utm_campaign=a-slice-of-swiss-trees",
+      "datum": "2026-09-28"
     },
     {
       "rubrika": "Technologie",
       "top": false,
-      "nadpis": "Online Thought Leadership Event to Explore the Future of GeoAI and Geospatial Data & Analysis",
-      "perex": "September 15, 2026 – The geospatial industry has never had more data at its fingertips.",
-      "telo": "September 15, 2026 – The geospatial industry has never had more data at its fingertips. Lidar, SAR, spectral imagery, drones, satellites, and real-time sensors are capturing the physical world at unprecedented scale and detail. But data is no longer the biggest challenge. “The real challenge is helping decision-makers understand what matters in their data and what action they should take,” said Dan Gruidel, Vice President, Strategy & Business Development at NV5. “Success is no longer measured by how much data you have. It’s measured by how quickly you transform that data into action.” That shift, from data acquisition to operational intelligence, is at the center of Geo Sessions 2026 , a vir",
+      "nadpis": "Beyond Accuracy",
+      "perex": "From Himalayan rail tunnels to airport drone corridors, the same technology is redefining what reliable positioning means For most of its history, the positioning and mapping industry has measured progress in centimeters.",
+      "telo": "From Himalayan rail tunnels to airport drone corridors, the same technology is redefining what reliable positioning means For most of its history, the positioning and mapping industry has measured progress in centimeters. How accurately can you place a point? How tightly can you constrain the error? Accuracy was the ultimate arbiter of a system’s worth and in surveying, engineering and infrastructure, the cost of being wrong is very real. But today, accuracy alone is no longer enough. The environments in which positioning systems operate are more complex, more constrained, and, in some regions, openly challenging to GNSS. Customers are no longer satisfied with, “How accurate is it?” They wan",
       "body": [],
       "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/21/online-thought-leadership-event-to-explore-the-future-of-geoai-and-geospatial-data-analysis/?utm_source=rss&utm_medium=rss&utm_campaign=online-thought-leadership-event-to-explore-the-future-of-geoai-and-geospatial-data-analysis",
-      "datum": "2026-09-22"
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/09/27/beyond-accuracy/?utm_source=rss&utm_medium=rss&utm_campaign=beyond-accuracy",
+      "datum": "2026-09-28"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "Kings Bay/Crystal River, Florida – 10 Years Later",
+      "perex": "Kings Bay in Crystal River, Florida (Figure 1) was designated as an Outstanding Florida Water and an Outstanding Florida Spring by the state.",
+      "telo": "Kings Bay in Crystal River, Florida (Figure 1) was designated as an Outstanding Florida Water and an Outstanding Florida Spring by the state. This 600-acre bay is the headwaters for Crystal River and is a first magnitude spring system, comprising over 70 springs. The spring water is 72°F (22°C) year-round, attracting wildlife and outdoor enthusiasts alike, which adds an economic driver to the bay’s environmental importance. Designated as a national wildlife refuge in 1983, this system harbors over 1,000 West Indian manatees (Trichechus manatus) during the winter and draws nearly 400,000 visitors annually to swim with the manatees. Numerous government agencies, non-profit organizations, and b",
+      "body": [],
+      "proc": "",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/09/27/kings-bay-crystal-river-florida-10-years-later/?utm_source=rss&utm_medium=rss&utm_campaign=kings-bay-crystal-river-florida-10-years-later",
+      "datum": "2026-09-27"
     },
     {
       "rubrika": "Technologie",
       "top": false,
-      "nadpis": "Outsight Crosses the Milestone of 280 Million Annual Passengers Under Real-Time Measurement at Airports Worldwide",
-      "perex": "Unique airports, similar needs, the same platform: dozens of airports run Outsight’s Spatial Intelligence Platform, switching to the new generation of passenger flow measurement Paris, 21st September 2026.",
-      "telo": "Unique airports, similar needs, the same platform: dozens of airports run Outsight’s Spatial Intelligence Platform, switching to the new generation of passenger flow measurement Paris, 21st September 2026. Outsight, the global leader in infrastructure-based Physical AI, announces that more than 280 million annual passengers now travel under the real-time measurement of its Spatial Intelligence Platform, processing over 2 terabytes of 3D data every minute. Airports everywhere share similar needs: knowing continuously, and in real time, how passengers move through their facilities. They are answering those needs with the same platform. Among the dozens of airports running the platform, some of",
+      "nadpis": "Elevations for the Nations Part IV",
+      "perex": "Mapping activities for the United States are centrally coordinated for a total area of about 3.8 million square miles.",
+      "telo": "Mapping activities for the United States are centrally coordinated for a total area of about 3.8 million square miles. The U.S. Geological Survey’s 3D Elevation Program (3DEP) now provides lidar-based elevation data for more than 99 percent of the nation. Across the Atlantic, the picture remains different. Europe’s 3.9 million square miles are divided among some 50 sovereign nations, each with its own mapping mandate, budget reality, and political history. European countries covered in the author’s Elevations for the Nations series. This is the fourth instalment of Elevations for the Nations, produced in collaboration with the European Association of Aerial Surveying Industries ( EAASI ) 1 .",
       "body": [],
       "proc": "",
       "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/09/21/outsight-crosses-the-milestone-of-280-million-annual-passengers-under-real-time-measurement-at-airports-worldwide/?utm_source=rss&utm_medium=rss&utm_campaign=outsight-crosses-the-milestone-of-280-million-annual-passengers-under-real-time-measurement-at-airports-worldwide",
-      "datum": "2026-09-21"
+      "odkaz": "https://lidarmag.com/2026/09/27/elevations-for-the-nations-part-iv/?utm_source=rss&utm_medium=rss&utm_campaign=elevations-for-the-nations-part-iv",
+      "datum": "2026-09-27"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "Measuring Recovery",
+      "perex": "In September 2024, the map of Western North Carolina changed.",
+      "telo": "In September 2024, the map of Western North Carolina changed. Roadways disappeared. River channels shifted. Slopes failed. Bridges that had connected mountain communities for generations were damaged, destroyed or left inaccessible. In some places, the landscape no longer matched the records, drawings or maps that had defined it only days before. Before Hurricane Helene reached the mountains, Western North Carolina had already experienced days of heavy rainfall. Saturated soil and swollen rivers had primed the region for flooding and landslides. When Helene made landfall in Florida on Sept. 26 as a Category 4 hurricane and tracked inland, it carried an extraordinary amount of moisture into t",
+      "body": [],
+      "proc": "",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/09/27/measuring-recovery/?utm_source=rss&utm_medium=rss&utm_campaign=measuring-recovery",
+      "datum": "2026-09-27"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "GeoAI in Practice",
+      "perex": "Agentic AI is reshaping how organizations collect, process and act on geospatial data.",
+      "telo": "Agentic AI is reshaping how organizations collect, process and act on geospatial data. But while the hype is everywhere, operational adoption remains elusive for many. LIDAR Magazine spoke with Chancee Vincent, principal AI architect at NV5, about where organizations really are in their AI journey, why agentic workflows matter and models alone are not enough, and how GeoAI will transform lidar and remote sensing over the next decade. Q: Many organizations are experimenting with AI, but few have operationalized it. From your vantage point, where do geospatial teams stand with regard to their AI maturity today? Vincent: Most organizations are still in the pilot phase. They’ve tested models, ru",
+      "body": [],
+      "proc": "",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/09/27/geoai-in-practice/?utm_source=rss&utm_medium=rss&utm_campaign=geoai-in-practice",
+      "datum": "2026-09-27"
     }
   ]
 }
