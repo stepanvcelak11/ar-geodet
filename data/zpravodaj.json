@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-09-28",
-  "uvodnik": "Vydání 28. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-09-29",
+  "uvodnik": "Vydání 29. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,30 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "SFL Missions Inc. Wins Contract to Develop Next-Generation Greenhouse Gas Monitoring Satellite for GHGSat",
+      "perex": "Toronto, Ontario, Canada, 28 September 2026 – SFL Missions Inc. has been awarded a contract by GHGSat of Montreal to develop the GHGSat-D2 demonstration satellite with enhanced greenhouse gas monitoring capabilities.",
+      "telo": "Toronto, Ontario, Canada, 28 September 2026 – SFL Missions Inc. has been awarded a contract by GHGSat of Montreal to develop the GHGSat-D2 demonstration satellite with enhanced greenhouse gas monitoring capabilities. SFL Missions is designing GHGSat-D2 to support more accurate and frequent measurements of emissions from sources on the Earth’s surface. Rendering of the next-generation GHGSat-D2 greenhouse gas monitoring satellite being developed by SFL Missions Inc. To accommodate a larger, higher-accuracy sensor being manufactured by ABB Canada, which has delivered some previous GHGSat payloads, SFL Missions is building the demonstrator satellite on its expanded DEFIANT-XL bus. The mass of t",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/28/sfl-missions-inc-wins-contract-to-develop-next-generation-greenhouse-gas-monitoring-satellite-for-ghgsat/?utm_source=rss&utm_medium=rss&utm_campaign=sfl-missions-inc-wins-contract-to-develop-next-generation-greenhouse-gas-monitoring-satellite-for-ghgsat",
+      "datum": "2026-09-28"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "Blue Marble Geographics Advances its Office-to-Field Platform with New Global Mapper Offering",
+      "perex": "New offering consolidates previously separate desktop GIS applications and services into single subscription, simplifying geospatial workflows and laying the foundation for deeper connections to field…",
+      "telo": "New offering consolidates previously separate desktop GIS applications and services into single subscription, simplifying geospatial workflows and laying the foundation for deeper connections to field execution Hallowell, Maine, September 28, 2026 — Blue Marble Geographics (“Blue Marble”) today announced the availability of Global Mapper® subscription, a new offering available in three tiers, Essentials, Advanced, and Professional, that brings previously separate products and services together and equips practitioners with end-to-end capabilities suited to their role. Building on the strategic combination of Blue Marble and Avenza Systems, Inc. (“Avenza”) announced in April, the new offering",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/28/blue-marble-geographics-advances-its-office-to-field-platform-with-new-global-mapper-offering/?utm_source=rss&utm_medium=rss&utm_campaign=blue-marble-geographics-advances-its-office-to-field-platform-with-new-global-mapper-offering",
+      "datum": "2026-09-28"
     },
     {
       "rubrika": "Technologie",
@@ -72,30 +96,6 @@
       "proc": "",
       "zdroj": "LiDAR Magazine",
       "odkaz": "https://lidarmag.com/2026/09/27/elevations-for-the-nations-part-iv/?utm_source=rss&utm_medium=rss&utm_campaign=elevations-for-the-nations-part-iv",
-      "datum": "2026-09-27"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "Measuring Recovery",
-      "perex": "In September 2024, the map of Western North Carolina changed.",
-      "telo": "In September 2024, the map of Western North Carolina changed. Roadways disappeared. River channels shifted. Slopes failed. Bridges that had connected mountain communities for generations were damaged, destroyed or left inaccessible. In some places, the landscape no longer matched the records, drawings or maps that had defined it only days before. Before Hurricane Helene reached the mountains, Western North Carolina had already experienced days of heavy rainfall. Saturated soil and swollen rivers had primed the region for flooding and landslides. When Helene made landfall in Florida on Sept. 26 as a Category 4 hurricane and tracked inland, it carried an extraordinary amount of moisture into t",
-      "body": [],
-      "proc": "",
-      "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/09/27/measuring-recovery/?utm_source=rss&utm_medium=rss&utm_campaign=measuring-recovery",
-      "datum": "2026-09-27"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "GeoAI in Practice",
-      "perex": "Agentic AI is reshaping how organizations collect, process and act on geospatial data.",
-      "telo": "Agentic AI is reshaping how organizations collect, process and act on geospatial data. But while the hype is everywhere, operational adoption remains elusive for many. LIDAR Magazine spoke with Chancee Vincent, principal AI architect at NV5, about where organizations really are in their AI journey, why agentic workflows matter and models alone are not enough, and how GeoAI will transform lidar and remote sensing over the next decade. Q: Many organizations are experimenting with AI, but few have operationalized it. From your vantage point, where do geospatial teams stand with regard to their AI maturity today? Vincent: Most organizations are still in the pilot phase. They’ve tested models, ru",
-      "body": [],
-      "proc": "",
-      "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/09/27/geoai-in-practice/?utm_source=rss&utm_medium=rss&utm_campaign=geoai-in-practice",
       "datum": "2026-09-27"
     }
   ]
