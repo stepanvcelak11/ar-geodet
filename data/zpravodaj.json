@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-09-30",
-  "uvodnik": "Vydání 30. 9. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-10-01",
+  "uvodnik": "Vydání 1. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,18 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "Will Gaussian Splatting Replace 3D Textured Meshes?",
+      "perex": "Gaussian splatting is rapidly gaining attention as a new way to create highly realistic 3D representations from imagery.",
+      "telo": "Gaussian splatting is rapidly gaining attention as a new way to create highly realistic 3D representations from imagery. But beyond impressive visualization, what can Gaussian splats actually be used for in photogrammetry? Join our guest Dr. Jules Morel, Data Analyst at Mirukuru in Japan, as we examine how Gaussian splats are created, what is required to achieve high-quality results, and where the technology fits within real-world photogrammetry workflows. We will also compare Gaussian splats with traditional textured meshes and discuss when each approach makes sense. Register for the event: https://hubs.ly/Q04y9Nj20 Specifically, attendees will learn about: Understanding the fundamentals of",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/09/30/will-gaussian-splatting-replace-3d-textured-meshes/?utm_source=rss&utm_medium=rss&utm_campaign=will-gaussian-splatting-replace-3d-textured-meshes",
+      "datum": "2026-09-30"
     },
     {
       "rubrika": "Ze světa",
@@ -84,18 +96,6 @@
       "proc": "",
       "zdroj": "LiDAR Magazine",
       "odkaz": "https://lidarmag.com/2026/09/27/kings-bay-crystal-river-florida-10-years-later/?utm_source=rss&utm_medium=rss&utm_campaign=kings-bay-crystal-river-florida-10-years-later",
-      "datum": "2026-09-27"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Elevations for the Nations Part IV",
-      "perex": "Mapping activities for the United States are centrally coordinated for a total area of about 3.8 million square miles.",
-      "telo": "Mapping activities for the United States are centrally coordinated for a total area of about 3.8 million square miles. The U.S. Geological Survey’s 3D Elevation Program (3DEP) now provides lidar-based elevation data for more than 99 percent of the nation. Across the Atlantic, the picture remains different. Europe’s 3.9 million square miles are divided among some 50 sovereign nations, each with its own mapping mandate, budget reality, and political history. European countries covered in the author’s Elevations for the Nations series. This is the fourth instalment of Elevations for the Nations, produced in collaboration with the European Association of Aerial Surveying Industries ( EAASI ) 1 .",
-      "body": [],
-      "proc": "",
-      "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/09/27/elevations-for-the-nations-part-iv/?utm_source=rss&utm_medium=rss&utm_campaign=elevations-for-the-nations-part-iv",
       "datum": "2026-09-27"
     }
   ]
