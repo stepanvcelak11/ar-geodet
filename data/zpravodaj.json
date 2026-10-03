@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-10-02",
-  "uvodnik": "Vydání 2. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-10-03",
+  "uvodnik": "Vydání 3. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,18 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "How Drone Surveys Expand What’s Surveyable From the Air",
+      "perex": "Ten years ago, an aerial survey usually meant a manned aircraft, a mobilisation cost that ruled out anything but the largest jobs.",
+      "telo": "Ten years ago, an aerial survey usually meant a manned aircraft, a mobilisation cost that ruled out anything but the largest jobs. Drones changed the economics fast, and most of the conversation since has been about speed: faster mobilisation, faster processing, lower cost per hectare. The bigger shift is what UAV survey platforms have done for sites that were once barely surveyable at all. Reaching What Was Once Off-Limits Until recently, a coastal slope that had just failed, a quarry face still being cut, or a flood-damaged corridor with no stable ground to stand on simply didn’t get surveyed to the same standard as a stable site. Sending a crew and a total station into that terrain carrie",
+      "body": [],
+      "proc": "",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/10/02/how-drone-surveys-expand-whats-surveyable-from-the-air/?utm_source=rss&utm_medium=rss&utm_campaign=how-drone-surveys-expand-whats-surveyable-from-the-air",
+      "datum": "2026-10-03"
     },
     {
       "rubrika": "Ze světa",
@@ -85,18 +97,6 @@
       "zdroj": "LiDAR Magazine",
       "odkaz": "https://lidarmag.com/2026/09/27/beyond-accuracy/?utm_source=rss&utm_medium=rss&utm_campaign=beyond-accuracy",
       "datum": "2026-09-28"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "Kings Bay/Crystal River, Florida – 10 Years Later",
-      "perex": "Kings Bay in Crystal River, Florida (Figure 1) was designated as an Outstanding Florida Water and an Outstanding Florida Spring by the state.",
-      "telo": "Kings Bay in Crystal River, Florida (Figure 1) was designated as an Outstanding Florida Water and an Outstanding Florida Spring by the state. This 600-acre bay is the headwaters for Crystal River and is a first magnitude spring system, comprising over 70 springs. The spring water is 72°F (22°C) year-round, attracting wildlife and outdoor enthusiasts alike, which adds an economic driver to the bay’s environmental importance. Designated as a national wildlife refuge in 1983, this system harbors over 1,000 West Indian manatees (Trichechus manatus) during the winter and draws nearly 400,000 visitors annually to swim with the manatees. Numerous government agencies, non-profit organizations, and b",
-      "body": [],
-      "proc": "",
-      "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/09/27/kings-bay-crystal-river-florida-10-years-later/?utm_source=rss&utm_medium=rss&utm_campaign=kings-bay-crystal-river-florida-10-years-later",
-      "datum": "2026-09-27"
     }
   ]
 }
