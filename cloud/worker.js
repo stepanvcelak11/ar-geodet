@@ -215,6 +215,13 @@ function cisloV(v, min, max) { const n = Number(v); return (isFinite(n) && n >= 
 // jako /login. Vlastník si při zapnutí může klíč svázat s OWNER_KEY (pošle ho, server porovná) —
 // po přihlášení passkeyem pak dostane klíč vlastníka zpátky do telefonu.
 // Veřejný klíč bere server jako SPKI z response.getPublicKey() (žádné parsování CBOR), jen ES256.
+//
+// KLÍČ VLASTNÍKA BEZ ÚČTU (6. 10. 2026, „stále mi blbne přihlašování pomocí Face ID jakožto vlastník“):
+// vlastník se přihlašuje jménem VLASTNIK + OWNER_KEY, ne účtem — passkey se mu proto dosud zapnout
+// nedalo (chtělo účet) a jeho „Face ID“ bylo jen místní odemknutí, které po smazání dat appky zmizelo.
+// /owner/passkey/start|finish (za ownerGate) uloží klíč pod pseudo-účet PK_VLASTNIK; přihlášení takovým
+// klíčem vrátí jen OWNER_KEY (žádný token účtu) a appka se odemkne jako vlastník.
+const PK_VLASTNIK = '!vlastnik';
 let _pkMig = false;
 async function ensurePasskeySchema(env) {
     if (_pkMig) return;
@@ -1686,7 +1693,7 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 31, recovery: true, zaloha: true, stats: true, passkey: true, mapa: !!env.MAPA, mapaGithub: true, nacrt: true, dgps: true, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 32, recovery: true, zaloha: true, stats: true, passkey: true, pkOwner: true, mapa: !!env.MAPA, mapaGithub: true, nacrt: true, dgps: true, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
 
             // ---------------- PŘESNOST PODLE MODELU TELEFONU (a1, 25. 9. 2026) — bez přihlášení ----------------
             if (path === '/stats/phone' || path === '/stats/phones') {
@@ -2133,9 +2140,16 @@ export default {
                 const vyzva = await pkVyzvedni(env, b.clientDataJSON, 'get');
                 if (!vyzva) return err(400, 'Výzva vypršela, zkus to znovu.');
                 const cred = await env.DB.prepare('SELECT * FROM passkeys WHERE cred_id=?').bind(String(b.id || '')).first();
-                if (!cred) return err(401, 'Tenhle klíč server nezná — přihlas se heslem a zapni Face ID znovu.');
+                if (!cred) return err(401, 'Tenhle klíč server nezná — v nabídce iPhonu vyber klíč „QTRIG vlastník“ nebo klíč s kódem účtu. Jinak se přihlas heslem a zapni Face ID znovu.');
                 const v = await pkOverPrihlaseni(b, cred.pub, ctx, vyzva);
                 if (!v.ok) return err(401, v.err);
+                if (cred.acc_id === PK_VLASTNIK) {
+                    // klíč vlastníka bez účtu: jen klíč zpátky do telefonu, žádný token
+                    if (ownerKeyStav(env) !== 'ok') return err(503, 'Na serveru teď není použitelný OWNER_KEY — přihlas se jménem VLASTNIK a klíčem.', { ownerKey: ownerKeyStav(env) });
+                    await env.DB.prepare('UPDATE passkeys SET used=? WHERE cred_id=?').bind(Date.now(), cred.cred_id).run();
+                    try { await ownerLog(env, 'vlastnik-faceid', '', String(cred.name || '')); } catch (e) {}
+                    return json({ ok: true, owner: true, ownerOnly: true, ownerKey: String(env.OWNER_KEY), passkey: true });
+                }
                 const acc = await dbFirst(env, 'SELECT * FROM accounts WHERE id=?', cred.acc_id);
                 if (!acc) return err(401, 'Účet už neexistuje.');
                 if (acc.disabled) return err(403, 'Účet je zablokovaný.');
@@ -2354,6 +2368,28 @@ export default {
                 if (gate) return gate;
                 await ensureOwnerSchema(env);
                 await ensureOwnerPlusSchema(env);
+
+                // ===== FACE ID VLASTNÍKA (passkey bez účtu, 6. 10. 2026 — viz PK_VLASTNIK) ===
+                if (req.method === 'POST' && (path === '/owner/passkey/start' || path === '/owner/passkey/finish')) {
+                    await ensurePasskeySchema(env);
+                    const ctx = pkPuvod(req, env); if (!ctx) return err(400, 'Zapnout jde jen z appky.');
+                    if (path === '/owner/passkey/start') {
+                        const exist = (await env.DB.prepare('SELECT cred_id FROM passkeys WHERE acc_id=?').bind(PK_VLASTNIK).all()).results || [];
+                        return json({ ok: true, challenge: await pkVyzva(env, 'create', PK_VLASTNIK), rpId: ctx.rpId,
+                            user: { id: b64uEnc(new TextEncoder().encode(PK_VLASTNIK)), name: 'QTRIG vlastník', displayName: 'QTRIG vlastník' },
+                            exclude: exist.map(r => r.cred_id) });
+                    }
+                    const b = await req.json().catch(() => null) || {};
+                    const vyzva = await pkVyzvedni(env, b.clientDataJSON, 'create', PK_VLASTNIK);
+                    if (!vyzva) return err(400, 'Výzva vypršela, zkus to znovu.');
+                    const v = await pkOverRegistraci(b, ctx, vyzva);
+                    if (!v.ok) return err(400, v.err);
+                    const n = (await env.DB.prepare('SELECT COUNT(*) AS n FROM passkeys WHERE acc_id=?').bind(PK_VLASTNIK).first() || {}).n || 0;
+                    if (n >= 10) return err(400, 'Vlastník má už 10 klíčů — nějaký smaž.');
+                    await env.DB.prepare('INSERT OR REPLACE INTO passkeys (cred_id, acc_id, pub, alg, owner, created, used, name) VALUES (?,?,?,?,?,?,?,?)')
+                        .bind(String(b.id), PK_VLASTNIK, String(b.publicKey), -7, 1, Date.now(), null, String(b.name || '').slice(0, 60)).run();
+                    return json({ ok: true, owner: true });
+                }
 
                 // ===== BRZDA VYDÁNÍ: co je venku pro ostatní ============================
                 if (req.method === 'GET' && path === '/owner/vydano') return json(await vydanoStav(env));

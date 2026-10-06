@@ -2,6 +2,24 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 408,
+      "datum": "2026-10-06",
+      "nadpis": "Corrección: inicio de sesión con Face ID",
+      "body": [
+        "Face ID a veces se cancelaba solo tras tocar Iniciar sesión con Face ID: el iPhone solo lo permite justo después del toque y la app aún esperaba al servidor. Ahora todo se prepara en cuanto aparece el inicio de sesión.",
+        "Propietario: Face ID es ahora la llave de acceso «QTRIG vlastník» en el llavero de iCloud, así que funciona incluso tras borrar la app o en un teléfono nuevo. La app lo ofrece tras iniciar sesión con el nombre VLASTNIK.",
+        "Si eliges en el menú del iPhone una llave antigua que solo desbloqueaba el teléfono, la app te dice qué llave elegir en lugar de decir que el servidor no la conoce."
+      ]
+    },
+    {
+      "v": 407,
+      "datum": "2026-10-06",
+      "nadpis": "Toti solo en las Geo tarjetas",
+      "body": [
+        "La mascota Toti solo queda en las Geo tarjetas: allí sigue preguntando términos, explicando y aconsejando. Ha desaparecido de la pantalla principal, el quiz de puntos, los ejercicios, Estímalo, la Ruta de aprendizaje y la guía de la primera medición. La guía muestra el consejo junto al paso y la Ruta de aprendizaje tiene un breve aviso en la cabecera."
+      ]
+    },
+    {
       "v": 406,
       "datum": "2026-09-25",
       "nadpis": "Corrección: inicio con Face ID en el servidor",

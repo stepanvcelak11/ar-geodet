@@ -260,34 +260,74 @@
     // Stejná mechanika jako u běžného účtu (WebAuthn, platform authenticator —
     // js/ucty.js `bio`), jen pod pseudo-účtem BIO_ID. Ověřuje TELEFON; klíč vlastníka
     // zůstává uložený v agFbKey_v1 (server ho dál ověřuje v overKlic).
-    var BIO_ID = 'vlastnik', LS_BIO_ASK = 'agVlastnikBioAsk_v1';
+    //
+    // ⚠ 6. 10. 2026 — FACE ID VLASTNÍKA PŘEŽIJE PŘEINSTALACI. Uživatel: „stále mi blbne
+    //   přihlašování pomocí Face ID jakožto vlastník“. Místní odemknutí z 12. 9. žilo jen
+    //   v datech appky (po smazání ikony bylo pryč, jen iPhone ho dál nabízel v seznamu klíčů
+    //   a server ho neznal). Nabídka teď zapíná klíč „QTRIG vlastník“ přes js/passkey.js
+    //   (zapnoutVlastnika): je na serveru (brána → Přihlásit přes Face ID funguje i po
+    //   přeinstalaci) A zároveň je to místní odemknutí pro zlaté tlačítko níž. Kdo má jen staré
+    //   místní odemknutí, dostane nabídku jednou znovu (nový klíč LS_BIO_ASK).
+    var BIO_ID = 'vlastnik', LS_BIO_ASK = 'agVlastnikPkAsk_v1';
     function bio() { return (window.AGUcty && AGUcty.bio) || null; }
     function bioJe() { var b = bio(); try { return !!(b && b.supported() && b.available(BIO_ID)); } catch (e) { return false; } }
+    function maServerovyKlic() { try { return !!(JSON.parse(localStorage.getItem('agPasskey_v1') || '{}') || {})['!vlastnik']; } catch (e) { return false; } }
+    // js/passkey.js je ag/lazy — po přihlášení na bráně ještě nemusí být načtený
+    function passkey(cb) {
+        if (window.AGPasskey) return cb(window.AGPasskey);
+        var sc = document.createElement('script'); sc.src = 'js/passkey.js';
+        sc.onload = sc.onerror = function () { cb(window.AGPasskey || null); };
+        document.head.appendChild(sc);
+    }
     function nabidniFaceId() {
         var b = bio(); if (!b) return;
         try {
-            if (!b.supported() || b.available(BIO_ID)) return;
+            if (!b.supported() || maServerovyKlic()) return;
             var t = parseInt(localStorage.getItem(LS_BIO_ASK) || '0', 10);
             if (t && Date.now() - t < 30 * 864e5) return;
         } catch (e) { return; }
+        // podklady ze serveru PŘEDEM: Face ID pak naskočí přímo v klepnutí na Zapnout (gesto)
+        // (tlačítko Zapnout čeká, až je jasné, jestli podklady jsou — jinak by rychlé klepnutí
+        // zapnulo jen místní odemknutí)
+        var pk = null, pripraveno = false, hotovo = function () {
+            var y = ov.querySelector('#agv-bio-yes'); if (y && y.textContent === 'Chystám…') { y.disabled = false; y.textContent = 'Zapnout'; }
+        };
         var ov = document.createElement('div');
         ov.className = 'modal-overlay'; ov.style.cssText = 'display:flex;z-index:1000000;';
         ov.innerHTML = '<div class="modal-content" style="max-width:420px;">' +
             '<h3 style="color:#d4a02c;margin-top:0;">Příště jako vlastník přes Face ID?</h3>' +
             '<p style="font-size:calc(13px * var(--ag-font-scale,1));line-height:1.5;">Klíč vlastníka je dlouhý. Když to zapneš, na přihlašovací obrazovce přibude zlaté tlačítko ' +
-            '<b>Vlastník — odemknout Face ID</b> a klíč už psát nemusíš. Ověřuje samotný telefon (Face ID / Touch ID / kód); klíč zůstává uložený jen v tomhle zařízení.</p>' +
+            '<b>Vlastník — odemknout Face ID</b> a klíč už psát nemusíš. Přístupový klíč „QTRIG vlastník“ uloží iPhone do Klíčenky na iCloudu, takže funguje i po smazání appky nebo na novém telefonu (na bráně Přihlásit přes Face ID).</p>' +
             '<div style="display:flex;gap:8px;margin-top:6px;">' +
             '<button type="button" class="btn btn-secondary" id="agv-bio-no" style="flex:1;">Teď ne</button>' +
-            '<button type="button" class="btn btn-primary" id="agv-bio-yes" style="flex:1;">Zapnout</button></div></div>';
+            '<button type="button" class="btn btn-primary" id="agv-bio-yes" style="flex:1;" disabled>Chystám…</button></div></div>';
         document.body.appendChild(ov);
+        passkey(function (P) {
+            pk = P;
+            if (!P || !P.pripravZapnuti) return hotovo();
+            P.pripravZapnuti('vlastnik').then(function (v) { pripraveno = v === true; hotovo(); }, hotovo);
+        });
+        setTimeout(hotovo, 8000);
         var zavri = function () { try { localStorage.setItem(LS_BIO_ASK, String(Date.now())); } catch (e) { swallow(e, 'bioAsk'); } ov.remove(); };
         ov.querySelector('#agv-bio-no').onclick = zavri;
         ov.querySelector('#agv-bio-yes').onclick = function () {
             var btn = this; btn.disabled = true; btn.textContent = 'Ověřuji…';
-            // MUSÍ běžet z gesta (klik) — Safari jinak vyhodí NotAllowedError
+            // MUSÍ běžet z gesta (klik) — Safari jinak vyhodí NotAllowedError. Proto se Face ID volá
+            // HNED: s podklady připravenými ze serveru klíč na serveru, bez nich (starý worker, bez
+            // signálu) aspoň místní odemknutí jako dřív.
+            if (pk && pk.zapnoutVlastnika && pripraveno) {
+                pk.zapnoutVlastnika().then(function () {
+                    zavri(); toast('Face ID pro vlastníka zapnuto — funguje i po přeinstalaci appky.');
+                }, function (e) {
+                    zavri();
+                    var zrus = e && (e.name === 'NotAllowedError' || e.name === 'AbortError');
+                    toast(zrus ? 'Telefon to nepovolil — zůstává klíč.' : 'Face ID se nepodařilo zapnout: ' + ((e && e.message) || e));
+                });
+                return;
+            }
             b.enroll({ id: BIO_ID, name: 'Vlastník aplikace' }).then(function (ok) {
                 zavri();
-                toast(ok ? 'Face ID pro vlastníka zapnuto.' : 'Telefon to nepovolil — zůstává klíč.');
+                toast(ok ? 'Face ID pro vlastníka zapnuto (jen na tomhle telefonu — bez signálu se klíč na server uložit nepodařilo).' : 'Telefon to nepovolil — zůstává klíč.');
             });
         };
     }
@@ -312,6 +352,7 @@
                 b.innerHTML = '<span style="display:inline-block;width:18px;height:18px;vertical-align:-3px;margin-right:6px;">' + ICON + '</span>Vlastník — odemknout Face ID';
                 if (!ok) { toast('Ověření telefonem neprošlo — zkus znovu, nebo napiš klíč (jméno VLASTNIK).'); return; }
                 vstup();
+                setTimeout(nabidniFaceId, 900);   // staré místní odemknutí → jednou nabídnout klíč na serveru
             });
         }, true);
         // nahoru pod čip firmy / pod nadpis — první věc, na kterou se dá klepnout
@@ -1589,6 +1630,7 @@
     window.agOpenKonzole = open;
     window.AGVlastnik = {
         isOn: isOn, open: open, close: close, login: login, leave: leave,
+        vstup: vstup,   // js/passkey.js — přihlášení klíčem „QTRIG vlastník“ pustí dovnitř stejně jako klíč
         key: key, setKey: setKey, promptKey: promptKey,
         // pro js/vlastnik-plus.js (souhrn, deník, kalendář, záloha, pohled očima účtu)
         jdi: jdi, ext: { verze: verzeAppky, hlava: hlava, wireZpet: wireZpet, cekam: cekam, fail: nepovedlo, api: api, esc: esc, kdy: kdy, sayFail: sayFail, ask: ask, agAlert: agAlert, render: render, view: function () { return _view; } }

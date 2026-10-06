@@ -27,6 +27,11 @@
  * hlas telefonu + pípnutí laseru (f5). Vše jen obaluje existující funkce (window.saveCustomPoint…),
  * nic v nich nemění.
  *
+ * TOTI JEN V GEO KARTIČKÁCH (6. 10. 2026, na přání: „nech Totiho pouze ve výukových kartičkách“):
+ * plovoucí Toti na hlavní obrazovce i s komentáři k dění v appce je pryč, stejně jako Toti
+ * v Poznávačce, Cvičných úlohách, Odhadni to, Cestě učení a průvodci prvním měřením. Zbyl roh
+ * Geo kartiček (js/scroll-uceni.js): klepnutí = Zeptej se mě / Vysvětli pojem / Poraď / Lekce.
+ *
  * Odpojitelné: smaž tento soubor + řádek <script type="ag/lazy"> v index.html; volání
  * v modulech jsou obalená `if (window.AGMaskot)` a nic se nerozbije.
  */
@@ -36,12 +41,8 @@
 
     var LS = 'agMaskot_v1';
     var KAT = ['uvod', 'spravne', 'spatne', 'serie', 'konec_super', 'konec_dobre', 'konec_slabe', 'tip', 'klepnuti',
-        // Toti 2: dění v appce
-        'pozdrav_rano', 'pozdrav_den', 'pozdrav_vecer', 'pozdrav_noc', 'bod_ulozen', 'milnik', 'bod_smazan', 'import', 'nastroj',
-        'nastaveni', 'kamera', 'mapa', 'gps_super', 'gps_spatne', 'offline', 'online', 'baterie', 'jazyk',
-        'otazka_uvod', 'vysvetli_uvod', 'porad_uvod', 'neaktivita', 'menu',
-        // průvodce prvním měřením (f4) a cesta učení (f3)
-        'pruvodce_hotovo', 'pruvodce_konec', 'serie_ohrozena'];
+        // nabídka po klepnutí (kvíz, vysvětlení pojmu, rada)
+        'otazka_uvod', 'vysvetli_uvod', 'porad_uvod', 'menu'];
     function swallow(e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'maskot:' + kde); } catch (x) { /* nic */ } }
     function t(cs) { try { return window.AGJazyk ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } }
     function jazyk() { try { return (window.AGJazyk && AGJazyk.get()) || 'cs'; } catch (e) { return 'cs'; } }
@@ -154,60 +155,16 @@
 
     var H2 = {
         cs: {
-            pozdrav_rano: ['Dobré ráno! Káva je, baterka nabitá? Jdeme měřit.', 'Ráno se měří nejlíp, vzduch se ještě nevlní.', 'Brý ráno, {jmeno} hlásí připravenost!'],
-            pozdrav_den: ['Ahoj! Jsem tady, kdybys potřeboval poradit.', 'Čau! Dneska to změříme na milimetr.', 'Zdravím v terénu! Klepni na mě a zeptám se tě na něco.'],
-            pozdrav_vecer: ['Dobrý večer! Ještě stihneme pár bodů, než zapadne slunce.', 'Večerní směna? Hlídej světlo, potmě kamera v AR nevidí.'],
-            pozdrav_noc: ['Měříš v noci? Respekt. Já na svítícím displeji vydržím.', 'Noc, klid, žádný vlnící se vzduch. Ideální čas na kvíz.'],
-            bod_ulozen: ['Bod {bod} uložen. Pěkná práce!', 'Mám ho! {bod} je v zakázce.', 'Další bod do sbírky. Kolik jich dneska dáme?', 'Uloženo. A kontrolní měření? Jen říkám.', '{bod}, zapsáno. Jako do zápisníku, jen bez propisky.'],
-            milnik: ['{n} bodů v zakázce! To už je pořádná síť.', 'Gratuluju, {n} bodů! Tohle chce oslavu. Aspoň virtuální.', '{n} bodů! Takhle vypadá geodet v plném nasazení.'],
-            bod_smazan: ['Smazáno. Kdyby něco, je to v koši.', 'Pryč s ním. Hrubé chyby do zakázky nepatří.', 'Bod je fuč. Snad to byl ten správný.'],
-            import: ['Naimportováno {n} bodů. To šlo rychle!', '{n} nových bodů. Mrkni na ně v mapě.'],
-            nastroj: ['{nastroj}? Dobrá volba.', 'Otevíráš {nastroj}. Kdyby něco, klepni na mě.', 'Jo, {nastroj}. Jeden z mých oblíbených.', '{nastroj}! Tak ukaž, co umíš.'],
-            nastaveni: ['Ladíš nastavení? Na slunci se hodí Venkovní režim.', 'Tip: souřadnice jde přepnout na 3 desetinná místa. Na milimetry!', 'Nastavení. Jen mi prosím nevypínej hlas.'],
-            kamera: ['Kamera zapnutá! Míř na bod a já ti ho ukážu.', 'AR režim. Drž telefon rovně, ať kompas nelže.', 'Koukám tvýma očima. Teda kamerou.'],
-            mapa: ['Zpátky v mapě. Přehled nade vše.', 'Mapa! Tady je vidět, co je kolem.'],
-            gps_super: ['GPS na ±{acc} m! Na telefon skvělé.', 'Výborný signál, ±{acc} m. Teď měř!'],
-            gps_spatne: ['GPS jen ±{acc} m. Zkus vyjít z budovy nebo chvíli počkat.', 'Signál GPS je slabý (±{acc} m). Pod stromy a u zdí to skáče.'],
-            offline: ['Signál pryč. Nevadí, body mám v sobě.', 'Jsi offline. Měřit jde dál, synchronizace počká.'],
-            online: ['Signál je zpátky!', 'Zase online. Můžeme stahovat body.'],
-            baterie: ['Baterka jen {n} %! Uber jas nebo zapni úsporu.', 'Pozor, dochází šťáva ({n} %). Bez telefonu neměříme.'],
-            jazyk: ['Jazyk přepnut. Mluvím, jak si přeješ.'],
             otazka_uvod: ['Kvíz! Co je tohle:', 'Zkusím tě. Jak se tomu říká:', 'Otázka pro geodeta:'],
             vysvetli_uvod: ['Vysvětlím ti jeden pojem.', 'Malá lekce:', 'Víš, co to je?'],
             porad_uvod: ['Věděl jsi, že appka umí tohle?', 'Tip ode mě:'],
-            neaktivita: ['Chvíli se nic neděje. Nezkusíme kvíz?', 'Nuda? Mám pro tebe otázku.'],
-            menu: ['Co pro tebe můžu udělat?', 'Jsem tady! Vyber si.', 'Zeptám se, vysvětlím, nebo poradím?'],
-            pruvodce_hotovo: ['Hotovo! Jdeme dál.', 'Paráda, splněno.', 'Přesně tak. Další krok.', 'Výborně, to bylo rychlé.'],
-            pruvodce_konec: ['První měření máš za sebou! Jsem na tebe hrdý.', 'Bod uložený, navigace vyzkoušená. Teď už jsi geodet s appkou!'],
-            serie_ohrozena: ['Série {n} dní! Dneska ještě chybí lekce, ať o ni nepřijdeš.', 'Hele, {n} dní v řadě by byla škoda zahodit. Jedna lekce a jedeme dál?']
+            menu: ['Co pro tebe můžu udělat?', 'Jsem tady! Vyber si.', 'Zeptám se, vysvětlím, nebo poradím?']
         },
         en: {
-            pozdrav_rano: ['Good morning! Coffee done, battery charged? Let us measure.', 'Mornings are the best for measuring, the air is still calm.'],
-            pozdrav_den: ['Hi! I am here if you need advice.', 'Hey! Today we measure to the millimetre.', 'Greetings in the field! Tap me and I will ask you something.'],
-            pozdrav_vecer: ['Good evening! We can still get a few points before sunset.', 'Evening shift? Watch the light, the AR camera cannot see in the dark.'],
-            pozdrav_noc: ['Measuring at night? Respect. My display glows anyway.', 'Night, quiet, no shimmering air. Perfect time for a quiz.'],
-            bod_ulozen: ['Point {bod} saved. Nice work!', 'Got it! {bod} is in the job.', 'Another point for the collection. How many today?', 'Saved. And a check measurement? Just saying.'],
-            milnik: ['{n} points in the job! That is a proper network.', 'Congratulations, {n} points! This calls for a celebration. A virtual one.'],
-            bod_smazan: ['Deleted. Just in case, it is in the bin.', 'Gone. Blunders do not belong in the job.'],
-            import: ['Imported {n} points. That was quick!', '{n} new points. Have a look at them on the map.'],
-            nastroj: ['{nastroj}? Good choice.', 'Opening {nastroj}. Tap me if you need help.', 'Ah, {nastroj}. One of my favourites.'],
-            nastaveni: ['Tuning the settings? Outdoor mode helps in the sun.', 'Tip: coordinates can show 3 decimals. Millimetres!'],
-            kamera: ['Camera on! Aim at a point and I will show it to you.', 'AR mode. Hold the phone level so the compass does not lie.'],
-            mapa: ['Back on the map. Overview first.', 'Map! Here you can see what is around.'],
-            gps_super: ['GPS at ±{acc} m! Great for a phone.', 'Excellent signal, ±{acc} m. Measure now!'],
-            gps_spatne: ['GPS only ±{acc} m. Try leaving the building or wait a bit.', 'Weak GPS (±{acc} m). It jumps under trees and next to walls.'],
-            offline: ['Signal gone. No problem, I keep the points inside.', 'You are offline. Measuring goes on, sync can wait.'],
-            online: ['Signal is back!', 'Online again. We can download points.'],
-            baterie: ['Battery only {n} %! Lower the brightness or turn on saving.', 'Careful, running out of juice ({n} %).'],
-            jazyk: ['Language switched. I speak as you wish.'],
             otazka_uvod: ['Quiz! What is this:', 'Let me test you. What is it called:', 'A question for a surveyor:'],
             vysvetli_uvod: ['Let me explain a term.', 'A small lesson:'],
             porad_uvod: ['Did you know the app can do this?', 'A tip from me:'],
-            neaktivita: ['Nothing is happening. How about a quiz?', 'Bored? I have a question for you.'],
-            menu: ['What can I do for you?', 'I am here! Pick one.'],
-            pruvodce_hotovo: ['Done! Let us move on.', 'Great, that is done.', 'Exactly. Next step.'],
-            pruvodce_konec: ['Your first measurement is done! I am proud of you.', 'Point saved, navigation tried. Now you are a surveyor with an app!'],
-            serie_ohrozena: ['A {n}-day streak! Today’s lesson is still missing, do not lose it.', '{n} days in a row would be a shame to throw away. One lesson?']
+            menu: ['What can I do for you?', 'I am here! Pick one.']
         }
     };
     Object.keys(H2).forEach(function (l) { Object.keys(H2[l]).forEach(function (k) { H[l][k] = H2[l][k]; }); });
@@ -220,8 +177,6 @@
         if (s.zap == null) s.zap = true;
         if (!s.jmeno) s.jmeno = 'Toti';
         if (!s.vlastni || typeof s.vlastni !== 'object') s.vlastni = {};
-        if (s.spolecnik == null) s.spolecnik = true;          // plovoucí Toti na hlavní obrazovce
-        if (!s.ukecanost) s.ukecanost = 'obcas';              // tichy | obcas | ukecany
         if (s.hlas == null) s.hlas = false;                   // hlas telefonu + pípnutí laseru
         if (!s.kviz) s.kviz = { n: 0, ok: 0 };
         return s;
@@ -333,20 +288,8 @@
             + '.ag-maskot .mk-akce button:disabled{opacity:.7;cursor:default;}'
             + 'body.light-mode .ag-maskot .mk-akce button{color:#141821;}'
             + '.ag-maskot .mk-skore{display:block;margin-top:6px;font-size:calc(11.5px * var(--ag-font-scale,1));color:var(--text-muted,#9aa1ac);}'
-            // PLOVOUCÍ TOTI (hlavní obrazovka) — vlevo dole, dok je vpravo; u leváků obráceně
-            + '.ag-maskot.mk-plovak{position:fixed;z-index:950;left:calc(env(safe-area-inset-left,0px) + 8px);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);'
-            + 'max-width:min(330px,calc(100vw - 130px));margin:0;pointer-events:none;align-items:flex-end;}'
-            + '.ag-maskot.mk-plovak > *{pointer-events:auto;}'
-            + '.ag-maskot.mk-plovak .mk-btn{width:78px;height:95px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.4));}'
-            + '.ag-maskot.mk-plovak .mk-bublina{margin:0 0 40px;box-shadow:0 8px 24px rgba(0,0,0,.3);transition:opacity .25s ease,transform .25s ease;}'
-            + '.ag-maskot.mk-plovak .mk-bublina::before{top:auto;bottom:14px;}'
-            + '.ag-maskot.mk-plovak.mk-ticho .mk-bublina{opacity:0;transform:translateY(6px);pointer-events:none;}'
-            // nad mapou PLNÉ pozadí (surface-2 je poloprůhledné sklo → na světlé mapě nečitelné)
-            + '.ag-maskot.mk-plovak .mk-bublina,.ag-maskot.mk-roh .mk-bublina{background:#161b22;border-color:rgba(255,255,255,.18);color:#eef1f4;}'
-            + '.ag-maskot.mk-plovak.mk-skryt{display:none;}'
-            + 'body.left-hand .ag-maskot.mk-plovak{left:auto;right:calc(env(safe-area-inset-right,0px) + 8px);flex-direction:row-reverse;}'
-            + 'body.left-hand .ag-maskot.mk-plovak .mk-bublina::before{left:auto;right:-7px;transform:rotate(225deg);}'
-            + 'body.left-hand .ag-maskot.mk-plovak .mk-svg{transform:scaleX(-1);}'
+            // v rohu Geo kartiček nad obsahem PLNÉ pozadí (surface-2 je poloprůhledné sklo → nečitelné)
+            + '.ag-maskot.mk-roh .mk-bublina{background:#161b22;border-color:rgba(255,255,255,.18);color:#eef1f4;}'
             + '.ag-maskot .mk-svg{width:100%;height:100%;overflow:visible;display:block;}'
             + '.ag-maskot .mk-bublina{flex:1;min-width:0;position:relative;margin-top:6px;padding:9px 12px;border-radius:14px;'
             + 'background:var(--surface-2,#1f2530);border:1px solid var(--glass-border,rgba(255,255,255,.14));color:var(--text-color,#e6e8eb);'
@@ -354,7 +297,7 @@
             + '.ag-maskot .mk-bublina::before{content:"";position:absolute;left:-7px;top:16px;width:12px;height:12px;background:inherit;'
             + 'border-left:1px solid var(--glass-border,rgba(255,255,255,.14));border-bottom:1px solid var(--glass-border,rgba(255,255,255,.14));transform:rotate(45deg);}'
             + '.ag-maskot .mk-jmeno{display:block;font-size:calc(11px * var(--ag-font-scale,1));font-weight:700;color:#4ade80;margin-bottom:2px;letter-spacing:.02em;}'
-            + 'body.light-mode .ag-maskot .mk-jmeno{color:#15803d;}body.light-mode .ag-maskot.mk-plovak .mk-jmeno,body.light-mode .ag-maskot.mk-roh .mk-jmeno{color:#4ade80;}'
+            + 'body.light-mode .ag-maskot .mk-jmeno{color:#15803d;}body.light-mode .ag-maskot.mk-roh .mk-jmeno{color:#4ade80;}'
             + '.ag-maskot .mk-vic{position:absolute;right:4px;top:2px;width:30px;height:30px;border:0;background:none;color:var(--text-muted,#9aa1ac);font-size:18px;line-height:1;cursor:pointer;border-radius:50%;}'
             + '.ag-maskot .mk-vic:active{background:var(--surface-1,rgba(255,255,255,.08));}'
             + 'body.light-mode .ag-maskot .mk-bublina{background:#fff;border-color:rgba(15,23,42,.16);color:#141821;}'
@@ -498,7 +441,7 @@
         var dlouho = o.akce && o.akce.length ? 30000 : Math.max(5000, txt.length * 70);
         el._mkT2 = setTimeout(function () {
             el.classList.remove('mk-mluvi', 'mk-smutek');
-            if (el.classList.contains('mk-roh') || el.classList.contains('mk-plovak')) { el.classList.add('mk-ticho'); akce(el, null); }
+            if (el.classList.contains('mk-roh')) { el.classList.add('mk-ticho'); akce(el, null); }
         }, dlouho);
     }
     // tlačítka v bublině: [{l, fn, cls}]
@@ -519,7 +462,6 @@
             el.classList.toggle('mk-off', !s.zap);
             var j = el.querySelector('.mk-jmeno'); if (j) j.textContent = s.jmeno;
         });
-        hlidejPlovak();
     }
 
     // ---- panel: jméno, vlastní hlášky ----------------------------------------------------------
@@ -531,13 +473,9 @@
         var ov = document.createElement('div'); ov.id = 'ag-mk-panel'; ov.setAttribute('data-ag-okno', ''); ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', t('Nastavení maskota'));
         ov.innerHTML = '<div class="mkp">'
             + '<h3>' + SVG + '<span>' + esc(t('Maskot')) + ' ' + esc(s.jmeno) + '</span></h3>'
-            + '<p>' + esc(t('Provází tě kartičkami, poznávačkou, cvičnými úlohami a odhady. Klepni na něj a poradí ti.')) + '</p>'
+            + '<p>' + esc(t('Provází tě Geo kartičkami. Klepni na něj a poradí ti.')) + '</p>'
             + '<label><input type="checkbox" data-k="zap"' + (s.zap ? ' checked' : '') + '> ' + esc(t('Maskot mluví (vypnutý zůstane jen malá ikonka)')) + '</label>'
             + '<label>' + esc(t('Jméno')) + ' <input type="text" data-k="jmeno" maxlength="20" value="' + esc(s.jmeno) + '"></label>'
-            + '<label><input type="checkbox" data-k="spolecnik"' + (s.spolecnik ? ' checked' : '') + '> ' + esc(t('Toti na hlavní obrazovce (komentuje, co děláš)')) + '</label>'
-            + '<label>' + esc(t('Upovídanost')) + ' <select data-k="ukecanost">'
-            + [['tichy', 'Jen když na něj klepnu'], ['obcas', 'Občas'], ['ukecany', 'Ukecaný']].map(function (o) { return '<option value="' + o[0] + '"' + (s.ukecanost === o[0] ? ' selected' : '') + '>' + esc(t(o[1])) + '</option>'; }).join('')
-            + '</select></label>'
             + '<label><input type="checkbox" data-k="hlas"' + (s.hlas ? ' checked' : '') + '> ' + esc(t('Mluví nahlas a pípá laserem')) + '</label>'
             + (s.kviz && s.kviz.n ? '<p>' + esc(t('Kvíz:')) + ' ' + s.kviz.ok + ' / ' + s.kviz.n + ' ' + esc(t('správně')) + '</p>' : '')
             + '<b style="margin-top:4px;">' + esc(t('Vlastní hlášky')) + '</b>'
@@ -583,8 +521,6 @@
             var k = e.target.getAttribute('data-k'), x = nast();
             if (k === 'zap') x.zap = !!e.target.checked;
             else if (k === 'jen') x.jenVlastni = !!e.target.checked;
-            else if (k === 'spolecnik') x.spolecnik = !!e.target.checked;
-            else if (k === 'ukecanost') x.ukecanost = e.target.value;
             else if (k === 'hlas') { x.hlas = !!e.target.checked; if (!x.hlas) { try { speechSynthesis.cancel(); } catch (er) { /* nic */ } } }
             else return;
             uloz(x); obnovVse();
@@ -645,16 +581,6 @@
             if (window.AGLazyTools && AGLazyTools.load) AGLazyTools.load('js/cesta-uceni.js').then(function () { if (window.agOpenCesta) window.agOpenCesta(); });
         } catch (e) { swallow(e, 'cesta'); }
     }
-    // série v cestě učení (js/cesta-uceni.js, localStorage agCestaUceni_v1) — večer připomenout, když by padla
-    function serieOhrozena() {
-        try {
-            var c = JSON.parse(localStorage.getItem('agCestaUceni_v1') || 'null'); if (!c || !c.streak || !c.streak.n) return 0;
-            var d = new Date(), f = function (x) { return x.getFullYear() + '-' + ('0' + (x.getMonth() + 1)).slice(-2) + '-' + ('0' + x.getDate()).slice(-2); };
-            var dnes = f(d); d.setDate(d.getDate() - 1); var vcera = f(d);
-            return (c.streak.last === vcera) ? c.streak.n : 0;     // včera splněno, dnes ještě ne
-        } catch (e) { return 0; }
-    }
-
     // ---- kvíz a vysvětlování ze slovníku pojmů (grafika.js GEO_DICT) ----
     function pojmy() {
         return ((window.agGeoDict || [])).filter(function (p) { return p && p.t && p.d && String(p.t).length <= 48 && String(p.d).length >= 20; });
@@ -703,137 +629,10 @@
         ] });
     }
 
-    // ---- plovoucí Toti na hlavní obrazovce ----
-    var _plovak = null;
-    // co ho schová: otevřená okna, karta bodu, Geo kartičky (tam je vlastní), dialogy
-    var ZAKRYVA = '.modal-overlay.ag-open, .modal-overlay[style*="flex"], .modal-overlay[style*="block"], .ag-dlg-overlay, #agsu[style*="block"], #ag-fb, #ag-fb-volba, #ag-mk-panel, #bottom-sheet.open, #side-menu.open, #ag-gate, #ag-login, #ag-pm, #ag-cu[style*="flex"]';
-    function plovak() {
-        if (_plovak && _plovak.isConnected) return _plovak;
-        styl();
-        _plovak = vytvor(false); _plovak.classList.add('mk-plovak', 'mk-ticho'); _plovak.id = 'ag-maskot-plovak';
-        document.body.appendChild(_plovak);
-        hlidejPlovak();
-        return _plovak;
-    }
-    function zakryto() { try { return !!document.querySelector(ZAKRYVA) || !document.body.classList.contains('app-started'); } catch (e) { return false; } }
-    function hlidejPlovak() {
-        if (!_plovak) return;
-        var s = nast();
-        var skryt = !s.spolecnik || zakryto();
-        _plovak.classList.toggle('mk-skryt', skryt);
-        _plovak.classList.toggle('mk-off', !s.zap);
-    }
-
-    // ---- komentáře k dění v appce ----
-    var UKEC = { tichy: null, obcas: { cd: 90000, p: 0.6, idle: 300000, gap: 1200000 }, ukecany: { cd: 20000, p: 0.95, idle: 120000, gap: 360000 } };
-    var _kom = 0, _otazkaTs = 0, _dotyk = Date.now();
-    var NALADA = { bod_ulozen: 'radost', milnik: 'radost', import: 'radost', gps_super: 'radost', online: 'radost', pozdrav_rano: 'radost', pozdrav_den: 'radost',
-        bod_smazan: 'smutek', gps_spatne: 'smutek', offline: 'smutek', baterie: 'smutek', kamera: 'mysli', nastaveni: 'mysli' };
-    function komentuj(kat, data, o) {
-        o = o || {};
-        var s = nast(); if (!s.zap || !s.spolecnik) return false;
-        var u = UKEC[s.ukecanost]; if (!u && !o.vzdy) return false;
-        var now = Date.now();
-        if (!o.vzdy && (now - _kom < u.cd || Math.random() > u.p)) return false;
-        var el = plovak(); hlidejPlovak();
-        if (el.classList.contains('mk-skryt')) return false;
-        _kom = now;
-        rekniDo(el, kat, data, o.nalada || NALADA[kat] || 'mluvi', o);
-        return true;
-    }
-    function pocetBodu() { try { return persistentCustomPoints.length; } catch (e) { return null; } }   // eslint-disable-line no-undef
-    function posledniBod() { try { return persistentCustomPoints[persistentCustomPoints.length - 1]; } catch (e) { return null; } }   // eslint-disable-line no-undef
-    var MILNIKY = [1, 10, 25, 50, 100, 250, 500, 1000];
-    function obal(nazev, po) {
-        var f = window[nazev];
-        if (typeof f !== 'function' || f._mkObal) return;
-        var g = function () {
-            var pred = pocetBodu(), r = f.apply(this, arguments), args = arguments;
-            try { setTimeout(function () { try { po(r, pred, pocetBodu(), args); } catch (e) { swallow(e, 'po:' + nazev); } }, 700); } catch (e) { /* nic */ }
-            return r;
-        };
-        g._mkObal = true;
-        try { Object.keys(f).forEach(function (k) { g[k] = f[k]; }); } catch (e) { /* nic */ }
-        window[nazev] = g;
-    }
-    function bodPridan(pred, po) {
-        if (pred == null || po == null || po <= pred) return;
-        for (var i = 0; i < MILNIKY.length; i++) if (pred < MILNIKY[i] && po >= MILNIKY[i] && MILNIKY[i] > 1) { komentuj('milnik', { n: MILNIKY[i] }, { vzdy: nast().ukecanost !== 'tichy' }); return; }
-        var b = posledniBod();
-        komentuj(po - pred > 1 ? 'import' : 'bod_ulozen', { n: po - pred, bod: (b && b.name) || '' });
-    }
-    function napoj() {
-        if (napoj._hotovo) return; napoj._hotovo = true;
-        obal('saveCustomPoint', function (r, pred, po) { bodPridan(pred, po); });
-        obal('addImportedPoints', function (r, pred, po) { bodPridan(pred, po); });
-        obal('deleteCustomPoint', function (r, pred, po) { if (pred != null && po != null && po < pred) komentuj('bod_smazan'); });
-        obal('openSettings', function () { komentuj('nastaveni'); });
-        // nástroj z panelu Nástroje
-        document.addEventListener('click', function (e) {
-            _dotyk = Date.now();
-            var r = e.target && e.target.closest && e.target.closest('#tools-modal .ag-uk-i[data-k]');
-            if (!r) return;
-            var l = (r.querySelector('b, .ag-uk-l, span') || r).textContent.trim().split('\n')[0].slice(0, 60);
-            setTimeout(function () { komentuj('nastroj', { nastroj: l }); }, 1500);
-        }, true);
-        document.addEventListener('pointerdown', function () { _dotyk = Date.now(); }, true);
-        window.addEventListener('offline', function () { komentuj('offline', null, { vzdy: nast().ukecanost !== 'tichy' }); });
-        window.addEventListener('online', function () { komentuj('online'); });
-        document.addEventListener('ag:jazyk', function () { setTimeout(function () { komentuj('jazyk', null, { vzdy: nast().ukecanost !== 'tichy' }); }, 900); });
-        try {
-            if (navigator.getBattery) navigator.getBattery().then(function (b) {
-                var hlas = false;
-                var chk = function () { if (!b.charging && b.level <= 0.15 && !hlas) { hlas = true; komentuj('baterie', { n: Math.round(b.level * 100) }, { vzdy: true }); } if (b.charging) hlas = false; };
-                b.addEventListener('levelchange', chk); b.addEventListener('chargingchange', chk); chk();
-            }).catch(function () { /* nic */ });
-        } catch (e) { /* nic */ }
-        // mapa ↔ kamera, přesnost GPS, nečinnost, okna — jedna levná smyčka
-        var _view = null, _gpsDobre = 0, _gpsSpatne = 0;
-        setInterval(function () {
-            hlidejPlovak();
-            var v = null; try { v = viewMode; } catch (e) { v = null; }   // eslint-disable-line no-undef
-            if (_view && v && v !== _view) komentuj(v === 'map' ? 'mapa' : 'kamera');
-            _view = v || _view;
-            var now = Date.now(), f = window.AGFixRaw;
-            if (f && now - f.ts < 30000 && isFinite(f.acc)) {
-                if (f.acc <= 3 && now - _gpsDobre > 1200000) { if (komentuj('gps_super', { acc: f.acc.toFixed(1).replace('.', ',') })) _gpsDobre = now; }
-                else if (f.acc >= 20 && now - _gpsSpatne > 600000) { if (komentuj('gps_spatne', { acc: Math.round(f.acc) })) _gpsSpatne = now; }
-            }
-            var hod = new Date().getHours(), sn = hod >= 17 ? serieOhrozena() : 0;
-            if (sn && _plovak && !_plovak.classList.contains('mk-skryt')) {
-                var s0 = nast(), dn = new Date().toDateString();
-                if (s0.serieDen !== dn && komentuj('serie_ohrozena', { n: sn }, { vzdy: s0.ukecanost !== 'tichy', akce: [{ l: t('Jdu na lekci'), fn: function () { otevriCestu(); } }, { l: t('Teď ne'), fn: function () { _plovak.classList.add('mk-ticho'); akce(_plovak, null); } }] })) { s0 = nast(); s0.serieDen = dn; uloz(s0); }
-            }
-            var u = UKEC[nast().ukecanost];
-            if (u && document.visibilityState === 'visible' && now - _dotyk > u.idle && now - _otazkaTs > u.gap && _plovak && !_plovak.classList.contains('mk-skryt')) {
-                _otazkaTs = now;
-                komentuj('neaktivita', null, { vzdy: true, nalada: 'mysli', akce: [{ l: t('Ano, ptej se'), fn: function () { kviz(_plovak); } }, { l: t('Teď ne'), fn: function () { _plovak.classList.add('mk-ticho'); akce(_plovak, null); } }] });
-            }
-        }, 2000);
-    }
-    function pozdrav() {
-        var s = nast(), now = Date.now();
-        if (s.pozdravTs && now - s.pozdravTs < 3 * 3600000) return;
-        var h = new Date().getHours();
-        var kat = h >= 5 && h < 10 ? 'pozdrav_rano' : (h < 18 && h >= 10 ? 'pozdrav_den' : (h >= 18 && h < 22 ? 'pozdrav_vecer' : 'pozdrav_noc'));
-        if (komentuj(kat, null, { vzdy: s.ukecanost !== 'tichy', akce: [{ l: t('Zeptej se mě'), fn: function () { kviz(_plovak); } }] })) { s = nast(); s.pozdravTs = now; uloz(s); }
-    }
-    function start() {
-        if (start._hotovo) return; start._hotovo = true;
-        plovak(); napoj();
-        setTimeout(pozdrav, 4000);
-    }
-    (function cekej(n) {
-        if (document.body && document.body.classList.contains('app-started')) return start();
-        if (n > 240) return start();
-        setTimeout(function () { cekej(n + 1); }, 500);
-    })(0);
-
     window.AGMaskot = {
-        pripoj: pripoj, rekni: rekni, nastaveni: panel, komentuj: komentuj, otevriCestu: otevriCestu,
-        // vlastní text (průvodce prvním měřením, cesta učení); kat = hláška z kategorie místo textu
-        rekniText: function (el, text, nalada, o) { rekniDo(el, null, null, nalada || 'mluvi', Object.assign({ text: text }, o || {})); },
-        rekniKat: function (el, kat, data, nalada, o) { rekniDo(el, kat, data, nalada || 'mluvi', o); }, kviz: function () { kviz(plovak()); }, vysvetli: function () { vysvetli(plovak()); },
-        _test: { serieOhrozena: serieOhrozena, rozparsuj: rozparsuj, vyber: vyber, hlasky: hlasky, vzor: vzor, H: H, KAT: KAT, plovak: plovak, menu: menu, hlidej: hlidejPlovak, reset: function () { _kom = 0; _otazkaTs = 0; } }
+        pripoj: pripoj, rekni: rekni, nastaveni: panel, otevriCestu: otevriCestu,
+        // kvíz / vysvětlení v posledním připojeném maskotovi (roh Geo kartiček)
+        kviz: function () { if (viditelny(_akt)) kviz(_akt); }, vysvetli: function () { if (viditelny(_akt)) vysvetli(_akt); },
+        _test: { rozparsuj: rozparsuj, vyber: vyber, hlasky: hlasky, vzor: vzor, H: H, KAT: KAT, menu: menu }
     };
 })();

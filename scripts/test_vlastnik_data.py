@@ -344,6 +344,9 @@ async def beh2(br, url):
     await page.evaluate("() => document.querySelector('#ag-login .agl-pinbox .agl-btn').click()")
     ok('D1 klic prosel (rezim vlastnika zapnuty, appka bezi)', await pockej(page, "() => localStorage.getItem('agVlastnik_v1') === '1' && document.body.classList.contains('app-started')", 40))
     ok('D2 nabidka „Priste jako vlastnik pres Face ID?"', await pockej(page, "() => !!document.getElementById('agv-bio-yes')"))
+    # od 6. 10. 2026 se nejdřív chystají podklady ze serveru (Face ID pak naskočí v gestu klepnutí);
+    # tenhle podvržený server /owner/passkey nezná → zapne se místní odemknutí jako dřív
+    ok('D2b „Zapnout" se uvolní, jakmile je jasné, jestli server klíč připraví', await pockej(page, "() => { var b = document.getElementById('agv-bio-yes'); return !!b && !b.disabled; }", 20))
     await page.evaluate("() => document.getElementById('agv-bio-yes').click()")
     ok('D3 zapnuti ulozi WebAuthn klic pro pseudo-ucet vlastnik', await pockej(page, "() => { try { var o = JSON.parse(localStorage.getItem('agFirmaBio_v1')||'{}'); return !!(o.vlastnik && o.vlastnik.id); } catch (e) { return false; } }", 40),
        await page.evaluate("() => localStorage.getItem('agFirmaBio_v1')"))

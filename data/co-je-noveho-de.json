@@ -2,6 +2,24 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 408,
+      "datum": "2026-10-06",
+      "nadpis": "Fix: Anmeldung mit Face ID",
+      "body": [
+        "Face ID brach nach dem Tippen auf Mit Face ID anmelden manchmal von selbst ab — das iPhone erlaubt es nur direkt nach dem Tippen, und die App wartete noch auf den Server. Jetzt wird alles vorbereitet, sobald die Anmeldung erscheint.",
+        "Eigentümer: Face ID ist jetzt der Passkey „QTRIG vlastník“ im iCloud-Schlüsselbund und funktioniert auch nach dem Löschen der App oder auf einem neuen Telefon. Die App bietet ihn nach der Anmeldung mit dem Namen VLASTNIK an.",
+        "Wählst du im iPhone-Menü einen alten Schlüssel, der nur das Telefon entsperrt hat, sagt die App, welchen Schlüssel du nehmen sollst, statt dass der Server ihn nicht kennt."
+      ]
+    },
+    {
+      "v": 407,
+      "datum": "2026-10-06",
+      "nadpis": "Toti nur noch in den Geo-Karten",
+      "body": [
+        "Das Maskottchen Toti gibt es nur noch in den Geo-Karten — dort fragt es weiter Begriffe ab, erklärt und gibt Tipps. Vom Hauptbildschirm, Punkte-Quiz, Übungsaufgaben, Schätz mal, Lernpfad und Erstmessungs-Assistenten ist es verschwunden. Der Assistent zeigt den Tipp direkt beim Schritt, der Lernpfad hat einen kurzen Hinweis in der Kopfzeile."
+      ]
+    },
+    {
       "v": 406,
       "datum": "2026-09-25",
       "nadpis": "Korrektur: Anmeldung mit Face ID auf dem Server",

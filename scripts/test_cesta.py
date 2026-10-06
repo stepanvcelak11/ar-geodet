@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-u"""CESTA UČENÍ (f3) + TOTI V PRŮVODCI PRVNÍM MĚŘENÍM (f4) — 25. 9. 2026, 7. hodnocení.
+u"""CESTA UČENÍ (f3) + PRŮVODCE PRVNÍM MĚŘENÍM (f4) — 25. 9. 2026, 7. hodnocení.
 
 Kontroluje: cesta 18 lekcí v 5 tématech, odemyká se postupně; lekce se dá projít (výběr
 i číselná odpověď), chyba se vrátí na konec, konec dá XP, korunku za bez chyby, denní cíl
-a sérii; Toti sedí v hlavičce; maskot pozná ohroženou sérii; průvodce prvním měřením má
-Totiho, který čte kroky.
+a sérii; v hlavičce je hláška, co dál. Od 6. 10. 2026 je maskot Toti jen v Geo kartičkách —
+v Cestě učení ani v průvodci prvním měřením není a průvodce ukazuje radu přímo u kroku.
 
 python scripts/test_cesta.py [port] [--shots DIR]
 """
@@ -64,7 +64,6 @@ async def beh(url):
         await page.add_init_script(boot(tarif='pro') + "localStorage.setItem('agZemeUvod_v1','CZ'); localStorage.setItem('agSlabsiTelefon_v1','off');")
         await page.goto(url, wait_until='domcontentloaded', timeout=90000)
         ok('A0 start', await V.cekej(page, "document.body.classList.contains('app-started')", 60))
-        await page.evaluate("() => new Promise(r => AGLazy.need('js/maskot.js', r))")
         # otevřít z panelu Nástroje (jako člověk)
         await page.evaluate("() => document.getElementById('dock-nastroje-btn').click()")
         await page.wait_for_timeout(800)
@@ -74,13 +73,13 @@ async def beh(url):
         await shot(page, 'cesta_mapa')
         m = await page.evaluate("""() => ({ uzly: document.querySelectorAll('#ag-cu .cu-uzel').length, ted: document.querySelectorAll('#ag-cu .cu-uzel.ted').length,
             zam: document.querySelectorAll('#ag-cu .cu-uzel.zamceno').length, temata: [...document.querySelectorAll('#ag-cu .cu-tema b')].map(b => b.textContent),
-            toti: !!document.querySelector('#ag-cu .cu-toti .ag-maskot.mk-mini') })""")
+            toti: !!document.querySelector('#ag-cu .ag-maskot'), hlaska: (document.querySelector('#ag-cu .cu-hlaska') || {}).textContent || '' })""")
         ok('M1 cesta: 18 lekcí v 5 tématech, jedna svítí, 17 zamčených', m['uzly'] == 18 and m['ted'] == 1 and m['zam'] == 17 and len(m['temata']) == 5, m)
-        ok('M2 Toti v hlavičce (mini)', m['toti'], m)
+        ok('M2 v hlavičce hláška, co dál, a žádný Toti', not m['toti'] and len(m['hlaska']) > 10, m)
         # zamčená lekce nejde
         await page.evaluate("() => document.querySelectorAll('#ag-cu .cu-uzel.zamceno')[0].click()")
         await page.wait_for_timeout(300)
-        ok('M3 klepnutí na zamčenou lekci ji neotevře', await page.evaluate("() => !AGCesta._test.lekce()"))
+        ok('M3 klepnutí na zamčenou lekci ji neotevře a hlavička řekne proč', await page.evaluate("() => !AGCesta._test.lekce() && document.querySelector('#ag-cu .cu-hlaska').textContent.indexOf('zamčená') >= 0"))
 
         # 1. lekce bez chyby
         await page.evaluate("() => document.querySelector('#ag-cu .cu-uzel.ted').click()")
@@ -121,22 +120,18 @@ async def beh(url):
         fv = await page.evaluate(ODPOVEZ, False)
         ok('V2 správné číslo (s čárkou) v toleranci → zelená', 'ok' in fv, fv)
 
-        # maskot: ohrožená série
-        ser = await page.evaluate("""() => { const d = new Date(); d.setDate(d.getDate() - 1); const f = x => x.getFullYear() + '-' + ('0' + (x.getMonth() + 1)).slice(-2) + '-' + ('0' + x.getDate()).slice(-2);
-            const s = AGCesta.stav(); s.streak = { n: 4, last: f(d) }; localStorage.setItem('agCestaUceni_v1', JSON.stringify(s)); return AGMaskot._test.serieOhrozena(); }""")
-        ok('S1 maskot pozná ohroženou sérii (včera splněno, dnes ne) → 4', ser == 4, ser)
         await page.evaluate("() => AGCesta.close()")
 
-        # f4: Toti v průvodci prvním měřením
+        # f4: průvodce prvním měřením — bez Totiho, rada u aktuálního kroku
         await page.evaluate("() => new Promise(r => AGLazy.need('js/prvni-mereni.js', r))")
         await page.evaluate("() => { localStorage.removeItem('agPrvniMereni_v1'); AGPrvniMereni.start(); }")
-        ok('P1 průvodce prvním měřením má Totiho s bublinou', await V.cekej(page, "(() => { const m = document.querySelector('#ag-pm .pm-toti .ag-maskot.mk-mini'); return m && (m.querySelector('.mk-text').textContent || '').length > 10; })()", 40))
+        ok('P1 průvodce prvním měřením se otevře se seznamem kroků', await V.cekej(page, "document.querySelectorAll('#ag-pm .pm-i').length >= 3", 40))
         await page.wait_for_timeout(1200)
-        await shot(page, 'pruvodce_toti')
-        # kroky s polohou se v testu odškrtnou samy (Toti pochválí) — pak přečte další krok
-        p2 = await V.cekej(page, "(() => { const x = document.querySelector('#ag-pm .mk-text'); return x && x.textContent.indexOf(':') > 0 && x.textContent.length > 25; })()", 30)
-        txt = await page.evaluate("() => document.querySelector('#ag-pm .mk-text').textContent")
-        ok('P2 Toti čte název a radu kroku', p2, txt)
+        await shot(page, 'pruvodce')
+        # kroky s polohou se v testu odškrtnou samy (krok chvíli svítí jako hotový) — počkat na další nehotový
+        await V.cekej(page, "((document.querySelector('#ag-pm .pm-i.now .pm-t small') || {}).textContent || '').length > 10", 30)
+        p2 = await page.evaluate("() => ({ toti: !!document.querySelector('#ag-pm .ag-maskot, #ag-pm .pm-toti'), rada: (document.querySelector('#ag-pm .pm-i.now .pm-t small') || {}).textContent || '' })")
+        ok('P2 bez Totiho; rada ke kroku je vidět přímo u kroku', not p2['toti'] and len(p2['rada']) > 10, p2)
         await page.evaluate("() => AGPrvniMereni.close()")
         ok('Z bez chyb v konzoli', not chyby, chyby[:5])
         await ctx.close()

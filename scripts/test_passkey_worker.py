@@ -6,6 +6,8 @@ z virtuálního autentizátoru ověřuje scripts/test_passkey.py v prohlížeči
 Tady: výzva (jednorázová, typ, platnost), původ (jen appka / localhost), příznaky UP+UV, neznámý
 klíč, zablokovaný účet, odpověď jako /login, klíč vlastníka jen u klíče svázaného s OWNER_KEY,
 registrace (jen ES256, vlastník jen se správným klíčem), smazání s účtem, /health v >= 31.
+Od 6. 10. 2026 (v32) i klíč vlastníka BEZ účtu: /owner/passkey/start|finish jen se správným
+X-Owner-Key, přihlášení takovým klíčem vrátí jen OWNER_KEY (žádný token účtu).
 Spuštění:  python scripts/test_passkey_worker.py
 """
 import io
@@ -171,6 +173,37 @@ def main():
     base(vyzva=VYZVA_REG)
     g7 = call('POST', '/passkey/register/finish', dict(REG, publicKey=b64u(b'xx')), AUTH)
     ok('R7 neplatný veřejný klíč 400', g7['status'] == 400 and not zapsano(), g7)
+
+    # ---- klíč vlastníka bez účtu (v32, 6. 10. 2026) ----
+    base()
+    h2 = call('GET', '/health')
+    ok('V0 /health v >= 32 a pkOwner:true', (h2['data'].get('v') or 0) >= 32 and h2['data'].get('pkOwner') is True, h2['data'])
+    OWN = dict(ORIG, **{'X-Owner-Key': OWNER})
+    base()
+    v1 = call('POST', '/owner/passkey/start', {}, dict(ORIG, **{'X-Owner-Key': 'spatny-klic-' + 'x' * 20}))
+    ok('V1 start se špatným klíčem vlastníka 403', v1['status'] == 403, v1)
+    base()
+    v2 = call('POST', '/owner/passkey/start', {}, OWN)
+    ok('V2 start: výzva create pro pseudo-účet !vlastnik, jméno „QTRIG vlastník“', v2['status'] == 200 and v2['data'].get('user', {}).get('name') == 'QTRIG vlastník'
+       and any((l.get('sql') or '').startswith('INSERT INTO pk_challenges') and l['args'][2] == '!vlastnik' and l['args'][3] == 'create' for l in log()), v2)
+    base()
+    v3 = call('POST', '/owner/passkey/start', {}, dict(OWN, Origin='https://zla-stranka.example'))
+    ok('V3 cizí původ 400', v3['status'] == 400, v3)
+    VYZVA_VL = {'ch': CH, 'ts': 9e15, 'acc_id': '!vlastnik', 'kind': 'create'}
+    base(vyzva=VYZVA_VL)
+    v4 = call('POST', '/owner/passkey/finish', REG, OWN)
+    z = zapsano()
+    ok('V4 finish: klíč uložen k !vlastnik s owner=1', v4['status'] == 200 and z and z[0]['args'][1] == '!vlastnik' and z[0]['args'][4] == 1, (v4, z))
+    base(vyzva=VYZVA_REG)
+    v5 = call('POST', '/owner/passkey/finish', REG, OWN)
+    ok('V5 výzva z registrace účtu nejde použít pro vlastníka 400', v5['status'] == 400 and not zapsano(), v5)
+    base(vyzva=VYZVA_GET, cred=dict(CRED, acc_id='!vlastnik', owner=1))
+    v6 = call('POST', '/passkey/login/finish', TELO, ORIG)
+    ok('V6 přihlášení klíčem vlastníka: jen ownerKey + ownerOnly, žádný token účtu', v6['status'] == 200 and v6['data'].get('ownerOnly') is True and v6['data'].get('ownerKey') == OWNER and not v6['data'].get('token'), v6['data'])
+    base(vyzva=VYZVA_GET, cred=dict(CRED, acc_id='!vlastnik', owner=1))
+    r.eval('globalThis.__VERIFY = false')
+    v7 = call('POST', '/passkey/login/finish', TELO, ORIG)
+    ok('V7 klíč vlastníka se špatným podpisem 401 a bez klíče', v7['status'] == 401 and 'ownerKey' not in (v7['data'] or {}), v7)
 
     # ---- smazání účtu maže i klíče ----
     base()
