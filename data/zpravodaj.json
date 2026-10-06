@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-10-05",
-  "uvodnik": "Vydání 5. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-10-06",
+  "uvodnik": "Vydání 6. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,30 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "SimActive Enables Online Sharing of Gaussian Splats",
+      "perex": "Montreal, Canada, October 6th, 2026 – SimActive Inc. announces a new sharing capability in Correlator3D , allowing users to publish Gaussian splat models online directly from the software.",
+      "telo": "Montreal, Canada, October 6th, 2026 – SimActive Inc. announces a new sharing capability in Correlator3D , allowing users to publish Gaussian splat models online directly from the software. The streamlined process makes photorealistic 3D results easy to distribute and view. Once a Cesium account is connected, users can initiate sharing from within Correlator3D. The software automatically publishes the Gaussian splat to the connected account, providing a simple and efficient workflow. “One of the greatest advantages of Gaussian splats is how intuitive they are to view and explore,” said Louis Simard, CTO at SimActive. “They are ideal for presenting 3D results to a broader audience, and this ne",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/10/05/simactive-enables-online-sharing-of-gaussian-splats/?utm_source=rss&utm_medium=rss&utm_campaign=simactive-enables-online-sharing-of-gaussian-splats",
+      "datum": "2026-10-06"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Geo Week Keynote Examines “A Lake in Crisis: Mapping Utah’s Great Salt Lake”",
+      "perex": "Keynote Panel to Reveal What New Bathymetric Lidar Data Reveals About One of the West’s Most Threatened Lakes Salt Lake City, UT – [October 6, 2026] — Geo Week announced its first 2027 keynote, A Lake…",
+      "telo": "Keynote Panel to Reveal What New Bathymetric Lidar Data Reveals About One of the West’s Most Threatened Lakes Salt Lake City, UT – [October 6, 2026] — Geo Week announced its first 2027 keynote, A Lake in Crisis: Mapping Utah’s Great Salt Lake , a presentation and panel discussion on a complex large-scale bathymetric lidar project to map the lakebed, wetlands, and deeper-water environments of the Great Salt Lake. The keynote will take place during Geo Week , February 23–25, 2027 at the Salt Palace Convention Center in Salt Lake City, Utah. USGS EROS imagery comparing the Great Salt Lake in 1987 and 2022 The Great Salt Lake is rapidly shrinking, and the implications reach well beyond its shore",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/10/05/geo-week-keynote-examines-a-lake-in-crisis-mapping-utahs-great-salt-lake/?utm_source=rss&utm_medium=rss&utm_campaign=geo-week-keynote-examines-a-lake-in-crisis-mapping-utahs-great-salt-lake",
+      "datum": "2026-10-06"
     },
     {
       "rubrika": "Technologie",
@@ -72,30 +96,6 @@
       "proc": "",
       "zdroj": "LiDAR Magazine",
       "odkaz": "https://lidarmag.com/2026/09/27/decisions-that-matter/?utm_source=rss&utm_medium=rss&utm_campaign=decisions-that-matter",
-      "datum": "2026-09-28"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "A Slice of Swiss Trees",
-      "perex": "By combining high-density aerial lidar and deep learning, it becomes possible to reveal the forests of Neuchâtel with an unprecedented level of detail.",
-      "telo": "By combining high-density aerial lidar and deep learning, it becomes possible to reveal the forests of Neuchâtel with an unprecedented level of detail. By leveraging point clouds with over 100 points/m² (ppsm) and very high-resolution derived models, the Neuchâtel government GIS center (SITN) offers products that foresters can use directly, ranging from simple raster products, such as the canopy height model, to the most advanced, derived directly from the 3D point cloud. These methods enable tree crown segmentation, followed by the classification of 20 major tree species using aerial lidar signatures that combine geometry and intensity, achieving an overall classification accuracy of approx",
-      "body": [],
-      "proc": "",
-      "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/09/27/a-slice-of-swiss-trees/?utm_source=rss&utm_medium=rss&utm_campaign=a-slice-of-swiss-trees",
-      "datum": "2026-09-28"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Beyond Accuracy",
-      "perex": "From Himalayan rail tunnels to airport drone corridors, the same technology is redefining what reliable positioning means For most of its history, the positioning and mapping industry has measured progress in centimeters.",
-      "telo": "From Himalayan rail tunnels to airport drone corridors, the same technology is redefining what reliable positioning means For most of its history, the positioning and mapping industry has measured progress in centimeters. How accurately can you place a point? How tightly can you constrain the error? Accuracy was the ultimate arbiter of a system’s worth and in surveying, engineering and infrastructure, the cost of being wrong is very real. But today, accuracy alone is no longer enough. The environments in which positioning systems operate are more complex, more constrained, and, in some regions, openly challenging to GNSS. Customers are no longer satisfied with, “How accurate is it?” They wan",
-      "body": [],
-      "proc": "",
-      "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/09/27/beyond-accuracy/?utm_source=rss&utm_medium=rss&utm_campaign=beyond-accuracy",
       "datum": "2026-09-28"
     }
   ]
