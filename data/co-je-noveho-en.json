@@ -2,6 +2,14 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 407,
+      "datum": "2026-10-06",
+      "nadpis": "Toti only in Geo cards",
+      "body": [
+        "The Toti mascot now lives only in Geo cards — there it still quizzes you on terms, explains and gives tips. It is gone from the main screen, Point quiz, Practice tasks, Estimate it, Learning path and the first-measurement guide. The guide shows the tip right at the step and the Learning path has a short hint in the header."
+      ]
+    },
+    {
       "v": 406,
       "datum": "2026-09-25",
       "nadpis": "Fix: Face ID sign-in on the server",

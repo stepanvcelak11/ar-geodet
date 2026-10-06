@@ -292,7 +292,6 @@
         var g = grade(r.score);
         var s = record(task.kind, r.score, r.errTxt);
         buzz(r.score >= 80 ? [25, 40, 25] : 30);
-        var sc = r.score; maskot(function (M) { M.rekni(sc >= 70 ? 'spravne' : 'spatne'); });
 
         var out = modal.querySelector('#od-out');
         out.innerHTML =
@@ -318,15 +317,13 @@
             + '<div><b>' + (s.bestStreak || 0) + '</b><span>nejlepší série</span></div>';
     }
 
-    // maskot Toti (js/maskot.js, ag/lazy) — když chybí, nic se neděje
-    function maskot(fn) { try { if (window.AGMaskot) return fn(window.AGMaskot); if (window.AGLazy) AGLazy.need('js/maskot.js', function () { if (window.AGMaskot) fn(window.AGMaskot); }); } catch (e) { /* bez maskota */ } }
+    // (maskot Toti tu byl do 6. 10. 2026 — na přání zůstal jen v Geo kartičkách)
     function open() {
         styles();
         if (!modal) build();
         modal.style.display = 'flex';
         modal.classList.add('ag-open');
         start();
-        maskot(function (M) { M.pripoj(modal.querySelector('.modal-body')); });
         if (!tick) tick = setInterval(renderLive, 500);
     }
 

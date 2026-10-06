@@ -2,6 +2,14 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 407,
+      "datum": "2026-10-06",
+      "nadpis": "Toti alleen nog in de Geo-kaarten",
+      "body": [
+        "De mascotte Toti zit alleen nog in de Geo-kaarten — daar overhoort hij je nog steeds over begrippen, legt uit en geeft tips. Hij is weg uit het hoofdscherm, de puntenquiz, oefenopgaven, Schat het, het Leerpad en de gids voor de eerste meting. De gids toont de tip direct bij de stap en het Leerpad heeft een korte melding in de kop."
+      ]
+    },
+    {
       "v": 406,
       "datum": "2026-09-25",
       "nadpis": "Oplossing: inloggen met Face ID op de server",

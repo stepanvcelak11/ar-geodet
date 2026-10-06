@@ -2,6 +2,14 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 407,
+      "datum": "2026-10-06",
+      "nadpis": "Toti tylko w Geo kartach",
+      "body": [
+        "Maskotka Toti została tylko w Geo kartach — tam dalej odpytuje z pojęć, wyjaśnia i doradza. Zniknęła z ekranu głównego, quizu punktów, zadań ćwiczeniowych, Oszacuj, Ścieżki nauki i przewodnika pierwszego pomiaru. Przewodnik pokazuje radę bezpośrednio przy kroku, a Ścieżka nauki ma krótką podpowiedź w nagłówku."
+      ]
+    },
+    {
       "v": 406,
       "datum": "2026-09-25",
       "nadpis": "Poprawka: logowanie przez Face ID na serwerze",

@@ -1,10 +1,10 @@
-/* CESTA UČENÍ (25. 9. 2026, 7. hodnocení f3) — jako Duolingo, s maskotem Toti.
+/* CESTA UČENÍ (25. 9. 2026, 7. hodnocení f3) — jako Duolingo.
  *
  * Proč: obsah na učení už v appce je (slovník pojmů, poznávačka bodů, předpisy, cvičné úlohy,
  * nástroje), ale je rozházený po čtyřech nástrojích a nic člověka nevede dál. Tady je z něj
  * CESTA LEKCÍ po tématech: lekce se odemykají jedna po druhé, každá má 3–6 otázek, za lekci
- * jsou body (XP), denní cíl (1–3 lekce) a SÉRIE DNŮ v řadě. Toti je v hlavičce, fandí, a na
- * hlavní obrazovce večer připomene, když by série padla (js/maskot.js).
+ * jsou body (XP), denní cíl (1–3 lekce) a SÉRIE DNŮ v řadě. V hlavičce je krátká hláška, co dál.
+ * (Do 6. 10. 2026 tu byl maskot Toti — na přání zůstal jen v Geo kartičkách, js/scroll-uceni.js.)
  *
  * Otázky se skládají z PŘELOŽENÝCH zdrojů (nic se nepíše dvakrát):
  *   Pojmy      → window.agGeoDict (grafika.js): definice → který pojem to je
@@ -146,10 +146,8 @@
     function aktualni(s) { var v = vsechny(); for (var i = 0; i < v.length; i++) if (!s.hotove[v[i].k]) return v[i].k; return null; }
     function odemcena(s, k) { if (s.hotove[k]) return true; return aktualni(s) === k; }
 
-    // ---- maskot ----
-    function maskot(fn) { try { if (window.AGMaskot) return fn(window.AGMaskot); if (window.AGLazy) AGLazy.need('js/maskot.js', function () { if (window.AGMaskot) fn(window.AGMaskot); }); } catch (e) { /* bez maskota */ } }
-    var _toti = null;
-    function toti(fn) { maskot(function (M) { var h = el() && el().querySelector('.cu-toti'); if (!h) return; if (!_toti || !_toti.isConnected) { _toti = M.pripoj(h, { rekni: false }); if (_toti) _toti.classList.add('mk-mini'); } if (_toti) fn(M, _toti); }); }
+    // ---- hláška v hlavičce (dřív bublina maskota Toti) ----
+    function hlaska(text) { var h = el() && el().querySelector('.cu-hlaska'); if (h) h.textContent = text || ''; }
 
     // ---- UI ----
     function styl() {
@@ -159,8 +157,7 @@
             + 'padding:calc(env(safe-area-inset-top,0px) + 8px) 0 calc(env(safe-area-inset-bottom,0px) + 8px);font-family:var(--font-ui,system-ui);}'
             + 'body.light-mode #ag-cu{background:#f4f6f5;color:#141821;}'
             + '#ag-cu .cu-top{display:flex;align-items:flex-start;gap:6px;padding:0 12px;}'
-            + '#ag-cu .cu-toti{flex:1;min-width:0;}'
-            + '#ag-cu .cu-toti .ag-maskot{margin:0;}'
+            + '#ag-cu .cu-hlaska{flex:1;min-width:0;align-self:center;font-size:calc(13.5px * var(--ag-font-scale,1));line-height:1.4;color:var(--text-muted,#9aa1ac);}'
             + '#ag-cu .cu-x{flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:1px solid var(--glass-border,rgba(255,255,255,.16));background:transparent;color:inherit;font-size:20px;cursor:pointer;}'
             + '#ag-cu .cu-view{flex:1;min-height:0;overflow-y:auto;padding:6px 14px 16px;-webkit-overflow-scrolling:touch;}'
             + '#ag-cu .cu-stat{display:flex;gap:8px;margin:4px 0 12px;}'
@@ -216,7 +213,7 @@
         styl();
         var d = el(); if (d) return d;
         d = document.createElement('div'); d.id = ID; d.setAttribute('role', 'dialog'); d.setAttribute('data-ag-okno', ''); d.setAttribute('aria-label', t('Cesta učení'));
-        d.innerHTML = '<div class="cu-top"><div class="cu-toti"></div><button type="button" class="cu-x" data-close aria-label="' + esc(t('Zavřít')) + '">✕</button></div>'
+        d.innerHTML = '<div class="cu-top"><div class="cu-hlaska" role="status" aria-live="polite"></div><button type="button" class="cu-x" data-close aria-label="' + esc(t('Zavřít')) + '">✕</button></div>'
             + '<div class="cu-view"></div><div class="cu-dole" hidden></div>';
         document.body.appendChild(d);
         d.querySelector('.cu-x').addEventListener('click', function () { if (_lekce && !_lekce.konec) { mapa(); } else close(); });
@@ -254,18 +251,16 @@
         view().querySelectorAll('.cu-uzel').forEach(function (b) {
             b.addEventListener('click', function () {
                 var k = b.getAttribute('data-k'), s2 = st();
-                if (!odemcena(s2, k)) { toti(function (M, m) { M.rekniText(m, t('Tahle lekce je ještě zamčená. Nejdřív dodělej tu, která svítí.'), 'mysli'); }); return; }
+                if (!odemcena(s2, k)) { hlaska(t('Tahle lekce je ještě zamčená. Nejdřív dodělej tu, která svítí.')); return; }
                 var p = k.split(':'); startLekce(p[0], parseInt(p[1], 10));
             });
         });
         // aktuální lekci do středu obrazovky
         try { var cur = view().querySelector('.cu-uzel.ted'); if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'center' }); } catch (e) { /* nic */ }
-        toti(function (M, m) {
-            var s3 = st();
-            if (!ted) M.rekniText(m, t('Celou cestu máš hotovou! Lekce si můžeš kdykoli zopakovat.'), 'radost');
-            else if (s3.dnesN >= s3.cil) M.rekniText(m, t('Dnešní cíl splněný. Série běží! Chceš ještě jednu?'), 'radost');
-            else M.rekniText(m, s3.streak.n ? t('Série {n} dní! Jedna lekce a pojede dál.').replace('{n}', s3.streak.n) : t('Klepni na lekci, která svítí. Zvládneš ji za pár minut.'), 'mluvi');
-        });
+        var s3 = st();
+        if (!ted) hlaska(t('Celou cestu máš hotovou! Lekce si můžeš kdykoli zopakovat.'));
+        else if (s3.dnesN >= s3.cil) hlaska(t('Dnešní cíl splněný. Série běží! Chceš ještě jednu?'));
+        else hlaska(s3.streak.n ? t('Série {n} dní! Jedna lekce a pojede dál.').replace('{n}', s3.streak.n) : t('Klepni na lekci, která svítí. Zvládneš ji za pár minut.'));
     }
 
     // ---- lekce ----
@@ -275,7 +270,7 @@
         view().innerHTML = '<p style="opacity:.7">' + esc(t('Připravuji lekci…')) + '</p>';
         return pool(tm).then(function (P) {
             P = P || [];
-            if (!P.length) { toti(function (M, m) { M.rekniText(m, t('Otázky pro tohle téma se nepodařilo načíst — zkus to se signálem.'), 'smutek'); }); mapa(); return; }
+            if (!P.length) { mapa(); hlaska(t('Otázky pro tohle téma se nepodařilo načíst — zkus to se signálem.')); return; }
             var out = [];
             for (var j = 0; j < tm.na; j++) out.push(P[(i * tm.na + j) % P.length]);
             var otazky = out.map(function (q) { try { return q.make(); } catch (e) { swallow(e, 'make'); return null; } }).filter(Boolean);
@@ -285,6 +280,7 @@
     }
     function otazka() {
         var L = _lekce; if (!L) return;
+        hlaska('');
         if (!L.fronta.length) return konecLekce();
         var q = L.fronta[0], hotovo = L.n;
         var h = '<div class="cu-prog"><i style="width:' + Math.round(hotovo / (L.celkem + Object.keys(L.vraceno).length) * 100) + '%"></i></div>'
@@ -336,7 +332,6 @@
             + '<button type="button" class="cu-go">' + esc(t('Pokračovat')) + '</button>';
         D.querySelector('.cu-go').addEventListener('click', function () { L.fronta.shift(); L.n++; otazka(); });
         try { D.querySelector('.cu-go').focus(); } catch (e) { /* nic */ }
-        toti(function (M) { M.rekni(ok ? 'spravne' : 'spatne'); });
     }
     function konecLekce() {
         var L = _lekce; L.konec = true;
@@ -360,7 +355,6 @@
             + '<div class="cu-stat"><div><b>' + IK.hvezda + ' +' + xp + '</b><small>XP</small></div><div><b>' + proc + ' %</b><small>' + esc(t('napoprvé správně')) + '</small></div>'
             + '<div><b>' + IK.plamen + ' ' + s.streak.n + '</b><small>' + esc(t('dní v řadě')) + '</small></div></div>'
             + (novaSerie ? '<p>' + esc(t('Dnešní cíl splněný — série pokračuje!')) + '</p>' : '') + '</div>';
-        toti(function (M) { M.rekni(perfekt ? 'konec_super' : (proc >= 70 ? 'konec_dobre' : 'konec_slabe'), { skore: L.dobre, celkem: L.celkem }); });
     }
 
     function open() {

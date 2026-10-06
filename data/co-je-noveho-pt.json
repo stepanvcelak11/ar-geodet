@@ -2,6 +2,14 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 407,
+      "datum": "2026-10-06",
+      "nadpis": "Toti só nos Geo cartões",
+      "body": [
+        "A mascote Toti ficou só nos Geo cartões — aí continua a perguntar termos, explicar e aconselhar. Desapareceu do ecrã principal, do quiz de pontos, dos exercícios, de Estima, do Percurso de aprendizagem e do guia da primeira medição. O guia mostra a dica junto ao passo e o Percurso tem uma breve mensagem no cabeçalho."
+      ]
+    },
+    {
       "v": 406,
       "datum": "2026-09-25",
       "nadpis": "Correção: início com Face ID no servidor",
