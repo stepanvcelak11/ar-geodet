@@ -188,6 +188,33 @@ def normalize(url):
     return './' + url
 
 
+# ES MODULY (6. 10. 2026, viz js/esm/index.mjs): v index.html je jen vstupni
+# <script type="module" src="js/esm/index.mjs">, moduly, ktere importuje, tam nejsou.
+# Bez nich by se v terenu bez signalu mustek nenacetl (import by selhal) a AGEsm by
+# chybel vsem, kdo ho pouzivaji. Proto se importy projdou rekurzivne.
+_ESM_IMPORT = re.compile(r"""(?:^|\n)\s*(?:import|export)\b[^'"]*?\bfrom\s*['"](\.{1,2}/[^'"]+\.mjs)['"]|(?:^|\n)\s*import\s*['"](\.{1,2}/[^'"]+\.mjs)['"]""")
+
+
+def collect_esm_imports(assets):
+    out, fronta, videno = [], [a for a in assets if a.split('?')[0].endswith('.mjs')], set()
+    while fronta:
+        a = fronta.pop(0).split('?')[0]
+        if a in videno:
+            continue
+        videno.add(a)
+        cesta = ROOT / a.lstrip('./').lstrip('/')
+        if not cesta.exists():
+            continue
+        zdroj = cesta.read_text(encoding='utf-8-sig')
+        for m in _ESM_IMPORT.finditer(zdroj):
+            rel = m.group(1) or m.group(2)
+            cil = (cesta.parent / rel).resolve().relative_to(ROOT.resolve())
+            url = './' + str(cil).replace('\\', '/')
+            out.append(url)
+            fronta.append(url)
+    return out
+
+
 def collect_lazy_tools_assets():
     """Soubory z MANIFESTu js/lazy-tools.js (src + css) jako './...' polozky.
 
@@ -236,6 +263,7 @@ def collect_assets(version):
                 continue  # externi drzime rucne v EXTRA_ASSETS
             assets.append(normalize(url))
     assets.extend(collect_lazy_tools_assets())
+    assets.extend(collect_esm_imports(assets))
     assets.extend(EXTRA_ASSETS)
 
     # dedup pri zachovani poradi + verzovani korenovych CSS

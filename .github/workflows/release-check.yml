@@ -109,6 +109,11 @@ jobs:
       - name: Minifikace odložených modulů (jen kontrola)
         run: node scripts/minify-lazy.mjs --check
 
+      # ES moduly appky (js/esm/*.mjs, 6. 10. 2026) jsou čistá logika bez DOM —
+      # testují se přímo v Node, bez prohlížeče.
+      - name: Testy ES modulů (js/esm)
+        run: node --test scripts/test_esm.mjs
+
       # Každý nástroj musí mít v js/tools-registry.js záznam s kategorií, slovesem,
       # synonymy a návodem. Dřív to bylo rozepsané v šesti ručních tabulkách a nic
       # to nekontrolovalo — takže se opakovaně zapomnělo (Kompas nešel najít,

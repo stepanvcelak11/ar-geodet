@@ -2,6 +2,17 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 409,
+      "datum": "2026-10-06",
+      "nadpis": "La precisione del telefono mentre lavori",
+      "body": [
+        "Cerchio di incertezza: intorno al punto verso cui ti guida l'app, AR e mappa mostrano l'area in cui il punto molto probabilmente si trova, e sotto la distanza compare «cerca entro ±X m». Si disattiva nella schermata Perché ±4 m?",
+        "Basta il telefono? Picchettamento, rilievo polare, volume girando intorno e altri strumenti ti avvisano all'apertura quando il telefono misura peggio di quanto serve al risultato. Nulla viene bloccato.",
+        "Quando ti fermi presso un TB, ZhB o PBPP, l'app propone di correggere il GPS con esso.",
+        "La quota di un punto GPS ora viene dal modello del terreno (±0,3 m invece di ±2–4 m). Con una differenza grande (rilevato, riempimento) chiede. La scheda del punto mostra da dove viene la quota."
+      ]
+    },
+    {
       "v": 408,
       "datum": "2026-10-06",
       "nadpis": "Correzione: accesso con Face ID",

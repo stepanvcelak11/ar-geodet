@@ -309,6 +309,7 @@
             + 'max-width:min(360px,calc(100vw - 20px));margin:0;pointer-events:none;}'
             + '.ag-maskot.mk-roh > *{pointer-events:auto;}'
             + '.ag-maskot.mk-roh .mk-btn{width:80px;height:97px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.35));}'
+            + '.ag-maskot.mk-roh.mk-off .mk-btn{width:40px;height:49px;}'   // ztlumený i v rohu jen malá ikonka (pravidlo rohu výš by ho přebilo)
             + '.ag-maskot.mk-mini .mk-btn{width:58px;height:70px;}.ag-maskot.mk-mini .mk-bublina{margin-top:2px;padding:7px 10px;}'
             + '.ag-maskot.mk-roh .mk-bublina{box-shadow:0 8px 24px rgba(0,0,0,.3);transition:opacity .25s ease,transform .25s ease;}'
             + '.ag-maskot.mk-roh.mk-ticho .mk-bublina{opacity:0;transform:translateY(6px);pointer-events:none;}'
@@ -577,7 +578,7 @@
     function otevriCestu() {
         try {
             if (typeof window.agOpenCesta === 'function') return window.agOpenCesta();
-            if (window.AGToolsHub && AGToolsHub.run) return AGToolsHub.run('cesta-uceni');
+            if (window.AGUkony && AGUkony.run && AGUkony.run('cesta-uceni')) return;
             if (window.AGLazyTools && AGLazyTools.load) AGLazyTools.load('js/cesta-uceni.js').then(function () { if (window.agOpenCesta) window.agOpenCesta(); });
         } catch (e) { swallow(e, 'cesta'); }
     }
@@ -624,7 +625,7 @@
         if (!T.length || Math.random() < 0.3) { rekniDo(el, 'tip', null, 'mysli', { akce: [{ l: t('Další rada'), fn: function () { porad(el); } }] }); return; }
         var r = nahodne(T);
         rekniDo(el, 'porad_uvod', null, 'radost', { text: vyber('porad_uvod') + ' ' + t(r.vl) + ' (' + t(r.vh) + ').', akce: [
-            { l: t('Otevřít'), fn: function () { try { if (window.AGToolsHub && AGToolsHub.run) AGToolsHub.run(r.k); else if (typeof window[r.k] === 'function') window[r.k](); } catch (e) { swallow(e, 'otevrit'); } } },
+            { l: t('Otevřít'), fn: function () { try { if (window.AGUkony && AGUkony.run && AGUkony.run(r.k)) return; if (window.AGLazyTools && AGLazyTools.open) AGLazyTools.open(r.k); else if (typeof window[r.k] === 'function') window[r.k](); } catch (e) { swallow(e, 'otevrit'); } } },
             { l: t('Další rada'), fn: function () { porad(el); } }
         ] });
     }

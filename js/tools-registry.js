@@ -84,6 +84,12 @@
 //         ČÚZK bodové pole, RÚIAN, české vyhlášky). Jinde ho seznam úkonů nekreslí
 //         (jako hidden), hledáním se dál najde. Bez `zeme` = všude. (19. 9. 2026, E2:
 //         v Amsterdamu se nabízelo „Stáhnout okres, kraj nebo celou ČR".)
+//   acc   POTŘEBNÁ PŘESNOST v metrech (σ polohy), aby výsledek nástroje znamenal to,
+//         co tvrdí (6. 10. 2026, hodnocení — návrh 3). Telefon měří ±3–7 m; když je
+//         aktuální přesnost horší než `acc`, js/presnost-nastroje.js po spuštění
+//         nástroje řekne, že výsledek je orientační (nic neblokuje). Jen u nástrojů,
+//         kde výsledek stojí na ABSOLUTNÍ poloze z GPS (vytyčení, rajón ze stanoviska
+//         z GPS, kubatura obejitím, epochy) — ne u výpočtů z uložených bodů.
 //   hub   1 = dlaždici vyrábí jako rozcestník js/tools-hub.js (jen pro kontrolora)
 //   notile 1 = není dlaždice v Nástrojích, návod se otevírá odjinud (jen pro kontrolora)
 //   noverb 1 = záměrně bez slovesa, zůstává v „Dalších nástrojích“ (jen pro kontrolora)
@@ -173,23 +179,23 @@
         // přejmenováno 18. 9. 2026 („korekce na teplotu a tlak — vlastně moc nevíme, o co jde")
         { k: 'korekce', pro: 1, verb: 'Změřit', vl: 'Skutečnou délku z pásma nebo dálkoměru', vh: 'oprava na teplotu, tlak, průvěs a zakřivení Země', keys: 'korekce ppm pasmo teplota tlak vlhkost refrakce zakriveni edm dalkomer atmosfericka oprava pruves',
           help: { t: 'Korekce měření' } },
-        { k: 'obchuzka', pro: 1, hidden: 1, w: 1, verb: 'Změřit', vl: 'Kubaturu obejitím výkopu', vh: 'obvod z GNSS + dno, objem hned na místě', keys: 'obchuzka vykop kubatura objem obejiti obvod dno jama',
+        { k: 'obchuzka', acc: 0.5, pro: 1, hidden: 1, w: 1, verb: 'Změřit', vl: 'Kubaturu obejitím výkopu', vh: 'obvod z GNSS + dno, objem hned na místě', keys: 'obchuzka vykop kubatura objem obejiti obvod dno jama',
           help: { t: 'Obchůzka výkopu' } },
 
         // ── Určit nový bod ──────────────────────────────────────────────
         { k: 'bod-vypoctem', pro: 1, w: 1, verb: 'Určit nový bod', vl: 'Výpočtem z jiných bodů', vh: 'rajón, offset, protínání vpřed', hub: 1,
           keys: 'bod vypoctem novy vypocet rajon offset protinani smernik delka uhel konstrukce rozcestnik',
           help: { t: 'Bod výpočtem' } },
-        { k: 'rajon', fn: 'agOpenRajon', pro: 1, w: 1, inhub: 'bod-vypoctem', verb: 'Určit nový bod', vl: 'Rajónem', vh: 'směr a délka ze stanoviska', keys: 'rajon polarni metoda uhel delka stanovisko novy bod',
+        { k: 'rajon', acc: 1, fn: 'agOpenRajon', pro: 1, w: 1, inhub: 'bod-vypoctem', verb: 'Určit nový bod', vl: 'Rajónem', vh: 'směr a délka ze stanoviska', keys: 'rajon polarni metoda uhel delka stanovisko novy bod',
           help: { t: 'Rajón (směr + délka)' } },
-        { k: 'offset-point', fn: 'agOpenOffsetTool', pro: 1, w: 1, inhub: 'bod-vypoctem', cat: 'Vytyčování a náčrt', verb: 'Určit nový bod', vl: 'Offsetem', vh: 'odsazení od jiného bodu', keys: 'odsazeny bod offset kolmice stanoveni vypocet',
+        { k: 'offset-point', acc: 1, fn: 'agOpenOffsetTool', pro: 1, w: 1, inhub: 'bod-vypoctem', cat: 'Vytyčování a náčrt', verb: 'Určit nový bod', vl: 'Offsetem', vh: 'odsazení od jiného bodu', keys: 'odsazeny bod offset kolmice stanoveni vypocet',
           help: { t: 'Offset bod' } },
         { k: 'ar-intersection', fn: 'agOpenIntersection', pro: 1, w: 1, inhub: 'bod-vypoctem', cat: 'Měření', verb: 'Určit nový bod', vl: 'Protínáním vpřed', vh: 'jen úhly, délku měřit nemůžu', keys: 'protinani vpred uhly neznamy bod urceni',
           help: { t: 'Protínání vpřed' } },
         { k: 'foto-protinani', fn: 'agOpenFotoProtinani', pro: 1, hidden: 1, w: 1, cat: 'Měření', verb: 'Určit nový bod', vl: 'Ze dvou fotek', vh: 'na cíl, kam se nedá dojít; mířit nemusíš',
           keys: 'foto fotka fotky protinani snimek obraz klepnuti cil nedostupny roh strecha komin pres plot druha strana reky',
           help: { t: 'Bod ze dvou fotek' } },
-        { k: 'pdr-offset', pro: 1, w: 1, cat: 'Měření', verb: 'Určit nový bod', vl: 'Krokovým offsetem', vh: 'došlápnutý vektor', keys: 'kroky krokovy offset vektor chuze pdr roh budovy dead reckoning',
+        { k: 'pdr-offset', acc: 1, pro: 1, w: 1, cat: 'Měření', verb: 'Určit nový bod', vl: 'Krokovým offsetem', vh: 'došlápnutý vektor', keys: 'kroky krokovy offset vektor chuze pdr roh budovy dead reckoning',
           help: { t: 'Krokový offset' } },
         { k: 'ar-resection', pro: 1, hidden: 1, w: 1, cat: 'AR a kalibrace', verb: 'Určit nový bod', vl: 'Resekcí ze známých bodů', vh: 'určí i sever', keys: 'resekce protinani zpet stanovisko volne zname body',
           help: { t: 'Resekce ze známých bodů' } },
@@ -228,14 +234,14 @@
           help: { t: 'Kontrolní měření' } },
 
         // ── Vytyčit ─────────────────────────────────────────────────────
-        { k: 'openStakeoutModal', verb: 'Vytyčit', vl: 'Body podle seznamu', vh: 'vytyčovací checklist', keys: 'vytyceni vytycovaci checklist seznam protokol', base: 1,
+        { k: 'openStakeoutModal', acc: 0.1, verb: 'Vytyčit', vl: 'Body podle seznamu', vh: 'vytyčovací checklist', keys: 'vytyceni vytycovaci checklist seznam protokol', base: 1,
           help: { t: 'Vytyčovací checklist' } },
-        { k: 'protokol-vytyceni', pro: 1, verb: 'Vytyčit', vl: 'Protokol vytyčení', vh: 'odchylky projekt → skutečnost, tisk a CSV', keys: 'protokol vytyceni odchylka odchylky mezni skutecnost projekt doklad papir tisk pdf kolik jsem se netrefil',
+        { k: 'protokol-vytyceni', acc: 0.1, pro: 1, verb: 'Vytyčit', vl: 'Protokol vytyčení', vh: 'odchylky projekt → skutečnost, tisk a CSV', keys: 'protokol vytyceni odchylka odchylky mezni skutecnost projekt doklad papir tisk pdf kolik jsem se netrefil',
           help: { t: 'Protokol vytyčení' } },
-        { k: 'stakeout-line', fn: 'agOpenStakeLine', pro: 1, w: 1, cat: 'Vytyčování a náčrt', verb: 'Vytyčit', vl: 'Osu', vh: 'i lomenou, se staničením',
+        { k: 'stakeout-line', acc: 0.1, fn: 'agOpenStakeLine', pro: 1, w: 1, cat: 'Vytyčování a náčrt', verb: 'Vytyčit', vl: 'Osu', vh: 'i lomenou, se staničením',
           keys: 'vytyceni primky osa lomena osy linie staniceni kilometraz km koliky po metrech kolmy odstup rovina stanoveni smeru',
           help: { t: 'Vytyčení osy' } },
-        { k: 'vrstvy', pro: 1, hidden: 1, cat: 'Vytyčování a náčrt', verb: 'Vytyčit', vl: 'Vrstvu pokládky', vh: 'výška a sklon za finišerem', keys: 'vrstvy pokladka skladba silnice asfalt sklon rez finisher tablet',
+        { k: 'vrstvy', acc: 0.05, pro: 1, hidden: 1, cat: 'Vytyčování a náčrt', verb: 'Vytyčit', vl: 'Vrstvu pokládky', vh: 'výška a sklon za finišerem', keys: 'vrstvy pokladka skladba silnice asfalt sklon rez finisher tablet',
           help: { t: 'Vrstvy / pokládka' } },
         { k: 'indoor', pro: 1, hidden: 1, verb: 'Vytyčit', vl: 'Dojít k bodu uvnitř budovy', vh: 'bez GPS; navádí, nevytyčuje', keys: 'uvnitr budovy bez gps interier hala navadeni krokovani',
           help: { t: 'Uvnitř budovy' } },
@@ -260,7 +266,7 @@
           help: { t: 'Stopa trasy' } },
         { k: 'geo-foto', pro: 1, verb: 'Zaznamenat', vl: 'Fotku s razítkem', vh: 'S-JTSK, výška, čas a azimut ve fotce', keys: 'fotka foto razitko georazitko snimek dokumentace souradnice',
           help: { t: 'Geo-fotka' } },
-        { k: 'epochy', fn: 'agOpenEpochy', pro: 1, hidden: 1, w: 1, cat: 'Měření', verb: 'Zaznamenat', vl: 'Epochy — posuny v čase', vh: 'opakované měření bodu', keys: 'epochy monitoring posuny deformace sledovani opakovane',
+        { k: 'epochy', acc: 0.05, fn: 'agOpenEpochy', pro: 1, hidden: 1, w: 1, cat: 'Měření', verb: 'Zaznamenat', vl: 'Epochy — posuny v čase', vh: 'opakované měření bodu', keys: 'epochy monitoring posuny deformace sledovani opakovane',
           help: { t: 'Epochy / monitoring' } },
         { k: 'kvalita-bodu', fn: 'agOpenKvalitaBodu', pro: 1, hidden: 1, verb: 'Zaznamenat', vl: 'Protokol kvality', vh: 'čím byl bod změřen a jak dobře', keys: 'kvalita protokol presnost sigma smerodatna odchylka epochy doklad rozptyl mereni doložit',
           help: { t: 'Protokol kvality' } },

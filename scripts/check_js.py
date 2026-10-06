@@ -611,6 +611,8 @@ def main():
     # viz check_syntax_modules niz.
     mjs_files = sorted(TESTS_DIR.rglob('*.mjs')) if TESTS_DIR.is_dir() else []
     mjs_files += sorted(ROOT.glob('*.mjs'))
+    # ES moduly appky (js/esm/*.mjs, 6. 10. 2026) — rglob('*.js') vyse je nevidi
+    mjs_files += sorted(JS_DIR.rglob('*.mjs'))
 
     if '--list' in sys.argv:
         for p in js_files:

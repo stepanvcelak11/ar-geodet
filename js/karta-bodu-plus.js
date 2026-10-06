@@ -386,7 +386,9 @@
         else tile('', 'Přesnost', '<b class="t">neuvedena</b>');
         // (dlaždice „Stav: vytyčeno / nevytyčeno" zrušena 16. 9. 2026 na přání — v kartě nemá co dělat)
         var z = ptElev(pt);
-        tile('', 'Výška Bpv', '<b>' + (z != null ? nD(z) + ' m' : '—') + '</b>');
+        // odkud výška je (js/vyska-gps.js → prov.z, 6. 10. 2026): z terénního modelu je o řád přesnější než z GPS
+        var zZdroj = (z != null && pt.prov && pt.prov.z) ? (pt.prov.z === 'dmr' ? 'z terénu' : (pt.prov.z === 'gps' ? 'z GPS' : '')) : '';
+        tile('', 'Výška Bpv', '<b>' + (z != null ? nD(z) + ' m' : '—') + '</b>' + (zZdroj ? '<small class="t" style="display:block;opacity:.75;">' + zZdroj + '</small>' : ''));
         tile('', 'Ode mě', '<b id="ag-kb-dist">— m</b>');
         var kdy = (pt.prov && pt.prov.ts) || pt.mts || null, kdyS = null;
         if (kdy) { try { kdyS = new Date(kdy).toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { } }

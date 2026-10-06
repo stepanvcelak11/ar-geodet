@@ -255,7 +255,9 @@
         var txt = s ? (t('Zapnuto na tomhle telefonu') + (s.owner ? ' · ' + t('i pro vlastníka') : '')) : t('Zatím vypnuto.');
         if (stav._cs !== txt) { stav.textContent = txt; stav._cs = txt; }
         b.textContent = s ? t('Přidat klíč znovu') : t('Zapnout přihlášení přes Face ID');
-        pripravZapnuti('ucet');
+        // podklady k zapnutí (gesto) jen když je karta OPRAVDU vidět — karta() běží i při startu appky,
+        // a dotaz na server pro Nastavení, které nikdo neotevřel, je zbytečný provoz (a v testech chyba)
+        try { if (el.getClientRects().length && el.offsetParent !== null) pripravZapnuti('ucet'); } catch (e) { swallow(e, 'karta'); }
         if (!b._pk) {
             b._pk = true;
             b.addEventListener('click', function () {
