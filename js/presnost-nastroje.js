@@ -56,7 +56,7 @@
         var css = '#' + ID + '{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 10px);z-index:100070;'
             + 'width:min(440px,calc(100vw - 20px));box-sizing:border-box;padding:11px 13px;border-radius:14px;background:#2a1f05;color:#fde68a;'
             + 'border:1px solid rgba(251,191,36,.55);box-shadow:0 10px 30px rgba(0,0,0,.45);font:500 calc(13px * var(--ag-font-scale,1))/1.45 var(--font-ui,system-ui);}'
-            + '#' + ID + ' b{color:#fbbf24;}'
+            + '#' + ID + ' b{color:var(--warning,#fbbf24);}'
             + '#' + ID + ' .pn-akce{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}'
             + '#' + ID + ' button{min-height:40px;padding:8px 12px;border-radius:10px;border:1px solid rgba(251,191,36,.5);background:rgba(251,191,36,.12);'
             + 'color:#fde68a;font:600 calc(12.5px * var(--ag-font-scale,1))/1.2 var(--font-ui,system-ui);cursor:pointer;}'

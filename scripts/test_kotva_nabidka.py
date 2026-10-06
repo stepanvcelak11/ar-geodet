@@ -4,7 +4,7 @@ u"""STOJÍŠ U ÚŘEDNÍHO BODU? OPRAV PODLE NĚJ GPS (6. 10. 2026, hodnocení �
 Kontroluje: po zastavení (8 s) do pár metrů od TB se ukáže nabídka s názvem bodu a vzdáleností;
 „Opravit GPS“ otevře potvrzení opravy podle bodu (js/ref-calibration.js); průchod kolem (bez
 prodlevy), chůze, běžící korekce, nivelační bod a otevřené okno nic neukážou; na týž bod se do
-12 h znovu neptá; „Neptat se“ vypne nabídku a přepínač v Nastavení → AR & přesnost ji vrátí.
+12 h znovu neptá; „Neptat se“ vypne nabídku a přepínač v Nastavení → Mapa a body ji vrátí.
 
 python scripts/test_kotva_nabidka.py [port]
 """
@@ -84,7 +84,7 @@ async def beh(url):
         ok('V1 „Neptat se“ nabídku vypne', r['r'] and await page.evaluate("() => !AGKotvaNabidka.zapnuto()"), r)
         await page.evaluate("() => { openSettings(); if (typeof switchTab === 'function') switchTab('tab-ar'); AGKotvaNabidka._test.ui(); }")
         sw = await page.evaluate("() => { const i = document.getElementById('s-kotva-nabidka'); return i ? { checked: i.checked } : null; }")
-        ok('V2 Nastavení → AR & přesnost má přepínač (teď vypnutý)', sw and sw['checked'] is False, sw)
+        ok('V2 Nastavení → Mapa a body má přepínač (teď vypnutý)', sw and sw['checked'] is False, sw)
         await page.evaluate("() => document.getElementById('s-kotva-nabidka').click()")
         ok('V3 přepínač nabídku zase zapne', await page.evaluate("() => AGKotvaNabidka.zapnuto()"))
         ok('Z bez chyb v konzoli', not chyby, chyby[:5])

@@ -21,7 +21,7 @@
 //   • tak je to aspoň PRODLEVA (8 s) — kdo jen projde kolem, nic nedostane,
 //   • žádná korekce zrovna neběží (agRefShift.on, mladší 20 min) a není otevřené okno,
 //   • na tenhle bod se neptalo posledních 12 h; „Neptat se" vypne nabídku úplně
-//     (localStorage agKotvaNabidka_v1; zpátky ji zapne Nastavení → AR & přesnost →
+//     (localStorage agKotvaNabidka_v1; zpátky ji zapne Nastavení → Mapa a body → Přesnost z mapy →
 //     „Nabízet opravu GPS u úředního bodu").
 //
 // Odstranění: smaž js/kotva-nabidka.js + řádek <script type="ag/lazy"> v index.html,
@@ -137,7 +137,7 @@
         setTimeout(function () { if (el.isConnected) el.remove(); }, 45000);
     }
 
-    // ---- Nastavení → AR & přesnost (stejný vzor jako js/prichyceni.js) ----
+    // ---- Nastavení → Mapa a body → Přesnost z mapy (stejný vzor jako js/prichyceni.js) ----
     function ui() {
         var uz = document.getElementById('s-kotva-nabidka');
         if (uz) { uz.checked = !st().vyp; return; }   // „Neptat se" z nabídky se musí propsat i do už postaveného řádku
@@ -146,7 +146,10 @@
         r.innerHTML = '<span class="st-lab">' + esc(t('Nabízet opravu GPS u úředního bodu')) + '<small>' + esc(t('když se zastavíš u TB, ZhB nebo PBPP, appka nabídne opravit podle něj GPS')) + '</small></span>'
             + '<label class="st-sw"><input type="checkbox" id="s-kotva-nabidka"' + (st().vyp ? '' : ' checked') + '><span class="st-sw-face"></span></label>';
         var za = document.getElementById('s-prichyceni'), radek = za && za.closest ? za.closest('.st-row') : null;
-        if (radek && radek.parentNode === tab) tab.insertBefore(r, radek.nextSibling); else tab.appendChild(r);
+        // patří do sekce „Přesnost z mapy" hned za přichytávání (js/nastaveni-poradek.js ji i s řádky stěhuje
+        // na stránku Mapa a body); na konec stránky by spadl do sběrné „Další volby"
+        if (!radek || !radek.parentNode) return;   // řádek přichytávání ještě není — příští otevření Nastavení
+        radek.parentNode.insertBefore(r, radek.nextSibling);
         r.querySelector('input').addEventListener('change', function (ev) { var x = st(); x.vyp = !ev.target.checked; ulozSt(x); });
     }
     try { ui(); } catch (e) { swallow(e, 'ui'); }

@@ -24,7 +24,7 @@
 //   (DMR 5G, swissALTI3D, RGE ALTI) a rozdíl GPS − terén NENÍ podezřele velký, výška
 //   z terénu se do pole doplní SAMA a vedle je „Vrátit GPS". Při velkém rozdílu (násep,
 //   most, čerstvý zásyp — DMR měří starý terén) se nic samo nemění a rozhoduje člověk
-//   jako dřív. Vypnout: Nastavení → AR & přesnost → „Výška bodu z terénního modelu"
+//   jako dřív. Vypnout: Nastavení → Mapa a body → Přesnost z mapy → „Výška bodu z terénního modelu"
 //   (localStorage agVyskaTeren_v1 = {vyp: true}). Odkud výška je, se ukládá k bodu
 //   (prov.z = 'dmr' | 'gps', čte logika.js z window._agZSrc) a ukazuje na kartě bodu.
 //
@@ -183,7 +183,7 @@
         return true;
     }
     function install() { wrapAfter('fillAveragedGPS', afterFill); try { ui(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vyska-gps:ui'); } }
-    // ---- Nastavení → AR & přesnost (vzor js/prichyceni.js) ----
+    // ---- Nastavení → Mapa a body → Přesnost z mapy (vzor js/prichyceni.js) ----
     function ui() {
         var uz = el('s-vyska-teren');
         if (uz) { uz.checked = autoZap(); return; }
@@ -193,7 +193,10 @@
         r.innerHTML = '<span class="st-lab">' + esc(T('Výška bodu z terénního modelu')) + '<small>' + esc(T('u bodu z GPS vezme výšku z DMR 5G (±0,3 m) místo GPS (±2–4 m); při velkém rozdílu (násep, zásyp) se zeptá')) + '</small></span>'
             + '<label class="st-sw"><input type="checkbox" id="s-vyska-teren"' + (autoZap() ? ' checked' : '') + '><span class="st-sw-face"></span></label>';
         var za = el('s-prichyceni'), radek = za && za.closest ? za.closest('.st-row') : null;
-        if (radek && radek.parentNode === tab) tab.insertBefore(r, radek.nextSibling); else tab.appendChild(r);
+        // patří do sekce „Přesnost z mapy" hned za přichytávání (js/nastaveni-poradek.js ji i s řádky stěhuje
+        // na stránku Mapa a body); na konec stránky by spadl do sběrné „Další volby"
+        if (!radek || !radek.parentNode) return;   // řádek přichytávání ještě není — příští otevření Nastavení
+        radek.parentNode.insertBefore(r, radek.nextSibling);
         r.querySelector('input').addEventListener('change', function (ev) { try { localStorage.setItem(LS, JSON.stringify({ vyp: !ev.target.checked })); } catch (e) { /* nic */ } });
     }
     document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"]')) setTimeout(ui, 80); } catch (e) { /* nic */ } }, true);

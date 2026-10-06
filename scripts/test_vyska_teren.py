@@ -4,7 +4,7 @@ u"""VÝŠKA BODU Z TERÉNNÍHO MODELU JAKO VÝCHOZÍ (6. 10. 2026, hodnocení �
 Kontroluje: bod z průměrované GPS dostane do pole Z výšku z DMR 5G sám (a hlášku, že je
 z terénu), „Vrátit výšku z GPS“ vrátí GPS; uložený bod má prov.z = 'dmr' a karta bodu u výšky
 píše „(terén)“; při velkém rozdílu GPS − terén (násep, zásyp) se nic samo nemění a nabídne se
-volba jako dřív; přepínač v Nastavení → AR & přesnost automatiku vypne.
+volba jako dřív; přepínač v Nastavení → Mapa a body automatiku vypne.
 
 python scripts/test_vyska_teren.py [port]
 """
@@ -78,7 +78,7 @@ async def beh(url):
         ok('B1 velký rozdíl (6 m, násep/zásyp): nic se samo nemění, nabídne volbu', r['z'] == '300.00' and r['use'] and not r['back'], r)
 
         await page.evaluate("() => { openSettings(); if (typeof switchTab === 'function') switchTab('tab-ar'); AGVyska.ui(); }")
-        ok('S1 Nastavení → AR & přesnost má přepínač „Výška bodu z terénního modelu“ (zapnutý)', await page.evaluate("() => { const i = document.getElementById('s-vyska-teren'); return !!i && i.checked; }"))
+        ok('S1 Nastavení → Mapa a body má přepínač „Výška bodu z terénního modelu“ (zapnutý)', await page.evaluate("() => { const i = document.getElementById('s-vyska-teren'); return !!i && i.checked; }"))
         await page.evaluate("() => { document.getElementById('s-vyska-teren').click(); document.getElementById('settings-modal').style.display = 'none'; }")
         r = await page.evaluate(VYPLN, 1.2)
         ok('S2 vypnuto: výška zůstane z GPS, terén se jen nabídne', r['z'] == '300.00' and r['use'] and not r['back'], r)

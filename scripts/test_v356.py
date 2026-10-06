@@ -129,6 +129,10 @@ async def beh(url):
         async def api(route, req):
             u = req.url
             # data vektorové mapy (/mapa/…) nejsou volání účtů — od v360 se mapa zapíná sama (18. 9. 2026)
+            # výzva pro Face ID (/passkey/login/start) — brána si ji od 6. 10. 2026 stahuje předem, ať Face ID
+            # naskočí přímo v klepnutí (js/passkey.js); s obnovou hesla nesouvisí
+            if '/passkey/login/start' in u:
+                return await route.fulfill(status=200, content_type='application/json', headers={'Access-Control-Allow-Origin': '*'}, body=json.dumps({'ok': True, 'challenge': 'AAAA', 'rpId': 'localhost'}))
             if ('workers.dev' in u and '/mapa/' not in u) or '/account/recover' in u or u.endswith('/login') or '/register' in u:
                 body = None
                 try: body = json.loads(req.post_data or 'null')
