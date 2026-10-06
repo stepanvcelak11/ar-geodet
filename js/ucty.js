@@ -2683,7 +2683,7 @@
         //   teprve stahoval js/passkey.js a výzva ze serveru — na slabém signálu gesto vypršelo
         //   a Safari žádost zamítl („Přihlášení přes Face ID bylo zrušené“). Modul i výzva se proto
         //   chystají HNED, jak se brána ukáže, a klepnutí volá Face ID bez čekání.
-        if (pkBtn) nactiPasskey(function () { if (window.AGPasskey && AGPasskey.predpriprav) AGPasskey.predpriprav(gateApi); });
+        if (pkBtn) nactiPasskey(function () { if (window.AGPasskey && AGPasskey.predpriprav && AGPasskey.podpora()) AGPasskey.predpriprav(gateApi); });
         if (pkBtn) pkBtn.onclick = function () {
             pkBtn.disabled = true; errEl.textContent = 'Ověřuji…';
             var jdi = function () {

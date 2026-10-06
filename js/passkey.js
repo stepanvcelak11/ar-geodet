@@ -37,7 +37,10 @@
     var LS_ASK = 'agPasskeyNabidka_v1';
     function t(cs) { try { return window.AGJazyk ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } }
     function swallow(e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'passkey:' + kde); } catch (x) { /* nic */ } }
-    function podpora() { return !!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.create && navigator.credentials.get); }
+    // Přístupový klíč se váže na DOMÉNU (rpId) — na IP adrese (127.0.0.1, 192.168.…) ho prohlížeč nevytvoří ani
+    // nepoužije a server výzvu odmítne (400). Tam se o něj appka nepokouší (ani výzvou předem na bráně).
+    function naIp() { try { var h = String(location.hostname || ''); return /^\d{1,3}(\.\d{1,3}){3}$/.test(h) || h.indexOf(':') >= 0 || h.charAt(0) === '['; } catch (e) { return false; } }
+    function podpora() { return !!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.create && navigator.credentials.get) && !naIp(); }
     function b64u(buf) { var b = new Uint8Array(buf), s = ''; for (var i = 0; i < b.length; i++) s += String.fromCharCode(b[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
     function dec(s) { s = String(s || '').replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; var bin = atob(s), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
     function st() { try { return JSON.parse(localStorage.getItem(LS) || '{}') || {}; } catch (e) { return {}; } }
