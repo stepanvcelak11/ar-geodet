@@ -2,6 +2,17 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 409,
+      "datum": "2026-10-06",
+      "nadpis": "Dokładność telefonu prosto w pracy",
+      "body": [
+        "Okrąg niepewności: wokół punktu, do którego prowadzi aplikacja, AR i mapa pokazują obszar, gdzie punkt najpewniej leży, a pod odległością jest „szukaj w promieniu ±X m”. Wyłączysz go na ekranie Dlaczego ±4 m?",
+        "Czy telefon wystarczy? Tyczenie, biegun, kubatura obejściem i inne narzędzia po otwarciu powiedzą, gdy telefon mierzy gorzej, niż wynik potrzebuje. Nic nie jest blokowane.",
+        "Gdy zatrzymasz się przy TB, ZhB lub PBPP, aplikacja sama zaproponuje korektę GPS według niego.",
+        "Wysokość punktu z GPS pochodzi teraz z modelu terenu (±0,3 m zamiast ±2–4 m). Przy dużej różnicy (nasyp, zasypka) zapyta. Karta punktu pokazuje, skąd jest wysokość."
+      ]
+    },
+    {
       "v": 408,
       "datum": "2026-10-06",
       "nadpis": "Poprawka: logowanie przez Face ID",

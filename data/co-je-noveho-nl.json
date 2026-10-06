@@ -2,6 +2,17 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 409,
+      "datum": "2026-10-06",
+      "nadpis": "Telefoonnauwkeurigheid waar je werkt",
+      "body": [
+        "Onzekerheidscirkel: rond het punt waar de app je naartoe leidt tonen AR en kaart het gebied waar het punt waarschijnlijk ligt, en onder de afstand staat „zoek binnen ±X m”. Uitzetten op het scherm Waarom ±4 m?",
+        "Is de telefoon goed genoeg? Uitzetten, polaire opname, volume door rondlopen en andere hulpmiddelen melden bij openen wanneer de telefoon slechter meet dan het resultaat nodig heeft. Niets wordt geblokkeerd.",
+        "Als je stopt bij een TB, ZhB of PBPP, biedt de app aan de GPS ermee te corrigeren.",
+        "De hoogte van een GPS-punt komt nu uit het terreinmodel (±0,3 m in plaats van ±2–4 m). Bij een groot verschil (talud, aanvulling) vraagt hij het. De puntkaart toont waar de hoogte vandaan komt."
+      ]
+    },
+    {
       "v": 408,
       "datum": "2026-10-06",
       "nadpis": "Oplossing: inloggen met Face ID",

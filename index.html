@@ -125,8 +125,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=408">
-    <link rel="stylesheet" href="css/style.css?v=408">
+    <link rel="stylesheet" href="css/tokens.css?v=409">
+    <link rel="stylesheet" href="css/style.css?v=409">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -257,7 +257,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=408">
+    <link rel="stylesheet" href="css/vylepseni.css?v=409">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -1543,6 +1543,10 @@
          js/lazy-tools.js: ten dotahuje 10 nástrojů AŽ NA KLEPNUTÍ (zástupná
          dlaždice), tenhle bere zbytek a natáhne ho na pozadí, jakmile je appka
          na obrazovce. Ťuknutí na dok / Nástroje / přihlášení dotáhne zbytek hned. -->
+    <!-- ES MODULY (6. 10. 2026, návrh 8): čistá logika z js/esm/*.mjs vystavená jako window.AGEsm.
+         Modulový skript je odložený jako `defer` a doběhne před DOMContentLoaded — odložené
+         moduly z lazy-load.js ho tedy vždy najdou. build.mjs .mjs nebalí, tag zůstává i v nasazené verzi. -->
+    <script type="module" src="js/esm/index.mjs"></script>
     <script defer src="js/lazy-load.js"></script>
     <script defer src="js/track-ar.js"></script>
     <script defer src="js/linalg.js"></script>
@@ -1824,6 +1828,12 @@
     <script type="ag/lazy" data-src="js/zaloha-ucet.js"></script>
     <script type="ag/lazy" data-src="js/pristupnost.js"></script>
     <script type="ag/lazy" data-src="js/moje-presnost.js"></script>
+    <!-- KRUH NEJISTOTY (odpojitelné, 6. 10. 2026): oblast kolem navigovaného bodu v AR i mapě, řádek „hledej v okruhu ±X m“ v HUD -->
+    <script type="ag/lazy" data-src="js/nejistota.js"></script>
+    <!-- STAČÍ NA TO TELEFON? (odpojitelné, 6. 10. 2026): u nástrojů s `acc` v registru řekne, když telefon měří hůř, než výsledek potřebuje -->
+    <script type="ag/lazy" data-src="js/presnost-nastroje.js"></script>
+    <!-- STOJÍŠ U ÚŘEDNÍHO BODU? (odpojitelné, 6. 10. 2026): po zastavení u TB/ZhB/PBPP nabídne opravu GPS podle něj (js/ref-calibration.js) -->
+    <script type="ag/lazy" data-src="js/kotva-nabidka.js"></script>
     <script type="ag/lazy" data-src="js/passkey.js"></script>
     <script type="ag/lazy" data-src="js/ucty-okna.js"></script>
     <!-- ODHADNI TO (odpojitelné) — cvičiště odhadu vzdálenosti a azimutu proti

@@ -2,6 +2,17 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 409,
+      "datum": "2026-10-06",
+      "nadpis": "La precisión del teléfono donde trabajas",
+      "body": [
+        "Círculo de incertidumbre: alrededor del punto al que te guía la app, la AR y el mapa muestran el área donde probablemente está el punto, y bajo la distancia aparece «busca en un radio de ±X m». Se desactiva en la pantalla ¿Por qué ±4 m?",
+        "¿Basta el teléfono? Replanteo, radiación, volumen rodeando y otras herramientas avisan al abrirse cuando el teléfono mide peor de lo que necesita el resultado. No se bloquea nada.",
+        "Al detenerte en un TB, ZhB o PBPP, la app ofrece corregir el GPS con él.",
+        "La altura de un punto GPS ahora sale del modelo del terreno (±0,3 m en lugar de ±2–4 m). Si la diferencia es grande (terraplén, relleno) pregunta. La ficha del punto muestra de dónde es la altura."
+      ]
+    },
+    {
       "v": 408,
       "datum": "2026-10-06",
       "nadpis": "Corrección: inicio de sesión con Face ID",

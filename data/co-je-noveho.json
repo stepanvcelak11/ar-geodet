@@ -2,6 +2,17 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 409,
+   "datum": "2026-10-06",
+   "nadpis": "Přesnost telefonu přímo v práci",
+   "body": [
+    "Kruh nejistoty: kolem bodu, ke kterému tě appka vede, je v AR i v mapě oblast, kde bod nejspíš leží, a pod vzdáleností „hledej v okruhu ±X m“. Vypnout jde na obrazovce Proč ±4 m?",
+    "Stačí na to telefon? Vytyčení, rajón, kubatura obejitím a další nástroje po spuštění řeknou, když telefon zrovna měří hůř, než výsledek potřebuje. Nic se neblokuje.",
+    "Když se zastavíš u TB, ZhB nebo PBPP, appka sama nabídne opravit podle něj GPS.",
+    "Výška bodu z GPS se bere z terénního modelu DMR 5G (±0,3 m místo ±2–4 m). Při velkém rozdílu (násep, zásyp) se zeptá. Karta bodu ukazuje, odkud výška je."
+   ]
+  },
+  {
    "v": 408,
    "datum": "2026-10-06",
    "nadpis": "Oprava: přihlášení přes Face ID",

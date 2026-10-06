@@ -46,6 +46,11 @@
 
     // ---- co říkají senzory ---------------------------------------------------------------
     function senzory() {
+        // KRUH NEJISTOTY (js/nejistota.js, 6. 10. 2026) počítá TÝMŽ postupem — když je načtený, bere se
+        // odtud, ať obrazovka a kruh v AR nikdy neukážou dvě různá čísla
+        if (window.AGNejistota && AGNejistota.senzory) {
+            try { var sn = AGNejistota.senzory(), bl = nejblizsi(); sn.d = bl.d; sn.dNazev = bl.dNazev; return sn; } catch (e) { swallow(e, 'nejistota'); }
+        }
         var acc = g('currentGpsAccuracy');
         var fix = window.AGFix || null;
         var gps = (acc && acc > 0) ? +acc : null;
@@ -59,7 +64,11 @@
         if (cal && cal.ts && (Date.now() - cal.ts) < 30 * 60 * 1000) { kompas = 1; kompasZdroj = t('sever srovnaný podle bodu'); }
         else if (spread != null && spread > 0) { kompas = Math.max(1, Math.min(15, spread)); kompasZdroj = t('rozptyl kompasu za posledních pár sekund'); }
         else { kompas = 5; kompasZdroj = t('kompas telefonu bez srovnání (typicky ±5°)'); }
-        // nejbližší viditelný bod = vzdálenost, se kterou student právě pracuje
+        var bl = nejblizsi();
+        return { gps: gps, prumer: prumer, kompas: kompas, kompasZdroj: kompasZdroj, d: bl.d, dNazev: bl.dNazev, cal: !!(cal && cal.ts) };
+    }
+    // nejbližší viditelný bod = vzdálenost, se kterou student právě pracuje
+    function nejblizsi() {
         var d = null, dNazev = null;
         try {
             var lat = g('userLat'), lng = g('userLng'), pts = g('arPoints');
@@ -73,7 +82,7 @@
                 if (best) { d = best.d; dNazev = best.n; }
             }
         } catch (e) { swallow(e, 'nejblizsi'); }
-        return { gps: gps, prumer: prumer, kompas: kompas, kompasZdroj: kompasZdroj, d: d, dNazev: dNazev, cal: !!(cal && cal.ts) };
+        return { d: d, dNazev: dNazev };
     }
 
     // ---- rozpočet ----------------------------------------------------------------------------
@@ -168,7 +177,11 @@
             + '<div class="cr-sl"><label><span>' + t('Vzdálenost k bodu') + '</span><b id="ag-cr-d-v"></b></label><input type="range" id="ag-cr-d" min="5" max="300" step="5" value="' + Math.round(_stav.d) + '"></div>'
             + '<div class="cr-sl"><label><span>' + t('Chyba kompasu') + '</span><b id="ag-cr-k-v"></b></label><input type="range" id="ag-cr-k" min="1" max="15" step="1" value="' + Math.round(_stav.kompas) + '"></div>'
             + '<div class="cr-sl"><label><span>' + t('Přesnost GPS') + '</span><b id="ag-cr-g-v"></b></label><input type="range" id="ag-cr-g" min="3" max="150" step="1" value="' + Math.round(_stav.gps * 10) + '"></div>'
-            + '<div class="cr-tip" id="ag-cr-tip"></div>';
+            + '<div class="cr-tip" id="ag-cr-tip"></div>'
+            + (window.AGNejistota ? '<label class="cr-nej" style="display:flex;gap:10px;align-items:center;margin-top:10px;min-height:40px;font-size:calc(13px * var(--ag-font-scale,1));">'
+                + '<input type="checkbox" id="ag-cr-nej"' + (AGNejistota.zapnuto() ? ' checked' : '') + '> ' + t('Ukazovat tuhle oblast kolem navigovaného bodu v AR i v mapě') + '</label>' : '');
+        var nej = body.querySelector('#ag-cr-nej');
+        if (nej) nej.addEventListener('change', function () { AGNejistota.zapni(nej.checked); });
         refresh();
     }
     function refresh() {

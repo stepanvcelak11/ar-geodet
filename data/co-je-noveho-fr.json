@@ -2,6 +2,17 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 409,
+      "datum": "2026-10-06",
+      "nadpis": "La précision du téléphone là où tu travailles",
+      "body": [
+        "Cercle d’incertitude : autour du point vers lequel l’app te guide, la RA et la carte montrent la zone où le point se trouve le plus probablement, et sous la distance s’affiche « cherche dans un rayon de ±X m ». À désactiver sur l’écran Pourquoi ±4 m ?",
+        "Le téléphone suffit-il ? Implantation, rayonnement, volume en faisant le tour et d’autres outils préviennent à l’ouverture quand le téléphone mesure moins bien que le résultat ne l’exige. Rien n’est bloqué.",
+        "Quand tu t’arrêtes près d’un TB, ZhB ou PBPP, l’app propose de corriger le GPS avec lui.",
+        "L’altitude d’un point GPS vient désormais du modèle de terrain (±0,3 m au lieu de ±2–4 m). En cas de grand écart (remblai, comblement), elle demande. La fiche du point indique d’où vient l’altitude."
+      ]
+    },
+    {
       "v": 408,
       "datum": "2026-10-06",
       "nadpis": "Correctif : connexion avec Face ID",

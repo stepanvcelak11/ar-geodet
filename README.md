@@ -51,6 +51,7 @@ Kdyby byl Source přepnutý na `Deploy from a branch`, job „Publikovat" selže
 │   ├── geo-core.js   # geodetické výpočty (S-JTSK, vzdálenosti) — kryté testy
 │   ├── lazy-load.js  # odkládací vrstva: 81 modulů se <script type="ag/lazy">
 │   ├── lazy-tools.js # 29 nástrojů se stáhne AŽ na klepnutí (zástupná dlaždice)
+│   ├── esm/          # ES MODULY: čistá logika bez DOM (presnost.mjs…), můstek index.mjs → window.AGEsm
 │   └── lib/          # cizí knihovny (Leaflet, proj4, esri-leaflet, satellite…)
 ├── data/             # slovníky jazyků, předpisy, zpravodaj
 ├── scripts/          # vývojářské nástroje: kontroly do CI, generátory, testy
@@ -66,6 +67,14 @@ Kdyby byl Source přepnutý na `Deploy from a branch`, job „Publikovat" selže
 > do něj **jen moduly spouštěné při startu**. Odložené (`type="ag/lazy"`)
 > i nástroje z `js/lazy-tools.js` zůstávají samostatnými soubory, jinak by se
 > celá odkládací vrstva v nasazené verzi obešla.
+>
+> **ES moduly (od 6. 10. 2026, postupný převod).** Nová čistá logika (výpočty bez DOM
+> a globálů) se píše jako ES modul do `js/esm/*.mjs` s `export function …`. Klasické
+> skripty ji berou z `window.AGEsm.<modul>` — plní ho jediný můstek `js/esm/index.mjs`
+> (`<script type="module">` v `index.html`, doběhne před odloženými moduly). Testy běží
+> přímo v Node: `node --test scripts/test_esm.mjs`. Build `.mjs` nebalí (tag zůstává),
+> `gen_sw_assets.py` dá do předcache i importované moduly a `check_js.py` je kontroluje
+> jako moduly. Moduly s DOM a s obalováním cizích funkcí zatím zůstávají klasické.
 >
 > Nástroje, které se otevírají z dlaždice, patří do odkládací vrstvy
 > (`type="ag/lazy"`) — hlídá to `scripts/check_start_budget.py` v CI.
