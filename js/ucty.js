@@ -2679,14 +2679,20 @@
             ov.querySelector('#agg-join').classList.add('on');
         }
         var pkBtn = ov.querySelector('#agg-pk');
+        // ⚠ GESTO (6. 10. 2026): iPhone pustí Face ID jen krátce po klepnutí. Dřív se po klepnutí
+        //   teprve stahoval js/passkey.js a výzva ze serveru — na slabém signálu gesto vypršelo
+        //   a Safari žádost zamítl („Přihlášení přes Face ID bylo zrušené“). Modul i výzva se proto
+        //   chystají HNED, jak se brána ukáže, a klepnutí volá Face ID bez čekání.
+        if (pkBtn) nactiPasskey(function () { if (window.AGPasskey && AGPasskey.predpriprav) AGPasskey.predpriprav(gateApi); });
         if (pkBtn) pkBtn.onclick = function () {
-            pkBtn.disabled = true; errEl.textContent = 'Ověřuji…'; showJoin();
-            nactiPasskey(function () {
+            pkBtn.disabled = true; errEl.textContent = 'Ověřuji…';
+            var jdi = function () {
                 if (!window.AGPasskey) { pkBtn.disabled = false; errEl.textContent = 'Přihlášení přes Face ID teď není k dispozici.'; return; }
-                AGPasskey.prihlasit(gateApi).then(function () {
-                    usageLog('login', 'passkey');
-                }, function (e) { pkBtn.disabled = false; errEl.textContent = (e && e.message) || 'Přihlášení přes Face ID se nepovedlo.'; });
-            });
+                AGPasskey.prihlasit(gateApi).then(function (d) {
+                    usageLog('login', d && d.ownerOnly ? 'passkey-vlastnik' : 'passkey');
+                }, function (e) { pkBtn.disabled = false; showJoin(); errEl.textContent = (e && e.message) || 'Přihlášení přes Face ID se nepovedlo.'; });
+            };
+            if (window.AGPasskey) jdi(); else nactiPasskey(jdi);
         };
         ov.querySelector('#agg-show-join').onclick = function () {
             showJoin();
@@ -3171,7 +3177,9 @@
         gateCheck: gateCheck,   // průvodce (ucty-admin.js) po zavření bránu vrátí hned, ne až tikem
         showFirmy: showFirmy,
         // Face ID / odemknutí telefonem (WebAuthn) — pro vlastníka (js/vlastnik.js)
-        bio: { supported: bioSupported, available: bioAvailable, enroll: bioEnroll, verify: bioVerify, forget: bioForget },
+        bio: { supported: bioSupported, available: bioAvailable, enroll: bioEnroll, verify: bioVerify, forget: bioForget,
+            // js/passkey.js: klíč „QTRIG vlastník“ ze serveru slouží i jako místní odemknutí (zlaté tlačítko)
+            remember: function (userId, credId) { if (!userId || !credId) return; var o = bioStore(); o[userId] = { id: String(credId), ts: Date.now() }; bioSave(o); } },
         listProfiles: listProfiles,
         profileLimit: profileLimit,
         switchProfile: switchProfile,

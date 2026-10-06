@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 408,
+   "datum": "2026-10-06",
+   "nadpis": "Oprava: přihlášení přes Face ID",
+   "body": [
+    "Face ID se po klepnutí na Přihlásit přes Face ID občas samo zrušilo — iPhone ho pustí jen hned po klepnutí a appka mezitím ještě čekala na server. Teď si všechno připraví předem, jakmile se ukáže přihlášení.",
+    "Vlastník: Face ID je nově přístupový klíč „QTRIG vlastník“ v Klíčence na iCloudu, takže funguje i po smazání appky nebo na novém telefonu. Appka ho nabídne po přihlášení jménem VLASTNIK.",
+    "Když v nabídce iPhonu vybereš starý klíč, který jen odemykal telefon, appka řekne, který klíč vybrat, místo hlášky, že ho server nezná."
+   ]
+  },
+  {
    "v": 407,
    "datum": "2026-10-06",
    "nadpis": "Toti jen v Geo kartičkách",

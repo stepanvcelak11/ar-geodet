@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 408,
+      "datum": "2026-10-06",
+      "nadpis": "Fix: Face ID sign-in",
+      "body": [
+        "Face ID sometimes cancelled itself after tapping Sign in with Face ID — the iPhone allows it only right after the tap and the app was still waiting for the server. Now everything is prepared as soon as the sign-in screen appears.",
+        "Owner: Face ID is now the “QTRIG vlastník” passkey in iCloud Keychain, so it works even after deleting the app or on a new phone. The app offers it after signing in with the name VLASTNIK.",
+        "If you pick an old key in the iPhone menu that only unlocked the phone, the app tells you which key to pick instead of saying the server does not know it."
+      ]
+    },
+    {
       "v": 407,
       "datum": "2026-10-06",
       "nadpis": "Toti only in Geo cards",

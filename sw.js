@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v407';   // 6. 10.: maskot Toti jen v Geo kartičkách
+const SHELL_CACHE = 'argeodet-shell-v408';   // 6. 10.: oprava Face ID vlastníka (výzva předem, klíč QTRIG vlastník na serveru, worker v32)
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=407',
-    './css/style.css?v=407',
-    './css/vylepseni.css?v=407',
+    './css/tokens.css?v=408',
+    './css/style.css?v=408',
+    './css/vylepseni.css?v=408',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',

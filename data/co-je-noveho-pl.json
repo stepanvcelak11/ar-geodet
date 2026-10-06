@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 408,
+      "datum": "2026-10-06",
+      "nadpis": "Poprawka: logowanie przez Face ID",
+      "body": [
+        "Face ID po stuknięciu Zaloguj przez Face ID czasem samo się anulowało — iPhone pozwala na nie tylko tuż po stuknięciu, a aplikacja jeszcze czekała na serwer. Teraz wszystko przygotowuje się zaraz po pojawieniu się logowania.",
+        "Właściciel: Face ID to teraz klucz dostępu „QTRIG vlastník” w pęku kluczy iCloud, więc działa także po usunięciu aplikacji lub na nowym telefonie. Aplikacja zaproponuje go po zalogowaniu nazwą VLASTNIK.",
+        "Gdy w menu iPhone’a wybierzesz stary klucz, który tylko odblokowywał telefon, aplikacja powie, który klucz wybrać, zamiast komunikatu, że serwer go nie zna."
+      ]
+    },
+    {
       "v": 407,
       "datum": "2026-10-06",
       "nadpis": "Toti tylko w Geo kartach",

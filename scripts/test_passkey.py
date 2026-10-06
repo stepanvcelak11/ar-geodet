@@ -7,6 +7,11 @@ pro přenos; OVĚŘENÍ dělají funkce z cloud/worker.js (pkOverRegistraci, pkO
 v prohlížeči se skutečným WebCrypto — stejný kód, který běží na Cloudflare. Podvržený podpis nebo
 jiná výzva musí neprojít.
 
+Od 6. 10. 2026 (oprava Face ID vlastníka): výzva stažená PŘEDEM se při přihlášení použije bez dalšího
+dotazu (Face ID v gestu klepnutí); klíč „QTRIG vlastník“ bez účtu (/owner/passkey/*) — po „přeinstalaci“
+se jím vlastník přihlásí a klíč se vrátí do telefonu; starý místní klíč „ag:…“ z nabídky iPhonu appka
+pozná a neposílá ho na server.
+
 python scripts/test_passkey.py [port]
 """
 import os
@@ -25,7 +30,7 @@ from playwright.async_api import async_playwright  # noqa: E402
 PORT = next((int(a) for a in sys.argv[1:] if a.isdigit()), 9092)
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VYSLEDKY = []
-S = {'reg': None, 'login': None, 'ch': [], 'owner': False}
+S = {'reg': None, 'login': None, 'ch': [], 'owner': False, 'nstart': 0, 'nfinish': 0, 'oreg': None}
 OWNER = 'vlastnik-' + 'k' * 24
 
 
@@ -47,6 +52,16 @@ async def pk_route(route, request):
 
     def odp(d, st=200):
         return route.fulfill(status=st, content_type='application/json', headers=hdr, body=json.dumps(d))
+    if '/owner/passkey/start' in u:
+        if request.headers.get('x-owner-key') != OWNER:
+            return await odp({'error': 'Špatný klíč.'}, 403)
+        ch = b64u(os.urandom(32)); S['ch'].append(ch)
+        return await odp({'ok': True, 'challenge': ch, 'rpId': 'localhost', 'user': {'id': b64u(b'!vlastnik'), 'name': 'QTRIG vlastník', 'displayName': 'QTRIG vlastník'}, 'exclude': []})
+    if '/owner/passkey/finish' in u:
+        if request.headers.get('x-owner-key') != OWNER:
+            return await odp({'error': 'Špatný klíč.'}, 403)
+        S['oreg'] = b
+        return await odp({'ok': True, 'owner': True})
     if '/passkey/register/start' in u:
         ch = b64u(os.urandom(32)); S['ch'].append(ch)
         return await odp({'ok': True, 'challenge': ch, 'rpId': 'localhost', 'user': {'id': b64u(b'acc1'), 'name': 'ABCDEFGH', 'displayName': 'Tester'}, 'exclude': []})
@@ -54,9 +69,13 @@ async def pk_route(route, request):
         S['reg'] = b; S['owner'] = b.get('ownerKey') == OWNER
         return await odp({'ok': True, 'owner': S['owner']})
     if '/passkey/login/start' in u:
+        S['nstart'] += 1
         ch = b64u(os.urandom(32)); S['ch'].append(ch)
         return await odp({'ok': True, 'challenge': ch, 'rpId': 'localhost', 'timeout': 60000})
     if '/passkey/login/finish' in u:
+        S['nfinish'] += 1
+        if S['oreg'] and b.get('id') == S['oreg'].get('id'):
+            return await odp({'ok': True, 'owner': True, 'ownerOnly': True, 'ownerKey': OWNER, 'passkey': True})
         S['login'] = b
         out = {'token': 'TOK-PASSKEY', 'ucet': {'id': 'acc1', 'code': 'ABCDEFGH', 'name': 'Tester', 'tarif': 'pro', 'tarifDo': 0},
                'user': {'id': 'u1', 'name': 'Tester', 'role': 'admin'}, 'prostory': [], 'config': None, 'passkey': True}
@@ -101,11 +120,49 @@ async def beh():
 
             # appka „přeinstalovaná“: smazat vše kromě autentizátoru, přihlásit se klíčem
             await page.evaluate("() => { ['agVlastnik_v1', 'agFbKey_v1', 'agPasskey_v1'].forEach(k => localStorage.removeItem(k)); }")
+            # výzva stažená předem (brána ji chystá, jak se ukáže) → přihlášení už se na ni neptá
+            pp = await page.evaluate("() => AGPasskey.predpriprav().then(v => ({ v, ch: !!(AGPasskey._test.vyzva() || {}).ch }))")
+            n0 = S['nstart']
             l = await page.evaluate("() => AGPasskey.prihlasit().then(d => ({ ok: true, user: d.user }), e => ({ chyba: String(e && e.message || e) }))")
+            ok('G2 výzva připravená předem; přihlášení ji použije bez dalšího dotazu (Face ID hned v gestu)', pp.get('v') is True and pp.get('ch') and S['nstart'] == n0, (pp, n0, S['nstart']))
             ok('L1 přihlášení přes Face ID: podpis odeslán, přihlášení převzato', l.get('ok') and S['login'] and S['login'].get('signature'), (l, S['login'] and list(S['login'].keys())))
             st = await page.evaluate("() => ({ tok: localStorage.getItem('agFirmaTok_v1') || '', owner: localStorage.getItem('agVlastnik_v1'), key: localStorage.getItem('agFbKey_v1') })")
             ok('L2 token z přihlášení klíčem uložen', 'TOK-PASSKEY' in st['tok'], st)
             ok('L3 klíč vlastníka obnoven do telefonu (vlastnický režim bez psaní klíče)', st['owner'] == '1' and st['key'] == OWNER, st)
+
+            # ---- KLÍČ VLASTNÍKA BEZ ÚČTU (6. 10. 2026) ----
+            await page.evaluate("() => new Promise(r => AGLazy.need('js/vlastnik.js', r))")
+            await page.evaluate("(k) => { localStorage.setItem('agVlastnik_v1', '1'); localStorage.setItem('agFbKey_v1', k); }", OWNER)
+            pz = await page.evaluate("() => AGPasskey.pripravZapnuti('vlastnik')")
+            zv = await page.evaluate("() => AGPasskey.zapnoutVlastnika().then(v => v, e => ({ chyba: String(e && e.message || e) }))")
+            bio = await page.evaluate("() => JSON.parse(localStorage.getItem('agFirmaBio_v1') || '{}').vlastnik || null")
+            ok('O1 zapnutí pro vlastníka: klíč „QTRIG vlastník“ na serveru (s X-Owner-Key)', pz is True and zv.get('ok') and S['oreg'] and S['oreg'].get('alg') == -7, (pz, zv))
+            ok('O2 tentýž klíč jako místní odemknutí pro zlaté tlačítko (bio „vlastnik“)', bio and bio.get('id') == S['oreg']['id'], bio)
+            # jen klíč vlastníka v autentizátoru (iPhone by ukázal nabídku; virtuální autentizátor by vybral sám)
+            cr = await cdp.send('WebAuthn.getCredentials', {'authenticatorId': auth['authenticatorId']})
+            for c in cr['credentials']:
+                if base64.b64decode(c.get('userHandle') or '') != b'!vlastnik':
+                    await cdp.send('WebAuthn.removeCredential', {'authenticatorId': auth['authenticatorId'], 'credentialId': c['credentialId']})
+            await page.evaluate("() => { ['agVlastnik_v1', 'agFbKey_v1', 'agPasskey_v1', 'agFirmaBio_v1'].forEach(k => localStorage.removeItem(k)); }")
+            ov = await page.evaluate("() => AGPasskey.prihlasit().then(d => ({ ok: true, ownerOnly: !!d.ownerOnly }), e => ({ chyba: String(e && e.message || e) }))")
+            st2 = await page.evaluate("() => ({ owner: localStorage.getItem('agVlastnik_v1'), key: localStorage.getItem('agFbKey_v1'), bio: (JSON.parse(localStorage.getItem('agFirmaBio_v1') || '{}').vlastnik || {}).id || '' })")
+            ok('O3 po „přeinstalaci“ přihlášení klíčem vlastníka: režim vlastníka a klíč zpátky v telefonu', ov.get('ok') and ov.get('ownerOnly') and st2['owner'] == '1' and st2['key'] == OWNER, (ov, st2))
+            ok('O4 a zlaté tlačítko příště i bez signálu (místní odemknutí uložené)', st2['bio'] == S['oreg']['id'], st2)
+
+            # ---- STARÝ MÍSTNÍ KLÍČ Z NABÍDKY (userHandle „ag:…“) ----
+            cr = await cdp.send('WebAuthn.getCredentials', {'authenticatorId': auth['authenticatorId']})
+            for c in cr['credentials']:
+                await cdp.send('WebAuthn.removeCredential', {'authenticatorId': auth['authenticatorId'], 'credentialId': c['credentialId']})
+            en = await page.evaluate("() => AGUcty.bio.enroll({ id: 'u-pepa', name: 'Pepa' })")
+            nf = S['nfinish']
+            lm = await page.evaluate("() => AGPasskey.prihlasit().then(d => ({ ok: true }), e => ({ chyba: String(e && e.message || e) }))")
+            ok('M1 místní klíč člověka z firmy: srozumitelná hláška a nic na server', en and 'chyba' in lm and 'odemyká telefon' in lm['chyba'] and S['nfinish'] == nf, (en, lm))
+            await page.evaluate("() => { localStorage.removeItem('agFbKey_v1'); localStorage.removeItem('agVlastnik_v1'); }")
+            m2 = await page.evaluate("() => { try { AGPasskey._test.mistniKlic('ag:vlastnik'); return 'bez chyby'; } catch (e) { return e.message; } }")
+            ok('M2 starý „Vlastník aplikace“ bez klíče v telefonu → řekne, co dělat', 'Vlastník aplikace' in m2 and 'VLASTNIK' in m2, m2)
+            await page.evaluate("(k) => localStorage.setItem('agFbKey_v1', k)", OWNER)
+            m3 = await page.evaluate("() => { try { return AGPasskey._test.mistniKlic('ag:vlastnik'); } catch (e) { return { chyba: e.message }; } }")
+            ok('M3 starý „Vlastník aplikace“ s klíčem v telefonu → odemkne jako vlastník', m3.get('ownerOnly') and await page.evaluate("() => localStorage.getItem('agVlastnik_v1') === '1'"), m3)
 
             # ---- OVĚŘENÍ SKUTEČNÉHO PODPISU FUNKCEMI WORKERU (WebCrypto v prohlížeči) ----
             wsrc = io.open(os.path.join(ROOT, 'cloud', 'worker.js'), encoding='utf-8').read().replace('export default {', 'globalThis.WORKER = {')
@@ -116,7 +173,11 @@ async def beh():
             await har.goto(hurl)
             await har.add_script_tag(content=wsrc)
             ctxo = {'origin': url.split('/index.html')[0].rstrip('/'), 'rpId': 'localhost'}
-            reg_ch, log_ch = S['ch'][0], S['ch'][1]
+            # výzvy z clientData (appka si je stahuje i předem, pořadí v S['ch'] proto nesedí)
+            def vyzva_z(b):
+                c = b['clientDataJSON']
+                return json.loads(base64.urlsafe_b64decode(c + '=' * (-len(c) % 4)))['challenge']
+            reg_ch, log_ch = vyzva_z(S['reg']), vyzva_z(S['login'])
             v1 = await har.evaluate("([b, c, ch]) => pkOverRegistraci(b, c, ch)", [S['reg'], ctxo, reg_ch])
             ok('W1 worker ověří registraci (clientData, původ, výzva, SPKI P-256)', v1.get('ok'), v1)
             v2 = await har.evaluate("([b, pub, c, ch]) => pkOverPrihlaseni(b, pub, c, ch)", [S['login'], S['reg']['publicKey'], ctxo, log_ch])
