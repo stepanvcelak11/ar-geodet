@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-10-06",
-  "uvodnik": "Vydání 6. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-10-07",
+  "uvodnik": "Vydání 7. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,30 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "NSPS to Mark America’s 250th Anniversary with Mount Rushmore Celebration",
+      "perex": "Deadwood, South Dakota — The National Society of Professional Surveyors (NSPS), hosted by the South Dakota Society of Professional Land Surveyors, will gather in the Black Hills of South Dakota Octobe…",
+      "telo": "Deadwood, South Dakota — The National Society of Professional Surveyors (NSPS), hosted by the South Dakota Society of Professional Land Surveyors, will gather in the Black Hills of South Dakota October 18–20, 2026, for a special America 250th Celebration followed by the NSPS Fall Business Meeting. The event will bring together professional surveyors, NSPS leaders, young surveyors, state representatives, invited public officials, and guests from across the country for a day focused on the history, significance, and future of surveying in the United States. Activities begin Sunday, October 18, with registration and an opening social at The Lodge at Deadwood. The main celebration will take plac",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/10/06/nsps-to-mark-americas-250th-anniversary-with-mount-rushmore-celebration/?utm_source=rss&utm_medium=rss&utm_campaign=nsps-to-mark-americas-250th-anniversary-with-mount-rushmore-celebration",
+      "datum": "2026-10-06"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Carlson 2027 Arrives With New Tools and Greater Efficiency",
+      "perex": "Maysville, Kentucky, USA (October 6, 2026)– Carlson Software has released their latest CAD software versions—including Survey, Civil, Hydrology, GIS, Mining, and Point Cloud—introducing new features,…",
+      "telo": "Maysville, Kentucky, USA (October 6, 2026)– Carlson Software has released their latest CAD software versions—including Survey, Civil, Hydrology, GIS, Mining, and Point Cloud—introducing new features, enhancements, and powerful tools designed to boost user efficiency in the office. Carlson 2027 features IntelliCAD 14.1 as well as compatibility with AutoCAD® 2027. From native CAD tables and multiple ROW offsets to surface timelines and label style libraries, Carlson 2027 brings advances for every user. Here are a few of the highlights: Multiple Point Spreadsheet Editor The Edit Multiple Point routine offers a new Spreadsheet editor to facilitate quicker point edits with an “easy to read” inter",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/10/06/carlson-2027-arrives-with-new-tools-and-greater-efficiency/?utm_source=rss&utm_medium=rss&utm_campaign=carlson-2027-arrives-with-new-tools-and-greater-efficiency",
+      "datum": "2026-10-06"
     },
     {
       "rubrika": "Technologie",
@@ -72,30 +96,6 @@
       "proc": "",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/09/28/sfl-missions-inc-wins-contract-to-develop-next-generation-greenhouse-gas-monitoring-satellite-for-ghgsat/?utm_source=rss&utm_medium=rss&utm_campaign=sfl-missions-inc-wins-contract-to-develop-next-generation-greenhouse-gas-monitoring-satellite-for-ghgsat",
-      "datum": "2026-09-28"
-    },
-    {
-      "rubrika": "Z praxe",
-      "top": false,
-      "nadpis": "Blue Marble Geographics Advances its Office-to-Field Platform with New Global Mapper Offering",
-      "perex": "New offering consolidates previously separate desktop GIS applications and services into single subscription, simplifying geospatial workflows and laying the foundation for deeper connections to field…",
-      "telo": "New offering consolidates previously separate desktop GIS applications and services into single subscription, simplifying geospatial workflows and laying the foundation for deeper connections to field execution Hallowell, Maine, September 28, 2026 — Blue Marble Geographics (“Blue Marble”) today announced the availability of Global Mapper® subscription, a new offering available in three tiers, Essentials, Advanced, and Professional, that brings previously separate products and services together and equips practitioners with end-to-end capabilities suited to their role. Building on the strategic combination of Blue Marble and Avenza Systems, Inc. (“Avenza”) announced in April, the new offering",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/28/blue-marble-geographics-advances-its-office-to-field-platform-with-new-global-mapper-offering/?utm_source=rss&utm_medium=rss&utm_campaign=blue-marble-geographics-advances-its-office-to-field-platform-with-new-global-mapper-offering",
-      "datum": "2026-09-28"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Decisions That Matter",
-      "perex": "This month’s edition offers a broad look at how lidar, positioning, and GeoAI integrations continue to evolve.",
-      "telo": "This month’s edition offers a broad look at how lidar, positioning, and GeoAI integrations continue to evolve. This evolution is not simply the result of better technology, but of the ways those tools are being applied to increasingly complex real-world problems. We begin once more in Neuchâtel, Switzerland, where Marc Riedo, Matthew Parkan and Corentin Junod explore the use of high-density aerial lidar and deep learning to better understand forest structure. Their work demonstrates how detailed point clouds can support species classification, resource assessment and increasingly automated forest inventories. On page 20, Kevin Andrews takes us beyond the traditional measure of positioning pe",
-      "body": [],
-      "proc": "",
-      "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/09/27/decisions-that-matter/?utm_source=rss&utm_medium=rss&utm_campaign=decisions-that-matter",
       "datum": "2026-09-28"
     }
   ]
