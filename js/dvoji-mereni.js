@@ -57,6 +57,8 @@
                 return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
             });
     }
+    // překlad (js/jazyky.js); v češtině vrací původní text, {x} = zástupci
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function toast(m) {
         try { if (window.AG && AG.toast) return AG.toast(m); } catch (e) { swallow(e, 'dvoji-mereni:toast'); }
         try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) { swallow(e, 'dvoji-mereni:toast'); }
@@ -188,10 +190,10 @@
     function verdict(d) {
         var tr = null;
         try { if (window.AGDuvera) tr = AGDuvera.rozdil(d).trida; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dvoji-mereni:verdict'); }
-        if (d <= GOOD) return { c: tr || 'ok', t: 'Výborná shoda', h: 'Obě určení sedí na sebe. Na telefon je to velmi dobrý výsledek.' };
-        if (d <= OK) return { c: tr || 'ok', t: 'V pořádku', h: 'Běžný rozdíl pro měření telefonem. Průměr obou určení je lepší než kterékoli samo.' };
-        if (d <= MEH) return { c: tr || 'warn', t: 'Znatelný rozdíl', h: 'Jedno z měření bylo nejspíš rušené (odraz od fasády, stromy, málo družic). Průměr ber s rezervou.' };
-        return { c: tr || 'bad', t: 'Velký rozdíl', h: 'Tohle není šum, ale chyba v jednom z měření. <b>Neber průměr</b> — změř bod potřetí a spolehni se na tu dvojici, která si sedne.' };
+        if (d <= GOOD) return { c: tr || 'ok', t: 'Výborná shoda', h: T('Obě určení sedí na sebe. Na telefon je to velmi dobrý výsledek.') };
+        if (d <= OK) return { c: tr || 'ok', t: 'V pořádku', h: T('Běžný rozdíl pro měření telefonem. Průměr obou určení je lepší než kterékoli samo.') };
+        if (d <= MEH) return { c: tr || 'warn', t: 'Znatelný rozdíl', h: T('Jedno z měření bylo nejspíš rušené (odraz od fasády, stromy, málo družic). Průměr ber s rezervou.') };
+        return { c: tr || 'bad', t: 'Velký rozdíl', h: T('Tohle není šum, ale chyba v jednom z měření.') + ' <b>' + T('Neber průměr') + '</b> — ' + T('změř bod potřetí a spolehni se na tu dvojici, která si sedne.') };
     }
     // σ jednoho určení ≈ Δ/√2, σ průměru ≈ Δ/2. Odhad z jediného rozdílu (1 stupeň
     // volnosti), takže je sám dost nejistý — v UI se to říká nahlas.
@@ -308,7 +310,7 @@
     function fmtLeft(ms) {
         if (ms <= 0) return 'připraveno k ověření';
         var min = Math.ceil(ms / 60000);
-        return 'ověřit za ' + min + ' min';
+        return T('ověřit za {n} min', { n: min });
     }
 
     function render() {
@@ -318,7 +320,7 @@
 
         h += '<div class="agdm-sec">Čeká na ověření</div>';
         if (!q.length) {
-            h += '<div class="agdm-empty">Zatím nic. Klepni na <b>Přidat bod k ověření</b> u bodu, na kterém ti záleží — a za ' + WAIT_MIN_DEFAULT + ' minut se ozvu.</div>';
+            h += '<div class="agdm-empty">Zatím nic. Klepni na <b>Přidat bod k ověření</b> ' + T('u bodu, na kterém ti záleží — a za {n} minut se ozvu.', { n: WAIT_MIN_DEFAULT }) + '</div>';
         } else {
             q.forEach(function (r) {
                 var left = r.due - now;
@@ -343,8 +345,8 @@
                 h += '<div class="agdm-row done">'
                     + '<div class="agdm-main"><div class="agdm-name">' + esc(p.name || p.id) + '</div>'
                     + '<div class="agdm-sub">Δ ' + num(rc.d) + ' m'
-                    + (rc.dH != null ? ' · výška ' + (rc.dH > 0 ? '+' : '') + num(rc.dH) + ' m' : '')
-                    + ' · ' + esc(rc.mode === 'mean' ? 'uložen průměr' : (rc.mode === 'new' ? 'přepsáno novým' : 'ponechán původní'))
+                    + (rc.dH != null ? ' · ' + T('výška {v} m', { v: (rc.dH > 0 ? '+' : '') + num(rc.dH) }) : '')
+                    + ' · ' + esc(T(rc.mode === 'mean' ? 'uložen průměr' : (rc.mode === 'new' ? 'přepsáno novým' : 'ponechán původní')))
                     + '</div></div>'
                     + '<div class="agdm-num" data-q="' + vd.c + '">±' + num(p.prov.trueAcc) + '</div>'
                     + '</div>';
@@ -385,7 +387,7 @@
             if (!b) return;
             mark(b.getAttribute('data-id'));
             kill(); render();
-            toast('Bod čeká na ověření — ozvu se za ' + WAIT_MIN_DEFAULT + ' min.');
+            toast(T('Bod čeká na ověření — ozvu se za {n} min.', { n: WAIT_MIN_DEFAULT }));
         });
     }
 
@@ -408,13 +410,13 @@
         var sg = sigmaFromDelta(dl.d);
 
         var msg = ''
-            + (left > 0 ? '<p class="agdm-early">⚠ Od prvního měření uplynulo málo času (zbývá ' + Math.ceil(left / 60000) + ' min). Konstelace družic se zatím moc neotočila, takže shoda může být falešná — vypovídací hodnota je nižší.</p>' : '')
+            + (left > 0 ? '<p class="agdm-early">⚠ ' + T('Od prvního měření uplynulo málo času (zbývá {n} min). Konstelace družic se zatím moc neotočila, takže shoda může být falešná — vypovídací hodnota je nižší.', { n: Math.ceil(left / 60000) }) + '</p>' : '')
             + '<p><b>' + esc(vd.t) + '</b> — ' + vd.h + '</p>'
             + '<table class="agdm-tab">'
             + '<tr><td>Rozdíl v poloze</td><td><b>' + num(dl.d) + ' m</b></td></tr>'
             + '<tr><td>… k východu / severu</td><td>' + num(dl.dE) + ' / ' + num(dl.dN) + ' m</td></tr>'
             + (dl.dH != null ? '<tr><td>Rozdíl výšky</td><td>' + (dl.dH > 0 ? '+' : '') + num(dl.dH) + ' m</td></tr>' : '')
-            + '<tr><td>Druhé určení</td><td>' + (r.n || '?') + ' odečtů' + (isFinite(r.sterr) ? ' · ±' + num(r.sterr) + ' m' : '') + '</td></tr>'
+            + '<tr><td>Druhé určení</td><td>' + T('{n} odečtů', { n: (r.n || '?') }) + (isFinite(r.sterr) ? ' · ±' + num(r.sterr) + ' m' : '') + '</td></tr>'
             + '</table>'
             + '<p class="agdm-sig">Z rozdílu vychází <b>±' + num(sg.one) + ' m</b> na jedno určení a <b>±' + num(sg.mean) + ' m</b> na průměr obou. '
             + 'Je to odhad z jediného rozdílu, takže sám je nejistý — ale na rozdíl od σ z jednoho stání je <b>naměřený</b>.</p>';
@@ -422,7 +424,7 @@
         var dlg = document.createElement('div');
         dlg.className = 'modal-overlay agdm-res';
         dlg.innerHTML = '<div class="modal-content agdm-res-content" role="dialog" aria-modal="true">'
-            + '<h3 class="agdm-title" data-q="' + vd.c + '">Kontrola bodu ' + esc(p.name || p.id) + '</h3>'
+            + '<h3 class="agdm-title" data-q="' + vd.c + '">' + T('Kontrola bodu {n}', { n: esc(p.name || p.id) }) + '</h3>'
             + '<div class="modal-body">' + msg + '</div>'
             + '<button type="button" class="btn btn-primary" data-m="mean">Uložit průměr obou</button>'
             + '<div class="agdm-res-row">'
@@ -442,7 +444,7 @@
             if (!mode) return;
             applyResult(p, r, dl, mode);
             render();
-            toast('Kontrola zapsána — Δ ' + num(dl.d) + ' m.');
+            toast(T('Kontrola zapsána — Δ {d} m.', { d: num(dl.d) }));
         });
     }
 
@@ -456,7 +458,7 @@
             pending().forEach(function (r) {
                 if (r.due > now || _notified[r.p.id]) return;
                 _notified[r.p.id] = 1;
-                toast('Bod „' + (r.p.name || r.p.id) + '" je připraven na kontrolní měření.');
+                toast(T('Bod „{n}" je připraven na kontrolní měření.', { n: (r.p.name || r.p.id) }));
             });
         } catch (e) { swallow(e, 'dvoji-mereni:tick'); }
     }

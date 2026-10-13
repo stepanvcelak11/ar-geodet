@@ -99,6 +99,8 @@
         return m;
     }
 
+    // překlad (js/jazyky.js); v češtině vrací původní text
+    function T(cs) { try { return window.AGJazyk ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } }
     function vyrob() {
         var m = build();
         var out = m.querySelector('#pk-out');
@@ -112,7 +114,7 @@
         // Ověř si vlastní výrobek hned tady. Kdyby se výroba a ověření někdy
         // rozešly, ať to vlastník pozná dřív, než klíč pošle, ne až od zákazníka.
         var z = AGLic.over(klic);
-        if (!z || !z.ok) out.textContent = klic + '  ⚠ tenhle klíč appka nepřijímá!';
+        if (!z || !z.ok) out.textContent = klic + '  ⚠ ' + T('tenhle klíč appka nepřijímá!');
         try { if (navigator.clipboard) navigator.clipboard.writeText(klic); } catch (e) { swallow(e, 'schranka'); }
     }
 

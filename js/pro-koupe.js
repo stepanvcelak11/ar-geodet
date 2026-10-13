@@ -45,6 +45,8 @@
     var _hl = '';            // hláška pod tlačítky
 
     function swallow(e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'pro-koupe:' + kde); } catch (x) { } }
+    // překlad (AGJazyk) se zástupci {x}; v češtině vrací přesně původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function esc(s) {
         if (window.AG && AG.esc) return AG.esc(s);
         return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -150,9 +152,9 @@
                 var qr = qrcode(0, 'M');
                 qr.addData(text, 'Byte');
                 qr.make();
-                el.innerHTML = '<img alt="QR platba" src="' + qr.createDataURL(5, 8) + '">';
-            } catch (e) { swallow(e, 'qr'); el.textContent = 'QR se nepovedlo vykreslit — zadej platbu ručně podle údajů níže.'; }
-        }).catch(function () { el.textContent = 'QR knihovna se nenačetla — zadej platbu ručně podle údajů níže.'; });
+                el.innerHTML = '<img alt="' + esc(T('QR platba')) + '" src="' + qr.createDataURL(5, 8) + '">';
+            } catch (e) { swallow(e, 'qr'); el.textContent = T('QR se nepovedlo vykreslit — zadej platbu ručně podle údajů níže.'); }
+        }).catch(function () { el.textContent = T('QR knihovna se nenačetla — zadej platbu ručně podle údajů níže.'); });
     }
 
     // ---- data ------------------------------------------------------------------------
@@ -198,7 +200,7 @@
         api('/objednavky', { method: 'POST', body: { produkt: _vyber } }).then(function (r) {
             _busy = false;
             if (!r.ok) {
-                _hl = 'bad:' + ((r.data && r.data.error) || (r.status === 0 ? 'Server neodpověděl.' : 'Objednávku se nepodařilo založit (' + r.status + ').'));
+                _hl = 'bad:' + ((r.data && r.data.error) || (r.status === 0 ? 'Server neodpověděl.' : T('Objednávku se nepodařilo založit ({s}).', { s: r.status })));
                 render(); return;
             }
             _stav = _stav || {};
@@ -219,7 +221,7 @@
             if (!r.ok) { _hl = 'bad:' + ((r.data && r.data.error) || 'Zkoušku se nepodařilo zapnout.'); render(); return; }
             propisTarif('pro', r.data.tarifDo || 0);
             if (_stav) { _stav.tarif = 'pro'; _stav.tarifDo = r.data.tarifDo || 0; if (_stav.prodej && _stav.prodej.zkouska) _stav.prodej.zkouska.pouzita = true; ulozCache(_stav); }
-            _hl = 'ok:Hotovo — Pro máš na ' + (r.data.dni || '') + ' dny, do ' + datum(r.data.tarifDo) + '.';
+            _hl = 'ok:' + T('Hotovo — Pro máš na {n} dny, do {d}.', { n: (r.data.dni || ''), d: datum(r.data.tarifDo) });
             render();
             oznac();
         });
@@ -266,7 +268,7 @@
 
         if (maPro()) {
             var doK = (_stav && _stav.tarifDo) || (u && u.tarifDo) || 0;
-            h.push('<p class="agk-pod">Pro máš zapnuté' + (doK ? ' do <b>' + datum(doK) + '</b>' : ' natrvalo') + '.</p>');
+            h.push('<p class="agk-pod">' + (doK ? T('Pro máš zapnuté do {d}.', { d: '<b>' + datum(doK) + '</b>' }) : T('Pro máš zapnuté natrvalo.')) + '</p>');
             if (doK && p && p.zapnuto) h.push('<p class="agk-pozn">Chceš prodloužit? Vyber délku a zaplať — dny se připočtou za konec.</p>');
             else {
                 h.push(hlaska());
@@ -277,7 +279,7 @@
 
         if (_busy && !p) { b.innerHTML = '<h2>Verze Pro</h2><p class="agk-pod">Načítám ceník…</p>'; return; }
         if (!p) {
-            h.push('<p class="agk-pod">Ceník se načte, až bude signál' + (muzeServer() ? '' : ' a budeš přihlášený') + '.</p>');
+            h.push('<p class="agk-pod">' + (muzeServer() ? T('Ceník se načte, až bude signál.') : T('Ceník se načte, až bude signál a budeš přihlášený.')) + '</p>');
             h.push('<p class="agk-pozn">Máš klíč Pro od autora? Opiš ho v kartě Verze Pro — funguje i bez signálu.</p>');
             h.push('<div class="agk-rada"><button type="button" id="agk-znovu">Zkusit znovu</button><button type="button" id="agk-zavri">Zavřít</button></div>');
             b.innerHTML = h.join(''); wire(b); return;
@@ -286,7 +288,7 @@
         var o = otevrena();
         if (o) {
             // ---- čeká se na platbu: QR + údaje
-            h.push('<p class="agk-pod">Objednávka č. <b>' + esc(o.vs) + '</b> — ' + esc(o.castka) + ' Kč za ' + dniText(o.dni) + '. Naskenuj QR bankovní appkou, nebo zadej převod ručně.</p>');
+            h.push('<p class="agk-pod">' + T('Objednávka č. {vs} — {c} Kč za {d}. Naskenuj QR bankovní appkou, nebo zadej převod ručně.', { vs: '<b>' + esc(o.vs) + '</b>', c: esc(o.castka), d: dniText(o.dni) }) + '</p>');
             h.push('<div class="agk-qr" id="agk-qr">' + (o.spayd ? 'Kreslím QR…' : '') + '</div>');
             h.push('<div class="agk-udaje">' +
                 '<div><span>Částka</span><b>' + esc(o.castka) + ' Kč</b></div>' +
@@ -296,9 +298,9 @@
                 '<div><span>Zpráva pro příjemce</span><b>' + esc(o.msg) + '</b></div>' +
                 '</div>');
             h.push('<p class="agk-pozn">' + (p.automat
-                ? 'Po připsání se Pro zapne <b>samo</b>, obvykle do pár minut (převod z jiné banky může trvat déle).'
-                : 'Po připsání ti Pro zapnu <b>ručně, nejpozději do 24 hodin</b>.') +
-                ' Nemusíš tu čekat — appka se dozví sama.</p>');
+                ? T('Po připsání se Pro zapne <b>samo</b>, obvykle do pár minut (převod z jiné banky může trvat déle).')
+                : T('Po připsání ti Pro zapnu <b>ručně, nejpozději do 24 hodin</b>.')) +
+                ' ' + T('Nemusíš tu čekat — appka se dozví sama.') + '</p>');
             h.push(hlaska());
             h.push('<div class="agk-rada">' +
                 '<button type="button" id="agk-overit"' + (_busy ? ' disabled' : '') + '>Už jsem zaplatil</button>' +
@@ -320,14 +322,14 @@
         h.push('<div class="agk-cenik">');
         pr.forEach(function (x) {
             h.push('<button type="button" class="agk-pr' + (_vyber === x.k ? ' on' : '') + '" data-pr="' + esc(x.k) + '">' +
-                (x.k === 'rok' && usetri > 0 ? '<span class="agk-tag">ušetříš ' + usetri + ' %</span>' : '') +
+                (x.k === 'rok' && usetri > 0 ? '<span class="agk-tag">' + T('ušetříš {p} %', { p: usetri }) + '</span>' : '') +
                 esc(x.nazev) + '<b>' + esc(x.cena) + ' Kč</b><small>' +
-                (x.k === 'rok' && mes ? ('≈ ' + Math.round(x.cena / 12) + ' Kč / měsíc') : ('na ' + dniText(x.dni))) + '</small></button>');
+                (x.k === 'rok' && mes ? T('≈ {c} Kč / měsíc', { c: Math.round(x.cena / 12) }) : T('na {d}', { d: dniText(x.dni) })) + '</small></button>');
         });
         h.push('</div>');
         var z = p.zkouska || {};
         if (!maPro() && z.dni && !z.pouzita)
-            h.push('<button type="button" class="agk-zk" id="agk-zkouska"' + (_busy ? ' disabled' : '') + '>Vyzkoušet Pro na ' + z.dni + ' dny zdarma</button>');
+            h.push('<button type="button" class="agk-zk" id="agk-zkouska"' + (_busy ? ' disabled' : '') + '>' + T('Vyzkoušet Pro na {n} dny zdarma', { n: z.dni }) + '</button>');
         if (!p.zapnuto) {
             h.push('<p class="agk-pozn">Platba QR kódem se teprve připravuje. Zatím napiš autorovi (Nástroje → Napsat autorovi) a Pro dostaneš klíčem.</p>');
         } else {
@@ -342,7 +344,7 @@
         b.innerHTML = h.join('');
         wire(b);
     }
-    function dniText(d) { return d === 0 ? 'navždy' : (d >= 360 ? 'rok' : (d >= 28 && d <= 31 ? 'měsíc' : d + ' dní')); }
+    function dniText(d) { return d === 0 ? T('navždy') : (d >= 360 ? T('rok') : (d >= 28 && d <= 31 ? T('měsíc') : T('{n} dní', { n: d }))); }
     function hlaska() {
         if (!_hl) return '<p class="agk-hl"></p>';
         var t = _hl, cls = '';

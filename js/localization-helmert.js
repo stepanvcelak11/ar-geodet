@@ -40,8 +40,9 @@
     var _capLastFix = null, _capFixTracked = false;   // ⚠ #22: pocitame ROZDILNE fixy, ne tiky timeru
 
     // ---- pomocné (defenzivně, jako okolní moduly) -----------------------------
-    function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:agAlert'); } try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'localization-helmert:agAlert'); } }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:toast'); } }
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
+    function agAlert(t, m) { t = T(t); if (m) m = T(m); try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:agAlert'); } try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'localization-helmert:agAlert'); } }
+    function toast(m) { m = T(m); try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:toast'); } }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function curAlt() { try { return (typeof userAlt !== 'undefined' && userAlt != null && isFinite(userAlt)) ? userAlt : null; } catch (e) { return null; } }
     function escapeHtml(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -350,7 +351,7 @@
             + '<b>Orientační, ne přejímací měření.</b></p>'
             + '<div id="aghl-state" class="aghl-state"></div>'
             + '<div class="aghl-add">'
-            + '  <label class="aghl-fld"><span>známý bod (přesné ' + agSys() + ')</span><select id="aghl-sel"></select></label>'
+            + '  <label class="aghl-fld"><span>' + T('známý bod (přesné {s})', { s: agSys() }) + '</span><select id="aghl-sel"></select></label>'
             + '  <div id="aghl-gps" class="aghl-gps"></div>'
             + '  <div class="aghl-addbtns">'
             + '    <button class="btn" id="aghl-measure"><svg class="icon"><use href="#i-crosshair"/></svg> Změřit GPS zde</button>'
@@ -424,7 +425,7 @@
             _capT0 += 400;
             var fill = document.getElementById('aghl-capfill'), txt = document.getElementById('aghl-captxt');
             if (fill) fill.style.width = Math.min(100, (_capT0 / _capDur) * 100) + '%';
-            if (txt) txt.textContent = 'Měřím… ' + _capSamples.length + ' vzorků (' + Math.round(_capT0 / 1000) + ' s) — stůj klidně';
+            if (txt) txt.textContent = T('Měřím… {n} vzorků ({s} s) — stůj klidně', { n: _capSamples.length, s: Math.round(_capT0 / 1000) });
             if (_capT0 >= _capDur) finishCapture();
         }, 400);
     }
@@ -435,7 +436,7 @@
         // ⚠ #22: pod peti ruznymi fixy to neni mereni, ale par kopii teze souradnice —
         // a takovy par by v Helmertovi vysel s nulovym rozptylem, tedy zdanlive dokonaly.
         if (_capFixTracked && _capSamples.length < 5) {
-            agAlert('GPS nedodává čerstvé fixy', 'Za ' + Math.round(_capDur / 1000) + ' s dorazil jen tento počet různých fixů: <b>' + _capSamples.length + '</b>. Telefon nejspíš nemá výhled na oblohu (nebo appka běžela na pozadí). Zkus to znovu pod volným nebem.');
+            agAlert('GPS nedodává čerstvé fixy', T('Za {s} s dorazil jen tento počet různých fixů:', { s: Math.round(_capDur / 1000) }) + ' <b>' + _capSamples.length + '</b>. ' + T('Telefon nejspíš nemá výhled na oblohu (nebo appka běžela na pozadí). Zkus to znovu pod volným nebem.'));
             return;
         }
         var avg = robustMean(_capSamples, _capAltSamples);
@@ -454,7 +455,7 @@
         var p = ptById(_selKnownId);
         if (!p) { agAlert('Bod zmizel', 'Vybraný bod už není v seznamu.'); return; }
         var sj = toSJTSK(p.lat, p.lng);
-        if (!sj) { agAlert('Převod selhal', 'Nepodařilo se převést známý bod do ' + agSys() + ' (proj4 nedostupné).'); return; }
+        if (!sj) { agAlert('Převod selhal', T('Nepodařilo se převést známý bod do {s} (proj4 nedostupné).', { s: agSys() })); return; }
         // odeber případný starší pár na stejný bod
         _pairs = _pairs.filter(function (pr) { return pr.id !== p.id; });
         _pairs.push({
@@ -466,7 +467,7 @@
         });
         _selKnownId = null;
         recomputeAndRender();
-        toast('Dvojice #' + p.name + ' přidána (' + _pairs.length + ' celkem).');
+        toast(T('Dvojice #{p} přidána ({n} celkem).', { p: p.name, n: _pairs.length }));
     }
     function removePair(id) { _pairs = _pairs.filter(function (pr) { return pr.id !== id; }); recomputeAndRender(); }
 
@@ -482,8 +483,8 @@
         var m = _activeModel();
         if (m) {
             st.className = 'aghl-state on';
-            st.innerHTML = '<b>Lokalizace aktivní</b> · ' + m.n + ' bodů · posun/měřítko/rotace nastaveny'
-                + (m.sigma0 != null ? ' · mxy ±' + (m.sigma0 * 100).toFixed(0) + ' cm/bod' : '');
+            st.innerHTML = '<b>Lokalizace aktivní</b> · ' + T('{n} bodů · posun/měřítko/rotace nastaveny', { n: m.n })
+                + (m.sigma0 != null ? ' · ' + T('mxy ±{cm} cm/bod', { cm: (m.sigma0 * 100).toFixed(0) }) : '');
         } else if (_model) {
             st.className = 'aghl-state off';
             st.innerHTML = 'Lokalizace <b>vypnutá</b> (model uložen). Zapni tlačítkem níže nebo přidej bod.';
@@ -505,7 +506,7 @@
             html += '<div class="aghl-row">'
                 + '<span class="aghl-nm">#' + escapeHtml(pr.name) + '</span>'
                 + '<span class="aghl-meta">' + (pr.measSig != null ? '±' + pr.measSig.toFixed(2) + ' m GPS' : (pr.measN ? 'n=' + pr.measN : '')) + '</span>'
-                + '<span class="aghl-res" style="color:' + col + '">' + (r ? 'opr ' + (r.r * 100).toFixed(0) + ' cm' : '—') + '</span>'
+                + '<span class="aghl-res" style="color:' + col + '">' + (r ? T('opr {cm} cm', { cm: (r.r * 100).toFixed(0) }) : '—') + '</span>'
                 + '<button class="aghl-del" data-id="' + pr.id + '" title="Smazat dvojici">✕</button>'
                 + '</div>';
         });
@@ -528,7 +529,7 @@
         var m = _model;
         if (!m) { box.style.display = 'none'; if (acts) acts.style.display = 'none'; return; }
         var scalePpm = (m.scale - 1) * 1e6;
-        var html = '<div class="aghl-big">Transformace spočítána (' + m.n + ' bodů)</div>'
+        var html = '<div class="aghl-big">' + T('Transformace spočítána ({n} bodů)', { n: m.n }) + '</div>'
             + '<div style="font-family:var(--font-mono,monospace);font-size:calc(12.5px * var(--ag-font-scale, 1));margin:6px 0;line-height:1.6;">'
             + 'posun: <b>' + m.tx.toFixed(2) + ' m E · ' + m.ty.toFixed(2) + ' m N</b><br>'
             + 'rotace: <b>' + m.rot.toFixed(4) + '°</b> · měřítko: <b>' + m.scale.toFixed(6) + '</b> (' + (scalePpm >= 0 ? '+' : '') + scalePpm.toFixed(0) + ' ppm)</div>';
@@ -540,12 +541,12 @@
             var _mp = (m.sigmaPos != null) ? m.sigmaPos : (m.sigma0 * Math.SQRT2);
             html += '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));">Střední souřadnicová chyba mxy: <b style="color:' + col + '">±' + (m.sigma0 * 100).toFixed(0) + ' cm</b> na bod'
                 + (m.maxName ? ' · největší oprava <b>#' + escapeHtml(m.maxName) + '</b> (' + (m.maxRes * 100).toFixed(0) + ' cm)' : '') + '</div>'
-                + '<div style="font-size:calc(11px * var(--ag-font-scale, 1));opacity:.8;">polohově mp ±' + (_mp * 100).toFixed(0) + ' cm <span class="aghl-dim">(mxy·√2 — tolik je bod vedle ve skutečnosti)</span></div>';
+                + '<div style="font-size:calc(11px * var(--ag-font-scale, 1));opacity:.8;">' + T('polohově mp ±{cm} cm', { cm: (_mp * 100).toFixed(0) }) + ' <span class="aghl-dim">(mxy·√2 — tolik je bod vedle ve skutečnosti)</span></div>';
         } else {
             html += '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.85;">2 body — bez kontroly přesnosti (nulová nadbytečnost).</div>';
         }
         if (m.heightPlane) {
-            html += '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));margin-top:4px;">Výškový trend: rovina z ' + m.heightPlane.n + ' výšek'
+            html += '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));margin-top:4px;">' + T('Výškový trend: rovina z {n} výšek', { n: m.heightPlane.n })
                 + (m.heightPlane.rms != null ? ' · ±' + (m.heightPlane.rms * 100).toFixed(0) + ' cm' : '') + ' <span class="aghl-dim">(applyZ)</span></div>';
         } else if (_pairs.filter(function (p) { return isFinite(p.knownH) && isFinite(p.measAlt); }).length > 0) {
             html += '<div style="font-size:calc(12px * var(--ag-font-scale, 1));opacity:.7;margin-top:4px;">Výškový trend potřebuje 3+ bodů s výškou (známou i GPS).</div>';
@@ -574,15 +575,15 @@
             });
             // #6 idempotence: source 'localized' → showPose (vyžaduje 'gps') zhasne, druhý klik nemožný (žádný dvojitý posun)
             try { renderResult(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'localization-helmert:applyToPose'); }
-            agAlert('AR počátek srovnán', 'Počátek AR byl posunut Helmertovou lokalizací (' + (_model.n) + ' bodů).'
-                + (extr ? '\n\n⚠ Počátek leží MIMO obalový polygon referenčních bodů — jde o extrapolaci, ber s rezervou.' : ''));
+            agAlert('AR počátek srovnán', T('Počátek AR byl posunut Helmertovou lokalizací ({n} bodů).', { n: (_model.n) })
+                + (extr ? '\n\n' + T('⚠ Počátek leží MIMO obalový polygon referenčních bodů — jde o extrapolaci, ber s rezervou.') : ''));
         } catch (e) { agAlert('Nelze aplikovat', 'Srovnání AR počátku selhalo.'); }
     }
 
     function doClear() {
         var go = function (ok) { if (!ok) return; _pairs = []; clearModel(); fillSelect(); renderState(); renderList(); renderResult(); renderGps(); updateWarn(); toast('Lokalizace smazána.'); };
-        if (typeof window.agConfirm === 'function') window.agConfirm({ title: 'Smazat lokalizaci?', message: 'Smaže všechny dvojice i uloženou transformaci této zakázky.', okText: 'Smazat', danger: true }).then(go);
-        else go(window.confirm('Smazat lokalizaci a všechny dvojice?'));
+        if (typeof window.agConfirm === 'function') window.agConfirm({ title: T('Smazat lokalizaci?'), message: T('Smaže všechny dvojice i uloženou transformaci této zakázky.'), okText: T('Smazat'), danger: true }).then(go);
+        else go(window.confirm(T('Smazat lokalizaci a všechny dvojice?')));
     }
 
     // ---- otevření/zavření -----------------------------------------------------

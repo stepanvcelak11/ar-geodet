@@ -255,7 +255,10 @@
         close();
     }
 
+    // překlad (js/jazyky.js); v češtině vrací původní text, {x} = zástupci (náhled je <pre> — DOM překladač ho přeskakuje)
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function msg(t) {
+        t = T(t);
         if (typeof agInfo === 'function') agInfo(t); else alert(t);
     }
 
@@ -326,11 +329,11 @@
         var warn = document.getElementById('szs-warn');
         var list = pts();
         if (prev) {
-            if (!list.length) prev.textContent = '(zakázka zatím nemá žádné body)';
+            if (!list.length) prev.textContent = T('(zakázka zatím nemá žádné body)');
             else {
                 var rows = buildRows(list.slice(0, 4), cfg);
                 var txt = renderRows(rows, cfg).join('\n');
-                if (list.length > 4) txt += '\n… (' + list.length + ' bodů celkem)';
+                if (list.length > 4) txt += '\n… ' + T('({n} bodů celkem)', { n: list.length });
                 prev.textContent = txt;
             }
         }

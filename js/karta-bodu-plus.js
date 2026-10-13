@@ -27,6 +27,8 @@
     function n2(v) { return (Math.round(v * 100) / 100).toFixed(2).replace('.', ','); }
     function nD(v) { return Number(v).toFixed(window.agDes ? agDes() : 2).replace('.', ','); }   // výška podle volby 2/3 desetinných míst
     function n1(v) { return (Math.round(v * 10) / 10).toFixed(1).replace('.', ','); }
+    // překlad věty se zástupci {n}… (13. 10. 2026) — v češtině vrací přesně původní text
+    function tx(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     // userLat aj. jsou v logika.js `let` (lexikální, ne window[...]) — proto Function
     var _gFn = {};
     function g(name) {
@@ -200,7 +202,7 @@
         box.innerHTML = 'Stojím od bodu <b>' + (dd.d < 10 ? n2(dd.d) : n1(dd.d)) + ' m</b> — Δ Y <b>' + cm(dd.dy) + '</b>, Δ X <b>' + cm(dd.dx) + '</b>'
             + '<em>' + (far ? 'Jsi ještě daleko — čísla platí, až budeš stát na bodě.'
                 : (loose ? 'Poloha zatím není zprůměrovaná (nebo je přesnost slabá) — nech GPS chvíli běžet.'
-                    : 'Z průměru ' + me.n + ' měření, ± ' + n2(me.sterr) + ' m.')) + '</em>';
+                    : tx('Z průměru {n} měření, ± {s} m.', { n: me.n, s: n2(me.sterr) }))) + '</em>';
     }
 
     function actsHtml(pt) {
@@ -410,7 +412,7 @@
             var korM = Math.hypot(rs.dlng * 111320 * Math.cos(((isFinite(pt.lat) ? pt.lat : 49.8)) * Math.PI / 180), rs.dlat * 111320);
             var KDO = { hrana: 'chůze po hraně', ref: 'známý bod', 'dgps-live': 'DGPS živě', mapa: 'klepnutí do mapy' };
             korTxt = n2(korM) + ' m · ' + T(KDO[rs.src] || 'kalibrace GPS') + (rs.interp ? ' · ' + T('před a po') : '');
-        } else if (pt.prov && pt.prov.dgps && isFinite(pt.prov.dgps.mag)) korTxt = n2(pt.prov.dgps.mag) + ' m · DGPS z QR' + (pt.prov.dgps.base ? ' (' + pt.prov.dgps.base + ')' : '');
+        } else if (pt.prov && pt.prov.dgps && isFinite(pt.prov.dgps.mag)) korTxt = n2(pt.prov.dgps.mag) + ' m · ' + T('DGPS z QR') + (pt.prov.dgps.base ? ' (' + pt.prov.dgps.base + ')' : '');
         if (korTxt) tile('c2', 'Korekce GPS', '<b class="t">' + esc(korTxt) + '</b>');
         // úřední bod: výšku už máme v mozaice, v zeleném rámečku (stabilizace…) by byla dvakrát
         if (z != null) { var dup = body.querySelectorAll('.geo-highlight .geo-data-row'); for (var d = 0; d < dup.length; d++) { var dl = dup[d].querySelector('.geo-label'); if (dl && /^Nadmořská/.test(dl.textContent || '')) dup[d].remove(); } }
@@ -601,7 +603,7 @@
         if (!(window.L && typeof L.map === 'function')) return;
         nacrtMapa(pt, body, sb);
         var lg = document.querySelector('#ag-kb-sk .lg');
-        if (lg && proc) lg.insertAdjacentHTML('beforeend', ' &nbsp;· ' + esc(proc));
+        if (lg && proc) lg.insertAdjacentHTML('beforeend', ' &nbsp;· ' + esc(tx(proc)));
     }
     // náčrt nad ortofotem ČÚZK + KN; statická mapa (karta se posouvá), sever nahoře; offline = TILE_CACHE
     function nacrtMapa(pt, body, sb) {

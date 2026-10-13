@@ -37,6 +37,8 @@
             return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
         });
     }
+    // překlad textů, které si karta skládá sama (číslo/datum ve větě) — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function maPro() { try { return !!(window.AGLic && AGLic.isPro()); } catch (e) { return false; } }
     function jeZaklad() { try { return !!(window.AGLic && AGLic.vydani && AGLic.vydani() === 'zaklad'); } catch (e) { return false; } }
     function stavLic() { try { return (window.AGLic && AGLic.stav && AGLic.stav()) || { pro: false }; } catch (e) { return { pro: false }; } }
@@ -219,9 +221,9 @@
         if (opts.k) {
             var r = (window.AGReg && AGReg.get(opts.k)) || {};
             title = (r.help && r.help.t) || r.vl || opts.k;
-            sub = r.vl || '';
-            if (r.vh) sub += (sub ? ' — ' : '') + r.vh;
-            if (!sub) sub = 'Nástroj z verze Pro.';
+            sub = r.vl ? T(r.vl) : '';
+            if (r.vh) sub += (sub ? ' — ' : '') + T(r.vh);
+            if (!sub) sub = T('Nástroj z verze Pro.');
             pill = pro ? 'Odemčeno' : 'Nástroj z verze Pro';
         } else {
             title = 'Verze Pro';
@@ -229,8 +231,8 @@
             else {
                 sub = s.zdroj === 'vlastnik' ? 'Režim vlastníka aplikace — všechno je odemčené.'
                     : (s.zdroj === 'ucet'
-                        ? ('Pro máš v účtu' + (s.do ? (' — platí ještě ' + s.dniDoKonce + ' dní.') : ', platí natrvalo.'))
-                        : ('Klíč č. ' + s.cislo + (s.do ? (' — platí ještě ' + s.dniDoKonce + ' dní.') : ', platí natrvalo.')));
+                        ? (s.do ? T('Pro máš v účtu — platí ještě {n} dní.', { n: s.dniDoKonce }) : T('Pro máš v účtu, platí natrvalo.'))
+                        : (s.do ? T('Klíč č. {c} — platí ještě {n} dní.', { c: s.cislo, n: s.dniDoKonce }) : T('Klíč č. {c}, platí natrvalo.', { c: s.cislo })));
                 pill = 'Odemčeno';
             }
         }
@@ -246,8 +248,8 @@
     // s lednem nezestárne samo od sebe; text si pak vlastník stejně upraví.
     function akceBlok() {
         var rok = new Date().getFullYear();
-        return '<div class="agp-akce"><b>Do konce roku ' + rok + ' je Pro zdarma</b> — stačí poslat žádost níž a autor ti ho zapne. ' +
-            'Od roku ' + (rok + 1) + ' bude Pro za předplatné (měsíc nebo rok); kdo ho dostal letos, dozví se to v appce včas.</div>';
+        return '<div class="agp-akce">' + T('{b}Do konce roku {r} je Pro zdarma{_b} — stačí poslat žádost níž a autor ti ho zapne.', { b: '<b>', _b: '</b>', r: rok }) + ' ' +
+            T('Od roku {r} bude Pro za předplatné (měsíc nebo rok); kdo ho dostal letos, dozví se to v appce včas.', { r: rok + 1 }) + '</div>';
     }
     function skupiny(pro) {
         return '<div class="agp-lbl">' + (pro ? 'Máš k dispozici' : 'Co je ve verzi Pro') + '</div>' +
@@ -272,18 +274,18 @@
             if (zapnuty) {
                 var z = prodej().zkouska;
                 h.push('<button type="button" class="hlavni agp-koupit">' + I.send + ' ' +
-                    ((z && z.dni && !z.pouzita) ? ('Vyzkoušet ' + z.dni + ' dny zdarma / koupit') : 'Koupit Pro') + '</button>');
+                    ((z && z.dni && !z.pouzita) ? T('Vyzkoušet {n} dny zdarma / koupit', { n: z.dni }) : 'Koupit Pro') + '</button>');
             }
             var kdy = zadostKdy();
             h.push('<button type="button" class="' + (zapnuty ? '' : 'hlavni') + ' agp-zadost">' + I.send + ' ' +
                 (kdy ? 'Žádost už odešla · poslat znovu' : 'Požádat o Pro') + '</button>');
-            if (kdy) h.push('<p class="agp-pozn">Žádost odeslána ' + esc(new Date(kdy).toLocaleDateString('cs-CZ')) + '. Až ti vlastník Pro zapne, appka to pozná sama do minuty — případně ji zavři a otevři.</p>');
+            if (kdy) h.push('<p class="agp-pozn">' + T('Žádost odeslána {d}. Až ti vlastník Pro zapne, appka to pozná sama do minuty — případně ji zavři a otevři.', { d: esc(new Date(kdy).toLocaleDateString('cs-CZ')) }) + '</p>');
         } else if (zapnuty && s.zdroj === 'ucet' && s.do) {
             h.push('<button type="button" class="hlavni agp-koupit">Prodloužit Pro</button>');
         }
         if (jeZaklad() && pro) {
             h.push('<button type="button" class="zel agp-otevri">Otevřít verzi Pro</button>');
-            h.push('<p class="agp-pozn">Pro bydlí na téže adrese pod <b>/pro/</b>. Zakázky, body i klíč tam máš rovnou — nic se nepřenáší ručně.</p>');
+            h.push('<p class="agp-pozn">' + T('Pro bydlí na téže adrese pod {b}/pro/{_b}. Zakázky, body i klíč tam máš rovnou — nic se nepřenáší ručně.', { b: '<b>', _b: '</b>' }) + '</p>');
         }
         return h.length ? '<div class="agp-acts">' + h.join('') + '</div>' : '<div class="agp-acts" hidden></div>';
     }
@@ -301,7 +303,7 @@
         box.innerHTML =
             '<div class="agp-hero"><div class="agp-badge">' + I.send + '</div>' +
             '<h2 class="agp-title">Požádat o Pro</h2>' +
-            '<p class="agp-sub">Pro se nezapíná samo — zapne ti ho autor appky. Napiš mu, kdo jsi a na co Pro potřebuješ; kód tvého účtu jde s žádostí. Do konce roku ' + new Date().getFullYear() + ' je to zdarma.</p></div>' +
+            '<p class="agp-sub">' + T('Pro se nezapíná samo — zapne ti ho autor appky. Napiš mu, kdo jsi a na co Pro potřebuješ; kód tvého účtu jde s žádostí. Do konce roku {r} je to zdarma.', { r: new Date().getFullYear() }) + '</p></div>' +
             '<div class="agp-form">' +
             '<label for="agp-z-jm">Jméno / firma</label>' +
             '<input id="agp-z-jm" type="text" maxlength="80" autocomplete="name" value="' + esc(u.name || '') + '">' +
@@ -309,10 +311,10 @@
             '<input id="agp-z-kon" type="text" maxlength="120" autocomplete="email">' +
             '<label for="agp-z-tx">Zpráva</label>' +
             '<textarea id="agp-z-tx" maxlength="1500" placeholder="Např. měřím pro firmu XY, potřebuju protokoly a katastr…">' +
-            esc(opts.k ? ('Chtěl bych otevřít Pro — potřebuju hlavně: ' + nazevNastroje(opts.k) + '.') : '') + '</textarea>' +
+            esc(opts.k ? T('Chtěl bych otevřít Pro — potřebuju hlavně: {n}.', { n: T(nazevNastroje(opts.k)) }) : '') + '</textarea>' +
             '<p class="agp-hl" id="agp-z-hl"></p>' +
-            '<p class="agp-pozn" style="text-align:left;">Účet: <b>' + esc(u.code || 'bez účtu') + '</b>' + (u.name ? ' (' + esc(u.name) + ')' : '') +
-            '. Zpráva jde do schránky autora, nikam jinam.</p>' +
+            '<p class="agp-pozn" style="text-align:left;">Účet: <b>' + esc(u.code || T('bez účtu')) + '</b>' + (u.name ? ' (' + esc(u.name) + ')' : '') +
+            T('. Zpráva jde do schránky autora, nikam jinam.') + '</p>' +
             '</div>';
         acts.hidden = false;
         acts.innerHTML =
@@ -329,13 +331,13 @@
         var kon = (m.querySelector('#agp-z-kon').value || '').trim();
         var tx = (m.querySelector('#agp-z-tx').value || '').trim();
         hl.className = 'agp-hl';
-        if (!kon) { hl.className = 'agp-hl bad'; hl.textContent = 'Napiš kontakt — jinak se ti autor nemá jak ozvat.'; return; }
-        if (!tx) { hl.className = 'agp-hl bad'; hl.textContent = 'Napiš aspoň větu, na co Pro potřebuješ.'; return; }
+        if (!kon) { hl.className = 'agp-hl bad'; hl.textContent = T('Napiš kontakt — jinak se ti autor nemá jak ozvat.'); return; }
+        if (!tx) { hl.className = 'agp-hl bad'; hl.textContent = T('Napiš aspoň větu, na co Pro potřebuješ.'); return; }
         var u = ucet() || {};
         var meta = { ucet: u.code || null, ucetId: u.id || null, nastroj: opts.k || null, zadost: 'pro' };
         try { meta.vydani = (window.AGLic && AGLic.vydani) ? AGLic.vydani() : null; } catch (e) { swallow(e, 'meta'); }
         try { meta.verze = window.__AG_VERZE || null; } catch (e) { swallow(e, 'meta'); }
-        btn.disabled = true; hl.textContent = 'Odesílám…';
+        btn.disabled = true; hl.textContent = T('Odesílám…');
         var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
         var to = ctrl ? setTimeout(function () { try { ctrl.abort(); } catch (e) { swallow(e, 'abort'); } }, 15000) : null;
         var p;
@@ -353,8 +355,8 @@
                 btn.disabled = false;
                 if (!r.ok) {
                     hl.className = 'agp-hl bad';
-                    hl.textContent = r.status === 0 ? 'Nepodařilo se odeslat — zkus to, až bude signál.'
-                        : ((r.data && r.data.error) || ('Server odpověděl chybou ' + r.status + '.'));
+                    hl.textContent = r.status === 0 ? T('Nepodařilo se odeslat — zkus to, až bude signál.')
+                        : ((r.data && r.data.error) || T('Server odpověděl chybou {s}.', { s: r.status }));
                     return;
                 }
                 try { localStorage.setItem(LS_ZADOST, String(Date.now())); } catch (e) { swallow(e, 'ls'); }
@@ -365,8 +367,9 @@
         var box = m.querySelector('.agp-scroll'), acts = m.querySelector('.agp-acts');
         box.innerHTML = '<div class="agp-done"><div class="agp-badge open">' + I.check + '</div>' +
             '<h2 class="agp-title">Žádost odešla</h2>' +
-            '<p class="agp-sub">Autor appky ji uvidí ve své konzoli a Pro ti zapne. Jakmile to udělá, appka to pozná sama (do minuty, s připojením) — ' +
-            (jeZaklad() ? 'a nabídne ti otevřít verzi Pro.' : 'nástroje se odemknou.') + ' Kdyby ne, appku zavři a otevři znovu.</p></div>';
+            '<p class="agp-sub">' + T(jeZaklad()
+                ? 'Autor appky ji uvidí ve své konzoli a Pro ti zapne. Jakmile to udělá, appka to pozná sama (do minuty, s připojením) — a nabídne ti otevřít verzi Pro. Kdyby ne, appku zavři a otevři znovu.'
+                : 'Autor appky ji uvidí ve své konzoli a Pro ti zapne. Jakmile to udělá, appka to pozná sama (do minuty, s připojením) — nástroje se odemknou. Kdyby ne, appku zavři a otevři znovu.') + '</p></div>';
         acts.innerHTML = '<button type="button" class="hlavni agp-z-ok">Rozumím</button>';
         acts.querySelector('.agp-z-ok').addEventListener('click', function () { zavri(); });
     }
@@ -376,27 +379,27 @@
         var hl = m.querySelector('.agp-keybox .agp-hl'), inp = m.querySelector('#agp-klic');
         if (!hl || !inp) return;
         hl.className = 'agp-hl';
-        if (!window.AGLic) { hl.className = 'agp-hl bad'; hl.textContent = 'Licence v téhle verzi appky není.'; return; }
+        if (!window.AGLic) { hl.className = 'agp-hl bad'; hl.textContent = T('Licence v téhle verzi appky není.'); return; }
         var r = AGLic.uloz(inp.value);
         if (r && r.ok) {
             hl.className = 'agp-hl ok';
             try { window.AGProZamky && AGProZamky.oznac && AGProZamky.oznac(); } catch (e) { swallow(e, 'oznac'); }
             if (jeZaklad()) {
-                hl.textContent = 'Klíč platí. Pro nástroje jsou ale ve vydání Pro — otevři ho, klíč tam už bude.';
+                hl.textContent = T('Klíč platí. Pro nástroje jsou ale ve vydání Pro — otevři ho, klíč tam už bude.');
                 setTimeout(function () { render(m, opts); }, 900);
                 return;
             }
-            hl.textContent = 'Hotovo — Pro je odemčené.';
+            hl.textContent = T('Hotovo — Pro je odemčené.');
             setTimeout(function () { render(m, opts); }, 900);
             return;
         }
         hl.className = 'agp-hl bad';
-        hl.textContent = ({
+        hl.textContent = T(({
             tvar: 'Klíč má mít 16 znaků ve tvaru ARG-0000-0000-0000-0000.',
             verze: 'Tenhle klíč je pro jinou verzi aplikace.',
             podpis: 'Klíč nesedí — zkontroluj, jestli není překlep.',
             vyprsel: 'Klíči vypršela platnost.'
-        })[r && r.duvod] || 'Klíč nesedí.';
+        })[r && r.duvod] || 'Klíč nesedí.');
     }
 
     function zavri() { try { window.AGProZamky && AGProZamky.zavri ? AGProZamky.zavri() : document.getElementById('ag-pro-modal').classList.remove('on'); } catch (e) { swallow(e, 'zavri'); } }

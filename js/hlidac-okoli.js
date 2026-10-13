@@ -34,6 +34,9 @@
     function poloha() { try { return (typeof userLat === 'number' && userLat) ? { lat: userLat, lng: userLng } : null; } catch (e) { return null; } }
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
     function fmt(x) { return x.toFixed(1).replace('.', ','); }
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
+    // výchozí název překážky = český název druhu → v cizím jazyce ukázat přeložený (vlastní názvy beze změny)
+    function nazevT(n) { for (var k in DRUHY) if (DRUHY[k].n === n) return T(n); return n === 'Překážka' ? T(n) : n; }
 
     // ---- překážky (ruční) ------------------------------------------------------------------
     function nactiPrekazky() { try { var s = (typeof getStoredData === 'function') ? getStoredData(KEY_PREK) : null; prekazky = s ? JSON.parse(s) : []; if (!Array.isArray(prekazky)) prekazky = []; } catch (e) { prekazky = []; } }
@@ -64,10 +67,10 @@
             var d = druh(p), bb = window.AGHrany ? bboxM(p) : { sir: 0, vys: 0 }, sir = bb.sir, vys = bb.vys;
             // obtažený tvar = polygon, staré dva rohy = obdélník; čárkovaný rám + výplň + popisek uprostřed
             var r = L.polygon(prekazkaRings(p)[0].map(function (q) { return [q.lat, q.lng]; }), { color: d.col, weight: 3, dashArray: '8,5', fillColor: d.col, fillOpacity: 0.28, interactive: true, bubblingMouseEvents: false });
-            r.bindTooltip('<i style="background:' + d.col + '">' + d.zn + '</i>' + esc(p.nazev), { permanent: true, direction: 'center', className: 'ag-prek-tip' });
-            r.bindPopup('<b>' + esc(p.nazev) + '</b><br><small>' + d.n + ' · ' + sir.toFixed(0) + ' × ' + vys.toFixed(0) + ' m · ruční překážka: trasa terénem ji obchází, hlídač před ní varuje, stíní GPS jako 3 m</small><br>'
-                + '<button type="button" class="btn btn-secondary" style="margin-top:6px" onclick="AGOkoli.prejmenuj(' + i + ')">Přejmenovat</button> '
-                + '<button type="button" class="btn btn-secondary" style="margin-top:6px" onclick="AGOkoli.smazPrekazku(' + i + ')">Smazat</button>');
+            r.bindTooltip('<i style="background:' + d.col + '">' + d.zn + '</i>' + esc(nazevT(p.nazev)), { permanent: true, direction: 'center', className: 'ag-prek-tip' });
+            r.bindPopup('<b>' + esc(nazevT(p.nazev)) + '</b><br><small>' + T(d.n) + ' · ' + sir.toFixed(0) + ' × ' + vys.toFixed(0) + ' m · ' + T('ruční překážka: trasa terénem ji obchází, hlídač před ní varuje, stíní GPS jako 3 m') + '</small><br>'
+                + '<button type="button" class="btn btn-secondary" style="margin-top:6px" onclick="AGOkoli.prejmenuj(' + i + ')">' + T('Přejmenovat') + '</button> '
+                + '<button type="button" class="btn btn-secondary" style="margin-top:6px" onclick="AGOkoli.smazPrekazku(' + i + ')">' + T('Smazat') + '</button>');
             r.addTo(_grp);
         });
     }
@@ -171,7 +174,7 @@
             prekazky.push({ body: body.map(function (q) { return { lat: +q.lat.toFixed(7), lng: +q.lng.toFixed(7) }; }), nazev: _sber ? _sber.nazev : d.n, druh: _sber ? _sber.druh : null, ts: Date.now() });
             _sber = null; AGOkoli.armed = false; ukoncitKresleni();
             ulozPrekazky(); kresliPrekazky();
-            try { (window.quickToast || window.agInfo)('Překážka uložena — trasa ji obejde, hlídač varuje. Klepnutím na ni ji přejmenuješ nebo smažeš.'); } catch (x) { /* nic */ }
+            try { (window.quickToast || window.agInfo)(T('Překážka uložena — trasa ji obejde, hlídač varuje. Klepnutím na ni ji přejmenuješ nebo smažeš.')); } catch (x) { /* nic */ }
             try { document.dispatchEvent(new CustomEvent('ag:prekazky')); } catch (x) { /* nic */ }
         }
         _kres.h = { s: start, m: move, e: end };
@@ -211,16 +214,16 @@
         if (!_sber) { AGOkoli.armed = false; ukoncitKresleni(); return; }
         if (_kres && _kres.justDrew && Date.now() - _kres.justDrew < 600) return;
         _sber.body.push({ lat: lat, lng: lng });
-        if (_sber.body.length < 2) { var b0 = document.getElementById('ag-prekazka-kresli'); if (b0) b0.querySelector('span').textContent = 'První roh mám — klepni na protější (nebo obtáhni tvar)'; return; }
+        if (_sber.body.length < 2) { var b0 = document.getElementById('ag-prekazka-kresli'); if (b0) b0.querySelector('span').textContent = T('První roh mám — klepni na protější (nebo obtáhni tvar)'); return; }
         prekazky.push({ a: _sber.body[0], b: _sber.body[1], nazev: _sber.nazev, druh: _sber.druh, ts: Date.now() });
         _sber = null; AGOkoli.armed = false; ukoncitKresleni();
         ulozPrekazky(); kresliPrekazky();
-        try { (window.quickToast || window.agInfo)('Překážka uložena. Trasa terénem ji obejde, hlídač před ní varuje.'); } catch (e) { /* nic */ }
+        try { (window.quickToast || window.agInfo)(T('Překážka uložena. Trasa terénem ji obejde, hlídač před ní varuje.')); } catch (e) { /* nic */ }
         try { document.dispatchEvent(new CustomEvent('ag:prekazky')); } catch (e) { /* nic */ }
     }
     function prejmenuj(i) {
         var p = prekazky[i]; if (!p) return;
-        var pr = (typeof window.agPrompt === 'function') ? window.agPrompt({ title: 'Název překážky', value: p.nazev, okText: 'Uložit' }) : Promise.resolve(prompt('Název překážky:', p.nazev));
+        var pr = (typeof window.agPrompt === 'function') ? window.agPrompt({ title: T('Název překážky'), value: p.nazev, okText: T('Uložit') }) : Promise.resolve(prompt(T('Název překážky:'), p.nazev));
         pr.then(function (v) { if (v) { p.nazev = v; ulozPrekazky(); kresliPrekazky(); try { getMap().closePopup(); } catch (e) { /* nic */ } } });
     }
     function smazPrekazku(i) { prekazky.splice(i, 1); ulozPrekazky(); kresliPrekazky(); try { getMap().closePopup(); } catch (e) { /* nic */ } try { document.dispatchEvent(new CustomEvent('ag:prekazky')); } catch (e) { /* nic */ } }
@@ -258,13 +261,13 @@
     }
     // shrnutí do jednoho stavu: { kod, text, trida, rada }
     function shrn(o) {
-        if (o.uvnitr) return { kod: 'uvnitr', trida: 'bad', text: 'Podle mapy stojíš uvnitř budovy (' + o.uvnitr + ') — GPS tu neplatí', rada: 'Bod ulož až venku, nebo použij krokový offset od rohu.' };
-        if (o.prekazkaUvnitr) return { kod: 'prekazka-in', trida: 'bad', text: 'Stojíš v označené překážce: ' + o.prekazkaUvnitr, rada: 'Bod měř mimo ni, nebo offsetem.' };
-        if (o.budova && o.budova.d < 2) return { kod: 'budova2', trida: 'bad', text: fmt(o.budova.d) + ' m od budovy (' + o.budova.popis + ') — GPS má odrazy, počítej s ±6 m', rada: 'Odstup 10 m od zdi, nebo krokový offset od rohu.' };
-        if (o.budova) return { kod: 'budova4', trida: 'warn', text: fmt(o.budova.d) + ' m od budovy — půl nebe zakryté, GPS horší', rada: 'Měř déle (průměrování), nebo se posuň dál od zdi.' };
-        if (o.prekazka) return { kod: 'prekazka', trida: 'warn', text: fmt(o.prekazka.d) + ' m od překážky: ' + o.prekazka.nazev, rada: 'Trasa ji obchází; bod raději z odstupu.' };
-        if (o.koleje != null) return { kod: 'koleje', trida: 'warn', text: fmt(o.koleje) + ' m od kolejí — pozor na provoz, dráty zhoršují příjem', rada: 'Neměř v profilu trati bez zajištění.' };
-        if (o.les) return { kod: 'les', trida: 'warn', text: 'Pod stromy — příjem GPS slabší', rada: 'Měř déle (průměrování 60 s a víc), nebo z okraje lesa offsetem.' };
+        if (o.uvnitr) return { kod: 'uvnitr', trida: 'bad', text: T('Podle mapy stojíš uvnitř budovy ({b}) — GPS tu neplatí', { b: o.uvnitr }), rada: T('Bod ulož až venku, nebo použij krokový offset od rohu.') };
+        if (o.prekazkaUvnitr) return { kod: 'prekazka-in', trida: 'bad', text: T('Stojíš v označené překážce: {n}', { n: nazevT(o.prekazkaUvnitr) }), rada: T('Bod měř mimo ni, nebo offsetem.') };
+        if (o.budova && o.budova.d < 2) return { kod: 'budova2', trida: 'bad', text: T('{d} m od budovy ({b}) — GPS má odrazy, počítej s ±6 m', { d: fmt(o.budova.d), b: o.budova.popis }), rada: T('Odstup 10 m od zdi, nebo krokový offset od rohu.') };
+        if (o.budova) return { kod: 'budova4', trida: 'warn', text: T('{d} m od budovy — půl nebe zakryté, GPS horší', { d: fmt(o.budova.d) }), rada: T('Měř déle (průměrování), nebo se posuň dál od zdi.') };
+        if (o.prekazka) return { kod: 'prekazka', trida: 'warn', text: T('{d} m od překážky: {n}', { d: fmt(o.prekazka.d), n: nazevT(o.prekazka.nazev) }), rada: T('Trasa ji obchází; bod raději z odstupu.') };
+        if (o.koleje != null) return { kod: 'koleje', trida: 'warn', text: T('{d} m od kolejí — pozor na provoz, dráty zhoršují příjem', { d: fmt(o.koleje) }), rada: T('Neměř v profilu trati bez zajištění.') };
+        if (o.les) return { kod: 'les', trida: 'warn', text: T('Pod stromy — příjem GPS slabší'), rada: T('Měř déle (průměrování 60 s a víc), nebo z okraje lesa offsetem.') };
         return null;
     }
 
@@ -273,7 +276,7 @@
         var p = document.getElementById(PILL); if (p) return p;
         try { AG.style('ag-okoli-pill-style', ['#' + PILL + '{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 76px);z-index:11980;display:none;align-items:center;gap:7px;padding:5px 12px;border-radius:999px;font:600 12px/1.2 var(--font-ui,system-ui),sans-serif;color:#fff;border:1px solid rgba(255,255,255,.22);box-shadow:0 4px 16px rgba(0,0,0,.45);max-width:88vw;background:rgba(146,94,7,.92);cursor:pointer;}', '#' + PILL + '.show{display:flex;}', '#' + PILL + '.bad{background:rgba(140,28,28,.94);}', 'body.ag-simple #' + PILL + '{display:none!important;}'].join('\n')); } catch (e) { swallow(e, 'css'); }
         p = document.createElement('div'); p.id = PILL; p.setAttribute('role', 'status');
-        p.addEventListener('click', function () { if (_stav) try { window.agAlert && window.agAlert({ title: 'Hlídač okolí', message: _stav.text + '<br><br><b>Co s tím:</b> ' + _stav.rada + '<br><small>Vypnout: Nastavení → Mapa a body → Hlídač okolí.</small>' }); } catch (e) { /* nic */ } });
+        p.addEventListener('click', function () { if (_stav) try { window.agAlert && window.agAlert({ title: T('Hlídač okolí'), message: _stav.text + '<br><br><b>' + T('Co s tím:') + '</b> ' + _stav.rada + '<br><small>' + T('Vypnout: Nastavení → Mapa a body → Hlídač okolí.') + '</small>' }); } catch (e) { /* nic */ } });
         document.body.appendChild(p); return p;
     }
     function ukaz(stav) {

@@ -43,8 +43,8 @@
     function byId(id) { return document.getElementById(id); }
     function theMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
     function mPerDeg(lat) { return { lat: 111320, lng: 111320 * Math.cos((lat || 50) * Math.PI / 180) }; }
-    function toast(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) { swallow(e, 'toast'); } }
-    function alertBox(t, m) { try { if (typeof agAlert === 'function') return agAlert({ title: t, message: m }); } catch (e) { swallow(e, 'alert'); } try { alert(t + '\n\n' + String(m).replace(/<[^>]+>/g, '')); } catch (e) { /* nic */ } }
+    function toast(m) { m = T(m); try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) { swallow(e, 'toast'); } }
+    function alertBox(t, m) { t = T(t); m = T(m); try { if (typeof agAlert === 'function') return agAlert({ title: t, message: m }); } catch (e) { swallow(e, 'alert'); } try { alert(t + '\n\n' + String(m).replace(/<[^>]+>/g, '')); } catch (e) { /* nic */ } }
     function accFromZoom(lat, zoom) {
         var mpp = 156543.03392 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom);
         var a = mpp * FINGER_PX;
@@ -127,8 +127,8 @@
         _pick = true;
         var bar = document.createElement('div');
         bar.id = BAR_ID;
-        bar.innerHTML = '<span><b>Klepni do mapy přesně tam, kde stojíš</b><br><small>nejlíp na ortofotu: roh budovy, obruba, kanál…</small></span>'
-            + '<button type="button" id="agkm-bar-x">Zrušit</button>';
+        bar.innerHTML = '<span><b>' + T('Klepni do mapy přesně tam, kde stojíš') + '</b><br><small>' + T('nejlíp na ortofotu: roh budovy, obruba, kanál…') + '</small></span>'
+            + '<button type="button" id="agkm-bar-x">' + T('Zrušit') + '</button>';
         document.body.appendChild(bar);
         function end() {
             try { m.off('click', onClick); } catch (e) { swallow(e, 'off'); }
@@ -189,7 +189,7 @@
             var b = e.target.closest ? e.target.closest('button[data-a]') : null; if (!b) return;
             var a = b.getAttribute('data-a');
             if (a === 'pick') pickOnMap();
-            else if (a === 'on' && _vysledek) { var live = !!(byId('agkm-live') && byId('agkm-live').checked); zapni(_vysledek, live); _vysledek = null; render(); toast(live ? 'Oprava GPS z mapy zapnuta — posouvá i živou polohu, platí ' + PLATI_MIN + ' min / ' + PLATI_M + ' m.' : 'Oprava GPS z mapy zapnuta pro nově ukládané body.'); }
+            else if (a === 'on' && _vysledek) { var live = !!(byId('agkm-live') && byId('agkm-live').checked); zapni(_vysledek, live); _vysledek = null; render(); toast(live ? T('Oprava GPS z mapy zapnuta — posouvá i živou polohu, platí {min} min / {m} m.', { min: PLATI_MIN, m: PLATI_M }) : 'Oprava GPS z mapy zapnuta pro nově ukládané body.'); }
             else if (a === 'off') { vypni(); render(); toast('Oprava GPS z mapy vypnuta.'); }
             else if (a === 'zahodit') { _vysledek = null; render(); }
         });
@@ -197,12 +197,12 @@
     }
     function smer(dE, dN) {
         var az = ((Math.atan2(dE, dN) * 180 / Math.PI) + 360) % 360;
-        var S = ['S', 'SV', 'V', 'JV', 'J', 'JZ', 'Z', 'SZ'];
-        return S[Math.round(az / 45) % 8] + ' (' + Math.round(az) + '°)';
+        var S = ['S ({a}°)', 'SV ({a}°)', 'V ({a}°)', 'JV ({a}°)', 'J ({a}°)', 'JZ ({a}°)', 'Z ({a}°)', 'SZ ({a}°)'];   // klíče se zástupcem: samotné „S"/„V" by ve slovníku přepsaly každý takový uzel
+        return T(S[Math.round(az / 45) % 8], { a: Math.round(az) });
     }
     function gpsStavHtml() {
         var g = rawGps();
-        if (!g) return '<div class="km-stav warn"><b>Bez GPS.</b> Čekám na fix' + ((window.AGManualPos && AGManualPos.active) ? ' — je zapnutá statická „Poloha z mapy", tu napřed vypni' : '') + '.</div>';
+        if (!g) return '<div class="km-stav warn"><b>' + T('Bez GPS.') + '</b> ' + ((window.AGManualPos && AGManualPos.active) ? T('Čekám na fix — je zapnutá statická „Poloha z mapy", tu napřed vypni.') : T('Čekám na fix.')) + '</div>';
         var ok = g.from === 'avg' && (g.n || 0) >= 10;
         return '<div class="km-stav ' + (ok ? 'ok' : 'warn') + '">'
             + (g.from === 'avg' ? '<b>' + T('Průměr GPS:') + '</b> ' + T('{n} měření', { n: g.n }) + (g.sterr != null ? ', ±' + fmt(g.sterr) + ' m' : '') : '<b>' + T('Jen jeden fix') + '</b> (±' + fmt(g.sterr || 0, 0) + ' m)')
@@ -212,35 +212,35 @@
     function render() {
         var body = byId('agkm-body'); if (!body) return;
         var s = shift(), zap = s && s.on && s.src === 'mapa';
-        var h = '<details class="km-simple" open><summary>Jednoduše: co to dělá a jak na to</summary>'
-            + '<p>GPS v telefonu se plete o pár metrů, ale chvíli <b>pořád stejným směrem</b>. Ty ale na ortofotu vidíš, kde přesně stojíš (roh budovy, obruba, kanál) — na půl metru. Klepneš tam a appka si spočítá, o kolik se GPS právě plete, a <b>ten kus odečítá i za chůze</b>: v AR, v navigaci, ve vzdálenostech i u bodů, které uložíš.</p>'
-            + '<ol><li>Postůj <b>30–60 s</b> na volném místě (ne pod stromem, ne u zdi), ať se GPS zprůměruje.</li>'
-            + '<li>Přepni mapu na <b>ortofoto</b>, přibliž a klepni <b>Klepnout, kde stojím</b> → klepni přesně na své místo.</li>'
-            + '<li>Zkontroluj, o kolik se GPS plete, a dej <b>Zapnout</b>. Platí <b>' + PLATI_MIN + ' min / ' + PLATI_M + ' m</b> od místa — pilulka nahoře hlídá, kdy klepnout znovu.</li></ol>'
-            + '<p><b>Co čekat:</b> z ±3–5 m na ±1,5–2 m po dobu pár minut. Pod stromy a mezi domy se chyba mění každých pár metrů — tam to nepomůže. Statická „Poloha z mapy" (stojím na místě, GPS se nepoužije) zůstává zvlášť.</p>'
+        var h = '<details class="km-simple" open><summary>' + T('Jednoduše: co to dělá a jak na to') + '</summary>'
+            + '<p>' + T('GPS v telefonu se plete o pár metrů, ale chvíli <b>pořád stejným směrem</b>. Ty ale na ortofotu vidíš, kde přesně stojíš (roh budovy, obruba, kanál) — na půl metru. Klepneš tam a appka si spočítá, o kolik se GPS právě plete, a <b>ten kus odečítá i za chůze</b>: v AR, v navigaci, ve vzdálenostech i u bodů, které uložíš.') + '</p>'
+            + '<ol><li>' + T('Postůj <b>30–60 s</b> na volném místě (ne pod stromem, ne u zdi), ať se GPS zprůměruje.') + '</li>'
+            + '<li>' + T('Přepni mapu na <b>ortofoto</b>, přibliž a klepni <b>Klepnout, kde stojím</b> → klepni přesně na své místo.') + '</li>'
+            + '<li>' + T('Zkontroluj, o kolik se GPS plete, a dej <b>Zapnout</b>. Platí <b>{min} min / {m} m</b> od místa — pilulka nahoře hlídá, kdy klepnout znovu.', { min: PLATI_MIN, m: PLATI_M }) + '</li></ol>'
+            + '<p>' + T('<b>Co čekat:</b> z ±3–5 m na ±1,5–2 m po dobu pár minut. Pod stromy a mezi domy se chyba mění každých pár metrů — tam to nepomůže. Statická „Poloha z mapy" (stojím na místě, GPS se nepoužije) zůstává zvlášť.') + '</p>'
             + '</details>';
         if (zap) {
             var st = null; try { st = window.agRefShiftStav ? window.agRefShiftStav() : null; } catch (e) { st = null; }
             var m = mPerDeg(s.lat || 50), mag = Math.hypot(s.dlng * m.lng, s.dlat * m.lat);
-            h += '<div class="km-stav ' + (st && st.stav === 'bad' ? 'warn' : 'ok') + '"><b>Teď zapnutá oprava z mapy:</b> GPS se tu plete o <b class="big">' + fmt(mag, 1) + ' m</b> ' + smer(s.dlng * m.lng, s.dlat * m.lat)
-                + (s.live ? ' · posouvá i <b>živou polohu</b>' : ' · jen ukládané body') + (s.acc != null ? ' · ±' + fmt(s.acc) + ' m' : '')
-                + (st ? '<br><small>' + esc(st.text) + '</small>' : '') + '</div>'
-                + '<button type="button" class="btn btn-secondary" data-a="off">Vypnout opravu</button>';
+            h += '<div class="km-stav ' + (st && st.stav === 'bad' ? 'warn' : 'ok') + '"><b>' + T('Teď zapnutá oprava z mapy:') + '</b> ' + T('GPS se tu plete o') + ' <b class="big">' + fmt(mag, 1) + ' m</b> ' + smer(s.dlng * m.lng, s.dlat * m.lat)
+                + (s.live ? ' · ' + T('posouvá i <b>živou polohu</b>') : ' · ' + T('jen ukládané body')) + (s.acc != null ? ' · ±' + fmt(s.acc) + ' m' : '')
+                + (st ? '<br><small>' + esc(T(st.text)) + '</small>' : '') + '</div>'
+                + '<button type="button" class="btn btn-secondary" data-a="off">' + T('Vypnout opravu') + '</button>';
         }
         if (_vysledek) {
             var v = _vysledek;
-            h += '<div class="km-stav ok"><b>Výsledek:</b> GPS se tu plete o <b class="big">' + fmt(v.mag, 1) + ' m</b> směrem ' + smer(v.dE, v.dN) + '</div>'
-                + '<div class="km-row"><span>Klepnutí do mapy</span><b>±' + fmt(v.klik, 1) + ' m' + (v.zoom != null ? ' (zoom ' + Math.round(v.zoom) + ')' : '') + '</b></div>'
+            h += '<div class="km-stav ok"><b>' + T('Výsledek:') + '</b> ' + T('GPS se tu plete o') + ' <b class="big">' + fmt(v.mag, 1) + ' m</b> ' + T('směrem {s}', { s: smer(v.dE, v.dN) }) + '</div>'
+                + '<div class="km-row"><span>' + T('Klepnutí do mapy') + '</span><b>±' + fmt(v.klik, 1) + ' m' + (v.zoom != null ? ' (zoom ' + Math.round(v.zoom) + ')' : '') + '</b></div>'
                 + '<div class="km-row"><span>GPS</span><b>' + (v.gps.from === 'avg' ? T('průměr {n} měření', { n: v.gps.n }) + ', ±' + fmt(v.gpsAcc) + ' m' : T('jeden fix') + ', ±' + fmt(v.gpsAcc) + ' m') + '</b></div>'
-                + '<div class="km-row"><span>Přesnost korekce</span><b>±' + fmt(v.acc) + ' m</b></div>'
-                + (v.mag > 25 ? '<div class="km-stav warn"><b>Posun přes 25 m</b> — to GPS obvykle nedělá. Klepl jsi opravdu na své místo?</div>' : '')
-                + (v.gps.from !== 'avg' ? '<div class="km-stav warn">Z <b>jednoho fixu</b> je korekce spíš náhodná — lepší se vrátit, postát 30–60 s a klepnout znovu.</div>' : '')
-                + '<label class="km-opt"><input type="checkbox" id="agkm-live" checked> Posouvat i živou polohu (AR, navigace, vzdálenosti) — ne jen ukládané body</label>'
-                + '<button type="button" class="btn btn-blue" data-a="on">Zapnout na ' + PLATI_MIN + ' min / ' + PLATI_M + ' m</button>'
-                + '<button type="button" class="btn btn-secondary" data-a="zahodit">Zahodit</button>';
+                + '<div class="km-row"><span>' + T('Přesnost korekce') + '</span><b>±' + fmt(v.acc) + ' m</b></div>'
+                + (v.mag > 25 ? '<div class="km-stav warn">' + T('<b>Posun přes 25 m</b> — to GPS obvykle nedělá. Klepl jsi opravdu na své místo?') + '</div>' : '')
+                + (v.gps.from !== 'avg' ? '<div class="km-stav warn">' + T('Z <b>jednoho fixu</b> je korekce spíš náhodná — lepší se vrátit, postát 30–60 s a klepnout znovu.') + '</div>' : '')
+                + '<label class="km-opt"><input type="checkbox" id="agkm-live" checked> ' + T('Posouvat i živou polohu (AR, navigace, vzdálenosti) — ne jen ukládané body') + '</label>'
+                + '<button type="button" class="btn btn-blue" data-a="on">' + T('Zapnout na {min} min / {m} m', { min: PLATI_MIN, m: PLATI_M }) + '</button>'
+                + '<button type="button" class="btn btn-secondary" data-a="zahodit">' + T('Zahodit') + '</button>';
         } else {
             h += gpsStavHtml()
-                + '<button type="button" class="btn btn-blue" data-a="pick"><svg class="icon"><use href="#i-map-pin"/></svg> Klepnout, kde stojím' + (zap ? ' (znovu)' : '') + '</button>';
+                + '<button type="button" class="btn btn-blue" data-a="pick"><svg class="icon"><use href="#i-map-pin"/></svg> ' + (zap ? T('Klepnout, kde stojím (znovu)') : T('Klepnout, kde stojím')) + '</button>';
         }
         body.innerHTML = h;
     }

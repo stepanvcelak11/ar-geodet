@@ -43,6 +43,8 @@
     }
     function saveHeight() { try { localStorage.setItem(LS_H, String(_height)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vyska-objektu:saveHeight'); } }
 
+    // překlad (js/jazyky.js); v češtině vrací původní text, {x} = zástupci
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function agAlertX(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vyska-objektu:agAlertX'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vyska-objektu:toast'); } }
     function curViewMode() { try { return (typeof viewMode !== 'undefined') ? viewMode : 'both'; } catch (e) { return 'both'; } }
@@ -129,7 +131,7 @@
         if (_step === 1) {
             st.innerText = 'KROK 1 / 2 — PATA';
             hint.innerHTML = _dManual != null
-                ? 'Zaměř kříž na <b>patu objektu</b> (vzdálenost ' + fmtM(_dManual) + ' zadána ručně)'
+                ? 'Zaměř kříž na <b>patu objektu</b> ' + T('(vzdálenost {d} zadána ručně)', { d: fmtM(_dManual) })
                 : 'Zaměř kříž na <b>patu objektu</b> (kde stojí na zemi)';
             shot.innerText = 'Zaměřit patu'; shot.style.display = 'inline-flex'; redo.style.display = 'none';
         } else if (_step === 2) {
@@ -156,12 +158,12 @@
         if (_step === 1) {
             vEl.style.color = '#cbd5e1';
             vEl.innerText = (-p).toFixed(1) + '°';
-            var dPrev = (_dManual == null && p > 0.5) ? ' · vzdálenost ~' + fmtM(_height / Math.tan(rad(p))) : '';
-            subEl.innerHTML = 'svislý úhel' + dPrev;
+            var dPrev = (_dManual == null && p > 0.5) ? ' · ' + T('vzdálenost ~{d}', { d: fmtM(_height / Math.tan(rad(p))) }) : '';
+            subEl.innerHTML = T('svislý úhel') + dPrev;
         } else {
             // živý náhled výšky, dokud vrchol nezaměříš
             var r = heightAt(_pBase, p, _dManual);
-            if (r && r.H > 0) { vEl.style.color = '#4da3ff'; vEl.innerText = fmtM(r.H); subEl.innerHTML = 'náhled výšky · úhel ' + (-p).toFixed(1) + '°'; }
+            if (r && r.H > 0) { vEl.style.color = '#4da3ff'; vEl.innerText = fmtM(r.H); subEl.innerHTML = T('náhled výšky · úhel {u}°', { u: (-p).toFixed(1) }); }
             else { vEl.style.color = '#cbd5e1'; vEl.innerText = (-p).toFixed(1) + '°'; subEl.innerHTML = 'miř NAD zaměřenou patu'; }
         }
     }
@@ -184,8 +186,8 @@
             var col = r.q === 'good' ? '#34d399' : (r.q === 'ok' ? '#fbbf24' : '#f87171');
             vEl.style.color = col;
             vEl.innerText = fmtM(r.H);
-            subEl.innerHTML = '± ' + fmtM(r.err) + ' &nbsp;·&nbsp; vzdálenost ' + fmtM(r.d) + (_dManual != null ? ' (ručně)' : '')
-                + '<br><span style="opacity:.8">pata ' + (-_pBase).toFixed(1) + '° · vrchol ' + (-_pTop).toFixed(1) + '° · výška telefonu ' + _height.toFixed(2) + ' m</span>'
+            subEl.innerHTML = '± ' + fmtM(r.err) + ' &nbsp;·&nbsp; ' + T('vzdálenost {d}', { d: fmtM(r.d) }) + (_dManual != null ? ' ' + T('(ručně)') : '')
+                + '<br><span style="opacity:.8">' + T('pata {a}° · vrchol {b}° · výška telefonu {h} m', { a: (-_pBase).toFixed(1), b: (-_pTop).toFixed(1), h: _height.toFixed(2) }) + '</span>'
                 + (r.q === 'bad' ? '<br><span style="color:#f87171">velká nejistota — jdi blíž, nebo zadej vzdálenost ručně</span>' : '');
         }
     }
@@ -193,7 +195,7 @@
     function copyResult() {
         var r = computeResult();
         if (r.err) return;
-        var txt = 'Výška objektu: ' + fmtM(r.H) + ' ± ' + fmtM(r.err) + ' (vzdálenost ' + fmtM(r.d) + ', trigonometricky z mobilu)';
+        var txt = T('Výška objektu: {h} ± {e} (vzdálenost {d}, trigonometricky z mobilu)', { h: fmtM(r.H), e: fmtM(r.err), d: fmtM(r.d) });
         try { navigator.clipboard.writeText(txt).then(function () { toast('Zkopírováno.'); }, function () { toast('Kopírování se nepovedlo.'); }); }
         catch (e) { toast('Kopírování se nepovedlo.'); }
     }

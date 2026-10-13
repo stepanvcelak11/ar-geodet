@@ -24,6 +24,8 @@
     var TILE_KB = 14;                            // průměrná dlaždice OSM/WMS (odhad)
     var ID = 'ag-uvolnit';
 
+    // překlad (js/jazyky.js); v češtině vrací původní text, {x} = zástupci
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function swallow(e, kde) { try { if (window.AG && AG.swallow) AG.swallow(e, kde); } catch (x) { } }
     function toast(m) { try { if (window.AG && AG.toast) return AG.toast(m); } catch (e) { } try { if (typeof quickToast === 'function') quickToast(m); } catch (e) { } }
@@ -71,17 +73,17 @@
             var tiles = r[0], bal = r[1], rep = r[2], h = '';
             if (tiles == null) h += row('<b>Mapa offline</b><br><span style="color:var(--text-muted)">tenhle prohlížeč ukládání dlaždic neumí</span>');
             else if (!tiles) h += row('<b>Mapa offline</b><br><span style="color:var(--text-muted)">nic staženého</span>');
-            else h += row('<b>Mapa offline</b> — ' + num(tiles) + ' dílků, ≈ ' + mb(tiles * TILE_KB * 1024) + '<br><span style="color:var(--text-muted)">z Uložit okolí, Sbalit zakázku i Stáhnout oblast; po smazání se mapa zase stahuje ze sítě</span>', delBtn('mapa', '', 'Smazat'));
+            else h += row('<b>Mapa offline</b> — ' + T('{n} dílků, ≈ {mb}', { n: num(tiles), mb: mb(tiles * TILE_KB * 1024) }) + '<br><span style="color:var(--text-muted)">z Uložit okolí, Sbalit zakázku i Stáhnout oblast; po smazání se mapa zase stahuje ze sítě</span>', delBtn('mapa', '', 'Smazat'));
             if (bal.length) {
                 bal.forEach(function (x) {
                     var casti = [];
-                    if (x.body) casti.push(num(x.body.pocet || 0) + ' bodů ≈ ' + mb((x.body.pocet || 0) * 160));
-                    if (x.mapa) casti.push(num(x.mapa.celkem || 0) + ' dílků mapy');
-                    h += row('<b>Oblast: ' + esc(x.nazev) + '</b><br><span style="color:var(--text-muted)">' + esc(casti.join(' · ') || 'rozdělaný balíček') + '</span>', delBtn('oblast', x.id, 'Smazat'));
+                    if (x.body) casti.push(T('{n} bodů ≈ {mb}', { n: num(x.body.pocet || 0), mb: mb((x.body.pocet || 0) * 160) }));
+                    if (x.mapa) casti.push(T('{n} dílků mapy', { n: num(x.mapa.celkem || 0) }));
+                    h += row('<b>' + T('Oblast: {x}', { x: esc(x.nazev) }) + '</b><br><span style="color:var(--text-muted)">' + esc(casti.join(' · ') || T('rozdělaný balíček')) + '</span>', delBtn('oblast', x.id, 'Smazat'));
                 });
             } else if (O) h += row('<b>Stažené oblasti</b><br><span style="color:var(--text-muted)">žádný okres ani kraj v telefonu</span>');
             var jine = (rep || []).filter(function (x) { return x && x.bajtu > 200 * 1024; });
-            if (jine.length) h += row('<b>Ostatní</b><br><span style="color:var(--text-muted)">' + jine.map(function (x) { return esc(x.co || x.db) + ' ' + mb(x.bajtu); }).join(' · ') + ' — mažou se v příslušném nástroji (fotky u závad, geo-fotky…)</span>');
+            if (jine.length) h += row('<b>Ostatní</b><br><span style="color:var(--text-muted)">' + jine.map(function (x) { return esc(x.co ? T(x.co) : x.db) + ' ' + mb(x.bajtu); }).join(' · ') + ' — ' + T('mažou se v příslušném nástroji (fotky u závad, geo-fotky…)') + '</span>');
             host.innerHTML = h || '<div style="color:var(--text-muted)">Nic ke smazání.</div>';
         }).catch(function (e) { swallow(e, 'uvolnit:render'); host.innerHTML = '<div style="color:var(--text-muted)">Přehled se nepodařilo sestavit.</div>'; });
     }

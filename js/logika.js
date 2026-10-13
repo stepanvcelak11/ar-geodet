@@ -6,6 +6,9 @@
 // vytvoří až při první potřebě. Stavy: start (0 %), progress (n/celkem → pruh),
 // done (fajfka, zmizí po 6 s), install (nová verze se právě nasazuje — točící
 // se kolečko do reloadu), hide. Styl v css/style.css (#ag-upd-pill).
+// Překlad textu, který si logika skládá sama (čísla v jedné větě). V češtině vrací
+// přesně původní text; {x} = zástupci, aby se věta trefila do slovníku celá.
+function _lgT(cs, o) { let v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
 function agUpdPill(stav, info) {
     try {
         let el = document.getElementById('ag-upd-pill');
@@ -21,7 +24,7 @@ function agUpdPill(stav, info) {
         if (stav === 'start') { txt.textContent = 'Stahuji novou verzi…'; bar.style.width = '4%'; el.classList.add('spin'); }
         else if (stav === 'progress' && info && info.total) {
             const pct = Math.max(4, Math.min(100, Math.round(info.done / info.total * 100)));
-            txt.textContent = 'Stahuji novou verzi… ' + pct + ' %'; bar.style.width = pct + '%'; el.classList.add('spin');
+            txt.textContent = _lgT('Stahuji novou verzi…') + ' ' + pct + ' %'; bar.style.width = pct + '%'; el.classList.add('spin');
         }
         else if (stav === 'install') { txt.textContent = 'Nasazuji novou verzi…'; bar.style.width = '100%'; el.classList.add('spin'); }
         else if (stav === 'done') {
@@ -526,7 +529,7 @@ if ('serviceWorker' in navigator) {
             // Text rika naplno, co se z kose vrati a co uz ne — slib "30 dni v kosi"
             // na fotky, hlasovky ani podlozene plany NEPLATI (leží ve vlastnich
             // databazich, ktere kos neumi zachytit).
-            if(!confirm("Opravdu smazat aktuální zakázku?\n\nZ koše půjde 30 dní vrátit body, spojnice, zápisníky a nastavení zakázky.\nNENÁVRATNĚ se smažou fotky u bodů, hlasovky a podložené plány — pokud je potřebuješ, nejdřív si stáhni zálohu (Nastavení → Záloha a údržba).")) return;
+            if(!confirm(_lgT("Opravdu smazat aktuální zakázku?") + "\n\n" + _lgT("Z koše půjde 30 dní vrátit body, spojnice, zápisníky a nastavení zakázky.") + "\n" + _lgT("NENÁVRATNĚ se smažou fotky u bodů, hlasovky a podložené plány — pokud je potřebuješ, nejdřív si stáhni zálohu (Nastavení → Záloha a údržba)."))) return;
             const pid = activeProjectId;
             // UKLID PODLE PREFIXU, ne rucnim vyctem: VSECHNA per-zakazkova data zacinaji
             // `${pid}_` (getStoreKey). Rucni seznam klicu tu zastaraval — ~13 klicu modulu
@@ -610,7 +613,7 @@ if ('serviceWorker' in navigator) {
         window.agReleaseWakeLock = releaseWakeLock;
         window.agWakeLockHeld = function () { return wakeLock !== null; };
 
-        function setMeasurePoint(type) { if (!userLat || !userLng) return agInfo("Hledám GPS polohu. Počkej chvíli…"); const pt = { lat: userLat, lng: userLng, alt: userAlt }; let altStr = "Výška: nedostupná"; if (pt.alt !== null) { let bpv = pt.alt - getGeoidUndulation(pt.lat, pt.lng); altStr = `Výška (${agOsy().vyska}): ${bpv.toFixed(1)} m`; } let sjtsk = agMistni(pt.lat, pt.lng); let coordsStr = `${agOsy().osaA}: ${sjtsk.y.toFixed(2)} | ${agOsy().osaB}: ${sjtsk.x.toFixed(2)}<br><span style="opacity:0.7;">${altStr}</span>`; if (type === 'A') { measA = pt; document.getElementById('meas-a-coords').innerHTML = coordsStr; } else { measB = pt; document.getElementById('meas-b-coords').innerHTML = coordsStr; } calcMeasure(); }
+        function setMeasurePoint(type) { if (!userLat || !userLng) return agInfo("Hledám GPS polohu. Počkej chvíli…"); const pt = { lat: userLat, lng: userLng, alt: userAlt }; let altStr = "Výška: nedostupná"; if (pt.alt !== null) { let bpv = pt.alt - getGeoidUndulation(pt.lat, pt.lng); altStr = _lgT('Výška ({sys}): {z} m', { sys: agOsy().vyska, z: bpv.toFixed(1) }); } let sjtsk = agMistni(pt.lat, pt.lng); let coordsStr = `${agOsy().osaA}: ${sjtsk.y.toFixed(2)} | ${agOsy().osaB}: ${sjtsk.x.toFixed(2)}<br><span style="opacity:0.7;">${altStr}</span>`; if (type === 'A') { measA = pt; document.getElementById('meas-a-coords').innerHTML = coordsStr; } else { measB = pt; document.getElementById('meas-b-coords').innerHTML = coordsStr; } calcMeasure(); }
         function calcMeasure() { if (!measA || !measB) return; const hDist = getDistance(measA.lat, measA.lng, measB.lat, measB.lng); document.getElementById('meas-horiz').innerText = `${hDist.toFixed(2)} m`; if (measA.alt !== null && measB.alt !== null) { const elev = measB.alt - measA.alt; const slant = Math.sqrt(hDist * hDist + elev * elev); document.getElementById('meas-elev').innerText = `${elev > 0 ? '+' : ''}${elev.toFixed(2)} m`; document.getElementById('meas-slant').innerText = `${slant.toFixed(2)} m`; } else { document.getElementById('meas-elev').innerText = "Nedostupné"; document.getElementById('meas-slant').innerText = "Nedostupné"; } }
         function resetMeasure() { measA = null; measB = null; document.getElementById('meas-a-coords').innerHTML = "Nenastaveno"; document.getElementById('meas-b-coords').innerHTML = "Nenastaveno"; document.getElementById('meas-horiz').innerText = "-- m"; document.getElementById('meas-elev').innerText = "-- m"; document.getElementById('meas-slant').innerText = "-- m"; }
         function updateFilters() { filters.tb = document.getElementById('f-tb').checked; filters.zhb = document.getElementById('f-zhb').checked; filters.pbpp = document.getElementById('f-pbpp').checked; filters.nivel = document.getElementById('f-nivel').checked; filters.custom = document.getElementById('f-custom').checked; setStoredData('arFilters12', JSON.stringify(filters)); drawAllMarkersOnMap(); }
@@ -627,8 +630,8 @@ if ('serviceWorker' in navigator) {
             // POJISTKA: neprepisujeme ulozena data prazdnem (kdyz fetch vratil 0 kvuli chybe, ktera nebyla sit).
             if (arPoints.some(p => p.cat !== 'CUSTOM')) setStoredData('arOfflinePoints12', JSON.stringify(arPoints.filter(p => p.cat !== 'CUSTOM')));
             let tileMsg = '';
-            if ('caches' in window) { try { const res = await cacheTilesForArea(lat, lng, rad, true); tileMsg = '\n' + offlineResultMsg(res); } catch (e) { tileMsg = '\nMapu se nepodařilo uložit offline: ' + ((e && e.message) ? e.message : e); } }
-            agInfo(`Staženo ${found} bodů ve vybrané oblasti — uloženo pro offline.` + tileMsg);
+            if ('caches' in window) { try { const res = await cacheTilesForArea(lat, lng, rad, true); tileMsg = '\n' + offlineResultMsg(res); } catch (e) { tileMsg = '\n' + _lgT('Mapu se nepodařilo uložit offline:') + ' ' + ((e && e.message) ? e.message : e); } }
+            agInfo(_lgT('Staženo {n} bodů ve vybrané oblasti — uloženo pro offline.', { n: found }) + tileMsg);
         };
 
         
@@ -722,21 +725,21 @@ if ('serviceWorker' in navigator) {
         // Srozumitelna hlaska z vysledku cacheTilesForArea (misto tiche castecne chyby).
         function offlineResultMsg(res) {
             if (res.unsupported) return "Tento prohlížeč nepodporuje offline ukládání mapy.";
-            if (res.tooMany) return `Oblast je příliš velká (${res.total} dílků mapy). Zmenši poloměr stahování a zkus to znovu.`;
+            if (res.tooMany) return _lgT('Oblast je příliš velká ({n} dílků mapy). Zmenši poloměr stahování a zkus to znovu.', { n: res.total });
             if (res.total === 0) return "V oblasti nejsou žádné mapové dlaždice ke stažení.";
-            let msg = `Uloženo ${res.ok} z ${res.total} dílků mapy.`;
+            let msg = _lgT('Uloženo {ok} z {n} dílků mapy.', { ok: res.ok, n: res.total });
             const failed = res.total - res.ok;
             if (failed > 0) {
                 let why = [];
-                if (res.net) why.push(`${res.net}× výpadek sítě / offline`);
-                if (res.http) why.push(`${res.http}× server odmítl`);
-                if (res.quota) why.push(`${res.quota}× plné úložiště`);
-                msg += `\n⚠ ${failed} dílků se NEULOŽILO` + (why.length ? ` (${why.join(', ')})` : '') + `.\nMísto se může offline zobrazit prázdné. Zkus to znovu s lepším signálem nebo menším poloměrem.`;
+                if (res.net) why.push(_lgT('{n}× výpadek sítě / offline', { n: res.net }));
+                if (res.http) why.push(_lgT('{n}× server odmítl', { n: res.http }));
+                if (res.quota) why.push(_lgT('{n}× plné úložiště', { n: res.quota }));
+                msg += '\n' + _lgT('⚠ {n} dílků se NEULOŽILO', { n: failed }) + (why.length ? ` (${why.join(', ')})` : '') + '.\n' + _lgT('Místo se může offline zobrazit prázdné. Zkus to znovu s lepším signálem nebo menším poloměrem.');
             }
             if (res.wms) {
                 const w = res.wms;
-                const line = (name, r) => { if (!r) return ''; if (r.skipped) return `\n${name}: oblast moc velká pro offline (${r.total} dílků) — zmenši poloměr.`; if (r.total === 0) return ''; return `\n${name}: uloženo ${r.ok} z ${r.total} dílků` + (r.ok < r.total ? ' ⚠' : ''); };
-                msg += line('Katastr KN', w.katastr) + line('Ortofoto', w.ortofoto);
+                const line = (name, r) => { if (!r) return ''; if (r.skipped) return `\n${name}: ` + _lgT('oblast moc velká pro offline ({n} dílků) — zmenši poloměr.', { n: r.total }); if (r.total === 0) return ''; return `\n${name}: ` + _lgT('uloženo {ok} z {n} dílků', { ok: r.ok, n: r.total }) + (r.ok < r.total ? ' ⚠' : ''); };
+                msg += line(_lgT('Katastr KN'), w.katastr) + line(_lgT('Ortofoto'), w.ortofoto);
             }
             return msg;
         }
@@ -747,14 +750,14 @@ if ('serviceWorker' in navigator) {
             if (!('caches' in window)) { agInfo("Tento prohlížeč nepodporuje offline ukládání mapy."); return; }
             try {
                 const res = await cacheTilesForArea(userLat, userLng, mapRadius, true);
-                agInfo(`Uloženo ${officialPoints.length} bodů pro tuto zakázku.\n` + offlineResultMsg(res));
-            } catch (e) { hideOfflineProgress(); agInfo("Stahování mapy se nezdařilo: " + ((e && e.message) ? e.message : e)); }
+                agInfo(_lgT('Uloženo {n} bodů pro tuto zakázku.', { n: officialPoints.length }) + '\n' + offlineResultMsg(res));
+            } catch (e) { hideOfflineProgress(); agInfo(_lgT("Stahování mapy se nezdařilo:") + " " + ((e && e.message) ? e.message : e)); }
         }
 
         function hideCurrentPoint() { if (hideBtnLogic) hideBtnLogic(); closeBottomSheet(); quickToast('Bod skryt. Obnovíš ho v Nastavení → Záloha a údržba → Skryté body.'); } function restoreHiddenPoints() { const n = arPoints.filter(p => p.hidden).length; arPoints.forEach(p => p.hidden = false); initARMarkers(); drawAllMarkersOnMap(); document.getElementById('settings-modal').style.display = 'none'; updateInfoPanel(); if (typeof renderManageList === 'function' && document.getElementById('manage-modal').style.display === 'flex') renderManageList(); quickToast(n ? ('Obnoveno ' + n + ' skrytých bodů.') : 'Žádné body nebyly skryté.'); } function clearAllPoints() {
             // Destruktivní akce bez záchrany v koši/undo → vždy potvrdit (s počtem bodů).
             const n = arPoints.filter(p => p.cat !== 'CUSTOM').length;
-            const msg = 'Opravdu vymazat stažené úřední body této zakázky' + (n ? ' (' + n + ')' : '') + '?\nVlastní body zůstanou. Znovu stáhnout je půjde jen s internetem.';
+            const msg = _lgT('Opravdu vymazat stažené úřední body této zakázky{n}?', { n: n ? ' (' + n + ')' : '' }) + '\n' + _lgT('Vlastní body zůstanou. Znovu stáhnout je půjde jen s internetem.');
             const doIt = () => { arPoints.forEach(p => { if(p.element) p.element.remove(); }); arPoints = []; removeStoredData('arOfflinePoints12'); document.getElementById('settings-modal').style.display = 'none'; if (userLat && userLng) initFetch(userLat, userLng); };
             if (window.agConfirm) { window.agConfirm({ title: 'Vymazat stáhnuté okolí', message: msg.replace(/\n/g, '<br>'), okText: 'Vymazat', danger: true }).then(ok => { if (ok) doIt(); }); }
             else if (confirm(msg)) doIt();
@@ -974,7 +977,7 @@ if ('serviceWorker' in navigator) {
             // Hromadne mazani chodi vzdy se skipConfirm=true (panel Body ma jedno
             // spolecne potvrzeni), takze se tady u davky nikdy neptame.
             if (!skipConfirm) {
-                agAsk('Smazat bod „' + ((_pt && _pt.name) || 'bez názvu') + '"?\nVrátit ho půjde 30 dní z koše (Nástroje → Zaznamenat → Obnovit smazaný bod).', { title: 'Smazat bod', okText: 'Smazat', danger: true })
+                agAsk(_lgT('Smazat bod „{n}"?', { n: (_pt && _pt.name) || _lgT('bez názvu') }) + '\n' + _lgT('Vrátit ho půjde 30 dní z koše (Nástroje → Zaznamenat → Obnovit smazaný bod).'), { title: 'Smazat bod', okText: 'Smazat', danger: true })
                     .then(ok => { if (ok) window.deleteCustomPoint(id, true, batch); });
                 return;
             }
@@ -1018,7 +1021,7 @@ if ('serviceWorker' in navigator) {
                 if (_nm) {
                     _nm.style.display = 'block';
                     let _tv = function (cs) { try { return window.AGJazyk ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } };
-                    _nm.innerHTML = _tv('Poloha odečtená z mapy') + ' — ±' + (Math.round(_mpf.acc * 10) / 10).toFixed(1).replace('.', ',')
+                    _nm.innerHTML = _tv('Poloha <b>odečtená z mapy</b>') + ' — ±' + (Math.round(_mpf.acc * 10) / 10).toFixed(1).replace('.', ',')
                         + ' m. ' + _tv('Není to měření: přesnost vychází z měřítka mapy při klepnutí, ne z GPS. Výšku z mapy appka neurčí.');
                 }
                 return;
@@ -1026,9 +1029,9 @@ if ('serviceWorker' in navigator) {
             // BRANA CERSTVOSTI: kdyz GPS prestala dodavat fixy (tunel, suspend), prumer je
             // ze STARE polohy — bod by se tise ulozil jinam, nez clovek stoji.
             const _fx = window.AGFix;
-            if (_fx && _fx.ts && (Date.now() - _fx.ts) > 10000) { return _rekni('Poloha je stará ' + Math.round((Date.now() - _fx.ts) / 1000) + ' s — GPS teď nedodává čerstvé fixy.\n\nPočkej pod volným nebem na obnovení signálu a zkus to znovu.', 'GPS nedodává čerstvé fixy (' + Math.round((Date.now() - _fx.ts) / 1000) + ' s) — souřadnice se doplní, až se signál vrátí.'); }
-            if (gpsAvgResult && gpsAvgResult.coarse) { return _rekni("Slabý GNSS signál — telefon hlásí síťovou polohu ±" + Math.round(gpsAvgResult.acc) + " m, ne satelitní fix.\n\nVyjdi pod volné nebe a počkej, až se přesnost zlepší pod 20 m.", 'Zatím jen síťová poloha ±' + Math.round(gpsAvgResult.acc) + ' m — čekám na satelitní fix, souřadnice se doplní samy.'); }
-            if (!gpsAvgResult || gpsAvgResult.n < 2) { return _rekni("Počkej na ustálení průměrování GPS (stůj chvíli na místě).", 'Průměruji GPS' + (gpsAvgResult && gpsAvgResult.n ? ' (' + gpsAvgResult.n + ' měření)' : '') + ' — stůj chvíli na místě, souřadnice se doplní samy.'); }
+            if (_fx && _fx.ts && (Date.now() - _fx.ts) > 10000) { const _st = Math.round((Date.now() - _fx.ts) / 1000); return _rekni(_lgT('Poloha je stará {s} s — GPS teď nedodává čerstvé fixy.', { s: _st }) + '\n\n' + _lgT('Počkej pod volným nebem na obnovení signálu a zkus to znovu.'), _lgT('GPS nedodává čerstvé fixy ({s} s) — souřadnice se doplní, až se signál vrátí.', { s: _st })); }
+            if (gpsAvgResult && gpsAvgResult.coarse) { return _rekni(_lgT("Slabý GNSS signál — telefon hlásí síťovou polohu ±{a} m, ne satelitní fix.", { a: Math.round(gpsAvgResult.acc) }) + "\n\n" + _lgT("Vyjdi pod volné nebe a počkej, až se přesnost zlepší pod 20 m."), _lgT('Zatím jen síťová poloha ±{a} m — čekám na satelitní fix, souřadnice se doplní samy.', { a: Math.round(gpsAvgResult.acc) })); }
+            if (!gpsAvgResult || gpsAvgResult.n < 2) { return _rekni("Počkej na ustálení průměrování GPS (stůj chvíli na místě).", _lgT('Průměruji GPS{n} — stůj chvíli na místě, souřadnice se doplní samy.', { n: (gpsAvgResult && gpsAvgResult.n ? ' (' + _lgT('{n} měření', { n: gpsAvgResult.n }) + ')' : '') })); }
             const r = gpsAvgResult; let sjtsk = agMistni(r.lat, r.lng);
             document.getElementById('custom-y').value = agFmtPresne(sjtsk.y);
             document.getElementById('custom-x').value = agFmtPresne(sjtsk.x);
@@ -1739,7 +1742,7 @@ if ('serviceWorker' in navigator) {
             let h = '';
             if (pt.druh) h += row('Druh', esc(pt.druh));
             if (pt.zdroj && pt.vrstva && pt.vrstva !== 'CZ') h += row('Zdroj', esc(pt.zdroj));   // cizí bodová pole (SK, CH, NL)
-            if (pt.list && (pt.cat === 'TB' || pt.cat === 'ZHB')) h += row('Triangulační list', esc(pt.list) + ' <span style="opacity:.7;">· bod ' + esc(pt.name) + '</span>');
+            if (pt.list && (pt.cat === 'TB' || pt.cat === 'ZHB')) h += row('Triangulační list', esc(pt.list) + ' <span style="opacity:.7;">' + _lgT('· bod {n}', { n: esc(pt.name) }) + '</span>');
             if (pt.cislo12) h += row('Úplné číslo', `<span style="font-family:var(--font-mono,monospace);letter-spacing:.04em;">${esc(pt.cislo12)}</span>`);
             if (pt.ku || pt.okres) h += row('Kat. území', esc([pt.ku, pt.okres].filter(Boolean).join(' · ')));
             if (pt.presnost != null) h += row('Třída přesnosti', esc(pt.presnost) + ' <span style="opacity:.7;">(nižší = přesnější)</span>');
@@ -1926,17 +1929,17 @@ if ('serviceWorker' in navigator) {
                     const mb = n => (n / 1048576).toFixed(1).replace('.', ',');
                     const gb = n => n >= 1073741824 ? (n / 1073741824).toFixed(1).replace('.', ',') + ' GB' : mb(n) + ' MB';
                     const pct = quota ? Math.round(used / quota * 100) : 0;
-                    let line = `Využito <b>${mb(used)} MB</b>` + (quota ? ` z ~${gb(quota)} (${pct} %)` : '');
+                    let line = _lgT('Využito {u}', { u: `<b>${mb(used)} MB</b>` }) + (quota ? ' ' + _lgT('z ~{q} ({p} %)', { q: gb(quota), p: pct }) : '');
                     if (quota && pct >= 85) line += ' <span style="color:var(--danger);">⚠ skoro plné</span>';
                     parts.push(line);
-                } else parts.push('Prohlížeč nehlásí obsazení úložiště.');
-            } catch (e) { parts.push('Obsazení úložiště se nepodařilo zjistit.'); }
-            if (window._agPersisted === true) parts.push('trvalé úložiště: <b>ano</b>');
-            else if (window._agPersisted === false) parts.push('trvalé: <b>ne</b> — na iOS hrozí smazání dat po ~7 dnech nečinnosti, dělej zálohy');
+                } else parts.push(_lgT('Prohlížeč nehlásí obsazení úložiště.'));
+            } catch (e) { parts.push(_lgT('Obsazení úložiště se nepodařilo zjistit.')); }
+            if (window._agPersisted === true) parts.push(_lgT('trvalé úložiště: <b>ano</b>'));
+            else if (window._agPersisted === false) parts.push(_lgT('trvalé: <b>ne</b> — na iOS hrozí smazání dat po ~7 dnech nečinnosti, dělej zálohy'));
             try {
                 const last = parseInt(localStorage.getItem('arLastBackupAt') || '0', 10);
-                if (last) { const d = Math.round((Date.now() - last) / 86400000); parts.push('poslední záloha: <b>' + (d <= 0 ? 'dnes' : d + ' dní zpět') + '</b>'); }
-                else parts.push('<span style="color:var(--warning);">záloha zatím nebyla stažena</span>');
+                if (last) { const d = Math.round((Date.now() - last) / 86400000); parts.push(_lgT('poslední záloha: {d}', { d: '<b>' + (d <= 0 ? _lgT('dnes') : _lgT('{n} dní zpět', { n: d })) + '</b>' })); }
+                else parts.push('<span style="color:var(--warning);">' + _lgT('záloha zatím nebyla stažena') + '</span>');
             } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:initFetch'); }
             el.innerHTML = parts.join(' · ');
         };
@@ -2052,15 +2055,15 @@ if ('serviceWorker' in navigator) {
                     const code = (error && error.code) || 0;
                     window.AGFix = Object.assign(window.AGFix || {}, { err: code, errTs: Date.now() });
                     if (appStarted) {
-                        const czech = { 1: 'přístup k poloze je zakázán — povolte ho telefonu v nastavení', 2: 'poloha není dostupná (žádný signál GNSS)', 3: 'čekání na polohu vypršelo (slabý signál)' };
+                        const czech = { 1: _lgT('přístup k poloze je zakázán — povolte ho telefonu v nastavení'), 2: _lgT('poloha není dostupná (žádný signál GNSS)'), 3: _lgT('čekání na polohu vypršelo (slabý signál)') };
                         // U ZAMITNUTE POLOHY (kód 1) je samotna hlaska slepa ulicka: povolit
                         // se to da jen v nastaveni telefonu a appka pak potrebuje NOVY watch.
                         // Proto tlacitko primo v hlasce misto restartu cele appky.
                         const rada = (code === 1)
-                            ? ' Povol polohu v nastavení telefonu a pak klepni na Zkusit znovu.'
-                            : ' Vyjdi pod otevřené nebe a klepni na Zkusit znovu.';
+                            ? ' ' + _lgT('Povol polohu v nastavení telefonu a pak klepni na Zkusit znovu.')
+                            : ' ' + _lgT('Vyjdi pod otevřené nebe a klepni na Zkusit znovu.');
                         document.getElementById('info').innerHTML =
-                            'Chyba GPS: ' + (czech[code] || (error && error.message) || 'neznámá chyba') + rada
+                            _lgT('Chyba GPS:') + ' ' + (czech[code] || (error && error.message) || _lgT('neznámá chyba')) + rada
                             + ' <button type="button" class="info-retry" onclick="agRetryGps()">Zkusit znovu</button>';
                     }
                 },
@@ -2247,9 +2250,9 @@ if ('serviceWorker' in navigator) {
                 note.style.display = 'block';
                 // OCR cte text z FOTKY, tedy libovolny cizi retezec -> escapovat.
                 const _e = (window.AG && AG.esc) ? AG.esc : function (x) { return String(x == null ? '' : x).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
-                note.innerHTML = 'Přečteno z fotky: ' + (r.name !== null ? 'bod <b>' + _e(r.name) + '</b> · ' : '')
-                    + (r.y !== null ? 'Y <b>' + agFmtM(r.y) + '</b>' : 'Y se nenašlo') + ' · '
-                    + (r.x !== null ? 'X <b>' + agFmtM(r.x) + '</b>' : 'X se nenašlo')
+                note.innerHTML = _lgT('Přečteno z fotky:') + ' ' + (r.name !== null ? _lgT('bod') + ' <b>' + _e(r.name) + '</b> · ' : '')
+                    + (r.y !== null ? 'Y <b>' + agFmtM(r.y) + '</b>' : _lgT('Y se nenašlo')) + ' · '
+                    + (r.x !== null ? 'X <b>' + agFmtM(r.x) + '</b>' : _lgT('X se nenašlo'))
                     + (r.z !== null ? ' · Z <b>' + r.z.toFixed(2) + '</b>' : '')
                     + '<br><b>Zkontroluj hodnoty proti originálu</b> — OCR se může splést.';
             }

@@ -65,6 +65,9 @@
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { swallow(e, 'agAlert'); } try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e) { swallow(e, 'agInfo'); } }
     function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { swallow(e, 'toast'); } }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    // překlad textů, které si modul skládá sám (číslo/název ve větě) — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
+    var B = { b: '<b>', _b: '</b>' };
     function byId(id) { return document.getElementById(id); }
     function fmt(v, d) { return (isFinite(v) ? v.toFixed(d == null ? 2 : d) : '–').replace('.', ','); }
     function lsGet(k, def) { try { var v = localStorage.getItem(k); return v == null ? def : JSON.parse(v); } catch (e) { return def; } }
@@ -83,7 +86,7 @@
     function allKnown() {
         var out = [];
         points().forEach(function (p) { if (isFinite(p.lat) && isFinite(p.lng)) out.push({ id: p.id, name: p.name, lat: p.lat, lng: p.lng }); });
-        officialPts().forEach(function (p) { if (isFinite(p.lat) && isFinite(p.lng)) out.push({ id: 'of_' + (p.id || p.name), name: (p.name || '') + ' (úřední)', lat: p.lat, lng: p.lng }); });
+        officialPts().forEach(function (p) { if (isFinite(p.lat) && isFinite(p.lng)) out.push({ id: 'of_' + (p.id || p.name), name: (p.name || '') + ' (úřední)', label: (p.name || '') + ' (' + T('úřední') + ')', lat: p.lat, lng: p.lng }); });
         try {
             if (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null) {
                 out.sort(function (a, b) { return planarDist(a.lat, a.lng, userLat, userLng) - planarDist(b.lat, b.lng, userLat, userLng); });
@@ -344,9 +347,9 @@
         var m = mPerDeg((p1.lat + p2.lat) / 2);
         var x1 = 0, y1 = 0, x2 = (p2.lng - p1.lng) * m.lng, y2 = (p2.lat - p1.lat) * m.lat;
         var L = Math.hypot(x2, y2);
-        if (L < 0.5) return { err: 'Body jsou příliš blízko u sebe.' };
-        if (d1 + d2 < L) return { err: 'Délky se nesejdou: součet ' + fmt(d1 + d2) + ' m je kratší než vzdálenost bodů ' + fmt(L) + ' m.' };
-        if (Math.abs(d1 - d2) > L) return { err: 'Délky se nesejdou: jedna kružnice leží celá uvnitř druhé.' };
+        if (L < 0.5) return { err: T('Body jsou příliš blízko u sebe.') };
+        if (d1 + d2 < L) return { err: T('Délky se nesejdou: součet {s} m je kratší než vzdálenost bodů {l} m.', { s: fmt(d1 + d2), l: fmt(L) }) };
+        if (Math.abs(d1 - d2) > L) return { err: T('Délky se nesejdou: jedna kružnice leží celá uvnitř druhé.') };
         var a = (d1 * d1 - d2 * d2 + L * L) / (2 * L), h2 = d1 * d1 - a * a, h = Math.sqrt(Math.max(0, h2));
         var ux = x2 / L, uy = y2 / L, px = x1 + a * ux, py = y1 + a * uy;
         var s1 = { x: px - h * uy, y: py + h * ux }, s2 = { x: px + h * uy, y: py - h * ux };
@@ -433,13 +436,13 @@
             + '<button class="btn btn-secondary" id="ag-aku-go-b"><svg class="icon"><use href="#i-map-pin"/></svg> Stojím na známém bodě</button>'
             + '</div>'
             + '<div class="aku-card" style="margin-top:12px;">'
-            + '<div class="aku-row"><label>Teplota vzduchu</label><input id="ag-aku-t" type="text" inputmode="decimal" value="' + fmt(tp != null ? tp : s.teplota, 0) + '"><span style="opacity:.7">°C' + (tp != null ? ' · z Počasí' : '') + '</span></div>'
+            + '<div class="aku-row"><label>Teplota vzduchu</label><input id="ag-aku-t" type="text" inputmode="decimal" value="' + fmt(tp != null ? tp : s.teplota, 0) + '"><span style="opacity:.7">°C' + (tp != null ? ' · ' + T('z Počasí') : '') + '</span></div>'
             + '<div class="aku-row"><label>Zvuk</label><select id="ag-aku-band"><option value="std"' + (s.pasmo === 'std' ? ' selected' : '') + '>slyšitelný 5–13 kHz (spolehlivější)</option><option value="tichy"' + (s.pasmo === 'tichy' ? ' selected' : '') + '>skoro neslyšný 14–20 kHz</option></select></div>'
             + '<div class="aku-row"><label>Kol na měření</label><select id="ag-aku-rounds"><option' + (s.kola === 1 ? ' selected' : '') + '>1</option><option' + (s.kola === 3 ? ' selected' : '') + '>3</option><option' + (s.kola === 5 ? ' selected' : '') + '>5</option></select></div>'
-            + '<div class="aku-row"><label>Oprava nuly</label><span>' + fmt(offset()) + ' m' + (lsGet(LS_OFF, null) == null ? ' (výchozí, nekalibrováno)' : ' (kalibrováno)') + '</span></div>'
+            + '<div class="aku-row"><label>Oprava nuly</label><span>' + fmt(offset()) + ' m' + (lsGet(LS_OFF, null) == null ? ' (' + T('výchozí, nekalibrováno') + ')' : ' (' + T('kalibrováno') + ')') + '</span></div>'
             + '</div>'
             + '<div class="aku-btns">'
-            + '<button class="btn btn-secondary" id="ag-aku-delky"><svg class="icon"><use href="#i-ruler"/></svg> Délky ke známým bodům (' + delky().length + ')</button>'
+            + '<button class="btn btn-secondary" id="ag-aku-delky"><svg class="icon"><use href="#i-ruler"/></svg> ' + T('Délky ke známým bodům') + ' (' + delky().length + ')</button>'
             + '<button class="btn btn-secondary" id="ag-aku-kal"><svg class="icon"><use href="#i-sliders"/></svg> Kalibrace nuly (2,00 m)</button>'
             + '</div>';
         function saveSet() {
@@ -462,13 +465,13 @@
             _view = role; render();
         }).catch(function (e) {
             _view = 'home'; render();
-            agAlert('Mikrofon', 'Nepodařilo se zapnout zvuk: ' + esc(e && e.message || e) + '<br><br>Povol aplikaci mikrofon (Nastavení telefonu → Safari/Chrome → Mikrofon).');
+            agAlert('Mikrofon', T('Nepodařilo se zapnout zvuk: {e}', { e: esc(T(String(e && e.message || e))) }) + '<br><br>' + T('Povol aplikaci mikrofon (Nastavení telefonu → Safari/Chrome → Mikrofon).'));
         });
     }
     function renderB(body) {
         body.innerHTML = '<div class="aku-card green"><span class="aku-pulse"></span><b>Poslouchám a odpovídám.</b> Polož telefon spodní hranou na známý bod a nech ho být. Druhý telefon měří.</div>'
             + '<div class="aku-big" id="ag-aku-bn">0</div><div class="aku-sub" id="ag-aku-bsub">odpovědí</div>'
-            + '<p class="aku-p" style="margin-top:12px;">Zvuk: ' + (_au ? _au.band + ' · ' + _au.fs + ' Hz' : '') + '. Nezakrývej spodní hranu telefonu (mikrofon i reproduktor).</p>'
+            + '<p class="aku-p" style="margin-top:12px;">' + T('Zvuk: {b}. Nezakrývej spodní hranu telefonu (mikrofon i reproduktor).', { b: (_au ? _au.band + ' · ' + _au.fs + ' Hz' : '') }) + '</p>'
             + '<button class="btn" id="ag-aku-bstop"><svg class="icon"><use href="#i-stop"/></svg> Přestat odpovídat</button>';
         byId('ag-aku-bstop').addEventListener('click', function () { stopAll(); _view = 'home'; render(); });
         renderLive();
@@ -476,12 +479,12 @@
     function renderA(body) {
         var s = settings();
         body.innerHTML = (_calMode
-            ? '<div class="aku-card amber"><b>Kalibrace nuly:</b> polož oba telefony spodními hranami proti sobě přesně <b>' + fmt(CAL_DIST) + ' m</b> od sebe podle pásma. Druhý telefon musí mít zapnuté <b>Stojím na známém bodě</b>.</div>'
-            : '<div class="aku-card"><span class="aku-pulse"></span>Mikrofon běží. Druhý telefon musí mít zapnuté <b>Stojím na známém bodě</b>. Spodní hranu drž nad měřeným místem, telefony ať na sebe „vidí".</div>')
+            ? '<div class="aku-card amber">' + T('{b}Kalibrace nuly:{_b} polož oba telefony spodními hranami proti sobě přesně {b}{d} m{_b} od sebe podle pásma. Druhý telefon musí mít zapnuté {b}Stojím na známém bodě{_b}.', { b: '<b>', _b: '</b>', d: fmt(CAL_DIST) }) + '</div>'
+            : '<div class="aku-card"><span class="aku-pulse"></span>' + T('Mikrofon běží. Druhý telefon musí mít zapnuté {b}Stojím na známém bodě{_b}. Spodní hranu drž nad měřeným místem, telefony ať na sebe „vidí".', B) + '</div>')
             + '<div class="aku-big" id="ag-aku-d">–</div><div class="aku-sub" id="ag-aku-dsub">klepni Změřit</div>'
             + '<ul class="aku-list" id="ag-aku-rounds-list"></ul>'
             + '<div class="aku-btns">'
-            + '<button class="btn btn-primary" id="ag-aku-measure"><svg class="icon"><use href="#i-sound"/></svg> Změřit (' + s.kola + '×)</button>'
+            + '<button class="btn btn-primary" id="ag-aku-measure"><svg class="icon"><use href="#i-sound"/></svg> ' + T('Změřit') + ' (' + s.kola + '×)</button>'
             + (_calMode ? '<button class="btn btn-secondary" id="ag-aku-cal-save" disabled><svg class="icon"><use href="#i-check"/></svg> Uložit opravu nuly</button>' : '<button class="btn btn-secondary" id="ag-aku-save" disabled>✓ Uložit délku ke známému bodu</button>')
             + '</div>'
             + '<button class="btn btn-secondary" id="ag-aku-astop" style="margin-top:8px;">← Zpět (vypnout mikrofon)</button>';
@@ -501,34 +504,34 @@
         if (cs) cs.addEventListener('click', function () {
             var sm = summary(_results); if (!sm) return;
             var newOff = offset() + (CAL_DIST - sm.d);
-            if (Math.abs(newOff) > 0.6) { agAlert('Kalibrace', 'Vyšla nesmyslná oprava ' + fmt(newOff) + ' m — telefony nejsou 2,00 m od sebe, nebo měření nesedí. Zkus znovu.'); return; }
+            if (Math.abs(newOff) > 0.6) { agAlert('Kalibrace', T('Vyšla nesmyslná oprava {o} m — telefony nejsou 2,00 m od sebe, nebo měření nesedí. Zkus znovu.', { o: fmt(newOff) })); return; }
             lsSet(LS_OFF, Math.round(newOff * 1000) / 1000);
-            agAlert('Kalibrace hotová', 'Oprava nuly: <b>' + fmt(newOff) + ' m</b> (naměřeno ' + fmt(sm.d) + ' m, má být ' + fmt(CAL_DIST) + ' m). Platí pro tuhle dvojici telefonů v tomhle držení.');
+            agAlert('Kalibrace hotová', T('Oprava nuly:') + ' <b>' + fmt(newOff) + ' m</b> ' + T('(naměřeno {a} m, má být {b} m). Platí pro tuhle dvojici telefonů v tomhle držení.', { a: fmt(sm.d), b: fmt(CAL_DIST) }));
             stopAll(); _calMode = false; _view = 'home'; render();
         });
         renderLive();
     }
     function renderLive() {
-        if (_role === 'B' && _b) { var n = byId('ag-aku-bn'); if (n) n.textContent = String(_b.n); var bs = byId('ag-aku-bsub'); if (bs) bs.textContent = (_b.st === 'listen' ? 'odpovědí · poslouchám' : 'odpovědí · odpovídám…') + (_b.lastDb != null ? ' · reakce ' + Math.round(_b.lastDb * 1000) + ' ms' : ''); return; }
+        if (_role === 'B' && _b) { var n = byId('ag-aku-bn'); if (n) n.textContent = String(_b.n); var bs = byId('ag-aku-bsub'); if (bs) bs.textContent = T(_b.st === 'listen' ? 'odpovědí · poslouchám' : 'odpovědí · odpovídám…') + (_b.lastDb != null ? ' · ' + T('reakce {r} ms', { r: Math.round(_b.lastDb * 1000) }) : ''); return; }
         if (_role !== 'A' || !_a) return;
         var big = byId('ag-aku-d'), sub = byId('ag-aku-dsub'), list = byId('ag-aku-rounds-list');
         if (!big) return;
         var sm = summary(_results);
-        if (sm) { big.textContent = fmt(sm.d) + ' m'; sub.textContent = sm.n + ' z ' + _results.length + ' kol · rozptyl ' + Math.round(sm.spread * 100) + ' cm · odhad ±' + Math.round(sm.u * 100) + ' cm'; }
-        else if (_a.st !== 'idle') { big.textContent = '…'; sub.innerHTML = '<span class="aku-pulse"></span>kolo ' + _a.round + '/' + _a.total + ' · ' + ({ wait0: 'pípám', wait1: 'čekám na odpověď', wait2: 'čekám na druhé pípnutí', gap: 'mezera' }[_a.st] || ''); }
-        else if (_results.length) { big.textContent = '–'; sub.textContent = 'žádné kolo se nepovedlo'; }
+        if (sm) { big.textContent = fmt(sm.d) + ' m'; sub.textContent = T('{n} z {k} kol · rozptyl {r} cm · odhad ±{u} cm', { n: sm.n, k: _results.length, r: Math.round(sm.spread * 100), u: Math.round(sm.u * 100) }); }
+        else if (_a.st !== 'idle') { big.textContent = '…'; sub.innerHTML = '<span class="aku-pulse"></span>' + T('kolo {i}/{n}', { i: _a.round, n: _a.total }) + ' · ' + T({ wait0: 'pípám', wait1: 'čekám na odpověď', wait2: 'čekám na druhé pípnutí', gap: 'mezera' }[_a.st] || ''); }
+        else if (_results.length) { big.textContent = '–'; sub.textContent = T('žádné kolo se nepovedlo'); }
         if (list) list.innerHTML = _results.map(function (r, i) {
-            return '<li><span>kolo ' + (i + 1) + '</span>' + (isFinite(r.d)
-                ? '<span><b>' + fmt(r.d) + ' m</b> <span style="opacity:.6">· S/N ' + Math.round(r.snr) + ' · reakce B ' + Math.round(r.dB * 1000) + ' ms</span></span>'
-                : '<span class="bad">' + esc(r.chyba || 'chyba') + '</span>') + '</li>';
+            return '<li><span>' + T('kolo {i}', { i: i + 1 }) + '</span>' + (isFinite(r.d)
+                ? '<span><b>' + fmt(r.d) + ' m</b> <span style="opacity:.6">' + T('· S/N {s} · reakce B {r} ms', { s: Math.round(r.snr), r: Math.round(r.dB * 1000) }) + '</span></span>'
+                : '<span class="bad">' + esc(T(r.chyba || 'chyba')) + '</span>') + '</li>';
         }).join('');
     }
     function saveLength() {
         var sm = summary(_results); if (!sm) return;
         var kn = allKnown();
-        var opts = kn.map(function (p) { return '<option value="' + esc(p.id) + '">' + esc(p.name) + '</option>'; }).join('');
+        var opts = kn.map(function (p) { return '<option value="' + esc(p.id) + '">' + esc(p.label || p.name) + '</option>'; }).join('');
         var body = byId('ag-aku-body');
-        body.innerHTML = '<p class="aku-p"><b>' + fmt(sm.d) + ' m</b> (±' + Math.round(sm.u * 100) + ' cm). Na kterém <b>známém bodě</b> stojí druhý telefon?</p>'
+        body.innerHTML = '<p class="aku-p"><b>' + fmt(sm.d) + ' m</b> (±' + Math.round(sm.u * 100) + ' cm). ' + T('Na kterém {b}známém bodě{_b} stojí druhý telefon?', B) + '</p>'
             + (kn.length ? '<div class="aku-row"><label>Známý bod</label><select id="ag-aku-kp">' + opts + '</select></div>' : '<p class="aku-p" style="color:var(--warning,#fbbf24)">V zakázce nejsou žádné body — délka se uloží jen s popisem.</p>')
             + '<div class="aku-row"><label>Poznámka</label><input id="ag-aku-note" type="text" placeholder="např. roh garáže, měřený bod 12"></div>'
             + '<div class="aku-btns"><button class="btn btn-primary" id="ag-aku-len-ok"><svg class="icon"><use href="#i-check"/></svg> Uložit délku</button><button class="btn btn-secondary" id="ag-aku-len-back">← Zpět</button></div>';
@@ -537,16 +540,16 @@
             var sel = byId('ag-aku-kp'), p = null;
             if (sel) { var id = sel.value; kn.forEach(function (q) { if (q.id === id) p = q; }); }
             addDelka({ t: Date.now(), d: Math.round(sm.d * 1000) / 1000, u: Math.round(sm.u * 1000) / 1000, n: sm.n, pt: p ? { id: p.id, name: p.name, lat: p.lat, lng: p.lng } : null, note: (byId('ag-aku-note').value || '').trim() });
-            toast('Délka ' + fmt(sm.d) + ' m uložena' + (p ? ' k bodu ' + p.name : '') + '.');
+            toast(p ? T('Délka {d} m uložena k bodu {n}.', { d: fmt(sm.d), n: p.name }) : T('Délka {d} m uložena.', { d: fmt(sm.d) }));
             _results = []; render();
         });
     }
     function renderDelky(body) {
         var d = delky();
-        body.innerHTML = '<p class="aku-p">Uložené délky ke známým bodům. Vyber <b>dvě</b> k různým bodům a spočítej z nich nový bod (protínání z délek).</p>'
+        body.innerHTML = '<p class="aku-p">' + T('Uložené délky ke známým bodům. Vyber {b}dvě{_b} k různým bodům a spočítej z nich nový bod (protínání z délek).', B) + '</p>'
             + (d.length ? '<ul class="aku-list">' + d.map(function (r, i) {
                 var when = new Date(r.t); var hh = ('0' + when.getHours()).slice(-2) + ':' + ('0' + when.getMinutes()).slice(-2);
-                return '<li><label style="display:flex;gap:8px;align-items:center;flex:1;cursor:pointer;"><input type="checkbox" class="ag-aku-ck" data-i="' + i + '"' + (r.pt ? '' : ' disabled') + '><span><b>' + fmt(r.d) + ' m</b> → ' + (r.pt ? esc(r.pt.name) : '<i>bez bodu</i>') + (r.note ? ' · ' + esc(r.note) : '') + '<br><span style="opacity:.6;font-size:.9em">' + when.getDate() + '. ' + (when.getMonth() + 1) + '. ' + hh + ' · ±' + Math.round((r.u || 0) * 100) + ' cm · ' + r.n + ' kol</span></span></label><button class="btn btn-secondary ag-aku-del" data-i="' + i + '" style="padding:4px 8px;margin:0;width:auto;">✕</button></li>';
+                return '<li><label style="display:flex;gap:8px;align-items:center;flex:1;cursor:pointer;"><input type="checkbox" class="ag-aku-ck" data-i="' + i + '"' + (r.pt ? '' : ' disabled') + '><span><b>' + fmt(r.d) + ' m</b> → ' + (r.pt ? esc(r.pt.name) : '<i>bez bodu</i>') + (r.note ? ' · ' + esc(r.note) : '') + '<br><span style="opacity:.6;font-size:.9em">' + when.getDate() + '. ' + (when.getMonth() + 1) + '. ' + hh + ' · ±' + Math.round((r.u || 0) * 100) + ' cm · ' + T('{n} kol', { n: r.n }) + '</span></span></label><button class="btn btn-secondary ag-aku-del" data-i="' + i + '" style="padding:4px 8px;margin:0;width:auto;">✕</button></li>';
             }).join('') + '</ul>' : '<p class="aku-p"><i>Zatím žádná.</i></p>')
             + '<div class="aku-btns"><button class="btn btn-primary" id="ag-aku-prot" disabled><svg class="icon"><use href="#i-line"/></svg> Bod ze dvou délek</button><button class="btn btn-secondary" id="ag-aku-back">← Zpět</button></div>'
             + '<div id="ag-aku-prot-out"></div>';
@@ -569,10 +572,10 @@
             // akustika" (uživatel 15. 9. 2026) to má říkat nahlas, ne schovat do ±3 cm.
             var zded = 0;
             [s[0].pt, s[1].pt].forEach(function (pt) { var o = pt && pt.prov && pt.prov.origin; var a = (pt && pt.acc != null && isFinite(pt.acc)) ? pt.acc : ((o === 'gps-avg' || o === 'ruc') ? 1.0 : 0); if (o === 'gps-avg' || o === 'ruc') zded = Math.max(zded, a); });
-            out.innerHTML = '<div class="aku-card green"><b>Protínání z délek</b> · úhel protnutí ' + Math.round(r.gamma) + '° · odhad ±' + Math.round(u * 100) + ' cm'
+            out.innerHTML = '<div class="aku-card green"><b>Protínání z délek</b> ' + T('· úhel protnutí {g}° · odhad ±{u} cm', { g: Math.round(r.gamma), u: Math.round(u * 100) })
                 + (r.gamma < 30 || r.gamma > 150 ? '<br><span style="color:var(--warning,#fbbf24)">Úhel je moc ostrý/tupý — přesnost klesá. Druhý známý bod vyber víc stranou.</span>' : '')
-                + (zded ? '<br><span style="opacity:.85">Známé body jsou z GPS (±' + fmt(zded) + ' m): <b>tvar a délky</b> vůči nim jsou na centimetry, <b>poloha celku</b> zdědí jejich ±' + fmt(zded) + ' m.</span>' : '') + '</div>'
-                + '<p class="aku-p">Dva možné průsečíky — vyber ten, u kterého stojíš' + (near ? ' (podle GPS spíš ' + (near === 'a' ? 'první' : 'druhý') + ')' : '') + ':</p>'
+                + (zded ? '<br><span style="opacity:.85">' + T('Známé body jsou z GPS (±{z} m): {b}tvar a délky{_b} vůči nim jsou na centimetry, {b}poloha celku{_b} zdědí jejich ±{z} m.', { z: fmt(zded), b: '<b>', _b: '</b>' }) + '</span>' : '') + '</div>'
+                + '<p class="aku-p">' + T('Dva možné průsečíky — vyber ten, u kterého stojíš') + (near ? ' (' + T(near === 'a' ? 'podle GPS spíš první' : 'podle GPS spíš druhý') + ')' : '') + ':</p>'
                 + '<div class="aku-row"><input id="ag-aku-pname" type="text" placeholder="Název nového bodu"></div>'
                 + '<div class="aku-btns"><button class="btn' + (near === 'b' ? ' btn-secondary' : '') + '" data-s="a">1: ' + sj(r.a) + '</button><button class="btn' + (near === 'a' ? ' btn-secondary' : '') + '" data-s="b">2: ' + sj(r.b) + '</button></div>';
             Array.prototype.forEach.call(out.querySelectorAll('button[data-s]'), function (b) {
@@ -582,7 +585,7 @@
                     var name = (byId('ag-aku-pname').value || '').trim() || ('AKU' + Date.now().toString().slice(-4));
                     var added = window.addImportedPoints([{ name: name, lat: ll.lat, lng: ll.lng, origin: 'akustika', acc: Math.round(u * 100) / 100,
                         prov: { origin: 'akustika', ts: Date.now(), acc: Math.round(u * 100) / 100, delky: [{ pt: s[0].pt.name, d: s[0].d }, { pt: s[1].pt.name, d: s[1].d }], gamma: Math.round(r.gamma) } }]);
-                    if (added > 0) { agAlert('Bod uložen', '#' + esc(name) + ' z délek ' + fmt(s[0].d) + ' m (' + esc(s[0].pt.name) + ') a ' + fmt(s[1].d) + ' m (' + esc(s[1].pt.name) + '), ±' + Math.round(u * 100) + ' cm.'); byId(DLG_ID).style.display = 'none'; }
+                    if (added > 0) { agAlert('Bod uložen', T('#{n} z délek {d1} m ({p1}) a {d2} m ({p2}), ±{u} cm.', { n: esc(name), d1: fmt(s[0].d), p1: esc(s[0].pt.name), d2: fmt(s[1].d), p2: esc(s[1].pt.name), u: Math.round(u * 100) })); byId(DLG_ID).style.display = 'none'; }
                     else agAlert('Neuloženo', 'Bod se stejným názvem a polohou už v zakázce je.');
                 });
             });
