@@ -581,7 +581,7 @@
         // podrobnosti = tabulková varianta grafu (schované, ať panel nezabírá půl dne)
         h += '<details class="ag-gp-det"><summary>Podrobně po hodinách (' + model.rows.length + ' h)</summary>';
         model.rows.forEach(function (r) {
-            if (r.t.getHours() === 0) h += '<div style="margin:8px 0 2px;color:var(--text-muted,#9aa1ac);font-size:.85em;">— ' + r.t.toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'numeric' }) + ' —</div>';
+            if (r.t.getHours() === 0) h += '<div style="margin:8px 0 2px;color:var(--text-muted,#9aa1ac);font-size:.85em;">— ' + r.t.toLocaleDateString((window.AGJazyk && AGJazyk.locale) ? AGJazyk.locale() : 'cs-CZ', { weekday: 'long', day: 'numeric', month: 'numeric' }) + ' —</div>';
             h += '<div class="ag-gp-row ' + r.cls + '">' +
                 '<span class="ag-gp-h">' + pad2(r.t.getHours()) + ':00</span>' +
                 '<span class="ag-gp-dot"></span>' +

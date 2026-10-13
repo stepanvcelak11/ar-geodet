@@ -129,10 +129,12 @@
     function popisStavu() {
         try {
             var p = AGSour.popisky();
-            var s = p.system + ' (' + p.osaA + ', ' + p.osaB + ') · výšky ' + p.vyska + (p.vyskaNejista ? ' (±0,5 m)' : '');
-            if (AGSour.rezim() === 'auto') s = p.zemeNazev + ' · ' + s;
+            // po slovech přes t() (13. 10. 2026): vzor ve slovníku pokrýval jen Česko, v cizině tu zůstávalo „výšky Terst · deklinace"
+            var T = function (cs) { try { return window.AGJazyk ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } };
+            var s = String(p.system).replace(' pásmo ', ' ' + T('pásmo') + ' ') + ' (' + p.osaA + ', ' + p.osaB + ') · ' + T('výšky') + ' ' + T(p.vyska) + (p.vyskaNejista ? ' (±0,5 m)' : '');
+            if (AGSour.rezim() === 'auto') s = T(p.zemeNazev) + ' · ' + s;
             var pp = AGSour.poslPoloha();
-            if (pp && window.AGWmm) { var dk = deklinace(pp.lat, pp.lng, 0); if (dk != null) s += ' · deklinace ' + (dk >= 0 ? '+' : '') + dk.toFixed(1) + '°'; }
+            if (pp && window.AGWmm) { var dk = deklinace(pp.lat, pp.lng, 0); if (dk != null) s += ' · ' + T('deklinace') + ' ' + (dk >= 0 ? '+' : '') + dk.toFixed(1) + '°'; }
             return s;
         } catch (e) { swallow(e, 'popis'); return ''; }
     }
@@ -165,7 +167,7 @@
             var rtk = document.getElementById('s-zeme-rtk');
             if (!rtk) { rtk = document.createElement('div'); rtk.id = 's-zeme-rtk'; rtk.style.cssText = 'font-size:calc(12px * var(--ag-font-scale,1));opacity:.85;margin:4px 2px 8px;'; co.appendChild(rtk); }   // co ještě není v DOM (parentNode null → toast „Něco se pokazilo“ při každém startu, 23. 9. 2026)
             var napln = function () { var k = AGSour.kod(), r = window.AGZdroje && AGZdroje.rtkPro ? AGZdroje.rtkPro(k) : null; if (!r) { rtk.textContent = ''; return; }
-                rtk.innerHTML = '<span>' + (window.AGJazyk ? AGJazyk.t('Korekce RTK') : 'Korekce RTK') + ': <b>' + r.n.replace(/[<>]/g, '') + '</b>' + (r.zdarma ? ' · ' + (window.AGJazyk ? AGJazyk.t('(pro geodety zdarma)') : '(pro geodety zdarma)') : '') + ' — <a href="' + r.u.replace(/"/g, '') + '" target="_blank" rel="noopener" style="color:var(--accent);">' + r.p.replace(/[<>]/g, '') + ' ↗</a></span>'; };
+                rtk.innerHTML = '<span>' + (window.AGJazyk ? AGJazyk.t('Korekce RTK') : 'Korekce RTK') + ': <b>' + (window.AGJazyk ? AGJazyk.t(r.n) : r.n).replace(/[<>]/g, '') + '</b>' + (r.zdarma ? ' · ' + (window.AGJazyk ? AGJazyk.t('(pro geodety zdarma)') : '(pro geodety zdarma)') : '') + ' — <a href="' + r.u.replace(/"/g, '') + '" target="_blank" rel="noopener" style="color:var(--accent);">' + (window.AGJazyk ? AGJazyk.t(r.p) : r.p).replace(/[<>]/g, '') + ' ↗</a></span>'; };
             napln(); document.addEventListener('ag:zeme', napln);
             if (!window.AGZdroje && window.AGLazy && AGLazy.need) AGLazy.need('js/zdroje-zemi.js', napln);
         } catch (e) { swallow(e, 'rtk'); }

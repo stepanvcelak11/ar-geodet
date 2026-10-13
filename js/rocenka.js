@@ -67,9 +67,14 @@
     // zkratky měsíců: první tři písmena dala „čer" pro červen i červenec (13. 9. 2026) → čvn / čvc
     // index 0–11 jako u mesicJmeno() a v poli `mesice` (do 15. 9. 2026 bral 1–12, takže
     // proužek měsíců začínal „led led" a prosinec chyběl)
-    function mesicZkr(m) { return ['led', 'úno', 'bře', 'dub', 'kvě', 'čvn', 'čvc', 'srp', 'zář', 'říj', 'lis', 'pro'][+m || 0] || ''; }
-    function dnuTxt(n) { n = +n || 0; return n + ' ' + (n === 1 ? 'den' : (n >= 2 && n <= 4 ? 'dny' : 'dnů')); }
+    // v cizím jazyce měsíce a dny z Intl (13. 10. 2026): bublina „září: nic" šla mimo překladač DOMu
+    function cizi() { try { return window.AGJazyk && AGJazyk.get() !== 'cs' ? AGJazyk.locale() : null; } catch (e) { return null; } }
+    function T(cs) { try { return window.AGJazyk ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } }
+    function mesicIntl(m, typ) { try { return new Date(2020, +m || 0, 1).toLocaleDateString(cizi(), { month: typ }); } catch (e) { return ''; } }
+    function mesicZkr(m) { if (cizi()) return mesicIntl(m, 'short'); return ['led', 'úno', 'bře', 'dub', 'kvě', 'čvn', 'čvc', 'srp', 'zář', 'říj', 'lis', 'pro'][+m || 0] || ''; }
+    function dnuTxt(n) { n = +n || 0; if (cizi()) return n + ' ' + T(n === 1 ? 'den' : 'dnů'); return n + ' ' + (n === 1 ? 'den' : (n >= 2 && n <= 4 ? 'dny' : 'dnů')); }
     function mesicJmeno(m) {
+        if (cizi()) return mesicIntl(m, 'long');
         return ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec',
             'srpen', 'září', 'říjen', 'listopad', 'prosinec'][m] || '';
     }
@@ -404,7 +409,7 @@
         d.mesice.forEach(function (m) {
             var v = m.data ? m.data.dist : 0;
             var vyskaP = maxKm > 0 ? Math.max(2, Math.round(v / maxKm * 100)) : 2;
-            h += '<div class="agroc-mes-i' + (m.data ? '' : ' prazdny') + '" title="' + esc(mesicJmeno(m.m)) + (m.data ? ': ' + cislo(v / 1000, 1) + ' km, ' + dnuTxt(m.data.dni || 0) : ': nic') + '">' +
+            h += '<div class="agroc-mes-i' + (m.data ? '' : ' prazdny') + '" title="' + esc(mesicJmeno(m.m)) + (m.data ? ': ' + cislo(v / 1000, 1) + ' km, ' + dnuTxt(m.data.dni || 0) : ': ' + T('nic')) + '">' +
                 '<div class="agroc-mes-b" style="height:' + vyskaP + '%"></div>' +
                 '<div class="agroc-mes-l">' + esc(mesicZkr(m.m)) + '</div>' +
                 '</div>';

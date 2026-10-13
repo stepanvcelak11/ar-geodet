@@ -37,6 +37,8 @@
 
     function swallow(e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'korekce-z-mapy:' + kde); } catch (e2) { /* nic */ } }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    // věty s počtem měření se do slovníku (shoda celým textem) netrefí → zástupci {n}, {p} (13. 10. 2026)
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function fmt(v, d) { return (isFinite(v) ? v.toFixed(d == null ? 2 : d) : '–').replace('.', ','); }
     function byId(id) { return document.getElementById(id); }
     function theMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
@@ -203,8 +205,8 @@
         if (!g) return '<div class="km-stav warn"><b>Bez GPS.</b> Čekám na fix' + ((window.AGManualPos && AGManualPos.active) ? ' — je zapnutá statická „Poloha z mapy", tu napřed vypni' : '') + '.</div>';
         var ok = g.from === 'avg' && (g.n || 0) >= 10;
         return '<div class="km-stav ' + (ok ? 'ok' : 'warn') + '">'
-            + (g.from === 'avg' ? '<b>Průměr GPS:</b> ' + g.n + ' měření' + (g.sterr != null ? ', ±' + fmt(g.sterr) + ' m' : '') : '<b>Jen jeden fix</b> (±' + fmt(g.sterr || 0, 0) + ' m)')
-            + (ok ? ' — dobré, klepni.' : ' — <b>postůj ještě chvíli</b> (30–60 s), z jednoho fixu by korekce byla náhodná.')
+            + (g.from === 'avg' ? '<b>' + T('Průměr GPS:') + '</b> ' + T('{n} měření', { n: g.n }) + (g.sterr != null ? ', ±' + fmt(g.sterr) + ' m' : '') : '<b>' + T('Jen jeden fix') + '</b> (±' + fmt(g.sterr || 0, 0) + ' m)')
+            + (ok ? ' — ' + T('dobré, klepni.') : ' — <b>' + T('postůj ještě chvíli') + '</b> ' + T('(30–60 s), z jednoho fixu by korekce byla náhodná.'))
             + '</div>';
     }
     function render() {
@@ -229,7 +231,7 @@
             var v = _vysledek;
             h += '<div class="km-stav ok"><b>Výsledek:</b> GPS se tu plete o <b class="big">' + fmt(v.mag, 1) + ' m</b> směrem ' + smer(v.dE, v.dN) + '</div>'
                 + '<div class="km-row"><span>Klepnutí do mapy</span><b>±' + fmt(v.klik, 1) + ' m' + (v.zoom != null ? ' (zoom ' + Math.round(v.zoom) + ')' : '') + '</b></div>'
-                + '<div class="km-row"><span>GPS</span><b>' + (v.gps.from === 'avg' ? 'průměr ' + v.gps.n + ' měření, ±' + fmt(v.gpsAcc) + ' m' : 'jeden fix, ±' + fmt(v.gpsAcc) + ' m') + '</b></div>'
+                + '<div class="km-row"><span>GPS</span><b>' + (v.gps.from === 'avg' ? T('průměr {n} měření', { n: v.gps.n }) + ', ±' + fmt(v.gpsAcc) + ' m' : T('jeden fix') + ', ±' + fmt(v.gpsAcc) + ' m') + '</b></div>'
                 + '<div class="km-row"><span>Přesnost korekce</span><b>±' + fmt(v.acc) + ' m</b></div>'
                 + (v.mag > 25 ? '<div class="km-stav warn"><b>Posun přes 25 m</b> — to GPS obvykle nedělá. Klepl jsi opravdu na své místo?</div>' : '')
                 + (v.gps.from !== 'avg' ? '<div class="km-stav warn">Z <b>jednoho fixu</b> je korekce spíš náhodná — lepší se vrátit, postát 30–60 s a klepnout znovu.</div>' : '')

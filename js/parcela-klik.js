@@ -103,10 +103,10 @@
         var k = String(kod || '').replace(/\D/g, '');
         if (k.length !== 5) return null;
         var out = [];
-        if (BPEJ_KLIMA[+k[0]]) out.push('klimatický region ' + k[0] + ' — ' + BPEJ_KLIMA[+k[0]]);
-        out.push('hlavní půdní jednotka ' + k.slice(1, 3));
-        if (BPEJ_SKLON[+k[3]]) out.push(BPEJ_SKLON[+k[3]]);
-        out.push('hloubka a skeletovitost: kód ' + k[4]);
+        if (BPEJ_KLIMA[+k[0]]) out.push(T('klimatický region {n} — {t}', { n: k[0], t: T(BPEJ_KLIMA[+k[0]]) }));
+        out.push(T('hlavní půdní jednotka {n}', { n: k.slice(1, 3) }));
+        if (BPEJ_SKLON[+k[3]]) out.push(T(BPEJ_SKLON[+k[3]]));
+        out.push(T('hloubka a skeletovitost: kód {n}', { n: k[4] }));
         return out.join(' · ');
     }
 
@@ -281,13 +281,13 @@
             var act = b.getAttribute('data-act'), p = _posledni;
             if (act === 'vlastnik') {
                 var u = nahlizeniUrl(p ? p.lat : NaN, p ? p.lng : NaN);
-                if (!u) { toast('Nahlížení do KN se nepodařilo otevřít (převod souřadnic).'); return; }
+                if (!u) { toast(T('Nahlížení do KN se nepodařilo otevřít (převod souřadnic).')); return; }
                 try { window.open(u, '_blank'); } catch (e2) { swallow(e2, 'open'); }
             } else if (act === 'kopie' && p) {
                 var t = 'parc. č. ' + (p.stavebni ? 'st. ' : '') + p.cislo + (p.kuNazev ? ', k.ú. ' + p.kuNazev : '') + (p.kuKod ? ' (' + p.kuKod + ')' : '')
                     + (p.vymera ? ', ' + num(p.vymera) + ' m²' : '');
                 try {
-                    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(function () { toast('Zkopírováno: ' + t); }, function () { toast(t); });
+                    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(function () { toast(T('Zkopírováno: {t}', { t: t })); }, function () { toast(t); });
                     else toast(t);
                 } catch (e3) { toast(t); }
             } else if (act === 'znovu' && p) {
@@ -319,17 +319,17 @@
             body.innerHTML = '<div class="agpk-note">Tady RÚIAN žádnou parcelu nevede — klepni dovnitř parcely (na hranici to nemusí sednout).</div>';
             return;
         }
-        t.textContent = 'Parcela ' + (p.stavebni ? 'st. ' : '') + p.cislo;
+        t.textContent = T('Parcela {c}', { c: (p.stavebni ? 'st. ' : '') + p.cislo });
         var s = [];
-        if (p.kuNazev) s.push('k.ú. ' + p.kuNazev + (p.kuKod ? ' (' + p.kuKod + ')' : ''));
-        else if (p.kuKod) s.push('k.ú. ' + p.kuKod);
-        if (p.obec) s.push('obec ' + p.obec);
+        if (p.kuNazev) s.push(T('k.ú. {n}', { n: p.kuNazev + (p.kuKod ? ' (' + p.kuKod + ')' : '') }));
+        else if (p.kuKod) s.push(T('k.ú. {n}', { n: p.kuKod }));
+        if (p.obec) s.push(T('obec {n}', { n: p.obec }));
         sub.textContent = s.join(' · ');
         var h = '';
         var vym = (p.vymera != null && isFinite(p.vymera)) ? (num(p.vymera) + ' m²' + (p.vymera >= 5000 ? ' <small>(' + (p.vymera / 10000).toFixed(2).replace('.', ',') + ' ha)</small>' : '')) : '';
         h += radek('Výměra', vym);
-        h += radek('Druh pozemku', p.druh ? esc(DRUH[p.druh] || ('kód ' + p.druh)) : '');
-        h += radek('Způsob využití', p.vyuziti ? esc(VYUZITI[p.vyuziti] || ('kód ' + p.vyuziti)) : '');
+        h += radek('Druh pozemku', p.druh ? esc(DRUH[p.druh] || T('kód {n}', { n: p.druh })) : '');
+        h += radek('Způsob využití', p.vyuziti ? esc(VYUZITI[p.vyuziti] || T('kód {n}', { n: p.vyuziti })) : '');
         if (p.vymeraGraf != null && p.vymera) {
             var roz = p.vymeraGraf - p.vymera, pct = Math.abs(roz) / p.vymera * 100;
             h += radek('Výměra z grafiky', num(p.vymeraGraf) + ' m² <small>(' + (roz >= 0 ? '+' : '−') + num(Math.abs(roz)) + ' m², ' + pct.toFixed(1).replace('.', ',') + ' %)</small>');
@@ -338,19 +338,19 @@
         // zdroj geometrie TÉTO parcely rozhoduje, jak věřit hranici (DKM ±0,14 m; UKM = přepočtená analogová mapa, metry)
         h += radek('Hranice', p.zdroj === 1 ? 'DKM — digitální, na cm až dm' : (p.zdroj === 2 ? 'UKM — z analogové mapy, na metry' : (p.dkm ? 'digitální (DKM/KMD)' : 'v k.ú. ještě není digitální mapa')));
         if (p.platiod) { try { var dt = new Date(+p.platiod); if (!isNaN(dt)) h += radek('Platí od', dt.toLocaleDateString('cs-CZ')); } catch (e) { /* nic */ } }
-        if (p.adresa && p.adresa.adresa) h += radek('Adresa' + (p.adresa.d > 5 ? ' (' + Math.round(p.adresa.d) + ' m)' : ''), esc(p.adresa.adresa));
-        if (p.teren != null) { var ti = (typeof window.terrainElevInfo === 'function') ? window.terrainElevInfo() : { zdroj: 'DMR 5G', system: 'Bpv' }; h += radek('Terén (' + ti.zdroj + ')', p.teren.toFixed(1).replace('.', ',') + ' m ' + ti.system); }
+        if (p.adresa && p.adresa.adresa) h += radek(p.adresa.d > 5 ? T('Adresa ({d} m)', { d: Math.round(p.adresa.d) }) : 'Adresa', esc(p.adresa.adresa));
+        if (p.teren != null) { var ti = (typeof window.terrainElevInfo === 'function') ? window.terrainElevInfo() : { zdroj: 'DMR 5G', system: 'Bpv' }; h += radek(T('Terén ({z})', { z: ti.zdroj }), p.teren.toFixed(1).replace('.', ',') + ' m ' + ti.system); }
         if (p.stavba) {
             var so = p.stavba, typ = so.typstavebnihoobjektukod;
-            var cislo = so.cisladomovni ? ((typ === 2 ? 'č.e. ' : 'č.p. ') + String(so.cisladomovni).replace(/,/g, ', ')) : 'bez čísla popisného';
+            var cislo = so.cisladomovni ? T(typ === 2 ? 'č.e. {n}' : 'č.p. {n}', { n: String(so.cisladomovni).replace(/,/g, ', ') }) : 'bez čísla popisného';
             h += '<div class="agpk-lbl">Budova na parcele (RÚIAN)</div>';
             h += radek('Číslo', esc(cislo));
-            h += radek('Využití', so.zpusobvyuzitikod ? esc(STAVBA[so.zpusobvyuzitikod] || ('kód ' + so.zpusobvyuzitikod)) : '');
+            h += radek('Využití', so.zpusobvyuzitikod ? esc(STAVBA[so.zpusobvyuzitikod] || T('kód {n}', { n: so.zpusobvyuzitikod })) : '');
             h += radek('Podlaží', so.pocetpodlazi ? String(so.pocetpodlazi) : '');
             h += radek('Zastavěná plocha', so.zastavenaplocha ? num(so.zastavenaplocha) + ' m²' : '');
             h += radek('Podlahová plocha', so.podlahovaplocha ? num(so.podlahovaplocha) + ' m²' : '');
             h += radek('Obestavěný prostor', so.obestavenyprostor ? num(so.obestavenyprostor) + ' m³' : '');
-            h += radek('Konstrukce', so.druhkonstrukcekod ? esc(KONSTRUKCE[so.druhkonstrukcekod] || ('kód ' + so.druhkonstrukcekod)) : '');
+            h += radek('Konstrukce', so.druhkonstrukcekod ? esc(KONSTRUKCE[so.druhkonstrukcekod] || T('kód {n}', { n: so.druhkonstrukcekod })) : '');
             if (so.dokonceni) { try { var dd = new Date(+so.dokonceni); if (!isNaN(dd)) h += radek('Dokončení', String(dd.getFullYear())); } catch (e) { /* nic */ } }
             h += radek('Byty', so.pocetbytu ? String(so.pocetbytu) : '');
         }
@@ -372,7 +372,7 @@
             });
         }
         h += '<div class="agpk-lbl">Vlastník a list vlastnictví</div>';
-        h += '<div class="agpk-note">Vlastníka, LV, věcná břemena a řízení dává jen <b>Nahlížení do KN</b> (ČÚZK) — tlačítko dole otevře rovnou tuhle parcelu; ČÚZK před vlastníky chce opsat kód z obrázku. Údaje výše jsou z RÚIAN © ČÚZK, poloha klepnutí ' + p.lat.toFixed(6) + ', ' + p.lng.toFixed(6) + '.</div>';
+        h += '<div class="agpk-note">' + T('Vlastníka, LV, věcná břemena a řízení dává jen') + ' <b>' + T('Nahlížení do KN') + '</b> ' + T('(ČÚZK) — tlačítko dole otevře rovnou tuhle parcelu; ČÚZK před vlastníky chce opsat kód z obrázku. Údaje výše jsou z RÚIAN © ČÚZK, poloha klepnutí {lat}, {lng}.', { lat: p.lat.toFixed(6), lng: p.lng.toFixed(6) }) + '</div>';
         body.innerHTML = h;
         var uNahl = nahlizeniUrl(p.lat, p.lng);
         acts.innerHTML = (uNahl ? '<button type="button" class="btn btn-blue" data-act="vlastnik">Vlastník a LV — Nahlížení do KN ↗</button>' : '')
@@ -382,7 +382,7 @@
     // ---- vstup ---------------------------------------------------------------------------
     // ---- MIMO ČR (19. 9. 2026, E4): PL (ULDK), FR (apicarto), NL (PDOK) přes js/zdroje-zemi.js ----
     function zemeKod() { try { return (window.AGSour && AGSour.kod && AGSour.kod()) || 'CZ'; } catch (e) { return 'CZ'; } }
-    function T(s) { try { return (window.AGJazyk && AGJazyk.t) ? AGJazyk.t(s) : s; } catch (e) { return s; } }
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk && AGJazyk.t) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function vymeraMistni(rings) {   // shoelace v místním systému země (AGSour), m²
         try {
             if (!rings || !rings.length || !window.AGSour || !AGSour.doMistnich) return null;
@@ -435,14 +435,14 @@
         }).catch(function (e) {
             if (seq !== _seq) return;
             swallow(e, 'tapCizi');
-            vykresli(null, T('Katastr země teď neodpověděl') + ' (' + (e && e.message ? e.message : 'síť') + '). ' + T('Zkus to za chvíli.'));
+            vykresli(null, T('Katastr země teď neodpověděl') + ' (' + (e && e.message ? e.message : T('síť')) + '). ' + T('Zkus to za chvíli.'));
         });
         return true;
     }
 
     function tap(lat, lng) {
         if (!isFinite(lat) || !isFinite(lng)) return false;
-        if (navigator.onLine === false) { toast('Údaje o parcele potřebují signál — teď jsi offline.'); return false; }
+        if (navigator.onLine === false) { toast(T('Údaje o parcele potřebují signál — teď jsi offline.')); return false; }
         var kod = zemeKod();
         if (kod !== 'CZ') {
             if (window.AGZdroje && AGZdroje.maParcelu && AGZdroje.maParcelu(kod)) return tapCizi(lat, lng, kod);
@@ -464,7 +464,7 @@
         }).catch(function (e) {
             if (seq !== _seq) return;
             swallow(e, 'tap');
-            vykresli(null, 'ČÚZK teď neodpověděl (' + (e && e.message ? e.message : 'síť') + '). Zkus to za chvíli.');
+            vykresli(null, T('ČÚZK teď neodpověděl ({e}). Zkus to za chvíli.', { e: (e && e.message ? e.message : T('síť')) }));
         });
         return true;
     }

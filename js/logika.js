@@ -1017,8 +1017,9 @@ if ('serviceWorker' in navigator) {
                 const _nm = document.getElementById('custom-acc-note');
                 if (_nm) {
                     _nm.style.display = 'block';
-                    _nm.innerHTML = 'Poloha <b>odečtená z mapy</b> — ±' + (Math.round(_mpf.acc * 10) / 10).toFixed(1).replace('.', ',')
-                        + ' m. Není to měření: přesnost vychází z měřítka mapy při klepnutí, ne z GPS. Výšku z mapy appka neurčí.';
+                    let _tv = function (cs) { try { return window.AGJazyk ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } };
+                    _nm.innerHTML = _tv('Poloha odečtená z mapy') + ' — ±' + (Math.round(_mpf.acc * 10) / 10).toFixed(1).replace('.', ',')
+                        + ' m. ' + _tv('Není to měření: přesnost vychází z měřítka mapy při klepnutí, ne z GPS. Výšku z mapy appka neurčí.');
                 }
                 return;
             }
@@ -1041,8 +1042,10 @@ if ('serviceWorker' in navigator) {
             const note = document.getElementById('custom-acc-note');
             if (note) {
                 note.style.display = 'block';
-                let h = `Zprůměrováno z <b>${r.n}</b> měření · ⌀ přesnost <b>±${r.sterr.toFixed(2)} m</b> · σ ±${r.sigma.toFixed(2)} m`;
-                h += bpv != null ? ` · výška ${agOsy().vyska} <b>${bpv.toFixed(2)} m</b>${r.altSterr != null ? ` (±${r.altSterr.toFixed(2)} m, ${r.altN}×)` : ''}` : ` · <span style="opacity:.7">výšku telefon nehlásí</span>`;
+                // věta s čísly se do slovníku celým textem netrefí → překlad se zástupci (13. 10. 2026)
+                const _tr = function (cs, o) { let v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }); };
+                let h = _tr('Zprůměrováno z {n} měření · ⌀ přesnost {p} · σ ±{s} m', { n: `<b>${r.n}</b>`, p: `<b>±${r.sterr.toFixed(2)} m</b>`, s: r.sigma.toFixed(2) });
+                h += bpv != null ? ' · ' + _tr('výška {sys} {z}', { sys: agOsy().vyska, z: `<b>${bpv.toFixed(2)} m</b>` }) + (r.altSterr != null ? ` (±${r.altSterr.toFixed(2)} m, ${r.altN}×)` : '') : ` · <span style="opacity:.7">${_tr('výšku telefon nehlásí', {})}</span>`;
                 note.innerHTML = h;
             }
             return true;

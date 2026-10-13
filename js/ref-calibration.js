@@ -103,6 +103,14 @@
         if (typeof window.agConfirm === 'function') return window.agConfirm({ title: title, message: msg, okText: okText, cancelText: cancelText, danger: !!danger });
         try { return Promise.resolve(window.confirm((title ? title + '\n\n' : '') + String(msg).replace(/<[^>]+>/g, ''))); } catch (e) { return Promise.resolve(false); }
     }
+    // Překlad věty se zástupci {bod}, {n}… (13. 10. 2026): skládaná věta s číslem a názvem bodu
+    // se do slovníku (shoda celým textem) netrefí — slovník proto má větu se zástupci a čísla
+    // se dosadí až po překladu.
+    function tr(cs, o) {
+        var v = cs;
+        try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; }
+        return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v;
+    }
 
     // --------------------------------------------------------------------------------
     // Čtení živých globálů (fail-silent, přesně jako vylepseni.js)
@@ -494,14 +502,20 @@
         var H = ptH(pt), hb = gpsBpv(a);
         var d = null;
         try { d = planarDist(a.lat, a.lng, pt.lat, pt.lng); } catch (e) { d = null; }
-        var nm = pt.name || 'bod';
-        var msg = '<b>Musíš stát přímo na bodě ' + escapeHtml(nm) + '.</b> Appka vezme svou GPS polohu' + (a.from === 'avg' ? ' (průměr z ' + (a.n || '?') + ' měření' + (isFinite(a.sterr) ? ', ±' + a.sterr.toFixed(2) + ' m' : '') + ')' : ' (jeden fix — lepší chvíli postát, ať se zprůměruje)')
-            + ' a rozdíl proti souřadnicím bodu bude od teď přičítat k nově ukládaným bodům.'
-            + (d != null ? '<br><br>Teď jsi podle GPS <b>' + (d < 100 ? d.toFixed(1).replace('.', ',') + ' m' : Math.round(d) + ' m') + '</b> od bodu' + (d > 30 ? ' — <b>to je moc</b>, buď na něm nestojíš, nebo GPS teď hodně lže.' : '.') : '')
-            + (H != null ? '<br><br>Bod má výšku <b>' + H.toFixed(2).replace('.', ',') + ' m</b> Bpv' + (hb != null ? ' — opraví se i <b>výška</b>. <b>Polož telefon na značku</b> (nebo ho drž u ní); GPS teď hlásí ' + hb.toFixed(2).replace('.', ',') + ' m.' : ', ale telefon výšku z GPS nehlásí — opraví se jen poloha.') : '<br><br>Bod nemá výšku — opraví se jen poloha.')
-            + (pt.cat === 'NIVEL' ? '<br><br><span style="opacity:.8">Nivelační bod: poloha je v ČÚZK jen na metr, výška na milimetry.</span>' : '')
+        var nm = pt.name || tr('bod');
+        var c2 = function (v) { return v.toFixed(2).replace('.', ','); };
+        var en = escapeHtml(nm);
+        var msg = '<b>' + tr('Musíš stát přímo na bodě {bod}.', { bod: en }) + '</b> '
+            + (a.from === 'avg'
+                ? tr('Appka vezme svou GPS polohu (průměr z {n} měření{pr}) a rozdíl proti souřadnicím bodu bude od teď přičítat k nově ukládaným bodům.', { n: a.n || '?', pr: isFinite(a.sterr) ? ', ±' + a.sterr.toFixed(2) + ' m' : '' })
+                : tr('Appka vezme svou GPS polohu (jeden fix — lepší chvíli postát, ať se zprůměruje) a rozdíl proti souřadnicím bodu bude od teď přičítat k nově ukládaným bodům.'))
+            + (d != null ? '<br><br>' + tr('Teď jsi podle GPS {d} od bodu', { d: '<b>' + (d < 100 ? d.toFixed(1).replace('.', ',') + ' m' : Math.round(d) + ' m') + '</b>' }) + (d > 30 ? ' — <b>' + tr('to je moc') + '</b>, ' + tr('buď na něm nestojíš, nebo GPS teď hodně lže.') : '.') : '')
+            + (H != null ? '<br><br>' + tr('Bod má výšku {h} Bpv', { h: '<b>' + c2(H) + ' m</b>' })
+                + (hb != null ? ' — ' + tr('opraví se i výška.') + ' <b>' + tr('Polož telefon na značku') + '</b> ' + tr('(nebo ho drž u ní); GPS teď hlásí {h} m.', { h: c2(hb) }) : ', ' + tr('ale telefon výšku z GPS nehlásí — opraví se jen poloha.'))
+                : '<br><br>' + tr('Bod nemá výšku — opraví se jen poloha.'))
+            + (pt.cat === 'NIVEL' ? '<br><br><span style="opacity:.8">' + tr('Nivelační bod: poloha je v ČÚZK jen na metr, výška na milimetry.') + '</span>' : '')
             + okoliVarovani(a);
-        confirmBox('Opravit GPS podle bodu ' + nm, msg, 'Stojím na něm, opravit', 'Zpět').then(function (ok) {
+        confirmBox(tr('Opravit GPS podle bodu {bod}', { bod: nm }), msg, tr('Stojím na něm, opravit'), tr('Zpět')).then(function (ok) {
             if (!ok) return;
             zapni(avgGps() || a, pt.lat, pt.lng, H, 0, nm, 'ref', function () { if (_ov && _ov.style.display === 'flex') renderState(); });
         });
@@ -518,8 +532,8 @@
         var acc = null;
         try { if (typeof currentGpsAccuracy !== 'undefined' && isFinite(currentGpsAccuracy)) acc = currentGpsAccuracy; } catch (e) { acc = null; }
         var neklid = (a && isFinite(a.sterr) && a.from === 'avg' && a.sterr > 0.8) || (acc != null && acc > 6);
-        var t = '<br><br><b>Kde stojíš, to rozhoduje.</b> Pod stromem, u zdi nebo mezi domy se signál odráží — GPS má tam jinou chybu než o 30 m dál na volném. Korekce z takového místa platí jen pro stejné podmínky; na otevřeném prostranství pak může posouvat špatně. Vyber bod s volným obzorem a nech GPS 1–2 minuty průměrovat.';
-        if (neklid) t += '<br><span style="color:var(--warning,#fbbf24);font-weight:600;">GPS teď kolísá' + (a && isFinite(a.sterr) && a.from === 'avg' ? ' (rozptyl ±' + a.sterr.toFixed(2).replace('.', ',') + ' m)' : (acc != null ? ' (±' + Math.round(acc) + ' m)' : '')) + ' — typické právě pod stromem či u domu. Korekce by byla spíš náhodná; radši jiný bod nebo delší průměr.</span>';
+        var t = '<br><br><b>' + tr('Kde stojíš, to rozhoduje.') + '</b> ' + tr('Pod stromem, u zdi nebo mezi domy se signál odráží — GPS má tam jinou chybu než o 30 m dál na volném. Korekce z takového místa platí jen pro stejné podmínky; na otevřeném prostranství pak může posouvat špatně. Vyber bod s volným obzorem a nech GPS 1–2 minuty průměrovat.');
+        if (neklid) t += '<br><span style="color:var(--warning,#fbbf24);font-weight:600;">' + tr('GPS teď kolísá{roz} — typické právě pod stromem či u domu. Korekce by byla spíš náhodná; radši jiný bod nebo delší průměr.', { roz: (a && isFinite(a.sterr) && a.from === 'avg' ? ' (' + tr('rozptyl') + ' ±' + a.sterr.toFixed(2).replace('.', ',') + ' m)' : (acc != null ? ' (±' + Math.round(acc) + ' m)' : '')) }) + '</span>';
         return t;
     }
 
