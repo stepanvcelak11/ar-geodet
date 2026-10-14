@@ -20,6 +20,8 @@
 // ================================================================================
 (function () {
     'use strict';
+    // překlad (AGJazyk) se zástupci {x}; v češtině vrací přesně původní text
+    function TT(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
 
     // ⚠ 29. 8. 2026 — JEDINÁ PŘIPOMÍNKA ZÁLOHY V CELÉ APPCE. Dřív byly tři (toast
     // v js/zaloha.js po 14 dnech, modál v js/vylepseni.js po 5 dnech a tenhle pruh
@@ -191,8 +193,8 @@
             if (cerstva && pribylo < REMIND_PTS) { hideBar(); return; }
             var txt;
             if (!ts) txt = 'Ještě sis nezálohoval body. Na iOS se data mohou po ~7 dnech smazat.';
-            else if (cerstva) txt = 'Od poslední zálohy přibylo ' + pribylo + ' ' + pluralBod(pribylo) + '. Zálohu ulož do Souborů.';
-            else txt = 'Data nezálohována ' + d + ' ' + plural(d) + '. Zálohu ulož do Souborů.';
+            else if (cerstva) txt = TT('Od poslední zálohy přibylo {n} {b}. Zálohu ulož do Souborů.', { n: pribylo, b: TT(pluralBod(pribylo)) });
+            else txt = TT('Data nezálohována {n} {d}. Zálohu ulož do Souborů.', { n: d, d: TT(plural(d)) });
             showBar(txt);
         } catch (e) { /* fail-silent */ }
     }

@@ -40,11 +40,13 @@
     // ---- pomocníci -------------------------------------------------------------
     function byId(id) { return document.getElementById(id); }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function agAlert(t, m) {
+        t = T(t); m = T(m);
         try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'fov-kalibrace:agAlert'); }
         agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : ''));
     }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'fov-kalibrace:toast'); } }
+    function toast(m) { m = T(m); try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'fov-kalibrace:toast'); } }
     function heading() {
         try { if (typeof currentHeading === 'number' && isFinite(currentHeading)) return currentHeading; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'fov-kalibrace:heading'); }
         try { if (typeof smoothedHeading === 'number' && isFinite(smoothedHeading)) return smoothedHeading; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'fov-kalibrace:heading'); }
@@ -61,7 +63,7 @@
         try {
             var s = window._agCamSettings;
             if (!s || !s.width) return '';
-            return '<br><span style="opacity:.7; font-size:12px;">Kamera běží v ' + s.width + '\u00d7' + s.height
+            return '<br><span style="opacity:.7; font-size:12px;">' + T('Kamera běží v {w}×{h}', { w: s.width, h: s.height })
                  + (s.frameRate ? ' · ' + Math.round(s.frameRate) + ' fps' : '') + '</span>';
         } catch (e) { return ''; }
     }
@@ -198,7 +200,7 @@
 
     function needRounds() { return _mode === 'v' ? ROUNDS_V : ROUNDS_H; }
     function edgeNames() {
-        return _mode === 'v' ? ['HORNÍ hrany', 'DOLNÍ hrany'] : ['LEVÉ hrany', 'PRAVÉ hrany'];
+        return _mode === 'v' ? [T('HORNÍ hrany'), T('DOLNÍ hrany')] : [T('LEVÉ hrany'), T('PRAVÉ hrany')];
     }
     function renderAim() {
         var txt = byId('agfov-txt'); if (!txt) return;
@@ -213,23 +215,23 @@
 
         var names = edgeNames();
         var which = (_first == null) ? names[0] : names[1];
-        txt.innerHTML = '<b>Kolo ' + (_round + 1) + ' z ' + needRounds() + '</b><br>'
-            + 'Otoč telefon tak, aby byl orientační bod přesně u <b>' + which + '</b> obrazu, a klepni Zaznamenat.';
+        txt.innerHTML = '<b>' + T('Kolo {a} z {b}', { a: _round + 1, b: needRounds() }) + '</b><br>'
+            + T('Otoč telefon tak, aby byl orientační bod přesně u <b>{h}</b> obrazu, a klepni Zaznamenat.', { h: which });
         var u = byId('agfov-undo'); if (u) u.style.display = (_first == null && !_vals.length) ? 'none' : '';
     }
     function renderLive() {
         var el = byId('agfov-live'); if (!el) return;
         if (_mode === 'v') {
             var p = pitchNow();
-            el.textContent = (p == null) ? 'sklon: — (namiř na scénu)' : 'sklon ' + fmt(p) + '°'
-                + (_first != null ? '   ·   zatím ' + fmt(Math.abs(p - _first)) + '°' : '');
+            el.textContent = (p == null) ? T('sklon: — (namiř na scénu)') : T('sklon {v}°', { v: fmt(p) })
+                + (_first != null ? '   ·   ' + T('zatím {v}°', { v: fmt(Math.abs(p - _first)) }) : '');
         } else {
             var h = heading();
-            if (h == null) { el.textContent = 'azimut: — (kompas nedává data)'; return; }
-            var s = 'azimut ' + fmt(h) + '°';
+            if (h == null) { el.textContent = T('azimut: — (kompas nedává data)'); return; }
+            var s = T('azimut {v}°', { v: fmt(h) });
             if (_first != null) {
                 var d = Math.abs(((_first - h + 540) % 360) - 180);
-                s += '   ·   zatím ' + fmt(d) + '°';
+                s += '   ·   ' + T('zatím {v}°', { v: fmt(d) });
             }
             el.textContent = s;
         }
@@ -248,12 +250,11 @@
         var fov = (_mode === 'v') ? Math.abs(v - _first) : Math.abs(((_first - v + 540) % 360) - 180);
         _first = null;
         if (fov < MIN_FOV || fov > MAX_FOV) {
-            agAlert('Nedůvěryhodné měření', 'Vyšlo ' + fmt(fov) + '°, což pro kameru telefonu nedává smysl (čekáme zhruba '
-                + MIN_FOV + '–' + MAX_FOV + '°). Nejčastější příčina: záměna hran, blízký objekt, nebo se telefon mezi záměrami posunul. Kolo se nezapočítalo, zkus ho znovu.');
+            agAlert('Nedůvěryhodné měření', T('Vyšlo {v}°, což pro kameru telefonu nedává smysl (čekáme zhruba {a}–{b}°). Nejčastější příčina: záměna hran, blízký objekt, nebo se telefon mezi záměrami posunul. Kolo se nezapočítalo, zkus ho znovu.', { v: fmt(fov), a: MIN_FOV, b: MAX_FOV }));
             renderAim(); return;
         }
         _vals.push(fov); _round++;
-        if (_round < needRounds()) { toast('Kolo ' + _round + ': ' + fmt(fov) + '°'); renderAim(); renderLive(); return; }
+        if (_round < needRounds()) { toast(T('Kolo {n}: {v}°', { n: _round, v: fmt(fov) })); renderAim(); renderLive(); return; }
 
         var med = median(_vals), spread = Math.max.apply(null, _vals) - Math.min.apply(null, _vals);
         var res = { val: med, spread: spread, n: _vals.length, vals: _vals.slice() };
@@ -286,34 +287,33 @@
         ensureModal();
         var b = byId('agfov-body'); if (!b) return;
         var html =
-            '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.8;margin:0 0 10px;">AR umisťuje značky na obrazovku podle zorného úhlu kamery. '
+            '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.8;margin:0 0 10px;">' + T('AR umisťuje značky na obrazovku podle zorného úhlu kamery. '
             + 'Když nesedí, body ve <b>středu</b> obrazu sedí, ale ke <b>krajům</b> se rozjíždějí. Průvodce ho změří pomocí azimutu — '
-            + 'stačí ti jeden vzdálený orientační bod.</p>'
-            + '<div class="agfov-now">Teď je nastaveno: <b>' + fmt(fovH()) + '°</b> šířka · <b>' + fmt(fovV()) + '°</b> výška' + camInfo() + '</div>'
-            + '<div class="agfov-tip"><b>Než začneš:</b> běž ven, zkalibruj kompas (osmička telefonem) a vyber si '
+            + 'stačí ti jeden vzdálený orientační bod.') + '</p>'
+            + '<div class="agfov-now">' + T('Teď je nastaveno: <b>{h}°</b> šířka · <b>{v}°</b> výška', { h: fmt(fovH()), v: fmt(fovV()) }) + camInfo() + '</div>'
+            + '<div class="agfov-tip">' + T('<b>Než začneš:</b> běž ven, zkalibruj kompas (osmička telefonem) a vyber si '
             + '<b>vzdálený</b> osamocený objekt — stožár, komín, roh domu. Musí být dál než ~50 m, jinak se do měření promítne '
-            + 'i to, jak se přitom pohneš. Telefon drž na místě a jen jím otáčej.</div>';
+            + 'i to, jak se přitom pohneš. Telefon drž na místě a jen jím otáčej.') + '</div>';
 
         // --- z ohniskové vzdálenosti (nejrychlejší cesta, bez kompasu) ---
         html += '<div class="agfov-step"><div class="agfov-step-h">1 · Z ohniskové vzdálenosti (bez měření)</div>'
             + '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.85;margin:0 0 8px;line-height:1.5;">'
-            + 'Nejrychlejší cesta. Výrobce u fotoaparátu udává ohnisko v <b>ekvivalentu kinofilmu</b> — třeba „hlavní 26 mm". '
-            + 'Zadej ho a úhel vypadne sám. Nepotřebuje kompas ani orientační bod.</p>'
+            + T('Nejrychlejší cesta. Výrobce u fotoaparátu udává ohnisko v <b>ekvivalentu kinofilmu</b> — třeba „hlavní 26 mm". '
+            + 'Zadej ho a úhel vypadne sám. Nepotřebuje kompas ani orientační bod.') + '</p>'
             + '<div class="agfov-focal-row">';
         FOCAL_PRESETS.forEach(function (p) {
             html += '<button type="button" class="agfov-chip' + (_focal === p.f ? ' on' : '') + '" data-focal="' + p.f + '">'
-                + p.f + ' mm<small>' + p.t + '</small></button>';
+                + p.f + ' mm<small>' + T(p.t) + '</small></button>';
         });
         html += '</div>'
-            + '<label class="agfov-focal-in">jiné ohnisko:'
+            + '<label class="agfov-focal-in">' + T('jiné ohnisko:')
             + ' <input type="number" id="agfov-focal" inputmode="decimal" step="0.1" min="5" max="300"'
             + ' value="' + (_focal != null ? _focal : '') + '" placeholder="mm"> mm</label>';
         var pair = _focal != null ? fovPairFromFocal(_focal) : null;
         if (pair) {
-            html += '<div class="agfov-res">Vychází <b>' + fmt(pair.h) + '°</b> šířka · <b>' + fmt(pair.v) + '°</b> výška'
-                + '<div class="agfov-sub">telefon držíš ' + (portrait() ? 'na výšku' : 'na šířku')
-                + ', obraz kamery se do okna vejde ' + (portrait() ? 'na výšku a po strancích se ořezává' : 'na šířku a nahoře a dole se ořezává')
-                + '<br>' + (portrait() ? 'svislý' : 'vodorovný') + ' úhel je z ohniska, druhý dopočtený z poměru stran okna'
+            html += '<div class="agfov-res">' + T('Vychází <b>{h}°</b> šířka · <b>{v}°</b> výška', { h: fmt(pair.h), v: fmt(pair.v) })
+                + '<div class="agfov-sub">' + (portrait() ? T('telefon držíš na výšku, obraz kamery se do okna vejde na výšku a po strancích se ořezává') : T('telefon držíš na šířku, obraz kamery se do okna vejde na šířku a nahoře a dole se ořezává'))
+                + '<br>' + (portrait() ? T('svislý úhel je z ohniska, druhý dopočtený z poměru stran okna') : T('vodorovný úhel je z ohniska, druhý dopočtený z poměru stran okna'))
                 // applyFov drží jezdce v mezích 40–120 / 40–130°. U hodně úzkého
                 // okna vyjde vodorovný úhel pod 40° a uložilo by se něco jiného,
                 // než co je tu napsané — to musí uživatel vidět dopředu.
@@ -328,10 +328,10 @@
         // --- vodorovný ---
         html += '<div class="agfov-step"><div class="agfov-step-h">2 · Vodorovný úhel měřením (záložní)</div>';
         if (_resH) {
-            html += '<div class="agfov-res">Naměřeno <b>' + fmt(_resH.val) + '°</b>'
-                + '<div class="agfov-sub">' + _resH.n + ' kola, rozptyl ' + fmt(_resH.spread) + '°'
-                + (_resH.spread > 6 ? ' — <span style="color:var(--warning,#fbbf24)">dost velký, zkus to raději znovu s klidnější rukou</span>' : ' — dobré')
-                + '<br>jednotlivá kola: ' + _resH.vals.map(fmt).join('° / ') + '°</div></div>'
+            html += '<div class="agfov-res">' + T('Naměřeno <b>{v}°</b>', { v: fmt(_resH.val) })
+                + '<div class="agfov-sub">' + T('{n} kola, rozptyl {s}°', { n: _resH.n, s: fmt(_resH.spread) })
+                + (_resH.spread > 6 ? ' — <span style="color:var(--warning,#fbbf24)">' + T('dost velký, zkus to raději znovu s klidnější rukou') + '</span>' : ' — ' + T('dobré'))
+                + '<br>' + T('jednotlivá kola: {k}°', { k: _resH.vals.map(fmt).join('° / ') }) + '</div></div>'
                 + '<button class="btn btn-secondary" id="agfov-h-again">Změřit znovu</button>';
         } else {
             html += '<button class="btn" id="agfov-h-start">Změřit vodorovný úhel (3 kola)</button>';
@@ -341,24 +341,23 @@
         // --- svislý ---
         html += '<div class="agfov-step"><div class="agfov-step-h">3 · Svislý úhel (výška)</div>';
         if (_resV) {
-            html += '<div class="agfov-res">Naměřeno <b>' + fmt(_resV.val) + '°</b>'
-                + '<div class="agfov-sub">' + _resV.n + ' kola, rozptyl ' + fmt(_resV.spread) + '°'
-                + '<br>jednotlivá kola: ' + _resV.vals.map(fmt).join('° / ') + '°</div></div>'
+            html += '<div class="agfov-res">' + T('Naměřeno <b>{v}°</b>', { v: fmt(_resV.val) })
+                + '<div class="agfov-sub">' + T('{n} kola, rozptyl {s}°', { n: _resV.n, s: fmt(_resV.spread) })
+                + '<br>' + T('jednotlivá kola: {k}°', { k: _resV.vals.map(fmt).join('° / ') }) + '</div></div>'
                 + '<button class="btn btn-secondary" id="agfov-v-again">Změřit znovu</button>';
         } else {
             var derived = _resH ? fovVFromAspect(_resH.val) : null;
-            html += '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.8;margin:0 0 8px;">Nepovinné. Buď ho změříš stejně (vysoký objekt u horní a dolní hrany, sleduje se sklon telefonu), '
-                + 'nebo ho appka dopočítá z poměru stran obrazu.</p>'
+            html += '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));opacity:.8;margin:0 0 8px;">' + T('Nepovinné. Buď ho změříš stejně (vysoký objekt u horní a dolní hrany, sleduje se sklon telefonu), '
+                + 'nebo ho appka dopočítá z poměru stran obrazu.') + '</p>'
                 + '<button class="btn" id="agfov-v-start">Změřit svislý úhel (2 kola)</button>'
-                + (derived ? '<button class="btn btn-secondary" id="agfov-v-calc" style="margin-top:8px;">Dopočítat z poměru stran (' + fmt(derived) + '°)</button>' : '');
+                + (derived ? '<button class="btn btn-secondary" id="agfov-v-calc" style="margin-top:8px;">' + T('Dopočítat z poměru stran ({v}°)', { v: fmt(derived) }) + '</button>' : '');
         }
         html += '</div>';
 
         // --- uložení ---
         if (_resH) {
             var vv = _resV ? _resV.val : fovVFromAspect(_resH.val);
-            html += '<div class="agfov-save"><div style="font-size:calc(13px * var(--ag-font-scale, 1));margin-bottom:8px;">Uloží se: <b>' + fmt(_resH.val) + '°</b> šířka · <b>'
-                + (vv ? fmt(vv) : fmt(fovV())) + '°</b> výška' + (_resV ? '' : ' <span style="opacity:.7">(dopočtená)</span>') + '</div>'
+            html += '<div class="agfov-save"><div style="font-size:calc(13px * var(--ag-font-scale, 1));margin-bottom:8px;">' + T('Uloží se: <b>{h}°</b> šířka · <b>{v}°</b> výška', { h: fmt(_resH.val), v: (vv ? fmt(vv) : fmt(fovV())) }) + (_resV ? '' : ' <span style="opacity:.7">' + T('(dopočtená)') + '</span>') + '</div>'
                 + '<button class="btn" id="agfov-save">Uložit do nastavení</button></div>';
         }
         // Jezdce nechává appka v Nastavení (cte je saveSettings podle id), ale
@@ -367,10 +366,10 @@
             html += '<button class="btn btn-secondary" id="agfov-manual" style="margin-top:10px;">Doladit ručně jezdcem</button>';
         }
         html += '<details class="adv" style="margin-top:12px;"><summary>Metoda bez kompasu (přes zeď)</summary><div class="adv-body">'
-            + '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));line-height:1.5;">Když kompas zlobí: postav se kolmo k dlouhé zdi ve <b>známé</b> vzdálenosti D. '
+            + '<p style="font-size:calc(12.5px * var(--ag-font-scale, 1));line-height:1.5;">' + T('Když kompas zlobí: postav se kolmo k dlouhé zdi ve <b>známé</b> vzdálenosti D. '
             + 'Označ si na zdi místa, která leží přesně u levé a pravé hrany obrazu, a změř mezi nimi šířku W. Pak platí '
             + '<b>FOV = 2 · arctg(W / 2D)</b>. Například W = 4,00 m při D = 3,00 m dává 67,4°. Hodnotu pak zadej posuvníkem '
-            + 'v Nastavení → AR kamera → Pokročilé.</p></div></details>';
+            + 'v Nastavení → AR kamera → Pokročilé.') + '</p></div></details>';
 
         b.innerHTML = html;
 
@@ -390,9 +389,8 @@
         if ((e = byId('agfov-focal-use'))) e.addEventListener('click', function () {
             var pr = fovPairFromFocal(_focal), h = pr ? pr.h : null, v = pr ? pr.v : null;
             if (h && applyFov(h, v)) {
-                agAlert('Uloženo', 'Zorný úhel <b>' + fmt(fovH()) + '° × ' + fmt(fovV()) + '°</b> je nastavený z ohniska '
-                    + fmt(_focal) + ' mm. Zkontroluj to v AR na bodě, který v terénu vidíš: měl by sedět i u kraje obrazu, ne jen uprostřed. '
-                    + 'Když je vedle, výrobcem udané ohnisko nesedí na režim, ve kterém kamera běží — pak pomůže měření níž.');
+                agAlert('Uloženo', T('Zorný úhel <b>{h}° × {v}°</b> je nastavený z ohniska {f} mm. Zkontroluj to v AR na bodě, který v terénu vidíš: měl by sedět i u kraje obrazu, ne jen uprostřed. '
+                    + 'Když je vedle, výrobcem udané ohnisko nesedí na režim, ve kterém kamera běží — pak pomůže měření níž.', { h: fmt(fovH()), v: fmt(fovV()), f: fmt(_focal) }));
                 var m = byId('agfov-modal'); if (m) m.style.display = 'none';
             } else agAlert('Nelze uložit', 'Nastavení se nepodařilo zapsat.');
         });
@@ -411,8 +409,8 @@
         if ((e = byId('agfov-save'))) e.addEventListener('click', function () {
             var vv = _resV ? _resV.val : fovVFromAspect(_resH.val);
             if (applyFov(_resH.val, vv)) {
-                agAlert('Uloženo', 'Zorný úhel <b>' + fmt(fovH()) + '° × ' + fmt(fovV()) + '°</b> je nastavený. '
-                    + 'Zkontroluj to v AR na bodě, který v terénu vidíš: měl by sedět i když ho máš u kraje obrazu, ne jen uprostřed.');
+                agAlert('Uloženo', T('Zorný úhel <b>{h}° × {v}°</b> je nastavený. '
+                    + 'Zkontroluj to v AR na bodě, který v terénu vidíš: měl by sedět i když ho máš u kraje obrazu, ne jen uprostřed.', { h: fmt(fovH()), v: fmt(fovV()) }));
                 var m = byId('agfov-modal'); if (m) m.style.display = 'none';
             } else agAlert('Nelze uložit', 'Nastavení se nepodařilo zapsat.');
         });

@@ -105,7 +105,9 @@
         'garmin-qr': 'import z hodinek', 'akustika': 'akustický dálkoměr (protínání z délek)'
     };
     // `proc` se vklada jako HTML, a origin muze prijit z importovaneho souboru -> escape
-    function puvodCesky(o) { return PUVOD_CZ[o] || esc(o); }
+    function puvodCesky(o) { return PUVOD_CZ[o] ? T(PUVOD_CZ[o]) : esc(o); }
+    // překlad vět, které vrstva skládá (číslo/původ ve větě) — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
 
     // ---- odkud se přesnost vzala (pořadí důvěryhodnosti, viz hlavička) --------
     // Vrací i `mereno: true/false` — to je ta informace, kterou dnes appka
@@ -115,14 +117,14 @@
         var t = cislo(prov.trueAcc);
         if (t != null) {
             return { a: t, zdroj: 'kontrola', mereno: true,
-                zdrojText: 'změřeno druhým určením',
-                proc: 'Bod byl změřen podruhé s odstupem a tohle číslo vyšlo z rozdílu obou určení. Je to jediná přesnost, která vznikla měřením — zahrnuje i chybu, kterou telefon o sobě neví.' };
+                zdrojText: T('změřeno druhým určením'),
+                proc: T('Bod byl změřen podruhé s odstupem a tohle číslo vyšlo z rozdílu obou určení. Je to jediná přesnost, která vznikla měřením — zahrnuje i chybu, kterou telefon o sobě neví.') };
         }
         var rc = prov.recheck;
         if (rc && cislo(rc.d) != null) {
             return { a: zRozdilu(rc.d), zdroj: 'rozdil', mereno: true,
-                zdrojText: 'odvozeno z rozdílu dvou určení',
-                proc: 'Dvě určení téhož bodu se liší o ' + fmt(rc.d) + ' m. Z toho vychází přesnost jednoho určení.' };
+                zdrojText: T('odvozeno z rozdílu dvou určení'),
+                proc: T('Dvě určení téhož bodu se liší o {d} m. Z toho vychází přesnost jednoho určení.', { d: fmt(rc.d) }) };
         }
         // ⚠ PUVOD SOURADNICE je silnejsi informace nez holy udaj o presnosti.
         // Bod odecteny z mapy ani rucne prepsana souradnice nejsou mereni — kdyby
@@ -131,32 +133,34 @@
         // pozdeji zmeril podruhé, plati to mereni, ne puvod.
         if (prov.origin === 'edit') {
             return { a: null, zdroj: 'edit', mereno: false,
-                zdrojText: 'souřadnice byla po měření ručně změněna',
-                proc: 'Souřadnici tohohle bodu někdo po uložení ručně přepsal' + (prov.prevOrigin ? ' (původně ' + puvodCesky(prov.prevOrigin) + ')' : '') + '. Původní přesnost tím přestala platit a nová nevznikla — appka o tomhle bodu neví, jak přesný je. Chceš číslo? Změř ho.' };
+                zdrojText: T('souřadnice byla po měření ručně změněna'),
+                proc: (prov.prevOrigin
+                    ? T('Souřadnici tohohle bodu někdo po uložení ručně přepsal (původně {p}). Původní přesnost tím přestala platit a nová nevznikla — appka o tomhle bodu neví, jak přesný je. Chceš číslo? Změř ho.', { p: puvodCesky(prov.prevOrigin) })
+                    : T('Souřadnici tohohle bodu někdo po uložení ručně přepsal. Původní přesnost tím přestala platit a nová nevznikla — appka o tomhle bodu neví, jak přesný je. Chceš číslo? Změř ho.')) };
         }
         if (prov.origin === 'mapa') {
             var am = cislo(prov.acc);
             if (am == null) am = cislo(p && p.acc);
             return { a: am, zdroj: 'mapa', mereno: false,
-                zdrojText: 'odečteno z mapy, ne změřeno',
-                proc: 'Polohu sis odečetl klepnutím do mapy. Číslo vychází jen z měřítka mapy v okamžiku klepnutí (jak velký kus terénu byl pod prstem) — neříká nic o tom, jak dobře jsi sám sebe v podkladu poznal, ani o vlastní chybě ortofota. Mezi paneláky to bývá poctivější než GPS, ale měření to není.' };
+                zdrojText: T('odečteno z mapy, ne změřeno'),
+                proc: T('Polohu sis odečetl klepnutím do mapy. Číslo vychází jen z měřítka mapy v okamžiku klepnutí (jak velký kus terénu byl pod prstem) — neříká nic o tom, jak dobře jsi sám sebe v podkladu poznal, ani o vlastní chybě ortofota. Mezi paneláky to bývá poctivější než GPS, ale měření to není.') };
         }
         var s = cislo(prov.sigma);
         if (s != null) {
             return { a: s, zdroj: 'sigma', mereno: false,
-                zdrojText: 'rozptyl z jednoho stání (σ)',
-                proc: 'Tohle je jen rozptyl mnoha odečtů z JEDNOHO stání. Říká, jak klidné bylo měření — ne jak blízko pravdě bod leží. Telefon u zdi hlásí krásné σ a je přitom metr vedle. Změř bod podruhé s odstupem.' };
+                zdrojText: T('rozptyl z jednoho stání (σ)'),
+                proc: T('Tohle je jen rozptyl mnoha odečtů z JEDNOHO stání. Říká, jak klidné bylo měření — ne jak blízko pravdě bod leží. Telefon u zdi hlásí krásné σ a je přitom metr vedle. Změř bod podruhé s odstupem.') };
         }
         var a = cislo(prov.acc);
         if (a == null) a = cislo(p && p.acc);
         if (a != null) {
             return { a: a, zdroj: 'telefon', mereno: false,
-                zdrojText: 'jen co hlásí telefon',
-                proc: 'Tohle číslo appka nezměřila — hlásí ho GPS čip telefonu jako svůj vlastní odhad. Bývá optimistické, hlavně mezi domy a pod stromy.' };
+                zdrojText: T('jen co hlásí telefon'),
+                proc: T('Tohle číslo appka nezměřila — hlásí ho GPS čip telefonu jako svůj vlastní odhad. Bývá optimistické, hlavně mezi domy a pod stromy.') };
         }
         return { a: null, zdroj: 'nic', mereno: false,
-            zdrojText: 'neznámá přesnost',
-            proc: 'U tohohle bodu se nedochovalo, jak přesně vznikl.' };
+            zdrojText: T('neznámá přesnost'),
+            proc: T('U tohohle bodu se nedochovalo, jak přesně vznikl.') };
     }
 
     function fmt(v) {
@@ -194,9 +198,9 @@
             var m = Math.hypot(r.dlng * 111320 * Math.cos(lat * Math.PI / 180), r.dlat * 111320);
             var KDO = { hrana: 'z chůze po hraně', ref: 'z posunu na známý bod', 'dgps-live': 'DGPS živě ze základny', mapa: 'z klepnutí do mapy (za chůze)' };
             var kdo = KDO[r.src] || '(kalibrace GPS)';
-            out.push('K bodu se přičetla korekce ' + kdo + ': ' + fmt(m) + ' m' + (r.interp ? ', přepočtená podle času mezi dvěma chůzemi (kalibrace před a po)' : '') + '.');
+            out.push(T(r.interp ? 'K bodu se přičetla korekce {k}: {m} m, přepočtená podle času mezi dvěma chůzemi (kalibrace před a po).' : 'K bodu se přičetla korekce {k}: {m} m.', { k: T(kdo), m: fmt(m) }));
         }
-        if (prov.dgps && cislo(prov.dgps.mag) != null) out.push('Zpětně opravený DGPS ze základny ' + esc(prov.dgps.base || '') + ' o ' + fmt(prov.dgps.mag) + ' m.');
+        if (prov.dgps && cislo(prov.dgps.mag) != null) out.push(T('Zpětně opravený DGPS ze základny {b} o {m} m.', { b: esc(prov.dgps.base || ''), m: fmt(prov.dgps.mag) }));
         return out.join(' ');
     }
     AGDuvera.bod = function (p) {
@@ -218,7 +222,7 @@
             mereno: z.mereno,
             korekce: kor,
             proc: z.proc + (kor ? ' ' + kor : ''),
-            text: (z.a == null) ? 'přesnost neznámá' : ('±' + fmt(z.a) + ' m — ' + z.zdrojText)
+            text: (z.a == null) ? T('přesnost neznámá') : ('±' + fmt(z.a) + ' m — ' + z.zdrojText)
         };
     };
 
@@ -250,7 +254,7 @@
         // Nezměřenou přesnost pozná uživatel na první pohled podle vlnovky.
         var znak = v.mereno ? '' : '~';
         return '<span class="ag-duv" data-q="' + v.trida + '"' +
-            (o.bezTitulku ? '' : ' title="' + esc(v.nadpis + ' — ' + v.zdrojText) + '"') +
+            (o.bezTitulku ? '' : ' title="' + esc(T(v.nadpis) + ' — ' + v.zdrojText) + '"') +
             '>' + znak + t + (o.jednotka === false ? '' : ' m') + '</span>';
     };
 

@@ -25,6 +25,8 @@
     if (window.AGGeoid) return;
     var swallow = function (e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'zeme-svet:' + kde); } catch (e2) { /* nic */ } };
     var D2R = Math.PI / 180;
+    // překlad (js/jazyky.js) se zástupci {x}; česky vrací původní text
+    function TT(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
 
     // ---- 1. GEOID EGM2008 -----------------------------------------------------------
     var G = { hdr: null, eu: null, svet: null, stav: 'ne' };   // stav: ne | tahne | ok | chyba
@@ -213,7 +215,7 @@
             try { document.getElementById('settings-modal').style.display = 'none'; } catch (e) { /* nic */ }
             var b = document.getElementById('s-zeme-sim-btn'); if (b) b.textContent = 'Ukončit simulaci';
             // bublina, ne dialog: dialog by přebil kartu „Měříš v zemi" (zdroje-zemi.js), která o bodech a podkladech říká všechno (18. 9. 2026 noc)
-            try { (window.quickToast || window.agInfo)('Simulace: stojíš v ' + ((m && m[2]) || (z && z.nazev) || kod) + '. Souřadnice ' + (AGSour.popisky().system || '') + '.' + (kod !== 'CZ' ? ' Přidal jsem 3 ukázkové body (A, B, C).' : '') + ' Zpět: Nastavení → Mapa a body → Ukončit simulaci.'); } catch (e) { /* nic */ }
+            try { (window.quickToast || window.agInfo)(TT('Simulace: stojíš v {m}. Souřadnice {s}.', { m: TT((m && m[2]) || (z && z.nazev) || kod), s: (AGSour.popisky().system || '') }) + (kod !== 'CZ' ? ' ' + TT('Přidal jsem 3 ukázkové body (A, B, C).') : '') + ' ' + TT('Zpět: Nastavení → Mapa a body → Ukončit simulaci.')); } catch (e) { /* nic */ }
             obnov();
         } catch (e) { swallow(e, 'simulace'); }
     }
@@ -223,9 +225,9 @@
         try {
             var p = AGSour.popisky(), cz = p.krovak && p.zeme === 'CZ';
             var y = document.getElementById('custom-y-lab'), x = document.getElementById('custom-x-lab'), z = document.getElementById('custom-z-lab');
-            if (y) y.textContent = cz ? 'S-JTSK Y (v metrech):' : p.system + ' ' + p.osaA + ' (v metrech):';
-            if (x) x.textContent = cz ? 'S-JTSK X (v metrech):' : p.system + ' ' + p.osaB + ' (v metrech):';
-            if (z) z.textContent = cz ? 'Výška Z / Bpv (v metrech) — volitelné:' : 'Výška Z / ' + p.vyska + ' (v metrech) — volitelné:';
+            if (y) y.textContent = cz ? 'S-JTSK Y (v metrech):' : TT('{s} {o} (v metrech):', { s: String(p.system).replace(' pásmo ', ' ' + TT('pásmo') + ' '), o: p.osaA });
+            if (x) x.textContent = cz ? 'S-JTSK X (v metrech):' : TT('{s} {o} (v metrech):', { s: String(p.system).replace(' pásmo ', ' ' + TT('pásmo') + ' '), o: p.osaB });
+            if (z) z.textContent = cz ? 'Výška Z / Bpv (v metrech) — volitelné:' : TT('Výška Z / {v} (v metrech) — volitelné:', { v: TT(p.vyska) });
         } catch (e) { swallow(e, 'popiskyFormulare'); }
     }
     function obnov() {

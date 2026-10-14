@@ -31,6 +31,8 @@
 
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-vector:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-vector:toast'); } }
+    // překlad (js/jazyky.js); v češtině vrací původní text, {x} = zástupci (popup v #map překladač DOMu nevidí)
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
     function escapeHtml(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -68,7 +70,7 @@
         var collected = [], offset = 0, MAXP = 6;
         function page(n) {
             return fetchTO(buildUrl(bb, offset), 15000).then(function (r) { return r.json(); }).then(function (j) {
-                if (j && j.error) throw new Error(j.error.message || 'ČÚZK chyba');
+                if (j && j.error) throw new Error(j.error.message || T('ČÚZK chyba'));
                 var feats = (j && j.features) || [];
                 feats.forEach(function (f) { collected.push(esriToParcel(f)); });
                 offset += feats.length;
@@ -79,11 +81,11 @@
             _parcels = collected;
             persist(); drawMap(); whereAmI(); renderInfo();
             setStatus('');
-            toast('Staženo ' + _parcels.length + ' parcel');
+            toast(T('Staženo {n} parcel', { n: _parcels.length }));
             _busy = false;
         }).catch(function (e) {
             _busy = false; setStatus('');
-            agAlert('ČÚZK nedostupné', 'Parcely se nepodařilo stáhnout: ' + (e && e.message || e) + '\n\nZkus to s připojením, nebo nouzově načti parcely ze souboru GeoJSON.');
+            agAlert('ČÚZK nedostupné', T('Parcely se nepodařilo stáhnout: {e}', { e: (e && e.message || e) }) + '\n\n' + T('Zkus to s připojením, nebo nouzově načti parcely ze souboru GeoJSON.'));
         });
     }
 
@@ -105,9 +107,9 @@
                 out.push({ id: pr.id || pr.objectid || (cislo + '_' + out.length), cislo: cislo, vymera: vym, druh: pr.druhpozemkukod || null, ku: pr.katastralniuzemi || null, rings: rings });
             });
         });
-        if (!out.length) throw new Error('Žádné polygony parcel (Polygon/MultiPolygon) v souboru.');
+        if (!out.length) throw new Error(T('Žádné polygony parcel (Polygon/MultiPolygon) v souboru.'));
         _parcels = out; persist(); drawMap(); whereAmI(); renderInfo();
-        toast('Načteno ' + _parcels.length + ' parcel ze souboru');
+        toast(T('Načteno {n} parcel ze souboru', { n: _parcels.length }));
     }
 
     // ---- geometrie -------------------------------------------------------------
@@ -178,9 +180,9 @@
     }
     function parcelPopup(p, latlng) {
         var m = getMap(); if (!m) return;
-        var html = '<div style="font:600 13px/1.4 system-ui,sans-serif;color:#0e1216;">Parcela <b>' + escapeHtml(p.cislo) + '</b>'
-            + (p.vymera != null ? '<br>Výměra: <b>' + Number(p.vymera).toLocaleString('cs') + ' m²</b>' : '')
-            + (p.ku ? '<br>KÚ: ' + escapeHtml(p.ku) : '')
+        var html = '<div style="font:600 13px/1.4 system-ui,sans-serif;color:#0e1216;">' + T('Parcela') + ' <b>' + escapeHtml(p.cislo) + '</b>'
+            + (p.vymera != null ? '<br>' + T('Výměra:') + ' <b>' + Number(p.vymera).toLocaleString('cs') + ' m²</b>' : '')
+            + (p.ku ? '<br>' + T('KÚ:') + ' ' + escapeHtml(p.ku) : '')
             + '<br><span style="font-size:calc(11px * var(--ag-font-scale, 1));opacity:.7">© ČÚZK</span></div>';
         L.popup({ maxWidth: 220 }).setLatLng(latlng || [p.rings[0][0].lat, p.rings[0][0].lng]).setContent(html).openOn(m);
     }
@@ -261,7 +263,7 @@
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-vector:stakeNearestVertex'); }
         if (pid != null) { try { highlightedPointId = pid; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-vector:stakeNearestVertex'); } try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-vector:stakeNearestVertex'); } try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cadastre-vector:stakeNearestVertex'); } }
         closeModal();
-        toast('Navádím na lomový bod (' + v.d.toFixed(0) + ' m) — sleduj šipku');
+        toast(T('Navádím na lomový bod ({d} m) — sleduj šipku', { d: v.d.toFixed(0) }));
     }
 
     // ---- perzistence -----------------------------------------------------------
@@ -323,7 +325,7 @@
                 var nd = nearestOnSegments(userLat, userLng, _here);
                 here.innerHTML = '<div class="agcv-here-in">Stojíš na parcele<br><b>' + escapeHtml(_here.cislo) + '</b>'
                     + (_here.vymera != null ? ' · ' + Number(_here.vymera).toLocaleString('cs') + ' m²' : '')
-                    + (nd ? '<br><span style="font-size:calc(12px * var(--ag-font-scale, 1));opacity:.8">k hranici ' + nd.dist.toFixed(1) + ' m</span>' : '') + '</div>';
+                    + (nd ? '<br><span style="font-size:calc(12px * var(--ag-font-scale, 1));opacity:.8">' + T('k hranici {d} m', { d: nd.dist.toFixed(1) }) + '</span>' : '') + '</div>';
             } else if (_parcels.length) here.innerHTML = '<div class="agcv-here-out">Nejsi uvnitř žádné stažené parcely.</div>';
             else here.innerHTML = '';
         }

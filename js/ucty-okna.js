@@ -50,6 +50,8 @@
         var terrainHtml = I.terrainHtml;
         var tick = I.tick;
         var usageLog = I.usageLog;
+        // překlad (js/jazyky.js) se zástupci {n} — v češtině vrací původní text
+        function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
 
         // ---- založení účtu -------------------------------------------------------
         // TŘI POLE A ŽÁDNÝ E-MAIL. Registrace je pro obě verze STEJNÁ: člověk si
@@ -77,15 +79,14 @@
                 // 12. 9. 2026: „Název místa, kde budeš mít data" byl matoucí (uživatel). Je to jméno
                 // TVÉHO PROSTORU — firma nebo tvoje jméno; pod ním budou zakázky a body.
                 '  <input type="text" id="agr-space" maxlength="60" placeholder="Název firmy nebo tvé jméno (tvůj prostor)" autocomplete="organization">' +
-                '  <div class="agg-note" style="margin:-4px 0 8px;text-align:left;">Tak se bude jmenovat <b>tvůj prostor</b> — místo, kde budou tvoje zakázky a body. Když tě pak někdo pozve do své firmy, přibude vedle jako druhý prostor.</div>' +
+                '  <div class="agg-note" style="margin:-4px 0 8px;text-align:left;">' + T('Tak se bude jmenovat <b>tvůj prostor</b> — místo, kde budou tvoje zakázky a body. Když tě pak někdo pozve do své firmy, přibude vedle jako druhý prostor.') + '</div>' +
                 '  <input type="password" id="agr-pass" maxlength="64" placeholder="Heslo (aspoň 8 znaků)" autocomplete="new-password">' +
                 '  <input type="password" id="agr-pass2" maxlength="64" placeholder="Heslo ještě jednou" autocomplete="new-password">' +
                 '  <div class="agl-err" id="agr-err"></div>' +
                 '  <button type="button" class="agl-btn" id="agr-go">Založit účet</button>' +
                 '  <button type="button" class="agl-ghost" id="agr-back">Zpět na přihlášení</button>' +
                 '</div>' +
-                '<div class="agg-note">Heslo jde nastavit znovu jen <b>obnovovacím kódem</b>, který dostaneš hned po založení — ulož si ho mimo telefon, e-mail se nikam neposílá. ' +
-                'Zakázky si čas od času stáhni jako zálohu, je to jediná pojistka.</div>' +
+                '<div class="agg-note">' + T('Heslo jde nastavit znovu jen <b>obnovovacím kódem</b>, který dostaneš hned po založení — ulož si ho mimo telefon, e-mail se nikam neposílá. Zakázky si čas od času stáhni jako zálohu, je to jediná pojistka.') + '</div>' +
                 '</div>';
             document.body.appendChild(ov);
             fillMark(ov);
@@ -126,7 +127,7 @@
                         return;
                     }
                     if (r.status === 0) { err.textContent = 'Server není dosažitelný — účet se zakládá přes internet.'; return; }
-                    err.textContent = (r.data && r.data.error) || ('Registrace selhala (' + r.status + ').');
+                    err.textContent = (r.data && r.data.error) || T('Registrace selhala ({s}).', { s: r.status });
                 });
             };
             setTimeout(function () { try { ov.querySelector('#agr-name').focus(); } catch (e) { } }, 60);
@@ -187,7 +188,7 @@
                     }
                     raf = requestAnimationFrame(tick);
                 }).catch(function (err) {
-                    st.textContent = 'Kameru nelze spustit: ' + (err && err.message ? err.message : err);
+                    st.textContent = T('Kameru nelze spustit:') + ' ' + (err && err.message ? err.message : err);
                 });
             }).catch(function () { agInfo('Knihovnu pro čtení QR se nepodařilo načíst.'); });
         }
@@ -228,7 +229,7 @@
                 cloudFetch('/account/recover', { method: 'POST', api: DEFAULT_API, body: { code: code, recovery: rec, password: p1 } }).then(function (r) {
                     if (!(r.ok && r.data && r.data.ok)) {
                         busy = false;
-                        err.textContent = r.status === 0 ? 'Server není dosažitelný — obnova jde jen přes internet.' : ((r.data && r.data.error) || ('Obnova selhala (' + r.status + ').'));
+                        err.textContent = r.status === 0 ? 'Server není dosažitelný — obnova jde jen přes internet.' : ((r.data && r.data.error) || T('Obnova selhala ({s}).', { s: r.status }));
                         return;
                     }
                     // rovnou přihlásit novým heslem a ukázat nový obnovovací kód
@@ -267,8 +268,7 @@
             ov.innerHTML =
                 '<div class="agl-card">' +
                 '<div class="agl-firm">Smazat účet</div>' +
-                '<div class="agg-note" style="color:var(--danger,#e5534b);">Smaže účet <b>' + esc(ucet.code || '') + '</b> na serveru i s tvým vlastním místem (body a zakázky uložené na serveru). ' +
-                'Ve firmách, kde jsi členem, zůstanou body firmě. <b>Nejde to vrátit zpět.</b></div>' +
+                '<div class="agg-note" style="color:var(--danger,#e5534b);">' + T('Smaže účet <b>{kod}</b> na serveru i s tvým vlastním místem (body a zakázky uložené na serveru). Ve firmách, kde jsi členem, zůstanou body firmě. <b>Nejde to vrátit zpět.</b>', { kod: esc(ucet.code || '') }) + '</div>' +
                 '<div class="agg-note">Body a zakázky uložené v tomhle telefonu zůstanou — smažeš je smazáním dat aplikace.</div>' +
                 '<div class="agg-box on">' +
                 '  <input type="password" id="ags-pass" placeholder="Heslo k účtu" autocomplete="current-password">' +
@@ -286,7 +286,7 @@
                 if (!getTok()) { err.textContent = 'Účet na serveru tu není — stačí smazat data appky v telefonu.'; return; }
                 err.textContent = 'Mažu…';
                 cloudFetch('/account/delete', { method: 'POST', body: { password: pass } }).then(function (r) {
-                    if (!r.ok) { err.textContent = (r.data && r.data.error) || (r.status === 0 ? 'Server není dosažitelný — účet se maže přes internet.' : ('Smazání selhalo (' + r.status + ').')); return; }
+                    if (!r.ok) { err.textContent = (r.data && r.data.error) || (r.status === 0 ? 'Server není dosažitelný — účet se maže přes internet.' : T('Smazání selhalo ({s}).', { s: r.status })); return; }
                     // Server účet zrušil → pryč i všechno, co ho v telefonu drží (stejný
                     // úklid jako nouzové odpojení + účet, prostory, SSO). Body a zakázky
                     // v telefonu zůstávají — patří člověku, ne účtu.
@@ -319,8 +319,8 @@
             var seznam = prof.map(function (p) {
                 var tady = p.key === cur;
                 return '<button type="button" class="agg-prof" data-key="' + esc(p.key) + '"' + (tady ? ' disabled' : '') + '>' +
-                    '<span class="agg-pt"><b>' + esc(p.label || 'Firma') + (tady ? ' · tady jsi' : '') + '</b>' +
-                    '<span>' + esc(p.cloud ? ('cloud' + (p.code ? ' · kód ' + p.code : '')) : 'jen v tomto telefonu') + '</span></span><span class="agg-go">›</span></button>';
+                    '<span class="agg-pt"><b>' + esc(p.label || T('Firma')) + (tady ? ' · ' + T('tady jsi') : '') + '</b>' +
+                    '<span>' + esc(p.cloud ? ('cloud' + (p.code ? ' · ' + T('kód') + ' ' + p.code : '')) : T('jen v tomto telefonu')) + '</span></span><span class="agg-go">›</span></button>';
             }).join('');
             var maProstory = getProstory().length > 1 && !!getTok();
             ov.innerHTML =
@@ -355,7 +355,7 @@
             ov.className = 'ag-gate-like';
             ov.innerHTML =
                 '<div class="agl-card">' +
-                '<div class="agl-firm">Obnovovací kód účtu ' + esc(ucet.code) + '</div>' +
+                '<div class="agl-firm">' + T('Obnovovací kód účtu {kod}', { kod: esc(ucet.code) }) + '</div>' +
                 '<div class="agg-note">Kdybys zapomněl heslo, obnovovacím kódem si nastavíš nové — bez e-mailu. Nový kód nahradí ten starý. Potvrď heslem:</div>' +
                 '<div class="agg-box on">' +
                 '  <input type="password" id="agrc-pass" maxlength="64" placeholder="Heslo účtu" autocomplete="current-password">' +
@@ -375,7 +375,7 @@
                 cloudFetch('/account/recovery', { method: 'POST', body: { password: heslo } }).then(function (r) {
                     busy = false;
                     if (r.ok && r.data && r.data.recovery) { ov.remove(); ukazKodUctu(ucet, r.data.recovery, true); return; }
-                    err.textContent = r.status === 0 ? 'Server není dosažitelný — kód se vyrábí přes internet.' : ((r.data && r.data.error) || ('Nepovedlo se (' + r.status + ').'));
+                    err.textContent = r.status === 0 ? 'Server není dosažitelný — kód se vyrábí přes internet.' : ((r.data && r.data.error) || T('Nepovedlo se ({s}).', { s: r.status }));
                 });
             };
             setTimeout(function () { try { ov.querySelector('#agrc-pass').focus(); } catch (e) { } }, 60);
@@ -393,18 +393,16 @@
                 '<div class="agl-card">' +
                 (jenKod ? '<div class="agl-firm">Nový obnovovací kód</div>'
                     : '<div class="agl-firm">Hotovo. Tímhle kódem se budeš přihlašovat:</div><div class="agk-kod">' + esc(ucet.code) + '</div>') +
-                (recovery ? ('<div class="agg-note" style="margin-top:2px;"><b>Obnovovací kód</b> — kdybys zapomněl heslo, tímhle si nastavíš nové. ' +
-                    'Ukáže se jen teď; ulož si ho mimo telefon (poznámky, papír, foto obrazovky).</div>' +
+                (recovery ? ('<div class="agg-note" style="margin-top:2px;">' + T('<b>Obnovovací kód</b> — kdybys zapomněl heslo, tímhle si nastavíš nové. Ukáže se jen teď; ulož si ho mimo telefon (poznámky, papír, foto obrazovky).') + '</div>' +
                     '<div class="agk-kod agk-rec">' + esc(recovery) + '</div>' +
                     '<button type="button" class="agl-ghost" id="agk-copy">Zkopírovat kód účtu i obnovovací kód</button>') : '') +
-                (jenKod ? '' : '<div class="agg-note">Kód účtu si opiš někam mimo telefon. Spolu s heslem je to všechno, ' +
-                    'co potřebuješ, aby ses dostal ke svým datům na jiném zařízení.</div>') +
+                (jenKod ? '' : '<div class="agg-note">' + T('Kód účtu si opiš někam mimo telefon. Spolu s heslem je to všechno, co potřebuješ, aby ses dostal ke svým datům na jiném zařízení.') + '</div>') +
                 '<button type="button" class="agl-btn" id="agk-ok">' + (jenKod ? 'Uloženo, zavřít' : 'Zapsáno, jdeme měřit') + '</button>' +
                 '</div>';
             document.body.appendChild(ov);
             var cp = ov.querySelector('#agk-copy');
             if (cp) cp.onclick = function () {
-                var t = 'QTRIG — kód účtu: ' + ucet.code + (recovery ? '\nobnovovací kód: ' + recovery : '');
+                var t = T('QTRIG — kód účtu: {kod}', { kod: ucet.code }) + (recovery ? '\n' + T('obnovovací kód: {kod}', { kod: recovery }) : '');
                 try { navigator.clipboard.writeText(t).then(function () { cp.textContent = 'Zkopírováno — vlož do poznámek'; }, function () { cp.textContent = 'Nejde kopírovat — opiš ručně'; }); }
                 catch (e) { cp.textContent = 'Nejde kopírovat — opiš ručně'; }
             };
@@ -418,14 +416,14 @@
             ov.className = 'ag-gate-like';
             var ted = aktualniProstor();
             var seznam = getProstory().map(function (p) {
-                var kde = p.vlastni ? 'Moje vlastní místo' : (p.nazev || 'Firma');
+                var kde = p.vlastni ? T('Moje vlastní místo') : (p.nazev || T('Firma'));
                 var pod = p.vlastni
-                    ? 'Zůstává ti navždy — sem se nikdo jiný nedostane.'
-                    : (p.archiv ? 'Archiv — jen ke čtení, do dne odchodu.' : ('Role: ' + p.role));
+                    ? T('Zůstává ti navždy — sem se nikdo jiný nedostane.')
+                    : (p.archiv ? T('Archiv — jen ke čtení, do dne odchodu.') : T('Role: {r}', { r: p.role }));
                 var tady = ted && ted.firmId === p.firmId;
                 return '<button type="button" class="agg-prof" data-firm="' + esc(p.firmId) + '"' +
                     (tady ? ' disabled' : '') + '>' +
-                    '<span class="agg-pt"><b>' + esc(kde) + (tady ? ' · tady jsi' : '') + '</b>' +
+                    '<span class="agg-pt"><b>' + esc(kde) + (tady ? ' · ' + T('tady jsi') : '') + '</b>' +
                     '<span>' + esc(pod) + '</span></span><span class="agg-go">›</span></button>';
             }).join('');
             ov.innerHTML =
@@ -455,8 +453,7 @@
                 '<button type="button" class="agl-ghost" id="agp-del-open" style="opacity:.7;">Smazat účet…</button>' +
                 // Odchod je popsaný přesně tak, jak se chová — člověk se musí předem
                 // dozvědět, že mu prostor zůstane, ale zamrzlý.
-                '<div class="agg-note">Když z firmy odejdeš, prostor ti tu zůstane jako archiv jen ke čtení ' +
-                '(do dne odchodu). Správce firmy ti ho ale může odebrat.</div>' +
+                '<div class="agg-note">' + T('Když z firmy odejdeš, prostor ti tu zůstane jako archiv jen ke čtení (do dne odchodu). Správce firmy ti ho ale může odebrat.') + '</div>' +
                 '</div>';
             document.body.appendChild(ov);
             var err = ov.querySelector('#agp-err');
@@ -475,7 +472,7 @@
                     kerr.textContent = 'Ukládám…';
                     cloudFetch('/account/contact', { method: 'POST', body: { contact: c } }).then(function (r) {
                         if (r.ok) { lsKontakt(c); kerr.style.color = 'var(--accent,#2f9e74)'; kerr.textContent = c ? 'Uloženo.' : 'Kontakt smazán.'; return; }
-                        kerr.textContent = (r.data && r.data.error) || ('Uložení selhalo (' + r.status + ') — zkus to s lepším signálem.');
+                        kerr.textContent = (r.data && r.data.error) || T('Uložení selhalo ({s}) — zkus to s lepším signálem.', { s: r.status });
                     });
                 };
             })();
@@ -501,7 +498,7 @@
                         showProstory();
                         return;
                     }
-                    err.textContent = (r.data && r.data.error) || ('Připojení selhalo (' + r.status + ').');
+                    err.textContent = (r.data && r.data.error) || T('Připojení selhalo ({s}).', { s: r.status });
                 });
             };
         }

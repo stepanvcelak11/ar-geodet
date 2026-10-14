@@ -23,6 +23,8 @@
     'use strict';
     if (window.AGMapaData) return;
     var swallow = function (e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'mapa-data:' + kde); } catch (e2) { /* nic */ } };
+    // překlad (js/jazyky.js) — chybové texty se ukazují uživateli (js/trasa-terenem.js); v češtině beze změny
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     // DALEKÝ CÍL (18. 9. 2026, „k niveláku a k trigonometrickému bodu vede pořád jen přímka"):
     // do 3 km se čte z15 (do 16 dlaždic), dál z14 (do 25) a nad 6 km z13 (do 64) — hrubší
     // dlaždice mají hlavní i vedlejší silnice, vodu a plochy, jen bez drobných budov. Cache
@@ -49,8 +51,8 @@
     }
     function zdrojAsync() {
         var z = zdroj(); if (z) return Promise.resolve(z);
-        if (!window.AGMapaVektor || !AGMapaVektor.knihovny) return Promise.reject(new Error('modul vektorové mapy chybí'));
-        if (window.AGLite && AGLite.lite) return Promise.reject(new Error('režim slabší telefon'));
+        if (!window.AGMapaVektor || !AGMapaVektor.knihovny) return Promise.reject(new Error(T('modul vektorové mapy chybí')));
+        if (window.AGLite && AGLite.lite) return Promise.reject(new Error(T('režim slabší telefon')));
         return AGMapaVektor.knihovny().then(function () { var z2 = zdroj(); if (!z2) throw new Error('data mapy nejsou k dispozici'); return z2; });
     }
 
@@ -175,11 +177,11 @@
     var _chybaDo = 0, _chybaText = '';
     function oblast(bbox, z) {
         z = z || Z; var max = MAX_DLAZDIC[z] || MAX_DLAZDIC[Z];
-        var t = tilesPro(bbox, z); if (t.length > max) return Promise.reject(new Error('oblast příliš velká (' + t.length + ' dlaždic z' + z + ')'));
-        if (Date.now() < _chybaDo) return Promise.reject(new Error(_chybaText || 'data mapy nejsou k dispozici'));
+        var t = tilesPro(bbox, z); if (t.length > max) return Promise.reject(new Error(T('oblast příliš velká ({n} dlaždic z{z})', { n: t.length, z: z })));
+        if (Date.now() < _chybaDo) return Promise.reject(new Error(_chybaText || T('data mapy nejsou k dispozici')));
         return Promise.all(t.map(function (q) { return dlazdice(q.z, q.x, q.y); })).then(sloz).catch(function (e) { _chybaDo = Date.now() + 60000; _chybaText = lidsky((e && e.message) || String(e)); throw e; });
     // „Failed to fetch" / „NetworkError" / „Load failed" (Safari) = bez signálu nebo server neodpovídá — uživateli to říct česky (18. 9. 2026)
-    function lidsky(t) { return /failed to fetch|networkerror|load failed|network request failed/i.test(t) ? 'bez signálu, nebo server neodpovídá' : t; }
+    function lidsky(t) { return /failed to fetch|networkerror|load failed|network request failed/i.test(t) ? T('bez signálu, nebo server neodpovídá') : t; }
     }
     // synchronně z cache: Promise si ukládá výsledek do .vysledek, ať se nemusí čekat
     function oblastHned(bbox, z) {

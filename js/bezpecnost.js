@@ -102,7 +102,11 @@
     var _editCt = false;     // otevřený editor kontaktů
 
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    // překlad textů, které panel skládá sám (číslo/čas ve větě, toast, zpráva s polohou) — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
+    var B = { b: '<b>', _b: '</b>' };
     function toast(m) {
+        m = T(m);
         try { if (typeof window.quickToast === 'function') { window.quickToast(m); return; } } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:toast'); }
         // Bez toastu by hlášky o (ne)úspěchu zmizely úplně — a právě tady se člověk
         // musí dozvědět, jestli se něco stalo, nebo ne.
@@ -152,12 +156,12 @@
 
     function ageTxt(f) {
         if (!f) return '';
-        if (f.src === 'ulozena') return 'poslední uložená poloha, čas neznámý';
-        if (f.ts == null) return 'čas fixu neznámý';
+        if (f.src === 'ulozena') return T('poslední uložená poloha, čas neznámý');
+        if (f.ts == null) return T('čas fixu neznámý');
         var s = Math.max(0, Math.round((Date.now() - f.ts) / 1000));
-        if (s < 45) return 'právě teď (před ' + s + ' s)';
-        if (s < 3600) return 'před ' + Math.round(s / 60) + ' min';
-        return 'před ' + cz(s / 3600) + ' h';
+        if (s < 45) return T('právě teď (před {s} s)', { s: s });
+        if (s < 3600) return T('před {n} min', { n: Math.round(s / 60) });
+        return T('před {n} h', { n: cz(s / 3600) });
     }
     // 0 = čerstvé, 1 = zestárlé, 2 = nedůvěryhodné / neznámé stáří
     function ageLvl(f) {
@@ -220,25 +224,25 @@
             var mins = Math.round((out.storm - nowS) / 60);
             out.list.push({
                 lvl: 'high', k: 'storm',
-                t: mins <= 0 ? 'Bouřka právě teď' : 'Bouřka do ' + (mins < 60 ? mins + ' min' : Math.round(mins / 60) + ' h'),
+                t: mins <= 0 ? T('Bouřka právě teď') : T('Bouřka do {t}', { t: (mins < 60 ? mins + ' min' : Math.round(mins / 60) + ' h') }),
                 d: 'Výtyčka, stativ i ty na volném poli jste nejvyšší bod. Sundej výtyčku, jdi do auta (klec, ne přístřešek u stromu) a přečkej. Měření pár minut vydrží.'
             });
         }
         if (out.tmax != null && out.tmax >= 30) {
-            out.list.push({ lvl: 'high', k: 'heat', t: 'Vedro ' + Math.round(out.tmax) + ' °C', d: 'Pij průběžně po menších dávkách (orientačně 0,5 l/h), přestávku dělej ve stínu, nejtěžší práci naplánuj na ráno. Displej v přímém slunci nepřečteš — stiň ho tělem.' });
+            out.list.push({ lvl: 'high', k: 'heat', t: T('Vedro {t} °C', { t: Math.round(out.tmax) }), d: 'Pij průběžně po menších dávkách (orientačně 0,5 l/h), přestávku dělej ve stínu, nejtěžší práci naplánuj na ráno. Displej v přímém slunci nepřečteš — stiň ho tělem.' });
         } else if (out.tmax != null && out.tmax >= 27) {
-            out.list.push({ lvl: 'mid', k: 'heat', t: 'Teplo ' + Math.round(out.tmax) + ' °C', d: 'Voda s sebou, čepice, krém. Na otevřené ploše bez stínu se to sečte rychleji, než čekáš.' });
+            out.list.push({ lvl: 'mid', k: 'heat', t: T('Teplo {t} °C', { t: Math.round(out.tmax) }), d: 'Voda s sebou, čepice, krém. Na otevřené ploše bez stínu se to sečte rychleji, než čekáš.' });
         }
         if (out.tmin != null && out.tmin <= 0) {
-            out.list.push({ lvl: 'mid', k: 'frost', t: 'Mráz ' + Math.round(out.tmin) + ' °C', d: 'Náledí (pozor na krajnice a beton), baterie telefonu drží podstatně méně — nos ho v kapse u těla. Kolíky do promrzlé země nezatlučeš.' });
+            out.list.push({ lvl: 'mid', k: 'frost', t: T('Mráz {t} °C', { t: Math.round(out.tmin) }), d: 'Náledí (pozor na krajnice a beton), baterie telefonu drží podstatně méně — nos ho v kapse u těla. Kolíky do promrzlé země nezatlučeš.' });
         }
         if ((out.gust || out.wind) >= 60) {
-            out.list.push({ lvl: 'high', k: 'wind', t: 'Silný vítr, nárazy ' + Math.round(out.gust || out.wind) + ' km/h', d: 'Pod stromy nechoď (padající větve), stativ zatěž nebo neopouštěj, výtyčku nedrž svisle proti nárazům — svislost neudržíš a měření je bezcenné.' });
+            out.list.push({ lvl: 'high', k: 'wind', t: T('Silný vítr, nárazy {v} km/h', { v: Math.round(out.gust || out.wind) }), d: 'Pod stromy nechoď (padající větve), stativ zatěž nebo neopouštěj, výtyčku nedrž svisle proti nárazům — svislost neudržíš a měření je bezcenné.' });
         } else if ((out.gust || out.wind) >= 40) {
-            out.list.push({ lvl: 'mid', k: 'wind', t: 'Vítr ' + Math.round(out.gust || out.wind) + ' km/h', d: 'Stativ zatěž, u výtyčky čekej horší svislost — dej si pozor na to, jak držíš libelu.' });
+            out.list.push({ lvl: 'mid', k: 'wind', t: T('Vítr {v} km/h', { v: Math.round(out.gust || out.wind) }), d: 'Stativ zatěž, u výtyčky čekej horší svislost — dej si pozor na to, jak držíš libelu.' });
         }
         if (out.toTwilight != null && out.toTwilight > 0 && out.toTwilight < 60 * 60000) {
-            out.list.push({ lvl: 'mid', k: 'dusk', t: 'Do tmy zbývá ' + Math.round(out.toTwilight / 60000) + ' min', d: 'Reflexní vestu si vezmi hned (za soumraku tě řidič nevidí). AR měření za chvíli přestane fungovat — kamera potřebuje světlo.' });
+            out.list.push({ lvl: 'mid', k: 'dusk', t: T('Do tmy zbývá {m} min', { m: Math.round(out.toTwilight / 60000) }), d: 'Reflexní vestu si vezmi hned (za soumraku tě řidič nevidí). AR měření za chvíli přestane fungovat — kamera potřebuje světlo.' });
         }
         if (!out.list.length) {
             out.list.push({ lvl: 'ok', k: 'ok', t: 'Žádné výrazné riziko', d: w ? 'Podle posledního počasí je dnes venku klid. Vestu a vodu ale stejně.' : 'Nemám stažené počasí — otevři nástroj Počasí a tahle karta se naplní.' });
@@ -266,7 +270,7 @@
         // soumrak — jednou denně, 30 min předem
         if (r.toTwilight != null && r.toTwilight > 0 && r.toTwilight < 30 * 60000 && c.seen['dusk'] !== dayKey()) {
             c.seen['dusk'] = dayKey(); saveCfg(c);
-            toast('Za ' + Math.round(r.toTwilight / 60000) + ' min je tma — vesta a konči s AR.');
+            toast(T('Za {m} min je tma — vesta a konči s AR.', { m: Math.round(r.toTwilight / 60000) }));
             return;
         }
         // pití ve vedru
@@ -274,7 +278,7 @@
             var last = c.lastDrink || 0;
             if (Date.now() - last > (c.drinkMin || DRINK_DEFAULT) * 60000) {
                 c.lastDrink = Date.now(); saveCfg(c);
-                toast(Math.round(r.tmax) + ' °C — napij se a na chvíli do stínu.');
+                toast(T('{t} °C — napij se a na chvíli do stínu.', { t: Math.round(r.tmax) }));
             }
         }
     }
@@ -307,17 +311,17 @@
     function sosText() {
         var f = fix();
         if (!f) return null;
-        var lines = ['Potřebuji pomoc / navedení na tuto polohu:'];
-        lines.push('GPS: ' + f.lat.toFixed(6) + ', ' + f.lng.toFixed(6) + (f.acc != null ? ' (přesnost ±' + Math.round(f.acc) + ' m)' : ''));
+        var lines = [T('Potřebuji pomoc / navedení na tuto polohu:')];
+        lines.push('GPS: ' + f.lat.toFixed(6) + ', ' + f.lng.toFixed(6) + (f.acc != null ? ' (' + T('přesnost ±{a} m', { a: Math.round(f.acc) }) + ')' : ''));
         var s = sjtsk(f.lat, f.lng);
         if (s) lines.push(agSys() + ' ' + agOsy().osaA + ', ' + agOsy().osaB + ': ' + agFmtM(s.y) + ', ' + agFmtM(s.x));
-        lines.push('Mapa: https://www.google.com/maps?q=' + f.lat.toFixed(6) + ',' + f.lng.toFixed(6));
+        lines.push(T('Mapa:') + ' https://www.google.com/maps?q=' + f.lat.toFixed(6) + ',' + f.lng.toFixed(6));
         // Stáří polohy patří DO zprávy: příjemce musí vědět, jestli jede na místo,
         // kde jsem teď, nebo kde jsem naposledy byl.
-        if (f.ts != null) lines.push('Poloha zjištěna: ' + new Date(f.ts).toLocaleString('cs-CZ') + ' (' + ageTxt(f) + ')');
-        else lines.push('POZOR: tohle je poslední uložená poloha, neznámo jak stará — od té doby jsem se mohl přesunout.');
-        if (ageLvl(f) === 1) lines.push('POZOR: poloha už není úplně čerstvá, ověř si ji.');
-        lines.push('Zpráva odeslána: ' + new Date().toLocaleString('cs-CZ'));
+        if (f.ts != null) lines.push(T('Poloha zjištěna: {d} ({a})', { d: new Date(f.ts).toLocaleString('cs-CZ'), a: ageTxt(f) }));
+        else lines.push(T('POZOR: tohle je poslední uložená poloha, neznámo jak stará — od té doby jsem se mohl přesunout.'));
+        if (ageLvl(f) === 1) lines.push(T('POZOR: poloha už není úplně čerstvá, ověř si ji.'));
+        lines.push(T('Zpráva odeslána: {d}', { d: new Date().toLocaleString('cs-CZ') }));
         return lines.join('\n');
     }
 
@@ -325,7 +329,7 @@
         var txt = sosText();
         if (!txt) { toast('Nemám žádnou polohu — počkej na GPS fix nebo místo popiš slovy.'); return; }
         if (navigator.share) {
-            navigator.share({ title: 'Moje poloha', text: txt }).then(function () {
+            navigator.share({ title: T('Moje poloha'), text: txt }).then(function () {
                 // Sdílení skončilo úspěchem = text jsme předali cizí aplikaci. Že tam
                 // zpráva opravdu odešla, appka nezjistí — tak to taky nebude tvrdit.
                 toast('Poloha předána vybrané aplikaci. Zkontroluj, že tam zpráva opravdu odešla.');
@@ -363,7 +367,7 @@
     // quiet = nouzová obrazovka to říká sama, toast by se přes ni jen přebil.
     function dial(num, quiet) {
         try { window.location.href = 'tel:' + num; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bezpecnost:dial'); }
-        if (!quiet) toast('Předávám ' + num + ' telefonu. Jestli se vytáčení neotevřelo, vytoč ho ručně.');
+        if (!quiet) toast(T('Předávám {n} telefonu. Jestli se vytáčení neotevřelo, vytoč ho ručně.', { n: num }));
     }
     // Otevře zprávy s předvyplněným textem. Odeslat musí uživatel sám.
     function smsTo(num) {
@@ -546,8 +550,8 @@
             var s = sjtsk(f.lat, f.lng);
             h += cell(lv === 0 ? 'good wide' : (lv === 1 ? 'warn wide' : 'bad wide'), 'i-map-pin', 'Kde jsem',
                 esc(f.lat.toFixed(6) + ', ' + f.lng.toFixed(6)),
-                (s ? agSys() + ' ' + agOsy().osaA + ' ' + esc(fmtS(s.y)) + ' &nbsp; ' + agOsy().osaB + ' ' + esc(fmtS(s.x)) + '<br>' : agSys() + ' teď nespočítám (chybí převodní knihovna).<br>') +
-                'Poloha: ' + esc(ageTxt(f)) + (lv === 2 ? ' — <b>nespoléhej na ni</b>' : ''));
+                (s ? agSys() + ' ' + agOsy().osaA + ' ' + esc(fmtS(s.y)) + ' &nbsp; ' + agOsy().osaB + ' ' + esc(fmtS(s.x)) + '<br>' : agSys() + ' ' + T('teď nespočítám (chybí převodní knihovna).') + '<br>') +
+                T('Poloha: {a}', { a: esc(ageTxt(f)) }) + (lv === 2 ? ' — <b>nespoléhej na ni</b>' : ''));
         } else {
             h += cell('bad wide', 'i-map-pin', 'Kde jsem', 'Nemám polohu',
                 'GPS ještě nechytila fix. Tísňovou linku volej i tak a místo popiš slovy (obec, silnice, staničení, co je vidět).');
@@ -578,7 +582,7 @@
         var ct = cfg().contacts;
         if (ct.length) {
             h += cell('wide', 'i-users', 'Komu pošlu polohu', esc(ct[0].n || ct[0].p),
-                esc(ct[0].p) + (ct.length > 1 ? ' &nbsp;+ dalších ' + (ct.length - 1) : '') + ' — appka neposílá sama, jen otevře zprávy nebo sdílení.');
+                esc(ct[0].p) + (ct.length > 1 ? ' &nbsp;' + T('+ dalších {n}', { n: ct.length - 1 }) : '') + ' ' + T('— appka neposílá sama, jen otevře zprávy nebo sdílení.'));
         } else {
             h += cell('warn wide', 'i-users', 'Komu pošlu polohu', 'Nikdo nenastavený',
                 'Přidej si kontakt níž — v nouzi na hledání čísla není čas.');
@@ -598,11 +602,11 @@
                 '<div class="bz-fired">' +
                 // Ne „Vytáčím" — appka jen předala číslo telefonu a jestli se hovor
                 // opravdu spojil, nezjistí. Nadpis proto říká přesně to, co se stalo.
-                '<h4>' + esc(_firedNum) + ' — předáno telefonu</h4>' +
+                '<h4>' + esc(_firedNum) + ' — ' + T('předáno telefonu') + '</h4>' +
                 '<div style="font-size:calc(12px * var(--ag-font-scale, 1));line-height:1.45;color:var(--text-muted);">Jestli se vytáčení neotevřelo, vytoč číslo ručně — appka nepozná, jestli hovor běží.</div>' +
                 '<div class="bz-big">' + (f ? esc(f.lat.toFixed(6) + ', ' + f.lng.toFixed(6)) : 'polohu nemám') + '</div>' +
                 (s ? '<div style="font-size:calc(12.5px * var(--ag-font-scale, 1));font-weight:700;">' + agSys() + ' ' + agOsy().osaA + ' ' + esc(fmtS(s.y)) + ' &nbsp; ' + agOsy().osaB + ' ' + esc(fmtS(s.x)) + '</div>' : '') +
-                (f ? '<div style="font-size:calc(11px * var(--ag-font-scale, 1));color:var(--text-muted);margin-top:3px;">Poloha: ' + esc(ageTxt(f)) + '</div>' : '') +
+                (f ? '<div style="font-size:calc(11px * var(--ag-font-scale, 1));color:var(--text-muted);margin-top:3px;">' + T('Poloha: {a}', { a: esc(ageTxt(f)) }) + '</div>' : '') +
                 '<div style="display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:10px;">' +
                 '<button type="button" class="bz-mini" data-act="dial" data-num="' + esc(_firedNum) + '">' + ICO_PHONE + 'Vytočit znovu</button>' +
                 '<button type="button" class="bz-mini" data-act="copy">' + ic('i-file-text') + 'Zkopírovat polohu</button>' +
@@ -658,8 +662,8 @@
         var fill = b.querySelector('.bz-fill'), sub = b.querySelector('.bz-s');
         if (fill) fill.style.width = Math.round(p * 100) + '%';
         if (!sub) return;
-        if (ready) sub.textContent = 'PUSŤ a telefon vytočí 112';
-        else sub.textContent = 'Drž ještě ' + cz(Math.max(0, HOLD_MS * (1 - p)) / 1000) + ' s — pustíš, zrušeno';
+        if (ready) sub.textContent = T('PUSŤ a telefon vytočí 112');
+        else sub.textContent = T('Drž ještě {s} s — pustíš, zrušeno', { s: cz(Math.max(0, HOLD_MS * (1 - p)) / 1000) });
     }
     function onDown(e) {
         var t = e.target;
@@ -703,7 +707,7 @@
             b.classList.remove('holding', 'ready');
             var fill = b.querySelector('.bz-fill'), sub = b.querySelector('.bz-s');
             if (fill) fill.style.width = '0';
-            if (sub) sub.textContent = 'Podrž 2 s a pusť — telefon vytočí 112';
+            if (sub) sub.textContent = T('Podrž 2 s a pusť — telefon vytočí 112');
         }
         window.removeEventListener('pointerup', onUp);
         window.removeEventListener('pointercancel', onAbort);
@@ -717,10 +721,10 @@
         var over = overHold(e);
         var ready = stopHold();
         if (ready && over) { fire('112'); return; }
-        if (ready) hint('Pustil jsi mimo tlačítko — <b>nic se nevytočilo</b>. Zkus to znovu a pusť na tlačítku.');
-        else hint('Zrušeno — <b>nic se nevytočilo</b>. Tísňové tlačítko drž až do konce odpočtu.');
+        if (ready) hint(T('Pustil jsi mimo tlačítko — {b}nic se nevytočilo{_b}. Zkus to znovu a pusť na tlačítku.', B));
+        else hint(T('Zrušeno — {b}nic se nevytočilo{_b}. Tísňové tlačítko drž až do konce odpočtu.', B));
     }
-    function onAbort() { if (_hold) { stopHold(); hint('Podržení přerušeno — <b>nic se nevytočilo</b>.'); } }
+    function onAbort() { if (_hold) { stopHold(); hint(T('Podržení přerušeno — {b}nic se nevytočilo{_b}.', B)); } }
 
     function fire(num) {
         _firedTs = Date.now();
@@ -747,12 +751,12 @@
             quad('share', 'i-share', 'Poslat polohu', true) +
             quad('sms', 'i-file-text', 'SMS s polohou') +
             quad('copy', 'i-edit', 'Zkopírovat') +
-            (c.contacts.length ? quad('callct', 'phone', 'Volat ' + shortName(c.contacts[0])) : quad('addct', 'i-users', 'Přidat kontakt')) +
+            (c.contacts.length ? quad('callct', 'phone', T('Volat {n}', { n: shortName(c.contacts[0]) })) : quad('addct', 'i-users', 'Přidat kontakt')) +
             '</div>';
 
         // --- kontakty
         h += '<details class="bz-det"' + (_editCt ? ' open' : '') + ' id="ag-bz-ctd"><summary>' + ic('i-users') +
-            'Nouzové kontakty<span class="cnt">' + (c.contacts.length ? c.contacts.length + ' uloženo' : 'žádný') + '</span></summary><div class="bz-in">';
+            'Nouzové kontakty<span class="cnt">' + (c.contacts.length ? T('{n} uloženo', { n: c.contacts.length }) : T('žádný')) + '</span></summary><div class="bz-in">';
         if (!c.contacts.length) {
             h += '<div class="bz-note" style="margin:0 0 8px;">Kdo se má o tobě dozvědět, když se něco stane — parťák, dispečink, doma. Čísla zůstávají jen v tomhle telefonu, nikam se neodesílají.</div>';
         }
@@ -768,7 +772,7 @@
                 '<input type="tel" id="ag-bz-cp" placeholder="Telefon (+420…)" autocomplete="off">' +
                 '<button type="button" class="bz-mini prim" data-act="savect" style="width:100%;">' + ic('i-plus') + 'Uložit kontakt</button></div>';
         } else {
-            h += '<div class="bz-note">Víc než ' + MAX_CONTACTS + ' kontakty se v nouzi stejně neprolistují.</div>';
+            h += '<div class="bz-note">' + T('Víc než {n} kontakty se v nouzi stejně neprolistují.', { n: MAX_CONTACTS }) + '</div>';
         }
         h += '</div></details>';
 
@@ -777,11 +781,10 @@
             'Rizika dneška<span class="cnt">' + (r.serious ? r.serious + '×' : 'klid') + '</span></summary><div class="bz-in">';
         r.list.forEach(function (x) { h += '<div class="bz-r ' + x.lvl + '"><b>' + esc(x.t) + '</b>' + esc(x.d) + '</div>'; });
         if (r.sunset || r.twilight) {
-            h += '<div class="bz-note">Západ ' + (r.sunset ? esc(hhmm(r.sunset)) : '–') +
-                ', tma (konec soumraku) ' + (r.twilight ? esc(hhmm(r.twilight)) : '–') + '.</div>';
+            h += '<div class="bz-note">' + T('Západ {z}, tma (konec soumraku) {t}.', { z: (r.sunset ? esc(hhmm(r.sunset)) : '–'), t: (r.twilight ? esc(hhmm(r.twilight)) : '–') }) + '</div>';
         }
         if (r.wxAge != null) {
-            h += '<div class="bz-note">Počasí je z posledního stažení před ' + r.wxAge + ' min' + (r.wxStale ? ' — starší data, otevři Počasí' : '') + '.</div>';
+            h += '<div class="bz-note">' + T(r.wxStale ? 'Počasí je z posledního stažení před {n} min — starší data, otevři Počasí.' : 'Počasí je z posledního stažení před {n} min.', { n: r.wxAge }) + '</div>';
         } else {
             h += '<div class="bz-note">Nemám stažené počasí — otevři nástroj Počasí a rizika se dopočítají.</div>';
         }
@@ -865,7 +868,7 @@
             if (!c.contacts[i]) return;
             var nm = c.contacts[i].n || c.contacts[i].p;
             c.contacts.splice(i, 1); saveCfg(c); _editCt = true; render();
-            toast('Kontakt ' + nm + ' smazán.');
+            toast(T('Kontakt {n} smazán.', { n: nm }));
             return;
         }
         if (act === 'savect') {

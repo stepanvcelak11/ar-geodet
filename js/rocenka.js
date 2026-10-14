@@ -69,7 +69,7 @@
     // proužek měsíců začínal „led led" a prosinec chyběl)
     // v cizím jazyce měsíce a dny z Intl (13. 10. 2026): bublina „září: nic" šla mimo překladač DOMu
     function cizi() { try { return window.AGJazyk && AGJazyk.get() !== 'cs' ? AGJazyk.locale() : null; } catch (e) { return null; } }
-    function T(cs) { try { return window.AGJazyk ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } }
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function mesicIntl(m, typ) { try { return new Date(2020, +m || 0, 1).toLocaleDateString(cizi(), { month: typ }); } catch (e) { return ''; } }
     function mesicZkr(m) { if (cizi()) return mesicIntl(m, 'short'); return ['led', 'úno', 'bře', 'dub', 'kvě', 'čvn', 'čvc', 'srp', 'zář', 'říj', 'lis', 'pro'][+m || 0] || ''; }
     function dnuTxt(n) { n = +n || 0; if (cizi()) return n + ' ' + T(n === 1 ? 'den' : 'dnů'); return n + ' ' + (n === 1 ? 'den' : (n >= 2 && n <= 4 ? 'dny' : 'dnů')); }
@@ -380,16 +380,16 @@
 
         h += '<div class="agroc-grid">' +
             velkeCislo(cislo(km, km < 100 ? 1 : 0) + '<span>km</span>', 'nachozeno', s.dist ? null : 'zatím nic nezměřeno') +
-            velkeCislo(cislo(d.body.length), d.body.length === 1 ? 'změřený bod' : 'změřených bodů', d.bodyBezData ? (d.bodyBezData + ' bez data') : null) +
-            velkeCislo(cislo(d.dnuSBody), 'dnů v terénu', s.dni && s.dni !== d.dnuSBody ? ('appka běžela ' + dnuTxt(s.dni)) : null) +
-            velkeCislo(cislo(s.up) + '<span>m</span>', 'nastoupáno', vystupu >= 0.5 ? ('jako ' + cislo(vystupu, 1) + '× na Sněžku') : null) +
+            velkeCislo(cislo(d.body.length), d.body.length === 1 ? 'změřený bod' : 'změřených bodů', d.bodyBezData ? T('{n} bez data', { n: d.bodyBezData }) : null) +
+            velkeCislo(cislo(d.dnuSBody), 'dnů v terénu', s.dni && s.dni !== d.dnuSBody ? T('appka běžela {d}', { d: dnuTxt(s.dni) }) : null) +
+            velkeCislo(cislo(s.up) + '<span>m</span>', 'nastoupáno', vystupu >= 0.5 ? T('jako {n}× na Sněžku', { n: cislo(vystupu, 1) }) : null) +
             '</div>';
 
         h += '<div class="agroc-podgrid">' +
             '<div class="agroc-radek"><span>Čas v appce</span><b>' + (hod >= 1 ? cislo(hod, 1) + ' h' : cislo(s.ms / 60000) + ' min') + '</b></div>' +
             '<div class="agroc-radek"><span>Kroků</span><b>' + cislo(s.steps) + '</b></div>' +
             (nej ? '<div class="agroc-radek"><span>Nejpoužívanější nástroj</span><b>' + esc(nej.jmeno) + '</b></div>' : '') +
-            (d.nejDen ? '<div class="agroc-radek"><span>Nejplodnější den</span><b>' + esc(d.nejDen.den) + ' — ' + d.nejDen.n + ' bodů</b></div>' : '') +
+            (d.nejDen ? '<div class="agroc-radek"><span>Nejplodnější den</span><b>' + esc(d.nejDen.den) + ' — ' + T('{n} bodů', { n: d.nejDen.n }) + '</b></div>' : '') +
             '</div>';
 
         // mapa

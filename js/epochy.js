@@ -29,9 +29,11 @@
     var _prefill = null;            // {y,x,z} pro předvyplnění formuláře epochy po renderu
 
     // ---- util -------------------------------------------------------------------
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy:toast'); } }
-    function agAlertX(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy:agAlertX'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
+    function toast(m) { m = T(m); try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy:toast'); } }
+    function agAlertX(t, m) { t = T(t); if (m) m = T(m); try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy:agAlertX'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function agConfirmX(t, m) {
+        t = T(t); if (m) m = T(m);
         try { if (typeof window.agConfirm === 'function') return window.agConfirm({ title: t, message: m, danger: true }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'epochy:agConfirmX'); }
         return Promise.resolve(confirm(t + (m ? '\n' + m : '')));
     }
@@ -168,7 +170,7 @@
             else lastTxt = 'bez epoch';
             h += '<button class="ag-ep-item" data-act="open-item" data-id="' + esc(it.id) + '">'
                 + '<span class="ag-ep-item-name">' + esc(it.name) + '</span>' + badge
-                + '<span class="ag-ep-item-sub">' + it.epochs.length + '× epocha'
+                + '<span class="ag-ep-item-sub">' + T('{n}× epocha', { n: it.epochs.length })
                 + (it.epochs.length ? ' · ' + esc(fmtDate(it.epochs[it.epochs.length - 1].t)) : '') + '<br>' + esc(lastTxt) + '</span></button>';
         }
         h += '<div class="ag-ep-form"><label class="ag-ep-fld"><span>Nový sledovaný bod (název)</span>'
@@ -198,12 +200,12 @@
             var dirTxt = '';
             if (last.dP >= 0.001) {
                 var sm = smernik(last.dY, last.dX);
-                dirTxt = ' · směrník ' + sm.toFixed(1) + '° (' + (sm * 10 / 9).toFixed(1) + ' gon)';
+                dirTxt = ' · ' + T('směrník {d}° ({g} gon)', { d: sm.toFixed(1), g: (sm * 10 / 9).toFixed(1) });
             }
             h += '<div class="ag-ep-status' + (st && st.over ? ' ag-ep-status-bad' : '') + '">'
                 + 'Poslední epocha vs. referenční: <b>ΔP ' + fmtMM(last.dP) + ' mm</b>'
                 + (last.dZ != null ? ' · <b>ΔZ ' + fmtMM(last.dZ) + ' mm</b>' : '') + esc(dirTxt)
-                + (st ? (st.over ? '<br><b>⚠ Mezní odchylka překročena' + (st.overP ? ' (poloha)' : '') + (st.overZ ? ' (výška)' : '') + '</b>' : '<br>V mezích.') : '')
+                + (st ? (st.over ? '<br><b>' + T('⚠ Mezní odchylka překročena') + (st.overP ? ' (' + T('poloha') + ')' : '') + (st.overZ ? ' (' + T('výška') + ')' : '') + '</b>' : '<br>V mezích.') : '')
                 + '</div>';
         }
 
@@ -382,7 +384,7 @@
         }
         if (!it) return;
         if (act === 'del-item') {
-            agConfirmX('Smazat sledovaný bod?', '„' + it.name + '" včetně ' + it.epochs.length + ' epoch. Nelze vrátit.').then(function (ok) {
+            agConfirmX('Smazat sledovaný bod?', T('„{n}" včetně {e} epoch. Nelze vrátit.', { n: it.name, e: it.epochs.length })).then(function (ok) {
                 if (!ok) return;
                 S.items = S.items.filter(function (x) { return x.id !== it.id; });
                 save(); _view = { mode: 'list', itemId: null }; render();
@@ -391,7 +393,7 @@
         }
         if (act === 'del-epoch') {
             var i = parseInt(el.getAttribute('data-i'), 10);
-            agConfirmX('Smazat epochu?', fmtDate(it.epochs[i] && it.epochs[i].t) + (i === 0 ? ' — je to REFERENČNÍ epocha, referencí se stane další v pořadí.' : '')).then(function (ok) {
+            agConfirmX('Smazat epochu?', fmtDate(it.epochs[i] && it.epochs[i].t) + (i === 0 ? ' — ' + T('je to REFERENČNÍ epocha, referencí se stane další v pořadí.') : '')).then(function (ok) {
                 if (!ok) return;
                 it.epochs.splice(i, 1); save();
                 updateLinkedPoint(it);
@@ -429,7 +431,7 @@
         ensureLinkedPoint(it);      // 1. epocha → bod se přidá i do vlastních bodů
         updateLinkedPoint(it);      // propojený bod drží polohu poslední epochy
         render();
-        toast('Epocha uložena (' + it.epochs.length + ' celkem).');
+        toast(T('Epocha uložena ({n} celkem).', { n: it.epochs.length }));
     }
 
     function fillFromPoint(id) {
@@ -442,7 +444,7 @@
             document.getElementById('ag-ep-y').value = agFmtPresne(s.y);
             document.getElementById('ag-ep-x').value = agFmtPresne(s.x);
             if (p.vyska != null) document.getElementById('ag-ep-z').value = agFmtPresne(p.vyska);
-            toast('Souřadnice převzaty z bodu „' + p.name + '" — zkontroluj a ulož.');
+            toast(T('Souřadnice převzaty z bodu „{n}" — zkontroluj a ulož.', { n: p.name }));
         } catch (e) {}
     }
 
@@ -452,7 +454,7 @@
         navigator.geolocation.getCurrentPosition(function (pos) {
             try {
                 var c = pos.coords;
-                if (!window.GeoCore || !GeoCore.toMistni) return toast('Převod do ' + agSys() + ' není dostupný.');
+                if (!window.GeoCore || !GeoCore.toMistni) return toast(T('Převod do {s} není dostupný.', { s: agSys() }));
                 var s = GeoCore.toMistni(c.latitude, c.longitude);
                 var yEl = document.getElementById('ag-ep-y'); if (!yEl) return;
                 yEl.value = agFmtPresne(s.y);
@@ -465,7 +467,7 @@
                 var acc = (c.accuracy != null && isFinite(c.accuracy)) ? Math.round(c.accuracy) : null;
                 var nEl = document.getElementById('ag-ep-note');
                 if (nEl && !nEl.value && acc != null) nEl.value = '±' + acc + ' m (mobil)';
-                agAlertX('Orientační poloha', 'Mobil má přesnost ' + (acc != null ? '±' + acc + ' m' : 'v metrech') + ' — pro skutečný monitoring použij totálku/rover. Pole jsou předvyplněná, zkontroluj a ulož.');
+                agAlertX('Orientační poloha', T('Mobil má přesnost {a} — pro skutečný monitoring použij totálku/rover. Pole jsou předvyplněná, zkontroluj a ulož.', { a: (acc != null ? '±' + acc + ' m' : T('v metrech')) }));
             } catch (e) { toast('Polohu se nepodařilo zpracovat.'); }
         }, function () { toast('Polohu se nepodařilo získat.'); }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
     }
@@ -504,7 +506,7 @@
                 if (yEl && r.y != null) yEl.value = r.y;
                 if (xEl && r.x != null) xEl.value = r.x;
                 if (zEl && r.z != null) zEl.value = r.z;
-                toast('Přečteno' + (r.y != null && r.x != null ? ' Y+X' : '') + (r.z != null ? ' +Z' : '') + ' — zkontroluj a ulož.');
+                toast(T('Přečteno') + (r.y != null && r.x != null ? ' Y+X' : '') + (r.z != null ? ' +Z' : '') + ' — ' + T('zkontroluj a ulož.'));
             })
             .catch(function () {
                 _ocrBusy = false;

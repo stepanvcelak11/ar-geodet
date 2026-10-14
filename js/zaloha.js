@@ -5,6 +5,7 @@
 
 (function () {
     'use strict';
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
 
     // Poslat zálohu ven z telefonu. Vrací Promise s tím, CO se stalo ('share' /
     // 'download' / 'abort') — razítko „zálohováno" se totiž smí napsat jen tehdy,
@@ -57,14 +58,14 @@
     // Dřív se razítko psalo naslepo — geodet pak sedm dní žil v přesvědčení, že zálohu
     // má. Radši se jednou zeptáme, než abychom mu lhali.
     function _potvrdUlozeni() {
-        const t = 'Uložila se záloha?';
-        const m = 'Zkontroluj, že soubor <b>opravdu</b> přistál v Souborech / iCloudu. Dokud to nepotvrdíš, appka zálohu za hotovou nepovažuje a bude ti ji dál připomínat.';
+        const t = T('Uložila se záloha?');
+        const m = T('Zkontroluj, že soubor') + ' <b>' + T('opravdu') + '</b> ' + T('přistál v Souborech / iCloudu. Dokud to nepotvrdíš, appka zálohu za hotovou nepovažuje a bude ti ji dál připomínat.');
         try {
             if (typeof window.agConfirm === 'function') {
-                return Promise.resolve(window.agConfirm({ title: t, message: m, okText: 'Ano, uložilo se', cancelText: 'Nezdařilo se' })).then(ok => !!ok);
+                return Promise.resolve(window.agConfirm({ title: t, message: m, okText: T('Ano, uložilo se'), cancelText: T('Nezdařilo se') })).then(ok => !!ok);
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zaloha:_potvrdUlozeni'); }
-        try { return Promise.resolve(window.confirm(t + '\n\nUložil se soubor do Souborů / iCloudu?')); }
+        try { return Promise.resolve(window.confirm(t + '\n\n' + T('Uložil se soubor do Souborů / iCloudu?'))); }
         catch (e) { return Promise.resolve(false); }
     }
 
@@ -280,10 +281,10 @@
         try { return await _exportAllData(); }
         catch (e) {
             console.warn('[zaloha] export', e);
-            const m = (e && e.message) ? String(e.message) : 'Zkus uvolnit místo v telefonu a opakovat.';
+            const m = (e && e.message) ? String(e.message) : T('Zkus uvolnit místo v telefonu a opakovat.');
             try {
-                if (typeof window.agAlert === 'function') window.agAlert({ title: 'Záloha se nezdařila', message: m });
-                else if (typeof agInfo === 'function') agInfo('Záloha se nezdařila: ' + m);
+                if (typeof window.agAlert === 'function') window.agAlert({ title: T('Záloha se nezdařila'), message: m });
+                else if (typeof agInfo === 'function') agInfo(T('Záloha se nezdařila: {m}', { m: m }));
             } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'zaloha:exportAllData'); }
             return false;
         }
@@ -307,14 +308,14 @@
         r.onload = async function (e) {
             let payload;
             try { payload = JSON.parse(e.target.result); }
-            catch (err) { agInfo('Soubor zálohy je poškozený nebo to není JSON.'); return; }
+            catch (err) { agInfo(T('Soubor zálohy je poškozený nebo to není JSON.')); return; }
             if (!payload || typeof payload.data !== 'object' || payload.data === null) {
-                agInfo('Tohle nevypadá jako záloha QTRIG.'); return;
+                agInfo(T('Tohle nevypadá jako záloha QTRIG.')); return;
             }
             const keys = Object.keys(payload.data);
             // destruktivni potvrzeni v app dialogu (fallback na nativni, kdyz bridge chybi)
-            const msg = `Obnovit zálohu (${keys.length} položek)?\n\nPřepíše současná data této aplikace a stránka se znovu načte.`;
-            const ok = (typeof window.agAsk === 'function') ? await agAsk(msg, { danger: true, okText: 'Obnovit' }) : confirm(msg);
+            const msg = T('Obnovit zálohu ({n} položek)?', { n: keys.length }) + '\n\n' + T('Přepíše současná data této aplikace a stránka se znovu načte.');
+            const ok = (typeof window.agAsk === 'function') ? await agAsk(msg, { danger: true, okText: T('Obnovit') }) : confirm(msg);
             if (!ok) return;
             try { await _obnov(payload); } catch (err) { agInfo((err && err.message) ? err.message : String(err)); }
         };
@@ -324,7 +325,7 @@
     // zprávou; při úspěchu stránku znovu načte (opts.bezReload = nechá na volajícím).
     async function _obnov(payload, opts) {
         opts = opts || {};
-        if (!payload || typeof payload.data !== 'object' || payload.data === null) throw new Error('Tohle nevypadá jako záloha QTRIG.');
+        if (!payload || typeof payload.data !== 'object' || payload.data === null) throw new Error(T('Tohle nevypadá jako záloha QTRIG.'));
         const keys = Object.keys(payload.data);
         {
             // Atomicky: snapshot -> smazat -> zapsat; pri chybe (plna kvota) vratit snapshot,
@@ -346,11 +347,11 @@
                 SECRET_KEYS.forEach(k => { if (typeof snapshot[k] === 'string') localStorage.setItem(k, snapshot[k]); });
             } catch (err) {
                 try { localStorage.clear(); Object.keys(snapshot).forEach(k => localStorage.setItem(k, snapshot[k])); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'zaloha:obnov'); }
-                throw new Error('Obnova se nezdařila (úložiště plné?), původní data byla vrácena beze změny: ' + ((err && err.message) ? err.message : err));
+                throw new Error(T('Obnova se nezdařila (úložiště plné?), původní data byla vrácena beze změny: {e}', { e: ((err && err.message) ? err.message : err) }));
             }
             if (payload.idb && typeof idbRestoreAll === 'function') {
                 try { await idbRestoreAll(payload.idb); }
-                catch (e3) { agInfo('Nastavení se obnovilo, ale databázi bodů se nepodařilo obnovit celou: ' + ((e3 && e3.message) ? e3.message : e3)); }
+                catch (e3) { agInfo(T('Nastavení se obnovilo, ale databázi bodů se nepodařilo obnovit celou: {e}', { e: ((e3 && e3.message) ? e3.message : e3) })); }
             }
             // zalohy v3: obnova dalsich databazi (zurnal, rastr podkladu, fotky vytyceni);
             // starsi zalohy (v2) polozku extra nemaji -> preskoci se

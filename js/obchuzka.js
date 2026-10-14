@@ -54,7 +54,9 @@
 
     // ---- pomocné ----------------------------------------------------------------------
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-    function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:toast'); } }
+    // překlad: věty s čísly → šablony se zástupci (AGJazyk.t hledá celý text)
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
+    function toast(m) { m = T(m); try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:toast'); } }
     function info(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert(t, m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:info'); } toast(m); }
     function pid() { try { return localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { return 'default'; } }
     function pad2(n) { return (n < 10 ? '0' : '') + n; }
@@ -311,7 +313,7 @@
             ts: Date.now()
         }, true);
         try { if (navigator.vibrate) navigator.vibrate(25); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'obchuzka:finishManual'); }
-        toast('Vrchol přidán (' + n + ' vzorků).');
+        toast(T('Vrchol přidán ({n} vzorků).', { n: n }));
     }
     function undo(which) {
         if (!_job) return;
@@ -330,7 +332,7 @@
     }
     function saveAll(o) { try { localStorage.setItem(LS, JSON.stringify(o)); } catch (e) { toast('Uložení se nepovedlo — plná paměť?'); } }
     function newJob() {
-        _job = { id: 'ob_' + Date.now(), ts: Date.now(), name: 'Výkop ' + fmtDT(Date.now()), top: [], bot: [], depth: null, note: '' };
+        _job = { id: 'ob_' + Date.now(), ts: Date.now(), name: T('Výkop {d}', { d: fmtDT(Date.now()) }), top: [], bot: [], depth: null, note: '' };
     }
     function persist() {
         if (!_job) return;
@@ -365,7 +367,7 @@
             arr.push({ name: base + '_D' + (i + 1), lat: r.lat, lng: r.lng, vyska: r.z, kod: 'dno výkopu', acc: r.acc, origin: 'gps-avg' });
         });
         var n = window.addImportedPoints(arr);
-        toast(n ? ('Přeneseno ' + n + ' bodů do zakázky.') : 'Body už v zakázce jsou.');
+        toast(n ? T('Přeneseno {n} bodů do zakázky.', { n: n }) : 'Body už v zakázce jsou.');
     }
     function exportCsv() {
         if (!_job) return;
@@ -410,7 +412,7 @@
         function conv(list, t) {
             return list.map(function (r) { var s = toSJTSK(r.lat, r.lng); if (s) { s.t = t; pts.push(s); } return s; }).filter(Boolean);
         }
-        var T = conv(_job.top, 'top'), B = conv(_job.bot, 'bot');
+        var TP = conv(_job.top, 'top'), B = conv(_job.bot, 'bot');
         if (!pts.length) return;
         var minY = Infinity, maxY = -Infinity, minX = Infinity, maxX = -Infinity;
         pts.forEach(function (p) {
@@ -434,7 +436,7 @@
             ctx.fillStyle = col;
             list.forEach(function (p) { ctx.beginPath(); ctx.arc(PX(p), PY(p), 2.6, 0, 6.283); ctx.fill(); });
         }
-        poly(T, '#2f9e74', 'rgba(47,158,116,0.14)');
+        poly(TP, '#2f9e74', 'rgba(47,158,116,0.14)');
         poly(B, '#fbbf24', 'rgba(251,191,36,0.12)');
         // měřítko
         ctx.strokeStyle = 'rgba(255,255,255,0.16)'; ctx.lineWidth = 1;
@@ -514,8 +516,8 @@
     }
     function listHtml() {
         var h = '<div class="ag-ob-row"><button type="button" id="ag-ob-new" class="prim">Nová obchůzka výkopu</button></div>'
-            + '<div class="ag-ob-note">Obejdeš hranu výkopu, zaměříš dno a hned víš objem. Počítá se z GPS telefonu — '
-            + 'na hrubou kubaturu a kontrolu faktury to stačí, na přejímku patří rover nebo totálka.</div>';
+            + '<div class="ag-ob-note">' + T('Obejdeš hranu výkopu, zaměříš dno a hned víš objem. Počítá se z GPS telefonu — '
+            + 'na hrubou kubaturu a kontrolu faktury to stačí, na přejímku patří rover nebo totálka.') + '</div>';
         var list = all()[pid()];
         if (list.length) {
             h += '<div class="ag-ob-h">Uložené obchůzky</div>';
@@ -524,8 +526,8 @@
                 var c = compute(r);
                 h += '<div class="ag-ob-it" data-id="' + esc(r.id) + '">'
                     + '<div style="flex:1;min-width:0;"><b>' + esc(r.name) + '</b><br>'
-                    + esc(fmtDT(r.ts)) + ' · ' + r.top.length + ' bodů hrany'
-                    + (c && c.V != null ? ' · ' + fmtNum(c.V, 1) + ' m³' : ' · nedopočítáno')
+                    + esc(fmtDT(r.ts)) + ' · ' + T('{n} bodů hrany', { n: r.top.length })
+                    + (c && c.V != null ? ' · ' + fmtNum(c.V, 1) + ' m³' : ' · ' + T('nedopočítáno'))
                     + '</div>'
                     + '<button type="button" class="ag-ob-open">Otevřít</button>'
                     + '<button type="button" class="ag-ob-del">Smazat</button>'
@@ -555,8 +557,8 @@
             + '<input type="number" id="ag-ob-depth" placeholder="Hloubka ručně (m)" step="0.01" min="0" value="'
             + (_job.depth != null ? _job.depth : '') + '">'
             + '</div>'
-            + '<div class="ag-ob-note">Když se do výkopu nedá vlézt, změř hloubku pásmem nebo latí a zapiš ji sem — '
-            + 'ručně zadaná hloubka je <b>přesnější než výška z GPS</b> a použije se přednostně před jedním bodem dna.</div>'
+            + '<div class="ag-ob-note">' + T('Když se do výkopu nedá vlézt, změř hloubku pásmem nebo latí a zapiš ji sem — '
+            + 'ručně zadaná hloubka je <b>přesnější než výška z GPS</b> a použije se přednostně před jedním bodem dna.') + '</div>'
             + '<div class="ag-ob-h">Zakázka</div>'
             + '<div class="ag-ob-row">'
             + '<button type="button" id="ag-ob-topts">Přenést body do zakázky</button>'
@@ -575,51 +577,49 @@
         var vol = document.getElementById('ag-ob-volbox');
         if (vol) {
             var vh = (c && c.V != null)
-                ? ('<div class="ag-ob-vol"><b>' + fmtNum(c.V, 1) + ' m³</b><small>objem výkopu'
+                ? ('<div class="ag-ob-vol"><b>' + fmtNum(c.V, 1) + ' m³</b><small>' + T('objem výkopu')
                     + (c.sV != null ? ' · ± ' + fmtNum(c.sV, 1) + ' m³' : '') + '</small></div>')
                 : '';
             if (vol.innerHTML !== vh) vol.innerHTML = vh;
         }
         var cells = document.getElementById('ag-ob-cells');
         if (cells) {
-            cells.innerHTML = '<div class="ag-ob-cell"><b>' + (c ? fmtNum(c.A1, 1) : '—') + '</b><small>plocha m²</small></div>'
-                + '<div class="ag-ob-cell"><b>' + (c ? fmtNum(c.per, 1) : '—') + '</b><small>obvod m</small></div>'
-                + '<div class="ag-ob-cell"><b>' + (c && c.h != null ? fmtNum(c.h, 2) : '—') + '</b><small>hloubka m</small></div>';
+            cells.innerHTML = '<div class="ag-ob-cell"><b>' + (c ? fmtNum(c.A1, 1) : '—') + '</b><small>' + T('plocha m²') + '</small></div>'
+                + '<div class="ag-ob-cell"><b>' + (c ? fmtNum(c.per, 1) : '—') + '</b><small>' + T('obvod m') + '</small></div>'
+                + '<div class="ag-ob-cell"><b>' + (c && c.h != null ? fmtNum(c.h, 2) : '—') + '</b><small>' + T('hloubka m') + '</small></div>';
         }
         var notes = document.getElementById('ag-ob-notes');
         if (notes) {
             var nh = '';
             if (c) {
                 if (c.mode === 'frustum') {
-                    nh += '<div class="ag-ob-note">Objem počítán jako <b>komolý jehlan</b> mezi hranou (' + fmtNum(c.A1, 1) + ' m²) '
-                        + 'a dnem (' + fmtNum(c.A2, 1) + ' m²) — svahované stěny jsou v tom zahrnuté.</div>';
+                    nh += '<div class="ag-ob-note">' + T('Objem počítán jako <b>komolý jehlan</b> mezi hranou ({a} m²) a dnem ({b} m²) — svahované stěny jsou v tom zahrnuté.', { a: fmtNum(c.A1, 1), b: fmtNum(c.A2, 1) }) + '</div>';
                 } else if (c.mode) {
-                    nh += '<div class="ag-ob-note warn">Stěny se berou jako <b>svislé</b>, což je <b>horní odhad</b>. '
-                        + 'U svahovaného výkopu obejdi i <b>hranu dna</b> (aspoň 3 body) — objem se pak spočítá jako komolý jehlan a bude menší.</div>';
+                    nh += '<div class="ag-ob-note warn">' + T('Stěny se berou jako <b>svislé</b>, což je <b>horní odhad</b>. '
+                        + 'U svahovaného výkopu obejdi i <b>hranu dna</b> (aspoň 3 body) — objem se pak spočítá jako komolý jehlan a bude menší.') + '</div>';
                 }
                 if (c.topPl && c.topPl.rms != null && c.topPl.rms > 0.25) {
-                    nh += '<div class="ag-ob-note warn">Terén kolem výkopu není rovina (odchylky od proložené roviny ± '
-                        + fmtNum(c.topPl.rms, 2) + ' m). Objem je pak jen orientační — na zvlněném terénu použij '
-                        + '<b>Kubatury / vrstevnice</b> (TIN) z přenesených bodů.</div>';
+                    nh += '<div class="ag-ob-note warn">' + T('Terén kolem výkopu není rovina (odchylky od proložené roviny ± {r} m). Objem je pak jen orientační — na zvlněném terénu použij '
+                        + '<b>Kubatury / vrstevnice</b> (TIN) z přenesených bodů.', { r: fmtNum(c.topPl.rms, 2) }) + '</div>';
                 }
                 if (c.acc != null) {
-                    nh += '<div class="ag-ob-note">Přesnost fixů při měření: ± ' + fmtNum(c.acc, 1) + ' m (medián). '
-                        + 'Z toho plyne uvedené ± u objemu — největší podíl má vždycky <b>hloubka</b>.</div>';
+                    nh += '<div class="ag-ob-note">' + T('Přesnost fixů při měření: ± {a} m (medián). '
+                        + 'Z toho plyne uvedené ± u objemu — největší podíl má vždycky <b>hloubka</b>.', { a: fmtNum(c.acc, 1) }) + '</div>';
                 }
             } else {
-                nh = '<div class="ag-ob-note">Obejdi hranu výkopu — objem se spočítá od <b>tří</b> bodů obvodu.</div>';
+                nh = '<div class="ag-ob-note">' + T('Obejdi hranu výkopu — objem se spočítá od <b>tří</b> bodů obvodu.') + '</div>';
             }
             if (notes.innerHTML !== nh) notes.innerHTML = nh;
         }
 
-        setTxt('ag-ob-htop', 'Hrana výkopu (' + _job.top.length + ' bodů)');
-        setTxt('ag-ob-hbot', 'Dno (' + _job.bot.length + ' bodů)');
+        setTxt('ag-ob-htop', T('Hrana výkopu ({n} bodů)', { n: _job.top.length }));
+        setTxt('ag-ob-hbot', T('Dno ({n} bodů)', { n: _job.bot.length }));
         var w = document.getElementById('ag-ob-walk');
-        if (w) { w.className = (_rec === 'top' ? 'rec' : 'prim'); w.textContent = (_rec === 'top' ? 'Obcházím… STOP' : 'Obejít hranu'); }
+        if (w) { w.className = (_rec === 'top' ? 'rec' : 'prim'); w.textContent = T(_rec === 'top' ? 'Obcházím… STOP' : 'Obejít hranu'); }
         var wb = document.getElementById('ag-ob-walkb');
-        if (wb) { wb.className = (_rec === 'bot' ? 'rec' : ''); wb.textContent = (_rec === 'bot' ? 'Obcházím dno… STOP' : 'Obejít dno'); }
-        setTxt('ag-ob-manual', (_avg && _avgTo === 'top') ? ('Měřím… ' + _avgSamples.length) : 'Roh ručně');
-        setTxt('ag-ob-manualb', (_avg && _avgTo === 'bot') ? ('Měřím… ' + _avgSamples.length) : 'Bod dna');
+        if (wb) { wb.className = (_rec === 'bot' ? 'rec' : ''); wb.textContent = T(_rec === 'bot' ? 'Obcházím dno… STOP' : 'Obejít dno'); }
+        setTxt('ag-ob-manual', (_avg && _avgTo === 'top') ? T('Měřím… {n}', { n: _avgSamples.length }) : T('Roh ručně'));
+        setTxt('ag-ob-manualb', (_avg && _avgTo === 'bot') ? T('Měřím… {n}', { n: _avgSamples.length }) : T('Bod dna'));
         drawPlan();
     }
     function bindList() {
@@ -633,8 +633,8 @@
                 var d = it.querySelector('.ag-ob-del'), armed = null;
                 d.addEventListener('click', function () {
                     if (armed) { clearTimeout(armed); delJob(id); return; }
-                    d.textContent = 'Opravdu?';
-                    armed = setTimeout(function () { armed = null; d.textContent = 'Smazat'; }, 3000);
+                    d.textContent = T('Opravdu?');
+                    armed = setTimeout(function () { armed = null; d.textContent = T('Smazat'); }, 3000);
                 });
             })(items[i]);
         }

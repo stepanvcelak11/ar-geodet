@@ -202,6 +202,8 @@
     function at(arr, i) { if (!arr || !arr.length || i == null || i < 0 || i >= arr.length) return null; return num(arr[i]); }
     function pad2(n) { return (n < 10 ? '0' : '') + n; }
     function TJ(cs) { try { return (window.AGJazyk && typeof AGJazyk.t === 'function') ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } }   // překlad kousku slepence (18. 9. 2026)
+    // překlad celé věty se zástupci {x} (čísla, časy) — česky vrací původní text
+    function TT(cs, o) { var v = TJ(cs); return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function nf(v, dec) {
         if (v == null || !isFinite(v)) return '–';
         return Number(v).toFixed(dec == null ? 0 : dec).replace('.', ',');
@@ -213,7 +215,7 @@
     }
     function hourOf(epoch, off) { return new Date((epoch + (off || 0)) * 1000).getUTCHours(); }
     function dayShort(epoch, off) { return DAYS_CS[new Date((epoch + (off || 0)) * 1000).getUTCDay()]; }
-    function dirName(deg) { if (deg == null) return ''; return DIRS_CS[Math.round((((deg % 360) + 360) % 360) / 45) % 8]; }
+    function dirName(deg) { if (deg == null) return ''; var ix = Math.round((((deg % 360) + 360) % 360) / 45) % 8; var loc = String(TJ('S,SV,V,JV,J,JZ,Z,SZ')).split(','); return loc.length === 8 ? loc[ix] : DIRS_CS[ix]; }
     function distKm(aLat, aLon, bLat, bLon) {
         var R = 6371, dLa = (bLat - aLat) * Math.PI / 180, dLo = (bLon - aLon) * Math.PI / 180;
         var s = Math.sin(dLa / 2) * Math.sin(dLa / 2) +
@@ -2475,7 +2477,7 @@
             if (!ll && e.latlng) ll = e.latlng;
             endPick();
             if (!ll || !isFinite(ll.lat) || !isFinite(ll.lng)) return;
-            _place = { name: 'Místo na mapě · ' + ll.lat.toFixed(4) + ', ' + ll.lng.toFixed(4), lat: ll.lat, lon: ll.lng };
+            _place = { name: TJ('Místo na mapě') + ' · ' + ll.lat.toFixed(4) + ', ' + ll.lng.toFixed(4), lat: ll.lat, lon: ll.lng };
             var inp = byId('ag-wx-search'); if (inp) inp.value = '';
             hideResults();
             loadWeather(true);
@@ -2618,8 +2620,8 @@
         if (lab && f && f.time) {
             var off = (_cur && _cur.data) ? _cur.data.off : -new Date().getTimezoneOffset() * 60;
             var mins = Math.round((f.time * 1000 - Date.now()) / 60000);
-            var rel = (mins >= 2) ? 'za ' + mins + ' min · výhled'
-                : (mins <= -2 ? 'před ' + (-mins) + ' min' : 'teď');
+            var rel = (mins >= 2) ? TT('za {n} min · výhled', { n: mins })
+                : (mins <= -2 ? TT('před {n} min', { n: -mins }) : TJ('teď'));
             lab.innerHTML = '<b>' + fmtHM(f.time, off) + '</b><span>' + rel + '</span>';
             lab.classList.toggle('future', mins >= 2);
         }
@@ -2888,10 +2890,10 @@
             out.push({ cls: 'warn', title: wTtl, txt: 'Pozor na stativ a výtyčku — zatiž stativ, výtyčku drž obouruč, hrozí pád přístroje.' });
         }
         if (c.temp != null && c.temp <= 0) {
-            out.push({ cls: 'warn', title: 'Mráz ' + nf(Math.round(c.temp), 0) + ' °C', txt: 'Námraza na hranolech a displeji; baterie vydrží kratší dobu — vezmi náhradní.' });
+            out.push({ cls: 'warn', title: TT('Mráz {t} °C', { t: nf(Math.round(c.temp), 0) }), txt: 'Námraza na hranolech a displeji; baterie vydrží kratší dobu — vezmi náhradní.' });
         }
         if (c.temp != null && c.temp > 30) {
-            out.push({ cls: 'warn', title: 'Vedro ' + nf(Math.round(c.temp), 0) + ' °C', txt: 'Refrakce/tetelení vzduchu zhoršuje záměry; měř raději ráno, pij a kryj přístroj před sluncem.' });
+            out.push({ cls: 'warn', title: TT('Vedro {t} °C', { t: nf(Math.round(c.temp), 0) }), txt: 'Refrakce/tetelení vzduchu zhoršuje záměry; měř raději ráno, pij a kryj přístroj před sluncem.' });
         }
         return out;
     }
@@ -2911,7 +2913,7 @@
         var offBox = byId('ag-wx-offline');
         if (_offline || staleShown) {
             var dt = new Date(pack.t);
-            offBox.textContent = 'Naposledy aktualizováno ' + pad2(dt.getHours()) + ':' + pad2(dt.getMinutes()) + (_offline ? ' (offline)' : '…');
+            offBox.textContent = TT('Naposledy aktualizováno {t}', { t: pad2(dt.getHours()) + ':' + pad2(dt.getMinutes()) }) + (_offline ? ' (offline)' : '…');
             offBox.style.display = 'block';
         } else {
             offBox.style.display = 'none';
@@ -2947,7 +2949,7 @@
             var d0 = data.daily[0];
             if (d0.tmax != null && d0.tmin != null) mm = 'Max: ' + nf(Math.round(d0.tmax), 0) + '°  Min: ' + nf(Math.round(d0.tmin), 0) + '°';
         }
-        if (c && c.feels != null) mm += (mm ? '  ·  ' : '') + 'Pocitově ' + nf(Math.round(c.feels), 0) + '°';
+        if (c && c.feels != null) mm += (mm ? '  ·  ' : '') + TT('Pocitově {t}°', { t: nf(Math.round(c.feels), 0) });
         byId('ag-wx-minmax').textContent = mm;
 
         renderNowcast(data, off);
@@ -2968,8 +2970,8 @@
         var b = byId('ag-wx-foot-btn'); if (!b) return;
         var n = (_cur && _cur.data && _cur.data.perSource) ? _cur.data.perSource.length : 0;
         var upd = _cur ? new Date(_cur.t) : null;
-        b.textContent = 'Z čeho předpověď vychází' + (n ? ' · ' + n + ' zdrojů' : '')
-            + (upd ? ' · aktualizováno ' + pad2(upd.getHours()) + ':' + pad2(upd.getMinutes()) : '')
+        b.textContent = TJ('Z čeho předpověď vychází') + (n ? ' · ' + TT('{n} zdrojů', { n: n }) : '')
+            + (upd ? ' · ' + TT('aktualizováno {t}', { t: pad2(upd.getHours()) + ':' + pad2(upd.getMinutes()) }) : '')
             + (open ? '  ▴' : '  ▾');
     }
     function renderSrcPanel(pack) {
@@ -2998,23 +3000,23 @@
         for (var i = 0; i < sorted.length; i++) {
             var s = sorted[i];
             var row = el('div', 'wx-src' + (s.meas ? ' wx-src-meas' : ''));
-            var txt = TJ(s.label) + ' · váha ' + nf(s.w, 2);
+            var txt = TJ(s.label) + ' · ' + TT('váha {w}', { w: nf(s.w, 2) });
             if (s.meas) {
-                txt += ' · MĚŘENÍ, ne předpověď';
+                txt += ' · ' + TJ('MĚŘENÍ, ne předpověď');
             } else {
-                if (s.skill != null) txt += ' · teplota ±' + nf(s.skill, 1) + ' °C';
-                if (s.skillPHit != null) txt += ' · déšť ' + nf(s.skillPHit * 100, 0) + ' %';
-                else if (s.skillP != null) txt += ' · déšť ±' + nf(s.skillP, 2) + ' mm/h';
-                if (s.skill == null && s.skillP == null) txt += ' · trefnost zatím neznámá';
+                if (s.skill != null) txt += ' · ' + TT('teplota ±{v} °C', { v: nf(s.skill, 1) });
+                if (s.skillPHit != null) txt += ' · ' + TT('déšť {v} %', { v: nf(s.skillPHit * 100, 0) });
+                else if (s.skillP != null) txt += ' · ' + TT('déšť ±{v} mm/h', { v: nf(s.skillP, 2) });
+                if (s.skill == null && s.skillP == null) txt += ' · ' + TJ('trefnost zatím neznámá');
                 else if (s.skillSrc) txt += ' (' + s.skillSrc + ')';
                 // odečtená systematická chyba a případné vyloučení — ať se uživatel
                 // nemusí divit, proč se číslo zdroje do výsledku nepropsalo
                 if (s.bias != null && Math.abs(s.bias) >= 0.05) {
-                    txt += ' · srovnáno o ' + (s.bias > 0 ? '+' : '') + nf(s.bias, 1) + ' °C';
+                    txt += ' · ' + TT('srovnáno o {v} °C', { v: (s.bias > 0 ? '+' : '') + nf(s.bias, 1) });
                     // denní chod chyby: rozdíl mezi nejmírnější a nejsilnější částí dne
-                    if (s.biasSpan != null) txt += ' (podle části dne se rozchází o ' + nf(s.biasSpan, 1) + ' °C)';
+                    if (s.biasSpan != null) txt += ' (' + TT('podle části dne se rozchází o {v} °C', { v: nf(s.biasSpan, 1) }) + ')';
                 }
-                if (s.outlier) txt += ' · VYLOUČEN jako odlehlý';
+                if (s.outlier) txt += ' · ' + TJ('VYLOUČEN jako odlehlý');
             }
             row.appendChild(el('span', 'wx-src-n' + (s.outlier ? ' wx-src-out' : ''), txt));
             row.appendChild(el('span', 'wx-src-v', s.temp != null ? nf(s.temp, 1) + ' °C' : '–'));
@@ -3042,7 +3044,7 @@
         try { cvN = loadSkill().chmiVerified || 0; } catch (e) { cvN = 0; }
         if (cvN) {
             box.appendChild(el('div', 'wx-src-h',
-                'Trefnost je z části ověřená proti SKUTEČNÉMU měření ČHMÚ (' + cvN + ' srovnání), ne jen proti průměru modelů — model, který se drží u davu, tím pádem dobrou známku zadarmo nedostane.'));
+                TT('Trefnost je z části ověřená proti SKUTEČNÉMU měření {z} ({n} srovnání), ne jen proti průměru modelů — model, který se drží u davu, tím pádem dobrou známku zadarmo nedostane.', { n: cvN, z: 'ČHMÚ' })));
         }
         box.appendChild(el('div', 'wx-src-h', 'Data: Open-Meteo (předpovědi, ensembly, archiv ERA5) · MET Norway · Bright Sky (DWD) · ČHMÚ (opendata.chmi.cz, © ČHMÚ) · radar RainViewer · mapa OpenStreetMap'));
     }
@@ -3067,7 +3069,7 @@
             head.classList.add('wx-now-soon');
         } else {
             var hrs = Math.max(1, Math.round(nc.untilMin / 60));
-            head.textContent = 'Nejbližší ' + hrs + ' h bez srážek';
+            head.textContent = TT('Nejbližší {n} h bez srážek', { n: hrs });
             head.classList.add('wx-now-dry');
         }
 
@@ -3271,19 +3273,19 @@
             // stanice, vlhkost a vítr jdou do detailu — vlhkost i vítr mají navíc
             // vlastní dlaždici, takže tady jen nadouvaly řádek na tři.
             var mSub = [];
-            if (ms.label) mSub.push('stanice ' + ms.label);
+            if (ms.label) mSub.push(TT('stanice {s}', { s: ms.label }));
             if (ms.dist != null) mSub.push(nf(ms.dist, 1) + ' km');
             if (ms.t != null) {
-                mSub.push(fmtHM(ms.t, off) + (ms.ageMin != null && ms.ageMin >= 5 ? ' (před ' + nf(ms.ageMin, 0) + ' min)' : ''));
+                mSub.push(fmtHM(ms.t, off) + (ms.ageMin != null && ms.ageMin >= 5 ? ' (' + TT('před {n} min', { n: nf(ms.ageMin, 0) }) + ')' : ''));
             }
             tm.appendChild(el('div', 'wx-tile-sub', mSub.join(' · ')));
             // Vysvětlivky pod rozklikávátko: samotné číslo a stanice stačí, zbytek je
             // „proč tomu věřit" — zajímavé jednou, ne při každém pohledu na počasí.
             var dm = detail(tm, 'chmi', 'Co to znamená');
             var mMore = [];
-            if (ms.stElev != null) mMore.push('stanice ' + nf(Math.round(ms.stElev), 0) + ' m n. m.');
-            if (ms.hum != null) mMore.push('vlhkost ' + nf(Math.round(ms.hum), 0) + ' %');
-            if (ms.wind != null) mMore.push('vítr ' + nf(ms.wind, 1) + ' m/s');
+            if (ms.stElev != null) mMore.push(TT('stanice {v} m n. m.', { v: nf(Math.round(ms.stElev), 0) }));
+            if (ms.hum != null) mMore.push(TT('vlhkost {v} %', { v: nf(Math.round(ms.hum), 0) }));
+            if (ms.wind != null) mMore.push(TT('vítr {v} m/s', { v: nf(ms.wind, 1) }));
             if (mMore.length) dm.appendChild(el('div', 'wx-tile-sub', mMore.join(' · ')));
             // víc stanic (návrh ②) — ať je vidět, že do odhadu nejde jen ta nejbližší
             if (ms.multiN > 1 && ms.multiNames && ms.multiNames.length) {
@@ -3295,8 +3297,7 @@
             // když je stanice v jiné výšce než bod, ať je vidět i přepočet
             if (ms.raw != null && ms.temp != null && Math.abs(ms.temp - ms.raw) >= 0.15 && data.elevReal != null) {
                 dm.appendChild(el('div', 'wx-tile-sub',
-                    'Přepočteno na tvou výšku ' + nf(Math.round(data.elevReal), 0) + ' m n. m.: '
-                    + nf(ms.temp, 1) + ' °C — a tahle hodnota jde do celkového průměru.'));
+                    TT('Přepočteno na tvou výšku {h} m n. m.: {t} °C — a tahle hodnota jde do celkového průměru.', { h: nf(Math.round(data.elevReal), 0), t: nf(ms.temp, 1) })));
             }
             dm.appendChild(el('div', 'wx-tile-sub',
                 'Skutečně naměřeno, ne předpověď. ČHMÚ data zveřejňuje se zhruba hodinovým zpožděním, '
@@ -3311,15 +3312,15 @@
         if (c.dir != null) {
             // šipka ukazuje KAM vítr fouká (meteorologický směr = odkud → +180°)
             arr.style.transform = 'rotate(' + Math.round(c.dir + 180) + 'deg)';
-            arr.title = 'vítr od ' + dirName(c.dir);
+            arr.title = TT('vítr od {d}', { d: dirName(c.dir) });
         }
         wRow.appendChild(arr);
         wRow.appendChild(el('span', 'wx-tile-big', c.wind != null ? nf(c.wind, 1) : '–'));
         wRow.appendChild(el('span', 'wx-tile-un', 'm/s'));
         tw.appendChild(wRow);
         var wSub = [];
-        if (c.gusts != null) wSub.push('nárazy ' + nf(c.gusts, 1) + ' m/s');
-        if (c.dir != null) wSub.push('od ' + dirName(c.dir));
+        if (c.gusts != null) wSub.push(TT('nárazy {v} m/s', { v: nf(c.gusts, 1) }));
+        if (c.dir != null) wSub.push(TT('od {d}', { d: dirName(c.dir) }));
         tw.appendChild(el('div', 'wx-tile-sub', wSub.join(' · ')));
 
         // Tlak — hlavní hodnota přepočtená do nadmořské výšky místa, moře jen doplňkově
@@ -3373,20 +3374,19 @@
         var sSub = [];
         if (d0 && d0.pprob != null) {
             var pk = peakProbHour(data, d0);
-            sSub.push('nejvýš ' + nf(Math.round(d0.pprob), 0) + ' %'
-                + (pk ? ' kolem ' + fmtHM(pk.t, off) : ' někdy během dne'));
+            sSub.push(pk ? TT('nejvýš {p} % kolem {t}', { p: nf(Math.round(d0.pprob), 0), t: fmtHM(pk.t, off) })
+                : TT('nejvýš {p} % někdy během dne', { p: nf(Math.round(d0.pprob), 0) }));
         }
         // když se modely rozcházejí, ať je vidět i ta deštivější varianta
         if (d0 && d0.psumMax != null && d0.psum != null && d0.psumMax - d0.psum >= 1) {
-            sSub.push('některé modely až ' + nf(d0.psumMax, 1) + ' mm');
+            sSub.push(TT('některé modely až {v} mm', { v: nf(d0.psumMax, 1) }));
         }
         ts.appendChild(el('div', 'wx-tile-sub', sSub.join(' · ')));
         // Druhý řádek: co je TEĎ. Bez něj vypadá „100 %" jako rozpor s prázdným radarem.
         var ncS = data.nowcast, nowTxt;
         if (ncS && ncS.raining) nowTxt = 'Teď prší' + (ncS.peak != null ? ' — až ' + nf(ncS.peak, 1) + ' mm/h' : '') + '.';
         else if (ncS && ncS.startsInMin != null) nowTxt = 'Teď nic; podle ' + (ncS.radar ? 'radaru' : 'modelů') + ' začne za ' + ncS.startsInMin + ' min.';
-        else if (ncS) nowTxt = 'Teď nic a ' + (ncS.radar ? 'radar' : 'model') + ' nevidí srážky ani v nejbližších '
-            + Math.max(1, Math.round(ncS.untilMin / 60)) + ' h. Procento výš je maximum za CELÝ den, ne stav teď.';
+        else if (ncS) nowTxt = TT(ncS.radar ? 'Teď nic a radar nevidí srážky ani v nejbližších {n} h. Procento výš je maximum za CELÝ den, ne stav teď.' : 'Teď nic a model nevidí srážky ani v nejbližších {n} h. Procento výš je maximum za CELÝ den, ne stav teď.', { n: Math.max(1, Math.round(ncS.untilMin / 60)) });
         else nowTxt = 'Procento výš je maximum za celý den, ne stav teď.';
         ts.appendChild(el('div', 'wx-tile-sub', nowTxt));
 
@@ -3430,19 +3430,16 @@
         // výšková korekce — ať je vidět, že se s čísly něco stalo, a proč
         if (data.elevReal != null && data.lapseDT != null && Math.abs(data.lapseDT) >= 0.1) {
             dq.appendChild(el('div', 'wx-tile-sub',
-                'Teploty jsou opravené o výšku: model počítá s ' + nf(Math.round(data.elevModel), 0)
-                + ' m n. m., tady je podle DMR 5G ' + nf(Math.round(data.elevReal), 0) + ' m — posun '
-                + (data.lapseDT > 0 ? '+' : '') + nf(data.lapseDT, 1) + ' °C.'));
+                TT('Teploty jsou opravené o výšku: model počítá s {m} m n. m., tady je podle DMR 5G {r} m — posun {d} °C.', { m: nf(Math.round(data.elevModel), 0), r: nf(Math.round(data.elevReal), 0), d: (data.lapseDT > 0 ? '+' : '') + nf(data.lapseDT, 1) })));
         }
         // spolehlivost podle historie: jak se modely trefovaly za poslední měsíc
         if (data.skillInfo && data.skillInfo.ref != null) {
-            var dTxt = data.skillInfo.days ? ('za posledních ' + data.skillInfo.days + ' dní') : 'podle dosavadní historie';
-            var sTxt = 'Trefnost ' + dTxt + ': teplota na den dopředu sedí v průměru na ±'
-                + nf(data.skillInfo.ref, 1) + ' °C (' + data.skillInfo.models + ' modelů)';
+            var dTxt = data.skillInfo.days ? TT('za posledních {n} dní', { n: data.skillInfo.days }) : TJ('podle dosavadní historie');
+            var sTxt = TT('Trefnost {d}: teplota na den dopředu sedí v průměru na ±{t} °C ({m} modelů)', { d: dTxt, t: nf(data.skillInfo.ref, 1), m: data.skillInfo.models });
             if (data.skillInfoP && data.skillInfoP.hit != null) {
-                sTxt += ', déšť/bez deště modely trefly v ' + nf(data.skillInfoP.hit * 100, 0) + ' % hodin';
+                sTxt += ', ' + TT('déšť/bez deště modely trefly v {p} % hodin', { p: nf(data.skillInfoP.hit * 100, 0) });
             }
-            sTxt += '. Trefnějším roste váha zvlášť pro teplotu a zvlášť pro srážky; detail zdrojů je dole.';
+            sTxt += '. ' + TJ('Trefnějším roste váha zvlášť pro teplotu a zvlášť pro srážky; detail zdrojů je dole.');
             dq.appendChild(el('div', 'wx-tile-sub', sTxt));
         } else {
             dq.appendChild(el('div', 'wx-tile-sub', 'Trefnost modelů (teplota i srážky) se právě dohledává z archivu za poslední měsíc — ukáže se do minuty (potřebuje internet).'));

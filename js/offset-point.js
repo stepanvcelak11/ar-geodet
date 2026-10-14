@@ -12,6 +12,8 @@
 // ================================================================================
 (function () {
     'use strict';
+    // překlad (AGJazyk) se zástupci {x}; v češtině vrací přesně původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
 
     var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>';
     var _baseMode = 'gps';     // 'gps' | 'point'
@@ -156,7 +158,7 @@
         var added = window.addImportedPoints([{ name: name, lat: r.lat, lng: r.lng }]);
         if (added > 0) {
             draftClear();
-            agAlert('Bod uložen', '#' + name + ' uložen do aktuální zakázky.\nY ' + r.Y + '  X ' + r.X);
+            agAlert('Bod uložen', T('#{n} uložen do aktuální zakázky.', { n: name }) + '\nY ' + r.Y + '  X ' + r.X);
             document.getElementById('agof-modal').style.display = 'none';
         } else {
             agAlert('Neuloženo', 'Bod se stejným názvem a polohou už v zakázce je.');

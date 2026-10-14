@@ -450,10 +450,12 @@
     // ťuknutím se rozbalí. (Zdroj návrhů — usadit-ar.js — dnes sám vrací nejvýš 4;
     // tohle je pojistka, aby strop platil i až kandidátů přibude.)
     var NOW_MAX = 4;
+    // překlad: text s počtem → šablona se zástupcem (AGJazyk.t hledá celý text)
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function nowMoreLabel(box) {
         var m = box.querySelector('.ag-th-more'); if (!m) return;
-        if (box.classList.contains('ag-th-open')) { m.textContent = 'méně'; return; }
-        m.textContent = 'další (' + box.querySelectorAll('.ag-ua-chip.ag-th-ovf').length + ')';
+        if (box.classList.contains('ag-th-open')) { m.textContent = T('méně'); return; }
+        m.textContent = T('další ({n})', { n: box.querySelectorAll('.ag-ua-chip.ag-th-ovf').length });
     }
     function capNow() {
         var box = document.getElementById('ag-ua-now'); if (!box) return;

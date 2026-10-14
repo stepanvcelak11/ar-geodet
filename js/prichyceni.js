@@ -54,6 +54,8 @@
         var orig = window.saveCustomPoint;
         if (typeof orig !== 'function' || orig._agPrichyceni || _obaleno) return;
         _obaleno = true;
+        // překlad (AGJazyk) se zástupci {x}; v češtině vrací přesně původní text
+        var T = function (cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, kk) { return o[kk] != null ? o[kk] : m; }) : v; };
         var wrapped = function () {
             var args = arguments, self = this;
             try {
@@ -62,8 +64,8 @@
                 if (!st.zap || edituju || _probiha || !origin || origin === 'ruc' || origin === 'import') return orig.apply(self, args);
                 var ll = souradniceZPole(); if (!ll) return orig.apply(self, args);
                 var k = kandidat(ll.lat, ll.lng); if (!k) return orig.apply(self, args);
-                var co = k.zdroj === 'parcela' ? 'lomu hranice parcely' : k.zdroj === 'dxf' ? 'bodu výkresu' : 'rohu budovy';
-                var msg = 'Bod je <b>' + fmt(k.d) + ' m</b> od ' + co + ' (' + (window.AG && AG.esc ? AG.esc(k.popis) : k.popis) + '). Vzít souřadnice z mapy místo z GPS?<br><small>Přesnost zdroje ±' + fmt(k.presnost) + ' m; do bodu se zapíše, odkud je.</small>';
+                var co = k.zdroj === 'parcela' ? T('lomu hranice parcely') : k.zdroj === 'dxf' ? T('bodu výkresu') : T('rohu budovy');
+                var msg = T('Bod je {d} od {co} ({p}). Vzít souřadnice z mapy místo z GPS?', { d: '<b>' + fmt(k.d) + ' m</b>', co: co, p: (window.AG && AG.esc ? AG.esc(k.popis) : k.popis) }) + '<br><small>' + T('Přesnost zdroje ±{a} m; do bodu se zapíše, odkud je.', { a: fmt(k.presnost) }) + '</small>';
                 var rozhodni = function (ano) {
                     _probiha = true;
                     try {
@@ -82,8 +84,8 @@
                         return ret;
                     } finally { _probiha = false; }
                 };
-                if (typeof window.agConfirm === 'function') { window.agConfirm({ title: 'Přichytit k ' + co + '?', message: msg, okText: 'Přichytit', cancelText: 'Nechat GPS' }).then(rozhodni); return; }
-                return rozhodni(window.confirm('Bod je ' + fmt(k.d) + ' m od ' + co + '. Vzít souřadnice z mapy?'));
+                if (typeof window.agConfirm === 'function') { window.agConfirm({ title: T('Přichytit k {co}?', { co: co }), message: msg, okText: T('Přichytit'), cancelText: T('Nechat GPS') }).then(rozhodni); return; }
+                return rozhodni(window.confirm(T('Bod je {d} m od {co}. Vzít souřadnice z mapy?', { d: fmt(k.d), co: co })));
             } catch (e) { swallow(e, 'wrapped'); return orig.apply(self, args); }
         };
         wrapped._agPrichyceni = true; wrapped._agOrig = orig;

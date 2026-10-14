@@ -44,6 +44,8 @@
     var st = { teren: true, pitch: 60, zelen: true, chodniky: true, globus: true };
     try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s) { ['teren', 'zelen', 'chodniky', 'globus'].forEach(function (k) { if (s[k] != null) st[k] = !!s[k]; }); if (s.pitch != null) st.pitch = +s.pitch; } } catch (e) { swallow(e, 'load'); }
     function uloz() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { swallow(e, 'save'); } }
+    // překlad textů, které si 3D pohled skládá sám (číslo/název ve větě) — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     var CHODNIK = { sidewalk: 1.8, footway: 1.8, pedestrian: 3.5, crossing: 2.5, steps: 1.8, path: 1.2, cycleway: 2.0 };
     // šířka v METRECH → pixely podle zoomu (exponenciálně, přesně pro 50° s. š.; jinde ±15 %)
     function metry(vyrazM) { return ['interpolate', ['exponential', 2], ['zoom'], 14, ['*', vyrazM, 0.163], 20, ['*', vyrazM, 10.4]]; }
@@ -456,8 +458,8 @@
         if (!p) { k.hidden = true; obnovBody(); return; }
         var me = poloha(), d = me ? GeoCore.getDistance(me.lat, me.lng, p.lat, p.lng) : null, t = _dmr[p.id];
         document.getElementById('ag3d-k-jmeno').textContent = p.name;
-        document.getElementById('ag3d-k-info').textContent = [p.druh || (p.cat === 'CUSTOM' ? 'vlastní bod' : p.cat), p.vyska != null ? 'H ' + (+p.vyska).toFixed(2) + ' m' + (t != null && isFinite(t) && (+p.vyska - t) >= 0.4 ? ' (' + (+p.vyska - t).toFixed(1).replace('.', ',') + ' m nad terénem)' : '') : null, d != null ? (d >= 1000 ? (d / 1000).toFixed(2).replace('.', ',') + ' km' : Math.round(d) + ' m') + ' ode mě' : null].filter(Boolean).join(' · ');
-        var nav = document.getElementById('ag3d-k-nav'); nav.textContent = cilId() === p.id ? 'Zrušit navigaci' : 'Navigovat';
+        document.getElementById('ag3d-k-info').textContent = [p.druh ? T(p.druh) : (p.cat === 'CUSTOM' ? T('vlastní bod') : p.cat), p.vyska != null ? 'H ' + (+p.vyska).toFixed(2) + ' m' + (t != null && isFinite(t) && (+p.vyska - t) >= 0.4 ? ' (' + T('{h} m nad terénem', { h: (+p.vyska - t).toFixed(1).replace('.', ',') }) + ')' : '') : null, d != null ? T('{d} ode mě', { d: (d >= 1000 ? (d / 1000).toFixed(2).replace('.', ',') + ' km' : Math.round(d) + ' m') }) : null].filter(Boolean).join(' · ');
+        var nav = document.getElementById('ag3d-k-nav'); nav.textContent = T(cilId() === p.id ? 'Zrušit navigaci' : 'Navigovat');
         k.hidden = false; obnovBody();
     }
     function obnovBody() { try { if (m3 && m3.getSource('body')) m3.getSource('body').setData(bodyGeo()); } catch (e) { swallow(e, 'body-set'); } }
@@ -473,7 +475,7 @@
             try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { /* nic */ }
         } catch (e) { swallow(e, 'naviguj'); }
         karta(p); obnovTrasu();
-        info(cilId() === p.id ? 'Navigace na ' + p.name + ' — běží i po zavření (mapa, AR).' : 'Navigace zrušena.');
+        info(cilId() === p.id ? T('Navigace na {n} — běží i po zavření (mapa, AR).', { n: p.name }) : T('Navigace zrušena.'));
     }
     // klasická karta bodu (bottom sheet) vyjede NAD 3D — 3D zůstává (uživatel: „místo toho, aby se to
     // vysunulo jako klasicky v mapě, přepne to do 2D a problikne")
@@ -492,14 +494,14 @@
     function otevri(bod) {
         // Hlášky NEposílají uživatele do Nastavení — nabídnou rovnou akci (18. 9. 2026, N2).
         if (window.AGLite && AGLite.lite) {
-            if (typeof window.agConfirm !== 'function' || !AGLite.nastav) { return alert('3D pohled není v režimu slabší telefon.'); }
+            if (typeof window.agConfirm !== 'function' || !AGLite.nastav) { return alert(T('3D pohled není v režimu slabší telefon.')); }
             return agConfirm({ title: '3D pohled', message: 'V režimu slabší telefon není 3D pohled (potřebuje WebGL). Vypnout úsporný režim a otevřít 3D?', okText: 'Vypnout a otevřít', cancelText: 'Nechat' })
                 .then(function (ano) { if (!ano) return; AGLite.nastav('off'); setTimeout(function () { if (!AGLite.lite) otevri(bod); }, 300); });
         }
         if (!window.AGMapaVektor || !window.AGMapaStyl) { return agAlert({ title: '3D pohled', message: 'Vektorová mapa se v této verzi nenačetla — zkus appku znovu otevřít (Nástroje → Funguje mi všechno?).' }); }
         var zap = AGMapaVektor.stav() === 'zapnuto' ? Promise.resolve(true) : AGMapaVektor.zapni();
         zap.then(function (ok) {
-            if (!ok) { agAlert({ title: '3D pohled', message: 'Vektorová mapa se nezapnula: ' + (AGMapaVektor.chyba() || 'neznámá chyba').replace(/\.\s*$/, '') + '. Až bude signál, klepni na 3D znovu — mapa se zapne sama (ručně: Vrstvy → Podklad → Mapa).' }); return; }
+            if (!ok) { agAlert({ title: '3D pohled', message: T('Vektorová mapa se nezapnula: {e}. Až bude signál, klepni na 3D znovu — mapa se zapne sama (ručně: Vrstvy → Podklad → Mapa).', { e: T(AGMapaVektor.chyba() || 'neznámá chyba').replace(/\.\s*$/, '') }) }); return; }
             // stylopis si připojí sám (lazy-tools ho dává jen při otevření z dlaždice)
             if (!document.querySelector('link[href$="css/pohled-3d.css"]')) { var lk = document.createElement('link'); lk.rel = 'stylesheet'; lk.href = 'css/pohled-3d.css'; document.head.appendChild(lk); }
             if (!el) { el = document.createElement('div'); el.id = 'ag3d'; document.body.appendChild(el); }
@@ -521,13 +523,13 @@
                     var q = f[0], pr = q.properties || {};
                     if (q.layer.id === 'body-kruh' || q.layer.id === 'sloupky-3d') {
                         var bod2 = (arPoints || []).find(function (x) { return x.id === pr.id; });
-                        if (bod2) { karta(bod2); info(''); otevriKartu(bod2); } else info('Bod ' + pr.name);
+                        if (bod2) { karta(bod2); info(''); otevriKartu(bod2); } else info(T('Bod {n}', { n: pr.name }));
                     }
-                    else if (q.layer.id === 'trasa-cara') { var t = AGTrasa && AGTrasa.trasa(); info(t ? 'Trasa ' + Math.round(t.delka) + ' m po terénu' + (t.profil ? ' · ↑' + Math.round(t.profil.up) + ' ↓' + Math.round(t.profil.down) + ' m' : '') : 'Přímka k cíli'); }
-                    else if (q.layer.id === 'vykres-cary') { var stn = window.AGProjektDxf && AGProjektDxf.stanicteni({ lat: ev.lngLat.lat, lng: ev.lngLat.lng }); info('Výkres · ' + pr.vrstva + (stn ? ' · ' + stn.text : '')); }
-                    else if (q.layer.id === 'vykres-body') info('Výkres · ' + pr.vrstva + ' · ' + (pr.jmeno || ''));
-                    else if (q.layer.id === 'chodniky') info('Chodník / stezka (' + (pr.kind_detail || 'cesta') + ') · šířka ' + (CHODNIK[pr.kind_detail] || 1.8) + ' m (odhad z mapy)');
-                    else info('Budova' + (pr.addr_housenumber ? ' č. ' + pr.addr_housenumber : '') + (pr.height ? ' · výška ' + (+pr.height).toFixed(0) + ' m' : ' · výška odhad 8 m'));
+                    else if (q.layer.id === 'trasa-cara') { var t = AGTrasa && AGTrasa.trasa(); info(t ? T('Trasa {d} m po terénu', { d: Math.round(t.delka) }) + (t.profil ? ' · ↑' + Math.round(t.profil.up) + ' ↓' + Math.round(t.profil.down) + ' m' : '') : T('Přímka k cíli')); }
+                    else if (q.layer.id === 'vykres-cary') { var stn = window.AGProjektDxf && AGProjektDxf.stanicteni({ lat: ev.lngLat.lat, lng: ev.lngLat.lng }); info(T('Výkres') + ' · ' + pr.vrstva + (stn ? ' · ' + stn.text : '')); }
+                    else if (q.layer.id === 'vykres-body') info(T('Výkres') + ' · ' + pr.vrstva + ' · ' + (pr.jmeno || ''));
+                    else if (q.layer.id === 'chodniky') info(T('Chodník / stezka ({k}) · šířka {w} m (odhad z mapy)', { k: pr.kind_detail || T('cesta'), w: (CHODNIK[pr.kind_detail] || 1.8) }));
+                    else info(T('Budova') + (pr.addr_housenumber ? ' ' + T('č. {n}', { n: pr.addr_housenumber }) : '') + ' · ' + (pr.height ? T('výška {h} m', { h: (+pr.height).toFixed(0) }) : T('výška odhad 8 m')));
                 } catch (e) { swallow(e, 'click'); }
             });
             document.getElementById('ag3d-zavrit').onclick = zavri;

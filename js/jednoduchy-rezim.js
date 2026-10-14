@@ -105,6 +105,8 @@
     }
     function toast(t) { try { if (typeof quickToast === 'function') quickToast(t); } catch (e) { swallow(e, 'toast'); } }
     function vibruj(p) { try { if (typeof agVibe === 'function') agVibe(p); } catch (e) { swallow(e, 'vibruj'); } }
+    // překlad věty se zástupci {n}… (13. 10. 2026); česky vrací přesně původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function cislo(n, des) { return String(n.toFixed(des == null ? 1 : des)).replace('.', ','); }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
@@ -316,8 +318,8 @@
         try { if (typeof sjtskToLatLng === 'function') c = mistniToLatLng(y, x); } catch (e) { swallow(e, 'rucneZmena'); }
         if (!c || !isFinite(c.lat) || !isFinite(c.lng)) { novy = null; vysledek('Souřadnice se nepodařilo převést.', true); prepocitejUlozit(); return; }
         novy = { lat: c.lat, lng: c.lng, acc: null, vyska: null, zpusob: 'ruc' };
-        var kde = maFix() ? (' — od tebe <b>' + cislo(vzdal(userLat, userLng, c.lat, c.lng), 1) + ' m</b>') : '';
-        vysledek('Zadáno ručně' + kde + '.', false);
+        var kde = maFix() ? (' — ' + T('od tebe {d}', { d: '<b>' + cislo(vzdal(userLat, userLng, c.lat, c.lng), 1) + ' m</b>' })) : '';
+        vysledek(T('Zadáno ručně') + kde + '.', false);
         prepocitejUlozit();
     }
 
@@ -343,11 +345,11 @@
                 if (!p || p.lat !== userLat || p.lng !== userLng) avgVzorky.push({ lat: userLat, lng: userLng, acc: acc, alt: alt });
             }
             var zbyva = Math.max(0, Math.ceil((avgDo - Date.now()) / 1000));
-            vysledek('Měřím… ještě <b>' + zbyva + ' s</b> (' + avgVzorky.length + ' vzorků). Stůj na místě — klepnutím na „Z GPS" to ukončíš dřív.', false);
+            vysledek(T('Měřím… ještě {s} ({n} vzorků). Stůj na místě — klepnutím na „Z GPS" to ukončíš dřív.', { s: '<b>' + zbyva + ' s</b>', n: avgVzorky.length }), false);
             if (Date.now() >= avgDo) dokonciMereni();
         }, 250);
         hlidejTik();
-        vysledek('Měřím… ještě <b>' + Math.ceil(AVG_MS / 1000) + ' s</b> (0 vzorků). Stůj na místě.', false);
+        vysledek(T('Měřím… ještě {s} (0 vzorků). Stůj na místě.', { s: '<b>' + Math.ceil(AVG_MS / 1000) + ' s</b>' }), false);
     }
 
     function zrusMereni() {
@@ -382,8 +384,8 @@
         }
         novy = { lat: lat, lng: lng, acc: acc, vyska: (vyska != null && isFinite(vyska)) ? vyska : null, zpusob: 'gps-avg' };
         avgVzorky = [];
-        vysledek('Změřeno z GPS: <b>' + n + '</b> vzorků, rozptyl <b>' + cislo(rozptyl, 2) + ' m</b>'
-            + (acc != null ? ', přesnost ± <b>' + cislo(acc, 1) + ' m</b>' : '') + '.', false);
+        vysledek(T('Změřeno z GPS: {n} vzorků, rozptyl {r}', { n: '<b>' + n + '</b>', r: '<b>' + cislo(rozptyl, 2) + ' m</b>' })
+            + (acc != null ? ', ' + T('přesnost ± {a}', { a: '<b>' + cislo(acc, 1) + ' m</b>' }) : '') + '.', false);
         vibruj(25);
         prepocitejUlozit();
     }
@@ -400,10 +402,10 @@
         };
         var pridano = 0;
         try { pridano = window.addImportedPoints([zaznam]); } catch (e) { swallow(e, 'uloz'); }
-        if (!pridano) { vysledek('Bod se neuložil — číslo „' + esc(jm) + '" už na tomhle místě v zakázce je.', true); return; }
+        if (!pridano) { vysledek(T('Bod se neuložil — číslo „{n}" už na tomhle místě v zakázce je.', { n: esc(jm) }), true); return; }
         bumpSerie(jm);
         vibruj(40);
-        toast('Bod ' + jm + ' uložen.');
+        toast(T('Bod {n} uložen.', { n: jm }));
         novy = null;
         ukaz('home');
     }
@@ -459,7 +461,7 @@
         }
         pts.forEach(function (p) {
             html += '<button type="button" class="jr-radek' + (p.kat ? ' jr-radek-ur' : '') + '" data-jr-id="' + esc(p.id) + '">'
-                + '<span class="jr-radek-jm">' + esc(p.name || 'Bod') + (p.kat ? ' <span class="jr-radek-kat">' + esc(katLabel(p.kat)) + '</span>' : '') + '</span>'
+                + '<span class="jr-radek-jm">' + esc(p.name || T('Bod')) + (p.kat ? ' <span class="jr-radek-kat">' + esc(katLabel(p.kat)) + '</span>' : '') + '</span>'
                 + '<span class="jr-radek-vzd" data-jr-d="' + esc(p.id) + '">' + popisD(p.d) + '</span>'
                 + '</button>';
         });
@@ -509,7 +511,7 @@
         cil = p; doma = false;
         _uhel = 0; _vzdText = null; _poznText = null;
         root.querySelector('#ag-jr-sipka').style.transform = 'rotate(0deg)';
-        root.querySelector('#ag-jr-cilnazev').innerText = p.name || 'Bod';
+        root.querySelector('#ag-jr-cilnazev').innerText = p.name || T('Bod');
         ukaz('go');
         vykresliNavigaci();
     }
@@ -544,7 +546,7 @@
             if (h == null) {
                 // bez kompasu šipka lže — otočíme ji na sever a řekneme azimut číslem
                 _uhel = 0;
-                poznTxt = 'Kompas nehlásí směr — jdi po azimutu ' + cislo(az, 0) + '°. (Šipka míří na sever.)';
+                poznTxt = T('Kompas nehlásí směr — jdi po azimutu {a}°. (Šipka míří na sever.)', { a: cislo(az, 0) });
                 varovani = true;
             } else {
                 var rel = ((az - h) % 360 + 360) % 360;
@@ -585,7 +587,7 @@
         ukaz('home');
         stavGps();
         synchronizujPrepinac();
-        if (!tiche) toast('Jednoduchý režim zapnut.');
+        if (!tiche) toast(T('Jednoduchý režim zapnut.'));
     }
 
     function vypni() {

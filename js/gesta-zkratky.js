@@ -261,9 +261,11 @@
             '<circle class="ag-gz-tr-d" cx="' + (last[0] + dx).toFixed(1) + '" cy="' + (last[1] + dy).toFixed(1) + '" r="2.9"/>' +
             '</svg>';
     }
+    // překlad věty se zástupci {n}… (13. 10. 2026); česky vrací přesně původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function words(code) {
         var a = [];
-        for (var i = 0; i < (code || '').length; i++) a.push(DIRNAME[code.charAt(i)] || '?');
+        for (var i = 0; i < (code || '').length; i++) a.push(DIRNAME[code.charAt(i)] ? T(DIRNAME[code.charAt(i)]) : '?');
         return a.join(', ');
     }
     // Totéž, ale KAŽDÉ SLOVO VE VLASTNÍM <span>. Překladač (js/jazyky.js) pracuje
@@ -272,7 +274,7 @@
     // stačí čtyři klíče a hlášku pod „Aktivační gesto" je vidět i anglicky.
     function wordsHtml(code) {
         var a = [];
-        for (var i = 0; i < (code || '').length; i++) a.push('<span>' + esc(DIRNAME[code.charAt(i)] || '?') + '</span>');
+        for (var i = 0; i < (code || '').length; i++) a.push('<span>' + esc(DIRNAME[code.charAt(i)] ? T(DIRNAME[code.charAt(i)]) : '?') + '</span>');
         return a.join(', ');
     }
     function buzz(ms) {
@@ -671,9 +673,9 @@
         var m = load().map, old = null, c;
         for (c in m) if (m[c] === k) { old = c; break; }
         var title = old
-            ? ('Nové gesto pro „' + toolLabel(k) + '"'
-                + ' — teď má ' + arrows(load().prefix) + ' ' + arrows(old))
-            : ('Nakresli gesto pro „' + toolLabel(k) + '"');
+            ? (T('Nové gesto pro „{n}"', { n: T(toolLabel(k)) })
+                + ' — ' + T('teď má {g}', { g: arrows(load().prefix) + ' ' + arrows(old) }))
+            : T('Nakresli gesto pro „{n}"', { n: T(toolLabel(k)) });
         openPad(title, 1, function (nc) {
             if (old && nc === old) return true;
             if (old) delete load().map[old];
@@ -750,8 +752,8 @@
         buzz(30);
         paintChip(code, 'hit', toolLabel(k));   // jediná zpráva: co se spouští
         setTimeout(function () { hideChip(0); }, CHIP_MS);
-        if (!toolReady(k)) { toast('Nástroj „' + toolLabel(k) + '" teď není dostupný.'); return; }
-        if (!runTool(k)) toast('Nástroj „' + toolLabel(k) + '" se nepodařilo otevřít.');
+        if (!toolReady(k)) { toast(T('Nástroj „{n}" teď není dostupný.', { n: T(toolLabel(k)) })); return; }
+        if (!runTool(k)) toast(T('Nástroj „{n}" se nepodařilo otevřít.', { n: T(toolLabel(k)) }));
     }
     // Nesedící gesto se NEKOMENTUJE oknem ani nabídkou — jen krátce zčervená a zmizí.
     // Kdo si nevzpomene, najde soupis v Nastavení; smysl téhle vrstvy je dělat
@@ -841,7 +843,7 @@
         var div = document.createElement('div');
         div.className = 'st-row'; div.id = 'ag-gz-setrow';
         div.innerHTML = '<span class="st-lab">Gesta – zkratky nástrojů' +
-            '<small>jedním tahem: <b>' + arrows(load().prefix) + '</b> a rovnou zkratka nástroje</small></span>' +
+            '<small>' + T('jedním tahem: {g} a rovnou zkratka nástroje', { g: '<b>' + arrows(load().prefix) + '</b>' }) + '</small></span>' +
             '<span class="ag-gz-cell"><button type="button" class="btn btn-secondary ag-gz-open">Nastavit…</button>' +
             '<label class="st-sw"><input type="checkbox" id="ag-gz-on"><span class="st-sw-face"></span></label></span>';
         row.parentNode.insertBefore(div, row.nextSibling);
@@ -905,7 +907,7 @@
         var lbl = toolLabel(hit.k);
         setTimeout(function () {
             try {
-                window.agAsk('„' + lbl + '" jsi otevřel už ' + hit.n + '×. Chceš na něj gesto? Pak ho spustíš jedním tahem, bez hledání tady.',
+                window.agAsk(T('„{n}" jsi otevřel už {k}×. Chceš na něj gesto? Pak ho spustíš jedním tahem, bez hledání tady.', { n: T(lbl), k: hit.n }),
                     { title: 'Zkratka gestem', okText: 'Dát mu gesto', cancelText: 'Teď ne' })
                     .then(function (yes) { if (yes) assignFor(hit.k); });
             } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gesta-zkratky:offerTick'); }
@@ -977,7 +979,7 @@
                 var last = code.charAt(code.length - 1), m = load().map, kolize = [];
                 for (var c in m) if (c.charAt(0) === last) kolize.push(arrows(c));
                 if (kolize.length) {
-                    toast('Nešlo by nakreslit: ' + kolize.join(' ') + ' — začínají stejným směrem, jakým nové gesto končí. Změň napřed je.');
+                    toast(T('Nešlo by nakreslit: {g} — začínají stejným směrem, jakým nové gesto končí. Změň napřed je.', { g: kolize.join(' ') }));
                     return false;
                 }
                 load().prefix = code; save(); renderSettings(); refreshRowHint();
@@ -1000,7 +1002,7 @@
                 delete load().map[code]; save(); renderSettings();
             } else if (act === 'edit') {
                 var k = load().map[code];
-                openPad('Nové gesto pro „' + toolLabel(k) + '"', 1, function (nc) {
+                openPad(T('Nové gesto pro „{n}"', { n: T(toolLabel(k)) }), 1, function (nc) {
                     if (nc === code) return true;
                     var back = load().map[code];
                     delete load().map[code];
@@ -1026,7 +1028,7 @@
         el.querySelector('#ag-gz-offer').checked = !!c.offer;
         el.querySelector('#ag-gz-solo').value = c.solo ? '1' : '0';
         el.querySelector('.ag-gz-prefix').textContent = arrows(c.prefix);
-        el.querySelector('#ag-gz-prefix-btn').textContent = arrows(c.prefix) + '  Změnit';
+        el.querySelector('#ag-gz-prefix-btn').textContent = arrows(c.prefix) + '  ' + T('Změnit');
         el.querySelector('.ag-gz-prewords').innerHTML = wordsHtml(c.prefix);
 
         var codes = [], k;
@@ -1049,7 +1051,7 @@
     function refreshRowHint() {
         var r = document.getElementById('ag-gz-setrow');
         var s = r && r.querySelector('small');
-        if (s) s.innerHTML = 'jedním tahem: <b>' + arrows(load().prefix) + '</b> a rovnou zkratka nástroje';
+        if (s) s.innerHTML = T('jedním tahem: {g} a rovnou zkratka nástroje', { g: '<b>' + arrows(load().prefix) + '</b>' });
     }
 
     function openSettings(code) {
@@ -1108,7 +1110,7 @@
                 ? ('<div class="ag-gz-pges">' + strokeSvg(pre, code)
                     + '<div class="ag-gz-pges-t"><b>' + esc(arrows(pre)) + ' ' + esc(arrows(code)) + '</b>'
                     + '<small>' + (load().map[code]
-                        ? 'gesto už má \u201e' + esc(toolLabel(load().map[code])) + '\u201c'
+                        ? T('gesto už má „{n}“', { n: esc(T(toolLabel(load().map[code]))) })
                         : 'tohle gesto zatím nikam nevede') + '</small></div></div>')
                 : '<div class="ag-gz-pges ag-gz-pges-later"><div class="ag-gz-pges-t"><b>Nejdřív nástroj, pak gesto</b>'
                     + '<small>vyber nástroj a hned si k němu tah nakreslíš</small></div></div>';
@@ -1219,15 +1221,15 @@
         // končí aktivační gesto, by tedy byla NEDOSAŽITELNÁ. Dřív to bylo jen
         // varování (tehdy se dalo došvihnout po zvednutí prstu); teď se odmítá.
         if (code.charAt(0) === lastPrefixDir()) {
-            toast('Zkratka nemůže začínat ' + DIRNAME[lastPrefixDir()] + ' — tím končí aktivační gesto a dva stejné tahy za sebou jedním tahem nenakreslíš.');
+            toast(T('Zkratka nemůže začínat {d} — tím končí aktivační gesto a dva stejné tahy za sebou jedním tahem nenakreslíš.', { d: T(DIRNAME[lastPrefixDir()]) }));
             return false;
         }
         if (load().map[code] && load().map[code] !== k) {
-            toast('Gesto ' + arrows(code) + ' už má „' + toolLabel(load().map[code]) + '".');
+            toast(T('Gesto {g} už má „{n}".', { g: arrows(code), n: T(toolLabel(load().map[code])) }));
             return false;
         }
         load().map[code] = k; save(); renderSettings();
-        toast('Zkratka ' + arrows(load().prefix) + ' ' + arrows(code) + ' → ' + toolLabel(k));
+        toast(T('Zkratka {g} → {n}', { g: arrows(load().prefix) + ' ' + arrows(code), n: T(toolLabel(k)) }));
         return true;
     }
     function lastPrefixDir() { var p = load().prefix; return p.charAt(p.length - 1); }
@@ -1280,7 +1282,7 @@
             el.querySelector('#ag-gz-padagain').addEventListener('click', function () { padState.code = ''; padState.s = null; paintPad(); });
             el.querySelector('#ag-gz-padcancel').addEventListener('click', function () { el.style.display = 'none'; pendingCode = null; });
             el.querySelector('#ag-gz-padsave').addEventListener('click', function () {
-                if (!padState || padState.code.length < padState.min) { toast('Nakresli aspoň ' + padState.min + ' tah' + (padState.min > 1 ? 'y' : '') + '.'); return; }
+                if (!padState || padState.code.length < padState.min) { toast(padState.min > 1 ? T('Nakresli aspoň {n} tahy.', { n: padState.min }) : T('Nakresli aspoň {n} tah.', { n: padState.min })); return; }
                 if (padState.onSave(padState.code) !== false) el.style.display = 'none';
             });
         }
@@ -1298,12 +1300,11 @@
         var bad = padState.forbid && padState.code.charAt(0) === padState.forbid;
         note.className = 'gzp-note' + (bad ? ' bad' : '');
         if (bad) {
-            note.textContent = 'Takhle to nepůjde: aktivační gesto končí ' + DIRNAME[padState.forbid] +
-                ' a dva stejné tahy za sebou jedním tahem nenakreslíš. Začni jiným směrem.';
+            note.textContent = T('Takhle to nepůjde: aktivační gesto končí {d} a dva stejné tahy za sebou jedním tahem nenakreslíš. Začni jiným směrem.', { d: T(DIRNAME[padState.forbid]) });
         } else {
             note.textContent = padState.code
-                ? (words(padState.code) + (padState.code.length >= MAXSEG ? ' — víc tahů zkratka mít nemůže' : ''))
-                : 'Nejvýš ' + MAXSEG + ' tahy. Směry: nahoru, dolů, doleva, doprava.';
+                ? (words(padState.code) + (padState.code.length >= MAXSEG ? ' — ' + T('víc tahů zkratka mít nemůže') : ''))
+                : T('Nejvýš {n} tahy. Směry: nahoru, dolů, doleva, doprava.', { n: MAXSEG });
         }
     }
 
@@ -1398,12 +1399,12 @@
             note.textContent = 'Celé gesto: aktivační i zkratka, bez zvednutí prstu.';
         } else if (trState.drawn === want) {
             note.className = 'gzp-note tr-note good';
-            note.textContent = 'Přesně tak: ' + arrows(want);
+            note.textContent = T('Přesně tak: {g}', { g: arrows(want) });
         } else {
             note.className = 'gzp-note tr-note bad';
-            note.textContent = 'Správně je ' + arrows(want) + ', nakreslil jsi ' + arrows(trState.drawn) + '.';
+            note.textContent = T('Správně je {g}, nakreslil jsi {d}.', { g: arrows(want), d: arrows(trState.drawn) });
         }
-        el.querySelector('.tr-score').textContent = trState.n ? (trState.ok + ' z ' + trState.n + ' správně') : '';
+        el.querySelector('.tr-score').textContent = trState.n ? T('{a} z {n} správně', { a: trState.ok, n: trState.n }) : '';
     }
 
     // ================================================================================

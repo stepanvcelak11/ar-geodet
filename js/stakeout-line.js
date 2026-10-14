@@ -24,6 +24,8 @@
     'use strict';
 
     var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20 10 9l5 6 6-11"/><circle cx="3" cy="20" r="2.2" fill="currentColor"/><circle cx="10" cy="9" r="1.8" fill="currentColor"/><circle cx="15" cy="15" r="1.8" fill="currentColor"/><circle cx="21" cy="4" r="2.2" fill="currentColor"/></svg>';
+    // překlad (js/jazyky.js) se zástupci {x}; česky vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     var MAX_V = 30;             // strop vrcholů — víc je náčrt, ne osa
     var MAX_BATCH = 400;        // strop kolíků z jednoho nasypání
     var _ids = [];              // id vrcholů osy v pořadí (min. 2)
@@ -49,7 +51,7 @@
             var g = geometry();
             window.AGDraft.save(DRAFT_KEY,
                 { ids: _ids.slice(), aId: _ids[0], bId: _ids[_ids.length - 1], s0: _val('agsl-s0'), stat: _val('agsl-stat'), off: _val('agsl-off'), name: _val('agsl-name') },
-                'Vytyčení osy' + (g ? ' #' + g.A.name + '→#' + g.B.name + (g.bent ? ' (' + g.segs.length + ' úseky)' : '') : ''));
+                T('Vytyčení osy') + (g ? ' #' + g.A.name + '→#' + g.B.name + (g.bent ? ' (' + T('{n} úseky', { n: g.segs.length }) + ')' : '') : ''));
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stakeout-line:draftSave'); }
     }
     function draftClear() { if (window.AGDraft) try { window.AGDraft.clear(DRAFT_KEY); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stakeout-line:draftClear'); } }
@@ -161,11 +163,11 @@
         }
         var opts = list.map(function (x) { return '<option value="' + esc(x.p.id) + '">#' + esc(x.p.name) + (x.d != null ? ' · ' + x.d.toFixed(0) + ' m' : '') + '</option>'; }).join('');
         var html = _ids.map(function (id, i) {
-            var role = i === 0 ? 'začátek' : (i === _ids.length - 1 ? 'konec' : 'lom');
+            var role = i === 0 ? T('začátek') : (i === _ids.length - 1 ? T('konec') : T('lom'));
             return '<div class="agsl-row">'
                 + '<span class="agsl-n" aria-hidden="true">' + (i + 1) + '</span>'
-                + '<select data-i="' + i + '" aria-label="Vrchol ' + (i + 1) + ' (' + role + ')">' + opts + '</select>'
-                + (_ids.length > 2 ? '<button type="button" class="agsl-x" data-i="' + i + '" aria-label="Odebrat vrchol ' + (i + 1) + '">&times;</button>' : '<span class="agsl-x agsl-x-off" aria-hidden="true"></span>')
+                + '<select data-i="' + i + '" aria-label="' + esc(T('Vrchol {n} ({r})', { n: i + 1, r: role })) + '">' + opts + '</select>'
+                + (_ids.length > 2 ? '<button type="button" class="agsl-x" data-i="' + i + '" aria-label="' + esc(T('Odebrat vrchol {n}', { n: i + 1 })) + '">&times;</button>' : '<span class="agsl-x agsl-x-off" aria-hidden="true"></span>')
                 + '</div>';
         }).join('');
         box.innerHTML = html;
@@ -181,16 +183,16 @@
         var head = document.getElementById('agsl-lineinfo');
         if (!g) { if (live) live.innerHTML = '<span style="opacity:.6">Vyber aspoň dva různé body osy.</span>'; if (head) head.innerHTML = ''; return; }
         var s0 = startStation();
-        if (head) head.innerHTML = (g.bent ? 'Lomená osa #' : 'Přímka #') + esc(g.A.name) + ' → #' + esc(g.B.name)
-            + (g.bent ? ' · ' + g.segs.length + ' úseky' : '')
-            + ' · délka <b>' + g.len.toFixed(2) + ' m</b>'
-            + (s0 ? ' · staničení ' + shortNum(s0) + '–' + shortNum(s0 + g.len) : '');
+        if (head) head.innerHTML = (g.bent ? T('Lomená osa') : T('Přímka')) + ' #' + esc(g.A.name) + ' → #' + esc(g.B.name)
+            + (g.bent ? ' · ' + T('{n} úseky', { n: g.segs.length }) : '')
+            + ' · ' + T('délka') + ' <b>' + g.len.toFixed(2) + ' m</b>'
+            + (s0 ? ' · ' + T('staničení {a}–{b}', { a: shortNum(s0), b: shortNum(s0 + g.len) }) : '');
         if (typeof userLat === 'undefined' || userLat == null) { if (live) live.innerHTML = '<span style="opacity:.6">Čekám na GPS polohu…</span>'; return; }
         var me = stationOf(g, userLat, userLng);
         var station = me.station;                          // podél osy od začátku
         var offset = me.offset;                            // + = vlevo ve směru osy
         var remain = g.len - station;
-        var side = offset >= 0 ? 'vlevo' : 'vpravo';
+        var side = offset >= 0 ? T('vlevo') : T('vpravo');
         var offCol = Math.abs(offset) <= 0.30 ? '#34d399' : (Math.abs(offset) <= 1 ? '#fbbf24' : '#f87171');
         function row(l, v, col) {
             return '<div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:6px;"><span>' + l + '</span><b' + (col ? ' style="color:' + col + '"' : '') + '>' + v + '</b></div>';
@@ -202,10 +204,10 @@
         if (g.bent) {
             var sg = g.segs[me.seg];
             var doLomu = (sg.s0 + sg.len) - station;
-            html += row('Úsek ' + (me.seg + 1) + '/' + g.segs.length, '#' + esc(sg.a.name) + ' → #' + esc(sg.b.name));
-            if (me.seg < g.segs.length - 1 && doLomu > 0) html += row('Do lomu #' + esc(sg.b.name), doLomu.toFixed(2) + ' m');
+            html += row(T('Úsek {i}/{n}', { i: me.seg + 1, n: g.segs.length }), '#' + esc(sg.a.name) + ' → #' + esc(sg.b.name));
+            if (me.seg < g.segs.length - 1 && doLomu > 0) html += row(T('Do lomu') + ' #' + esc(sg.b.name), doLomu.toFixed(2) + ' m');
         }
-        html += '<div style="display:flex;justify-content:space-between;gap:10px;"><span>Zbývá do #' + esc(g.B.name) + '</span><b>' + remain.toFixed(2) + ' m</b></div>';
+        html += '<div style="display:flex;justify-content:space-between;gap:10px;"><span>' + T('Zbývá do') + ' #' + esc(g.B.name) + '</span><b>' + remain.toFixed(2) + ' m</b></div>';
         if (live) live.innerHTML = html;
     }
 
@@ -228,8 +230,8 @@
     // silent = jen náhled (otevření nástroje, psaní do políčka) → nehlásit prázdná pole;
     // hláška patří až k pokusu o uložení, jinak vyskočí dřív, než uživatel stihne cokoli zadat.
     function computeStakePoint(silent) {
-        var g = geometry(); if (!g) { if (!silent) agAlert('Chybí osa', 'Vyber aspoň dva různé body.'); return null; }
-        var sAbs = num('agsl-stat'); if (isNaN(sAbs)) { if (!silent) agAlert('Chybí staničení', 'Zadej staničení v metrech.'); return null; }
+        var g = geometry(); if (!g) { if (!silent) agAlert(T('Chybí osa'), T('Vyber aspoň dva různé body.')); return null; }
+        var sAbs = num('agsl-stat'); if (isNaN(sAbs)) { if (!silent) agAlert(T('Chybí staničení'), T('Zadej staničení v metrech.')); return null; }
         var o = num('agsl-off'); if (isNaN(o)) o = 0;   // + = VLEVO, − = vpravo (SHODNĚ se živým odečtem)
         var s = sAbs - startStation();                  // vnitřně se počítá od začátku osy
         var ll = pointAt(g, s, o);
@@ -241,17 +243,17 @@
         if (!r) { out.innerHTML = ''; return; }
         var mimo = (r.s < -0.005 || r.s > r.g.len + 0.005)
             ? '<br><span style="color:var(--warning,#fbbf24);font-size:calc(12px * var(--ag-font-scale, 1))">mimo osu — bod leží v prodloužení krajního úseku</span>' : '';
-        out.innerHTML = (r.Y ? '<b>' + agOsy().osaA + '</b> ' + r.Y + ' &nbsp; <b>' + agOsy().osaB + '</b> ' + r.X : '<span style="opacity:.65">' + agSys() + ' není k dispozici</span>')
-            + '<br><span style="opacity:.65;font-size:calc(12px * var(--ag-font-scale, 1))">staničení ' + r.sAbs.toFixed(2) + ' m'
-            + (r.o ? ', odstup ' + Math.abs(r.o).toFixed(2) + ' m ' + (r.o > 0 ? 'vlevo' : 'vpravo') : ' na ose') + '</span>' + mimo;
+        out.innerHTML = (r.Y ? '<b>' + agOsy().osaA + '</b> ' + r.Y + ' &nbsp; <b>' + agOsy().osaB + '</b> ' + r.X : '<span style="opacity:.65">' + T('{s} není k dispozici', { s: agSys() }) + '</span>')
+            + '<br><span style="opacity:.65;font-size:calc(12px * var(--ag-font-scale, 1))">' + T('staničení {v} m', { v: r.sAbs.toFixed(2) })
+            + (r.o ? ', ' + T(r.o > 0 ? 'odstup {v} m vlevo' : 'odstup {v} m vpravo', { v: Math.abs(r.o).toFixed(2) }) : ' ' + T('na ose')) + '</span>' + mimo;
     }
     function saveStake() {
         var r = computeStakePoint(); if (!r) return;
-        if (typeof window.addImportedPoints !== 'function') { agAlert('Nelze uložit', 'Vkládání bodů není dostupné.'); return; }
+        if (typeof window.addImportedPoints !== 'function') { agAlert(T('Nelze uložit'), T('Vkládání bodů není dostupné.')); return; }
         var name = (document.getElementById('agsl-name').value || '').trim() || ('ST' + shortNum(r.sAbs));
         var added = window.addImportedPoints([{ name: name, lat: r.lat, lng: r.lng }]);
-        if (added > 0) { draftClear(); agAlert('Bod uložen', '#' + name + ' (staničení ' + r.sAbs.toFixed(2) + ' m) uložen do zakázky.\nNavigovat můžeš přes seznam Body.'); }
-        else agAlert('Neuloženo', 'Bod se stejným názvem a polohou už v zakázce je.');
+        if (added > 0) { draftClear(); agAlert(T('Bod uložen'), T('#{n} (staničení {s} m) uložen do zakázky.', { n: name, s: r.sAbs.toFixed(2) }) + '\n' + T('Navigovat můžeš přes seznam Body.')); }
+        else agAlert(T('Neuloženo'), T('Bod se stejným názvem a polohou už v zakázce je.'));
     }
 
     // ---- kolíky po kroku -------------------------------------------------------
@@ -280,15 +282,15 @@
         if (!b) { out.innerHTML = '<span style="opacity:.6">Zadej krok v metrech (např. 25).</span>'; return; }
         var o = num('agsl-boff'); if (!isFinite(o)) o = 0;
         var over = b.list.length > MAX_BATCH;
-        out.innerHTML = '<b>' + b.list.length + '</b> kolíků · staničení ' + shortNum(b.list[0]) + ' … ' + shortNum(b.list[b.list.length - 1])
-            + (o ? '<br><span style="opacity:.65;font-size:calc(12px * var(--ag-font-scale, 1))">odsazené ' + Math.abs(o).toFixed(2) + ' m ' + (o > 0 ? 'vlevo' : 'vpravo') + ' od osy</span>' : '')
-            + (over ? '<br><span style="color:var(--warning,#fbbf24);font-size:calc(12px * var(--ag-font-scale, 1))">strop je ' + MAX_BATCH + ' bodů — zvětši krok</span>' : '');
+        out.innerHTML = '<b>' + b.list.length + '</b> ' + T('kolíků · staničení {a} … {b}', { a: shortNum(b.list[0]), b: shortNum(b.list[b.list.length - 1]) })
+            + (o ? '<br><span style="opacity:.65;font-size:calc(12px * var(--ag-font-scale, 1))">' + T(o > 0 ? 'odsazené {v} m vlevo od osy' : 'odsazené {v} m vpravo od osy', { v: Math.abs(o).toFixed(2) }) + '</span>' : '')
+            + (over ? '<br><span style="color:var(--warning,#fbbf24);font-size:calc(12px * var(--ag-font-scale, 1))">' + T('strop je {n} bodů — zvětši krok', { n: MAX_BATCH }) + '</span>' : '');
     }
     function saveBatch() {
         var b = batchStations();
-        if (!b) { agAlert('Chybí krok', 'Zadej, po kolika metrech se má osa vytyčit (např. 25).'); return; }
-        if (typeof window.addImportedPoints !== 'function') { agAlert('Nelze uložit', 'Vkládání bodů není dostupné.'); return; }
-        if (b.list.length > MAX_BATCH) { agAlert('Příliš mnoho bodů', 'Krok ' + shortNum(b.step) + ' m by na téhle ose udělal ' + b.list.length + ' bodů. Strop je ' + MAX_BATCH + ' — zvol větší krok.'); return; }
+        if (!b) { agAlert(T('Chybí krok'), T('Zadej, po kolika metrech se má osa vytyčit (např. 25).')); return; }
+        if (typeof window.addImportedPoints !== 'function') { agAlert(T('Nelze uložit'), T('Vkládání bodů není dostupné.')); return; }
+        if (b.list.length > MAX_BATCH) { agAlert(T('Příliš mnoho bodů'), T('Krok {k} m by na téhle ose udělal {n} bodů. Strop je {m} — zvol větší krok.', { k: shortNum(b.step), n: b.list.length, m: MAX_BATCH })); return; }
         var o = num('agsl-boff'); if (!isFinite(o)) o = 0;
         var pre = (document.getElementById('agsl-bpre').value || '').trim() || 'ST';
         var s0 = startStation(), pts = [];
@@ -297,12 +299,12 @@
             pts.push({ name: pre + shortNum(b.list[i]), lat: ll.lat, lng: ll.lng });
         }
         var added = window.addImportedPoints(pts);
-        agAlert(added > 0 ? 'Osa vytyčena' : 'Nic nepřibylo',
+        agAlert(added > 0 ? T('Osa vytyčena') : T('Nic nepřibylo'),
             added > 0
-                ? added + ' z ' + pts.length + ' bodů uloženo do zakázky (' + pre + shortNum(b.list[0]) + ' … ' + pre + shortNum(b.list[b.list.length - 1]) + ').'
-                    + (added < pts.length ? '\nZbytek už v zakázce byl se stejným názvem i polohou.' : '')
-                    + '\nNajdeš je v seznamu Body — a vytyčovací checklist je umí odškrtávat.'
-                : 'Všechny tyhle body už v zakázce jsou.');
+                ? T('{a} z {n} bodů uloženo do zakázky ({p} … {q}).', { a: added, n: pts.length, p: pre + shortNum(b.list[0]), q: pre + shortNum(b.list[b.list.length - 1]) })
+                    + (added < pts.length ? '\n' + T('Zbytek už v zakázce byl se stejným názvem i polohou.') : '')
+                    + '\n' + T('Najdeš je v seznamu Body — a vytyčovací checklist je umí odškrtávat.')
+                : T('Všechny tyhle body už v zakázce jsou.'));
         if (added > 0) draftClear();
     }
 

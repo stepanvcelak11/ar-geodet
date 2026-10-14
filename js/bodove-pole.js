@@ -78,7 +78,8 @@
     function gLat() { try { return (typeof userLat !== 'undefined' && userLat != null) ? userLat : null; } catch (e) { return null; } }
     function gLng() { try { return (typeof userLng !== 'undefined' && userLng != null) ? userLng : null; } catch (e) { return null; } }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-    function toastSafe(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bodove-pole:toastSafe'); } }
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
+    function toastSafe(m) { m = T(m); try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bodove-pole:toastSafe'); } }
 
     function dist(lat1, lng1, lat2, lng2) {
         try { if (typeof getDistance === 'function') return getDistance(lat1, lng1, lat2, lng2); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bodove-pole:dist'); }
@@ -91,9 +92,13 @@
     }
     // Světová strana slovy — v terénu se čte rychleji než 247°.
     var DIRS = ['S', 'SV', 'V', 'JV', 'J', 'JZ', 'Z', 'SZ'];
+    var DIRS_L = { en: ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'], de: ['N', 'NO', 'O', 'SO', 'S', 'SW', 'W', 'NW'], pl: ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'], es: ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'], it: ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'], fr: ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'], nl: ['N', 'NO', 'O', 'ZO', 'Z', 'ZW', 'W', 'NW'], pt: ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'] };
     function dirWord(az) {
         if (az == null || !isFinite(az)) return '';
-        return DIRS[Math.round(((az % 360) + 360) % 360 / 45) % 8];
+        var L = DIRS, j = 'cs';
+        try { j = (window.AGJazyk && AGJazyk.get && AGJazyk.get()) || 'cs'; } catch (e) { j = 'cs'; }
+        if (DIRS_L[j]) L = DIRS_L[j];   // světové strany zkratkou podle jazyka (S = sever jen česky)
+        return L[Math.round(((az % 360) + 360) % 360 / 45) % 8];
     }
     function fmtDist(m) {
         if (m == null || !isFinite(m)) return '?';
@@ -183,7 +188,7 @@
             try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'bodove-pole:navigateTo'); }
         }
         close();
-        toastSafe(ok ? ('Cíl: ' + (pt.name || 'bod') + ' — šipka a vzdálenost jedou.') : 'Cíl se nepodařilo nastavit.');
+        toastSafe(ok ? T('Cíl: {n} — šipka a vzdálenost jedou.', { n: (pt.name || T('bod')) }) : T('Cíl se nepodařilo nastavit.'));
     }
 
     // „Kotva" — otevře Posun GPS na známý bod s předvyplněnými Y/X a názvem.
@@ -227,7 +232,7 @@
         var radius = 0;
         try { radius = (typeof mapRadius !== 'undefined' && isFinite(mapRadius)) ? mapRadius : 0; } catch (e) { radius = 0; }
         Promise.resolve(fetchGeodata(la, ln, radius || 1000, false)).then(function (n) {
-            toastSafe(n ? ('Přibylo ' + n + ' bodů bodového pole.') : 'Nic nového se nenašlo.');
+            toastSafe(n ? T('Přibylo {n} bodů bodového pole.', { n: n }) : T('Nic nového se nenašlo.'));
         }).catch(function () {
             toastSafe('Stažení se nepovedlo — ČÚZK neodpovídá nebo není signál.');
         }).then(function () {
@@ -333,9 +338,9 @@
                 + '  <div class="agbp-name"><span class="agbp-badge" style="background:' + c.color + ';">' + esc(c.short) + '</span> ' + esc(p.name || 'Bod') + '</div>'
                 + '  <div class="agbp-num"><b>' + esc(fmtDist(r.d)) + '</b><small>' + esc(az) + '</small></div>'
                 + '</div>'
-                + '<div class="agbp-sub">' + esc(c.label) + (s ? ' · Y ' + s.Y.toFixed(2) + ' · X ' + s.X.toFixed(2) : '') + '</div>'
+                + '<div class="agbp-sub">' + esc(T(c.label)) + (s ? ' · Y ' + s.Y.toFixed(2) + ' · X ' + s.X.toFixed(2) : '') + '</div>'
                 + (p.cat === 'NIVEL' ? '<div class="agbp-warn">Výškový bod — na kotvu polohy se nehodí.</div>' : '')
-                + (p.cat === 'TIHA' ? '<div class="agbp-warn">Tíhový bod' + (p.nazevBodu ? ' „' + esc(p.nazevBodu) + '"' : '') + ' — bývá v budově, na kotvu polohy se nehodí.</div>' : '')
+                + (p.cat === 'TIHA' ? '<div class="agbp-warn">' + T('Tíhový bod') + (p.nazevBodu ? ' „' + esc(p.nazevBodu) + '"' : '') + ' — ' + T('bývá v budově, na kotvu polohy se nehodí.') + '</div>' : '')
                 + '<div class="agbp-acts">'
                 + '  <button type="button" class="btn btn-secondary agbp-act" data-act="nav" data-id="' + esc(p.id) + '">Navést</button>'
                 + '  <button type="button" class="btn btn-secondary agbp-act" data-act="anchor" data-id="' + esc(p.id) + '"' + ((p.cat === 'NIVEL' || p.cat === 'TIHA') ? ' disabled' : '') + '>Kotva</button>'

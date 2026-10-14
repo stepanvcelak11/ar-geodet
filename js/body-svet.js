@@ -58,7 +58,7 @@
     var swallow = function (e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'body-svet:' + kde); } catch (e2) { /* nic */ } };
     var ZNOVU_M = 800;
     var _posl = null, _bezi = false, _tik = null, _pocet = 0, _kod = null, _deMimo = false;
-    function T(cs) { try { return window.AGJazyk ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } }
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
 
     function kod() { try { return (window.AGSour && AGSour.kod && AGSour.kod()) || 'CZ'; } catch (e) { return 'CZ'; } }
     function poloha() { try { return (typeof userLat === 'number' && userLat) ? { lat: userLat, lng: userLng } : null; } catch (e) { return null; } }
@@ -97,7 +97,7 @@
             var vyska = num(a.h02) != null ? num(a.h02) : num(a.hoehe_geom_m);
             if (vyska != null) raw.VYSKA = vyska;
             var proto = str(a.proto_url) || str(a.url_punktprotokoll); if (proto) raw.GEODETICKE_UDAJE = proto;
-            var druh = hfp ? 'Höhenfixpunkt ' + (str(a.ordnung) || (/hfp1/.test(v) ? 'HFP1' : 'HFP2')) : (lfp2 ? 'Lagefixpunkt LFP2 (kantonální)' : 'Lagefixpunkt ' + (str(a.ordnung) || 'LFP1'));
+            var druh = hfp ? 'Höhenfixpunkt ' + (str(a.ordnung) || (/hfp1/.test(v) ? 'HFP1' : 'HFP2')) : (lfp2 ? T('Lagefixpunkt LFP2 (kantonální)') : 'Lagefixpunkt ' + (str(a.ordnung) || 'LFP1'));
             return { id: 'ch_' + name, name: name, lat: ll.lat, lng: ll.lng, cat: cat, type: hfp ? 'vyskovy' : 'polohovy', rawData: raw, hidden: false, currentDist: 0, bestAccuracy: null,
                 vrstva: 'CH', druh: druh, zdroj: 'swisstopo', nazevBodu: str(a.punktname), ku: str(a.kanton), vyska: vyska, znacka: str(a.kennzeichnung) || str(a.punktzeichen), popis: str(a.zugang) };
         }
@@ -314,15 +314,15 @@
                 try { (window.quickToast || window.agInfo)(T('Tady spolková země úřední body jako data nezveřejňuje. V Německu je appka stáhne jen v Berlíně, Meklenbursku-Předním Pomořansku a Bádensku-Württembersku.')); } catch (e) { /* nic */ }
             }
             return n;
-        }).catch(function (e) { _posl = stred; _kod = z.kod; try { (window.quickToast || window.agInfo)('Úřední body (' + z.zdroj + ') se nepodařilo stáhnout: ' + ((e && e.message) || e)); } catch (e2) { /* nic */ } return 0; }).finally(function () { _bezi = false; });
+        }).catch(function (e) { _posl = stred; _kod = z.kod; try { (window.quickToast || window.agInfo)(T('Úřední body ({z}) se nepodařilo stáhnout: {e}', { z: z.zdroj, e: ((e && e.message) || e) })); } catch (e2) { /* nic */ } return 0; }).finally(function () { _bezi = false; });
     }
     function hlaska(z, n) {
-        if (z.kod === 'CH') return 'Švýcarsko: ' + n + ' bodů swisstopo v okolí (LFP1, LFP2, HFP). Výšky LN02.';
-        if (z.kod === 'FR') return 'Francie: ' + n + ' bodů IGN v okolí (RBF, RDF, nivelační repéry). Výšky NGF-IGN69.';
-        if (z.kod === 'ES') return 'Španělsko: ' + n + ' bodů IGN v okolí (ROI, REGENTE, REDNAP). Výšky ortometrické.';
-        if (z.kod === 'DE') return 'Německo: ' + n + ' bodů AFIS v okolí (polohové a výškové body spolkové země). Výšky DHHN2016.';
-        if (z.kod === 'AT') return 'Rakousko: ' + n + ' trigonometrických bodů BEV v okolí. Výšky nad mořem z elipsoidu a geoidu.';
-        return 'Nizozemsko: ' + n + ' bodů Kadaster RDinfo v okolí (Rijksdriehoekspunten). Jen polohové.';
+        if (z.kod === 'CH') return T('Švýcarsko: {n} bodů swisstopo v okolí (LFP1, LFP2, HFP). Výšky LN02.', { n: n });
+        if (z.kod === 'FR') return T('Francie: {n} bodů IGN v okolí (RBF, RDF, nivelační repéry). Výšky NGF-IGN69.', { n: n });
+        if (z.kod === 'ES') return T('Španělsko: {n} bodů IGN v okolí (ROI, REGENTE, REDNAP). Výšky ortometrické.', { n: n });
+        if (z.kod === 'DE') return T('Německo: {n} bodů AFIS v okolí (polohové a výškové body spolkové země). Výšky DHHN2016.', { n: n });
+        if (z.kod === 'AT') return T('Rakousko: {n} trigonometrických bodů BEV v okolí. Výšky nad mořem z elipsoidu a geoidu.', { n: n });
+        return T('Nizozemsko: {n} bodů Kadaster RDinfo v okolí (Rijksdriehoekspunten). Jen polohové.', { n: n });
     }
     // pro panel Body a hlášku po přejezdu hranice: kde stát body zveřejňuje
     function zdrojPro(k) { return k === 'CZ' ? 'ČÚZK' : k === 'SK' ? 'GKÚ SR' : (ZEME[k] ? ZEME[k].zdroj : null); }

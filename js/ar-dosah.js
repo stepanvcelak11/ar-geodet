@@ -44,6 +44,8 @@
         + '<circle cx="12" cy="12" r="2.2"/></svg>';
 
     function swallow(e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'ar-dosah:' + kde); } catch (x) { } }
+    // překlad (js/jazyky.js) se zástupci {n} — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function esc(s) {
         if (window.AG && AG.esc) return AG.esc(s);
         return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -291,28 +293,28 @@
         // 1) co už v telefonu je, vybrat HNED (i bez signálu)
         var r = seber(bb);
         prekresli();
-        if (r.strop) { srovnejListu('Víc než ' + MAX_BODU + ' bodů to nepustí — nejdřív něco odeber.'); return; }
-        var zprava = r.pridano ? ('Přidáno ' + r.pridano + ' ' + plural(r.pridano) + '. Vybráno celkem ' + r.celkem + '.') : 'V tom obdélníku zatím žádný bod není.';
+        if (r.strop) { srovnejListu(T('Víc než {n} bodů to nepustí — nejdřív něco odeber.', { n: MAX_BODU })); return; }
+        var zprava = r.pridano ? (T('Přidáno {n} {b}{z}.', { n: r.pridano, b: T(plural(r.pridano)), z: '' }) + ' ' + T('Vybráno celkem {n}.', { n: r.celkem })) : T('V tom obdélníku zatím žádný bod není.');
         // 2) dostáhnout z ČÚZK body, které appka pro tohle území ještě neměla
         var clat = (bb.lat1 + bb.lat2) / 2, clng = (bb.lng1 + bb.lng2) / 2;
         var polomer = Math.ceil(vzdalenost(clat, clng, bb.lat2, bb.lng2)) + 10;
         if (typeof fetchGeodata !== 'function') { srovnejListu(zprava); return; }
-        if (polomer > MAX_POLOMER_M) { srovnejListu(zprava + ' Výřez je na stažení z ČÚZK moc velký (přes ' + Math.round(MAX_POLOMER_M * 2 / 1000) + ' km napříč) — zmenši ho.'); return; }
+        if (polomer > MAX_POLOMER_M) { srovnejListu(zprava + ' ' + T('Výřez je na stažení z ČÚZK moc velký (přes {km} km napříč) — zmenši ho.', { km: Math.round(MAX_POLOMER_M * 2 / 1000) })); return; }
         if (_stahuji) { srovnejListu(zprava); return; }
         _stahuji = true;
         var gen = _gen;
-        srovnejListu(zprava + ' Stahuji body ČÚZK pro výřez…');
+        srovnejListu(zprava + ' ' + T('Stahuji body ČÚZK pro výřez…'));
         Promise.resolve().then(function () { return fetchGeodata(clat, clng, polomer, false); }).then(function () {
             if (gen !== _gen) return;   // mezitím zrušeno — body z ČÚZK jsou v telefonu, ale do výběru nejdou
             var r2 = seber(bb);
             if (r2.pridano) prekresli();
             var celkem = r.pridano + r2.pridano;
-            if (r2.strop) srovnejListu('Víc než ' + MAX_BODU + ' bodů to nepustí — nejdřív něco odeber.');
-            else if (!celkem) srovnejListu('V tom obdélníku žádný bod není — ani v bodovém poli ČÚZK.');
-            else srovnejListu('Přidáno ' + celkem + ' ' + plural(celkem) + (r2.pridano ? ' (z toho ' + r2.pridano + ' čerstvě z ČÚZK)' : '') + '. Vybráno celkem ' + r2.celkem + '.');
+            if (r2.strop) srovnejListu(T('Víc než {n} bodů to nepustí — nejdřív něco odeber.', { n: MAX_BODU }));
+            else if (!celkem) srovnejListu(T('V tom obdélníku žádný bod není — ani v bodovém poli ČÚZK.'));
+            else srovnejListu(T('Přidáno {n} {b}{z}.', { n: celkem, b: T(plural(celkem)), z: (r2.pridano ? ' ' + T('(z toho {n} čerstvě z ČÚZK)', { n: r2.pridano }) : '') }) + ' ' + T('Vybráno celkem {n}.', { n: r2.celkem }));
         }).catch(function (e) {
             swallow(e, 'hotovVyrez:fetch');
-            srovnejListu(zprava + ' ČÚZK teď neodpovídá — vybrané je jen to, co telefon už měl.');
+            srovnejListu(zprava + ' ' + T('ČÚZK teď neodpovídá — vybrané je jen to, co telefon už měl.'));
         }).then(function () { _stahuji = false; });
     }
 
@@ -354,7 +356,7 @@
         if (t) {
             t.innerHTML = zprava
                 ? esc(zprava)
-                : (n ? ('V AR i v mapě je <b>' + n + ' ' + plural(n) + '</b> mimo dosah. Další výřez: táhni, nebo ťukni na dva rohy. Dvěma prsty posuneš mapu.')
+                : (n ? T('V AR i v mapě je <b>{n} {b}</b> mimo dosah. Další výřez: táhni, nebo ťukni na dva rohy. Dvěma prsty posuneš mapu.', { n: n, b: T(plural(n)) })
                     : 'Táhni prstem obdélník přes body, které chceš vidět i z dálky — nebo ťukni na jeden roh a pak na protější. Dvěma prsty posuneš mapu.');
         }
         var z = _lista.querySelector('#ag-dosah-zrus');
@@ -422,7 +424,7 @@
         _vrstva = _ram = _lista = null; _tah = null; _pinch = null;
         rohSmaz(); obdelnikSmaz();
         var n = pocet();
-        if (n) toast('V AR i v mapě se teď ukáže ' + n + ' vzdálených ' + (n === 1 ? 'bod' : 'bodů') + '.');
+        if (n) toast(T('V AR i v mapě se teď ukáže {n} vzdálených {b}.', { n: n, b: T(n === 1 ? 'bod' : 'bodů') }));
     }
 
     function otevri() {
