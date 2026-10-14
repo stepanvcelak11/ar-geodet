@@ -25,6 +25,7 @@
     function isOnline() { return (typeof navigator !== 'undefined' && navigator.onLine !== false); }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     // znacka offline / online
     function badge(needsNet) {
         if (needsNet) return '<span class="pruv-badge off"><svg class="icon"><use href="#i-globe"/></svg> potřebuje internet</span>';
@@ -56,7 +57,7 @@
     function render(opts) {
         ensureModal();
         document.getElementById('pruv-title').innerText = opts.title || 'Průvodce úkolem';
-        document.getElementById('pruv-crumb').innerText = opts.crumb || '';
+        document.getElementById('pruv-crumb').innerText = opts.crumb ? String(opts.crumb).split(' › ').map(function (c) { return T(c); }).join(' › ') : '';
         document.getElementById('pruv-body').innerHTML = opts.body || '';
         var f = document.getElementById('pruv-footer');
         f.innerHTML = '';
@@ -237,15 +238,15 @@
         var names = {}; var dup = 0;
         pts.forEach(function (p) { if (names[p.name]) dup++; names[p.name] = 1; });
         var sample = pts.slice(0, 4).map(function (p) { return '#' + esc(p.name); }).join(', ') + (pts.length > 4 ? ' …' : '');
-        div.innerHTML = '<b style="color:var(--accent);">Rozpoznáno ' + pts.length + ' bodů.</b><br>' + sample
-            + (dup ? '<br><span style="color:var(--warning,#fbbf24);">⚠ ' + dup + 'x stejné číslo bodu</span>' : '')
-            + (outside ? '<br><span style="color:var(--warning,#fbbf24);">⚠ ' + outside + ' bodů leží mimo ČR — zkontroluj pořadí Y/X</span>' : '');
+        div.innerHTML = '<b style="color:var(--accent);">' + T('Rozpoznáno {n} bodů.', { n: pts.length }) + '</b><br>' + sample
+            + (dup ? '<br><span style="color:var(--warning,#fbbf24);">⚠ ' + T('{n}x stejné číslo bodu', { n: dup }) + '</span>' : '')
+            + (outside ? '<br><span style="color:var(--warning,#fbbf24);">⚠ ' + T('{n} bodů leží mimo ČR — zkontroluj pořadí Y/X', { n: outside }) + '</span>' : '');
     }
     function commitPaste() {
         var pts = parsePasteField();
         if (!pts.length) { agInfo('Nenašel jsem žádný platný bod. Zkontroluj formát „číslo;Y;X".'); return; }
         var added = addParsedPoints(pts);
-        agInfo('Vloženo ' + added + ' bodů do zakázky.');
+        agInfo(T('Vloženo {n} bodů do zakázky.', { n: added }));
         go(stepReadyStake);
     }
 
@@ -327,7 +328,7 @@
         showWizard();
         var c = W.collect;
         var accTxt = '';
-        if (c.threshold != null) accTxt = '<div class="pruv-check">Cílová přesnost: ±' + c.threshold + ' m</div>';
+        if (c.threshold != null) accTxt = '<div class="pruv-check">' + T('Cílová přesnost: ±{m} m', { m: c.threshold }) + '</div>';
         render({
             title: 'Sběr bodů',
             crumb: 'Sběr bodů › Probíhá',
@@ -460,8 +461,8 @@
         render({
             title: 'Hotovo',
             crumb: activityLabel() + ' › Dokončeno',
-            body: '<p style="font-size:calc(14px * var(--ag-font-scale, 1)); line-height:1.55;">' + activityLabel() + ' je hotové'
-                + (W.activity === 'collect' ? ' — uloženo ' + W.savedCount + ' bodů.' : '.')
+            body: '<p style="font-size:calc(14px * var(--ag-font-scale, 1)); line-height:1.55;">' + T('{a} je hotové', { a: T(activityLabel()) })
+                + (W.activity === 'collect' ? ' — ' + T('uloženo {n} bodů.', { n: W.savedCount }) : '.')
                 + '</p><p style="font-size:calc(14px * var(--ag-font-scale, 1));">Je ještě něco potřeba, nebo chceš výsledek uložit / exportovat?</p>',
             footer: f
         });

@@ -42,7 +42,7 @@ def src(rel):
 
 def staticke():
     t = src('js/trasa-terenem.js')
-    ok('N1s trasa-terenem: důvod bez trasy jde pilulkou, ne agInfo', "pilulka('Trasa terénem: '" in t and "agInfo('Trasa terénem" not in t)
+    ok('N1s trasa-terenem: důvod bez trasy jde pilulkou, ne agInfo', ("pilulka('Trasa terénem: '" in t or "pilulka(TT('Trasa terénem: {d}.'" in t) and "agInfo('Trasa terénem" not in t)
     d = src('js/ar-dosah.js')
     ok('N1s ar-dosah: dobíhající stahování po zrušení výběru nic nevybírá (generace)', 'if (gen !== _gen) return;' in d)
     zle = []

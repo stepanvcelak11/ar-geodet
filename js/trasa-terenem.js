@@ -22,6 +22,7 @@
 (function () {
     'use strict';
     if (window.AGTrasa) return;
+    function TT(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     var swallow = function (e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'trasa-terenem:' + kde); } catch (e2) { /* nic */ } };
     var KEY = 'agTrasa_v1';
     var st = { zap: true };
@@ -94,7 +95,7 @@
         // bez dlaždic a bez vektorové mapy na obrazovce není z čeho počítat — počkat na data (tik zkouší
         // po 5 s, dojetí dlaždic spustí přepočet samo), ne kreslit „trasu" přes prázdný rastr
         if (!T && jenDlazdice) return null;   // širší lem čeká na dlaždice (po dojetí přijde prepocitej('data'))
-        if (!T && !mapaNaObrazovce()) { var chD = window.AGMapaData && AGMapaData.chyba && AGMapaData.chyba(); _rastrDuvod = chD ? ('data mapy nejdou stáhnout — ' + chD) : (window.AGMapaData ? 'data mapy se stahují (bez signálu to nejde)' : 'data mapy nejsou k dispozici'); return null; }
+        if (!T && !mapaNaObrazovce()) { var chD = window.AGMapaData && AGMapaData.chyba && AGMapaData.chyba(); _rastrDuvod = chD ? TT('data mapy nejdou stáhnout — {e}', { e: chD }) : (window.AGMapaData ? TT('data mapy se stahují (bez signálu to nejde)') : TT('data mapy nejsou k dispozici')); return null; }
         if (T) {
             // z dlaždic: plochy (po druzích, dražší přes levnější), voda, budovy, silnice
             try {
@@ -307,7 +308,7 @@
             + '<text x="2" y="12" font-size="10" fill="currentColor">' + hmax + ' m</text><text x="2" y="' + (H - mB) + '" font-size="10" fill="currentColor">' + hmin + ' m</text>'
             + '<text x="' + X(L) + '" y="' + (H - 4) + '" font-size="10" text-anchor="end" fill="currentColor">' + Math.round(L) + ' m</text></svg>';
     }
-    function popisekProfilu(p) { return p ? ('↑' + Math.round(p.up) + ' ↓' + Math.round(p.down) + ' m' + (p.maxSklon >= 8 ? ' · sklon ' + Math.round(p.maxSklon) + ' %' : '')) : ''; }
+    function popisekProfilu(p) { return p ? ('↑' + Math.round(p.up) + ' ↓' + Math.round(p.down) + ' m' + (p.maxSklon >= 8 ? ' · ' + TT('sklon {p} %', { p: Math.round(p.maxSklon) }) : '')) : ''; }
 
     // ---- řízení -----------------------------------------------------------------------------------
     // připraveno = zapnuto + hrany + (dlaždice PMTiles nezávisle na podkladu NEBO vektorová mapa na obrazovce)
@@ -316,10 +317,10 @@
     var _duvod = '', _rastrDuvod = '';   // proč není trasa (diagnostika: AGTrasa.diag(), hláška při zapnutí cíle)
     function spocitej(od, c) {
         _duvod = ''; _rastrDuvod = '';
-        var r = rastr(od, c); if (!r) { _duvod = _rastrDuvod || ('cíl je dál než ' + (MAX_STRANA / 1000) + ' km — vede přímka'); return null; }
+        var r = rastr(od, c); if (!r) { _duvod = _rastrDuvod || TT('cíl je dál než {km} km — vede přímka', { km: MAX_STRANA / 1000 }); return null; }
         var vy = null; try { vy = vychod(r, od); } catch (e) { swallow(e, 'vychod'); }
         var start = vy ? vy.bod : od;
-        var v = hledej(r, start, c); if (!v || v.body.length < 2) { _duvod = 'z místa, kde stojíš, podle mapy nevede průchod (' + r.zdroj + ')'; return null; }
+        var v = hledej(r, start, c); if (!v || v.body.length < 2) { _duvod = TT('z místa, kde stojíš, podle mapy nevede průchod ({z})', { z: TT(r.zdroj) }); return null; }
         // PŘES VODU NEPLAVAT (18. 9. 2026, uživatel: „když je tam řeka nebo rybník, přeplave to skrz"):
         // rybník širší než lem 40 m nebo řeka, jejíž most je mimo výřez, dělaly cíl „nedosažitelným" a zbytek
         // trasy se táhl rovně — přes vodu. Když trasa skončila DALEKO od cíle (> 15 m = ne u zdi domu),
@@ -342,14 +343,14 @@
         return { id: c.id, name: c.name, body: body, delka: delka(body), bunka: r.bunka, okraj: r.okraj, z: r.z, ts: Date.now(), profil: null, od: od, zdroj: r.zdroj, vychod: vy, nedosazitelne: !!v.nedosazitelne };
     }
     function pripravenoProc() {
-        if (!st.zap) return 'navigace podle terénu je vypnutá (zapni ji: Vrstvy → Trasa terénem)';
-        if (!window.AGHrany || !window.AGMapaVektor) return 'moduly mapy se ještě načítají';
-        if (!window.AGMapaData && !mapaNaObrazovce()) return 'data mapy se ještě načítají';
+        if (!st.zap) return TT('navigace podle terénu je vypnutá (zapni ji: Vrstvy → Trasa terénem)');
+        if (!window.AGHrany || !window.AGMapaVektor) return TT('moduly mapy se ještě načítají');
+        if (!window.AGMapaData && !mapaNaObrazovce()) return TT('data mapy se ještě načítají');
         return '';
     }
     function prepocitej(duvod) {
         var me = poloha(), c = cil();
-        if (!me || !c || !pripraveno()) { _duvod = !c ? '' : (!me ? 'bez polohy GPS' : pripravenoProc()); if (trasa) { trasa = null; kresli(); } return null; }
+        if (!me || !c || !pripraveno()) { _duvod = !c ? '' : (!me ? TT('bez polohy GPS') : pripravenoProc()); if (trasa) { trasa = null; kresli(); } return null; }
         if (_pocitam) return trasa; _pocitam = true;
         try {
             var t0 = Date.now(), t = spocitej(me, c);
@@ -359,12 +360,12 @@
                 profil(t.body).then(function (p) { if (trasa === t) { t.profil = p; kresli(); } }).catch(function () { if (trasa === t) t.profilChyba = true; });
             }
             else { trasa = null; kresli(); }
-        } catch (e) { swallow(e, 'prepocitej'); trasa = null; _duvod = 'chyba výpočtu: ' + ((e && e.message) || e); } finally { _pocitam = false; }
+        } catch (e) { swallow(e, 'prepocitej'); trasa = null; _duvod = TT('chyba výpočtu: {e}', { e: ((e && e.message) || e) }); } finally { _pocitam = false; }
         // bez trasy řekni PROČ (jednou na cíl a důvod) — v348 uživatel viděl jen přímku a nevěděl, co se děje
         // ⚠ NIKDY MODÁLNĚ (18. 9. 2026): agInfo = okno s tlačítkem Rozumím; při chůzi k bodu ho musel
         //   uživatel odklikat a v CI leželo přes dělič (test_v283 L). Teď nenápadná pilulka v mapě,
         //   sama zmizí, klepnutí ji zavře.
-        try { if (!trasa && _duvod && c && prepocitej._hlaseno !== c.id + '|' + _duvod) { prepocitej._hlaseno = c.id + '|' + _duvod; pilulka('Trasa terénem: ' + _duvod + '.'); } } catch (e) { /* nic */ }
+        try { if (!trasa && _duvod && c && prepocitej._hlaseno !== c.id + '|' + _duvod) { prepocitej._hlaseno = c.id + '|' + _duvod; pilulka(TT('Trasa terénem: {d}.', { d: _duvod })); } } catch (e) { /* nic */ }
         return trasa;
     }
     // Pilulka dole v mapě (stejný vzhled jako #ag-kvgps-pill): nic neblokuje, zmizí za 6 s.
@@ -414,7 +415,7 @@
             _grp.clearLayers();
             if (!trasa) return;
             var pl = L.polyline(trasa.body.map(function (q) { return [q.lat, q.lng]; }), { color: '#fbbf24', weight: 4, opacity: 0.95, lineJoin: 'round', interactive: true, bubblingMouseEvents: false, pane: 'overlayPane' });
-            pl.bindPopup(function () { var p = trasa && trasa.profil; return '<b>Trasa k ' + (window.AG && AG.esc ? AG.esc(String(trasa.name)) : trasa.name) + '</b><br>' + Math.round(trasa.delka) + ' m po terénu' + (p ? ' · ' + popisekProfilu(p) : (trasa.profilChyba ? ' · profil bez signálu' : ' · profil se načítá…')) + (p ? '<div style="margin-top:6px">' + svgProfil(p) + '</div>' : '') + (trasa.nedosazitelne ? '<br><small>⚠ K cíli podle mapy nevede průchod (uzavřený dvůr, budova, oplocený areál, voda bez mostu do 800 m) — trasa končí u nejbližšího místa, zbytek rovně.</small>' : '') + (trasa.vychod ? '<br><small>Stojíš v budově: nejdřív k východu (' + (trasa.vychod.jak === 'vchod' ? 'vchod z mapy' : 'odhad — strana k ulici') + ', ' + Math.round(trasa.vychod.d) + ' m), pak po terénu.</small>' : '') + '<small>obchází budovy, vodu, dálnice a překážky; ' + trasa.ms + ' ms, mřížka ' + trasa.bunka + ' m' + (trasa.okraj && trasa.okraj > OKRAJ ? ', hledáno ' + trasa.okraj + ' m kolem' : '') + ', data: ' + (trasa.zdroj || '?') + (trasa.z && trasa.z !== 15 ? ' z' + trasa.z + ' (daleký cíl — hrubší mapa)' : '') + '</small>'; }, { maxWidth: 320 });
+            pl.bindPopup(function () { var p = trasa && trasa.profil; return '<b>' + TT('Trasa k {n}', { n: (window.AG && AG.esc ? AG.esc(String(trasa.name)) : trasa.name) }) + '</b><br>' + TT('{m} m po terénu', { m: Math.round(trasa.delka) }) + (p ? ' · ' + popisekProfilu(p) : (trasa.profilChyba ? ' · ' + TT('profil bez signálu') : ' · ' + TT('profil se načítá…'))) + (p ? '<div style="margin-top:6px">' + svgProfil(p) + '</div>' : '') + (trasa.nedosazitelne ? '<br><small>' + TT('⚠ K cíli podle mapy nevede průchod (uzavřený dvůr, budova, oplocený areál, voda bez mostu do 800 m) — trasa končí u nejbližšího místa, zbytek rovně.') + '</small>' : '') + (trasa.vychod ? '<br><small>' + TT('Stojíš v budově: nejdřív k východu ({jak}, {d} m), pak po terénu.', { jak: (trasa.vychod.jak === 'vchod' ? TT('vchod z mapy') : TT('odhad — strana k ulici')), d: Math.round(trasa.vychod.d) }) + '</small>' : '') + '<small>' + TT('obchází budovy, vodu, dálnice a překážky; {ms} ms, mřížka {b} m', { ms: trasa.ms, b: trasa.bunka }) + (trasa.okraj && trasa.okraj > OKRAJ ? ', ' + TT('hledáno {o} m kolem', { o: trasa.okraj }) : '') + ', data: ' + (trasa.zdroj ? TT(trasa.zdroj) : '?') + (trasa.z && trasa.z !== 15 ? ' z' + trasa.z + ' ' + TT('(daleký cíl — hrubší mapa)') : '') + '</small>'; }, { maxWidth: 320 });
             pl.addTo(_grp);
             if (trasa.nedosazitelne && trasa.body.length >= 2) {
                 var pk = trasa.body[trasa.body.length - 2], pc = trasa.body[trasa.body.length - 1];

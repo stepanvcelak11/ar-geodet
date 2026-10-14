@@ -14,6 +14,8 @@
 // ================================================================================
 (function () {
     'use strict';
+    // překlad (js/jazyky.js) se zástupci {n} — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
 
     // --------------------------------------------------------------------------------
     // 1) IN-APP DIALOGY
@@ -126,7 +128,7 @@
                     agAlert({ title: 'Nelze smazat', message: 'Tohle je poslední zakázka — aspoň jedna musí zůstat.' });
                     return;
                 }
-                const nm = projName(typeof activeProjectId !== 'undefined' ? activeProjectId : '') || 'tuto zakázku';
+                const nm = projName(typeof activeProjectId !== 'undefined' ? activeProjectId : '') || T('tuto zakázku');
                 // ⚠⚠ #4b: TOHLE JE DIALOG, KTERÝ UŽIVATEL OPRAVDU VIDÍ. Nativní confirm
                 // z js/logika.js si níže podstrčíme na `true`, takže jeho (poctivý) text
                 // nikdo nepřečte — pravda o koši musí být napsaná ZDE. Slib „30 dní v koši"
@@ -136,10 +138,7 @@
                 // mazal v přesvědčení, že má měsíc na rozmyšlenou.
                 agConfirm({
                     title: 'Smazat zakázku?',
-                    message: 'Smaže se <b>' + escapeHtml(nm) + '</b> se vším, co k ní patří.'
-                        + '<br><br>Z <b>koše</b> půjde 30 dní vrátit: body, spojnice, zápisníky a nastavení zakázky.'
-                        + '<br><b>Nenávratně</b> se smažou: fotky u bodů, hlasovky a podložené plány.'
-                        + '<br><br>Hned po smazání se na pár vteřin objeví „Vrátit zpět". Když fotky potřebuješ, nejdřív si stáhni zálohu (Nastavení → Záloha a údržba).',
+                    message: T('Smaže se <b>{nm}</b> se vším, co k ní patří.<br><br>Z <b>koše</b> půjde 30 dní vrátit: body, spojnice, zápisníky a nastavení zakázky.<br><b>Nenávratně</b> se smažou: fotky u bodů, hlasovky a podložené plány.<br><br>Hned po smazání se na pár vteřin objeví „Vrátit zpět". Když fotky potřebuješ, nejdřív si stáhni zálohu (Nastavení → Záloha a údržba).', { nm: escapeHtml(nm) }),
                     okText: 'Smazat', cancelText: 'Ponechat', danger: true
                 }).then(function (ok) {
                     if (!ok) return;
@@ -200,9 +199,8 @@
         const note = document.createElement('div');
         note.id = 'ag-gps-note';
         note.innerHTML =
-            'σ = rozptyl měření · stř. chyba = odhad polohy.<br>' +
-            '<b>Pozor:</b> telefonní GPS má systematickou chybu ~5–15 m, kterou průměrování ' +
-            '<u>neodstraní</u>. Bod v terénu vždy ověř.';
+            T('σ = rozptyl měření · stř. chyba = odhad polohy.') + '<br>' +
+            T('<b>Pozor:</b> telefonní GPS má systematickou chybu ~5–15 m, kterou průměrování <u>neodstraní</u>. Bod v terénu vždy ověř.');
         body.appendChild(note);   // za řádky měření/rozptyl i čip kódu kvality (#gaq-qc)
     }
 
@@ -419,7 +417,7 @@
         // neuložilo a věta „Export DXF vytvořen“ by byla nepravda.
         dxfDownload('body_' + proj + '.dxf', dxf).then(function (jak) {
             if (!nSkip || jak === 'abort' || jak === 'fail') return;
-            agAlert({ title: 'Hotovo (s výhradou)', message: 'Export DXF vytvořen. <b>' + nSkip + '</b> ' + (nSkip === 1 ? 'prvek byl přeskočen' : 'prvků bylo přeskočeno') + ' (chybějící/neplatné souřadnice).' });
+            agAlert({ title: 'Hotovo (s výhradou)', message: T('Export DXF vytvořen. <b>{n}</b> {co} (chybějící/neplatné souřadnice).', { n: nSkip, co: T(nSkip === 1 ? 'prvek byl přeskočen' : 'prvků bylo přeskočeno') }) });
         });
     };
 
@@ -680,8 +678,8 @@
         const cards = rows.map(function (r, idx) {
             return '<div class="card"><div class="hd"><span class="num">#' + esc(r.name) + '</span><span class="t">' + esc(r.when) + '</span></div>' +
                 '<table><tr><th>' + agSys() + ' ' + agOsy().osaA + '</th><td>' + r.Y + '</td><th>' + agSys() + ' ' + agOsy().osaB + '</th><td>' + r.X + '</td></tr>' +
-                '<tr><th>Přesnost</th><td>' + esc(r.acc) + '</td><th>Pořadí</th><td>' + (idx + 1) + ' / ' + rows.length + '</td></tr></table>' +
-                (r.photo ? '<img class="ph" src="' + r.photo + '">' : '<div class="nophoto">bez fotodokumentace</div>') +
+                '<tr><th>' + T('Přesnost') + '</th><td>' + esc(r.acc) + '</td><th>' + T('Pořadí') + '</th><td>' + (idx + 1) + ' / ' + rows.length + '</td></tr></table>' +
+                (r.photo ? '<img class="ph" src="' + r.photo + '">' : '<div class="nophoto">' + T('bez fotodokumentace') + '</div>') +
                 '</div>';
         }).join('');
         const css = 'body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:0;padding:16px;}' +
@@ -696,11 +694,11 @@
             '.nophoto{margin-top:8px;font-size:calc(11px * var(--ag-font-scale, 1));color:#999;font-style:italic;}' +
             '@media print{.prn{display:none;}body{padding:0;}}';
         return '<!DOCTYPE html><html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
-            '<title>Protokol vytyčení — ' + esc(proj) + '</title><style>' + css + '</style></head><body>' +
-            '<h1>Protokol vytyčení</h1>' +
-            '<div class="meta">Zakázka: <b>' + esc(proj) + '</b> · Vytištěno: ' + esc(today) + ' · Bodů: ' + rows.length + '</div>' +
-            '<button class="prn" onclick="window.print()">Tisk / Uložit PDF</button>' +
-            '<div class="note">Orientační pomůcka, ne měřicí přístroj. Zaznamenaná „přesnost" je odhad z GPS telefonu — ten má systematickou chybu ~5–15 m, kterou průměrování neodstraní. Body v terénu ověřte.</div>' +
+            '<title>' + T('Protokol vytyčení') + ' — ' + esc(proj) + '</title><style>' + css + '</style></head><body>' +
+            '<h1>' + T('Protokol vytyčení') + '</h1>' +
+            '<div class="meta">' + T('Zakázka:') + ' <b>' + esc(proj) + '</b> · ' + T('Vytištěno:') + ' ' + esc(today) + ' · ' + T('Bodů:') + ' ' + rows.length + '</div>' +
+            '<button class="prn" onclick="window.print()">' + T('Tisk / Uložit PDF') + '</button>' +
+            '<div class="note">' + T('Orientační pomůcka, ne měřicí přístroj. Zaznamenaná „přesnost" je odhad z GPS telefonu — ten má systematickou chybu ~5–15 m, kterou průměrování neodstraní. Body v terénu ověřte.') + '</div>' +
             cards +
             '<script>window.onload=function(){setTimeout(function(){try{window.print()}catch(e){}},500)}<\/script>' +
             '</body></html>';

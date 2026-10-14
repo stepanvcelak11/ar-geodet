@@ -230,7 +230,7 @@ async def beh(url):
         await page.evaluate("() => { AGPohled3d.mapa().jumpTo({ center: [%f, %f], zoom: 17.5 }); }" % (LNG, LAT))
         ok('F4 vykreslene 3D budovy (queryRenderedFeatures budovy-3d > 0)', await cekej(page, "AGPohled3d.mapa().queryRenderedFeatures({ layers: ['budovy-3d'] }).length > 0", 40), await page.evaluate("() => AGPohled3d.mapa().queryRenderedFeatures({ layers: ['budovy-3d'] }).length"))
         await page.evaluate("() => document.getElementById('ag3d-pitch').click()"); await page.wait_for_timeout(700)
-        ok('F5 tlacitko 2D/3D sklopi na 0 a ulozi', await page.evaluate("() => AGPohled3d.mapa().getPitch() < 1 && JSON.parse(localStorage.getItem('agPohled3d_v1')).pitch === 0"))
+        ok('F5 tlacitko 2D/3D sklopi na 0 a ulozi', await cekej(page, "AGPohled3d.mapa().getPitch() < 1 && JSON.parse(localStorage.getItem('agPohled3d_v1')).pitch === 0", 10))   # animace 500 ms se pod zátěží rozjede později
         await page.evaluate("() => document.getElementById('ag3d-teren').click()"); await page.wait_for_timeout(700)
         ok('F6 tlacitko Teren zapne terrain + hillshade ve stylu', await cekej(page, "AGPohled3d.mapa().getStyle().terrain && AGPohled3d.mapa().getStyle().layers.some(l => l.id === 'stin')", 20))
         await page.click('#ag3d-zavrit'); await page.wait_for_timeout(300)

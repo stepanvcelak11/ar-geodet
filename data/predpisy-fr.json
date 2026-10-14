@@ -139,7 +139,7 @@
       "limite"
      ],
      "telo": "Dans l’application de consultation du cadastre (Nahlížení do KN), la couche « Limites de parcelles avec indication de précision » / « Points de détail avec indication de précision » affiche les points en couleur selon le code de qualité : en VERT les points de code de qualité 3 (les plus précis, levés géodésiquement), en ROUGE les points de code de qualité 4 à 8. Contrôle visuel rapide de la fiabilité d’une limite.",
-     "zdroj": "ČÚZK — Nahlížení do KN",
+     "zdroj": "ČÚZK — Nahlížení do KN (consultation du cadastre)",
      "odkaz": "https://nahlizenidokn.cuzk.gov.cz",
      "platnost": "2026-06-14"
     },

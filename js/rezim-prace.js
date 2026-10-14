@@ -51,6 +51,8 @@
     'use strict';
     if (window.__agRpInit) return;
     window.__agRpInit = true;
+    // překlad: věty se jménem/počtem → šablony se zástupci (AGJazyk.t hledá celý text)
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
 
     var STYLE_ID = 'ag-rp-style';
     var PROF_PREFIX = 'agWorkProfile::';    // shodné s js/tools-simple.js
@@ -503,7 +505,7 @@
         var el = document.getElementById('ag-rpx'); if (!el) return 0;
         var n = el.querySelectorAll('#ag-rpx-tools button.on').length;
         var c = el.querySelector('#ag-rpx-cnt');
-        if (c) c.textContent = n ? '· vybráno ' + n : '';
+        if (c) c.textContent = n ? '· ' + T('vybráno {n}', { n: n }) : '';
         return n;
     }
     var _editId = null;
@@ -537,10 +539,10 @@
         var name = (el.querySelector('#ag-rpx-name').value || '').trim();
         var sub = (el.querySelector('#ag-rpx-sub').value || '').trim();
         var err = el.querySelector('#ag-rpx-err');
-        if (!name) { err.textContent = 'Napiš název profilu.'; return; }
+        if (!name) { err.textContent = T('Napiš název profilu.'); return; }
         var tools = [], on = el.querySelectorAll('#ag-rpx-tools button.on');
         for (var j = 0; j < on.length; j++) tools.push(on[j].getAttribute('data-k'));
-        if (!tools.length) { err.textContent = 'Vyber aspoň jeden nástroj — jinak by profil nic nedělal.'; return; }
+        if (!tools.length) { err.textContent = T('Vyber aspoň jeden nástroj — jinak by profil nic nedělal.'); return; }
         var list = customs();
         var id = _editId;
         if (id) {
@@ -553,7 +555,7 @@
         closeEditor();
         mergeProfiles();
         pick(id);                                  // nově uložený profil rovnou zapni
-        try { if (typeof window.quickToast === 'function') window.quickToast('Profil „' + name + '" uložen a zapnut.'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:saveEditor'); }
+        try { if (typeof window.quickToast === 'function') window.quickToast(T('Profil „{n}" uložen a zapnut.', { n: name })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:saveEditor'); }
     }
     function deleteEditor() {
         var id = _editId; if (!id) return;
@@ -568,11 +570,11 @@
             syncSettingRow();
             try { if (window.AGToolsSimple && typeof window.AGToolsSimple.sync === 'function') window.AGToolsSimple.sync(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:go'); }
         };
-        var q = 'Smazat profil „' + (rec ? rec.t : '') + '"? Nástroje ani body se nemažou, jen tenhle výběr.';
+        var q = T('Smazat profil „{n}"? Nástroje ani body se nemažou, jen tenhle výběr.', { n: (rec ? rec.t : '') });
         // agGuard = „zeptej se a teprve pak to udělej" (in-app dialog je asynchronní,
         // takže `if (!confirm())` by tu nefungovalo); bez můstku spadne na confirm()
         try {
-            if (typeof window.agGuard === 'function') { window.agGuard(q, go, { title: 'Smazat profil', danger: true }); return; }
+            if (typeof window.agGuard === 'function') { window.agGuard(q, go, { title: T('Smazat profil'), danger: true }); return; }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:go'); }
         if (window.confirm(q)) go();
     }
@@ -638,7 +640,7 @@
         w.querySelector('#ag-rp-hide').addEventListener('click', function () {
             lsSet(HIDE_KEY, '1');
             render();
-            try { if (typeof window.quickToast === 'function') window.quickToast('Volbu režimu vrátíš v Nastavení → Profily'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:ensureWrap'); }
+            try { if (typeof window.quickToast === 'function') window.quickToast(T('Volbu režimu vrátíš v Nastavení → Profily')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:ensureWrap'); }
         });
         var list = w.querySelector('#ag-rp-list');
         list.addEventListener('click', function (ev) {
@@ -720,7 +722,7 @@
                     + '<svg class="icon"><use href="' + (ICONS[m.ic] || '#i-grid') + '"/></svg>'
                     + '<b>' + esc(m.p || m.t) + '</b>'
                     // vlastní profil jde doladit tužkou přímo v pilulce (vestavěné se needitují)
-                    + (m.custom ? '<span class="ed" role="button" tabindex="0" data-edit="' + esc(m.id) + '" aria-label="Upravit profil ' + esc(m.t) + '">'
+                    + (m.custom ? '<span class="ed" role="button" tabindex="0" data-edit="' + esc(m.id) + '" aria-label="' + esc(T('Upravit profil {n}', { n: m.t })) + '">'
                         + '<svg class="icon"><use href="#i-edit"/></svg></span>' : '')
                     + '</button>';
             });
@@ -775,7 +777,7 @@
         d.addEventListener('click', function (ev) {
             if (!ev.target.closest || !ev.target.closest('#ag-rp-setoff')) return;
             pick('univerzal');
-            try { if (typeof window.quickToast === 'function') window.quickToast('Profil vypnut — v Nástrojích jsou zase všechny dlaždice.'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:injectSettingRow'); }
+            try { if (typeof window.quickToast === 'function') window.quickToast(T('Profil vypnut — v Nástrojích jsou zase všechny dlaždice.')); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'rezim-prace:injectSettingRow'); }
         });
         syncSettingRow();
     }
@@ -787,10 +789,10 @@
         var m = modeById(cur);
         var html;
         if (cur === 'univerzal' || !m) {
-            html = 'zúží Nástroje na to, co k té práci patří. Teď <b>žádný profil neběží</b> — v Nástrojích je všechno.';
+            html = T('zúží Nástroje na to, co k té práci patří. Teď <b>žádný profil neběží</b> — v Nástrojích je všechno.');
         } else {
-            html = 'Právě běží profil <b>' + esc(m.t) + '</b>, takže Nástroje ukazují hlavně jeho nástroje. '
-                + '<button type="button" id="ag-rp-setoff">Nepoužívat žádný profil</button>';
+            html = T('Právě běží profil <b>{n}</b>, takže Nástroje ukazují hlavně jeho nástroje.', { n: esc(T(m.t)) }) + ' '
+                + '<button type="button" id="ag-rp-setoff">' + T('Nepoužívat žádný profil') + '</button>';
         }
         if (note.innerHTML !== html) note.innerHTML = html;
         // select: vestavěné + vlastní profily; podpis, ať se nepřestavuje naprázdno

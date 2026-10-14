@@ -51,6 +51,8 @@
 
     function swallow(e, w) { try { window.AG && AG.swallow && AG.swallow(e, 'odhadovacka:' + w); } catch (e2) { /* fail-silent */ } }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
+    // překlad (js/jazyky.js); v češtině vrací původní text, {x} = zástupci
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function info(m) { try { if (typeof window.agInfo === 'function') window.agInfo(m); } catch (e) { swallow(e, 'info'); } }
     function buzz(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) { swallow(e, 'buzz'); } }
 
@@ -125,7 +127,7 @@
         if (disc === 'walk') {
             var me = here(), a = acc();
             if (!me) return { err: 'Nemám polohu — bez GPS se ušlá vzdálenost nezměří.' };
-            if (a != null && a > ACC_MAX) return { err: 'GPS je teď nepřesná (±' + a.toFixed(0) + ' m). Tahle disciplína potřebuje aspoň ±' + ACC_MAX + ' m, jinak by hodnotila šum, ne tvůj odhad.' };
+            if (a != null && a > ACC_MAX) return { err: T('GPS je teď nepřesná (±{a} m). Tahle disciplína potřebuje aspoň ±{m} m, jinak by hodnotila šum, ne tvůj odhad.', { a: a.toFixed(0), m: ACC_MAX }) };
             var target = 15 + Math.round(Math.random() * 45);   // 15–60 m
             return { kind: 'walk', target: target, unit: 'm', ask: 'Ujdi přesně <b>' + target + ' m</b> a klepni „Jsem tam".' };
         }
@@ -150,7 +152,7 @@
         var errPct = err / task.target * 100;
         return {
             score: Math.max(0, 100 - errPct * 2.5),
-            line: 'Ušel jsi <b>' + walked.toFixed(1).replace('.', ',') + ' m</b> místo ' + task.target + ' m — vedle o ' + err.toFixed(1).replace('.', ',') + ' m (' + errPct.toFixed(0) + ' %).',
+            line: 'Ušel jsi <b>' + walked.toFixed(1).replace('.', ',') + ' m</b> ' + T('místo {t} m — vedle o {e} m ({p} %).', { t: task.target, e: err.toFixed(1).replace('.', ','), p: errPct.toFixed(0) }),
             errTxt: err.toFixed(1) + ' m'
         };
     }
@@ -159,7 +161,7 @@
         var err = adiff(h, task.target);
         return {
             score: Math.max(0, 100 - err * 4),
-            line: 'Míříš na <b>' + h.toFixed(0) + '°</b> místo ' + task.target + '° — vedle o ' + err.toFixed(0) + '°.',
+            line: 'Míříš na <b>' + h.toFixed(0) + '°</b> ' + T('místo {t}° — vedle o {e}°.', { t: task.target, e: err.toFixed(0) }),
             errTxt: err.toFixed(0) + '°'
         };
     }
@@ -168,7 +170,7 @@
         var errPct = err / task.target * 100;
         return {
             score: Math.max(0, 100 - errPct * 2.5),
-            line: 'Skutečnost je <b>' + task.target.toFixed(1).replace('.', ',') + ' m</b>, tys odhadl ' + guess.toFixed(1).replace('.', ',') + ' m — vedle o ' + err.toFixed(1).replace('.', ',') + ' m (' + errPct.toFixed(0) + ' %).',
+            line: 'Skutečnost je <b>' + task.target.toFixed(1).replace('.', ',') + ' m</b>, ' + T('tys odhadl {g} m — vedle o {e} m ({p} %).', { g: guess.toFixed(1).replace('.', ','), e: err.toFixed(1).replace('.', ','), p: errPct.toFixed(0) }),
             errTxt: err.toFixed(1) + ' m'
         };
     }
@@ -296,9 +298,9 @@
         var out = modal.querySelector('#od-out');
         out.innerHTML =
             '<div class="od-res">'
-            + '<div class="od-grade" style="color:' + g.c + ';">' + esc(g.t) + ' · ' + Math.round(r.score) + ' bodů</div>'
+            + '<div class="od-grade" style="color:' + g.c + ';">' + esc(T(g.t)) + ' · ' + T('{n} bodů', { n: Math.round(r.score) }) + '</div>'
             + '<div>' + r.line + '</div>'
-            + (s.streak >= 2 ? '<div style="margin-top:6px;color:var(--accent,#2f9e74);">Série ' + s.streak + '× po sobě nad 80 bodů.</div>' : '')
+            + (s.streak >= 2 ? '<div style="margin-top:6px;color:var(--accent,#2f9e74);">' + T('Série {n}× po sobě nad 80 bodů.', { n: s.streak }) + '</div>' : '')
             + '<button class="btn btn-primary" id="od-again" style="margin-top:10px;">Další pokus</button>'
             + '</div>';
         modal.querySelector('#od-again').addEventListener('click', start);

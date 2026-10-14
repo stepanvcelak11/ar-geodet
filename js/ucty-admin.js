@@ -25,12 +25,14 @@
     function U() { return window.AGUcty || null; }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function TJ(cs) { try { return (window.AGJazyk && typeof AGJazyk.t === 'function') ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } }   // překlad kousku slepence (18. 9. 2026)
+    // překlad celé věty se zástupci {x} (13. 10. 2026); v češtině vrací původní text
+    function T(cs, o) { var v = TJ(cs); return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function agConfirm(opts) {
         try { if (typeof window.agConfirm === 'function') return window.agConfirm(opts); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:agConfirm'); }
         return Promise.resolve(confirm((opts.title || '') + '\n\n' + String(opts.message || '').replace(/<[^>]*>/g, '')));
     }
-    function roleTxt(r) { return r === 'admin' ? 'Admin' : (r === 'vedeni' ? 'Vedení' : 'Zaměstnanec'); }
+    function roleTxt(r) { return T(r === 'admin' ? 'Admin' : (r === 'vedeni' ? 'Vedení' : 'Zaměstnanec')); }
 
     // ------------------------------------------------------------------
     // KDO SE UŽ PŘIHLÁSIL ZE SVÉHO MOBILU
@@ -46,16 +48,16 @@
     function relTxt(ts) {
         if (!ts) return '';
         var d = Date.now() - ts;
-        if (d < 0) return 'právě teď';
+        if (d < 0) return T('právě teď');
         var min = Math.floor(d / 60000);
-        if (min < 2) return 'právě teď';
-        if (min < 60) return 'před ' + min + ' min';
+        if (min < 2) return T('právě teď');
+        if (min < 60) return T('před {n} min', { n: min });
         var hod = Math.floor(min / 60);
-        if (hod < 24) return 'před ' + hod + ' h';
+        if (hod < 24) return T('před {n} h', { n: hod });
         var dny = Math.floor(hod / 24);
-        if (dny === 1) return 'včera';
-        if (dny < 30) return 'před ' + dny + ' dny';
-        try { return new Date(ts).toLocaleDateString('cs-CZ'); } catch (e) { return 'dávno'; }
+        if (dny === 1) return T('včera');
+        if (dny < 30) return T('před {n} dny', { n: dny });
+        try { return new Date(ts).toLocaleDateString('cs-CZ'); } catch (e) { return T('dávno'); }
     }
     // Zná server vůbec časy přihlášení? Když je nemá NIKDO ve firmě včetně mě
     // (a já jsem přihlášený právě teď), běží starší worker a stav se neukazuje.
@@ -72,9 +74,9 @@
         var u = U();
         var lim = (u && u.profileLimit) ? u.profileLimit() : null;
         if (!lim || !lim.full) return true;
-        agAlert('Víc firem už ne', 'V tomhle telefonu je <b>' + lim.n + ' firem</b> a to je strop (' + lim.max + '). '
-            + 'Každá firma si sáma stahuje nastavení a synchronizuje body — víc jich vytěžuje server i baterku. '
-            + 'Nepoužívanou firmu odeber v sekci <b>Firma → Firmy na tomto zařízení → Zapomenout</b>.');
+        agAlert('Víc firem už ne', 'V tomhle telefonu je <b>' + T('{n} firem', { n: lim.n }) + '</b> '
+            + T('a to je strop ({max}). Každá firma si sáma stahuje nastavení a synchronizuje body — víc jich vytěžuje server i baterku. Nepoužívanou firmu odeber v sekci', { max: lim.max })
+            + ' <b>Firma → Firmy na tomto zařízení → Zapomenout</b>.');
         return false;
     }
 
@@ -86,10 +88,10 @@
         var max = (lim && lim.maxUsers) || 10;
         var n = (lim && lim.users != null) ? lim.users : (f.users || []).length;
         var r = f.request || null;
-        var s = '<div class="agfa-note" id="agfa-mista"><b>' + n + ' z ' + max + ' míst</b> ve firmě.';
-        if (r && r.state === 'new') s += ' Žádost o ' + r.want + ' míst čeká na vyřízení.';
-        else if (r && r.state === 'ok') s += ' Poslední žádost byla schválená.';
-        else if (r && r.state === 'no') s += ' Poslední žádost byla zamítnutá' + (r.reply ? ': ' + esc(r.reply) : '.');
+        var s = '<div class="agfa-note" id="agfa-mista"><b>' + T('{n} z {max} míst', { n: n, max: max }) + '</b> ' + T('ve firmě.');
+        if (r && r.state === 'new') s += ' ' + T('Žádost o {n} míst čeká na vyřízení.', { n: r.want });
+        else if (r && r.state === 'ok') s += ' ' + T('Poslední žádost byla schválená.');
+        else if (r && r.state === 'no') s += ' ' + T('Poslední žádost byla zamítnutá') + (r.reply ? ': ' + esc(r.reply) : '.');
         s += '</div>';
         if (!(r && r.state === 'new'))
             s += '<button class="agfa-mini" id="agfa-req" style="margin-top:6px;">Požádat o víc míst</button>';
@@ -118,7 +120,7 @@
         box.querySelector('#agfa-rq-go').onclick = function () {
             var want = parseInt(box.querySelector('#agfa-rq-n').value, 10) || 0;
             var reason = (box.querySelector('#agfa-rq-r').value || '').trim();
-            if (want <= max) return agAlert('Nesedí počet', 'Napiš víc míst, než firma má teď (' + max + ').');
+            if (want <= max) return agAlert('Nesedí počet', T('Napiš víc míst, než firma má teď ({max}).', { max: max }));
             if (reason.length < 10) return agAlert('Chybí důvod', 'Napiš prosím pár slov, k čemu ta místa jsou — podle toho se to schvaluje.');
             var btn = box.querySelector('#agfa-rq-go');
             btn.disabled = true; btn.textContent = 'Odesílám…';
@@ -315,8 +317,8 @@
             el.className = 'agfa-note';
             el.style.cssText = 'border:1px solid ' + (pct >= 80 ? 'rgba(229,83,75,0.5)' : 'rgba(212,160,44,0.5)') +
                 ';border-radius:11px;padding:9px 12px;margin:0 0 10px;color:' + (pct >= 80 ? 'var(--danger,#e5534b)' : '#d4a02c') + ';';
-            el.innerHTML = '⚠ Server dnes čerpá <b>' + Math.round(pct) + ' %</b> denního limitu požadavků (' +
-                n.toLocaleString('cs-CZ') + ' ze ' + lim.toLocaleString('cs-CZ') + '). Detail v sekci Firma.';
+            el.innerHTML = '⚠ Server dnes čerpá <b>' + Math.round(pct) + ' %</b> ' +
+                T('denního limitu požadavků ({n} ze {lim}). Detail v sekci Firma.', { n: n.toLocaleString('cs-CZ'), lim: lim.toLocaleString('cs-CZ') });
             var nav = document.getElementById('agfa-nav');
             if (nav && nav.parentNode) nav.parentNode.insertBefore(el, nav);
         });
@@ -361,7 +363,7 @@
                 '<span class="agfa-fb-ico">' + (NAV_ICO.firma || '') + '</span>' +
                 '<span class="agfa-fb-txt"><b>' + esc(f.firmName || 'Moje firma') + '</b>' +
                 '<span>' + (f.cloud ? TJ('cloud · kód') + ' ' + esc(f.code || '?') : TJ('jen toto zařízení')) +
-                (me ? ' · ' + esc(me.name) + ' (' + roleTxt(me.role).toLowerCase() + ')' : ' · nepřihlášen') + '</span></span>' +
+                (me ? ' · ' + esc(me.name) + ' (' + roleTxt(me.role).toLowerCase() + ')' : ' · ' + T('nepřihlášen')) + '</span></span>' +
                 '<button type="button" class="agfa-mini" id="agfa-fb-switch">Přihlásit / přepnout</button>';
         }
         var sw = bar.querySelector('#agfa-fb-switch');
@@ -550,7 +552,7 @@
                         // ale „tenhle telefon nemá přístup" — a musí k tomu být tlačítko.
                         el.innerHTML = r.status === 404
                             ? '<span style="color:#d4a02c;">⚠ Server běží na <b>staré verzi</b> — vytížení, chat i záloha začnou fungovat až po nasazení nového <b>cloud/worker.js</b> (Cloudflare dashboard → ar-geodet-api → Edit code; návod v cloud/README.md).</span>'
-                            : (cloudNoteHtml(cloudDuvod(r)) || 'Vytížení se nepodařilo načíst (chyba ' + r.status + ').');
+                            : (cloudNoteHtml(cloudDuvod(r)) || T('Vytížení se nepodařilo načíst (chyba {s}).', { s: r.status }));
                         wireCloudNote(el, function () { renderPrehled(body); });
                         return;
                     }
@@ -559,8 +561,8 @@
                     (r.data.days || []).forEach(function (x) { if (x.day === r.data.today) n = x.n; });
                     var pct = Math.min(100, n / lim * 100);
                     var cls = pct >= 80 ? 'crit' : (pct >= 50 ? 'warn' : '');
-                    el.innerHTML = '<b style="color:var(--text-color,#e6e8eb);">Dnes ' + n.toLocaleString('cs-CZ') + '</b> ze ' + lim.toLocaleString('cs-CZ') +
-                        ' požadavků = <b>' + (Math.round(pct * 10) / 10).toLocaleString('cs-CZ') + ' %</b> denního limitu (free plán)' +
+                    el.innerHTML = '<b style="color:var(--text-color,#e6e8eb);">' + T('Dnes {n}', { n: n.toLocaleString('cs-CZ') }) + '</b> ' + T('ze {lim} požadavků =', { lim: lim.toLocaleString('cs-CZ') }) +
+                        ' <b>' + (Math.round(pct * 10) / 10).toLocaleString('cs-CZ') + ' %</b> denního limitu (free plán)' +
                         '<div class="agfa-meter"><i class="' + cls + '" style="width:' + Math.max(1, pct).toFixed(1) + '%"></i></div>' +
                         'Zelená = pohoda, žlutá od 50 %, červená od 80 %. Graf po dnech a počty záznamů jsou v sekci Firma.';
                 });
@@ -788,7 +790,7 @@
                     u.adoptLogin(r.data, u.DEFAULT_API, pass);
                     u.usageLog('login', 'join');
                     document.getElementById('agfa-modal').style.display = 'none';
-                    agAlert('Zařízení připojeno', 'Jsi přihlášen jako <b>' + esc(r.data.user.name) + '</b> (' + roleTxt(r.data.user.role) + ') ve firmě <b>' + esc(r.data.config.firm.name) + '</b>.');
+                    agAlert('Zařízení připojeno', 'Jsi přihlášen jako <b>' + esc(r.data.user.name) + '</b> ' + T('({r}) ve firmě', { r: roleTxt(r.data.user.role) }) + ' <b>' + esc(r.data.config.firm.name) + '</b>.');
                 });
         };
     }
@@ -858,7 +860,7 @@
                     : 'linear-gradient(150deg,hsl(' + h + ',44%,48%),hsl(' + h + ',48%,33%))';
                 var on = (h === selH) || (h == null && selH == null);
                 return '<button type="button" class="agfa-ava-sw' + (on ? ' on' : '') + '" data-h="' + (h == null ? '' : h) + '"'
-                    + ' style="background:' + bg + ';" title="' + (h == null ? 'Automaticky ze jména' : 'Odstín ' + h + '°') + '"></button>';
+                    + ' style="background:' + bg + ';" title="' + (h == null ? T('Automaticky ze jména') : T('Odstín {h}°', { h: h })) + '"></button>';
             }).join('');
         }
         function emojis() {
@@ -869,7 +871,7 @@
         }
         function render() {
             box.innerHTML =
-                '<div class="agfa-pg" style="margin-top:14px;">Vzhled avataru — ' + esc(us.name) + '</div>' +
+                '<div class="agfa-pg" style="margin-top:14px;">' + T('Vzhled avataru — {n}', { n: esc(us.name) }) + '</div>' +
                 '<div style="display:flex;align-items:center;gap:12px;margin:8px 0 12px;">' +
                 '  <span id="agfa-ava-prev"></span>' +
                 '  <span style="font-size:calc(12px * var(--ag-font-scale, 1));opacity:.75;">Takhle bude účet vypadat na přihlašovací obrazovce, v administraci i v chatu. Uloženo na tomto zařízení.</span>' +
@@ -940,10 +942,10 @@
                 (u.avatarHtml ? u.avatarHtml(us.name, 'agfa-av')
                     : '  <span class="agfa-av" style="' + (u.avatarStyle ? u.avatarStyle(us.name) : '') + '">' + esc(initials) + '</span>') +
                 '  <span class="agfa-unm"><b>' + esc(us.name) + '</b>' +
-                '    <span class="agfa-usub">' + roleTxt(us.role) + (!cloud && us.noPin ? ' · bez PINu' : '') +
-                (me && me.id === us.id ? ' · to jsi ty' : '') +
-                (odesel ? ' · odešel ' + relTxt(us.odesel) + ', zůstal mu archiv jen ke čtení'
-                    : (blocked ? ' · nemůže se přihlásit' : (ceka ? ' · účet čeká, nikdo se s ním nepřihlásil' : kdy))) + '</span></span>' +
+                '    <span class="agfa-usub">' + roleTxt(us.role) + (!cloud && us.noPin ? ' · ' + T('bez PINu') : '') +
+                (me && me.id === us.id ? ' · ' + T('to jsi ty') : '') +
+                (odesel ? ' · ' + T('odešel {kdy}, zůstal mu archiv jen ke čtení', { kdy: relTxt(us.odesel) })
+                    : (blocked ? ' · ' + T('nemůže se přihlásit') : (ceka ? ' · ' + T('účet čeká, nikdo se s ním nepřihlásil') : kdy))) + '</span></span>' +
                 (odesel ? '<span class="agfa-chip c-block">Odešel</span>'
                     : (blocked ? '<span class="agfa-chip c-block">Zablokován</span>'
                         : (ceka ? '<span class="agfa-chip c-wait">Nepřevzato</span>'
@@ -964,7 +966,7 @@
                 '</div></div>';
         }).join('');
         body.innerHTML =
-            '<div class="agfa-pg">Účty firmy ' + esc(f.firmName || '') + '</div>' +
+            '<div class="agfa-pg">' + T('Účty firmy {n}', { n: esc(f.firmName || '') }) + '</div>' +
             (cloud
                 ? '<div class="agfa-note">Účty platí pro celou tuto firmu — nový zaměstnanec se na svém mobilu přihlásí kódem <b>' + esc(f.code || '') + '</b>, svým jménem a heslem. ' +
                   'Tlačítko <b>Pozvánka</b> u člověka vyrobí hotovou zprávu (odkaz + kód + jméno), kterou mu pošleš.</div>'
@@ -1138,11 +1140,11 @@
                    'což ho z přihlášení vyřadí stejně spolehlivě.';
         }
         if (r.status === 401 || r.status === 403) {
-            return esc(e || 'Server tenhle přístup neuznává') +
+            return esc(e ? T(e) : T('Server tenhle přístup neuznává')) +
                    '<br><br>Nejčastěji to znamená, že tenhle telefon už není přihlášený jako <b>admin firmy</b> — ' +
                    'zkus se v zeleném pruhu nahoře přihlásit znovu.';
         }
-        return esc(e || ('Chyba ' + r.status));
+        return esc(e ? T(e) : T('Chyba {n}', { n: r.status }));
     }
     // ------------------------------------------------------------------
     // Zablokování / povolení účtu (admin). Blokace je šetrná alternativa
@@ -1215,16 +1217,16 @@
     function inviteText(f, us, pass) {
         var url = inviteUrl(f, us);
         var r = [];
-        r.push('Ahoj, posílám ti přístup do naší appky QTRIG (firma ' + (f.firmName || '') + ').');
+        r.push(T('Ahoj, posílám ti přístup do naší appky QTRIG (firma {f}).', { f: (f.firmName || '') }));
         r.push('');
-        r.push('1) Otevři v mobilu: ' + (url || '(odkaz na appku)'));
-        r.push('2) Přidej si ji na plochu — iPhone: Sdílet → Přidat na plochu; Android: ⋮ → Nainstalovat aplikaci.');
-        r.push('3) Přihlas se:');
-        r.push('   kód firmy: ' + (f.code || ''));
-        r.push('   jméno: ' + us.name);
-        r.push('   heslo: ' + (pass ? pass : '(pošlu zvlášť)'));
+        r.push(T('1) Otevři v mobilu: {u}', { u: (url || T('(odkaz na appku)')) }));
+        r.push(T('2) Přidej si ji na plochu — iPhone: Sdílet → Přidat na plochu; Android: ⋮ → Nainstalovat aplikaci.'));
+        r.push(T('3) Přihlas se:'));
+        r.push('   ' + T('kód firmy: {k}', { k: (f.code || '') }));
+        r.push('   ' + T('jméno: {n}', { n: us.name }));
+        r.push('   ' + T('heslo: {h}', { h: (pass ? pass : T('(pošlu zvlášť)')) }));
         r.push('');
-        r.push('Po prvním přihlášení jsi ve firmě a vidíme společné zakázky a body.');
+        r.push(T('Po prvním přihlášení jsi ve firmě a vidíme společné zakázky a body.'));
         return r.join('\n');
     }
     // návrh hesla pro nový účet — vyslovitelné, ale ne uhádnutelné
@@ -1250,7 +1252,7 @@
         var url = inviteUrl(f, us);
         box.innerHTML =
             '<div class="agfa-inv">' +
-            '<div class="agfa-pg" style="margin-top:0;">Pozvánka pro ' + esc(us.name) + '</div>' +
+            '<div class="agfa-pg" style="margin-top:0;">' + T('Pozvánka pro {n}', { n: esc(us.name) }) + '</div>' +
             (pass
                 ? '<div class="agfa-note">Účet je založený. Tohle heslo se <b>už nikde nezobrazí</b> — pošli mu ho teď, nebo si ho opiš.</div>'
                 : '<div class="agfa-note">Heslo appka zpětně neukáže (na serveru je jen otisk). Když ho kolega nemá, nastav mu nové přes <b>Upravit</b> a pošli pozvánku znovu.</div>') +
@@ -1270,7 +1272,7 @@
         if (sendBtn) sendBtn.onclick = function () {
             try {
                 if (navigator.share) {
-                    navigator.share({ title: 'Pozvánka do firmy ' + (f.firmName || ''), text: txt })['catch'](function () { });
+                    navigator.share({ title: T('Pozvánka do firmy {f}', { f: (f.firmName || '') }), text: txt })['catch'](function () { });
                     return;
                 }
             } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:invite-send'); }
@@ -1649,7 +1651,7 @@
                     while (mc <= today) {
                         var mk2 = mc.getFullYear() + '-' + (mc.getMonth() + 1);
                         var mv = months[mk2] || 0;
-                        dayItems.push({ l: (mc.getMonth() + 1) + '/' + String(mc.getFullYear()).slice(2), v: mv, t: mc.toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' }) + ': ' + mv + ' bodů' });
+                        dayItems.push({ l: (mc.getMonth() + 1) + '/' + String(mc.getFullYear()).slice(2), v: mv, t: T('{d}: {n} bodů', { d: mc.toLocaleDateString((window.AGJazyk && AGJazyk.locale) ? AGJazyk.locale() : 'cs-CZ', { month: 'long', year: 'numeric' }), n: mv }) });
                         mc.setMonth(mc.getMonth() + 1);
                     }
                 } else {
@@ -1661,7 +1663,7 @@
                         dayItems.push({
                             l: (di % lblEvery === 0) ? (cur.getDate() + '.' + (cur.getMonth() + 1) + '.') : '',
                             v: dv,
-                            t: cur.toLocaleDateString('cs-CZ') + ': ' + dv + ' bodů'
+                            t: T('{d}: {n} bodů', { d: cur.toLocaleDateString('cs-CZ'), n: dv })
                         });
                         cur.setDate(cur.getDate() + 1);
                         di++;
@@ -1669,7 +1671,7 @@
                 }
             }
             var hourItems = byHour.map(function (v, hh) {
-                return { l: (hh % 3 === 0) ? String(hh) : '', v: v, t: hh + ':00–' + (hh + 1) + ':00 — ' + v + ' akcí' };
+                return { l: (hh % 3 === 0) ? String(hh) : '', v: v, t: hh + ':00–' + (hh + 1) + ':00 — ' + T('{n} akcí', { n: v }) };
             });
 
             var userSel = '<option value="*">Všichni</option>' + Object.keys(names).sort().map(function (n) {
@@ -1695,7 +1697,7 @@
                 '</div>';
 
             if (dayItems.length > 1) {
-                html += '<div class="agfa-pg">Body přidané ' + (_range > 60 ? 'po měsících' : 'po dnech') + '</div>' +
+                html += '<div class="agfa-pg">' + T(_range > 60 ? 'Body přidané po měsících' : 'Body přidané po dnech') + '</div>' +
                     '<div class="agc-wrap">' + svgCols(dayItems) + '</div>';
             }
             html += '<div class="agfa-pg">Aktivita podle hodiny dne</div>' +
@@ -1718,7 +1720,7 @@
             html += '</table>';
 
             var userBars = Object.keys(byUser).map(function (n) {
-                return { l: n, v: byUser[n].add, t: n + ': ' + byUser[n].add + ' bodů přidáno' };
+                return { l: n, v: byUser[n].add, t: T('{u}: {n} bodů přidáno', { u: n, n: byUser[n].add }) };
             }).sort(function (a, b) { return b.v - a.v; }).slice(0, 12);
             if (userBars.length > 1) {
                 html += '<div class="agfa-pg">Body přidané podle uživatele</div>' +
@@ -1728,7 +1730,7 @@
             if (topTools.length) {
                 html += '<div class="agfa-pg">Nejpoužívanější nástroje</div>' +
                     '<div class="agc-wrap">' + svgBarsH(topTools.map(function (t) {
-                        return { l: t[0], v: t[1], t: t[0] + ': ' + t[1] + '× otevřeno' };
+                        return { l: t[0], v: t[1], t: T('{u}: {n}× otevřeno', { u: t[0], n: t[1] }) };
                     })) + '</div>';
             }
 
@@ -1768,7 +1770,7 @@
                         navigator.storage.estimate().then(function (est) {
                             var used = est.usage ? (est.usage / 1048576).toFixed(1) : '?';
                             var quota = est.quota ? (est.quota / 1048576).toFixed(0) : '?';
-                            diag.innerHTML = diagTxt + ' · Úložiště: <b>' + used + ' MB</b> z ' + quota + ' MB';
+                            diag.innerHTML = diagTxt + ' · ' + T('Úložiště:') + ' <b>' + used + ' MB</b> ' + T('z {q} MB', { q: quota });
                         });
                     } else diag.innerHTML = diagTxt;
                 } catch (e) { diag.innerHTML = diagTxt; }
@@ -1778,7 +1780,7 @@
                     try { if (window.agErrLog && typeof agErrLog.show === 'function') agErrLog.show(); else agAlert('Protokol chyb', 'Modul err-log.js není načtený.'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onclick'); }
                 };
                 body.querySelector('#agfa-d-clear').onclick = function () {
-                    agConfirm({ title: 'Smazat záznamy užívání', message: 'Smaže VŠECHNY záznamy o užívání (nejen zvolené období)' + (f.cloud ? ' — na serveru i v tomto zařízení' : '') + '. Žurnál bodů zůstane.', okText: 'Smazat', danger: true }).then(function (ok) {
+                    agConfirm({ title: 'Smazat záznamy užívání', message: T(f.cloud ? 'Smaže VŠECHNY záznamy o užívání (nejen zvolené období) — na serveru i v tomto zařízení. Žurnál bodů zůstane.' : 'Smaže VŠECHNY záznamy o užívání (nejen zvolené období). Žurnál bodů zůstane.'), okText: 'Smazat', danger: true }).then(function (ok) {
                         if (!ok) return;
                         var done = function () { try { localStorage.removeItem('agFirmaSync_v1'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:done'); } u.usageClear().then(function () { renderUsage(body); }); };
                         if (f.cloud) {
@@ -1826,9 +1828,8 @@
             'Platí pro <b>toto zařízení</b>.</div>';
         if (me) {
             html += '<div class="agfa-note" style="margin-top:2px;"><b>Teď na tomhle telefonu:</b> ' +
-                (t ? ('pamatované přihlášení ' + (t.mode === 'bio' ? '(odemyká se telefonem)' : '(bez ptaní)') +
-                    ' · do kontrolního hesla zbývá ' + (u.trustLeft ? u.trustLeft(t) : '?') + ' spuštění')
-                   : 'pamatované přihlášení vypnuté — příště se zadává ' + (u.getFirm() && u.getFirm().cloud ? 'heslo' : 'PIN')) +
+                (t ? T('pamatované přihlášení {m} · do kontrolního hesla zbývá {n} spuštění', { m: T(t.mode === 'bio' ? '(odemyká se telefonem)' : '(bez ptaní)'), n: (u.trustLeft ? u.trustLeft(t) : '?') })
+                   : T('pamatované přihlášení vypnuté — příště se zadává {x}', { x: T(u.getFirm() && u.getFirm().cloud ? 'heslo' : 'PIN') })) +
                 '</div>' +
                 '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">' +
                 (bioOk
@@ -1872,7 +1873,7 @@
         var off = body.querySelector('#agfa-trust-off');
         if (off) off.onclick = function () {
             u.clearTrust();
-            agAlert('Hotovo', 'Při dalším spuštění se appka zeptá na ' + (u.getFirm() && u.getFirm().cloud ? 'heslo' : 'PIN') + '.');
+            agAlert('Hotovo', T('Při dalším spuštění se appka zeptá na {x}.', { x: T(u.getFirm() && u.getFirm().cloud ? 'heslo' : 'PIN') }));
             reopenSection(body);
         };
     }
@@ -1892,7 +1893,7 @@
             var cur = p.key === curKey;
             return '<div class="agfa-row" data-key="' + esc(p.key) + '">' +
                 '<b>' + esc(p.label) + '</b>' +
-                '<span class="agfa-chip' + (cur ? ' c-accent' : '') + '">' + (p.cloud ? 'cloud · ' + esc(p.code || '?') : 'lokální') + (cur ? ' · aktivní' : '') + '</span>' +
+                '<span class="agfa-chip' + (cur ? ' c-accent' : '') + '">' + (p.cloud ? 'cloud · ' + esc(p.code || '?') : T('lokální')) + (cur ? ' · ' + T('aktivní') : '') + '</span>' +
                 (cur ? '' : '<button class="agfa-mini" data-act="sw">Přepnout</button><button class="agfa-mini danger" data-act="rm">Zapomenout</button>') +
                 '</div>';
         }).join('');
@@ -1936,8 +1937,8 @@
             firmsHtml(u, f) +
             '<div class="agfa-pg">Přihlášený účet</div>' +
             '<div class="agfa-note">' + (me
-                ? 'Na tomhle telefonu je přihlášen <b>' + esc(me.name) + '</b> (' + roleTxt(me.role).toLowerCase() + '). ' +
-                  'Odhlášením se dostaneš na přihlašovací obrazovku — tam se přihlásí kdokoli jiný z firmy.'
+                ? 'Na tomhle telefonu je přihlášen <b>' + esc(me.name) + '</b> ' +
+                  T('({r}). Odhlášením se dostaneš na přihlašovací obrazovku — tam se přihlásí kdokoli jiný z firmy.', { r: roleTxt(me.role).toLowerCase() })
                 : 'Zrovna není nikdo přihlášený. Přihlášením se stáhne i to, co zapsali kolegové na svých mobilech.') + '</div>' +
             '<button class="agfa-mini" id="agfa-fy-lock" style="margin-top:6px;">' + (me ? 'Odhlásit se / přihlásit jiného' : 'Přihlásit se') + '</button>';
         wireFirms(body, u);
@@ -2048,14 +2049,14 @@
                     if (!data || data.format !== 'argeofirma' || !data.firm || !Array.isArray(data.firm.users) || !data.firm.users.length) {
                         agAlert('Neplatný soubor', 'Tohle není export firmy (.argeofirma.json).'); return;
                     }
-                    agConfirm({ title: 'Importovat firmu', message: 'Nahradí zdejší firemní nastavení firmou <b>' + esc(data.firm.firmName || '?') + '</b> (' + data.firm.users.length + ' uživatelů). Body a zakázky se nemění.', okText: 'Importovat' }).then(function (ok) {
+                    agConfirm({ title: 'Importovat firmu', message: 'Nahradí zdejší firemní nastavení firmou <b>' + esc(data.firm.firmName || '?') + '</b> ' + T('({n} uživatelů). Body a zakázky se nemění.', { n: data.firm.users.length }), okText: 'Importovat' }).then(function (ok) {
                         if (!ok) return;
                         data.firm.enabled = true;
                         u.saveFirm(data.firm);
                         document.getElementById('agfa-modal').style.display = 'none';
                         u.logout();   // vynutí přihlášení pod novou firmou
                     });
-                } catch (e) { agAlert('Chyba importu', 'Soubor se nepodařilo přečíst: ' + esc(e.message || e)); }
+                } catch (e) { agAlert('Chyba importu', T('Soubor se nepodařilo přečíst: {e}', { e: esc(e.message || e) })); }
             };
             rd.readAsText(file);
             this.value = '';
@@ -2124,7 +2125,7 @@
             var el = body.querySelector('#agfa-stats');
             if (!el) return;
             if (!r.ok || !r.data) {
-                el.innerHTML = 'Vytížení se nepodařilo načíst' + (r.status === 0 ? ' — server je offline nebo nemá nasazený nový kód (/stats).' : ' (chyba ' + r.status + ').');
+                el.innerHTML = r.status === 0 ? T('Vytížení se nepodařilo načíst — server je offline nebo nemá nasazený nový kód (/stats).') : T('Vytížení se nepodařilo načíst (chyba {s}).', { s: r.status });
                 return;
             }
             var d = r.data;
@@ -2137,13 +2138,13 @@
                 return {
                     l: (arr.length <= 7 || i % 2 === 0) ? (parseInt(x.day.slice(8), 10) + '.' + parseInt(x.day.slice(5, 7), 10) + '.') : '',
                     v: x.n,
-                    t: x.day + ': ' + x.n.toLocaleString('cs-CZ') + ' požadavků'
+                    t: T('{d}: {n} požadavků', { d: x.day, n: x.n.toLocaleString('cs-CZ') })
                 };
             });
             var rows = d.rows || {};
             el.innerHTML =
-                '<b style="color:var(--text-color,#e6e8eb);">Dnes ' + todayN.toLocaleString('cs-CZ') + '</b> z ' + lim.toLocaleString('cs-CZ') +
-                ' požadavků za den (' + (Math.round(pct * 10) / 10).toLocaleString('cs-CZ') + ' %, ' + esc((d.limits && d.limits.plan) || 'free') + ')' +
+                '<b style="color:var(--text-color,#e6e8eb);">' + T('Dnes {n}', { n: todayN.toLocaleString('cs-CZ') }) + '</b> ' +
+                T('z {lim} požadavků za den ({p} %, {plan})', { lim: lim.toLocaleString('cs-CZ'), p: (Math.round(pct * 10) / 10).toLocaleString('cs-CZ'), plan: esc((d.limits && d.limits.plan) || 'free') }) +
                 '<div class="agfa-meter"><i class="' + cls + '" style="width:' + Math.max(1, pct).toFixed(1) + '%"></i></div>' +
                 (cols.length > 1 ? '<div class="agc-wrap">' + svgCols(cols, { h: 90 }) + '</div>' : '') +
                 'Počítají se všechny požadavky na API (všechny firmy na serveru) včetně technických preflightů prohlížeče. ' +

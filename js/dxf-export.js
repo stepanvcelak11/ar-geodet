@@ -20,6 +20,8 @@
 // ================================================================================
 (function () {
     'use strict';
+    // překlad (AGJazyk) se zástupci {x}; v češtině vrací přesně původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
 
     var TEXT_H = 1.0;   // výška popisu v metrech (orientační; v CADu lze hromadně změnit)
     var LBL_DX = 0.4;   // odsazení popisu od bodu (m), aby text nekryl značku
@@ -144,12 +146,12 @@
             // Prázdné ruce a hláška o úspěchu jsou horší než žádná hláška.
             var _ven = _downloadText('body_' + proj + '.dxf', 'application/dxf', dxf);
 
-            var msg = 'Exportováno: ' + np + ' bodů' + (nl ? ', ' + nl + ' spojnic' : '') + '.'
-                + (skipped ? '\n(' + skipped + ' přeskočeno — chybné souřadnice.)' : '')
+            var msg = (nl ? T('Exportováno: {n} bodů, {l} spojnic.', { n: np, l: nl }) : T('Exportováno: {n} bodů.', { n: np }))
+                + (skipped ? '\n' + T('({n} přeskočeno — chybné souřadnice.)', { n: skipped }) : '')
                 + '\n\nSouřadnice ' + agSys() + ' (sever nahoru), výška v ose Z. Text v UTF-8.';
             _ven.then(function (jak) {
                 if (jak === 'abort' || jak === 'fail') return;
-                try { if (typeof window.quickToast === 'function') window.quickToast('DXF vytvořeno (' + np + ' bodů)'); else alertFail('DXF vytvořeno', msg); }
+                try { if (typeof window.quickToast === 'function') window.quickToast(T('DXF vytvořeno ({n} bodů)', { n: np })); else alertFail('DXF vytvořeno', msg); }
                 catch (e) { alertFail('DXF vytvořeno', msg); }
             });
         } catch (e) {

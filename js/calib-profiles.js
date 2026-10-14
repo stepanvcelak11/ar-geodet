@@ -15,6 +15,8 @@
 // ================================================================================
 (function () {
     'use strict';
+    // překlad (AGJazyk) se zástupci {x}; v češtině vrací přesně původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
 
     var LS_KEY = 'agCalibProfiles';
     var SEC_ID = 'ag-calibprof';
@@ -111,9 +113,8 @@
     function saveCurrentProfile() {
         promptName({
             title: 'Uložit profil kalibrace',
-            message: 'Ulož aktuální korekci severu a zorný úhel pod názvem ' +
-                '(např. telefon / objektiv / lokalita).<br>Korekce ' + escapeHtml(fmtOffset(getHeadingOffset())) +
-                ' · záběr ' + getFovH() + '×' + getFovV() + '°.',
+            message: T('Ulož aktuální korekci severu a zorný úhel pod názvem (např. telefon / objektiv / lokalita).') + '<br>' +
+                T('Korekce {k} · záběr {h}×{v}°.', { k: escapeHtml(fmtOffset(getHeadingOffset())), h: getFovH(), v: getFovV() }),
             placeholder: 'Např. Samsung širák',
             okText: 'Uložit'
         }).then(function (name) {

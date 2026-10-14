@@ -219,7 +219,7 @@
         } catch (e) { swallow(e, 'katastr'); }
         _aktualni = kod;
         if (!tise) {
-            if (kod === 'CZ') toast('Podklady zpět na ČÚZK (ortofoto, katastr).');
+            if (kod === 'CZ') toast(T('Podklady zpět na ČÚZK (ortofoto, katastr).'));
             else uvod(kod, true);   // karta „Měříš v zemi" místo dvou hlášek (18. 9. 2026 noc)
         }
         if (tise && kod !== 'CZ') naplanujUvod(kod);   // start appky rovnou v cizině: ukázat jednou na zemi
@@ -250,10 +250,10 @@
         if (z && z.vyska) h += row(T('Výšky'), esc(z.vyska.nazev));
         h += row(T('Úřední body'), uz ? esc(T('ano') + ' — ' + uz) + '<br><span style="opacity:.8;font-size:.92em;">' + esc(T('appka je stáhne kolem tebe.')) + '</span>'
             : esc(T('ne')) + '<br><span style="opacity:.8;font-size:.92em;">' + esc(T('Úřední body tu stát nezveřejňuje — v mapě jsou jen tvoje body (Nový bod, import, výkres).')) + '</span>', !!uz);
-        h += row(T('Katastr'), kat ? esc(T('ano') + ' — ' + kat.nazev) + (PARCELY[kod] ? '<br><span style="opacity:.8;font-size:.92em;">' + esc(T('klepnutím do mapy zjistíš číslo a hranici parcely')) + '</span>' : '') : esc(T('ne — parcely tu nemám')), !!kat);
+        h += row(T('Katastr'), kat ? esc(T('ano') + ' — ' + T(kat.nazev)) + (PARCELY[kod] ? '<br><span style="opacity:.8;font-size:.92em;">' + esc(T('klepnutím do mapy zjistíš číslo a hranici parcely')) + '</span>' : '') : esc(T('ne — parcely tu nemám')), !!kat);
         h += row(T('Ortofoto'), esc(T(orto.nazev)));
         var rt = rtkPro(kod);
-        if (rt) h += row(T('Korekce RTK'), esc(rt.n) + (rt.zdarma ? ' <span style="opacity:.75;font-size:.9em;">' + esc(T('(pro geodety zdarma)')) + '</span>' : '') + '<br><a href="' + esc(rt.u) + '" target="_blank" rel="noopener" style="color:var(--accent);font-size:.92em;">' + esc(rt.p) + ' ↗</a>', true);
+        if (rt) h += row(T('Korekce RTK'), esc(T(rt.n)) + (rt.zdarma ? ' <span style="opacity:.75;font-size:.9em;">' + esc(T('(pro geodety zdarma)')) + '</span>' : '') + '<br><a href="' + esc(rt.u) + '" target="_blank" rel="noopener" style="color:var(--accent);font-size:.92em;">' + esc(T(rt.p)) + ' ↗</a>', true);
         else h += row(T('Korekce RTK'), esc(T('síť neznám — zeptej se místního zeměměřického úřadu')));
         h += '</div><p style="margin:10px 0 0;font-size:.92em;opacity:.85;">' + esc(T('Úřední body zveřejňují jako data Česko, Slovensko, Švýcarsko, Nizozemsko, Francie, Španělsko a Rakousko (v Německu jen Berlín, Meklenbursko-Přední Pomořansko a Bádensko-Württembersko). Jinde se dnes měří roverem ze státní sítě a body si geodet zakládá sám — appka tu pracuje s tvými body, výkresem a kalibracemi.')) + '</p>';
         h += '<p style="margin:8px 0 0;font-size:.85em;opacity:.65;">' + esc(T('Zemi změníš v Nastavení → Mapa a body → Země měření.')) + '</p>';

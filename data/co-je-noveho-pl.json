@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 410,
+      "datum": "2026-10-14",
+      "nadpis": "Cała aplikacja po angielsku i w innych językach",
+      "body": [
+        "Przetłumaczono ponad 1900 kolejnych tekstów: wyniki obliczeń, komunikaty o błędach, okna potwierdzeń, kartę punktu, widok 3D, korektę z mapy, kalkulator i inne narzędzia — w innym języku nigdzie nie zostaje czeski.",
+        "Okno „Popraw GPS według punktu”, uwaga o dokładności przy nowym punkcie i okienko z wysokością terenu są przetłumaczone w całości, razem z liczbami.",
+        "Źródła w Przepisach (rozporządzenia, ustawy) są przetłumaczone; miesiące w Roczniku i daty na karcie punktu są zgodne z językiem aplikacji."
+      ]
+    },
+    {
       "v": 409,
       "datum": "2026-10-06",
       "nadpis": "Dokładność telefonu prosto w pracy",

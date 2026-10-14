@@ -34,6 +34,8 @@
     var _layer = null;             // Leaflet vrstva
     var _pendingPixel = null;      // při přidávání bodu
 
+    // překlad (js/jazyky.js); v češtině vrací původní text, {x} = zástupci
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-overlay:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
     function projId() { try { return (typeof activeProjectId !== 'undefined') ? activeProjectId : 'default'; } catch (e) { return 'default'; } }
@@ -251,7 +253,7 @@
         else {
             box.innerHTML = _cps.map(function (c, i) {
                 return '<div class="cluster-list-item" style="display:flex;align-items:center;gap:8px;">'
-                    + '<div style="flex:1;min-width:0;"><div class="cluster-item-title">Bod ' + (i + 1) + '</div>'
+                    + '<div style="flex:1;min-width:0;"><div class="cluster-item-title">' + T('Bod {n}', { n: (i + 1) }) + '</div>'
                     + '<div class="cluster-item-subtitle">px ' + c.px.toFixed(0) + ',' + c.py.toFixed(0) + ' → Y ' + Math.abs(c.wx).toFixed(2) + '  X ' + Math.abs(c.wy).toFixed(2) + '</div></div>'
                     + '<button class="w-proj-icon danger" data-del="' + i + '" aria-label="Smazat"><svg class="icon"><use href="#i-trash"/></svg></button></div>';
             }).join('');
@@ -261,7 +263,7 @@
         if (st) {
             if (_cps.length < 2) st.innerHTML = 'Potřebuju ještě ' + (2 - _cps.length) + ' bod(y).';
             else if (_cps.length === 2) st.innerHTML = '<b>Podobnostní</b> transformace (2 body).';
-            else st.innerHTML = '<b>Afinní</b> transformace (' + _cps.length + ' bodů)' + (_rms != null ? ' · RMS ±<b>' + _rms.toFixed(2) + ' m</b>' : '') + '.';
+            else st.innerHTML = '<b>Afinní</b> ' + T('transformace ({n} bodů)', { n: _cps.length }) + (_rms != null ? ' · RMS ±<b>' + _rms.toFixed(2) + ' m</b>' : '') + '.';
         }
     }
     function afterCpsChanged() { buildTransform(); refreshLayer(); renderCpList(); saveParams(); }
@@ -322,7 +324,7 @@
     }
     function renderInfo() {
         var info = document.getElementById('aggo-imginfo'); if (!info) return;
-        info.innerHTML = _img ? ('Obrázek ' + _img.width + '×' + _img.height + ' px') : '<span style="opacity:.6">Žádný obrázek</span>';
+        info.innerHTML = _img ? T('Obrázek {w}×{h} px', { w: _img.width, h: _img.height }) : '<span style="opacity:.6">Žádný obrázek</span>';
         var opv = document.getElementById('aggo-op'); if (opv) opv.value = Math.round(_opacity * 100);
         var vis = document.getElementById('aggo-vis'); if (vis) vis.checked = _visible;
     }

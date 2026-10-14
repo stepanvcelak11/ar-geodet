@@ -60,6 +60,8 @@
     var _editId = null;        // detail otevřené závady
 
     // ---- pomocné ----------------------------------------------------------------
+    // překlad (js/jazyky.js); v češtině vrací původní text, {x} = zástupci
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function agAlertW(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zavady:agAlertW'); } try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e2) { window.AG && AG.swallow && AG.swallow(e2, 'zavady:agAlertW'); } }
     function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zavady:toast'); } }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -277,7 +279,7 @@
             b.className = 'ag-zv-row' + (z.resolved ? ' done' : '');
             var sv = SEV[z.sev] || SEV[1];
             b.innerHTML = '<span class="ag-zv-sev" style="background:' + sv.color + ';">!</span>'
-                + '<span class="ag-zv-mid"><span class="ag-zv-t">' + esc(catLabel(z.cat)) + (z.ptName ? ' · ⌖ ' + esc(z.ptName) : '') + (z.resolved ? ' · vyřešeno' : '') + '</span>'
+                + '<span class="ag-zv-mid"><span class="ag-zv-t">' + esc(T(catLabel(z.cat))) + (z.ptName ? ' · ⌖ ' + esc(z.ptName) : '') + (z.resolved ? ' · ' + T('vyřešeno') : '') + '</span>'
                 + '<span class="ag-zv-s">' + esc(z.note || fmtTs(z.ts)) + '</span></span>'
                 + '<span class="ag-zv-d">' + fmtDist(z._d) + '</span>';
             b.addEventListener('click', function () { openDetail(z.id); });
@@ -402,7 +404,7 @@
         pts.sort(function (a, b) { return (a._zvD == null ? 9e9 : a._zvD) - (b._zvD == null ? 9e9 : b._zvD); });
         pts = pts.slice(0, 80);   // nejbližších 80 stačí; zbytek přes hledání
         if (!pts.length) {
-            host.innerHTML = '<div class="ag-zv-empty">' + (q ? 'Žádný bod na dotaz „' + esc(q) + '“.' : 'V zakázce nejsou žádné body.') + '</div>';
+            host.innerHTML = '<div class="ag-zv-empty">' + (q ? T('Žádný bod na dotaz „{q}“.', { q: esc(q) }) : 'V zakázce nejsou žádné body.') + '</div>';
             return;
         }
         host.innerHTML = '';
@@ -446,8 +448,8 @@
         var el = document.getElementById('ag-zv-pos');
         if (!el) return;
         if (_formPos) {
-            var srcTxt = _formPos.src === 'map' ? 'z mapy'
-                : _formPos.src === 'bod' ? 'z bodu ' + esc(_formPt ? _formPt.name : '')
+            var srcTxt = _formPos.src === 'map' ? T('z mapy')
+                : _formPos.src === 'bod' ? T('z bodu {n}', { n: esc(_formPt ? _formPt.name : '') })
                 : 'GPS ±' + (_formPos.acc != null ? _formPos.acc.toFixed(1) : '?') + ' m';
             el.innerHTML = 'Poloha: <b>' + srcTxt + '</b> · ' + fmtTs(Date.now());
         } else if (haveUser()) {
@@ -514,7 +516,7 @@
         persist();
         if (_formPhoto) { photoPut(photoKey(z), _formPhoto).catch(function () { z.foto = false; persist(); }); }
         closeOv('ag-zv-form-ov');
-        toast('Závada uložena (' + catLabel(z.cat) + ').');
+        toast(T('Závada uložena ({c}).', { c: T(catLabel(z.cat)) }));
         drawMap();
         // seznam obnovit, pokud je otevřený
         var lo = document.getElementById('ag-zv-list-ov');
@@ -544,7 +546,7 @@
             });
             m.querySelector('#ag-zv-det-del').addEventListener('click', async function () {
                 var z = byId(_editId); if (!z) return;
-                agAsk('Smazat závadu „' + catLabel(z.cat) + '"? Tohle nejde vrátit.', { title: 'Smazat závadu', okText: 'Smazat', danger: true }).then(function (ok) {
+                agAsk(T('Smazat závadu „{c}"? Tohle nejde vrátit.', { c: T(catLabel(z.cat)) }), { title: 'Smazat závadu', okText: 'Smazat', danger: true }).then(function (ok) {
                 if (!ok) return;
                 photoDel(photoKey(z));
                 _list = _list.filter(function (x) { return x.id !== z.id; });
@@ -566,8 +568,8 @@
         var d = dist2user(z);
         var b = m.querySelector('#ag-zv-det-b');
         b.innerHTML =
-            '<div class="ag-zv-kv"><span>Stav</span><b>' + (z.resolved ? 'Vyřešeno ' + fmtTs(z.resolvedTs) : 'Otevřeno') + '</b></div>'
-            + '<div class="ag-zv-kv"><span>Závažnost</span><b style="color:' + sv.color + ';">' + z.sev + ' · ' + sv.label + '</b></div>'
+            '<div class="ag-zv-kv"><span>Stav</span><b>' + (z.resolved ? T('Vyřešeno {d}', { d: fmtTs(z.resolvedTs) }) : 'Otevřeno') + '</b></div>'
+            + '<div class="ag-zv-kv"><span>Závažnost</span><b style="color:' + sv.color + ';">' + z.sev + ' · ' + T(sv.label) + '</b></div>'
             + '<div class="ag-zv-kv"><span>Zapsáno</span><b>' + fmtTs(z.ts) + '</b></div>'
             + (z.ptName ? '<div class="ag-zv-kv"><span>Bod</span><b>⌖ ' + esc(z.ptName) + '</b></div>' : '')
             + (sj ? '<div class="ag-zv-kv"><span>' + agSys() + '</span><b>' + agOsy().osaA + ' ' + agFmtM(sj.y) + ' · ' + agOsy().osaB + ' ' + agFmtM(sj.x) + '</b></div>' : '')
@@ -595,7 +597,7 @@
             if (z.resolved) return;
             var sv = SEV[z.sev] || SEV[1];
             var mk = L.circleMarker([z.lat, z.lng], { radius: 9, color: sv.color, weight: 2.5, fillColor: sv.color, fillOpacity: 0.35 });
-            mk.bindTooltip('⚠ ' + catLabel(z.cat) + (z.ptName ? ' · ' + z.ptName : ''), { direction: 'top', offset: [0, -8] });
+            mk.bindTooltip('⚠ ' + T(catLabel(z.cat)) + (z.ptName ? ' · ' + z.ptName : ''), { direction: 'top', offset: [0, -8] });
             mk.on('click', function () { injectStyles(); ensureDetailModal(); openDetail(z.id); });
             mk.addTo(_mapGroup);
         });
@@ -716,7 +718,7 @@
         })).then(function (fotky) {
             var projName = _pid;
             try { if (typeof projects !== 'undefined' && projects) { var p = projects.find(function (x) { return x.id === _pid; }); if (p && p.name) projName = p.name; } } catch (e) {}
-            var h = '<!doctype html><html lang="cs"><head><meta charset="utf-8"><title>Protokol závad</title><style>'
+            var h = '<!doctype html><html lang="cs"><head><meta charset="utf-8"><title>' + T('Protokol závad') + '</title><style>'
                 + 'body{font:13px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;color:#111;margin:24px;}'
                 + 'h1{font-size:calc(19px * var(--ag-font-scale, 1));margin:0 0 2px;} .sub{color:#555;margin:0 0 18px;font-size:calc(12px * var(--ag-font-scale, 1));}'
                 + '.z{border:1px solid #ccc;border-radius:8px;padding:12px 14px;margin-bottom:12px;page-break-inside:avoid;}'
@@ -725,22 +727,22 @@
                 + 'img{max-width:320px;max-height:240px;border-radius:6px;margin-top:8px;display:block;}'
                 + '.done{opacity:0.6;} @media print{button{display:none}}'
                 + '</style></head><body>'
-                + '<button onclick="window.print()" style="padding:8px 16px;margin-bottom:14px;"><svg class="icon"><use href="#i-print"/></svg> Tisk / Uložit PDF</button>'
-                + '<h1>Protokol závad — ' + esc(projName) + '</h1>'
-                + '<p class="sub">Vygenerováno ' + fmtTs(Date.now()) + ' · QTRIG · poloha dle GPS telefonu (orientační)</p>';
+                + '<button onclick="window.print()" style="padding:8px 16px;margin-bottom:14px;"><svg class="icon"><use href="#i-print"/></svg> ' + T('Tisk / Uložit PDF') + '</button>'
+                + '<h1>' + T('Protokol závad') + ' — ' + esc(projName) + '</h1>'
+                + '<p class="sub">' + T('Vygenerováno {d} · QTRIG · poloha dle GPS telefonu (orientační)', { d: fmtTs(Date.now()) }) + '</p>';
             rows.forEach(function (z, i) {
                 var sv = SEV[z.sev] || SEV[1];
                 var sj = toSJTSK(z.lat, z.lng);
                 h += '<div class="z' + (z.resolved ? ' done' : '') + '">'
-                    + '<h2>' + (i + 1) + '. ' + esc(catLabel(z.cat))
-                    + '<span class="sev" style="background:' + sv.color + ';">' + z.sev + ' · ' + sv.label + '</span>'
-                    + (z.resolved ? ' <span style="font-weight:400;color:#2c7a4b;">✓ vyřešeno</span>' : '') + '</h2>'
+                    + '<h2>' + (i + 1) + '. ' + esc(T(catLabel(z.cat)))
+                    + '<span class="sev" style="background:' + sv.color + ';">' + z.sev + ' · ' + T(sv.label) + '</span>'
+                    + (z.resolved ? ' <span style="font-weight:400;color:#2c7a4b;">✓ ' + T('vyřešeno') + '</span>' : '') + '</h2>'
                     + '<table>'
-                    + (z.ptName ? '<tr><td>Bod</td><td>' + esc(z.ptName) + '</td></tr>' : '')
+                    + (z.ptName ? '<tr><td>' + T('Bod') + '</td><td>' + esc(z.ptName) + '</td></tr>' : '')
                     + (sj ? '<tr><td>' + agSys() + '</td><td>' + agOsy().osaA + ' ' + agFmtM(sj.y) + ' · ' + agOsy().osaB + ' ' + agFmtM(sj.x) + '</td></tr>' : '')
-                    + '<tr><td>Zapsáno</td><td>' + fmtTs(z.ts) + (z.acc != null ? ' (GPS ±' + z.acc + ' m)' : '') + '</td></tr>'
-                    + (z.resolvedTs ? '<tr><td>Vyřešeno</td><td>' + fmtTs(z.resolvedTs) + '</td></tr>' : '')
-                    + (z.note ? '<tr><td>Poznámka</td><td>' + esc(z.note) + '</td></tr>' : '')
+                    + '<tr><td>' + T('Zapsáno') + '</td><td>' + fmtTs(z.ts) + (z.acc != null ? ' (GPS ±' + z.acc + ' m)' : '') + '</td></tr>'
+                    + (z.resolvedTs ? '<tr><td>' + T('Vyřešeno') + '</td><td>' + fmtTs(z.resolvedTs) + '</td></tr>' : '')
+                    + (z.note ? '<tr><td>' + T('Poznámka') + '</td><td>' + esc(z.note) + '</td></tr>' : '')
                     + '</table>'
                     + (fotky[i] ? '<img src="' + fotky[i] + '" alt="foto">' : '')
                     + '</div>';

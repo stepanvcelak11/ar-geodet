@@ -70,16 +70,21 @@
             : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
     }
     function swallow(e, kde) { try { if (window.AG && AG.swallow) AG.swallow(e, kde); } catch (x) { } }
+    // překlad: věty s čísly → šablony se zástupci {n} (AGJazyk.t hledá celý text)
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function toast(m) {
+        m = T(m);
         try { if (window.AG && AG.toast) return AG.toast(m); } catch (e) { swallow(e, 'oblasti:toast'); }
         try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) { swallow(e, 'oblasti:toast'); }
     }
     function alertBox(title, msg) {
+        title = T(title);
         if (typeof window.agAlert === 'function') return window.agAlert({ title: title, message: msg });
         try { if (typeof agInfo === 'function') agInfo((title ? title + '\n\n' : '') + String(msg).replace(/<[^>]+>/g, '')); } catch (e) { swallow(e, 'oblasti:alertBox'); }
         return Promise.resolve(true);
     }
     function confirmBox(o) {
+        o.title = T(o.title); o.message = T(o.message); if (o.okText) o.okText = T(o.okText);
         if (typeof window.agConfirm === 'function') return window.agConfirm(o);
         return Promise.resolve(window.confirm(String(o.message || '').replace(/<[^>]+>/g, '')));
     }
@@ -349,7 +354,7 @@
             if (_abort) return Promise.resolve();
             if (b.body.vi >= vr.length) { b.body.stav = 'hotovo'; b.ts = Date.now(); return ulozit(); }
             var L = vr[b.body.vi];
-            report('Body: vrstva ' + (b.body.vi + 1) + '/' + vr.length + ' · zatím ' + num(b.body.pocet) + ' bodů');
+            report(T('Body: vrstva {i}/{n} · zatím {p} bodů', { i: b.body.vi + 1, n: vr.length, p: num(b.body.pocet) }));
             var url = ENDPOINT + '/' + L + '/query?where=1%3D1&geometry=' + geom + '&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&outSR=4326&orderByFields=OBJECTID&resultOffset=' + b.body.off + '&resultRecordCount=' + PAGE + '&f=json';
             var pokus = 0;
             function nacti() {
@@ -391,7 +396,7 @@
                             }).catch(function () { b.mapa.chyby++; });
                         });
                     })).then(function () {
-                        if ((i / 6) % 10 === 0) { report('Mapa: ' + num(b.mapa.hotovo) + ' / ' + num(b.mapa.celkem) + ' dílků'); return ulozit(); }
+                        if ((i / 6) % 10 === 0) { report(T('Mapa: {a} / {b} dílků', { a: num(b.mapa.hotovo), b: num(b.mapa.celkem) })); return ulozit(); }
                     }).then(davka);
                 }
                 return davka();
@@ -490,8 +495,8 @@
         _ov.id = 'ago-modal';
         _ov.innerHTML =
             '<div class="modal-content ago-content" role="dialog" aria-modal="true" aria-labelledby="ago-title">' +
-            '  <h3 class="ago-title" id="ago-title">Stáhnout okres, kraj nebo celou ČR</h3>' +
-            '  <div class="ago-note">Offline: <b>všechny úřední body</b> oblasti a přehledová mapa leží v telefonu. Při chůzi se pak nic nenačítá ze sítě — body kolem tebe naskočí hned a bez signálu.</div>' +
+            '  <h3 class="ago-title" id="ago-title">' + T('Stáhnout okres, kraj nebo celou ČR') + '</h3>' +
+            '  <div class="ago-note">' + T('Offline: <b>všechny úřední body</b> oblasti a přehledová mapa leží v telefonu. Při chůzi se pak nic nenačítá ze sítě — body kolem tebe naskočí hned a bez signálu.') + '</div>' +
             '  <div class="modal-body ago-body">' +
             '    <div id="ago-kde" class="ago-kde"></div>' +
             '    <div class="ago-lbl">Co stáhnout</div>' +
@@ -532,7 +537,7 @@
             var id = b.getAttribute('data-id'), act = b.getAttribute('data-act');
             var bal = najdiBalicek(id); if (!bal) return;
             if (act === 'smazat') {
-                confirmBox({ title: 'Smazat balíček', message: 'Smazat <b>' + esc(bal.nazev) + '</b> z telefonu? Body se pak zase budou stahovat ze sítě.', okText: 'Smazat', danger: true })
+                confirmBox({ title: 'Smazat balíček', message: T('Smazat <b>{n}</b> z telefonu? Body se pak zase budou stahovat ze sítě.', { n: esc(bal.nazev) }), okText: 'Smazat', danger: true })
                     .then(function (ok) { if (ok) smazat(id).then(renderList); });
             } else if (act === 'pokracovat' || act === 'aktualizovat') {
                 var ob = oblast(bal.typ, bal.kod) || { typ: bal.typ, kod: bal.kod, nazev: bal.nazev, bbox: bal.bbox };
@@ -545,10 +550,10 @@
     function renderKde() {
         var host = _ov.querySelector('#ago-kde');
         var k = kdeJsem();
-        if (!k) { host.innerHTML = '<span class="ago-dim">Poloha zatím není známá — vyber oblast ručně.</span>'; return; }
+        if (!k) { host.innerHTML = '<span class="ago-dim">' + T('Poloha zatím není známá — vyber oblast ručně.') + '</span>'; return; }
         var pok = pokryto(k.lat, k.lng);
-        host.innerHTML = 'Teď stojíš v: <b>' + esc(k.okres ? k.okres.nazev : '?') + '</b>' + (k.kraj ? ' · ' + esc(k.kraj.nazev) : '') +
-            (pok ? '<br><span class="ago-ok">✓ tohle místo už je v telefonu — body jdou bez sítě</span>' : '<br><span class="ago-dim">tohle místo v telefonu ještě není</span>');
+        host.innerHTML = T('Teď stojíš v:') + ' <b>' + esc(k.okres ? k.okres.nazev : '?') + '</b>' + (k.kraj ? ' · ' + esc(k.kraj.nazev) : '') +
+            (pok ? '<br><span class="ago-ok">' + T('✓ tohle místo už je v telefonu — body jdou bez sítě') + '</span>' : '<br><span class="ago-dim">' + T('tohle místo v telefonu ještě není') + '</span>');
         if (k.okres && _vyber == null && _typ === 'okres') _vyber = k.okres.kod;
         if (k.kraj && _vyber == null && _typ === 'kraj') _vyber = k.kraj.kod;
     }
@@ -564,7 +569,7 @@
             sel.disabled = false;
         }
         _ov.querySelector('#ago-detail-row').style.display = _typ === 'okres' ? '' : 'none';
-        var zs = ZOOMS[_typ]; _ov.querySelector('#ago-mapa-pop').textContent = 'OSM do měřítka z' + zs[zs.length - 1] + (_typ === 'okres' ? ' (~1 : 20 000)' : _typ === 'kraj' ? ' (~1 : 70 000)' : ' (~1 : 300 000)');
+        var zs = ZOOMS[_typ]; _ov.querySelector('#ago-mapa-pop').textContent = T('OSM do měřítka z{z}', { z: zs[zs.length - 1] }) + (_typ === 'okres' ? ' (~1 : 20 000)' : _typ === 'kraj' ? ' (~1 : 70 000)' : ' (~1 : 300 000)');
         renderOdhad();
     }
     var _odhadTok = 0;
@@ -575,32 +580,32 @@
         var zs = tileZoomsCapped(ob.bbox, tileZooms(_typ, _chceDetail));
         var dl = tileCount(ob.bbox, zs);
         var tok = ++_odhadTok;
-        var mapTxt = _chceMapu ? num(dl) + ' dílků mapy (~' + mb(dl * 14000) + ')' + (zs.length < tileZooms(_typ, _chceDetail).length ? ' — podrobnější zoomy odpadly, bylo by jich přes ' + num(TILE_CAP) : '') : '';
-        host.innerHTML = '<b>' + esc(ob.nazev) + '</b>: ' + (_chceBody ? '<span id="ago-odh-body">počítám body…</span>' : '') + (_chceBody && _chceMapu ? ' · ' : '') + esc(mapTxt);
+        var mapTxt = _chceMapu ? T('{n} dílků mapy (~{mb})', { n: num(dl), mb: mb(dl * 14000) }) + (zs.length < tileZooms(_typ, _chceDetail).length ? ' — ' + T('podrobnější zoomy odpadly, bylo by jich přes {n}', { n: num(TILE_CAP) }) : '') : '';
+        host.innerHTML = '<b>' + esc(T(ob.nazev)) + '</b>: ' + (_chceBody ? '<span id="ago-odh-body">' + T('počítám body…') + '</span>' : '') + (_chceBody && _chceMapu ? ' · ' : '') + esc(mapTxt);
         if (!_chceBody) return;
-        if (!navigator.onLine) { var e0 = host.querySelector('#ago-odh-body'); if (e0) e0.textContent = 'body (počet zjistím online)'; return; }
+        if (!navigator.onLine) { var e0 = host.querySelector('#ago-odh-body'); if (e0) e0.textContent = T('body (počet zjistím online)'); return; }
         odhad(ob, _chceDetail).then(function (o) {
             if (tok !== _odhadTok) return;
             var el = host.querySelector('#ago-odh-body'); if (!el) return;
-            if (o.body == null) el.textContent = 'body (počet se nepodařilo zjistit)';
-            else el.innerHTML = num(o.body) + ' bodů (~' + mb(o.body * 160) + (o.body > 100000 ? ', ' + Math.round(o.body / 2000 * 2.5 / 60) + '–' + Math.round(o.body / 2000 * 5 / 60) + ' min' : '') + ')';
+            if (o.body == null) el.textContent = T('body (počet se nepodařilo zjistit)');
+            else el.innerHTML = T('{n} bodů', { n: num(o.body) }) + ' (~' + mb(o.body * 160) + (o.body > 100000 ? ', ' + Math.round(o.body / 2000 * 2.5 / 60) + '–' + Math.round(o.body / 2000 * 5 / 60) + ' min' : '') + ')';
         });
     }
     function renderList() {
         var host = _ov && _ov.querySelector('#ago-list'); if (!host) return;
         var bs = (_meta && _meta.balicky) || [];
-        if (!bs.length) { host.innerHTML = '<div class="ago-dim">Zatím nic. Stáhni okres, ve kterém pracuješ — je to pár MB.</div>'; return; }
+        if (!bs.length) { host.innerHTML = '<div class="ago-dim">' + T('Zatím nic. Stáhni okres, ve kterém pracuješ — je to pár MB.') + '</div>'; return; }
         host.innerHTML = bs.map(function (b) {
             var st = [];
-            if (b.body) st.push(b.body.stav === 'hotovo' ? '✓ ' + num(b.body.pocet) + ' bodů' : (b === _bezi ? '… body ' + num(b.body.pocet) : '! body rozdělané (' + num(b.body.pocet) + ')'));
-            if (b.mapa) st.push(b.mapa.stav === 'hotovo' ? '✓ mapa ' + num(b.mapa.celkem) + ' dílků' : b.mapa.stav === 'castecne' ? '! mapa ' + num(b.mapa.hotovo) + '/' + num(b.mapa.celkem) : (b === _bezi ? '… mapa ' + num(b.mapa.hotovo) + '/' + num(b.mapa.celkem) : '! mapa rozdělaná'));
+            if (b.body) st.push(b.body.stav === 'hotovo' ? '✓ ' + T('{n} bodů', { n: num(b.body.pocet) }) : (b === _bezi ? '… ' + T('body {n}', { n: num(b.body.pocet) }) : '! ' + T('body rozdělané ({n})', { n: num(b.body.pocet) })));
+            if (b.mapa) st.push(b.mapa.stav === 'hotovo' ? '✓ ' + T('mapa {n} dílků', { n: num(b.mapa.celkem) }) : b.mapa.stav === 'castecne' ? '! ' + T('mapa {a}/{b}', { a: num(b.mapa.hotovo), b: num(b.mapa.celkem) }) : (b === _bezi ? '… ' + T('mapa {a}/{b}', { a: num(b.mapa.hotovo), b: num(b.mapa.celkem) }) : '! ' + T('mapa rozdělaná')));
             var rozdel = (b.body && b.body.stav !== 'hotovo') || (b.mapa && b.mapa.stav !== 'hotovo' && b.mapa.stav !== 'castecne');
             var kdy = b.ts ? new Date(b.ts).toLocaleDateString('cs-CZ') : '';
             var akce = b === _bezi ? '<button type="button" class="btn btn-secondary ago-mini" data-act="zastavit" data-id="' + esc(b.id) + '">Zastavit</button>'
                 : (rozdel ? '<button type="button" class="btn btn-primary ago-mini" data-act="pokracovat" data-id="' + esc(b.id) + '">Pokračovat</button>'
                     : '<button type="button" class="btn btn-secondary ago-mini" data-act="aktualizovat" data-id="' + esc(b.id) + '">Aktualizovat</button>')
                 + '<button type="button" class="btn btn-secondary ago-mini ago-del" data-act="smazat" data-id="' + esc(b.id) + '" aria-label="Smazat">✕</button>';
-            return '<div class="ago-item" data-st="' + (b === _bezi ? 'run' : rozdel ? 'warn' : 'ok') + '"><div class="ago-it-txt"><b>' + esc(b.nazev) + '</b> <span class="ago-dim">' + esc(b.typ === 'cr' ? '' : b.typ) + (kdy ? ' · ' + kdy : '') + '</span><small>' + esc(st.join(' · ')) + '</small></div><div class="ago-it-akce">' + akce + '</div></div>';
+            return '<div class="ago-item" data-st="' + (b === _bezi ? 'run' : rozdel ? 'warn' : 'ok') + '"><div class="ago-it-txt"><b>' + esc(T(b.nazev)) + '</b> <span class="ago-dim">' + esc(b.typ === 'cr' ? '' : T(b.typ)) + (kdy ? ' · ' + kdy : '') + '</span><small>' + esc(st.join(' · ')) + '</small></div><div class="ago-it-akce">' + akce + '</div></div>';
         }).join('');
     }
     function renderPrubeh(txt) {
@@ -612,24 +617,25 @@
 
     function spustit(ob, opts) {
         if (_bezi) { toast('Už se něco stahuje — počkej, až to doběhne.'); return; }
-        if (!navigator.onLine) { alertBox('Nejsi online', 'Stahování oblasti potřebuje internet — nejlíp Wi-Fi, u celé ČR jde o stovky MB.'); return; }
-        var go = _ov.querySelector('#ago-go'); if (go) { go.disabled = true; go.textContent = 'Stahuji…'; }
-        renderPrubeh('Začínám…');
+        if (!navigator.onLine) { alertBox('Nejsi online', T('Stahování oblasti potřebuje internet — nejlíp Wi-Fi, u celé ČR jde o stovky MB.')); return; }
+        var go = _ov.querySelector('#ago-go'); if (go) { go.disabled = true; go.textContent = T('Stahuji…'); }
+        renderPrubeh(T('Začínám…'));
         var t0 = Date.now();
         stahnout(ob, opts, function (b, txt) { renderPrubeh(txt); }).then(function (b) {
             renderPrubeh(null); renderList(); renderKde();
             var s = Math.round((Date.now() - t0) / 1000);
             if (_abort) { toast('Zastaveno — postup je uložený, dá se pokračovat.'); return; }
             var casti = [];
-            if (b.body) casti.push(num(b.body.pocet) + ' bodů');
-            if (b.mapa) casti.push(num(b.mapa.hotovo) + ' dílků mapy' + (b.mapa.chyby ? ' (' + b.mapa.chyby + ' se nestáhlo)' : ''));
-            alertBox('Staženo', '<b>' + esc(b.nazev) + '</b>: ' + esc(casti.join(' a ')) + ' za ' + (s < 90 ? s + ' s' : Math.round(s / 60) + ' min') + '.<br><br>Body kolem tebe se teď berou z telefonu — i bez signálu.');
+            if (b.body) casti.push(T('{n} bodů', { n: num(b.body.pocet) }));
+            if (b.mapa) casti.push(T('{n} dílků mapy', { n: num(b.mapa.hotovo) }) + (b.mapa.chyby ? ' (' + T('{n} se nestáhlo', { n: b.mapa.chyby }) + ')' : ''));
+            var co = casti.length === 2 ? T('{a} a {b}', { a: casti[0], b: casti[1] }) : casti.join(' a ');
+            alertBox('Staženo', '<b>' + esc(T(b.nazev)) + '</b>: ' + T('{co} za {cas}.', { co: esc(co), cas: (s < 90 ? s + ' s' : Math.round(s / 60) + ' min') }) + '<br><br>' + T('Body kolem tebe se teď berou z telefonu — i bez signálu.'));
             try { if (typeof userLat !== 'undefined' && userLat && typeof initFetch === 'function') initFetch(userLat, userLng); } catch (e) { swallow(e, 'oblasti:refetch'); }
         }).catch(function (e) {
             swallow(e, 'oblasti:stahnout');
             renderPrubeh(null); renderList();
-            alertBox('Stahování se přerušilo', esc((e && e.message) || 'neznámá chyba') + '<br><br>Postup je uložený — tlačítkem <b>Pokračovat</b> to naváže tam, kde skončilo.');
-        }).then(function () { if (go) { go.disabled = false; go.textContent = 'Stáhnout'; } });
+            alertBox('Stahování se přerušilo', esc(T((e && e.message) || 'neznámá chyba')) + '<br><br>' + T('Postup je uložený — tlačítkem <b>Pokračovat</b> to naváže tam, kde skončilo.'));
+        }).then(function () { if (go) { go.disabled = false; go.textContent = T('Stáhnout'); } });
     }
     function run() {
         var ob = oblast(_typ, _vyber);
@@ -644,10 +650,10 @@
     function open() {
         build();
         _ov.style.display = 'flex';
-        _ov.querySelector('#ago-kde').innerHTML = '<span class="ago-dim">Načítám hranice okresů…</span>';
+        _ov.querySelector('#ago-kde').innerHTML = '<span class="ago-dim">' + T('Načítám hranice okresů…') + '</span>';
         Promise.all([loadMeta(), hranice()]).then(function (r) {
-            if (!r[1]) { _ov.querySelector('#ago-kde').innerHTML = '<span class="ago-bad">Hranice okresů se nepodařilo načíst (bez signálu?). Stažené balíčky ale fungují dál.</span>'; renderList(); return; }
-            if (!shelf()) { _ov.querySelector('#ago-kde').innerHTML = '<span class="ago-bad">Úložiště (js/ag-store.js) není k dispozici — balíčky nejde ukládat.</span>'; }
+            if (!r[1]) { _ov.querySelector('#ago-kde').innerHTML = '<span class="ago-bad">' + T('Hranice okresů se nepodařilo načíst (bez signálu?). Stažené balíčky ale fungují dál.') + '</span>'; renderList(); return; }
+            if (!shelf()) { _ov.querySelector('#ago-kde').innerHTML = '<span class="ago-bad">' + T('Úložiště (js/ag-store.js) není k dispozici — balíčky nejde ukládat.') + '</span>'; }
             renderKde(); renderVyber(); renderList();
         });
     }

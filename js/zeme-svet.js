@@ -25,6 +25,8 @@
     if (window.AGGeoid) return;
     var swallow = function (e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'zeme-svet:' + kde); } catch (e2) { /* nic */ } };
     var D2R = Math.PI / 180;
+    // překlad (js/jazyky.js) se zástupci {x}; česky vrací původní text
+    function TT(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
 
     // ---- 1. GEOID EGM2008 -----------------------------------------------------------
     var G = { hdr: null, eu: null, svet: null, stav: 'ne' };   // stav: ne | tahne | ok | chyba
@@ -129,10 +131,12 @@
     function popisStavu() {
         try {
             var p = AGSour.popisky();
-            var s = p.system + ' (' + p.osaA + ', ' + p.osaB + ') · výšky ' + p.vyska + (p.vyskaNejista ? ' (±0,5 m)' : '');
-            if (AGSour.rezim() === 'auto') s = p.zemeNazev + ' · ' + s;
+            // po slovech přes t() (13. 10. 2026): vzor ve slovníku pokrýval jen Česko, v cizině tu zůstávalo „výšky Terst · deklinace"
+            var T = function (cs) { try { return window.AGJazyk ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } };
+            var s = String(p.system).replace(' pásmo ', ' ' + T('pásmo') + ' ') + ' (' + p.osaA + ', ' + p.osaB + ') · ' + T('výšky') + ' ' + T(p.vyska) + (p.vyskaNejista ? ' (±0,5 m)' : '');
+            if (AGSour.rezim() === 'auto') s = T(p.zemeNazev) + ' · ' + s;
             var pp = AGSour.poslPoloha();
-            if (pp && window.AGWmm) { var dk = deklinace(pp.lat, pp.lng, 0); if (dk != null) s += ' · deklinace ' + (dk >= 0 ? '+' : '') + dk.toFixed(1) + '°'; }
+            if (pp && window.AGWmm) { var dk = deklinace(pp.lat, pp.lng, 0); if (dk != null) s += ' · ' + T('deklinace') + ' ' + (dk >= 0 ? '+' : '') + dk.toFixed(1) + '°'; }
             return s;
         } catch (e) { swallow(e, 'popis'); return ''; }
     }
@@ -165,7 +169,7 @@
             var rtk = document.getElementById('s-zeme-rtk');
             if (!rtk) { rtk = document.createElement('div'); rtk.id = 's-zeme-rtk'; rtk.style.cssText = 'font-size:calc(12px * var(--ag-font-scale,1));opacity:.85;margin:4px 2px 8px;'; co.appendChild(rtk); }   // co ještě není v DOM (parentNode null → toast „Něco se pokazilo“ při každém startu, 23. 9. 2026)
             var napln = function () { var k = AGSour.kod(), r = window.AGZdroje && AGZdroje.rtkPro ? AGZdroje.rtkPro(k) : null; if (!r) { rtk.textContent = ''; return; }
-                rtk.innerHTML = '<span>' + (window.AGJazyk ? AGJazyk.t('Korekce RTK') : 'Korekce RTK') + ': <b>' + r.n.replace(/[<>]/g, '') + '</b>' + (r.zdarma ? ' · ' + (window.AGJazyk ? AGJazyk.t('(pro geodety zdarma)') : '(pro geodety zdarma)') : '') + ' — <a href="' + r.u.replace(/"/g, '') + '" target="_blank" rel="noopener" style="color:var(--accent);">' + r.p.replace(/[<>]/g, '') + ' ↗</a></span>'; };
+                rtk.innerHTML = '<span>' + (window.AGJazyk ? AGJazyk.t('Korekce RTK') : 'Korekce RTK') + ': <b>' + (window.AGJazyk ? AGJazyk.t(r.n) : r.n).replace(/[<>]/g, '') + '</b>' + (r.zdarma ? ' · ' + (window.AGJazyk ? AGJazyk.t('(pro geodety zdarma)') : '(pro geodety zdarma)') : '') + ' — <a href="' + r.u.replace(/"/g, '') + '" target="_blank" rel="noopener" style="color:var(--accent);">' + (window.AGJazyk ? AGJazyk.t(r.p) : r.p).replace(/[<>]/g, '') + ' ↗</a></span>'; };
             napln(); document.addEventListener('ag:zeme', napln);
             if (!window.AGZdroje && window.AGLazy && AGLazy.need) AGLazy.need('js/zdroje-zemi.js', napln);
         } catch (e) { swallow(e, 'rtk'); }
@@ -211,7 +215,7 @@
             try { document.getElementById('settings-modal').style.display = 'none'; } catch (e) { /* nic */ }
             var b = document.getElementById('s-zeme-sim-btn'); if (b) b.textContent = 'Ukončit simulaci';
             // bublina, ne dialog: dialog by přebil kartu „Měříš v zemi" (zdroje-zemi.js), která o bodech a podkladech říká všechno (18. 9. 2026 noc)
-            try { (window.quickToast || window.agInfo)('Simulace: stojíš v ' + ((m && m[2]) || (z && z.nazev) || kod) + '. Souřadnice ' + (AGSour.popisky().system || '') + '.' + (kod !== 'CZ' ? ' Přidal jsem 3 ukázkové body (A, B, C).' : '') + ' Zpět: Nastavení → Mapa a body → Ukončit simulaci.'); } catch (e) { /* nic */ }
+            try { (window.quickToast || window.agInfo)(TT('Simulace: stojíš v {m}. Souřadnice {s}.', { m: TT((m && m[2]) || (z && z.nazev) || kod), s: (AGSour.popisky().system || '') }) + (kod !== 'CZ' ? ' ' + TT('Přidal jsem 3 ukázkové body (A, B, C).') : '') + ' ' + TT('Zpět: Nastavení → Mapa a body → Ukončit simulaci.')); } catch (e) { /* nic */ }
             obnov();
         } catch (e) { swallow(e, 'simulace'); }
     }
@@ -221,9 +225,9 @@
         try {
             var p = AGSour.popisky(), cz = p.krovak && p.zeme === 'CZ';
             var y = document.getElementById('custom-y-lab'), x = document.getElementById('custom-x-lab'), z = document.getElementById('custom-z-lab');
-            if (y) y.textContent = cz ? 'S-JTSK Y (v metrech):' : p.system + ' ' + p.osaA + ' (v metrech):';
-            if (x) x.textContent = cz ? 'S-JTSK X (v metrech):' : p.system + ' ' + p.osaB + ' (v metrech):';
-            if (z) z.textContent = cz ? 'Výška Z / Bpv (v metrech) — volitelné:' : 'Výška Z / ' + p.vyska + ' (v metrech) — volitelné:';
+            if (y) y.textContent = cz ? 'S-JTSK Y (v metrech):' : TT('{s} {o} (v metrech):', { s: String(p.system).replace(' pásmo ', ' ' + TT('pásmo') + ' '), o: p.osaA });
+            if (x) x.textContent = cz ? 'S-JTSK X (v metrech):' : TT('{s} {o} (v metrech):', { s: String(p.system).replace(' pásmo ', ' ' + TT('pásmo') + ' '), o: p.osaB });
+            if (z) z.textContent = cz ? 'Výška Z / Bpv (v metrech) — volitelné:' : TT('Výška Z / {v} (v metrech) — volitelné:', { v: TT(p.vyska) });
         } catch (e) { swallow(e, 'popiskyFormulare'); }
     }
     function obnov() {

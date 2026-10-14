@@ -36,6 +36,8 @@
     var _capTimer = null, _capSamples = [];
 
     // ---- helpery (čtou globály obezřetně) --------------------------------------
+    // překlad (js/jazyky.js); v češtině vrací původní text, {x} = zástupci
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calib2:toast'); } }
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-calib2:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
@@ -160,7 +162,7 @@
         if (!a || !b) { h.innerHTML = ''; return; }
         var sep = Math.abs(adiff(brg(a.lat, a.lng), brg(b.lat, b.lng)));
         h.innerHTML = 'Úhlová základna A–B: <b>' + sep.toFixed(0) + '°</b>. '
-            + (sep < 15 ? 'Body jsou skoro v jednom směru — vyber vzdálenější dvojici, srovnání FOV pak bude přesnější.' : 'Dobrá základna.');
+            + T(sep < 15 ? 'Body jsou skoro v jednom směru — vyber vzdálenější dvojici, srovnání FOV pak bude přesnější.' : 'Dobrá základna.');
     }
 
     function showModal() {
@@ -206,7 +208,7 @@
         showAim(true);
         var d = dist(pt.lat, pt.lng);
         var txt = document.getElementById('agc2-aim-txt');
-        if (txt) txt.innerHTML = 'Krok ' + (which === 'A' ? '1' : '2') + '/2 — namiř střed kříže přesně na <b>#' + esc(pt.name || 'Bod') + '</b>'
+        if (txt) txt.innerHTML = T('Krok {k}/2 — namiř střed kříže přesně na', { k: (which === 'A' ? '1' : '2') }) + ' <b>#' + esc(pt.name || 'Bod') + '</b>'
             + (d != null ? ' · ' + d.toFixed(0) + ' m' : '') + '<br><span class="agc2-dim">drž telefon svisle a klepni „Podrž a srovnej"</span>';
         var hb = document.getElementById('agc2-hold'); if (hb) { hb.disabled = false; hb.innerText = 'Podrž a srovnej'; }
         var pr = document.getElementById('agc2-prog'); if (pr) pr.style.width = '0%';
@@ -261,7 +263,7 @@
         if (Math.abs(rotTrue) > 20 && Math.abs(rotDev) > 5) {
             var gain = rotDev / rotTrue;
             if (isFinite(gain) && Math.abs(gain - 1) > 0.08) {
-                gainMsg = '\n\n⚠ Kompas má nelinearitu (~' + Math.round((gain - 1) * 100) + ' %). Sever je srovnaný v průměru; nejlépe drží u bodů blízko směru, na který zrovna míříš.';
+                gainMsg = '\n\n⚠ ' + T('Kompas má nelinearitu (~{p} %). Sever je srovnaný v průměru; nejlépe drží u bodů blízko směru, na který zrovna míříš.', { p: Math.round((gain - 1) * 100) });
             }
         }
         var spread = Math.abs(adiff(dA, dB));
@@ -270,11 +272,11 @@
             document.getElementById('agc2-modal').classList.add('on');
             var undo = document.getElementById('agc2-undo'); if (undo) undo.style.display = 'block';
             agAlert('Sever srovnán',
-                'Sever srovnán podle #' + esc((ptById(_aId) || {}).name || 'A') + ' a #' + esc((ptById(_bId) || {}).name || 'B') + '.'
-                + '\nPosun severu: <b>' + (meanDelta >= 0 ? '+' : '') + meanDelta.toFixed(1) + '°</b>'
-                + '\nRozdíl mezi body: ' + spread.toFixed(1) + '° (menší = důvěryhodnější).'
+                T('Sever srovnán podle #{a} a #{b}.', { a: esc((ptById(_aId) || {}).name || 'A'), b: esc((ptById(_bId) || {}).name || 'B') })
+                + '\n' + T('Posun severu:') + ' <b>' + (meanDelta >= 0 ? '+' : '') + meanDelta.toFixed(1) + '°</b>'
+                + '\n' + T('Rozdíl mezi body: {d}° (menší = důvěryhodnější).', { d: spread.toFixed(1) })
                 + gainMsg
-                + '\n\nTeď můžeš doladit ŠÍŘKU ZÁBĚRU, ať značky sednou i dál od středu.');
+                + '\n\n' + T('Teď můžeš doladit ŠÍŘKU ZÁBĚRU, ať značky sednou i dál od středu.'));
             // nabídni krok FOV
             offerFov();
         } else {
@@ -365,7 +367,7 @@
     function saveFov() {
         persistVis();
         document.getElementById('agc2-fov').classList.remove('on');
-        toast('Šířka záběru uložena (' + fovVal() + '°)');
+        toast(T('Šířka záběru uložena ({v}°)', { v: fovVal() }));
     }
     function cancelFov() {
         if (_fovBefore != null) setFov(_fovBefore);   // vrať původní (live render se srovná)

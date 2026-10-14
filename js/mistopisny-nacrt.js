@@ -52,6 +52,10 @@
 
     // ---- geometrie ----------------------------------------------------------------------------------
     function dist(a, b) { try { return GeoCore.getDistance(a.lat, a.lng, b.lat, b.lng); } catch (e) { var k = 111320; return Math.hypot((a.lat - b.lat) * k, (a.lng - b.lng) * k * Math.cos(a.lat * Math.PI / 180)); } }
+    // překlad textů, které si náčrt skládá sám (číslo ve větě, canvas, nativní prompt) — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
+    // písmeno severu: česky S, ve všech ostatních jazycích appky N
+    function SEVER() { try { return (window.AGJazyk && AGJazyk.get() !== 'cs') ? 'N' : 'S'; } catch (e) { return 'S'; } }
     function fmt(d) { return (d < 100 ? d.toFixed(2) : d.toFixed(1)).replace('.', ',') + ' m'; }
     function bod(lat, lng) { return { lat: +lat.toFixed(7), lng: +lng.toFixed(7) }; }
     function snap(ll) {
@@ -116,7 +120,7 @@
         }
         var k = 111320, dl = R_DATA / k, dn = R_DATA / (k * Math.cos(pt.lat * Math.PI / 180));
         info('Načítám obrysy…');
-        MD.oblast({ s: pt.lat - dl, n: pt.lat + dl, w: pt.lng - dn, e: pt.lng + dn }).then(function (d) { data = d; obrysy(); sestavSnapy(); info(d.buildings.length + ' budov, ' + d.roads.length + ' cest z mapy'); }).catch(function (e) { info('Obrysy se nenačetly: ' + ((e && e.message) || e)); });
+        MD.oblast({ s: pt.lat - dl, n: pt.lat + dl, w: pt.lng - dn, e: pt.lng + dn }).then(function (d) { data = d; obrysy(); sestavSnapy(); info(T('{b} budov, {c} cest z mapy', { b: d.buildings.length, c: d.roads.length })); }).catch(function (e) { info(T('Obrysy se nenačetly: {e}', { e: T(String((e && e.message) || e)) })); });
     }
 
     // ---- kreslení prvků --------------------------------------------------------------------------------
@@ -158,23 +162,23 @@
         if (rezim === 'smazat') { _undo.push(JSON.stringify(_prvky)); _prvky.splice(i, 1); uloz(); kresli(); return; }
         if (x.t === 'dim') {
             var d = dist(x.a, x.b);
-            var pr = (typeof window.agPrompt === 'function') ? window.agPrompt({ title: 'Vzdálenost', message: 'Ze souřadnic ' + fmt(d) + '. Zadej hodnotu naměřenou pásmem (m), nebo nech prázdné = ze souřadnic.', value: x.v != null ? String(x.v).replace('.', ',') : '', okText: 'Uložit' }) : Promise.resolve(prompt('Naměřená vzdálenost (m):', x.v != null ? x.v : ''));
+            var pr = (typeof window.agPrompt === 'function') ? window.agPrompt({ title: 'Vzdálenost', message: T('Ze souřadnic {d}. Zadej hodnotu naměřenou pásmem (m), nebo nech prázdné = ze souřadnic.', { d: fmt(d) }), value: x.v != null ? String(x.v).replace('.', ',') : '', okText: 'Uložit' }) : Promise.resolve(prompt(T('Naměřená vzdálenost (m):'), x.v != null ? x.v : ''));
             pr.then(function (v) { if (v === null) return; var n = parseFloat(String(v).replace(',', '.')); _undo.push(JSON.stringify(_prvky)); x.v = isFinite(n) && n > 0 ? +n.toFixed(2) : null; uloz(); kresli(); });
         } else if (x.t === 'text') {
-            var pr2 = (typeof window.agPrompt === 'function') ? window.agPrompt({ title: 'Text', value: x.s, okText: 'Uložit' }) : Promise.resolve(prompt('Text:', x.s));
+            var pr2 = (typeof window.agPrompt === 'function') ? window.agPrompt({ title: 'Text', value: x.s, okText: 'Uložit' }) : Promise.resolve(prompt(T('Text:'), x.s));
             pr2.then(function (v) { if (v === null) return; _undo.push(JSON.stringify(_prvky)); if (!v) _prvky.splice(i, 1); else x.s = v; uloz(); kresli(); });
-        } else info((x.t === 'obj' ? (OBJEKTY[x.k] || {}).n : (CARY[x.k] || {}).n) + ' · smazat: režim Smazat a klepni');
+        } else info(T(String(x.t === 'obj' ? (OBJEKTY[x.k] || {}).n : (CARY[x.k] || {}).n)) + ' · ' + T('smazat: režim Smazat a klepni'));
     }
     function klikMapa(ll) {
         var q = snap(ll);
         if (rezim === 'vzdalenost') {
             if (!_pending) { _pending = bod(q.lat, q.lng); kresli(); info('Odkud mám. Teď klepni kam.'); return; }
             var a = _pending; _pending = null; if (dist(a, q) < 0.05) { kresli(); return; }
-            pridej({ t: 'dim', a: a, b: bod(q.lat, q.lng), v: null }); info('Kóta ' + fmt(dist(a, q)) + ' — klepnutím na ni zadáš hodnotu z pásma.');
+            pridej({ t: 'dim', a: a, b: bod(q.lat, q.lng), v: null }); info(T('Kóta {d} — klepnutím na ni zadáš hodnotu z pásma.', { d: fmt(dist(a, q)) }));
         } else if (rezim === 'objekt') { pridej({ t: 'obj', k: objTyp, p: bod(q.lat, q.lng) }); }
-        else if (rezim === 'cara') { _tmp = _tmp || []; _tmp.push(bod(q.lat, q.lng)); kresli(); info(_tmp.length < 2 ? 'Další bod čáry; Hotovo ukončí.' : (_tmp.length + ' bodů; Hotovo ukončí.')); }
+        else if (rezim === 'cara') { _tmp = _tmp || []; _tmp.push(bod(q.lat, q.lng)); kresli(); info(_tmp.length < 2 ? 'Další bod čáry; Hotovo ukončí.' : T('{n} bodů; Hotovo ukončí.', { n: _tmp.length })); }
         else if (rezim === 'text') {
-            var pr = (typeof window.agPrompt === 'function') ? window.agPrompt({ title: 'Text do náčrtu', placeholder: 'např. roh garáže, obruba', okText: 'Vložit' }) : Promise.resolve(prompt('Text:'));
+            var pr = (typeof window.agPrompt === 'function') ? window.agPrompt({ title: 'Text do náčrtu', placeholder: 'např. roh garáže, obruba', okText: 'Vložit' }) : Promise.resolve(prompt(T('Text:')));
             pr.then(function (v) { if (v) pridej({ t: 'text', p: bod(q.lat, q.lng), s: v }); });
         }
     }
@@ -183,12 +187,12 @@
         if (rezim === 'cara' && r !== 'cara') hotovoCara();
         rezim = r; _pending = null; kresli();
         el.querySelectorAll('[data-rezim]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-rezim') === r); });
-        var h = { vyber: 'Posun mapy prstem. Klepnutí na kótu nebo text = upravit.', vzdalenost: 'Klepni odkud, pak kam — přichytává se k bodům a rohům.', objekt: 'Vyber značku dole a klepni, kam patří.', cara: 'Klepej body čáry (' + (CARY[caraTyp] || {}).n + '), pak Hotovo.', text: 'Klepni, kam text patří.', smazat: 'Klepni na prvek, který chceš smazat.' };
+        var h = { vyber: 'Posun mapy prstem. Klepnutí na kótu nebo text = upravit.', vzdalenost: 'Klepni odkud, pak kam — přichytává se k bodům a rohům.', objekt: 'Vyber značku dole a klepni, kam patří.', cara: T('Klepej body čáry ({c}), pak Hotovo.', { c: T(String((CARY[caraTyp] || {}).n)) }), text: 'Klepni, kam text patří.', smazat: 'Klepni na prvek, který chceš smazat.' };
         info(h[r] || ''); el.classList.toggle('kresli', r !== 'vyber');
         var ho = el.querySelector('#agn-hotovo'); if (ho) ho.style.display = r === 'cara' ? '' : 'none';
         var po = el.querySelector('#agn-paleta-obj'), pc = el.querySelector('#agn-paleta-cara'); if (po) po.hidden = r !== 'objekt'; if (pc) pc.hidden = r !== 'cara';
     }
-    function info(t) { var i = el && el.querySelector('#agn-info'); if (i) i.textContent = t || ''; }
+    function info(t) { var i = el && el.querySelector('#agn-info'); if (i) i.textContent = t ? T(t) : ''; }
 
     // ---- export PNG (papírová podoba) --------------------------------------------------------------
     function exportPng() {
@@ -234,17 +238,17 @@
         c.restore();
         c.strokeStyle = '#333'; c.lineWidth = 2; c.strokeRect(cx - plocha / 2, cy - plocha / 2, plocha, plocha);
         // hlavička, severka, měřítko, legenda
-        c.fillStyle = '#111'; c.textAlign = 'left'; c.font = '800 40px system-ui, sans-serif'; c.fillText('Místopisný náčrt · ' + pt.name, okraj, 60);
+        c.fillStyle = '#111'; c.textAlign = 'left'; c.font = '800 40px system-ui, sans-serif'; c.fillText(T('Místopisný náčrt') + ' · ' + pt.name, okraj, 60);
         c.font = '400 22px system-ui, sans-serif'; c.fillStyle = '#444';
-        var popis = []; try { if (pt.druh) popis.push(pt.druh); if (pt.ku) popis.push('k. ú. ' + pt.ku); var sj = GeoCore.toSJTSK(pt.lat, pt.lng); popis.push('Y ' + Math.abs(sj.y).toFixed(2) + '  X ' + Math.abs(sj.x).toFixed(2)); if (pt.vyska != null) popis.push('H ' + (+pt.vyska).toFixed(2) + ' m'); } catch (e) { /* nic */ }
+        var popis = []; try { if (pt.druh) popis.push(T(pt.druh)); if (pt.ku) popis.push('k. ú. ' + pt.ku); var sj = GeoCore.toSJTSK(pt.lat, pt.lng); popis.push('Y ' + Math.abs(sj.y).toFixed(2) + '  X ' + Math.abs(sj.x).toFixed(2)); if (pt.vyska != null) popis.push('H ' + (+pt.vyska).toFixed(2) + ' m'); } catch (e) { /* nic */ }
         popis.push(new Date().toLocaleDateString('cs-CZ')); c.fillText(popis.join('  ·  '), okraj, 100);
-        var nx = W - okraj - 40, ny = hlav + okraj + 50; c.beginPath(); c.moveTo(nx, ny - 34); c.lineTo(nx + 12, ny + 10); c.lineTo(nx, ny); c.lineTo(nx - 12, ny + 10); c.closePath(); c.fillStyle = '#111'; c.fill(); c.font = '800 24px system-ui, sans-serif'; c.textAlign = 'center'; c.fillText('S', nx, ny - 50);
+        var nx = W - okraj - 40, ny = hlav + okraj + 50; c.beginPath(); c.moveTo(nx, ny - 34); c.lineTo(nx + 12, ny + 10); c.lineTo(nx, ny); c.lineTo(nx - 12, ny + 10); c.closePath(); c.fillStyle = '#111'; c.fill(); c.font = '800 24px system-ui, sans-serif'; c.textAlign = 'center'; c.fillText(SEVER(), nx, ny - 50);
         var mer = [1, 2, 5, 10, 20, 50, 100].filter(function (v) { return v * sc <= plocha / 3; }).pop() || 1, mx0 = cx - plocha / 2, my0 = cy + plocha / 2 + 30;
         c.fillStyle = '#111'; c.fillRect(mx0, my0, mer * sc, 8); c.font = '600 20px system-ui, sans-serif'; c.textAlign = 'left'; c.fillText(mer + ' m', mx0 + mer * sc + 10, my0 + 4);
         var ly = my0 + 50, lx = mx0; c.font = '400 20px system-ui, sans-serif';
         var pouzite = {}; (_prvky || []).forEach(function (x) { if (x.t === 'obj') pouzite[x.k] = 1; });
-        Object.keys(pouzite).forEach(function (k2) { var o = OBJEKTY[k2]; if (o) { var im = obrazek(k2); try { if (im.complete && im.naturalWidth) c.drawImage(im, lx, ly - 14, 28, 28); } catch (e) { /* nic */ } c.fillStyle = '#333'; c.fillText(o.n, lx + 34, ly); lx += 34 + c.measureText(o.n).width + 30; if (lx > W - 260) { lx = mx0; ly += 34; } } });
-        c.fillStyle = '#666'; c.font = '400 18px system-ui, sans-serif'; c.textAlign = 'right'; c.fillText('tučná kóta = pásmo · obrysy © OpenStreetMap · QTRIG', W - okraj, H - 30);
+        Object.keys(pouzite).forEach(function (k2) { var o = OBJEKTY[k2]; if (o) { var im = obrazek(k2); try { if (im.complete && im.naturalWidth) c.drawImage(im, lx, ly - 14, 28, 28); } catch (e) { /* nic */ } var on = T(o.n); c.fillStyle = '#333'; c.fillText(on, lx + 34, ly); lx += 34 + c.measureText(on).width + 30; if (lx > W - 260) { lx = mx0; ly += 34; } } });
+        c.fillStyle = '#666'; c.font = '400 18px system-ui, sans-serif'; c.textAlign = 'right'; c.fillText(T('tučná kóta = pásmo · obrysy © OpenStreetMap · QTRIG'), W - okraj, H - 30);
         // objekty jsou SVG obrázky — které ještě nebyly načtené, dokreslit po načtení; pak PNG
         var hotovo = function () {
             try {
@@ -314,7 +318,7 @@
         return out;
     }
     function stromyZOrtofota() {
-        var g = ortoUrl(); info('Stahuji výřez ortofota (' + 2 * ORTO_R + ' × ' + 2 * ORTO_R + ' m)…');
+        var g = ortoUrl(); info(T('Stahuji výřez ortofota ({a} × {a} m)…', { a: 2 * ORTO_R }));
         return fetch(g.url, { mode: 'cors' }).then(function (r) { if (!r.ok) throw new Error('ortofoto ' + r.status); return r.blob(); }).then(function (b) {
             return new Promise(function (res, rej) { var im = new Image(); var u = URL.createObjectURL(b); im.onload = function () { URL.revokeObjectURL(u); res(im); }; im.onerror = function () { URL.revokeObjectURL(u); rej(new Error('obrázek ortofota se nenačetl')); }; im.src = u; });
         }).then(function (im) {
@@ -322,13 +326,13 @@
             var nal = stromyZObrazku(c.getImageData(0, 0, ORTO_PX, ORTO_PX), g);
             // nepřidávat strom tam, kde už (odhadnutý nebo ruční) je do 2,5 m
             var nove = nal.filter(function (s) { return !(_prvky || []).some(function (x) { return x.t === 'obj' && x.k === 'strom' && dist(x.p, s) < 2.5; }); });
-            if (!nove.length) { info('Z ortofota jsem žádný nový strom nepoznal (' + nal.length + ' nalezeno, všechny už v náčrtu).'); return 0; }
+            if (!nove.length) { info(T('Z ortofota jsem žádný nový strom nepoznal ({n} nalezeno, všechny už v náčrtu).', { n: nal.length })); return 0; }
             _undo.push(JSON.stringify(_prvky));
             nove.forEach(function (s) { _prvky.push({ t: 'obj', k: 'strom', p: bod(s.lat, s.lng), odhad: true, r: +s.r.toFixed(1) }); });
             uloz(); kresli();
-            info(nove.length + ' stromů z ortofota (odhad podle barvy a textury — co nesedí, smaž; Zpět vrátí všechny).');
+            info(T('{n} stromů z ortofota (odhad podle barvy a textury — co nesedí, smaž; Zpět vrátí všechny).', { n: nove.length }));
             return nove.length;
-        }).catch(function (e) { info('Stromy z ortofota se nepovedly: ' + ((e && e.message) || e)); return -1; });
+        }).catch(function (e) { info(T('Stromy z ortofota se nepovedly: {e}', { e: T(String((e && e.message) || e)) })); return -1; });
     }
 
     // ---- okno ---------------------------------------------------------------------------------------
@@ -353,7 +357,7 @@
             + '<div class="agn-podklad" role="tablist"><button type="button" data-podklad="papir">Papír</button><button type="button" data-podklad="mapa">Mapa</button><button type="button" data-podklad="orto">Ortofoto</button></div>'
             + '<button type="button" class="agn-x" id="agn-zavrit" aria-label="Zavřít">✕</button></div>'
             + '<div id="agn-mapa"></div>'
-            + '<div class="agn-sever" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2l5 18-5-4-5 4z"/></svg><b>S</b></div>'
+            + '<div class="agn-sever" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2l5 18-5-4-5 4z"/></svg><b>' + SEVER() + '</b></div>'
             + '<div class="agn-info" id="agn-info"></div>'
             + '<div class="agn-paleta" id="agn-paleta-obj" hidden>' + pal + '</div>'
             + '<div class="agn-paleta" id="agn-paleta-cara" hidden>' + car + '</div>'
@@ -384,7 +388,7 @@
     }
     function otevri(bodNebo) {
         var p = (bodNebo && typeof bodNebo.lat === 'number') ? bodNebo : vyberBod();
-        if (!p) { return (window.agAlert || alert)({ title: 'Místopisný náčrt', message: 'Nejdřív vyber bod: otevři jeho kartu (nebo ho naviguj) a pak spusť náčrt. Náčrt se ukládá k bodu.' }); }
+        if (!p) { return (window.agAlert || alert)({ title: 'Místopisný náčrt', message: T('Nejdřív vyber bod: otevři jeho kartu (nebo ho naviguj) a pak spusť náčrt. Náčrt se ukládá k bodu.') }); }
         pt = p; nacti();
         if (!document.querySelector('link[href$="css/mistopisny-nacrt.css"]')) { var lk = document.createElement('link'); lk.rel = 'stylesheet'; lk.href = 'css/mistopisny-nacrt.css'; document.head.appendChild(lk); }
         if (!el) { el = document.createElement('div'); el.id = 'agn'; document.body.appendChild(el); }

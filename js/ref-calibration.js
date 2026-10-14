@@ -103,6 +103,14 @@
         if (typeof window.agConfirm === 'function') return window.agConfirm({ title: title, message: msg, okText: okText, cancelText: cancelText, danger: !!danger });
         try { return Promise.resolve(window.confirm((title ? title + '\n\n' : '') + String(msg).replace(/<[^>]+>/g, ''))); } catch (e) { return Promise.resolve(false); }
     }
+    // Překlad věty se zástupci {bod}, {n}… (13. 10. 2026): skládaná věta s číslem a názvem bodu
+    // se do slovníku (shoda celým textem) netrefí — slovník proto má větu se zástupci a čísla
+    // se dosadí až po překladu.
+    function tr(cs, o) {
+        var v = cs;
+        try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; }
+        return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v;
+    }
 
     // --------------------------------------------------------------------------------
     // Čtení živých globálů (fail-silent, přesně jako vylepseni.js)
@@ -255,8 +263,8 @@
                     if ((ageMin != null && ageMin > lim.maxAge / 60000) || (farM != null && farM > lim.maxDist)) {
                         var det = [];
                         if (ageMin != null) det.push(Math.round(ageMin) + ' min');
-                        if (farM != null) det.push(Math.round(farM) + ' m od ref. bodu');
-                        toastSafe('⚠ Ref-kalibrace zastaralá/daleko (' + det.join(', ') + ') — přesnost posunu klesá, změř referenční bod znovu.');
+                        if (farM != null) det.push(tr('{m} m od ref. bodu', { m: Math.round(farM) }));
+                        toastSafe(tr('⚠ Ref-kalibrace zastaralá/daleko ({det}) — přesnost posunu klesá, změř referenční bod znovu.', { det: det.join(', ') }));
                     }
                 } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ref-calibration:wrapped'); }
 
@@ -338,19 +346,19 @@
         _pick = [];
         sel.innerHTML = '';
         var o0 = document.createElement('option');
-        o0.value = ''; o0.textContent = '— ruční zadání níže —';
+        o0.value = ''; o0.textContent = tr('— ruční zadání níže —');
         sel.appendChild(o0);
 
         function addGroup(label, rows, tag) {
             if (!rows.length) return;
             var g = document.createElement('optgroup');
-            g.label = label;
+            g.label = tr(label);
             rows.forEach(function (r) {
                 var p = r.p;
                 if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
                 var o = document.createElement('option');
                 o.value = String(_pick.length);
-                o.textContent = (p.name || 'Bod') + (tag ? ' · ' + tag(p) : '') + fmtDist(r.d);
+                o.textContent = (p.name || tr('Bod')) + (tag ? ' · ' + tag(p) : '') + fmtDist(r.d);
                 _pick.push(p);
                 g.appendChild(o);
             });
@@ -358,7 +366,7 @@
         }
 
         addGroup('Body bodového pole (ČÚZK)', byDistance(officialPts()), function (p) {
-            return (p.cat === 'TB' ? 'TB' : (p.cat === 'ZHB' ? 'ZhB' : (p.cat === 'NIVEL' ? 'nivelační' : 'PBPP'))) + (ptH(p) != null ? ' · H' : '');
+            return (p.cat === 'TB' ? 'TB' : (p.cat === 'ZHB' ? 'ZhB' : (p.cat === 'NIVEL' ? tr('nivelační') : 'PBPP'))) + (ptH(p) != null ? ' · H' : '');
         });
         addGroup('Moje body', byDistance(customPts().filter(function (p) {
             return p && typeof p.lat === 'number' && typeof p.lng === 'number';
@@ -400,19 +408,19 @@
         if (!st) return;
         var s = loadShift();
         if (s && isFinite(s.dlat) && isFinite(s.dlng)) {
-            var when = s.t ? new Date(s.t).toLocaleString('cs-CZ') : '';
+            var when = s.t ? new Date(s.t).toLocaleString((window.AGJazyk && AGJazyk.locale) ? AGJazyk.locale() : 'cs-CZ') : '';
             if (s.on) {
                 st.className = 'agref-state on';
-                st.innerHTML = '<b>Kalibrace aktivní</b> · posun ~' + escapeHtml(fmtShift(s)) + (s.dh != null && isFinite(s.dh) ? ' · výška ' + escapeHtml(fmtH(s.dh)) : '') + (when ? '<br><span class="agref-dim">nastaveno ' + escapeHtml(when) + '</span>' : '');
+                st.innerHTML = '<b>' + tr('Kalibrace aktivní') + '</b> · ' + tr('posun ~{v}', { v: escapeHtml(fmtShift(s)) }) + (s.dh != null && isFinite(s.dh) ? ' · ' + tr('výška {v}', { v: escapeHtml(fmtH(s.dh)) }) : '') + (when ? '<br><span class="agref-dim">' + tr('nastaveno {v}', { v: escapeHtml(when) }) + '</span>' : '');
             } else {
                 st.className = 'agref-state off';
-                st.innerHTML = 'Kalibrace <b>vypnutá</b> · uložený posun ~' + escapeHtml(fmtShift(s)) + (s.dh != null && isFinite(s.dh) ? ' · výška ' + escapeHtml(fmtH(s.dh)) : '') + (when ? '<br><span class="agref-dim">nastaveno ' + escapeHtml(when) + '</span>' : '');
+                st.innerHTML = tr('Kalibrace') + ' <b>' + tr('vypnutá') + '</b> · ' + tr('uložený posun ~{v}', { v: escapeHtml(fmtShift(s)) }) + (s.dh != null && isFinite(s.dh) ? ' · ' + tr('výška {v}', { v: escapeHtml(fmtH(s.dh)) }) : '') + (when ? '<br><span class="agref-dim">' + tr('nastaveno {v}', { v: escapeHtml(when) }) + '</span>' : '');
             }
-            if (tgl) tgl.textContent = s.on ? 'Vypnout' : 'Zapnout';
+            if (tgl) tgl.textContent = s.on ? tr('Vypnout') : tr('Zapnout');
         } else {
             st.className = 'agref-state none';
-            st.innerHTML = 'Kalibrace zatím <b>nenastavena</b>.';
-            if (tgl) tgl.textContent = 'Vypnout';
+            st.innerHTML = tr('Kalibrace zatím') + ' <b>' + tr('nenastavena') + '</b>.';
+            if (tgl) tgl.textContent = tr('Vypnout');
         }
         renderGps();
     }
@@ -421,17 +429,17 @@
         var g = _ov && _ov.querySelector('#agref-gps');
         if (!g) return;
         var a = avgGps();
-        if (!a) { g.innerHTML = '<span class="agref-dim">Čekám na GPS polohu…</span>'; return; }
-        var src = a.from === 'avg' ? ('průměr z ' + (a.n || '?') + ' měření' + (isFinite(a.sterr) ? ' · ±' + a.sterr.toFixed(2) + ' m' : '')) : ('jeden fix' + (isFinite(a.sterr) ? ' · ±' + a.sterr.toFixed(1) + ' m' : ''));
+        if (!a) { g.innerHTML = '<span class="agref-dim">' + tr('Čekám na GPS polohu…') + '</span>'; return; }
+        var src = a.from === 'avg' ? (tr('průměr z {n} měření', { n: a.n || '?' }) + (isFinite(a.sterr) ? ' · ±' + a.sterr.toFixed(2) + ' m' : '')) : (tr('jeden fix') + (isFinite(a.sterr) ? ' · ±' + a.sterr.toFixed(1) + ' m' : ''));
         var hb = gpsBpv(a);
-        g.innerHTML = 'Aktuální GPS: <b>' + a.lat.toFixed(6) + ', ' + a.lng.toFixed(6) + '</b><br><span class="agref-dim">' + escapeHtml(src) + '</span>'
-            + '<br>Výška Bpv z GPS: <b>' + (hb != null ? hb.toFixed(2).replace('.', ',') + ' m' : '—') + '</b>'
-            + (hb != null && isFinite(a.altSterr) ? ' <span class="agref-dim">±' + a.altSterr.toFixed(2) + ' m' + (a.altN ? ', ' + a.altN + '×' : '') + '</span>' : (hb == null ? ' <span class="agref-dim">telefon výšku nehlásí</span>' : ''));
+        g.innerHTML = tr('Aktuální GPS:') + ' <b>' + a.lat.toFixed(6) + ', ' + a.lng.toFixed(6) + '</b><br><span class="agref-dim">' + escapeHtml(src) + '</span>'
+            + '<br>' + tr('Výška Bpv z GPS:') + ' <b>' + (hb != null ? hb.toFixed(2).replace('.', ',') + ' m' : '—') + '</b>'
+            + (hb != null && isFinite(a.altSterr) ? ' <span class="agref-dim">±' + a.altSterr.toFixed(2) + ' m' + (a.altN ? ', ' + a.altN + '×' : '') + '</span>' : (hb == null ? ' <span class="agref-dim">' + tr('telefon výšku nehlásí') + '</span>' : ''));
     }
 
     function apply() {
         var a = avgGps();
-        if (!a) { alertBox('Není GPS poloha', 'Počkej na zaměření GPS a zkus to znovu.'); return; }
+        if (!a) { alertBox(tr('Není GPS poloha'), tr('Počkej na zaměření GPS a zkus to znovu.')); return; }
 
         // reference: nejdřív Y/X (S-JTSK), pak prázdno
         var Yv = _ov.querySelector('#agref-y').value;
@@ -441,10 +449,10 @@
         var X = parseFloat(String(Xv).replace(',', '.'));
         if (isFinite(Y) && isFinite(X)) {
             var w = sjtskToWgs(Y, X);
-            if (!w) { alertBox('Převod selhal', 'Souřadnice ' + agSys() + ' se nepodařilo převést. Zkontroluj hodnoty.'); return; }
+            if (!w) { alertBox(tr('Převod selhal'), tr('Souřadnice {sys} se nepodařilo převést. Zkontroluj hodnoty.', { sys: agSys() })); return; }
             refLat = w.lat; refLng = w.lng;
         } else {
-            alertBox('Chybí souřadnice', 'Zadej ' + agSys() + ' ' + agOsy().osaA + ' a ' + agOsy().osaB + ' referenčního bodu (nebo ho vyber z uložených).');
+            alertBox(tr('Chybí souřadnice'), tr('Zadej {sys} {a} a {b} referenčního bodu (nebo ho vyber z uložených).', { sys: agSys(), a: agOsy().osaA, b: agOsy().osaB }));
             return;
         }
 
@@ -466,19 +474,19 @@
             s.dh = Math.round(dh * 1000) / 1000; s.refH = refH; s.hp = (isFinite(hp) ? hp : 0); s.altAcc = (isFinite(a.altSterr) ? a.altSterr : null);
         }
         var dist = fmtShift(s);
-        var vTxt = (s.dh != null) ? ' Výška: <b>' + escapeHtml(fmtH(s.dh)) + '</b> (bod ' + refH.toFixed(2).replace('.', ',') + ' m, GPS ' + hb.toFixed(2).replace('.', ',') + ' m' + (s.hp ? ', telefon ' + s.hp.toFixed(2).replace('.', ',') + ' m nad značkou' : '') + ').'
-            : (refH != null && hb == null ? ' <b>Výška se neopravuje</b> — telefon výšku z GPS nehlásí (síťová poloha?).' : (refH == null ? ' Bod nemá výšku, opravuje se jen poloha.' : ''));
+        var vTxt = (s.dh != null) ? ' ' + tr('Výška:') + ' <b>' + escapeHtml(fmtH(s.dh)) + '</b> (' + tr('bod {h} m, GPS {g} m', { h: refH.toFixed(2).replace('.', ','), g: hb.toFixed(2).replace('.', ',') }) + (s.hp ? ', ' + tr('telefon {v} m nad značkou', { v: s.hp.toFixed(2).replace('.', ',') }) : '') + ').'
+            : (refH != null && hb == null ? ' <b>' + tr('Výška se neopravuje') + '</b> — ' + tr('telefon výšku z GPS nehlásí (síťová poloha?).') : (refH == null ? ' ' + tr('Bod nemá výšku, opravuje se jen poloha.') : ''));
 
         // bezpečnostní brzda na nesmyslně velký posun (špatně zadané souřadnice / jiný kat. systém)
         var cm = shiftCm(s, a.lat);
-        var doSave = function () { saveShift(s); if (po) po(); window.agRefShiftWatch && window.agRefShiftWatch(); alertBox('Kalibrace zapnuta', 'Posun GPS ~<b>' + escapeHtml(dist) + '</b> se teď přičítá k <b>nově</b> ukládaným bodům.' + vTxt + ' Existující body zůstaly beze změny. Můžeš ji kdykoli vypnout.'); };
+        var doSave = function () { saveShift(s); if (po) po(); window.agRefShiftWatch && window.agRefShiftWatch(); alertBox(tr('Kalibrace zapnuta'), tr('Posun GPS ~{v} se teď přičítá k {b}nově{e} ukládaným bodům.', { v: '<b>' + escapeHtml(dist) + '</b>', b: '<b>', e: '</b>' }) + vTxt + ' ' + tr('Existující body zůstaly beze změny. Můžeš ji kdykoli vypnout.')); };
         if (s.dh != null && Math.abs(s.dh) > 30) {
-            confirmBox('Velký posun výšky (' + fmtH(s.dh) + ')', 'Výška z GPS se od výšky bodu liší o <b>' + escapeHtml(fmtH(s.dh)) + '</b>. Tolik telefon obvykle nelže — spíš je výška bodu v jiném systému, nebo GPS hlásí nesmysl. Opravdu zapnout i s výškou?', 'Zapnout i s výškou', 'Bez výšky')
-                .then(function (ok) { if (!ok) { delete s.dh; delete s.refH; delete s.hp; delete s.altAcc; vTxt = ' Výška se neopravuje (zamítnuto).'; } if (cm != null && cm > 5000) velky(); else doSave(); });
+            confirmBox(tr('Velký posun výšky ({v})', { v: fmtH(s.dh) }), tr('Výška z GPS se od výšky bodu liší o {v}. Tolik telefon obvykle nelže — spíš je výška bodu v jiném systému, nebo GPS hlásí nesmysl. Opravdu zapnout i s výškou?', { v: '<b>' + escapeHtml(fmtH(s.dh)) + '</b>' }), tr('Zapnout i s výškou'), tr('Bez výšky'))
+                .then(function (ok) { if (!ok) { delete s.dh; delete s.refH; delete s.hp; delete s.altAcc; vTxt = ' ' + tr('Výška se neopravuje (zamítnuto).'); } if (cm != null && cm > 5000) velky(); else doSave(); });
             return;
         }
         function velky() {
-            confirmBox('Velký posun (' + dist + ')', 'Spočítaný posun je <b>' + escapeHtml(dist) + '</b> — to je hodně. Bývá to známka špatně zadaných souřadnic nebo jiného souřadnicového systému. Opravdu zapnout?', 'Přesto zapnout', 'Zpět', true)
+            confirmBox(tr('Velký posun ({v})', { v: dist }), tr('Spočítaný posun je {v} — to je hodně. Bývá to známka špatně zadaných souřadnic nebo jiného souřadnicového systému. Opravdu zapnout?', { v: '<b>' + escapeHtml(dist) + '</b>' }), tr('Přesto zapnout'), tr('Zpět'), true)
                 .then(function (ok) { if (ok) doSave(); });
         }
         if (cm != null && cm > 5000) velky(); else doSave();
@@ -488,20 +496,26 @@
     // bodu, abych to nemusel hledat v nástrojích — čtvereček, upozornění, že musím být
     // na tom bodě"). Jedno potvrzení s tím, co se spočítá, pak totéž, co dialog.
     function fromPoint(pt) {
-        if (!pt || !isFinite(pt.lat) || !isFinite(pt.lng)) { alertBox('Bod nemá polohu', 'Tenhle bod nemá souřadnice, podle kterých by se GPS dala opravit.'); return; }
+        if (!pt || !isFinite(pt.lat) || !isFinite(pt.lng)) { alertBox(tr('Bod nemá polohu'), tr('Tenhle bod nemá souřadnice, podle kterých by se GPS dala opravit.')); return; }
         var a = avgGps();
-        if (!a) { alertBox('Není GPS poloha', 'Počkej na zaměření GPS a zkus to znovu.'); return; }
+        if (!a) { alertBox(tr('Není GPS poloha'), tr('Počkej na zaměření GPS a zkus to znovu.')); return; }
         var H = ptH(pt), hb = gpsBpv(a);
         var d = null;
         try { d = planarDist(a.lat, a.lng, pt.lat, pt.lng); } catch (e) { d = null; }
-        var nm = pt.name || 'bod';
-        var msg = '<b>Musíš stát přímo na bodě ' + escapeHtml(nm) + '.</b> Appka vezme svou GPS polohu' + (a.from === 'avg' ? ' (průměr z ' + (a.n || '?') + ' měření' + (isFinite(a.sterr) ? ', ±' + a.sterr.toFixed(2) + ' m' : '') + ')' : ' (jeden fix — lepší chvíli postát, ať se zprůměruje)')
-            + ' a rozdíl proti souřadnicím bodu bude od teď přičítat k nově ukládaným bodům.'
-            + (d != null ? '<br><br>Teď jsi podle GPS <b>' + (d < 100 ? d.toFixed(1).replace('.', ',') + ' m' : Math.round(d) + ' m') + '</b> od bodu' + (d > 30 ? ' — <b>to je moc</b>, buď na něm nestojíš, nebo GPS teď hodně lže.' : '.') : '')
-            + (H != null ? '<br><br>Bod má výšku <b>' + H.toFixed(2).replace('.', ',') + ' m</b> Bpv' + (hb != null ? ' — opraví se i <b>výška</b>. <b>Polož telefon na značku</b> (nebo ho drž u ní); GPS teď hlásí ' + hb.toFixed(2).replace('.', ',') + ' m.' : ', ale telefon výšku z GPS nehlásí — opraví se jen poloha.') : '<br><br>Bod nemá výšku — opraví se jen poloha.')
-            + (pt.cat === 'NIVEL' ? '<br><br><span style="opacity:.8">Nivelační bod: poloha je v ČÚZK jen na metr, výška na milimetry.</span>' : '')
+        var nm = pt.name || tr('bod');
+        var c2 = function (v) { return v.toFixed(2).replace('.', ','); };
+        var en = escapeHtml(nm);
+        var msg = '<b>' + tr('Musíš stát přímo na bodě {bod}.', { bod: en }) + '</b> '
+            + (a.from === 'avg'
+                ? tr('Appka vezme svou GPS polohu (průměr z {n} měření{pr}) a rozdíl proti souřadnicím bodu bude od teď přičítat k nově ukládaným bodům.', { n: a.n || '?', pr: isFinite(a.sterr) ? ', ±' + a.sterr.toFixed(2) + ' m' : '' })
+                : tr('Appka vezme svou GPS polohu (jeden fix — lepší chvíli postát, ať se zprůměruje) a rozdíl proti souřadnicím bodu bude od teď přičítat k nově ukládaným bodům.'))
+            + (d != null ? '<br><br>' + tr('Teď jsi podle GPS {d} od bodu', { d: '<b>' + (d < 100 ? d.toFixed(1).replace('.', ',') + ' m' : Math.round(d) + ' m') + '</b>' }) + (d > 30 ? ' — <b>' + tr('to je moc') + '</b>, ' + tr('buď na něm nestojíš, nebo GPS teď hodně lže.') : '.') : '')
+            + (H != null ? '<br><br>' + tr('Bod má výšku {h} Bpv', { h: '<b>' + c2(H) + ' m</b>' })
+                + (hb != null ? ' — ' + tr('opraví se i výška.') + ' <b>' + tr('Polož telefon na značku') + '</b> ' + tr('(nebo ho drž u ní); GPS teď hlásí {h} m.', { h: c2(hb) }) : ', ' + tr('ale telefon výšku z GPS nehlásí — opraví se jen poloha.'))
+                : '<br><br>' + tr('Bod nemá výšku — opraví se jen poloha.'))
+            + (pt.cat === 'NIVEL' ? '<br><br><span style="opacity:.8">' + tr('Nivelační bod: poloha je v ČÚZK jen na metr, výška na milimetry.') + '</span>' : '')
             + okoliVarovani(a);
-        confirmBox('Opravit GPS podle bodu ' + nm, msg, 'Stojím na něm, opravit', 'Zpět').then(function (ok) {
+        confirmBox(tr('Opravit GPS podle bodu {bod}', { bod: nm }), msg, tr('Stojím na něm, opravit'), tr('Zpět')).then(function (ok) {
             if (!ok) return;
             zapni(avgGps() || a, pt.lat, pt.lng, H, 0, nm, 'ref', function () { if (_ov && _ov.style.display === 'flex') renderState(); });
         });
@@ -518,14 +532,14 @@
         var acc = null;
         try { if (typeof currentGpsAccuracy !== 'undefined' && isFinite(currentGpsAccuracy)) acc = currentGpsAccuracy; } catch (e) { acc = null; }
         var neklid = (a && isFinite(a.sterr) && a.from === 'avg' && a.sterr > 0.8) || (acc != null && acc > 6);
-        var t = '<br><br><b>Kde stojíš, to rozhoduje.</b> Pod stromem, u zdi nebo mezi domy se signál odráží — GPS má tam jinou chybu než o 30 m dál na volném. Korekce z takového místa platí jen pro stejné podmínky; na otevřeném prostranství pak může posouvat špatně. Vyber bod s volným obzorem a nech GPS 1–2 minuty průměrovat.';
-        if (neklid) t += '<br><span style="color:var(--warning,#fbbf24);font-weight:600;">GPS teď kolísá' + (a && isFinite(a.sterr) && a.from === 'avg' ? ' (rozptyl ±' + a.sterr.toFixed(2).replace('.', ',') + ' m)' : (acc != null ? ' (±' + Math.round(acc) + ' m)' : '')) + ' — typické právě pod stromem či u domu. Korekce by byla spíš náhodná; radši jiný bod nebo delší průměr.</span>';
+        var t = '<br><br><b>' + tr('Kde stojíš, to rozhoduje.') + '</b> ' + tr('Pod stromem, u zdi nebo mezi domy se signál odráží — GPS má tam jinou chybu než o 30 m dál na volném. Korekce z takového místa platí jen pro stejné podmínky; na otevřeném prostranství pak může posouvat špatně. Vyber bod s volným obzorem a nech GPS 1–2 minuty průměrovat.');
+        if (neklid) t += '<br><span style="color:var(--warning,#fbbf24);font-weight:600;">' + tr('GPS teď kolísá{roz} — typické právě pod stromem či u domu. Korekce by byla spíš náhodná; radši jiný bod nebo delší průměr.', { roz: (a && isFinite(a.sterr) && a.from === 'avg' ? ' (' + tr('rozptyl') + ' ±' + a.sterr.toFixed(2).replace('.', ',') + ' m)' : (acc != null ? ' (±' + Math.round(acc) + ' m)' : '')) }) + '</span>';
         return t;
     }
 
     function toggle() {
         var s = loadShift();
-        if (!s || !isFinite(s.dlat)) { alertBox('Není co přepnout', 'Nejdřív kalibraci nastav (zadej referenční bod a klepni na „Spočítat a zapnout").'); return; }
+        if (!s || !isFinite(s.dlat)) { alertBox(tr('Není co přepnout'), tr('Nejdřív kalibraci nastav (zadej referenční bod a klepni na „Spočítat a zapnout").')); return; }
         s.on = !s.on;
         window.agRefShiftWatch && setTimeout(window.agRefShiftWatch, 50); saveShift(s);
         renderState();
@@ -624,10 +638,10 @@
         if ((age != null && age >= lim.warnAge / 60000) || (dist != null && dist >= lim.warnDist)) stav = 'warn';
         if ((age != null && age >= lim.maxAge / 60000) || (dist != null && dist >= lim.maxDist)) stav = 'bad';
         var zbyva = age != null ? Math.max(0, Math.round(lim.maxAge / 60000 - age)) : null;
-        var parts = [(live ? 'DGPS živě' + (s.base ? ' (' + s.base + ')' : '') + ' ' : 'Korekce GPS ') + fmtShift(s) + (s.dh != null && isFinite(s.dh) ? ' / výška ' + fmtH(s.dh) : '')];
-        if (live) { if (age != null) parts.push(age < 1.5 ? 'data čerstvá' : 'data stará ' + Math.round(age) + ' min'); }
-        else if (age != null) parts.push(zbyva > 0 ? 'ještě ' + zbyva + ' min' : 'starší než ' + Math.round(lim.maxAge / 60000) + ' min');
-        if (dist != null) parts.push((dist < 1000 ? Math.round(dist) + ' m' : (dist / 1000).toFixed(1) + ' km') + (live ? ' od základny' : ' od místa') + (dist >= lim.maxDist ? ' (za hranicí ' + (lim.maxDist < 1000 ? lim.maxDist + ' m' : (lim.maxDist / 1000) + ' km') + ')' : ''));
+        var parts = [(live ? tr('DGPS živě') + (s.base ? ' (' + s.base + ')' : '') + ' ' : tr('Korekce GPS') + ' ') + fmtShift(s) + (s.dh != null && isFinite(s.dh) ? ' / ' + tr('výška {v}', { v: fmtH(s.dh) }) : '')];
+        if (live) { if (age != null) parts.push(age < 1.5 ? tr('data čerstvá') : tr('data stará {n} min', { n: Math.round(age) })); }
+        else if (age != null) parts.push(zbyva > 0 ? tr('ještě {n} min', { n: zbyva }) : tr('starší než {n} min', { n: Math.round(lim.maxAge / 60000) }));
+        if (dist != null) parts.push(tr(live ? '{d} od základny' : '{d} od místa', { d: (dist < 1000 ? Math.round(dist) + ' m' : (dist / 1000).toFixed(1) + ' km') }) + (dist >= lim.maxDist ? ' (' + tr('za hranicí {d}', { d: (lim.maxDist < 1000 ? lim.maxDist + ' m' : (lim.maxDist / 1000) + ' km') }) + ')' : ''));
         return { s: s, age: age, dist: dist, zbyva: zbyva, stav: stav, live: live, text: parts.join(' · '), maxMin: lim.maxAge / 60000, maxM: lim.maxDist, warnMin: lim.warnAge / 60000, warnM: lim.warnDist };
     }
     window.agRefShiftStav = shiftStatus;
@@ -657,15 +671,15 @@
         // toasty — každý stupeň jen jednou na jednu korekci
         function once(k, msg) { if (f[k]) return; f[k] = true; toastSafe(msg); }
         if (st.live) {
-            if (st.age != null && st.age >= st.maxMin) once('age2', 'Základna DGPS neposlala nic už ' + Math.round(st.age) + ' min — stojí, nebo nemá signál. Korekce pro nové body už není spolehlivá.');
-            else if (st.age != null && st.age >= st.warnMin) once('age1', 'Základna DGPS neposílá ' + Math.round(st.age) + ' min — zkontroluj ji (displej, signál).');
-            if (st.dist != null && st.dist >= st.maxM) once('dist2', 'Jsi ' + (st.dist / 1000).toFixed(1) + ' km od základny DGPS — dál než ' + (st.maxM / 1000) + ' km korekce neplatí.');
-            else if (st.dist != null && st.dist >= st.warnM) once('dist1', 'Jsi ' + (st.dist / 1000).toFixed(1) + ' km od základny DGPS — na ' + (st.maxM / 1000) + ' km korekce přestane platit.');
+            if (st.age != null && st.age >= st.maxMin) once('age2', tr('Základna DGPS neposlala nic už {n} min — stojí, nebo nemá signál. Korekce pro nové body už není spolehlivá.', { n: Math.round(st.age) }));
+            else if (st.age != null && st.age >= st.warnMin) once('age1', tr('Základna DGPS neposílá {n} min — zkontroluj ji (displej, signál).', { n: Math.round(st.age) }));
+            if (st.dist != null && st.dist >= st.maxM) once('dist2', tr('Jsi {d} km od základny DGPS — dál než {m} km korekce neplatí.', { d: (st.dist / 1000).toFixed(1), m: (st.maxM / 1000) }));
+            else if (st.dist != null && st.dist >= st.warnM) once('dist1', tr('Jsi {d} km od základny DGPS — na {m} km korekce přestane platit.', { d: (st.dist / 1000).toFixed(1), m: (st.maxM / 1000) }));
         } else {
-            if (st.age != null && st.age >= st.maxMin) once('age2', 'Korekce GPS je starší než ' + st.maxMin + ' min — chyba GPS se mezitím mohla změnit, za posun už appka neručí. Projdi hranu / změř známý bod znovu, nebo korekci vypni.');
-            else if (st.age != null && st.age >= st.warnMin) once('age1', 'Korekce GPS vyprší za ' + Math.max(1, st.zbyva) + ' min. Budeš-li ještě měřit, obnov ji včas (chůze po hraně / známý bod).');
-            if (st.dist != null && st.dist >= st.maxM) once('dist2', 'Jsi ' + Math.round(st.dist) + ' m od místa kalibrace — za hranicí ' + st.maxM + ' m posun nemusí platit. Zkalibruj znovu tady.');
-            else if (st.dist != null && st.dist >= st.warnM) once('dist1', 'Jsi ' + Math.round(st.dist) + ' m od místa kalibrace — na ' + st.maxM + ' m korekce přestane platit.');
+            if (st.age != null && st.age >= st.maxMin) once('age2', tr('Korekce GPS je starší než {n} min — chyba GPS se mezitím mohla změnit, za posun už appka neručí. Projdi hranu / změř známý bod znovu, nebo korekci vypni.', { n: st.maxMin }));
+            else if (st.age != null && st.age >= st.warnMin) once('age1', tr('Korekce GPS vyprší za {n} min. Budeš-li ještě měřit, obnov ji včas (chůze po hraně / známý bod).', { n: Math.max(1, st.zbyva) }));
+            if (st.dist != null && st.dist >= st.maxM) once('dist2', tr('Jsi {d} m od místa kalibrace — za hranicí {m} m posun nemusí platit. Zkalibruj znovu tady.', { d: Math.round(st.dist), m: st.maxM }));
+            else if (st.dist != null && st.dist >= st.warnM) once('dist1', tr('Jsi {d} m od místa kalibrace — na {m} m korekce přestane platit.', { d: Math.round(st.dist), m: st.maxM }));
         }
         // pilulka
         if (_pillHidden === st.s.t) return;

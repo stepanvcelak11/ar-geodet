@@ -66,6 +66,9 @@
         try { if (window.AG && AG.toast) return AG.toast(m); } catch (e) { swallow(e, 'lovci:toast'); }
         try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) { swallow(e, 'lovci:toast'); }
     }
+    // překlad (js/jazyky.js) se zástupci {n} — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
+    function loc() { return (window.AGJazyk && AGJazyk.locale) ? AGJazyk.locale() : 'cs-CZ'; }
     function num(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
     // ⚠ arPoints je v logika.js `let` na nejvyšší úrovni — na window NENÍ, ale jako
     //   globální lexikální vazba je vidět z každého klasického skriptu (typeof-guard).
@@ -81,7 +84,7 @@
     function hodnota(pt) { if (!pt) return 0; if (jeTihovy(pt)) return HODNOTA.TIHA; return HODNOTA[pt.cat] || 0; }
     function idBodu(pt) { return pt.cislo12 || (String(pt.name) + '@' + (+pt.lat).toFixed(5) + ',' + (+pt.lng).toFixed(5)); }
     function jeUredni(pt) { return !!(pt && pt.cat && pt.cat !== 'CUSTOM' && pt.rawData); }
-    function katLabel(c) { return { TB: 'TB', ZHB: 'ZhB', NIVEL: 'nivelační', PBPP: 'PPBP' }[c] || c; }
+    function katLabel(c) { return T({ TB: 'TB', ZHB: 'ZhB', NIVEL: 'nivelační', PBPP: 'PPBP' }[c] || c); }
     function fix() {
         var f = window.AGFix;
         if (f && f.lat != null && Date.now() - (f.ts || 0) <= 30000) return f;
@@ -130,16 +133,16 @@
     }
     // stav pro tlačítko v kartě: co ještě chybí
     function stav(id) {
-        if (_ix[id]) return { ok: false, done: true, label: 'Nalezen ✓' };
+        if (_ix[id]) return { ok: false, done: true, label: T('Nalezen ✓') };
         var f = fix();
-        if (!f) return { ok: false, label: 'Našel jsem ho<br><small>čekám na GPS</small>' };
-        var pt = najdiBod(id); if (!pt) return { ok: false, label: 'Našel jsem ho' };
+        if (!f) return { ok: false, label: T('Našel jsem ho') + '<br><small>' + T('čekám na GPS') + '</small>' };
+        var pt = najdiBod(id); if (!pt) return { ok: false, label: T('Našel jsem ho') };
         var d = dist(f.lat, f.lng, pt.lat, pt.lng);
-        if (d > BLIZKO_M) return { ok: false, label: 'Našel jsem ho<br><small>ještě ' + (d < 100 ? d.toFixed(0) : num(d)) + ' m</small>' };
-        if (f.acc > PRESNOST_M) return { ok: false, label: 'Našel jsem ho<br><small>GPS ±' + Math.round(f.acc) + ' m, počkej</small>' };
+        if (d > BLIZKO_M) return { ok: false, label: T('Našel jsem ho') + '<br><small>' + T('ještě {m} m', { m: (d < 100 ? d.toFixed(0) : num(d)) }) + '</small>' };
+        if (f.acc > PRESNOST_M) return { ok: false, label: T('Našel jsem ho') + '<br><small>' + T('GPS ±{m} m, počkej', { m: Math.round(f.acc) }) + '</small>' };
         var dw = _dwell[id]; var s = dw ? (Date.now() - dw.od) / 1000 : 0;
-        if (s < POSTOJ_S) return { ok: false, label: 'Našel jsem ho<br><small>postůj ještě ' + Math.ceil(POSTOJ_S - s) + ' s</small>' };
-        return { ok: true, label: 'Našel jsem ho!<br><small>+' + hodnota(pt) + '</small>' };
+        if (s < POSTOJ_S) return { ok: false, label: T('Našel jsem ho') + '<br><small>' + T('postůj ještě {s} s', { s: Math.ceil(POSTOJ_S - s) }) + '</small>' };
+        return { ok: true, label: T('Našel jsem ho!') + '<br><small>+' + hodnota(pt) + '</small>' };
     }
     function najdiBod(id) {
         var P = pts(); if (!P) return null;
@@ -152,7 +155,7 @@
         if (!jeUredni(pt)) return false;
         var id = idBodu(pt);
         if (_ix[id]) {
-            toast('Tenhle bod už máš ve sbírce (' + new Date(_ix[id].kdy).toLocaleDateString('cs-CZ') + ').');
+            toast(T('Tenhle bod už máš ve sbírce ({d}).', { d: new Date(_ix[id].kdy).toLocaleDateString(loc()) }));
             return false;
         }
         var st = stav(id);
@@ -166,7 +169,7 @@
         save().then(function (ok) { if (!ok) toast('Nález se nepodařilo uložit — zkus to znovu.'); });
         var po = oceneni().filter(function (o) { return o.ma; });
         var nove = po.length > pred ? po[po.length - 1] : null;
-        toast('Objeveno: ' + katLabel(pt.cat) + ' ' + pt.name + ' · +' + hod + (kd && kd.id === id ? ' (kámen dne ×2)' : '') + (nove ? ' · ocenění „' + nove.nazev + '"' : ''));
+        toast(T('Objeveno:') + ' ' + katLabel(pt.cat) + ' ' + pt.name + ' · +' + hod + (kd && kd.id === id ? ' ' + T('(kámen dne ×2)') : '') + (nove ? ' · ' + T('ocenění „{n}"', { n: nove.nazev }) : ''));
         try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { swallow(e, 'lovci:klik'); }
         return true;
     }
@@ -234,24 +237,24 @@
         var maxList = 0; for (var k in listy) if (listy[k] > maxList) maxList = listy[k];
         var porady = {}; n.forEach(function (x) { if (x.porad) porady[x.porad] = (porady[x.porad] || 0) + 1; });
         var out = [
-            { id: 'prvni-kamen', znak: 'TB', nazev: 'První kámen', jak: 'najdi první trigonometrický bod', ma: tb.length >= 1, p: Math.min(1, tb.length), txt: tb.length + ' z 1' },
-            { id: 'tucet', znak: '12', nazev: 'Tucet', jak: '12 objevených bodů', ma: n.length >= 12, p: Math.min(1, n.length / 12), txt: n.length + ' z 12' },
-            { id: 'stovka', znak: '100', nazev: 'Stovka', jak: '100 objevených bodů', ma: n.length >= 100, p: Math.min(1, n.length / 100), txt: n.length + ' z 100' },
-            { id: 'trojuhelnik', znak: '▲', nazev: 'Trojúhelník', jak: 'tři TB z jednoho triangulačního listu', ma: maxList >= 3, p: Math.min(1, maxList / 3), txt: maxList + ' z 3' },
-            { id: 'kamen-z-budovy', znak: 'g', nazev: 'Kámen z budovy', jak: 'tíhový bod (bývá v budově — jen se svolením)', ma: n.some(function (x) { return x.tiha; }), p: n.some(function (x) { return x.tiha; }) ? 1 : 0, txt: n.some(function (x) { return x.tiha; }) ? '1 z 1' : '0 z 1' }
+            { id: 'prvni-kamen', znak: 'TB', nazev: T('První kámen'), jak: T('najdi první trigonometrický bod'), ma: tb.length >= 1, p: Math.min(1, tb.length), txt: T('{a} z {b}', { a: tb.length, b: 1 }) },
+            { id: 'tucet', znak: '12', nazev: T('Tucet'), jak: T('12 objevených bodů'), ma: n.length >= 12, p: Math.min(1, n.length / 12), txt: T('{a} z {b}', { a: n.length, b: 12 }) },
+            { id: 'stovka', znak: '100', nazev: T('Stovka'), jak: T('100 objevených bodů'), ma: n.length >= 100, p: Math.min(1, n.length / 100), txt: T('{a} z {b}', { a: n.length, b: 100 }) },
+            { id: 'trojuhelnik', znak: '▲', nazev: T('Trojúhelník'), jak: T('tři TB z jednoho triangulačního listu'), ma: maxList >= 3, p: Math.min(1, maxList / 3), txt: T('{a} z {b}', { a: maxList, b: 3 }) },
+            { id: 'kamen-z-budovy', znak: 'g', nazev: T('Kámen z budovy'), jak: T('tíhový bod (bývá v budově — jen se svolením)'), ma: n.some(function (x) { return x.tiha; }), p: n.some(function (x) { return x.tiha; }) ? 1 : 0, txt: n.some(function (x) { return x.tiha; }) ? T('{a} z {b}', { a: 1, b: 1 }) : T('{a} z {b}', { a: 0, b: 1 }) }
         ];
         // ocenění, která potřebují úplnost okresu (balíček)
         var nejPorad = null, nejP = 0;
         if (st) {
             for (var pr in st.porady) { var m = (porady[pr] || 0) / st.porady[pr]; if (m > nejP || !nejPorad) { nejP = m; nejPorad = pr; } }
             var hotovyPorad = null; for (var pr2 in st.porady) if ((porady[pr2] || 0) >= st.porady[pr2]) hotovyPorad = pr2;
-            out.push({ id: 'cely-porad', znak: 'KP', nazev: 'Celý pořad', jak: 'všechny body jednoho nivelačního pořadu (' + esc(nejPorad || '?') + ')', ma: !!hotovyPorad, p: Math.min(1, nejP), txt: nejPorad ? (porady[nejPorad] || 0) + ' z ' + st.porady[nejPorad] + ' · ' + nejPorad : '—' });
+            out.push({ id: 'cely-porad', znak: 'KP', nazev: T('Celý pořad'), jak: T('všechny body jednoho nivelačního pořadu ({p})', { p: esc(nejPorad || '?') }), ma: !!hotovyPorad, p: Math.min(1, nejP), txt: nejPorad ? T('{a} z {b}', { a: (porady[nejPorad] || 0), b: st.porady[nejPorad] }) + ' · ' + nejPorad : '—' });
             var tbOk = tb.filter(function (x) { return x.okres === st.okres; }).length;
-            out.push({ id: 'okres', znak: 'OK', nazev: 'Okres ' + st.okres, jak: 'všechny TB v okrese', ma: st.cat.TB > 0 && tbOk >= st.cat.TB, p: st.cat.TB ? Math.min(1, tbOk / st.cat.TB) : 0, txt: tbOk + ' z ' + st.cat.TB });
-            if (st.vrchol) out.push({ id: 'vrchol', znak: '△', nazev: 'Vrchol okresu', jak: 'nejvýš položený TB okresu: ' + esc(st.vrchol.name) + ' (' + esc(st.vrchol.ku || '') + ', ' + Math.round(st.vrchol.vyska) + ' m)', ma: !!_ix[st.vrchol.id], p: _ix[st.vrchol.id] ? 1 : 0, txt: _ix[st.vrchol.id] ? 'máš' : Math.round(st.vrchol.vyska) + ' m' });
+            out.push({ id: 'okres', znak: 'OK', nazev: T('Okres {n}', { n: st.okres }), jak: T('všechny TB v okrese'), ma: st.cat.TB > 0 && tbOk >= st.cat.TB, p: st.cat.TB ? Math.min(1, tbOk / st.cat.TB) : 0, txt: T('{a} z {b}', { a: tbOk, b: st.cat.TB }) });
+            if (st.vrchol) out.push({ id: 'vrchol', znak: '△', nazev: T('Vrchol okresu'), jak: T('nejvýš položený TB okresu: {n} ({ku}, {v} m)', { n: esc(st.vrchol.name), ku: esc(st.vrchol.ku || ''), v: Math.round(st.vrchol.vyska) }), ma: !!_ix[st.vrchol.id], p: _ix[st.vrchol.id] ? 1 : 0, txt: _ix[st.vrchol.id] ? T('máš') : Math.round(st.vrchol.vyska) + ' m' });
         } else {
-            out.push({ id: 'cely-porad', znak: 'KP', nazev: 'Celý pořad', jak: 'všechny body jednoho nivelačního pořadu — potřebuje stažený okres', ma: false, p: 0, txt: 'stáhni okres' });
-            out.push({ id: 'okres', znak: 'OK', nazev: 'Okres', jak: 'všechny TB v okrese — potřebuje stažený okres', ma: false, p: 0, txt: 'stáhni okres' });
+            out.push({ id: 'cely-porad', znak: 'KP', nazev: T('Celý pořad'), jak: T('všechny body jednoho nivelačního pořadu — potřebuje stažený okres'), ma: false, p: 0, txt: T('stáhni okres') });
+            out.push({ id: 'okres', znak: 'OK', nazev: T('Okres'), jak: T('všechny TB v okrese — potřebuje stažený okres'), ma: false, p: 0, txt: T('stáhni okres') });
         }
         return out;
     }
@@ -306,7 +309,7 @@
         try { if (window.AGDosah && AGDosah.vzdy) AGDosah.vzdy(cil.id); } catch (e) { }
         try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { }
         close();
-        toast('Navádím na ' + katLabel(cil.cat) + ' ' + cil.name + ' — ' + Math.round(dist(fix() ? fix().lat : cil.lat, fix() ? fix().lng : cil.lng, cil.lat, cil.lng)) + ' m.');
+        toast(T('Navádím na') + ' ' + katLabel(cil.cat) + ' ' + cil.name + ' — ' + Math.round(dist(fix() ? fix().lat : cil.lat, fix() ? fix().lng : cil.lng, cil.lat, cil.lng)) + ' m.');
     }
 
     // --------------------------------------------------------------------------------
@@ -351,19 +354,19 @@
                 _nalezy.forEach(function (n) { if (n.tiha) tiha++; else m[n.cat] = (m[n.cat] || 0) + 1; if (st && n.okres === st.okres) vOkrese++; });
                 var h = '<div class="agl-sum"><div><b class="agl-big">' + num(_nalezy.length) + '</b><small>objevených bodů</small></div><div><b class="agl-big">' + num(skore()) + '</b><small>skóre</small></div></div>';
                 if (st) {
-                    h += '<div class="agl-lbl">' + esc(st.okres) + '</div><div class="agl-row"><span>Objeveno v okrese</span><b class="agl-mono">' + num(vOkrese) + ' z ' + num(st.celkem) + '</b></div><div class="agl-bar"><i style="width:' + Math.min(100, vOkrese / Math.max(1, st.celkem) * 100).toFixed(1) + '%"></i></div>';
-                    cats.forEach(function (c) { var v = _nalezy.filter(function (n) { return n.cat === c && !n.tiha && n.okres === st.okres; }).length; h += '<div class="agl-row"><span><span class="agl-pill p-' + c.toLowerCase() + '">' + katLabel(c) + '</span></span><b class="agl-mono">' + num(v) + ' z ' + num(st.cat[c] || 0) + '</b></div>'; });
-                    if (st.tiha) h += '<div class="agl-row"><span><span class="agl-pill p-tiha">tíhový</span></span><b class="agl-mono">' + tiha + ' z ' + st.tiha + '</b></div>';
+                    h += '<div class="agl-lbl">' + esc(st.okres) + '</div><div class="agl-row"><span>Objeveno v okrese</span><b class="agl-mono">' + T('{a} z {b}', { a: num(vOkrese), b: num(st.celkem) }) + '</b></div><div class="agl-bar"><i style="width:' + Math.min(100, vOkrese / Math.max(1, st.celkem) * 100).toFixed(1) + '%"></i></div>';
+                    cats.forEach(function (c) { var v = _nalezy.filter(function (n) { return n.cat === c && !n.tiha && n.okres === st.okres; }).length; h += '<div class="agl-row"><span><span class="agl-pill p-' + c.toLowerCase() + '">' + katLabel(c) + '</span></span><b class="agl-mono">' + T('{a} z {b}', { a: num(v), b: num(st.cat[c] || 0) }) + '</b></div>'; });
+                    if (st.tiha) h += '<div class="agl-row"><span><span class="agl-pill p-tiha">tíhový</span></span><b class="agl-mono">' + T('{a} z {b}', { a: tiha, b: st.tiha }) + '</b></div>';
                 } else {
                     h += '<div class="agl-lbl">Podle druhu</div>';
                     cats.forEach(function (c) { h += '<div class="agl-row"><span><span class="agl-pill p-' + c.toLowerCase() + '">' + katLabel(c) + '</span></span><b class="agl-mono">' + num(m[c]) + '</b></div>'; });
                     if (tiha) h += '<div class="agl-row"><span><span class="agl-pill p-tiha">tíhový</span></span><b class="agl-mono">' + tiha + '</b></div>';
-                    h += '<div class="agl-note">Kolik bodů má okres a kolik ti chybí, ukážu, až bude okres v telefonu: <button type="button" class="agl-link" data-act="oblasti">Stáhnout oblast</button>' + (okres ? '' : ' (a až budu vědět, kde stojíš)') + '.</div>';
+                    h += '<div class="agl-note">Kolik bodů má okres a kolik ti chybí, ukážu, až bude okres v telefonu: <button type="button" class="agl-link" data-act="oblasti">Stáhnout oblast</button>' + (okres ? '' : ' ' + T('(a až budu vědět, kde stojíš)')) + '.</div>';
                 }
                 h += '<div class="agl-lbl">Poslední nálezy</div>';
-                if (!_nalezy.length) h += '<div class="agl-note">Zatím nic. Otevři kartu úředního bodu, dojdi k němu (do 5 m, ' + POSTOJ_S + ' s) a klepni <b>Našel jsem ho</b>.</div>';
+                if (!_nalezy.length) h += '<div class="agl-note">' + T('Zatím nic. Otevři kartu úředního bodu, dojdi k němu (do 5 m, {s} s) a klepni <b>Našel jsem ho</b>.', { s: POSTOJ_S }) + '</div>';
                 _nalezy.slice().reverse().slice(0, 40).forEach(function (n) {
-                    h += '<div class="agl-item"><div><span class="agl-pill p-' + (n.tiha ? 'tiha' : n.cat.toLowerCase()) + '">' + (n.tiha ? 'tíhový' : katLabel(n.cat)) + '</span> <b>' + esc(n.name) + '</b><small>' + esc([n.ku, n.okres].filter(Boolean).join(' · ')) + ' · ' + new Date(n.kdy).toLocaleDateString('cs-CZ') + (n.kdo ? ' · ' + esc(n.kdo) : '') + '</small></div><div class="agl-mono">+' + n.hod + '</div><button type="button" class="agl-x" data-act="odebrat" data-id="' + esc(n.id) + '" aria-label="Odebrat">✕</button></div>';
+                    h += '<div class="agl-item"><div><span class="agl-pill p-' + (n.tiha ? 'tiha' : n.cat.toLowerCase()) + '">' + (n.tiha ? 'tíhový' : katLabel(n.cat)) + '</span> <b>' + esc(n.name) + '</b><small>' + esc([n.ku, n.okres].filter(Boolean).join(' · ')) + ' · ' + new Date(n.kdy).toLocaleDateString(loc()) + (n.kdo ? ' · ' + esc(n.kdo) : '') + '</small></div><div class="agl-mono">+' + n.hod + '</div><button type="button" class="agl-x" data-act="odebrat" data-id="' + esc(n.id) + '" aria-label="Odebrat">✕</button></div>';
                 });
                 host.innerHTML = h;
             });
@@ -372,7 +375,7 @@
             statOkresu(okres).then(function (st) {
                 var o = oceneni(st), ma = o.filter(function (x) { return x.ma; }), ne = o.filter(function (x) { return !x.ma; });
                 ne.sort(function (a, b) { return b.p - a.p; });
-                var h = '<div class="agl-sum"><div><b class="agl-big">' + ma.length + ' z ' + o.length + '</b><small>ocenění</small></div></div>';
+                var h = '<div class="agl-sum"><div><b class="agl-big">' + T('{a} z {b}', { a: ma.length, b: o.length }) + '</b><small>ocenění</small></div></div>';
                 if (ne.length && ne[0].p > 0) h += '<div class="agl-lbl">Nejblíž máš</div>' + karta(ne[0], true);
                 h += '<div class="agl-lbl">Získaná</div>' + (ma.length ? ma.map(function (x) { return karta(x, false); }).join('') : '<div class="agl-note">Zatím žádné — první přijde s prvním trigonometrickým bodem.</div>');
                 h += '<div class="agl-lbl">Zbývají</div>' + ne.map(function (x) { return karta(x, true); }).join('');
@@ -386,11 +389,11 @@
             lov(f.lat, f.lng).then(function (r) {
                 _lovList = r.list;
                 var h = '<div class="agl-sum"><div><b class="agl-big">' + num(r.neobj) + '</b><small>neobjevených do 2 km</small></div><div><b class="agl-big">' + num(skore()) + '</b><small>skóre</small></div></div>';
-                if (r.kd) h += '<div class="agl-kd">★ Kámen dne: <b>' + katLabel(r.kd.pt.cat) + ' ' + esc(r.kd.pt.name) + '</b>' + (r.kd.pt.ku ? ' · ' + esc(r.kd.pt.ku) : '') + ' — dnes za dvojnásobek' + (nalezen(r.kd.pt) ? ' (máš!)' : '') + '</div>';
+                if (r.kd) h += '<div class="agl-kd">' + T('★ Kámen dne:') + ' <b>' + katLabel(r.kd.pt.cat) + ' ' + esc(r.kd.pt.name) + '</b>' + (r.kd.pt.ku ? ' · ' + esc(r.kd.pt.ku) : '') + ' — ' + T('dnes za dvojnásobek') + (nalezen(r.kd.pt) ? ' ' + T('(máš!)') : '') + '</div>';
                 h += '<div class="agl-note agl-small">Hodnota podle vzácnosti v ČR: TB 50 · ZhB 30 · nivelační 10 · PPBP 3 · tíhový 200. Řazeno podle výnosu na ušlý metr. Na cizí pozemek jen se svolením; body v ohradách a na střechách přeskoč.</div>';
-                if (!r.list.length) h += '<div class="agl-note">V okolí není nic neobjeveného' + (r.celkem ? '' : ' — nebo tu nejsou načtené body (zkus Stáhnout oblast)') + '.</div>';
+                if (!r.list.length) h += '<div class="agl-note">' + (r.celkem ? T('V okolí není nic neobjeveného.') : T('V okolí není nic neobjeveného — nebo tu nejsou načtené body (zkus Stáhnout oblast).')) + '</div>';
                 r.list.forEach(function (x, i) {
-                    h += '<div class="agl-item' + (x.kd ? ' kd' : '') + '"><div><span class="agl-pill p-' + (x.tiha ? 'tiha' : x.pt.cat.toLowerCase()) + '">' + (x.tiha ? 'tíhový' : katLabel(x.pt.cat)) + '</span> <b>' + esc(x.pt.name) + '</b>' + (x.kd ? ' ★' : '') + (x.tiha ? ' <i>nedostupný?</i>' : '') + '<small>' + esc(x.pt.ku || '') + (x.pt.druh ? ' · ' + esc(x.pt.druh) : '') + '</small></div><div class="agl-mono">+' + (x.hod * (x.kd ? 2 : 1)) + '<small>' + (x.d < 1000 ? Math.round(x.d) + ' m' : (x.d / 1000).toFixed(1).replace('.', ',') + ' km') + '</small></div><button type="button" class="btn btn-secondary agl-mini" data-act="doved" data-i="' + i + '">Doveď mě</button></div>';
+                    h += '<div class="agl-item' + (x.kd ? ' kd' : '') + '"><div><span class="agl-pill p-' + (x.tiha ? 'tiha' : x.pt.cat.toLowerCase()) + '">' + (x.tiha ? 'tíhový' : katLabel(x.pt.cat)) + '</span> <b>' + esc(x.pt.name) + '</b>' + (x.kd ? ' ★' : '') + (x.tiha ? ' <i>' + T('nedostupný?') + '</i>' : '') + '<small>' + esc(x.pt.ku || '') + (x.pt.druh ? ' · ' + esc(x.pt.druh) : '') + '</small></div><div class="agl-mono">+' + (x.hod * (x.kd ? 2 : 1)) + '<small>' + (x.d < 1000 ? Math.round(x.d) + ' m' : (x.d / 1000).toFixed(1).replace('.', ',') + ' km') + '</small></div><button type="button" class="btn btn-secondary agl-mini" data-act="doved" data-i="' + i + '">Doveď mě</button></div>';
                 });
                 host.innerHTML = h;
             });

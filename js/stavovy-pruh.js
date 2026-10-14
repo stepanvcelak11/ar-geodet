@@ -103,6 +103,8 @@
         zaznam: spojZaznam,
         _debug: function () { return { n: SPOJ.n, lastOk: SPOJ.lastOk, lastFail: SPOJ.lastFail, fails: SPOJ.fails.length }; }
     };
+    // překlad (js/jazyky.js) se zástupci {x}; česky vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function pred(ms) { var s = Math.round(ms / 1000); return s < 60 ? s + ' s' : Math.round(s / 60) + ' min'; }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
@@ -126,24 +128,24 @@
         var acc = (typeof currentGpsAccuracy !== 'undefined' && currentGpsAccuracy) ? currentGpsAccuracy : null;
         if (!haveUser() || acc == null) return { c: 'red', t: 'GPS —', d: 'Bez GPS fixu.', a: 'Jdi pod otevřené nebe a počkej. V budově GPS nechytneš.' };
         var age = _lastFixTs ? (Date.now() - _lastFixTs) : null;
-        if (age != null && age > 30000) return { c: 'red', t: 'GPS ztracena', d: 'Poslední fix před ' + Math.round(age / 1000) + ' s.', a: 'Signál se ztratil — vyjdi zpod střechy/stromů a počkej na nový fix.' };
-        if (acc <= 5 && (age == null || age <= 12000)) return { c: 'green', t: 'GPS ' + accTxt(acc), d: 'Přesnost ' + accTxt(acc) + ', fix čerstvý.', a: 'Dobré podmínky. Pro bod nech doběhnout průměrování.' };
-        if (acc <= 15) return { c: 'yellow', t: 'GPS ' + accTxt(acc), d: 'Přesnost ' + accTxt(acc) + '.', a: 'Počkej 30–60 s v klidu, nebo poodejdi 5 m od zdí a aut. Pomůže i „Predikce signálu" v Nástrojích.' };
-        return { c: 'red', t: 'GPS ' + accTxt(acc), d: 'Přesnost ' + accTxt(acc) + ' — na ukládání bodů to nestačí.', a: 'Přesuň se na volné prostranství. Pro co nejlepší bod z telefonu použij „Brutální GPS".' };
+        if (age != null && age > 30000) return { c: 'red', t: 'GPS ztracena', d: T('Poslední fix před {n} s.', { n: Math.round(age / 1000) }), a: 'Signál se ztratil — vyjdi zpod střechy/stromů a počkej na nový fix.' };
+        if (acc <= 5 && (age == null || age <= 12000)) return { c: 'green', t: 'GPS ' + accTxt(acc), d: T('Přesnost {a}, fix čerstvý.', { a: accTxt(acc) }), a: 'Dobré podmínky. Pro bod nech doběhnout průměrování.' };
+        if (acc <= 15) return { c: 'yellow', t: 'GPS ' + accTxt(acc), d: T('Přesnost {a}.', { a: accTxt(acc) }), a: 'Počkej 30–60 s v klidu, nebo poodejdi 5 m od zdí a aut. Pomůže i „Predikce signálu" v Nástrojích.' };
+        return { c: 'red', t: 'GPS ' + accTxt(acc), d: T('Přesnost {a} — na ukládání bodů to nestačí.', { a: accTxt(acc) }), a: 'Přesuň se na volné prostranství. Pro co nejlepší bod z telefonu použij „Brutální GPS".' };
     }
     // průměrování GPS (dřívější panel #gps-avg): {txt, detail} nebo null
     function avgInfo() {
         var r = null;
         try { r = (typeof gpsAvgResult !== 'undefined') ? gpsAvgResult : null; } catch (e) { r = null; }
         if (!r) return null;
-        if (r.coarse) return { txt: null, detail: 'Síťová poloha ' + accTxt(r.acc) + ' — počkej na satelitní fix.' };
+        if (r.coarse) return { txt: null, detail: esc(T('Síťová poloha {a} — počkej na satelitní fix.', { a: accTxt(r.acc) })) };
         // ⚠ #2 RUCNI POLOHA z mapy: prumer se u ni zamerne nesbira (n zustane 0),
         // takze bez teto vetve by bublina navzdy hlasila "Prumeruji...", i kdyz appka
         // polohu zna. Rikame nahlas, ze to neni mereni — cislo je z meritka mapy.
-        if (r.manual) return { txt: null, detail: 'Poloha odečtená z mapy ' + accTxt(r.acc) + ' — není to měření, přesnost vychází z měřítka mapy.' };
-        if (!(r.n >= 2)) return { txt: null, detail: 'Průměruji…' };
-        var kolik = (r.total && r.total > r.n) ? (r.n + ' z ' + r.total) : ('' + r.n);
-        return { txt: avgTxt(r.sterr), detail: '<b>' + avgTxt(r.sterr) + '</b> = stř. chyba průměru z <b>' + kolik + ' měření</b> (rozptyl σ ±' + num(r.sigma, 2) + ' m). Stejné číslo je v „Detail GPS".' };
+        if (r.manual) return { txt: null, detail: esc(T('Poloha odečtená z mapy {a} — není to měření, přesnost vychází z měřítka mapy.', { a: accTxt(r.acc) })) };
+        if (!(r.n >= 2)) return { txt: null, detail: esc(T('Průměruji…')) };
+        var kolik = (r.total && r.total > r.n) ? T('{n} z {t}', { n: r.n, t: r.total }) : ('' + r.n);
+        return { txt: avgTxt(r.sterr), detail: T('<b>{v}</b> = stř. chyba průměru z <b>{k} měření</b> (rozptyl σ ±{s} m). Stejné číslo je v „Detail GPS".', { v: avgTxt(r.sterr), k: kolik, s: num(r.sigma, 2) }) };
     }
     // AR / sever: resekce (AGPose) > ruční srovnání (calInfo) > nic
     function arState() {
@@ -153,7 +155,7 @@
         if (window.AGCompassDenied) return { c: 'red', t: 'Kompas ✗', d: 'Aplikace nemá povolený přístup k pohybu a orientaci — kompas mlčí a AR neukáže značky ani šipku.', a: 'iPhone: Nastavení → Safari → Pohyb a orientace zapnout a stránku načíst znovu. U ikony na ploše se iOS znovu nezeptá — smaž ji a přidej appku na plochu znovu. Mapa a měření fungují dál.' };
         if (window.AGPose && window.AGPose.valid && window.AGPose.source === 'resection') {
             var age = Math.round((Date.now() - (window.AGPose.ts || 0)) / 60000);
-            return { c: 'green', t: 'AR ✓ resekce', d: 'Stanovisko zakotveno resekcí' + (age ? ' před ' + age + ' min' : '') + (window.AGPose.posSigma != null ? ' (±' + num(window.AGPose.posSigma, 2) + ' m)' : '') + '.', a: 'Nejlepší možný stav. Když poodejdeš, kotva se sama zruší.' };
+            return { c: 'green', t: 'AR ✓ resekce', d: (age ? T('Stanovisko zakotveno resekcí před {n} min', { n: age }) : T('Stanovisko zakotveno resekcí')) + (window.AGPose.posSigma != null ? ' (±' + num(window.AGPose.posSigma, 2) + ' m)' : '') + '.', a: 'Nejlepší možný stav. Když poodejdeš, kotva se sama zruší.' };
         }
         var ci = calInfo();
         var hoff = (typeof userHeadingOffset !== 'undefined') ? userHeadingOffset : 0;
@@ -162,8 +164,8 @@
             var dist = null;
             if (haveUser() && ci.lat != null && typeof getDistance === 'function') { try { dist = getDistance(userLat, userLng, ci.lat, ci.lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'stavovy-pruh:arState'); } }
             var stale = ageMs > CAL_MAX_AGE || (dist != null && dist > CAL_MAX_DIST);
-            if (!stale) return { c: 'green', t: 'AR ✓', d: 'Sever srovnán před ' + Math.round(ageMs / 60000) + ' min' + (dist != null ? ' (' + Math.round(dist) + ' m odsud)' : '') + '.', a: 'Platí. Po přesunu jinam nebo za ~30 min srovnej znovu.' };
-            return { c: 'yellow', t: 'AR ?', d: 'Sever byl srovnán před ' + Math.round(ageMs / 60000) + ' min' + (dist != null ? ' a ' + Math.round(dist) + ' m odsud' : '') + ' — už nemusí platit.', a: 'Srovnej znovu podle bodu — tlačítko níž.' };
+            if (!stale) return { c: 'green', t: 'AR ✓', d: T('Sever srovnán před {n} min', { n: Math.round(ageMs / 60000) }) + (dist != null ? ' (' + T('{d} m odsud', { d: Math.round(dist) }) + ')' : '') + '.', a: 'Platí. Po přesunu jinam nebo za ~30 min srovnej znovu.' };
+            return { c: 'yellow', t: 'AR ?', d: (dist != null ? T('Sever byl srovnán před {n} min a {d} m odsud — už nemusí platit.', { n: Math.round(ageMs / 60000), d: Math.round(dist) }) : T('Sever byl srovnán před {n} min — už nemusí platit.', { n: Math.round(ageMs / 60000) })), a: 'Srovnej znovu podle bodu — tlačítko níž.' };
         }
         if (hoff) return { c: 'yellow', t: 'AR ~', d: 'Sever má ruční korekci, ale nevím odkdy.', a: 'Když značky nesedí, srovnej znovu — tlačítko níž.' };
         return { c: 'yellow', t: 'AR kompas', d: 'Sever jede jen z kompasu telefonu (typicky ±5–15°).', a: 'Pro přesné cílení srovnej sever podle známého bodu — tlačítko níž.' };
@@ -173,7 +175,7 @@
         try {
             var s = window.AGCompassStability ? window.AGCompassStability.score : null;
             if (s == null) return '';
-            return ' Kompas ' + (s >= 70 ? 'klidný' : (s >= 40 ? 'kolísá' : 'neklidný')) + ' (' + s + ' %).';
+            return ' ' + T(s >= 70 ? 'Kompas klidný ({s} %).' : (s >= 40 ? 'Kompas kolísá ({s} %).' : 'Kompas neklidný ({s} %).'), { s: s });
         } catch (e) { return ''; }
     }
     function dataState() {
@@ -181,8 +183,8 @@
         var tip = _tilesCached ? 'Offline mapa je uložená — výpadek nevadí.' : 'Tip: před cestou do terénu ulož mapu — Nastavení → Zakázka a data → „Uložit pro offline".';
         if (onl) {
             var sp = window.AGSpojeni ? AGSpojeni.stav() : { k: 'klid' };
-            if (sp.k === 'slaby') return { c: 'yellow', t: 'Signál slabý', d: 'Telefon hlásí internet, ale data nechodí — ' + (sp.okPred != null ? 'poslední odpověď před ' + pred(sp.okPred) : 'od startu nedošla žádná odpověď') + ', ' + sp.selhani + '× selhání za minutu.', a: 'Body z ČÚZK a mapa se dotáhnou, až signál zesílí; měření a ukládání běží dál. ' + (_tilesCached ? 'Offline mapa je uložená.' : '') };
-            if (sp.k === 'chodi') return { c: 'green', t: 'Data chodí', d: 'Internet je, poslední odpověď před ' + pred(sp.okPred) + '. Katastr i mapy se donačtou.', a: tip };
+            if (sp.k === 'slaby') return { c: 'yellow', t: 'Signál slabý', d: (sp.okPred != null ? T('Telefon hlásí internet, ale data nechodí — poslední odpověď před {p}, {n}× selhání za minutu.', { p: pred(sp.okPred), n: sp.selhani }) : T('Telefon hlásí internet, ale data nechodí — od startu nedošla žádná odpověď, {n}× selhání za minutu.', { n: sp.selhani })), a: T('Body z ČÚZK a mapa se dotáhnou, až signál zesílí; měření a ukládání běží dál.') + ' ' + (_tilesCached ? T('Offline mapa je uložená.') : '') };
+            if (sp.k === 'chodi') return { c: 'green', t: 'Data chodí', d: T('Internet je, poslední odpověď před {p}. Katastr i mapy se donačtou.', { p: pred(sp.okPred) }), a: tip };
             return { c: 'green', t: 'Online', d: 'Internet je. Katastr i mapy se donačtou.', a: tip };
         }
         if (_tilesCached) return { c: 'yellow', t: 'Offline ✓', d: 'Bez internetu, ale offline mapa je uložená.', a: 'Vše důležité funguje. Katastr online se nedotáhne.' };
@@ -191,10 +193,10 @@
     function batState() {
         if (!_bat) return null;
         var p = Math.round(_bat.level * 100);
-        if (_bat.charging) return { c: 'green', t: p + '% (nabíjí se)', d: 'Baterie ' + p + ' %, nabíjí se.', a: '' };
-        if (p >= 35) return { c: 'green', t: p + '%', d: 'Baterie ' + p + ' %.', a: '' };
-        if (p >= 15) return { c: 'yellow', t: p + '%', d: 'Baterie ' + p + ' % — AR s kamerou žere hodně.', a: 'Přepni na „Pouze mapa" (kolečko vpravo dole), displej ztlum. Úsporný režim appka řeší sama mimo AR.' };
-        return { c: 'red', t: p + '%', d: 'Baterie ' + p + ' % — dojede ti během měření.', a: 'Zapni úsporný režim telefonu, používej jen mapu a zavři AR. Data máš uložená průběžně.' };
+        if (_bat.charging) return { c: 'green', t: T('{p}% (nabíjí se)', { p: p }), d: T('Baterie {p} %, nabíjí se.', { p: p }), a: '' };
+        if (p >= 35) return { c: 'green', t: p + '%', d: T('Baterie {p} %.', { p: p }), a: '' };
+        if (p >= 15) return { c: 'yellow', t: p + '%', d: T('Baterie {p} % — AR s kamerou žere hodně.', { p: p }), a: 'Přepni na „Pouze mapa" (kolečko vpravo dole), displej ztlum. Úsporný režim appka řeší sama mimo AR.' };
+        return { c: 'red', t: p + '%', d: T('Baterie {p} % — dojede ti během měření.', { p: p }), a: 'Zapni úsporný režim telefonu, používej jen mapu a zavři AR. Data máš uložená průběžně.' };
     }
 
     // ---- hlavička bubliny --------------------------------------------------------
@@ -516,7 +518,7 @@
     function row(name, s, extra) {
         if (!s) return '';
         return '<div class="ag-sp-row"><span class="ag-sp-dot ' + s.c + '"></span><span class="ag-sp-k">' + esc(name) + '</span>'
-            + '<span class="ag-sp-v">' + esc(s.d) + (extra || '') + (s.a ? '<span class="ag-sp-a">' + esc(s.a) + '</span>' : '') + '</span></div>';
+            + '<span class="ag-sp-v">' + esc(T(s.d)) + (extra || '') + (s.a ? '<span class="ag-sp-a">' + esc(T(s.a)) + '</span>' : '') + '</span></div>';
     }
     // Dosažený kód kvality podle katastrální vyhlášky — jen informace k číslu, které
     // už na řádku svítí. (Věta o „cílové třídě zakázky" tu byla, dokud existovala
@@ -526,7 +528,7 @@
             var r = (typeof gpsAvgResult !== 'undefined') ? gpsAvgResult : null;
             if (!r || r.coarse || !(r.n >= 2) || !window.AGQc || !AGQc.codeForSigma) return '';
             var g = AGQc.codeForSigma(r.sterr);
-            return g ? (' Kód kvality <b>' + g.kod + '</b>.') : ' Na kód kvality 5 to zatím nestačí.';
+            return g ? (' ' + T('Kód kvality <b>{k}</b>.', { k: g.kod })) : ' ' + T('Na kód kvality 5 to zatím nestačí.');
         } catch (e) { return ''; }
     }
     function actsHtml() {
@@ -544,7 +546,7 @@
         var a = avgInfo();
         var gExtra = (a && a.detail) ? (' ' + a.detail) : '';
         var az = azHtml();
-        var arExtra = (az ? (' Azimut <b>' + az + '</b>.') : '') + cstabText();
+        var arExtra = (az ? (' ' + T('Azimut <b>{a}</b>.', { a: az })) : '') + cstabText();
         // Když v pruhu svítí upozornění, musí z něj vést cesta ke VŠEM hláškám.
         // Klepnutí na pruh záměrně dál otevírá tenhle detail (nemění se pod rukou,
         // co tlačítko dělá) a odsud se jde na kartu upozornění.

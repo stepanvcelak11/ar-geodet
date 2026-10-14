@@ -104,7 +104,7 @@ def staticke():
     ok(u'E5 dmr-terrain.js: cache buňky mimo CZ nese kód země', "z === 'CZ' ? k : z + ':' + k" in dt)
     vg = src('js/vyska-gps.js')
     ok(u'E5 vyska-gps.js: popisek a σ podle terrainElevInfo, DMR poznámka jen v ČR', 'window.terrainElevInfo()' in vg and "info.zdroj === 'DMR 5G' ? T('Výška terénu DMR 5G')" in vg and "if (info.zdroj === 'DMR 5G') {" in vg)
-    ok(u'E5 parcela-klik.js: řádek Terén podle zdroje', "radek('Terén (' + ti.zdroj + ')'" in pk)
+    ok(u'E5 parcela-klik.js: řádek Terén podle zdroje', ("radek('Terén (' + ti.zdroj + ')'" in pk or "radek(T('Terén ({z})', { z: ti.zdroj })" in pk))
     for l in core['poradi']:
         d = nacti('data/jazyky-%s.json' % l)['t']
         ok(u'E4/E5 rozšíření %s: nové klíče' % l, all(k in d for k in (u'Parcela', u'Zkopírovat číslo parcely', u'Výška terénu', u'Terén jen orientačně', u'Vzít výšku terénu')))

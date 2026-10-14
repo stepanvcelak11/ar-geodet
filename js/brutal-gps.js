@@ -33,6 +33,8 @@
 // ================================================================================
 (function () {
     'use strict';
+    // překlad (js/jazyky.js); v češtině vrací původní text, {x} = zástupci
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
 
     var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/></svg>';
 
@@ -210,7 +212,7 @@
         _samples.push({ t: now, lat: c.latitude, lng: c.longitude, acc: acc, alt: alt, pdop: _pdopNow });
         recompute();
     }
-    function onFixErr(err) { if (_open && _phase === 'warmup') setStatus('Čekám na GPS signál… (' + (err && err.message || '') + ')', 'warn'); }
+    function onFixErr(err) { if (_open && _phase === 'warmup') setStatus(T('Čekám na GPS signál… ({e})', { e: (err && err.message || '') }), 'warn'); }
 
     // ---- akcelerometr ---------------------------------------------------------
     function onMotion(e) {
@@ -371,8 +373,8 @@
             // Když číslo drží dolní mez (ne vlastní rozptyl), řekni to — jinak to vypadá,
             // že se měření „zaseklo" a delší ležení už nemá cenu.
             if (sub) sub.textContent = _result.atFloor
-                ? ('dolní mez ±' + _result.floor.toFixed(2) + ' m · rozptyl je už menší, delší měření a otočení mez povolí')
-                : ('rozptyl σ ±' + _result.sigma.toFixed(2) + ' m');
+                ? T('dolní mez ±{f} m · rozptyl je už menší, delší měření a otočení mez povolí', { f: _result.floor.toFixed(2) })
+                : T('rozptyl σ ±{s} m', { s: _result.sigma.toFixed(2) });
             try { if (window.AGQc) window.AGQc.onBrutal(st); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:render'); }   // QC: kód kvality (odpojitelné)
         } else if (cur) { cur.setAttribute('r', '110'); }
 
@@ -382,17 +384,17 @@
         }
         // průběžný stav během sběru
         if (_phase === 'warmup') {
-            setStatus('Zahřívání čipu… ' + Math.max(0, Math.ceil(WARMUP_S - elapsed)) + ' s (data zatím zahazuji)', 'warn');
+            setStatus(T('Zahřívání čipu… {s} s (data zatím zahazuji)', { s: Math.max(0, Math.ceil(WARMUP_S - elapsed)) }), 'warn');
         } else if (_phase === 'paused') {
-            setStatus('Pohyb! Sběr pozastaven — nech telefon v klidu ležet.', 'bad');
+            setStatus(T('Pohyb! Sběr pozastaven — nech telefon v klidu ležet.'), 'bad');
         } else if (_phase === 'collect') {
             if (_rotateTs && (Date.now() - _rotateTs) < 14000) {
-                setStatus((['¼', '½', '¾'][_rotStep - 1] || '') + ' času — OTOČ telefon o 90° po směru hodin a nech dál ležet (vyruší multipath).', 'warn');
+                setStatus(T('{q} času — OTOČ telefon o 90° po směru hodin a nech dál ležet (vyruší multipath).', { q: (['¼', '½', '¾'][_rotStep - 1] || '') }), 'warn');
             } else if (_result && _samples.length >= 3) {
                 var done = elapsed >= _targetS, goodQ = _result.sterr <= GOOD_M;
-                if (done) setStatus('Naměřeno ' + fmtTime(elapsed) + ' — ' + (goodQ ? 'kvalita OK, můžeš uložit.' : 'slabší kvalita, zvaž delší měření.'), goodQ ? 'good' : 'warn');
-                else setStatus('Sbírám… ' + fmtTime(elapsed) + ' z ' + fmtTime(_targetS) + ', nech telefon ležet.', null);
-            } else setStatus('Sbírám první vzorky…', null);
+                if (done) setStatus(T('Naměřeno {t} — {q}', { t: fmtTime(elapsed), q: (goodQ ? T('kvalita OK, můžeš uložit.') : T('slabší kvalita, zvaž delší měření.')) }), goodQ ? 'good' : 'warn');
+                else setStatus(T('Sbírám… {a} z {b}, nech telefon ležet.', { a: fmtTime(elapsed), b: fmtTime(_targetS) }), null);
+            } else setStatus(T('Sbírám první vzorky…'), null);
         }
 
         // odmítnuté vzorky (diagnostika)
@@ -400,11 +402,11 @@
         if (rEl) {
             var parts = [];
             if (_rej.fused) parts.push(_rej.fused + '× Wi-Fi/Cell');
-            if (_rej.motion) parts.push(_rej.motion + '× pohyb');
-            if (_rej.speed) parts.push(_rej.speed + '× rychlost');
-            if (_rej.alt) parts.push(_rej.alt + '× skok výšky');
-            if (_rej.pdop) parts.push(_rej.pdop + '× špatná geometrie');
-            rEl.textContent = parts.length ? ('Odfiltrováno: ' + parts.join(' · ')) : '';
+            if (_rej.motion) parts.push(T('{n}× pohyb', { n: _rej.motion }));
+            if (_rej.speed) parts.push(T('{n}× rychlost', { n: _rej.speed }));
+            if (_rej.alt) parts.push(T('{n}× skok výšky', { n: _rej.alt }));
+            if (_rej.pdop) parts.push(T('{n}× špatná geometrie', { n: _rej.pdop }));
+            rEl.textContent = parts.length ? T('Odfiltrováno: {x}', { x: parts.join(' · ') }) : '';
         }
         renderSessions();
     }
@@ -416,10 +418,10 @@
         box.classList.remove('bgps-hidden');
         var comb = combineSessions();
         var li = _sessions.map(function (s, i) {
-            return '<li><span>Sezení ' + (i + 1) + ' · ' + s.n + ' vz. · ' + fmtTime(s.dur) + '</span><span>±' + s.sterr.toFixed(2) + ' m</span></li>';
+            return '<li><span>' + T('Sezení {i} · {n} vz. · {t}', { i: (i + 1), n: s.n, t: fmtTime(s.dur) }) + '</span><span>±' + s.sterr.toFixed(2) + ' m</span></li>';
         }).join('');
-        box.innerHTML = '<b>Re-okupace: ' + _sessions.length + ' sezení</b>'
-            + (comb ? ' → spojený výsledek <b>±' + comb.sterr.toFixed(2) + ' m</b>' + (comb.spread != null ? ' (rozptyl sezení ' + comb.spread.toFixed(2) + ' m)' : '') : '')
+        box.innerHTML = '<b>' + T('Re-okupace: {n} sezení', { n: _sessions.length }) + '</b>'
+            + (comb ? ' → ' + T('spojený výsledek') + ' <b>±' + comb.sterr.toFixed(2) + ' m</b>' + (comb.spread != null ? ' ' + T('(rozptyl sezení {s} m)', { s: comb.spread.toFixed(2) }) : '') : '')
             + '<ul class="bgps-sessions">' + li + '</ul>';
     }
 
@@ -493,7 +495,7 @@
         if (!ok) { setStatus('Málo vzorků — zkus to znovu a nech telefon déle ležet.', 'bad'); return; }
         var dur = (Date.now() - _t0) / 1000;
         var kind = (_result.sterr <= GOOD_M && dur >= MIN_DUR_S) ? 'good' : 'warn';
-        setStatus('Hotovo: ±' + _result.sterr.toFixed(2) + ' m z ' + _result.n + ' vzorků za ' + fmtTime(dur) + '.', kind);
+        setStatus(T('Hotovo: ±{s} m z {n} vzorků za {t}.', { s: _result.sterr.toFixed(2), n: _result.n, t: fmtTime(dur) }), kind);
         render();
     }
 
@@ -505,8 +507,8 @@
         try { if (window.AGCampaign && AGCampaign.onSession) AGCampaign.onSession(_sessions.slice(), _ui); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:addSession'); }
         var comb = combineSessions();
         if (comb && comb.spread != null && comb.spread > 1.0)
-            setStatus('Sezení uloženo, ale rozptyl mezi sezeními je ' + comb.spread.toFixed(2) + ' m — zvaž další.', 'warn');
-        else setStatus('Sezení uloženo (celkem ' + _sessions.length + '). Spojený výsledek je přesnější.', 'good');
+            setStatus(T('Sezení uloženo, ale rozptyl mezi sezeními je {s} m — zvaž další.', { s: comb.spread.toFixed(2) }), 'warn');
+        else setStatus(T('Sezení uloženo (celkem {n}). Spojený výsledek je přesnější.', { n: _sessions.length }), 'good');
         renderSessions();
         show('bgps-when', true);
     }
@@ -514,7 +516,7 @@
     // ---- kdy se vrátit: nejlepší/nejodlišnější geometrie družic v dalších 3 h --
     function whenToReturn() {
         if (typeof computeSatPositions !== 'function' || typeof computePDOP !== 'function' || typeof userLat === 'undefined' || userLat == null) {
-            agAlert('Kdy se vrátit', 'Pro výpočet potřebuju stažené dráhy družic (otevři jednou „Satelity") a GPS polohu.\n\nObecné pravidlo: vrať se za 30–60 min, ať se geometrie družic výrazně změní.'); return;
+            agAlert('Kdy se vrátit', T('Pro výpočet potřebuju stažené dráhy družic (otevři jednou „Satelity") a GPS polohu.') + '\n\n' + T('Obecné pravidlo: vrať se za 30–60 min, ať se geometrie družic výrazně změní.')); return;
         }
         var mask = (typeof SAT_EL_MASK !== 'undefined' && isFinite(SAT_EL_MASK)) ? SAT_EL_MASK : 10;
         var now = Date.now(), best = null;
@@ -530,8 +532,8 @@
         var when = new Date(now + best.min * 60000);
         var hh = ('0' + when.getHours()).slice(-2), mm = ('0' + when.getMinutes()).slice(-2);
         agAlert('Kdy se vrátit na re-okupaci',
-            'Nejlepší geometrie družic bude přibližně v <b>' + hh + ':' + mm + '</b> (za ' + best.min + ' min) — PDOP ' + best.pdop.toFixed(1) + ', ' + best.n + ' družic.\n\n'
-            + 'Vrať se na ten samý bod a spusť další sezení. Jiná konstelace družic vyruší část multipathu a spojený výsledek bude přesnější.');
+            T('Nejlepší geometrie družic bude přibližně v {cas} (za {min} min) — PDOP {p}, {n} družic.', { cas: '<b>' + hh + ':' + mm + '</b>', min: best.min, p: best.pdop.toFixed(1), n: best.n }) + '\n\n'
+            + T('Vrať se na ten samý bod a spusť další sezení. Jiná konstelace družic vyruší část multipathu a spojený výsledek bude přesnější.'));
     }
 
     function save() {
@@ -557,13 +559,13 @@
             if (sh && sh.on && !sh.live && isFinite(sh.dlat) && isFinite(sh.dlng)) {   // live (z mapy za chůze): fixy už posunula logika.js
                 lat += sh.dlat; lng += sh.dlng;
                 var m = mPerDeg(lat); var mag = Math.hypot(sh.dlng * m.lng, sh.dlat * m.lat);
-                calibTxt = '\nKalibrace aplikována: +' + (mag * 100).toFixed(0) + ' cm';
+                calibTxt = '\n' + T('Kalibrace aplikována: +{cm} cm', { cm: (mag * 100).toFixed(0) });
                 // expirace: konstantní posun stárne (systematika GPS se mění) → varuj nad 20 min
                 var ageMin = sh.t ? (Date.now() - sh.t) / 60000 : null;
-                if (ageMin != null && ageMin > 20) calibTxt += ' ⚠ kalibrace stará ' + Math.round(ageMin) + ' min (přesnost klesá)';
+                if (ageMin != null && ageMin > 20) calibTxt += ' ⚠ ' + T('kalibrace stará {m} min (přesnost klesá)', { m: Math.round(ageMin) });
                 // co bod dostal — kalibrace před a po (js/kalibrace-hranou.js) to podle času nahradí
                 applied = { dlat: sh.dlat, dlng: sh.dlng, t: sh.t || null, src: sh.src || 'ref' };
-                if (sh.src === 'hrana') calibTxt += '\nTip: až doměříš, projdi hranu znovu — bod se zpřesní zpětně podle času měření.';
+                if (sh.src === 'hrana') calibTxt += '\n' + T('Tip: až doměříš, projdi hranu znovu — bod se zpřesní zpětně podle času měření.');
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:save'); }
         var name = ($('bgps-name').value || '').trim() || ('BG' + Date.now().toString().slice(-4));
@@ -607,7 +609,7 @@
             var sj = null;
             try { if (window.GeoCore && GeoCore.toMistni) sj = GeoCore.toMistni(lat, lng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:save'); }
             var coords = sj ? ('\nY ' + agFmtM(sj.y) + '  X ' + agFmtM(sj.x)) : '';
-            var srcTxt = (pouzito.length > 1) ? ('\nSpojeno z ' + pouzito.length + ' sezení') : '';
+            var srcTxt = (pouzito.length > 1) ? ('\n' + T('Spojeno z {n} sezení', { n: pouzito.length })) : '';
             // Re-okupace dokončena → z fronty vyřadit JEN sezení, která do bodu vešla.
             // Vzdálená sezení (patřící jinému bodu) tam musí zůstat — paušální
             // `_sessions = []` je dřív tiše zahodilo i s celou jejich okupací.
@@ -615,7 +617,7 @@
             persistSessions();
             try { if (window.AGCampaign && AGCampaign.onSaved) AGCampaign.onSaved(name); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brutal-gps:save'); }
             var escN = (window.AG && AG.esc) ? AG.esc(name) : String(name).replace(/[<>&]/g, '');
-            var uloz = '#' + escN + ' uložen do zakázky.\nDosažená přesnost ±' + (src.sterr != null ? src.sterr.toFixed(2) : '?') + ' m' + coords + srcTxt + calibTxt;
+            var uloz = T('#{n} uložen do zakázky.', { n: escN }) + '\n' + T('Dosažená přesnost ±{s} m', { s: (src.sterr != null ? src.sterr.toFixed(2) : '?') }) + coords + srcTxt + calibTxt;
             // DOČASNÁ ZÁKLADNA: tenhle bod může druhému telefonu posílat korekce (Dvoutelefonní
             // DGPS). Zdědí svou chybu (±sterr ⊕ kalibrace) jako společný posun všech bodů
             // roveru, ale prodlouží platnost kalibrace v čase a dá roveru tvar na ±0,5 m.
@@ -654,7 +656,7 @@
         $('bgps-start').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4"/></svg> Spustit měření';
         var val = $('bgps-val'); if (val) val.textContent = '–';
         var sub = $('bgps-val-sub'); if (sub) sub.textContent = 'čeká na start';
-        setStatus(_sessions.length ? ('Rozpracovaná re-okupace: ' + _sessions.length + ' sezení. Spusť další, nebo ulož.') : 'Připraveno. Umísti telefon a stiskni Spustit.', _sessions.length ? 'warn' : null);
+        setStatus(_sessions.length ? T('Rozpracovaná re-okupace: {n} sezení. Spusť další, nebo ulož.', { n: _sessions.length }) : T('Připraveno. Umísti telefon a stiskni Spustit.'), _sessions.length ? 'warn' : null);
         refreshPdop(); render();
         // A1/A3 (odpojitelné moduly): kampaň „3 návštěvy" + skóre místa se vloží
         // do overlaye, jen když jsou načtené — jinak se nic neděje

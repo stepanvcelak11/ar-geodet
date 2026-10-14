@@ -25,6 +25,8 @@
 // ================================================================================
 (function () {
     'use strict';
+    // překlad (AGJazyk) se zástupci {x}; v češtině vrací přesně původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     if (window.AGMagCompass) return;
 
     var BOX_ID = 'ag-mag';
@@ -235,7 +237,7 @@
             if (nd && d != null) nd.setAttribute('transform', 'rotate(' + d.toFixed(2) + ' 60 60)');
             set('agm-note', d == null
                 ? 'Deklinaci spočítám, až bude GPS poloha.'
-                : ('Magnetický sever je zde <b>' + num(Math.abs(d), 1) + '° na ' + (d >= 0 ? 'východ' : 'západ')
+                : ('Magnetický sever je zde <b>' + num(Math.abs(d), 1) + '° ' + (d >= 0 ? T('na východ') : T('na západ'))
                     + '</b> od zeměpisného. Na 100 m je to posun <b>' + num(Math.abs(d) * Math.PI / 180 * 100, 1)
                     + ' m</b> — busolu a azimuty z appky proto nikdy nemíchej v jednom výpočtu. '
                     + 'Drž telefon naplocho a dál od kovu, auta a betonářské výztuže.'), 'note');

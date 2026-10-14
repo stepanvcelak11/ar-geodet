@@ -684,7 +684,7 @@
                 // třetí parametr = soft: takový pokus se do brzdy v telefonu NEpočítá.
                 // 429 („moc pokusů") zvlášť — počítat ho jako uhádnutí hesla znamenalo,
                 // že se serverová a telefonní brzda navzájem krmily až do zaseknutí.
-                return done((r.data && r.data.error) || ('Přihlášení selhalo (' + r.status + ').'),
+                return done((r.data && r.data.error) || T('Přihlášení selhalo ({s}).', { s: r.status }),
                     null, !spatneHeslo(r.status));
             }
             // offline: ověř proti lokálnímu ověřovadlu
@@ -851,7 +851,7 @@
             _touchActivity();
             applyPerms();
             usageLog('login', 'sso-switch');
-            try { if (typeof quickToast === 'function') quickToast('Přihlášen jako ' + auto.name + ' (stejný účet).'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:switchProfile'); }
+            try { if (typeof quickToast === 'function') quickToast(T('Přihlášen jako {n} (stejný účet).', { n: auto.name })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:switchProfile'); }
         } else {
             setSess(null);                           // nové přihlášení (PIN)
             applyPerms();
@@ -1302,6 +1302,8 @@
     // ------------------------------------------------------------------
     // Přihlašovací / zamykací obrazovka
     // ------------------------------------------------------------------
+    // překlad věty se zástupci {n}… (13. 10. 2026); česky vrací přesně původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
     // deterministická barva avataru ze jména — lidé se na obrazovce rychle najdou
@@ -1563,8 +1565,8 @@
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:projInfoHtml'); }
         try { if (typeof persistentCustomPoints !== 'undefined' && persistentCustomPoints) n = persistentCustomPoints.length; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:projInfoHtml'); }
         if (!name && n == null) return '';
-        return '<div class="agl-proj">' + (name ? 'Zakázka <b>' + esc(name) + '</b>' : 'Bez zakázky') +
-            (n != null ? ' · ' + n + ' ' + (n === 1 ? 'bod' : (n >= 2 && n <= 4 ? 'body' : 'bodů')) : '') + '</div>';
+        return '<div class="agl-proj">' + (name ? T('Zakázka {n}', { n: '<b>' + esc(name) + '</b>' }) : T('Bez zakázky')) +
+            (n != null ? ' · ' + n + ' ' + T(n === 1 ? 'bod' : (n >= 2 && n <= 4 ? 'body' : 'bodů')) : '') + '</div>';
     }
 
     function injectStyles() {
@@ -2315,7 +2317,7 @@
                 if (!ok) {
                     // Neúspěch NENÍ špatné heslo (uživatel mohl dialog jen zavřít nebo
                     // ho systém nepustil bez gesta) → do brzdy hádání se nepočítá.
-                    if (!silent) errEl.textContent = 'Ověření telefonem neprošlo — zkus to znovu, nebo zadej ' + (cloud ? 'heslo' : 'PIN') + '.';
+                    if (!silent) errEl.textContent = cloud ? T('Ověření telefonem neprošlo — zkus to znovu, nebo zadej heslo.') : T('Ověření telefonem neprošlo — zkus to znovu, nebo zadej PIN.');
                     return;
                 }
                 // Zapamatovat přihlášení jen když si to uživatel přeje — odemčení
@@ -2375,7 +2377,7 @@
             }
             pinInp.disabled = true; nameInp.disabled = true;
             if (loginBtn) { loginBtn.disabled = true; loginBtn.textContent = 'Zamčeno'; }
-            errEl.textContent = 'Příliš mnoho pokusů — zkus to za ' + lockTxt(left) + '.';
+            errEl.textContent = T('Příliš mnoho pokusů — zkus to za {t}.', { t: lockTxt(left) });
         }
         function startLockTick() {
             if (_lockTimer) clearInterval(_lockTimer);
@@ -2405,7 +2407,7 @@
                 //   — a cizinec ho neviděl přeložený vůbec.
                 if (zb <= 2) {
                     var zbEl = document.createElement('span');
-                    zbEl.textContent = ' Zbývá ' + zb + (zb === 1 ? ' pokus' : ' pokusy') + ' do zamčení.';
+                    zbEl.textContent = ' ' + (zb === 1 ? T('Zbývá {n} pokus do zamčení.', { n: zb }) : T('Zbývá {n} pokusy do zamčení.', { n: zb }));
                     errEl.appendChild(zbEl);
                 }
             }
@@ -2466,12 +2468,10 @@
         ov.querySelector('#agl-forgot').addEventListener('click', async function () {
             var admins = f.users.filter(function (u) { return u.role === 'admin'; }).map(function (u) { return u.name; });
             var msg = cloud
-                ? ('Heslo ti změní administrátor (' + (admins.join(', ') || '—') + ') v Administraci firmy — z libovolného zařízení.\n\n' +
-                    'Nouzově lze toto ZAŘÍZENÍ od firmy odpojit — appka se odemkne bez účtů. ' +
-                    'BODY A ZAKÁZKY ZŮSTANOU, firma na serveru se nemění (jiná zařízení jedou dál).\n\nPro odpojení napiš RESET:')
-                : ('PIN ti může změnit administrátor (' + (admins.join(', ') || '—') + ') v Administraci firmy.\n\n' +
-                    'Když je nedostupný i admin, lze firemní režim NOUZOVĚ vypnout — appka se odemkne, ' +
-                    'účty a oprávnění se smažou. BODY A ZAKÁZKY ZŮSTANOU.\n\nPro nouzové vypnutí napiš RESET:');
+                ? (T('Heslo ti změní administrátor ({a}) v Administraci firmy — z libovolného zařízení.', { a: (admins.join(', ') || '—') }) + '\n\n' +
+                    T('Nouzově lze toto ZAŘÍZENÍ od firmy odpojit — appka se odemkne bez účtů. BODY A ZAKÁZKY ZŮSTANOU, firma na serveru se nemění (jiná zařízení jedou dál).') + '\n\n' + T('Pro odpojení napiš RESET:'))
+                : (T('PIN ti může změnit administrátor ({a}) v Administraci firmy.', { a: (admins.join(', ') || '—') }) + '\n\n' +
+                    T('Když je nedostupný i admin, lze firemní režim NOUZOVĚ vypnout — appka se odemkne, účty a oprávnění se smažou. BODY A ZAKÁZKY ZŮSTANOU.') + '\n\n' + T('Pro nouzové vypnutí napiš RESET:'));
             agGet(msg, { title: 'Zapomenuté přihlášení', placeholder: 'RESET', okText: 'Potvrdit' }).then(function (v) {
             if (v === 'RESET') {
                 removeProfile(profileKeyOf(f));
@@ -2614,7 +2614,7 @@
                     return '<button type="button" class="agg-prof" data-key="' + esc(p.key) + '">' +
                         '<span class="agg-pav">' + FIRM_SVG + '</span>' +
                         '<span class="agg-pt"><b>' + esc(p.label) + '</b>' +
-                        '<span>' + (p.cloud ? 'cloud · kód ' + esc(p.code || '?') : 'jen toto zařízení') + '</span></span>' +
+                        '<span>' + (p.cloud ? T('cloud · kód {k}', { k: esc(p.code || '?') }) : T('jen toto zařízení')) + '</span></span>' +
                         '<span class="agg-go">›</span></button>';
                 }).join('');
         }
@@ -2722,7 +2722,7 @@
                 return;
             }
             goBtn.disabled = true; goBtn.textContent = 'Zamčeno';
-            errEl.textContent = 'Příliš mnoho pokusů — zkus to za ' + lockTxt(left) + '.';
+            errEl.textContent = T('Příliš mnoho pokusů — zkus to za {t}.', { t: lockTxt(left) });
         }
         function gateLockStart() { if (_gateTimer) clearInterval(_gateTimer); gateLockTick(); _gateTimer = setInterval(gateLockTick, 1000); }
         if (lockLeft() > 0) gateLockStart();
@@ -2762,11 +2762,11 @@
                 if (!spatneHeslo(r.status)) {
                     // brzda na serveru (429), zablokovaný účet (403) nebo chyba serveru —
                     // nic z toho není uhádnuté heslo, takže se do brzdy v telefonu nepočítá
-                    errEl.textContent = (r.data && r.data.error) || ('Přihlášení selhalo (' + r.status + ').');
+                    errEl.textContent = (r.data && r.data.error) || T('Přihlášení selhalo ({s}).', { s: r.status });
                     return;
                 }
                 var wait = failAdd();
-                errEl.textContent = (r.data && r.data.error) || ('Přihlášení selhalo (' + r.status + ').');
+                errEl.textContent = (r.data && r.data.error) || T('Přihlášení selhalo ({s}).', { s: r.status });
                 if (wait > 0) gateLockStart();
             });
         };
@@ -2848,8 +2848,8 @@
             if (_invite.name) ov.querySelector('#agg-name').value = _invite.name;
             srovnejPole();
             var fi = ov.querySelector('.agl-firm');
-            if (fi) fi.textContent = 'Pozvánka do firmy ' + _invite.code + (_invite.name ? ' pro ' + _invite.name : '')
-                + ' — dopiš heslo, které ti poslal admin.';
+            if (fi) fi.textContent = (_invite.name ? T('Pozvánka do firmy {c} pro {n}', { c: _invite.code, n: _invite.name }) : T('Pozvánka do firmy {c}', { c: _invite.code }))
+                + ' — ' + T('dopiš heslo, které ti poslal admin.');
             setTimeout(function () {
                 try { ov.querySelector(_invite.name ? '#agg-pass' : '#agg-name').focus(); }
                 catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:invite-focus'); }
@@ -2916,7 +2916,7 @@
         done = done || function () { };
         cloudFetch('/spaces/switch', { method: 'POST', body: { firmId: firmId } }).then(function (r) {
             if (!(r.ok && r.data && r.data.token)) {
-                return done((r.data && r.data.error) || ('Přepnutí selhalo (' + r.status + ').'));
+                return done((r.data && r.data.error) || T('Přepnutí selhalo ({s}).', { s: r.status }));
             }
             // Heslo se sem nepředává (nezadávalo se) — ověřovadlo pro offline
             // přihlášení zůstává to, které si telefon udělal při přihlášení.
@@ -3010,7 +3010,7 @@
         try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: u, kind: 'auto' } })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:autoLogin'); }
         enterApp();          // pamatovane prihlaseni branu preskoci -> appka musi nastartovat sama
         var left = trustLeft(t);
-        if (left <= 3) setTimeout(function () { toast('Přihlášen jako ' + u.name + ' · za ' + left + ' spuštění bude potřeba heslo'); }, 1200);
+        if (left <= 3) setTimeout(function () { toast(T('Přihlášen jako {n} · za {k} spuštění bude potřeba heslo', { n: u.name, k: left })); }, 1200);
     }
     function logout() {
         // Vlastník se odhlašuje jako každý jiný — vrátí se brána a chce se klíč

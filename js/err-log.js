@@ -7,6 +7,8 @@
 
 (function () {
     'use strict';
+    // překlad (AGJazyk) se zástupci {x}; v češtině vrací přesně původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
 
     var KEY = 'agErrorLog';
     var MAX = 40;              // kruhový buffer - nejstarší se zahazují
@@ -65,7 +67,7 @@
             _lastToast = now; _lastSig = sig;
             // toast až po startu (quickToast je v logika.js, která se teprve načte)
             setTimeout(function () {
-                try { if (typeof quickToast === 'function') quickToast('Něco se pokazilo (' + String(msg).slice(0, 60) + '). Detail: Nástroje → Další → Protokol chyb.'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'err-log:record'); }
+                try { if (typeof quickToast === 'function') quickToast(T('Něco se pokazilo ({m}). Detail: Nástroje → Další → Protokol chyb.', { m: String(msg).slice(0, 60) })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'err-log:record'); }
             }, 800);
         }
     }

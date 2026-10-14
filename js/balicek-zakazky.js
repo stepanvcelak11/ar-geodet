@@ -52,6 +52,7 @@
     // --------------------------------------------------------------------------------
     // Pomůcky
     // --------------------------------------------------------------------------------
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function esc(s) {
         return (window.AG && AG.esc) ? AG.esc(s)
             : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -60,10 +61,12 @@
     }
     function swallow(e, kde) { try { if (window.AG && AG.swallow) AG.swallow(e, kde); } catch (err) { /* poslední instance */ } }
     function toast(m) {
+        m = T(m);
         try { if (window.AG && AG.toast) return AG.toast(m); } catch (e) { swallow(e, 'balicek:toast'); }
         try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) { swallow(e, 'balicek:toast'); }
     }
     function alertBox(title, msg) {
+        title = T(title); msg = T(msg);
         if (typeof window.agAlert === 'function') return window.agAlert({ title: title, message: msg });
         try { if (typeof agInfo === 'function') agInfo((title ? title + '\n\n' : '') + String(msg).replace(/<[^>]+>/g, '')); } catch (e) { swallow(e, 'balicek:alertBox'); }
         return Promise.resolve(true);
@@ -104,16 +107,16 @@
             // se dá poradit, jestli 500 m stačí, nebo je zakázka rozlezlá.
             var span = 0;
             pts.forEach(function (p) { var d = dist(cLat, cLng, p.lat, p.lng); if (d != null && d > span) span = d; });
-            return { lat: cLat, lng: cLng, from: from + ' (' + pts.length + ')', span: span };
+            return { lat: cLat, lng: cLng, from: T(from) + ' (' + pts.length + ')', span: span };
         }
         try {
             if (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null) {
-                return { lat: userLat, lng: userLng, from: 'moje poloha', span: 0 };
+                return { lat: userLat, lng: userLng, from: T('moje poloha'), span: 0 };
             }
         } catch (e) { swallow(e, 'balicek:center'); }
         try {
             var p = JSON.parse(localStorage.getItem('arLastPos'));
-            if (p && p.lat != null) return { lat: +p.lat, lng: +(p.lng != null ? p.lng : p.lon), from: 'poslední známá poloha', span: 0 };
+            if (p && p.lat != null) return { lat: +p.lat, lng: +(p.lng != null ? p.lng : p.lon), from: T('poslední známá poloha'), span: 0 };
         } catch (e) { swallow(e, 'balicek:center'); }
         return null;
     }
@@ -148,12 +151,12 @@
             var o = JSON.parse(raw);
             if (!o || !o.t) return { ok: false, why: 'zatím nestažená' };
             var hrs = (Date.now() - o.t) / 3600000;
-            if (hrs > WX_FRESH_H) return { ok: false, why: 'stará ' + Math.round(hrs) + ' h' };
+            if (hrs > WX_FRESH_H) return { ok: false, why: T('stará {h} h', { h: Math.round(hrs) }) };
             if (c && isFinite(o.lat) && isFinite(o.lon)) {
                 var d = dist(c.lat, c.lng, o.lat, o.lon);
-                if (d != null && d / 1000 > WX_NEAR_KM) return { ok: false, why: 'je pro místo ' + Math.round(d / 1000) + ' km odsud' };
+                if (d != null && d / 1000 > WX_NEAR_KM) return { ok: false, why: T('je pro místo {km} km odsud', { km: Math.round(d / 1000) }) };
             }
-            return { ok: true, why: 'čerstvá (' + (hrs < 1 ? 'do hodiny' : Math.round(hrs) + ' h') + ')' };
+            return { ok: true, why: T('čerstvá ({t})', { t: (hrs < 1 ? T('do hodiny') : Math.round(hrs) + ' h') }) };
         } catch (e) { return { ok: false, why: 'nepodařilo se přečíst' }; }
     }
 
@@ -173,7 +176,7 @@
                 kolik = off.length;
                 if (kolik && typeof setStoredData === 'function') setStoredData('arOfflinePoints12', JSON.stringify(off));
             } catch (e) { swallow(e, 'balicek:stepPoints'); }
-            log('body', kolik ? 'ok' : 'warn', kolik ? (kolik + ' bodů uloženo offline' + (n ? ' (' + n + ' nových)' : '')) : 'v okolí nejsou žádné úřední body');
+            log('body', kolik ? 'ok' : 'warn', kolik ? (T('{n} bodů uloženo offline', { n: kolik }) + (n ? ' (' + T('{n} nových', { n: n }) + ')' : '')) : 'v okolí nejsou žádné úřední body');
         }).catch(function () {
             log('body', 'err', 'ČÚZK neodpověděl — zkus to znovu s lepším signálem');
         });
@@ -186,16 +189,16 @@
         return Promise.resolve(cacheTilesForArea(c.lat, c.lng, radius, true)).then(function (res) {
             try { if (typeof hideOfflineProgress === 'function') hideOfflineProgress(); } catch (e) { swallow(e, 'balicek:stepTiles'); }
             if (!res || res.unsupported) { log('mapa', 'err', 'prohlížeč offline mapu neumí'); return; }
-            if (res.tooMany) { log('mapa', 'err', 'oblast je moc velká (' + res.total + ' dlaždic) — zmenši poloměr'); return; }
-            var msg = 'mapa ' + res.ok + '/' + res.total;
+            if (res.tooMany) { log('mapa', 'err', T('oblast je moc velká ({n} dlaždic) — zmenši poloměr', { n: res.total })); return; }
+            var msg = T('mapa') + ' ' + res.ok + '/' + res.total;
             var w = res.wms || {};
-            if (w.katastr && w.katastr.total) msg += ' · katastr ' + (w.katastr.skipped ? 'přeskočen (moc velká oblast)' : w.katastr.ok + '/' + w.katastr.total);
-            if (w.ortofoto && w.ortofoto.total) msg += ' · ortofoto ' + (w.ortofoto.skipped ? 'přeskočeno' : w.ortofoto.ok + '/' + w.ortofoto.total);
+            if (w.katastr && w.katastr.total) msg += ' · ' + T('katastr') + ' ' + (w.katastr.skipped ? T('přeskočen (moc velká oblast)') : w.katastr.ok + '/' + w.katastr.total);
+            if (w.ortofoto && w.ortofoto.total) msg += ' · ' + T('ortofoto') + ' ' + (w.ortofoto.skipped ? T('přeskočeno') : w.ortofoto.ok + '/' + w.ortofoto.total);
             var uplne = res.ok === res.total && !(w.katastr && w.katastr.skipped);
-            log('mapa', uplne ? 'ok' : 'warn', msg + (uplne ? '' : ' — část se nestáhla'));
+            log('mapa', uplne ? 'ok' : 'warn', msg + (uplne ? '' : ' — ' + T('část se nestáhla')));
         }).catch(function (e) {
             try { if (typeof hideOfflineProgress === 'function') hideOfflineProgress(); } catch (er) { swallow(er, 'balicek:stepTiles'); }
-            log('mapa', 'err', 'stahování selhalo: ' + ((e && e.message) ? e.message : 'neznámá chyba'));
+            log('mapa', 'err', T('stahování selhalo: {e}', { e: ((e && e.message) ? e.message : T('neznámá chyba')) }));
         });
     }
 
@@ -208,14 +211,14 @@
             return d != null && d <= radius;
         }).slice(0, DMR_MAX);
         if (!pts.length) { log('teren', 'skip', 'v okolí nejsou body, ke kterým by se výška hodila'); return Promise.resolve(); }
-        log('teren', 'run', 'odečítám výšky (' + pts.length + ')…');
+        log('teren', 'run', T('odečítám výšky ({n})…', { n: pts.length }));
         var ok = 0, fail = 0, i = 0;
         // Sériově po malých dávkách — dmr-terrain.js si sám drží MAX_CONCURRENT 3,
         // ale zahltit ho tisícem promisů naráz by jen nafouklo frontu.
         function davka() {
             if (i >= pts.length) {
                 log('teren', ok ? (fail ? 'warn' : 'ok') : 'warn',
-                    ok + ' výšek uloženo' + (fail ? ', ' + fail + ' se nepodařilo' : ''));
+                    T('{n} výšek uloženo', { n: ok }) + (fail ? ', ' + T('{n} se nepodařilo', { n: fail }) : ''));
                 return Promise.resolve();
             }
             var chunk = pts.slice(i, i + 6); i += 6;
@@ -270,6 +273,7 @@
     var _state = {};
 
     function log(k, st, msg) {
+        msg = T(msg);
         _state[k] = { st: st, msg: msg };
         renderSteps();
     }
@@ -301,12 +305,12 @@
         var lastTxt = '';
         if (last && last.t) {
             var h = (Date.now() - last.t) / 3600000;
-            lastTxt = '<br><span class="agbz-dim">Naposledy sbaleno ' + (h < 24 ? ('před ' + (h < 1 ? Math.round(h * 60) + ' min' : Math.round(h) + ' h')) : new Date(last.t).toLocaleDateString('cs-CZ'))
-                + (last.r ? ' · poloměr ' + last.r + ' m' : '') + '</span>';
+            lastTxt = '<br><span class="agbz-dim">' + T('Naposledy sbaleno {kdy}', { kdy: (h < 24 ? T('před {t}', { t: (h < 1 ? Math.round(h * 60) + ' min' : Math.round(h) + ' h') }) : new Date(last.t).toLocaleDateString('cs-CZ')) })
+                + (last.r ? ' · ' + T('poloměr {r} m', { r: last.r }) : '') + '</span>';
         }
         host.className = 'agbz-where';
         host.innerHTML = 'Střed podle: <b>' + esc(c.from) + '</b>'
-            + (c.span > 50 ? '<br><span class="agbz-dim">Zakázka je rozlezlá do ' + Math.round(c.span) + ' m od středu.</span>' : '')
+            + (c.span > 50 ? '<br><span class="agbz-dim">' + T('Zakázka je rozlezlá do {m} m od středu.', { m: Math.round(c.span) }) + '</span>' : '')
             + lastTxt;
     }
 
@@ -388,7 +392,7 @@
             })
             .catch(function (e) {
                 swallow(e, 'balicek:run');
-                alertBox('Balení selhalo', 'Nepodařilo se dokončit: ' + esc((e && e.message) ? e.message : 'neznámá chyba'));
+                alertBox('Balení selhalo', T('Nepodařilo se dokončit: {e}', { e: esc((e && e.message) ? e.message : T('neznámá chyba')) }));
             })
             .then(function () {
                 _running = false;

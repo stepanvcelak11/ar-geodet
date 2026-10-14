@@ -113,14 +113,14 @@
             if (auto) h += '<div class="agvz-btns"><div class="agvz-n" style="flex:1 1 100%;margin:0 0 6px;">✓ ' + esc(T('Výška vzata z terénu')) + ' (' + esc(info.zdroj) + ', ±' + f2(sig) + ' m) — '
                 + esc(T('přesnější než GPS z mobilu.')) + '</div><button type="button" class="agvz-sec" id="agvz-back">' + esc(T('Vrátit výšku z GPS')) + '</button></div>';
             else h += '<div class="agvz-btns">'
-                + (info.presne ? '<button type="button" id="agvz-use">' + (info.zdroj === 'DMR 5G' ? 'Vzít výšku z DMR (' + f2(dmr) + ')' : T('Vzít výšku terénu') + ' (' + f2(dmr) + ')') + '</button>' : '')
+                + (info.presne ? '<button type="button" id="agvz-use">' + (info.zdroj === 'DMR 5G' ? T('Vzít výšku z DMR') : T('Vzít výšku terénu')) + ' (' + f2(dmr) + ')' + '</button>' : '')
                 + '<button type="button" class="agvz-sec" id="agvz-keep">' + T('Nechat GPS') + '</button>'
                 + '</div>';
             if (info.zdroj === 'DMR 5G') {
-                h += '<div class="agvz-n">DMR 5G je <b>terén z leteckého skenu 2009–2013</b>, ne dnešní povrch. '
-                    + 'Na hotové pláni a v otevřeném terénu je o řád přesnější než GPS z mobilu; '
-                    + '<b class="agvz-warn">za finišerem, na náspu, mostě nebo zásypu ho neber</b> — tam měří starý terén.'
-                    + (big ? ' Rozdíl je velký: buď stojíš na něčem novém, nebo je výška z GPS mimo.' : '') + '</div>';
+                // celé věty přes T() — věta rozdělená tučným písmem se slovníku (shoda celým textem) netrefí
+                h += '<div class="agvz-n">' + esc(T('DMR 5G je terén z leteckého skenu 2009–2013, ne dnešní povrch. Na hotové pláni a v otevřeném terénu je o řád přesnější než GPS z mobilu.')) + ' '
+                    + '<b class="agvz-warn">' + esc(T('Za finišerem, na náspu, mostě nebo zásypu ho neber — tam měří starý terén.')) + '</b>'
+                    + (big ? ' ' + esc(T('Rozdíl je velký: buď stojíš na něčem novém, nebo je výška z GPS mimo.')) : '') + '</div>';
             } else if (info.presne) {
                 h += '<div class="agvz-n">' + esc(T('Terén z národního laserového modelu')) + ' (' + esc(info.zdroj) + ', ' + esc(info.system) + '). '
                     + esc(T('V otevřeném terénu je přesnější než GPS z mobilu; na náspu, mostě nebo čerstvém zásypu ho neber.')) + (big ? ' ' + esc(T('Rozdíl je velký: buď stojíš na něčem novém, nebo je výška z GPS mimo.')) : '') + '</div>';

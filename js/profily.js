@@ -381,9 +381,9 @@
             try { lsSet(CUST_KEY, JSON.stringify(list)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:done'); }
             lsSet(LAST_KEY, id);
             renderBar();
-            toast('Profil „' + name + '" uložen z toho, jak to máš teď nastavené.');
+            toast(T('Profil „{n}" uložen z toho, jak to máš teď nastavené.', { n: name }));
         };
-        var msg = 'Uloží se ' + Object.keys(set).length + ' voleb tak, jak je máš právě teď. Jak se má profil jmenovat?';
+        var msg = T('Uloží se {n} voleb tak, jak je máš právě teď. Jak se má profil jmenovat?', { n: Object.keys(set).length });
         try {
             if (typeof window.agGet === 'function') { window.agGet(msg, { title: 'Vlastní profil', placeholder: 'Např. Moje pokládka' }).then(done); return; }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:done'); }
@@ -618,8 +618,8 @@
             if (typeof saveSettings === 'function') { saveSettings(); saved = true; }
         } catch (e) { console.warn('[profily] saveSettings', e); }
         renderBar();
-        toast('Profil „' + p.t + '“ použit' + (saved ? '' : ' — potvrď „Uložit vše a Zavřít“')
-            + (skipped ? ' (' + skipped + ' volb' + (skipped === 1 ? 'a' : 'y') + ' není v této verzi)' : ''));
+        toast(T('Profil „{n}“ použit', { n: T(p.t) }) + (saved ? '' : ' — ' + T('potvrď „Uložit vše a Zavřít“'))
+            + (skipped ? ' (' + (skipped === 1 ? T('{n} volba není v této verzi', { n: skipped }) : T('{n} volby není v této verzi', { n: skipped })) + ')' : ''));
     }
 
     // Odznačení profilu. NIC nepřepisuje zpět — viz hlavička souboru.
@@ -824,14 +824,16 @@
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'profily:collectDevice'); }
         return out;
     }
+    // překlad věty se zástupci {n}… (13. 10. 2026); česky vrací přesně původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function deviceSummary() {
         var d = collectDevice();
         var parts = [];
-        parts.push('zorný úhel <b>' + (d.fovH ? d.fovH + '×' + (d.fovV || '?') + '°' : 'neurčen') + '</b>');
-        parts.push('výška očí <b>' + (d.eyeHeight ? String(d.eyeHeight).replace('.', ',') + ' m' : 'neurčena') + '</b>');
-        parts.push('korekce severu <b>' + (Math.round(d.headingOffset * 10) / 10).toString().replace('.', ',') + '°</b>');
+        parts.push(T('zorný úhel') + ' <b>' + (d.fovH ? d.fovH + '×' + (d.fovV || '?') + '°' : T('neurčen')) + '</b>');
+        parts.push(T('výška očí') + ' <b>' + (d.eyeHeight ? String(d.eyeHeight).replace('.', ',') + ' m' : T('neurčena')) + '</b>');
+        parts.push(T('korekce severu') + ' <b>' + (Math.round(d.headingOffset * 10) / 10).toString().replace('.', ',') + '°</b>');
         var n = (d.calibProfiles && d.calibProfiles.length) || 0;
-        parts.push('uložených kalibrací <b>' + n + '</b>');
+        parts.push(T('uložených kalibrací') + ' <b>' + n + '</b>');
         return parts.join(' · ');
     }
     function exportDevice() {
@@ -857,13 +859,12 @@
             var d;
             try { d = JSON.parse(String(fr.result)); } catch (e) { toast('Soubor nejde přečíst'); return; }
             if (!d || d.format !== 'ag-device-profile') { toast('To není profil zařízení (.agdev)'); return; }
-            var ask = 'Přepsat kalibraci TOHOTO telefonu?\n\n'
-                + 'zorný úhel: ' + (d.fovH || '?') + '×' + (d.fovV || '?') + '°\n'
-                + 'výška očí: ' + (d.eyeHeight || '?') + ' m\n'
-                + 'korekce severu: ' + (Math.round((d.headingOffset || 0) * 10) / 10) + '°\n'
-                + 'uložené kalibrace: ' + ((d.calibProfiles && d.calibProfiles.length) || 0) + '\n\n'
-                + 'Body, zakázky ani účty se nemění. Zorný úhel platí pro MODEL telefonu — '
-                + 'z jiného modelu ho nepřenášej.';
+            var ask = T('Přepsat kalibraci TOHOTO telefonu?') + '\n\n'
+                + T('zorný úhel:') + ' ' + (d.fovH || '?') + '×' + (d.fovV || '?') + '°\n'
+                + T('výška očí:') + ' ' + (d.eyeHeight || '?') + ' m\n'
+                + T('korekce severu:') + ' ' + (Math.round((d.headingOffset || 0) * 10) / 10) + '°\n'
+                + T('uložené kalibrace:') + ' ' + ((d.calibProfiles && d.calibProfiles.length) || 0) + '\n\n'
+                + T('Body, zakázky ani účty se nemění. Zorný úhel platí pro MODEL telefonu — z jiného modelu ho nepřenášej.');
             agGuard(ask, function () { nahrajProfil(d); }, { danger: true });
         };
         // Vlastni nahrani profilu. Vytazeno z obsluhy FileReaderu, protoze potvrzeni je

@@ -171,7 +171,7 @@
             if (seq !== _seq) return;
             _vysledky = r; vypis();
             if (!r.length) body.innerHTML = '<div class="aghm-wait">' + esc(T('Nic jsem nenašel. Zkus obec a ulici, nebo souřadnice.')) + '</div>';
-        }).catch(function (e) { if (seq !== _seq) return; swallow(e, 'photon'); body.innerHTML = '<div class="aghm-wait">' + esc(T('Hledání teď neodpovědělo')) + ' (' + esc((e && e.message) || 'síť') + '). ' + esc(T('Zkus to za chvíli.')) + '</div>'; });
+        }).catch(function (e) { if (seq !== _seq) return; swallow(e, 'photon'); body.innerHTML = '<div class="aghm-wait">' + esc(T('Hledání teď neodpovědělo')) + ' (' + esc((e && e.message) || T('síť')) + '). ' + esc(T('Zkus to za chvíli.')) + '</div>'; });
     }
     function vypis() {
         var body = _ov.querySelector('#aghm-body'); body.innerHTML = '';

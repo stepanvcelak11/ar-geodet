@@ -64,6 +64,8 @@
 
     function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'gnss-forecast:toast'); } }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    // totéž se zástupci {x} (věta s časem/číslem se celým textem do slovníku netrefí); česky vrací původní text
+    function TF(cs, o) { var v = TJ(cs); return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function TJ(cs) { try { return (window.AGJazyk && typeof AGJazyk.t === 'function') ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } }   // překlad kousku slepence (18. 9. 2026)
     function pad2(n) { return ('0' + n).slice(-2); }
     function num1(v) { return (v == null || !isFinite(v)) ? '–' : v.toFixed(1).replace('.', ','); }
@@ -505,7 +507,7 @@
             if (out) out.innerHTML = '<b>' + pad2(r.t.getHours()) + ':00</b> · PDOP ' + num1(r.pdop) +
                 ' · ' + (r.nsat || 0) + ' ' + TJ('družic') + ' · ' + esc(TJ(r.label)) +
                 (r.kp != null && r.kp >= 5 ? ' · Kp ' + num1(r.kp) : '') +
-                (r.note ? ' · ' + esc(r.note.txt) : '');
+                (r.note ? ' · ' + esc(TJ(r.note.txt)) : '');
         }
         function fromEvt(e) {
             var b = svg.getBoundingClientRect();
@@ -522,22 +524,22 @@
     // ---- závěr jednou větou ---------------------------------------------------------
     function rangeTxt(rows, w) {
         // celé okno = všech 24 hodin → „20:00–20:00" nic neříká (viděno 15. 9. 2026)
-        if (w.s === 0 && w.n >= rows.length) return 'kdykoli v příštích 24 h';
+        if (w.s === 0 && w.n >= rows.length) return TJ('kdykoli v příštích 24 h');
         var a = rows[w.s].t, b = new Date(rows[w.s + w.n - 1].t.getTime() + 3600 * 1000);
         var dnes = new Date().getDate();
         var zitraA = a.getDate() !== dnes, zitraB = b.getDate() !== dnes;
-        return pad2(a.getHours()) + ':00' + (zitraA ? ' (zítra)' : '') + '–' + pad2(b.getHours()) + ':00' + (zitraB && !zitraA ? ' (zítra)' : '');
+        return pad2(a.getHours()) + ':00' + (zitraA ? ' ' + TJ('(zítra)') : '') + '–' + pad2(b.getHours()) + ':00' + (zitraB && !zitraA ? ' ' + TJ('(zítra)') : '');
     }
     function conclusion(model) {
-        var rows = model.rows, win = model.win, bad = model.worst, i, storm = false, reason = 'slabá geometrie';
+        var rows = model.rows, win = model.win, bad = model.worst, i, storm = false, reason = TJ('slabá geometrie');
         if (bad) {
             for (i = bad.s; i < bad.s + bad.n; i++) if (rows[i].kp != null && rows[i].kp >= 6) storm = true;
-            reason = storm ? 'geomagnetická bouře' : 'PDOP nad ' + num1(PD_MID);
+            reason = storm ? TJ('geomagnetická bouře') : TF('PDOP nad {v}', { v: num1(PD_MID) });
         }
-        if (win && bad) return { ok: true, txt: 'Měř ' + rangeTxt(rows, win) + ', mezi ' + rangeTxt(rows, bad) + ' to nemá cenu (' + reason + ').' };
-        if (win) return { ok: true, txt: 'Měř ' + rangeTxt(rows, win) + '; vyloženě špatná hodina v příštích 24 h není.' };
-        if (bad) return { ok: false, txt: 'Souvislé dobré okno se v příštích 24 h nenašlo, nejhorší je ' + rangeTxt(rows, bad) + ' (' + reason + ') — jinde měř s rezervou.' };
-        return { ok: false, txt: 'Podmínky jsou v příštích 24 h vyrovnané — žádné výrazně lepší ani horší okno.' };
+        if (win && bad) return { ok: true, txt: TF('Měř {w}, mezi {b} to nemá cenu ({r}).', { w: rangeTxt(rows, win), b: rangeTxt(rows, bad), r: reason }) };
+        if (win) return { ok: true, txt: TF('Měř {w}; vyloženě špatná hodina v příštích 24 h není.', { w: rangeTxt(rows, win) }) };
+        if (bad) return { ok: false, txt: TF('Souvislé dobré okno se v příštích 24 h nenašlo, nejhorší je {b} ({r}) — jinde měř s rezervou.', { b: rangeTxt(rows, bad), r: reason }) };
+        return { ok: false, txt: TJ('Podmínky jsou v příštích 24 h vyrovnané — žádné výrazně lepší ani horší okno.') };
     }
 
     var IC_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
@@ -552,8 +554,8 @@
         var r0 = model.rows[0];
         var h = '<div class="ag-gp-now">' +
             '<div class="ag-gp-stat"><small>PDOP teď</small><b>' + num1(r0.pdop) + '</b></div>' +
-            '<div class="ag-gp-stat"><small>Družic ≥' + EL_MASK + '°</small><b>' + (r0.nsat || '–') + '</b></div>' +
-            '<div class="ag-gp-stat"><small>Kp index' + (_kpStale ? ' (offline)' : '') + '</small><b>' + esc(kpTxt(model.kpNow)) + '</b></div>' +
+            '<div class="ag-gp-stat"><small>' + TF('Družic ≥{m}°', { m: EL_MASK }) + '</small><b>' + (r0.nsat || '–') + '</b></div>' +
+            '<div class="ag-gp-stat"><small>' + TJ('Kp index') + (_kpStale ? ' (offline)' : '') + '</small><b>' + esc(kpTxt(model.kpNow)) + '</b></div>' +
             '</div>';
 
         var ch = chartSvg(model);
@@ -563,7 +565,7 @@
                 ch.svg +
                 '<div class="ag-gp-leg">' +
                 '<span><i class="l-good"></i>výborné (PDOP ≤ ' + num1(PD_GOOD) + ')</span>' +
-                '<span><i class="l-mid"></i>dobré (≤ ' + num1(PD_MID) + ')</span>' +
+                '<span><i class="l-mid"></i>' + TF('dobré (≤ {v})', { v: num1(PD_MID) }) + '</span>' +
                 '<span><i class="l-bad"></i>slabé (šrafa)</span>' +
                 '<span><i class="l-win"></i>nejlepší okno</span>' +
                 '</div>' +
@@ -571,8 +573,8 @@
                 '</div>';
         } else {
             h += '<div class="ag-gp-chart" style="padding:16px;color:var(--text-muted,#9aa1ac);">' +
-                'Pro graf nemám ani jednu spočítanou hodinu (málo družic nad maskou ' + EL_MASK + '°). ' +
-                'Křivku si nevymýšlím — zkus to znovu po aktualizaci drah.</div>';
+                TF('Pro graf nemám ani jednu spočítanou hodinu (málo družic nad maskou {m}°).', { m: EL_MASK }) + ' ' +
+                TJ('Křivku si nevymýšlím — zkus to znovu po aktualizaci drah.') + '</div>';
         }
 
         var c = conclusion(model);
@@ -581,13 +583,13 @@
         // podrobnosti = tabulková varianta grafu (schované, ať panel nezabírá půl dne)
         h += '<details class="ag-gp-det"><summary>Podrobně po hodinách (' + model.rows.length + ' h)</summary>';
         model.rows.forEach(function (r) {
-            if (r.t.getHours() === 0) h += '<div style="margin:8px 0 2px;color:var(--text-muted,#9aa1ac);font-size:.85em;">— ' + r.t.toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'numeric' }) + ' —</div>';
+            if (r.t.getHours() === 0) h += '<div style="margin:8px 0 2px;color:var(--text-muted,#9aa1ac);font-size:.85em;">— ' + r.t.toLocaleDateString((window.AGJazyk && AGJazyk.locale) ? AGJazyk.locale() : 'cs-CZ', { weekday: 'long', day: 'numeric', month: 'numeric' }) + ' —</div>';
             h += '<div class="ag-gp-row ' + r.cls + '">' +
                 '<span class="ag-gp-h">' + pad2(r.t.getHours()) + ':00</span>' +
                 '<span class="ag-gp-dot"></span>' +
                 '<span class="ag-gp-v">PDOP ' + num1(r.pdop) + '</span>' +
                 '<span class="ag-gp-v">' + r.nsat + ' druž.' + (r.kp != null && r.kp >= 5 ? ' · Kp' + Math.round(r.kp) : '') + '</span>' +
-                '<span class="ag-gp-lb">' + esc(TJ(r.label)) + (r.note ? ' <span class="ag-gp-note">' + esc(r.note.txt) + '</span>' : '') + '</span>' +
+                '<span class="ag-gp-lb">' + esc(TJ(r.label)) + (r.note ? ' <span class="ag-gp-note">' + esc(TJ(r.note.txt)) + '</span>' : '') + '</span>' +
                 '</div>';
         });
         h += '</details>';

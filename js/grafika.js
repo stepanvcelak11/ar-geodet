@@ -2,6 +2,10 @@
 // AR znacky a sipka, mapa, kompas, modaly, nastaveni vzhledu, ovladani displeje.
 // Nacita se PO logika.js (pouziva jeji promenne a funkce).
 
+// Preklad slozene vety se zastupci {n}… (13. 10. 2026): slovnik (js/jazyky.js) hleda shodu
+// CELYM textem, veta s cislem nebo nazvem bodu se tam netrefi. Cesky vraci presne puvodni text.
+function TT(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
+
 // PWA: nova verze ceka -> nabidnout obnovu (resi matouci starou cache)
         // `__agUpdateWaiting` je JEDINY zdroj pravdy o tom, ze nova verze ceka. Cte ho
         // js/historie-aktualizaci.js (trvale tlacitko „Aktualizovat teď") — lista sama
@@ -300,7 +304,7 @@
 
         function openMeasureModal() { document.getElementById('measure-modal').style.display = 'flex'; }
 
-        async function loadCameras() { const btn = document.getElementById('camera-load-btn'); btn.innerText = "Načítám..."; try { const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); const devices = await navigator.mediaDevices.enumerateDevices(); const videoDevices = devices.filter(d => d.kind === 'videoinput'); const wSelect = document.getElementById('w-camera-select'); const sSelect = document.getElementById('s-camera-select'); wSelect.innerHTML = '<option value="">Výchozí zadní kamera</option>'; sSelect.innerHTML = '<option value="">Výchozí zadní kamera</option>'; videoDevices.forEach(cam => { if (!cam.label.toLowerCase().includes('front') && !cam.label.toLowerCase().includes('přední')) { const labelText = cam.label || `Kamera ${wSelect.options.length}`; const opt1 = document.createElement('option'); opt1.value = cam.deviceId; opt1.text = labelText; wSelect.appendChild(opt1); const opt2 = document.createElement('option'); opt2.value = cam.deviceId; opt2.text = labelText; sSelect.appendChild(opt2); } }); stream.getTracks().forEach(t => t.stop()); btn.style.display = 'none'; wSelect.style.display = 'block'; } catch(e) { agInfo("Nepodařilo se načíst seznam kamer."); btn.innerHTML = '<svg class="icon"><use href="#i-camera"/></svg> Zkusit znovu načíst kamery'; } }
+        async function loadCameras() { const btn = document.getElementById('camera-load-btn'); btn.innerText = "Načítám..."; try { const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); const devices = await navigator.mediaDevices.enumerateDevices(); const videoDevices = devices.filter(d => d.kind === 'videoinput'); const wSelect = document.getElementById('w-camera-select'); const sSelect = document.getElementById('s-camera-select'); wSelect.innerHTML = '<option value="">Výchozí zadní kamera</option>'; sSelect.innerHTML = '<option value="">Výchozí zadní kamera</option>'; videoDevices.forEach(cam => { if (!cam.label.toLowerCase().includes('front') && !cam.label.toLowerCase().includes('přední')) { const labelText = cam.label || TT('Kamera {n}', { n: wSelect.options.length }); const opt1 = document.createElement('option'); opt1.value = cam.deviceId; opt1.text = labelText; wSelect.appendChild(opt1); const opt2 = document.createElement('option'); opt2.value = cam.deviceId; opt2.text = labelText; sSelect.appendChild(opt2); } }); stream.getTracks().forEach(t => t.stop()); btn.style.display = 'none'; wSelect.style.display = 'block'; } catch(e) { agInfo("Nepodařilo se načíst seznam kamer."); btn.innerHTML = '<svg class="icon"><use href="#i-camera"/></svg> Zkusit znovu načíst kamery'; } }
 
         function updateInfoPanel() { const infoEl = document.getElementById('info'); if (!infoEl || !appStarted) return; if (!userLat) { infoEl.innerHTML = `<div class="rdt"><span class="rdt-l">GPS</span><span class="rdt-v" style="color:var(--warning);">hledám…</span></div>`; return; } infoEl.innerHTML = ''; }
 
@@ -444,7 +448,7 @@
             if (!_deniedRetryArmed) { _deniedRetryArmed = true; kompasAzPoDoteku(); }
             if (_compassDeniedShown) return;
             _compassDeniedShown = true;
-            const msg = 'Telefon nepustil aplikaci k <b>pohybu a orientaci</b>, takže kompas mlčí a AR nemá podle čeho otáčet obraz — značky ani šipka se neukážou.<br><br><b>Jak to vrátit:</b><br>• <b>Safari:</b> Nastavení → Safari → <b>Pohyb a orientace</b> zapnout a stránku načíst znovu.<br>• <b>Ikona na ploše (PWA):</b> iOS se už sám znovu nezeptá — ikonu smaž a přidej aplikaci na plochu znovu (uložená data zůstanou).<br><br>Bez kompasu funguje vše ostatní: mapa, měření i ukládání bodů.';
+            const msg = TT('Telefon nepustil aplikaci k <b>pohybu a orientaci</b>, takže kompas mlčí a AR nemá podle čeho otáčet obraz — značky ani šipka se neukážou.<br><br><b>Jak to vrátit:</b><br>• <b>Safari:</b> Nastavení → Safari → <b>Pohyb a orientace</b> zapnout a stránku načíst znovu.<br>• <b>Ikona na ploše (PWA):</b> iOS se už sám znovu nezeptá — ikonu smaž a přidej aplikaci na plochu znovu (uložená data zůstanou).<br><br>Bez kompasu funguje vše ostatní: mapa, měření i ukládání bodů.');
             // „Zkusit znovu" musí projít AŽ po compassStarted = false, jinak neudělá nic. Klik na
             // tlačítko je skutečné gesto uživatele, takže requestPermission() smí ven; kdyby iOS
             // aktivaci přesto neuznal, promise spadne a chytí ji .catch() níž (pokus na další ťuknutí).
@@ -526,15 +530,15 @@
             const _ios = /iPhone|iPad/.test(navigator.userAgent);
             const _android = /Android/.test(navigator.userAgent);
             let navod;
-            if (_ios) navod = '• iPhone: Nastavení → <b>QTRIG</b> (appka z plochy) nebo <b>Safari</b> → Kamera → Povolit. Pak appku zavři a otevři znovu.';
-            else if (_twa || _android) navod = (_twa ? '• Appka z Google Play běží v Chromu, kamera se povoluje V CHROMU (v Nastavení telefonu má QTRIG jen Polohu — to je v pořádku).<br>' : '')
-                + '• Nastavení telefonu → Aplikace → <b>Chrome</b> → Oprávnění → <b>Kamera</b> → Povolit.<br>'
-                + '• Chrome → ⋮ → Nastavení → Nastavení webu → <b>Kamera</b> → v seznamu <b>Blokováno</b> najdi <b>stepanvcelak11.github.io</b> → Povolit.<br>'
-                + '• Pak QTRIG úplně zavři a otevři znovu.';
-            else navod = '• V prohlížeči: ikona zámku v adresním řádku → Oprávnění → Kamera → Povolit, pak stránku obnov.';
-            if (denied) msg = 'Aplikace nemá povolený přístup ke kameře, takže AR nejde spustit.<br><br><b>Jak kameru povolit:</b><br>' + navod + '<br><br>Zatím je zapnutý režim <b>Mapa</b> — vše kromě AR funguje dál.';
-            else if (busy) msg = 'Kameru právě drží jiná aplikace nebo ji systém nedokázal spustit. Zavři ostatní aplikace s kamerou a zkus to znovu.<br><br>Zatím je zapnutý režim <b>Mapa</b>.';
-            else msg = 'Kameru se nepodařilo spustit (' + ((err && (err.message || err.name)) || 'neznámá chyba') + ').<br><br>Zatím je zapnutý režim <b>Mapa</b> — AR zkusíš znovu přepnutím zobrazení.';
+            if (_ios) navod = TT('• iPhone: Nastavení → <b>QTRIG</b> (appka z plochy) nebo <b>Safari</b> → Kamera → Povolit. Pak appku zavři a otevři znovu.');
+            else if (_twa || _android) navod = (_twa ? TT('• Appka z Google Play běží v Chromu, kamera se povoluje V CHROMU (v Nastavení telefonu má QTRIG jen Polohu — to je v pořádku).') + '<br>' : '')
+                + TT('• Nastavení telefonu → Aplikace → <b>Chrome</b> → Oprávnění → <b>Kamera</b> → Povolit.') + '<br>'
+                + TT('• Chrome → ⋮ → Nastavení → Nastavení webu → <b>Kamera</b> → v seznamu <b>Blokováno</b> najdi <b>stepanvcelak11.github.io</b> → Povolit.') + '<br>'
+                + TT('• Pak QTRIG úplně zavři a otevři znovu.');
+            else navod = TT('• V prohlížeči: ikona zámku v adresním řádku → Oprávnění → Kamera → Povolit, pak stránku obnov.');
+            if (denied) msg = TT('Aplikace nemá povolený přístup ke kameře, takže AR nejde spustit.<br><br><b>Jak kameru povolit:</b><br>{navod}<br><br>Zatím je zapnutý režim <b>Mapa</b> — vše kromě AR funguje dál.', { navod: navod });
+            else if (busy) msg = TT('Kameru právě drží jiná aplikace nebo ji systém nedokázal spustit. Zavři ostatní aplikace s kamerou a zkus to znovu.<br><br>Zatím je zapnutý režim <b>Mapa</b>.');
+            else msg = TT('Kameru se nepodařilo spustit ({err}).<br><br>Zatím je zapnutý režim <b>Mapa</b> — AR zkusíš znovu přepnutím zobrazení.', { err: ((err && (err.message || err.name)) || TT('neznámá chyba')) });
             if (typeof viewMode !== 'undefined' && viewMode !== 'map') { viewMode = 'map'; applyViewMode(); try { if (typeof window.agSyncViewControls === 'function') window.agSyncViewControls(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:handleCameraError'); } }
             if (window.agAlert) window.agAlert({ title: 'Kamera nejde spustit', message: msg });
             else agInfo(msg.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ''));
@@ -665,8 +669,8 @@
             // Na zarazce se to rekne SLOVEM, ne jen rozsvicenou ryskou vlevo: na uzke
             // svetelne hrane (navrh D4) je prouzek s ryskami u jednoho kraje a cislo u druheho,
             // takze spojit si je pohledem behem tazeni nejde.
-            splitPctEl.textContent = `AR ${Math.round(splitPct)} % · MAPA ${100 - Math.round(splitPct)} %`
-                + (snapped !== null ? ' · ZARÁŽKA' : '');
+            splitPctEl.textContent = TT('AR {a} % · MAPA {m} %', { a: Math.round(splitPct), m: 100 - Math.round(splitPct) })
+                + (snapped !== null ? ' · ' + TT('ZARÁŽKA') : '');
             splitPctEl.classList.toggle('snapped', snapped !== null);
             const ss = splitSnapEl.children;
             for (let i = 0; i < ss.length; i++) ss[i].classList.toggle('on', SPLIT_SNAPS[i] === snapped);
@@ -1250,14 +1254,14 @@
         function _mngAge(ts) {
             if (!ts || !isFinite(ts)) return '';
             const s = Math.round((Date.now() - ts) / 1000);
-            if (s < 90) return 'před chvílí';
+            if (s < 90) return TT('před chvílí');
             const m = Math.round(s / 60);
-            if (m < 60) return 'před ' + m + ' min';
+            if (m < 60) return TT('před {n} min', { n: m });
             const h = Math.round(m / 60);
-            if (h < 24) return 'před ' + h + ' h';
+            if (h < 24) return TT('před {n} h', { n: h });
             const d = Math.round(h / 24);
-            if (d < 7) return 'před ' + d + ' dny';
-            try { return new Date(ts).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' }); } catch (e) { return ''; }
+            if (d < 7) return TT('před {n} dny', { n: d });
+            try { return new Date(ts).toLocaleDateString((window.AGJazyk && AGJazyk.locale) ? AGJazyk.locale() : 'cs-CZ', { day: 'numeric', month: 'numeric' }); } catch (e) { return ''; }
         }
         // Vzdalenost se v terenu cte na jeden pohled — proto tri pasma misto jednoho
         // formatu: pod deset metru na decimetry, do kilometru na cele metry, dal v km.
@@ -1306,11 +1310,11 @@
             det.innerHTML = '<div class="mngr-grid">'
                 + '<div><i>Y</i><b>' + yx.y + '</b></div>'
                 + '<div><i>X</i><b>' + yx.x + '</b></div>'
-                + '<div><i>Z' + (pt.vyska != null && pt.prov && pt.prov.z === 'dmr' ? ' · terén' : (pt.vyska != null && pt.prov && pt.prov.z === 'gps' ? ' · GPS' : '')) + '</i><b>' + (pt.vyska != null ? agFmtM(pt.vyska) + ' m' : '—') + '</b></div>'
+                + '<div><i>Z' + (pt.vyska != null && pt.prov && pt.prov.z === 'dmr' ? ' · ' + TT('terén') : (pt.vyska != null && pt.prov && pt.prov.z === 'gps' ? ' · GPS' : '')) + '</i><b>' + (pt.vyska != null ? agFmtM(pt.vyska) + ' m' : '—') + '</b></div>'
                 + '<div><i>Měřeno</i><b>' + _escHtml(cas) + '</b></div>'
                 + '</div>'
                 + '<div class="mngr-q" data-q="' + q.trida + '"><span class="mngr-q-track"><i></i></span>'
-                + '<span class="mngr-q-txt">' + (q.a == null ? 'přesnost neznámá' : ('±' + q.a.toFixed(2).replace('.', ',') + ' m' + (q.nadpis ? ' · ' + _escHtml(q.nadpis.toLowerCase()) : ''))) + '</span></div>'
+                + '<span class="mngr-q-txt">' + (q.a == null ? 'přesnost neznámá' : ('±' + q.a.toFixed(2).replace('.', ',') + ' m' + (q.nadpis ? ' · ' + _escHtml(TT(q.nadpis).toLowerCase()) : ''))) + '</span></div>'
                 + '<div class="mngr-acts">'
                 + '<button type="button" class="mngr-act mngr-act-go" data-a="go">Navést</button>'
                 + '<button type="button" class="mngr-act" data-a="edit">Upravit</button>'
@@ -1547,7 +1551,7 @@
                 }
                 listDiv.insertBefore(frag, anchor);
                 const zbyva = pts.length - i;
-                if (zbyva > 0) { more.textContent = 'dalších ' + zbyva + ' bodů…'; if (!more.parentNode) listDiv.insertBefore(more, anchor); }
+                if (zbyva > 0) { more.textContent = TT('dalších {n} bodů…', { n: zbyva }); if (!more.parentNode) listDiv.insertBefore(more, anchor); }
                 else if (more.parentNode) more.remove();
                 if (!zbyva || _mngQuery.trim()) _mngApplyFilter();
                 return zbyva > 0;
@@ -1585,7 +1589,7 @@
             else { initARMarkers(); drawAllMarkersOnMap(); updateNavGlow(); }
             try { if (window.AGCilNav && AGCilNav.fit) AGCilNav.fit(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:focusPointFromList'); }
             const d = (userLat != null) ? getDistance(userLat, userLng, pt.lat, pt.lng) : null;
-            quickToast('Cíl: ' + pt.name + (d != null ? ' — ' + d.toFixed(1).replace('.', ',') + ' m' : ''));
+            quickToast(TT('Cíl: {n}', { n: pt.name }) + (d != null ? ' — ' + d.toFixed(1).replace('.', ',') + ' m' : ''));
             agVibe(20);
         }
         window.focusPointFromList = focusPointFromList;
@@ -1658,7 +1662,7 @@
             });
             _agLastBulk = null;
             _mngAfterEdit(ids);
-            quickToast('Vráceno zpět: ' + ids.size + ' bodů.');
+            quickToast(TT('Vráceno zpět: {n} bodů.', { n: ids.size }));
         }
         function _bulkId() { return 'b' + Date.now().toString(36) + Math.round(Math.random() * 1e4).toString(36); }
         // ===========================================================================
@@ -1680,12 +1684,12 @@
                 // undo toast umi vratit jen POSLEDNI smazany bod — u hromadneho mazani by mátl; koš má všechny
                 if (ids.length > 1) { const ut = document.getElementById('undo-toast'); if (ut) ut.style.display = 'none'; }
                 renderManageList();
-                quickToast('Smazáno ' + ids.length + ' bodů — obnova: Nástroje → Zaznamenat → Obnovit smazaný bod (30 dní).');
+                quickToast(TT('Smazáno {n} bodů — obnova: Nástroje → Zaznamenat → Obnovit smazaný bod (30 dní).', { n: ids.length }));
                 if (typeof window.agVibe === 'function') agVibe(30);
             };
-            const msg = 'Opravdu smazat ' + ids.length + ' vybraných bodů?<br>Obnovit je půjde 30 dní z koše (Nástroje → Zaznamenat → Obnovit smazaný bod).';
+            const msg = TT('Opravdu smazat {n} vybraných bodů?', { n: ids.length }) + '<br>' + TT('Obnovit je půjde 30 dní z koše (Nástroje → Zaznamenat → Obnovit smazaný bod).');
             if (window.agConfirm) agConfirm({ title: 'Smazat vybrané body', message: msg, okText: 'Smazat', danger: true }).then(ok => { if (ok) doIt(); });
-            else if (confirm('Opravdu smazat ' + ids.length + ' vybraných bodů?')) doIt();
+            else if (confirm(TT('Opravdu smazat {n} vybraných bodů?', { n: ids.length }))) doIt();
         }
         function mngBulkRenumber() {
             if (_mngNeedSel()) return;
@@ -1704,10 +1708,10 @@
                     try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'hromadne-precislovani', batch: batch }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:ask'); }
                 });
                 _mngAfterEdit(ids);
-                _mngBulkDone('Přečíslováno ' + sel.length + ' bodů.', undoItems, batch);
+                _mngBulkDone(TT('Přečíslováno {n} bodů.', { n: sel.length }), undoItems, batch);
             };
             if (window.agPrompt) agPrompt({ title: 'Přečíslovat vybrané body', message: 'Zadej PRVNÍ název série (musí končit číslem). Vybrané body dostanou čísla po sobě v pořadí seznamu; už obsazená čísla se přeskočí.', placeholder: 'Např. 101 nebo OB01', okText: 'Přečíslovat' }).then(ask);
-            else ask(prompt('První název série (např. 101):'));
+            else ask(prompt(TT('První název série (např. 101):')));
         }
         function mngBulkShift() {
             if (_mngNeedSel()) return;
@@ -1728,10 +1732,10 @@
                     try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'hromadny-posun', batch: batch }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:ask'); }
                 });
                 _mngAfterEdit(ids);
-                _mngBulkDone('Posunuto ' + sel.length + ' bodů (ΔY ' + dY + ' m, ΔX ' + dX + ' m' + (dZ ? ', ΔZ ' + dZ + ' m' : '') + ').', undoItems, batch);
+                _mngBulkDone(TT('Posunuto {n} bodů', { n: sel.length }) + ' (ΔY ' + dY + ' m, ΔX ' + dX + ' m' + (dZ ? ', ΔZ ' + dZ + ' m' : '') + ').', undoItems, batch);
             };
-            if (window.agPrompt) agPrompt({ title: 'Posunout vybrané body', message: (agOsy().krovak ? 'Posun v metrech S-JTSK: „ΔY ΔX" nebo „ΔY ΔX ΔZ" (mezerou).' : 'Posun v metrech ' + agOsy().system + ': „Δ' + agOsy().osaA + ' Δ' + agOsy().osaB + '" nebo s ΔZ (mezerou).') + ' Např. snížit výšku o 5 cm: „0 0 -0.05".', placeholder: '0 0 -0.05', okText: 'Posunout' }).then(ask);
-            else ask(prompt('Posun ΔY ΔX ΔZ (m):'));
+            if (window.agPrompt) agPrompt({ title: 'Posunout vybrané body', message: (agOsy().krovak ? TT('Posun v metrech S-JTSK: „ΔY ΔX" nebo „ΔY ΔX ΔZ" (mezerou).') : TT('Posun v metrech {s}: „Δ{a} Δ{b}" nebo s ΔZ (mezerou).', { s: agOsy().system, a: agOsy().osaA, b: agOsy().osaB })) + ' ' + TT('Např. snížit výšku o 5 cm: „0 0 -0.05".'), placeholder: '0 0 -0.05', okText: 'Posunout' }).then(ask);
+            else ask(prompt(TT('Posun ΔY ΔX ΔZ (m):')));
         }
         function mngBulkKod() {
             if (_mngNeedSel()) return;
@@ -1748,10 +1752,10 @@
                 });
                 if (kod && typeof window.agKodRemember === 'function') agKodRemember(kod);
                 _mngAfterEdit(ids);
-                _mngBulkDone(kod ? ('Kód „' + kod + '" přiřazen ' + sel.length + ' bodům.') : ('Kód odebrán u ' + sel.length + ' bodů.'), undoItems, batch);
+                _mngBulkDone(kod ? TT('Kód „{k}" přiřazen {n} bodům.', { k: kod, n: sel.length }) : TT('Kód odebrán u {n} bodů.', { n: sel.length }), undoItems, batch);
             };
             if (window.agPrompt) agPrompt({ title: 'Kód pro vybrané body', message: 'Kód se propíše do CSV/TXT/DXF exportu (v DXF jako vrstva výkresu). Pomlčka „-" kód odebere.', placeholder: 'Např. obruba', okText: 'Přiřadit' }).then(ask);
-            else ask(prompt('Kód bodu (- = odebrat):'));
+            else ask(prompt(TT('Kód bodu (- = odebrat):')));
         }
         function mngBulkHelmert() {
             if (_mngNeedSel()) return;
@@ -1772,11 +1776,11 @@
                     try { if (window.AGJournal) AGJournal.commit({ op: 'edit', id: p.id, before: before, after: { ...p }, origin: 'helmert-hromadne', batch: batch }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:doIt'); }
                 });
                 _mngAfterEdit(ids);
-                _mngBulkDone('Lokalizací srovnáno ' + done + ' bodů' + (skipped ? ' (' + skipped + ' přeskočeno — už srovnané)' : '') + '.', undoItems, batch);
+                _mngBulkDone(TT('Lokalizací srovnáno {n} bodů', { n: done }) + (skipped ? ' (' + TT('{n} přeskočeno — už srovnané', { n: skipped }) + ')' : '') + '.', undoItems, batch);
             };
-            const msg = 'Přepočítat ' + sel.length + ' bodů aktivní Helmertovou lokalizací?' + (skipped ? '<br>(' + skipped + ' vybraných se přeskočí — už jsou srovnané.)' : '');
+            const msg = TT('Přepočítat {n} bodů aktivní Helmertovou lokalizací?', { n: sel.length }) + (skipped ? '<br>(' + TT('{n} vybraných se přeskočí — už jsou srovnané.', { n: skipped }) + ')' : '');
             if (window.agConfirm) agConfirm({ title: 'Srovnat body lokalizací', message: msg, okText: 'Přepočítat' }).then(ok => { if (ok) doIt(); });
-            else if (confirm('Přepočítat ' + sel.length + ' bodů Helmertem?')) doIt();
+            else if (confirm(TT('Přepočítat {n} bodů Helmertem?', { n: sel.length }))) doIt();
         }
         // Skryte body: dohledatelne primo v sekci Body (drive jen hluboko v Nastaveni -> Udrzba)
         function renderHiddenPointsRow(listDiv) {
@@ -1784,7 +1788,7 @@
             if (!n) return;
             const row = document.createElement('div');
             row.className = 'cp-item hidden-pts-row';
-            row.innerHTML = `<div class="cp-title" style="color:var(--text-muted);"><svg class="icon" style="vertical-align:-0.2em;"><use href="#i-eye-off"/></svg> Skryté body: ${n}</div><div class="cp-coords">Body skryté z AR a mapy tlačítkem „Skrýt tento bod".</div>`;
+            row.innerHTML = `<div class="cp-title" style="color:var(--text-muted);"><svg class="icon" style="vertical-align:-0.2em;"><use href="#i-eye-off"/></svg> ${TT('Skryté body: {n}', { n: n })}</div><div class="cp-coords">Body skryté z AR a mapy tlačítkem „Skrýt tento bod".</div>`;
             const btn = document.createElement('button');
             btn.className = 'btn btn-secondary';
             btn.style.cssText = 'margin-top:8px; padding:10px;';
@@ -1808,7 +1812,7 @@
             det.open = _linesBoxOpen;
             det.addEventListener('toggle', () => { _linesBoxOpen = det.open; });
             const sum = document.createElement('summary');
-            sum.innerHTML = '<svg class="icon"><use href="#i-line"/></svg> Spojnice bodů (' + pointLines.length + ')';
+            sum.innerHTML = '<svg class="icon"><use href="#i-line"/></svg> ' + TT('Spojnice bodů ({n})', { n: pointLines.length });
             det.appendChild(sum);
             const box = document.createElement('div');
             const hint = document.createElement('p');
@@ -1820,7 +1824,7 @@
                 const d = getDistance(A.lat, A.lng, B.lat, B.lng);
                 const an = _escHtml(lineEndName(ln.aId, ln.aName)), bn = _escHtml(lineEndName(ln.bId, ln.bName));
                 const item = document.createElement('div'); item.className = 'cp-item';
-                item.innerHTML = `<div class="cp-title" style="color:var(--warning,#fbbf24);">#${an} \u2194 #${bn}</div><div class="cp-coords">Délka: ${d.toFixed(1).replace('.', ',')} m</div><div class="cp-actions"><button class="cp-btn cp-btn-delete" onclick="deleteLineFromList('${ln.id}')"><svg class="icon"><use href="#i-trash"/></svg></button></div>`;
+                item.innerHTML = `<div class="cp-title" style="color:var(--warning,#fbbf24);">#${an} \u2194 #${bn}</div><div class="cp-coords">${TT('Délka: {d} m', { d: d.toFixed(1).replace('.', ',') })}</div><div class="cp-actions"><button class="cp-btn cp-btn-delete" onclick="deleteLineFromList('${ln.id}')"><svg class="icon"><use href="#i-trash"/></svg></button></div>`;
                 box.appendChild(item);
             });
             det.appendChild(box);
@@ -1902,7 +1906,7 @@
                             if (elev == null || !ov || ov.style.display === 'none' || _z.value !== '') return;
                             _z.value = elev.toFixed(2);
                             const note = document.getElementById('custom-acc-note');
-                            if (note) { note.style.display = 'block'; note.innerHTML = 'Výška <b>' + elev.toFixed(2) + ' m</b> doplněna z terénu (ČÚZK DMR 5G) — orientační, uprav dle potřeby.'; }
+                            if (note) { note.style.display = 'block'; note.innerHTML = TT('Výška {v} doplněna z terénu (ČÚZK DMR 5G) — orientační, uprav dle potřeby.', { v: '<b>' + elev.toFixed(2) + ' m</b>' }); }
                         }).catch(() => { try { _z.placeholder = _ph; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:openNewPointFromMap'); } });
                     }
                 }
@@ -1952,8 +1956,8 @@
             // odkud poloha je - a ze to neni mereni, aby si to nikdo nepletl s presnou GPS.
             if (r && r.manual) {
                 const _accMap = (Math.round((r.acc || 0) * 10) / 10).toFixed(1).replace('.', ',');
-                if (line) line.innerText = 'z mapy ±' + _accMap + ' m';
-                if (warn) { warn.style.display = 'block'; warn.innerText = 'Poloha odečtená z mapy (±' + _accMap + ' m) — není to měření, přesnost vychází z měřítka mapy při klepnutí.'; }
+                if (line) line.innerText = TT('z mapy ±{v} m', { v: _accMap });
+                if (warn) { warn.style.display = 'block'; warn.innerText = TT('Poloha odečtená z mapy (±{v} m) — není to měření, přesnost vychází z měřítka mapy při klepnutí.', { v: _accMap }); }
                 setTxt('ga-n', '0'); setTxt('ga-pos', '±' + _accMap + ' m'); setTxt('ga-se', '—');
                 return;
             }
@@ -2279,7 +2283,7 @@
                 if (document.getElementById('welcome-screen') && document.getElementById('welcome-screen').style.display !== 'none' && !document.body.classList.contains('app-started')) return;
             } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:showDetails'); }
             activePointIdForModal = pt.id; initARMarkers(); arPoints.forEach(p => { if (p.element) p.element.classList.remove('active-reading'); }); if (pt.element) pt.element.classList.add('active-reading');
-            let typBodu = "Podrobný polohový bod"; if(pt.cat === 'TB') typBodu = "Trigonometrický bod"; if(pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if(pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if(pt.cat === 'TIHA') typBodu = "Tíhový bod" + (pt.nazevBodu ? " · " + pt.nazevBodu : ""); if(pt.cat === 'CUSTOM') typBodu = "Vlastní zadaný bod";
+            let typBodu = "Podrobný polohový bod"; if(pt.cat === 'TB') typBodu = "Trigonometrický bod"; if(pt.cat === 'ZHB') typBodu = "Zhušťovací bod"; if(pt.cat === 'NIVEL') typBodu = "Nivelační / Výškový bod"; if(pt.cat === 'TIHA') typBodu = TT("Tíhový bod") + (pt.nazevBodu ? " · " + pt.nazevBodu : ""); if(pt.cat === 'CUSTOM') typBodu = "Vlastní zadaný bod";
             document.getElementById('det-title').innerHTML = `#${_escHtml(pt.name)}`; document.getElementById('det-title').style.color = "var(--accent)"; document.getElementById('det-subtitle').innerHTML = typBodu; 
             const hlBtn = document.getElementById('highlight-btn'); if (highlightedPointId === pt.id) { hlBtn.innerHTML = '<svg class="icon"><use href="#i-star"/></svg><span>Nezvýraznit</span>'; hlBtn.style.background = "#fff"; } else { hlBtn.innerHTML = '<svg class="icon"><use href="#i-star"/></svg><span>Zvýraznit</span>'; hlBtn.style.background = "#fbbf24"; }
             hideBtnLogic = () => { pt.hidden = true; if(pt.element) { pt.element.style.opacity = '0'; setTimeout(() => { if(pt.element && pt.element.parentNode) pt.element.parentNode.removeChild(pt.element); }, 200); } if (highlightedPointId === pt.id) { highlightedPointId = null; document.getElementById('ar-hud').style.display = 'none'; } updateInfoPanel(); drawAllMarkersOnMap(); };
@@ -2737,7 +2741,7 @@
         function compassSilentHint() {
             if (_compassSilentShown || window.AGCompassDenied) return;   // odmítnuté oprávnění má vlastní, přesnější hlášku
             _compassSilentShown = true;
-            const msg = 'Z kompasu telefonu nepřišel ani jeden údaj o směru, takže AR neví, kam míříš — značky se v obraze neobjeví.<br><br>• Na iPhonu bývá důvodem vypnutý přístup k <b>pohybu a orientaci</b> (Nastavení → Safari → Pohyb a orientace).<br>• Některé tablety a starší telefony magnetometr nemají vůbec.<br><br>Mapa, měření i ukládání bodů fungují dál.';
+            const msg = TT('Z kompasu telefonu nepřišel ani jeden údaj o směru, takže AR neví, kam míříš — značky se v obraze neobjeví.<br><br>• Na iPhonu bývá důvodem vypnutý přístup k <b>pohybu a orientaci</b> (Nastavení → Safari → Pohyb a orientace).<br>• Některé tablety a starší telefony magnetometr nemají vůbec.<br><br>Mapa, měření i ukládání bodů fungují dál.');
             const zkusitZnovu = () => {
                 compassStarted = false; _compassSilentShown = false; _compassSilentFrom = 0;
                 // ⚠ Táž proměnná jako v compassPermissionDenied — bez uvolnění by
@@ -2821,12 +2825,12 @@
             const cp = map.latLngToContainerPoint(clickLatLng); let nearest = null, nd = 30;
             arPoints.forEach(pt => { if (!passesFilters(pt)) return; const pp = map.latLngToContainerPoint(L.latLng(pt.lat, pt.lng)); const dd = cp.distanceTo(pp); if (dd < nd) { nd = dd; nearest = pt; } });
             const t = document.getElementById('connect-hint-txt');
-            if (!nearest) { if (t) t.innerText = 'Klepni přímo na bod v mapě' + (connectFirstPt ? ' (první: #' + connectFirstPt.name + ')' : ''); return; }
+            if (!nearest) { if (t) t.innerText = TT('Klepni přímo na bod v mapě') + (connectFirstPt ? ' (' + TT('první: #{n}', { n: connectFirstPt.name }) + ')' : ''); return; }
             if (!connectFirstPt) {
-                connectFirstPt = nearest; if (t) t.innerText = 'První: #' + nearest.name + ' — klepni na další bod';
+                connectFirstPt = nearest; if (t) t.innerText = TT('První: #{n} — klepni na další bod', { n: nearest.name });
             } else if (nearest.id !== connectFirstPt.id) {
                 addLine(connectFirstPt, nearest); connectFirstPt = nearest; drawAllLinesOnMap();
-                if (t) t.innerText = 'Spojeno — pokračuj od #' + nearest.name + ', nebo Hotovo';
+                if (t) t.innerText = TT('Spojeno — pokračuj od #{n}, nebo Hotovo', { n: nearest.name });
                 if (visSettings.vibrationEnabled && navigator.vibrate) navigator.vibrate(30);
             }
         }
@@ -2910,7 +2914,7 @@
                 _areaToast.appendChild(label); _areaToast.appendChild(btn);
                 document.body.appendChild(_areaToast);
             }
-            document.getElementById('ag-area-toast-label').textContent = 'Měření plochy ukončeno (' + verts.length + ' vrcholů)';
+            document.getElementById('ag-area-toast-label').textContent = TT('Měření plochy ukončeno ({n} vrcholů)', { n: verts.length });
             document.getElementById('ag-area-toast-btn').onclick = function () {
                 hideAreaUndoToast();
                 areaMode = true; areaVertices = verts.slice();

@@ -66,6 +66,8 @@
     // =====================================================================
     //  Dialogy (sjednoceno s vylepseni.js, fallback na nativní)
     // =====================================================================
+    // překlad (AGJazyk) se zástupci {x}; v češtině vrací přesně původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function agAlert(t, m) {
         try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'parcela:agAlert'); }
         agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : ''));
@@ -311,7 +313,7 @@
         try {
             if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && gpsAvgResult.n >= 2) {
                 addVertexLL(gpsAvgResult.lat, gpsAvgResult.lng, 'V' + (state.verts.length + 1));
-                toast('Vrchol z průměru GPS (' + gpsAvgResult.n + ' měření)'); return;
+                toast(T('Vrchol z průměru GPS ({n} měření)', { n: gpsAvgResult.n })); return;
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'parcela:addMyGps'); }
         if (typeof userLat !== 'undefined' && userLat != null && userLng != null) {
@@ -427,7 +429,7 @@
             }
             if (!ll || !isFinite(ll.lat) || !isFinite(ll.lng)) return;
             addVertexLL(ll.lat, ll.lng);
-            toast('Vrchol ' + state.verts.length + ' přidán');
+            toast(T('Vrchol {n} přidán', { n: state.verts.length }));
         } catch (err) { window.AG && AG.swallow && AG.swallow(err, 'parcela:onPickTap'); }
     }
     function stopPick() {
@@ -513,8 +515,8 @@
         if (n < 3) { el.innerHTML = '<div style="opacity:.6;font-size:calc(13px * var(--ag-font-scale, 1));">Dělení je dostupné od 3 vrcholů.</div>'; return; }
         var edgeOpts = '', vertOpts = '';
         for (var i = 0; i < n; i++) {
-            edgeOpts += '<option value="' + i + '">strana ' + (i + 1) + '→' + ((i + 1) % n + 1) + '</option>';
-            vertOpts += '<option value="' + i + '">vrchol ' + (i + 1) + (state.verts[i].name ? ' (' + esc(state.verts[i].name) + ')' : '') + '</option>';
+            edgeOpts += '<option value="' + i + '">' + T('strana {a}→{b}', { a: (i + 1), b: ((i + 1) % n + 1) }) + '</option>';
+            vertOpts += '<option value="' + i + '">' + T('vrchol {n}', { n: (i + 1) }) + (state.verts[i].name ? ' (' + esc(state.verts[i].name) + ')' : '') + '</option>';
         }
         var total = shoelace(state.verts);
         el.innerHTML =
@@ -527,8 +529,8 @@
             + '  <select id="agpc-div-vert" class="agpc-sel" style="display:none;">' + vertOpts + '</select>'
             + '</div>'
             + '<div id="agpc-div-area-wrap" style="margin-top:8px;">'
-            + '  <label>Cílová výměra dílu (m²) — z celku ' + total.toFixed(2) + ' m²</label>'
-            + '  <input type="text" id="agpc-div-area" step="0.01" inputmode="decimal" placeholder="např. ' + (total / 2).toFixed(2) + '">'
+            + '  <label>' + T('Cílová výměra dílu (m²) — z celku {s} m²', { s: total.toFixed(2) }) + '</label>'
+            + '  <input type="text" id="agpc-div-area" step="0.01" inputmode="decimal" placeholder="' + esc(T('např. {v}', { v: (total / 2).toFixed(2) })) + '">'
             + '</div>'
             + '<div id="agpc-div-n-wrap" style="margin-top:8px;display:none;">'
             + '  <label>Počet dílů N</label>'
@@ -580,31 +582,31 @@
             }
             for (var q = 0; q < N; q++) areas.push(total / N);
             state.division = { lines: lines, points: enrich(pts), areas: areas, label: 'Rovnoměrné dělení na ' + N + ' dílů' };
-            resEl.innerHTML = divResultHTML('Rozděleno na ' + N + ' dílů po ' + fmtArea(total / N) + '.', pts.length);
+            resEl.innerHTML = divResultHTML(T('Rozděleno na {n} dílů po {s}.', { n: N, s: fmtArea(total / N) }), pts.length);
             if (warnNC) resEl.innerHTML += ncWarnHTML();
         } else if (method === 'vertex') {
             var vI = parseInt(document.getElementById('agpc-div-vert').value, 10) || 0;
             var tA = parseFloat(String((document.getElementById('agpc-div-area') || {}).value).replace(',', '.'));
-            if (!isFinite(tA) || tA <= 0 || tA >= total) { agAlert('Neplatná výměra', 'Zadej díl 0 < S < ' + total.toFixed(2) + ' m².'); return; }
+            if (!isFinite(tA) || tA <= 0 || tA >= total) { agAlert('Neplatná výměra', T('Zadej díl 0 < S < {s} m².', { s: total.toFixed(2) })); return; }
             var sv = solveVertex(state.verts, vI, tA);
             if (!sv) { agAlert('Nepovedlo se', 'Zkontroluj geometrii parcely.'); return; }
             if (!sv.valid) {
                 agAlert('Dělení z tohoto vrcholu nelze',
-                    'Parcela je nekonvexní a dělicí spojnice z vrcholu ' + (vI + 1) + ' vybíhá mimo parcelu — vypočtené výměry by byly ŠPATNĚ.\n\nZkus jiný vrchol, nebo metodu „rovnoběžně s hranou" (ta je korektní i pro nekonvexní tvary).');
+                    T('Parcela je nekonvexní a dělicí spojnice z vrcholu {v} vybíhá mimo parcelu — vypočtené výměry by byly ŠPATNĚ.', { v: (vI + 1) }) + '\n\n' + T('Zkus jiný vrchol, nebo metodu „rovnoběžně s hranou" (ta je korektní i pro nekonvexní tvary).'));
                 return;
             }
             state.division = { lines: [[sv.V, sv.P]], points: enrich([sv.P]), areas: [sv.area1, sv.area2], label: 'Dělení z vrcholu ' + (vI + 1) };
-            resEl.innerHTML = divResultHTML('Díl A = ' + fmtArea(sv.area1) + '<br>Díl B = ' + fmtArea(sv.area2)
-                + '<br><span style="opacity:.7">Bod P: ' + fmtYX(sv.P.Y, sv.P.X) + '</span>', 1);
+            resEl.innerHTML = divResultHTML(T('Díl A = {s}', { s: fmtArea(sv.area1) }) + '<br>' + T('Díl B = {s}', { s: fmtArea(sv.area2) })
+                + '<br><span style="opacity:.7">' + T('Bod P:') + ' ' + fmtYX(sv.P.Y, sv.P.X) + '</span>', 1);
         } else {
             var eI = parseInt(document.getElementById('agpc-div-edge').value, 10) || 0;
             var tA2 = parseFloat(String((document.getElementById('agpc-div-area') || {}).value).replace(',', '.'));
-            if (!isFinite(tA2) || tA2 <= 0 || tA2 >= total) { agAlert('Neplatná výměra', 'Zadej díl 0 < S < ' + total.toFixed(2) + ' m².'); return; }
+            if (!isFinite(tA2) || tA2 <= 0 || tA2 >= total) { agAlert('Neplatná výměra', T('Zadej díl 0 < S < {s} m².', { s: total.toFixed(2) })); return; }
             var sp = solveParallel(state.verts, eI, tA2);
             if (!sp || sp.crossings.length < 2) { agAlert('Nepovedlo se', 'Dělicí čára neprotnula hranici (zkus jinou hranu).'); return; }
             var cs2 = sp.crossings.slice(0, 2);
             state.division = { lines: [[cs2[0], cs2[1]]], points: enrich(cs2), areas: [sp.area1, sp.area2], label: 'Rovnoběžně s hranou ' + (eI + 1) };
-            resEl.innerHTML = divResultHTML('Díl A (u hrany) = ' + fmtArea(sp.area1) + '<br>Díl B = ' + fmtArea(sp.area2)
+            resEl.innerHTML = divResultHTML(T('Díl A (u hrany) = {s}', { s: fmtArea(sp.area1) }) + '<br>' + T('Díl B = {s}', { s: fmtArea(sp.area2) })
                 + '<br><span style="opacity:.7">P1: ' + fmtYX(cs2[0].Y, cs2[0].X) + '<br>P2: ' + fmtYX(cs2[1].Y, cs2[1].X) + '</span>', 2);
             if (sp.crossings.length > 2) resEl.innerHTML += ncWarnHTML();   // nekonvexní parcela
         }
@@ -615,7 +617,7 @@
     }
     function divResultHTML(inner, nPts) {
         return '<div class="agpc-divbox">' + inner
-            + '<button class="btn" id="agpc-div-savebtn" style="margin-top:10px;"><svg class="icon"><use href="#i-plus"/></svg> Uložit ' + nPts + ' lomových bodů do zakázky</button></div>';
+            + '<button class="btn" id="agpc-div-savebtn" style="margin-top:10px;"><svg class="icon"><use href="#i-plus"/></svg> ' + T('Uložit {n} lomových bodů do zakázky', { n: nPts }) + '</button></div>';
     }
     // Nekonvexní parcela: dělicí čára protíná hranici na více než 2 místech. Výměry dílů
     // (areaClip) jsou správné, ale nakreslená čára / uložené body popíší jen první dva
@@ -632,7 +634,7 @@
         var prefix = 'DEL';
         var arr = state.division.points.map(function (p, i) { return { name: prefix + (i + 1), lat: p.lat, lng: p.lng }; });
         var added = window.addImportedPoints(arr);
-        if (added > 0) { draftClear(); agAlert('Uloženo', added + ' lomových bodů uloženo do aktuální zakázky (názvy ' + prefix + '1…).'); }
+        if (added > 0) { draftClear(); agAlert('Uloženo', T('{n} lomových bodů uloženo do aktuální zakázky (názvy {p}1…).', { n: added, p: prefix })); }
         else { agAlert('Neuloženo', 'Body se stejnou polohou už v zakázce jsou.'); }
     }
 
@@ -705,7 +707,7 @@
     function addFromPoint() {
         var sel = document.getElementById('agpc-ptsel'); if (!sel || !sel.value || typeof arPoints === 'undefined') return;
         var p = arPoints.find(function (q) { return q.id === sel.value; });
-        if (p) { addVertexLL(p.lat, p.lng, p.name); toast('Vrchol #' + p.name + ' přidán'); }
+        if (p) { addVertexLL(p.lat, p.lng, p.name); toast(T('Vrchol #{n} přidán', { n: p.name })); }
     }
     function addFromYX() {
         var Y = parseFloat(String((document.getElementById('agpc-in-y') || {}).value).replace(',', '.'));

@@ -64,6 +64,8 @@
     // ---- pomocníci ------------------------------------------------------------------
     function swallow(e, kde) { try { if (window.AG && AG.swallow) AG.swallow(e, 'nacrt-na-mapu:' + kde); } catch (e2) { /* nic */ } }
     function byId(id) { return document.getElementById(id); }
+    // překlad (AGJazyk) se zástupci {x}; v češtině vrací přesně původní text. „tr", ne „T" — S.T je transformace.
+    function tr(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : (typeof agInfo === 'function' ? agInfo(m) : null)); } catch (e) { swallow(e, 'toast'); } }
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { swallow(e, 'agAlert'); } try { agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); } catch (e) { swallow(e, 'agInfo'); } }
@@ -463,16 +465,16 @@
         if (!mode) return;
         var b = document.createElement('div'); b.id = BAR;
         if (mode === 'map') {
-            b.innerHTML = '<div class="ag-nm-row"><span id="ag-nm-txt">Teď klepni <b>v mapě</b> na týž roh<small>Do 3 m se přichytí k lomovému bodu katastru. Přibliž si mapu.</small></span>'
+            b.innerHTML = '<div class="ag-nm-row"><span id="ag-nm-txt">' + tr('Teď klepni <b>v mapě</b> na týž roh') + '<small>' + tr('Do 3 m se přichytí k lomovému bodu katastru. Přibliž si mapu.') + '</small></span>'
                 + '<button type="button" id="ag-nm-cancel2">Zrušit</button></div>';
             document.body.appendChild(b);
             b.querySelector('#ag-nm-cancel2').addEventListener('click', function () { disarm(); bar(S.T ? 'ctl' : null); });
             return;
         }
-        var zd = S.zdroj === 'katastr' ? 'roh z DKM (cm)' : (S.zdroj === 'ukm' ? 'roh z UKM (±1 m)' : 'roh podle klepnutí (±' + fmt(pxAcc(), 1) + ' m)');
-        var rms = (S.T && S.T.rms != null) ? ' · body se pobíjejí o ' + fmt(S.T.rms, 1) + ' m' : '';
+        var zd = S.zdroj === 'katastr' ? tr('roh z DKM (cm)') : (S.zdroj === 'ukm' ? tr('roh z UKM (±1 m)') : tr('roh podle klepnutí (±{a} m)', { a: fmt(pxAcc(), 1) }));
+        var rms = (S.T && S.T.rms != null) ? ' · ' + tr('body se pobíjejí o {d} m', { d: fmt(S.T.rms, 1) }) : '';
         b.innerHTML = '<div class="ag-nm-row"><span style="flex:1;min-width:0;">Náčrt bodu <b>' + esc(S.pt.name || '') + '</b> leží na mapě<small>1 px = ' + fmt(S.T.scale, 2) + ' m · ' + zd + rms + '</small></span>'
-            + '<button type="button" id="ag-nm-hide" title="Schovat tento pruh (náčrt zůstane)">✕</button></div>'
+            + '<button type="button" id="ag-nm-hide" title="' + esc(tr('Schovat tento pruh (náčrt zůstane)')) + '">✕</button></div>'
             + '<div class="ag-nm-row"><span>Průhlednost</span><input type="range" id="ag-nm-op" min="10" max="100" value="' + Math.round(S.op * 100) + '">'
             + '<button type="button" id="ag-nm-ar" class="' + (S.ar ? 'on' : '') + '">V AR</button></div>'
             + '<div class="ag-nm-row"><button type="button" id="ag-nm-more">Zpřesnit dalším rohem</button><button type="button" id="ag-nm-off" class="x">Sundat</button></div>';
@@ -480,7 +482,7 @@
         b.querySelector('#ag-nm-op').addEventListener('input', function () { S.op = parseInt(this.value, 10) / 100; if (S.layer) S.layer.setOpacity(S.op); _last = null; save(); });
         b.querySelector('#ag-nm-ar').addEventListener('click', function () { S.ar = !S.ar; this.classList.toggle('on', S.ar); if (S.ar) startAr(); else stopAr(); save(); });
         b.querySelector('#ag-nm-more').addEventListener('click', function () { pickPair(false); });
-        b.querySelector('#ag-nm-off').addEventListener('click', function () { sundat(); toast('Náčrt sundán z mapy'); });
+        b.querySelector('#ag-nm-off').addEventListener('click', function () { sundat(); toast(tr('Náčrt sundán z mapy')); });
         b.querySelector('#ag-nm-hide').addEventListener('click', function () { bar(null); });
     }
     // přesnost klepnutí prstem podle měřítka mapy (jako Poloha z mapy: ~8 px)
@@ -502,8 +504,8 @@
     function disarm() { S.armed = false; S._pending = null; }
     // dvojice: místo v náčrtu + místo v mapě. first = true → napřed ještě značka bodu (1. vlícovací bod)
     function pickPair(first) {
-        var stepBod = { title: 'Kde je v náčrtu bod?', text: 'Ťukni na <b>značku bodu ' + esc(S.pt.name || '') + '</b> v náčrtu (zpravidla uprostřed, trojúhelník / kolečko s číslem). Táhni = posun, dva prsty nebo ＋／− = lupa.', ok: 'Tady je bod' };
-        var stepRoh = { title: 'Roh, který najdeš i v mapě', text: 'Ťukni v náčrtu na <b>roh budovy</b> nebo <b>lomový bod hranice</b>, který je i v katastrální mapě. Čím dál od bodu, tím přesnější otočení a měřítko.', ok: 'Tento roh' };
+        var stepBod = { title: tr('Kde je v náčrtu bod?'), text: tr('Ťukni na <b>značku bodu {n}</b> v náčrtu (zpravidla uprostřed, trojúhelník / kolečko s číslem). Táhni = posun, dva prsty nebo ＋／− = lupa.', { n: esc(S.pt.name || '') }), ok: tr('Tady je bod') };
+        var stepRoh = { title: tr('Roh, který najdeš i v mapě'), text: tr('Ťukni v náčrtu na <b>roh budovy</b> nebo <b>lomový bod hranice</b>, který je i v katastrální mapě. Čím dál od bodu, tím přesnější otočení a měřítko.'), ok: tr('Tento roh') };
         var pak = function () {
             openPicker(stepRoh, function (m2) {
                 if (!m2) { if (S.cps.length >= 2 && S.T) bar('ctl'); return; }
@@ -524,21 +526,21 @@
     function take(lat, lng) {
         if (!S.armed || !S._pending) return false;
         var pend = S._pending; disarm();
-        var t = byId('ag-nm-txt'); if (t) t.innerHTML = 'Hledám hranici katastru…';
+        var t = byId('ag-nm-txt'); if (t) t.innerHTML = tr('Hledám hranici katastru…');
         snapKatastr({ lat: lat, lng: lng }).then(function (sn) {
             var en = toEN(sn.lat, sn.lng);
             S.cps.push({ px: pend.px, py: pend.py, e: en.e, n: en.n });
             if (sn.zdroj) { if (!S.zdroj || S.zdroj === 'katastr') S.zdroj = (sn.zdroj === 2) ? 'ukm' : 'katastr'; }
             var T = buildTransform(S.cps);
-            if (!T) { S.cps.pop(); bar(S.T ? 'ctl' : null); agAlert('Nejde položit', 'Ty dva body jsou v náčrtu na stejném místě. Zkus jiný roh dál od bodu.'); return; }
-            if (T.mirror) { S.cps.pop(); bar(S.T ? 'ctl' : null); agAlert('Něco nesedí', 'Podle těchhle bodů by byl náčrt zrcadlově. Zkontroluj, že jsi v mapě klepl na stejný roh jako v náčrtu, a zkus to znovu.'); return; }
+            if (!T) { S.cps.pop(); bar(S.T ? 'ctl' : null); agAlert(tr('Nejde položit'), tr('Ty dva body jsou v náčrtu na stejném místě. Zkus jiný roh dál od bodu.')); return; }
+            if (T.mirror) { S.cps.pop(); bar(S.T ? 'ctl' : null); agAlert(tr('Něco nesedí'), tr('Podle těchhle bodů by byl náčrt zrcadlově. Zkontroluj, že jsi v mapě klepl na stejný roh jako v náčrtu, a zkus to znovu.')); return; }
             var wm = T.scale * S.img.width;
             S.T = T; S.small = S.small || smallImage(S.img);
             showLayer(); if (S.ar) startAr(); save(); bar('ctl');
             try { if (window.AGNotify && typeof AGNotify.set === 'function') AGNotify.set('nacrt-mapa', 'Náčrt na mapě'); } catch (e) { swallow(e, 'notify'); }
-            var jak = sn.zdroj ? 'Roh přichycen k lomovému bodu katastru' + (sn.zdroj === 2 ? ' (UKM, ±1 m)' : ' (DKM)') : 'Roh vzat z klepnutí (bez hranice katastru v okolí)';
-            if (wm < 5 || wm > 2000) toast('Náčrt by měřil ' + Math.round(wm) + ' m — to nevypadá. Zkontroluj rohy, případně „Zpřesnit".');
-            else toast(jak + '. Náčrt leží na mapě; posuvníkem nastav průhlednost.');
+            var jak = sn.zdroj ? tr('Roh přichycen k lomovému bodu katastru') + (sn.zdroj === 2 ? ' (UKM, ±1 m)' : ' (DKM)') : tr('Roh vzat z klepnutí (bez hranice katastru v okolí)');
+            if (wm < 5 || wm > 2000) toast(tr('Náčrt by měřil {m} m — to nevypadá. Zkontroluj rohy, případně „Zpřesnit".', { m: Math.round(wm) }));
+            else toast(jak + '. ' + tr('Náčrt leží na mapě; posuvníkem nastav průhlednost.'));
         });
         return true;
     }
@@ -548,14 +550,14 @@
     function start(pt, url, role) {
         if (!pt || !url) return;
         css();
-        var m = theMap(); if (!m || !leaflet()) { agAlert('Mapa', 'Mapa zatím neběží — otevři mapu a zkus to znovu.'); return; }
+        var m = theMap(); if (!m || !leaflet()) { agAlert(tr('Mapa'), tr('Mapa zatím neběží — otevři mapu a zkus to znovu.')); return; }
         if (S.pt && S.pt.id !== pt.id) sundat();
         S.pt = { id: pt.id, name: pt.name, lat: pt.lat, lng: pt.lng }; S.url = url; S.role = role || '';
-        toast('Načítám náčrt…');
+        toast(tr('Načítám náčrt…'));
         loadImage(url).then(function (im) {
             S.img = im; S.small = smallImage(im);
             pickPair(true);
-        }).catch(function () { agAlert('Náčrt se nenačetl', 'Bez signálu a bez zásoby v telefonu náčrt položit nejde. Zkus to se signálem.'); });
+        }).catch(function () { agAlert(tr('Náčrt se nenačetl'), tr('Bez signálu a bez zásoby v telefonu náčrt položit nejde. Zkus to se signálem.')); });
     }
     function sundat() {
         disarm(); stopAr(); hideLayer(); bar(null);
@@ -567,7 +569,7 @@
     // dlaždice v Nástrojích: buď pruh k položenému náčrtu, nebo návod, kde začít
     function open() {
         if (active()) { ensureMapVisible(); bar('ctl'); return; }
-        agAlert('Náčrt na mapě', 'Otevři v mapě kartu <b>úředního bodu</b> (TB, ZhB, PPBP, nivelační) a pod oficiálním náčrtem ČÚZK klepni <b>Položit náčrt na mapu</b>. Pak dvěma klepnutími (roh v náčrtu → týž roh v mapě) náčrt sedne na katastr.');
+        agAlert(tr('Náčrt na mapě'), tr('Otevři v mapě kartu <b>úředního bodu</b> (TB, ZhB, PPBP, nivelační) a pod oficiálním náčrtem ČÚZK klepni <b>Položit náčrt na mapu</b>. Pak dvěma klepnutími (roh v náčrtu → týž roh v mapě) náčrt sedne na katastr.'));
     }
     // tlačítko do karty bodu (volá js/karta-bodu-plus.js po vykreslení náčrtu)
     function cardButton(pt, url, role) {

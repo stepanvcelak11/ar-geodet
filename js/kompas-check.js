@@ -57,6 +57,8 @@
     // centrum nebylo nactene (modul je dal odpojitelny samostatne).
     function _center() { return (window.AGNotify && typeof window.AGNotify.set === 'function') ? window.AGNotify : null; }
 
+    // překlad: věta s číslem → šablona se zástupcem (AGJazyk.t hledá celý text)
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function setBanner(show, now) {
         const C = _center();
         if (C) {
@@ -223,7 +225,7 @@
         let html = '';
         if (s.el < -1) {
             html += '<div style="color:var(--warning); font-size:calc(14px * var(--ag-font-scale, 1)); margin-bottom:10px;">Slunce je pod obzorem — kontrolu nelze provést.</div>';
-            html += row('Azimut Slunce', s.az.toFixed(0) + '° (pod obzorem)');
+            html += row('Azimut Slunce', T('{v}° (pod obzorem)', { v: s.az.toFixed(0) }));
         } else {
             html += row('Azimut Slunce', s.az.toFixed(0) + '°');
             html += row('Výška Slunce', s.el.toFixed(0) + '°');

@@ -56,6 +56,7 @@
     }
     function num(v) { if (v == null || v === '') return null; return agNum(v); }
     function f3(v) { return v == null ? '—' : v.toFixed(3); }
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function uid() { return 'zb_' + Date.now() + '_' + Math.round(Math.random() * 1e5); }
     // rozdíl úhlů v gon do <-200,200>
@@ -189,12 +190,12 @@
         h += '<div class="ag-zb-sec">Technická nivelace</div>';
         h += '<button type="button" class="ag-zb-newbtn" data-new="niv">＋ Nový nivelační zápisník</button>';
         d.niv.forEach(function (n) {
-            h += '<div class="ag-zb-item" data-open="niv:' + n.id + '"><b>' + esc(n.name || 'Nivelace') + '</b><small>' + n.rows.length + ' sestav</small><button type="button" class="ag-zb-del" data-del="niv:' + n.id + '" aria-label="Smazat">✕</button></div>';
+            h += '<div class="ag-zb-item" data-open="niv:' + n.id + '"><b>' + esc(n.name || 'Nivelace') + '</b><small>' + T('{n} sestav', { n: n.rows.length }) + '</small><button type="button" class="ag-zb-del" data-del="niv:' + n.id + '" aria-label="Smazat">✕</button></div>';
         });
         h += '<div class="ag-zb-sec">Vodorovné směry (+ zenit, délka)</div>';
         h += '<button type="button" class="ag-zb-newbtn" data-new="sm">＋ Nový zápisník směrů</button>';
         d.sm.forEach(function (n) {
-            h += '<div class="ag-zb-item" data-open="sm:' + n.id + '"><b>' + esc(n.name || 'Směry') + '</b><small>' + n.targets.length + ' cílů · ' + n.groups.length + ' skupin</small><button type="button" class="ag-zb-del" data-del="sm:' + n.id + '" aria-label="Smazat">✕</button></div>';
+            h += '<div class="ag-zb-item" data-open="sm:' + n.id + '"><b>' + esc(n.name || 'Směry') + '</b><small>' + T('{t} cílů · {g} skupin', { t: n.targets.length, g: n.groups.length }) + '</small><button type="button" class="ag-zb-del" data-del="sm:' + n.id + '" aria-label="Smazat">✕</button></div>';
         });
         b.innerHTML = h;
         b.scrollTop = 0;
@@ -280,7 +281,7 @@
         nb.rows.forEach(function (r, i) {
             h += '<tr>'
                 + '<td class="ag-zb-idx">' + (i + 1) + '.</td>'
-                + '<td><input class="ag-zb-name" data-row="' + i + '" data-f="bod" value="' + esc(r.bod) + '" placeholder="bod ' + (i + 1) + '"></td>'
+                + '<td><input class="ag-zb-name" data-row="' + i + '" data-f="bod" value="' + esc(r.bod) + '" placeholder="' + T('bod {n}', { n: i + 1 }) + '"></td>'
                 + '<td><input inputmode="decimal" data-row="' + i + '" data-f="z" value="' + esc(r.z) + '"></td>'
                 + '<td><input inputmode="decimal" data-row="' + i + '" data-f="p" value="' + esc(r.p) + '"></td>'
                 + '<td><span class="ag-zb-comp" data-ch="' + i + '">—</span></td>'
@@ -344,7 +345,7 @@
         if (res.Hend != null) hh += '<br>Výška konce z měření: <b>' + res.Hend.toFixed(3) + '</b> m';
         if (res.odch != null) {
             var okTxt = '';
-            if (res.mez != null) okTxt = Math.abs(res.odch) <= res.mez ? ' <span class="ag-zb-okk">✓ v mezi ' + res.mez.toFixed(0) + ' mm</span>' : ' <span class="ag-zb-warn">✗ nad mez ' + res.mez.toFixed(0) + ' mm!</span>';
+            if (res.mez != null) okTxt = Math.abs(res.odch) <= res.mez ? ' <span class="ag-zb-okk">' + T('✓ v mezi {m} mm', { m: res.mez.toFixed(0) }) + '</span>' : ' <span class="ag-zb-warn">' + T('✗ nad mez {m} mm!', { m: res.mez.toFixed(0) }) + '</span>';
             hh += '<br>Uzávěr: <b>' + (res.odch > 0 ? '+' : '') + res.odch.toFixed(1) + ' mm</b>' + okTxt;
         } else if (res.mez != null) {
             hh += '<br>Mez uzávěru (40·√R): <b>' + res.mez.toFixed(0) + ' mm</b> — zadej známou koncovou výšku pro porovnání.';
@@ -418,13 +419,13 @@
         nb.targets.forEach(function (t, ti) {
             h += '<div class="ag-zb-card">'
                 + '<div class="ag-zb-card-head">'
-                + '<input class="ag-zb-cname" data-t="' + ti + '" value="' + esc(t) + '" placeholder="Cíl ' + (ti + 1) + ' — číslo bodu">'
+                + '<input class="ag-zb-cname" data-t="' + ti + '" value="' + esc(t) + '" placeholder="' + T('Cíl {n} — číslo bodu', { n: ti + 1 }) + '">'
                 + '<input class="ag-zb-cdist" inputmode="decimal" data-dist="' + ti + '" value="' + esc(nb.dist[ti] || '') + '" placeholder="' + (nb.distType === 'vodor' ? 'vodor. délka (m)' : 'šikmá délka (m)') + '">'
                 + '<button type="button" class="ag-zb-del" data-delt="' + ti + '" aria-label="Smazat cíl">✕</button>'
                 + '</div>'
                 + '<div class="ag-zb-gwrap"><table class="ag-zb-gtbl"><thead><tr><th></th><th>Hz I (gon)</th><th>Hz II (gon)</th><th>red.</th><th>Zenit I (gon)</th><th>Zenit II (gon)</th></tr></thead><tbody>';
             nb.groups.forEach(function (gr, gi) {
-                h += '<tr><td class="ag-zb-gno">' + (gi + 1) + '. sk</td>'
+                h += '<tr><td class="ag-zb-gno">' + T('{n}. sk', { n: gi + 1 }) + '</td>'
                     + '<td><input inputmode="decimal" data-g="' + gi + '" data-ab="a" data-i="' + ti + '" value="' + esc(gr.a[ti] || '') + '"></td>'
                     + '<td><input inputmode="decimal" data-g="' + gi + '" data-ab="b" data-i="' + ti + '" value="' + esc(gr.b[ti] || '') + '"></td>'
                     + '<td><span class="ag-zb-comp" data-red="' + gi + ':' + ti + '">—</span></td>'

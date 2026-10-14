@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 410,
+   "datum": "2026-10-14",
+   "nadpis": "Celá appka v angličtině a dalších jazycích",
+   "body": [
+    "Přeloženo přes 1 900 dalších textů: výsledky výpočtů, chybové hlášky, potvrzovací okna, karta bodu, 3D pohled, Korekce z mapy, kalkulačka a další nástroje — v cizím jazyce už nikde nezůstává čeština.",
+    "Okno „Opravit GPS podle bodu“, poznámka o přesnosti u nového bodu a okénko s výškou z terénu jsou přeložené celé, i s čísly.",
+    "Zdroje u Předpisů (vyhlášky, zákony) jsou v cizím jazyce přeložené; měsíce v Ročence a data v kartě bodu se píšou podle jazyka appky."
+   ]
+  },
+  {
    "v": 409,
    "datum": "2026-10-06",
    "nadpis": "Přesnost telefonu přímo v práci",
