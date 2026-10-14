@@ -68,6 +68,9 @@ jobs:
     # fail-fast: false — pad jednoho proudu nesmi zastavit ostatni, jinak by se vada schovala.
     name: Regresni testy (proud ${{ matrix.proud }}/3)
     runs-on: ubuntu-latest
+    # zaseknutý běh (14. 10. 2026: proud 1 visel přes 45 min, zrušit nešel) se utne;
+    # běžně proud trvá ~15 min
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
