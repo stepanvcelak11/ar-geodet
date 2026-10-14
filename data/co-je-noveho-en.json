@@ -2,6 +2,14 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 413,
+      "datum": "2026-10-14",
+      "nadpis": "Minor fixes",
+      "body": [
+        "Signing in right after “Switch company” no longer reports an error by mistake."
+      ]
+    },
+    {
       "v": 412,
       "datum": "2026-10-14",
       "nadpis": "More reliable start without signal",

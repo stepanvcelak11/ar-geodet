@@ -2,6 +2,14 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 413,
+      "datum": "2026-10-14",
+      "nadpis": "Drobne poprawki",
+      "body": [
+        "Logowanie zaraz po „Przełącz firmę” nie zgłasza już omyłkowo błędu."
+      ]
+    },
+    {
       "v": 412,
       "datum": "2026-10-14",
       "nadpis": "Pewniejszy start bez zasięgu",

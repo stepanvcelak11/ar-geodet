@@ -371,13 +371,21 @@
     // Odchyt kliku na tlacitko "Prihlasit" v CAPTURE fazi. Bezi driv nez obsluha
     // v js/ucty.js, takze kdyz je ve jmene VLASTNIK, klik se tam vubec nedostane
     // a nezapocita se jako spatne heslo do brzdy proti hadani.
+    // ⚠ NA DOKUMENTU, NE NA OKNĚ (14. 10. 2026): odchyt se dřív věšel na přihlašovací okno
+    //   a nové okno (po „Přepnout firmu", po odhlášení) napojil až tik každé 2 s. Kdo do té
+    //   doby klepl na Přihlásit, poslal jméno VLASTNIK jako běžné přihlášení → „Přihlášení
+    //   selhalo (200)". Capture na document běží i tak dřív než obsluha okna v js/ucty.js.
+    var _hookDoc = false;
     function hookForm() {
-        var ov = loginOverlay();
-        if (!ov || ov.getAttribute('data-agv') === '1') return;
-        ov.setAttribute('data-agv', '1');
-        ov.addEventListener('click', function (e) {
+        // značka „odchyt je aktivní" na okně — čtou ji testy (scripts/test_vlastnik.py)
+        try { var ov0 = loginOverlay(); if (ov0 && ov0.getAttribute('data-agv') !== '1') ov0.setAttribute('data-agv', '1'); } catch (e) { swallow(e, 'hook-znacka'); }
+        if (_hookDoc) return;
+        _hookDoc = true;
+        document.addEventListener('click', function (e) {
             var btn = e.target && e.target.closest ? e.target.closest('button') : null;
             if (!btn) return;
+            var ov = btn.closest('#ag-gate, #ag-login');
+            if (!ov) return;
             var p = poleFormulare(ov, btn);
             if (!p || !p.jm || !p.heslo || !p.err) return;
             if (!jeJmenoVlastnika(p.jm.value)) return;

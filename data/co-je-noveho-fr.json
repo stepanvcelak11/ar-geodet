@@ -2,6 +2,14 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 413,
+      "datum": "2026-10-14",
+      "nadpis": "Petites corrections",
+      "body": [
+        "La connexion juste après « Changer d’entreprise » ne signale plus d’erreur par erreur."
+      ]
+    },
+    {
       "v": 412,
       "datum": "2026-10-14",
       "nadpis": "Démarrage plus fiable sans réseau",

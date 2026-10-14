@@ -2,6 +2,14 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 413,
+      "datum": "2026-10-14",
+      "nadpis": "Kleine verbeteringen",
+      "body": [
+        "Inloggen direct na ‘Bedrijf wisselen’ geeft niet langer per ongeluk een fout."
+      ]
+    },
+    {
       "v": 412,
       "datum": "2026-10-14",
       "nadpis": "Betrouwbaarder starten zonder bereik",

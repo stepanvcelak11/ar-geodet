@@ -2,6 +2,14 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 413,
+   "datum": "2026-10-14",
+   "nadpis": "Drobné opravy",
+   "body": [
+    "Přihlášení hned po „Přepnout firmu“ už nehlásí omylem chybu."
+   ]
+  },
+  {
    "v": 412,
    "datum": "2026-10-14",
    "nadpis": "Spolehlivější start bez signálu",

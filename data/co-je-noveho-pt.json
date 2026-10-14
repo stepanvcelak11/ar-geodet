@@ -2,6 +2,14 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 413,
+      "datum": "2026-10-14",
+      "nadpis": "Pequenas correções",
+      "body": [
+        "Iniciar sessão logo depois de «Mudar de empresa» já não mostra um erro por engano."
+      ]
+    },
+    {
       "v": 412,
       "datum": "2026-10-14",
       "nadpis": "Arranque mais fiável sem rede",
