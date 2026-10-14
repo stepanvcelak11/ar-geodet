@@ -62,13 +62,15 @@
         if (sel) for (var i = 0; i < sel.options.length; i++) { if (sel.options[i].value === id) return sel.options[i].text; }
         return null;
     }
+    // překlad vět s názvem/časem (lišta dole) — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function relAge(ts) {
         var min = Math.round((Date.now() - ts) / 60000);
-        if (min < 2) return 'právě teď';
-        if (min < 60) return 'před ' + min + ' min';
+        if (min < 2) return T('právě teď');
+        if (min < 60) return T('před {n} min', { n: min });
         var h = Math.round(min / 60);
-        if (h < 24) return 'před ' + h + ' h';
-        return 'včera';
+        if (h < 24) return T('před {n} h', { n: h });
+        return T('včera');
     }
 
     // ---- záznam posledního nástroje (klepnutí na dlaždici v Nástrojích) --------------
@@ -99,14 +101,14 @@
         if (!rec) { AGNotify.clear('pokracovat'); return; }
         var pn = (rec.pid !== pid()) ? projName(rec.pid) : null;
         if (rec.pid !== pid() && !pn) { AGNotify.clear('pokracovat'); return; }   // zakázka už neexistuje
-        var txt = 'Naposledy jsi měl otevřené: ' + rec.label + ' (' + (pn ? 'zakázka ' + pn + ' · ' : '') + relAge(rec.ts) + ')';
+        var txt = T('Naposledy jsi měl otevřené: {l} ({z}{a})', { l: T(rec.label), z: (pn ? T('zakázka {p}', { p: pn }) + ' · ' : ''), a: relAge(rec.ts) });
         // jen při změně (25. 9. 2026): dřív se lišta přepisovala každé 2 s a v cizím jazyce na chvíli problikla česky
         if (txt === refreshBtn._txt && AGNotify.has && AGNotify.has('pokracovat')) return;
         refreshBtn._txt = txt;
         AGNotify.set('pokracovat', {
             level: 'info', order: 40,
             text: txt,
-            short: 'Pokračovat: ' + rec.label,       // do pilulky (celá věta se tam uřízla)
+            short: T('Pokračovat: {l}', { l: T(rec.label) }),       // do pilulky (celá věta se tam uřízla)
             action: 'Otevřít',
             onAction: function () { _done = true; AGNotify.clear('pokracovat'); resume(); },
             onDismiss: function () { _dismissed = true; }

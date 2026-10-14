@@ -388,7 +388,7 @@
     }
     function otevri(bodNebo) {
         var p = (bodNebo && typeof bodNebo.lat === 'number') ? bodNebo : vyberBod();
-        if (!p) { return (window.agAlert || alert)({ title: 'Místopisný náčrt', message: T('Nejdřív vyber bod: otevři jeho kartu (nebo ho naviguj) a pak spusť náčrt. Náčrt se ukládá k bodu.') }); }
+        if (!p) { var _m = T('Nejdřív vyber bod: otevři jeho kartu (nebo ho naviguj) a pak spusť náčrt. Náčrt se ukládá k bodu.'); return window.agAlert ? agAlert({ title: 'Místopisný náčrt', message: _m }) : alert(_m); }
         pt = p; nacti();
         if (!document.querySelector('link[href$="css/mistopisny-nacrt.css"]')) { var lk = document.createElement('link'); lk.rel = 'stylesheet'; lk.href = 'css/mistopisny-nacrt.css'; document.head.appendChild(lk); }
         if (!el) { el = document.createElement('div'); el.id = 'agn'; document.body.appendChild(el); }

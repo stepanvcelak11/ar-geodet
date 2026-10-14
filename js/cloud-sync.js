@@ -367,10 +367,10 @@
         try { if (typeof renderManageList === 'function') renderManageList(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:persistAndRedraw'); }
         try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:persistAndRedraw'); }
         var parts = [];
-        if (res.add) parts.push('nové: ' + res.add);
-        if (res.edit) parts.push('upravené: ' + res.edit);
-        if (res.del) parts.push('smazané: ' + res.del);
-        if (parts.length) toast('Sdílení bodů ve firmě — ' + parts.join(', ') + '.');
+        if (res.add) parts.push(T('nové: {n}', { n: res.add }));
+        if (res.edit) parts.push(T('upravené: {n}', { n: res.edit }));
+        if (res.del) parts.push(T('smazané: {n}', { n: res.del }));
+        if (parts.length) toast(T('Sdílení bodů ve firmě') + ' — ' + parts.join(', ') + '.');
         // Ohlášení pro vrstvy, které chtějí vědět, že od kolegy něco přišlo
         // (js/kolize-bodu.js hledá body, které padly skoro na sebe). Záměrně
         // jen událost — tenhle modul o žádné takové vrstvě nemusí vědět a bez
