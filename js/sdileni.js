@@ -34,6 +34,8 @@
     // (lat/lng na 6 mist ~0,1 m). Sloupce 4 a 5 jsou novejsi rozsireni — starsi verze
     // appky ctou jen prvni tri a zbytek ignoruji, takze kod zustane citelny i pro ne.
     const NOTE_MAX = 90;              // delsi poznamka by uz QR nafoukla nad citelnost
+    // překlad vět, které modul skládá sám (počty ve větě) — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function clean(s, max) { return String(s == null ? '' : s).replace(/[\t\n\r]/g, ' ').trim().slice(0, max); }
 
     function encodePoints(pts) {
@@ -99,8 +101,8 @@
         const skipped = arr.length - added;
         const withDoc = arr.filter(o => o.doc).length;
         const photos = arr.reduce((n, o) => n + (o.doc && o.doc.photos ? o.doc.photos.length : 0), 0);
-        let msg = `Přidáno ${added} bodů` + (skipped ? `, ${skipped} přeskočeno (už je máš)` : '');
-        if (added && withDoc) msg += ` — včetně poznámek` + (photos ? ` a ${photos} fotek` : '');
+        let msg = skipped ? T('Přidáno {a} bodů, {s} přeskočeno (už je máš)', { a: added, s: skipped }) : T('Přidáno {a} bodů', { a: added });
+        if (added && withDoc) msg += ' ' + (photos ? T('— včetně poznámek a {p} fotek', { p: photos }) : T('— včetně poznámek'));
         if (typeof quickToast === 'function') quickToast(msg + '.'); else agInfo(msg + '.');
         return added;
     }
@@ -225,14 +227,14 @@
                 qr.addData(payload, 'Byte');
                 qr.make();
                 const url = qr.createDataURL(6, 12);
-                let sub = `${sel.length} bodů`;
-                if (notes) sub += `, ${notes}× poznámka`;
-                sub += ' — ukažte kolegovi k naskenování';
+                let sub = T('{n} bodů', { n: sel.length });
+                if (notes) sub += ', ' + T('{n}× poznámka', { n: notes });
+                sub += ' ' + T('— ukažte kolegovi k naskenování');
                 let warn = '';
-                if (photosLeft) warn = `<div style="font-size:calc(12px * var(--ag-font-scale, 1)); color:var(--warning); margin-top:6px;">${photosLeft} fotek se přes QR nepřenese — pošli soubor níže.</div>`;
+                if (photosLeft) warn = `<div style="font-size:calc(12px * var(--ag-font-scale, 1)); color:var(--warning); margin-top:6px;">${T('{n} fotek se přes QR nepřenese — pošli soubor níže.', { n: photosLeft })}</div>`;
                 out.innerHTML = `<img src="${url}" alt="QR" style="width:100%; max-width:300px; image-rendering:pixelated; background:#fff; border-radius:8px;"><div style="font-size:calc(12px * var(--ag-font-scale, 1)); color:var(--text-muted); margin-top:6px;">${escHtml(sub)}</div>${warn}`;
             } catch (e) {
-                out.innerHTML = `<span style="color:var(--danger);">Do jednoho QR kódu se to nevejde (${sel.length} bodů${notes ? ' s poznámkami' : ''}). Vyber méně bodů, vypni poznámky, nebo pošli soubor.</span>`;
+                out.innerHTML = `<span style="color:var(--danger);">${T(notes ? 'Do jednoho QR kódu se to nevejde ({n} bodů s poznámkami). Vyber méně bodů, vypni poznámky, nebo pošli soubor.' : 'Do jednoho QR kódu se to nevejde ({n} bodů). Vyber méně bodů, vypni poznámky, nebo pošli soubor.', { n: sel.length })}</span>`;
             }
         }).catch(function () { out.innerHTML = '<span style="color:var(--danger);">Body se nepodařilo připravit.</span>'; });
     }
@@ -251,10 +253,10 @@
                 const d = new Date(), z = n => String(n).padStart(2, '0');
                 const fname = 'body_' + d.getFullYear() + z(d.getMonth() + 1) + z(d.getDate()) + '-' + z(d.getHours()) + z(d.getMinutes()) + '.argeobod';
                 const file = new File([blob], fname, { type: 'application/octet-stream' });
-                const info = `${pkg.points.length} bodů, ${notes}× poznámka, ${photos} fotek — ${fmtSize(blob.size)}`;
+                const info = T('{n} bodů, {k}× poznámka, {f} fotek — {s}', { n: pkg.points.length, k: notes, f: photos, s: fmtSize(blob.size) });
                 if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
-                    return navigator.share({ files: [file], title: 'Body — QTRIG' })
-                        .then(function () { out.textContent = 'Odesláno: ' + info; })
+                    return navigator.share({ files: [file], title: T('Body — QTRIG') })
+                        .then(function () { out.textContent = T('Odesláno: {i}', { i: info }); })
                         .catch(function (e) { if (e && e.name === 'AbortError') { out.textContent = ''; return; } download(blob, fname, out, info); });
                 }
                 download(blob, fname, out, info);
@@ -266,7 +268,7 @@
         const a = document.createElement('a'); a.href = u; a.download = fname;
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(function () { URL.revokeObjectURL(u); }, 4000);
-        out.textContent = 'Uloženo do souborů: ' + fname + ' (' + info + ')';
+        out.textContent = T('Uloženo do souborů: {f} ({i})', { f: fname, i: info });
     }
 
     // ---------- Nacteni balicku od kolegy ----------

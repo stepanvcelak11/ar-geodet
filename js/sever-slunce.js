@@ -59,6 +59,9 @@
 
     function swallow(e, w) { try { window.AG && AG.swallow && AG.swallow(e, 'sever-slunce:' + w); } catch (e2) { /* fail-silent */ } }
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
+    // překlad vět s číslem — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
+    var B = { b: '<b>', _b: '</b>' };
     function info(m, t) { try { if (typeof window.agInfo === 'function') return window.agInfo(m, t); } catch (e) { swallow(e, 'info'); } }
 
     function heading() {
@@ -188,8 +191,8 @@
         var val = modal.querySelector('#ss-val');
 
         hint.innerHTML = (mode === 'shadow')
-            ? 'Postav se <b>zády ke Slunci</b> a otoč telefon tak, aby mířil <b>podél tvého stínu</b> (od tebe pryč). Do Slunce se nedíváš.'
-            : 'Otoč se tak, aby <b>zadní kamera mířila na Slunce</b>. <b>Nedívej se do něj</b> — koukáš na displej, telefon drž svisle.';
+            ? T('Postav se {b}zády ke Slunci{_b} a otoč telefon tak, aby mířil {b}podél tvého stínu{_b} (od tebe pryč). Do Slunce se nedíváš.', B)
+            : T('Otoč se tak, aby {b}zadní kamera mířila na Slunce{_b}. {b}Nedívej se do něj{_b} — koukáš na displej, telefon drž svisle.', B);
 
         if (!p) {
             rows.innerHTML = '<div class="ss-warn">Nemám polohu — bez ní neumím spočítat, kde Slunce je. Počkej na GPS fix.</div>';
@@ -209,8 +212,8 @@
             + '<div class="ss-row"><span>Korekce severu teď</span><b>' + fmtDeg(offsetNow()) + '</b></div>';
 
         var block = null;
-        if (s.el < EL_MIN) block = 'Slunce je pod obzorem (výška ' + s.el.toFixed(1) + '°). Tenhle způsob teď nejde použít.';
-        else if (s.el > EL_MAX) block = 'Slunce je vysoko (' + s.el.toFixed(0) + '°). Kolem poledne se jeho azimut mění nejrychleji a míření je nejméně spolehlivé — počkej na nižší Slunce, nebo srovnej sever podle známého bodu.';
+        if (s.el < EL_MIN) block = T('Slunce je pod obzorem (výška {v}°). Tenhle způsob teď nejde použít.', { v: s.el.toFixed(1) });
+        else if (s.el > EL_MAX) block = T('Slunce je vysoko ({v}°). Kolem poledne se jeho azimut mění nejrychleji a míření je nejméně spolehlivé — počkej na nižší Slunce, nebo srovnej sever podle známého bodu.', { v: s.el.toFixed(0) });
         else if (h == null) block = 'Kompas zatím nedává data — pohni telefonem (osmička), ať se magnetometr rozjede.';
 
         rows.innerHTML = html + (block ? '<div class="ss-warn">' + esc(block) + '</div>' : '');
@@ -236,10 +239,10 @@
             var h = heading();
             if (h != null) list.push(h);
             i++;
-            go.textContent = 'Měřím… ' + Math.max(0, Math.ceil((n - i) / SAMPLE_HZ)) + ' s — drž směr';
+            go.textContent = T('Měřím… {s} s — drž směr', { s: Math.max(0, Math.ceil((n - i) / SAMPLE_HZ)) });
             if (i >= n) {
                 clearInterval(sampling); sampling = null;
-                go.textContent = 'Jsem namířený — změř';
+                go.textContent = T('Jsem namířený — změř');
                 finish(list, out);
             }
         }, Math.round(1000 / SAMPLE_HZ));
@@ -254,14 +257,14 @@
         // delta = o kolik se musí PŘIČÍST ke směru, aby kompas ukazoval pravdu
         var delta = adiff(tAz, med);
 
-        var q = sp > 12 ? 'Ruka se dost klepala (rozptyl ' + sp.toFixed(0) + '°) — výsledek ber s rezervou, radši zopakuj.'
-            : (sp > 6 ? 'Rozptyl ' + sp.toFixed(0) + '° — přijatelné.' : 'Klidná ruka (rozptyl ' + sp.toFixed(0) + '°).');
+        var q = T(sp > 12 ? 'Ruka se dost klepala (rozptyl {r}°) — výsledek ber s rezervou, radši zopakuj.'
+            : (sp > 6 ? 'Rozptyl {r}° — přijatelné.' : 'Klidná ruka (rozptyl {r}°).'), { r: sp.toFixed(0) });
 
         out.innerHTML =
             '<div class="ss-res">'
-            + '<div style="font-weight:700;margin-bottom:6px;">Kompas je vedle o ' + fmtDeg(delta) + '</div>'
-            + '<div style="color:var(--text-muted,#9aa1ac);">Naměřený směr ' + med.toFixed(1) + '° · má být ' + tAz.toFixed(1) + '° · ' + esc(q) + '</div>'
-            + '<button class="btn btn-primary" id="ss-apply" style="margin-top:10px;">Srovnat sever (' + (delta >= 0 ? '+' : '') + delta.toFixed(1) + '°)</button>'
+            + '<div style="font-weight:700;margin-bottom:6px;">' + T('Kompas je vedle o {d}', { d: fmtDeg(delta) }) + '</div>'
+            + '<div style="color:var(--text-muted,#9aa1ac);">' + T('Naměřený směr {m}° · má být {t}°', { m: med.toFixed(1), t: tAz.toFixed(1) }) + ' · ' + esc(q) + '</div>'
+            + '<button class="btn btn-primary" id="ss-apply" style="margin-top:10px;">' + T('Srovnat sever') + ' (' + (delta >= 0 ? '+' : '') + delta.toFixed(1) + '°)</button>'
             + '<button class="btn btn-secondary" id="ss-undo" style="margin-top:6px;display:none;">Vzít zpět</button>'
             + '</div>';
 
@@ -299,7 +302,7 @@
         if (!isUndo) {
             lastApplied = delta;
             var u = modal && modal.querySelector('#ss-undo'); if (u) u.style.display = '';
-            info('Sever srovnán podle Slunce o ' + fmtDeg(delta) + '.');
+            info(T('Sever srovnán podle Slunce o {d}.', { d: fmtDeg(delta) }));
         }
         render();
     }

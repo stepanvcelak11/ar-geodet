@@ -66,6 +66,8 @@
 
     var LVL = { danger: 0, warn: 10, ok: 20, info: 30 };
 
+    // překlad (js/jazyky.js) se zástupci {x}; česky vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
     // ---- styly -------------------------------------------------------------------
@@ -287,7 +289,7 @@
     }
     // sbalená ukazuje NEJHORŠÍ hlášku, rozjetá jen počet (texty jsou pod ní)
     function headText(list, worst) {
-        return _expanded ? (list.length + ' upozornění') : worst.text;
+        return _expanded ? T('{n} upozornění', { n: list.length }) : worst.text;
     }
     // Otisk STRUKTURY karty. Texty se mění po sekundě („GPS ztracena 45 s"), ale
     // dokud sedí složení a stavy, karta se jen přepíše — nepřestavuje se, takže
@@ -316,7 +318,7 @@
         head.type = 'button';
         head.className = 'ag-nhead';
         head.setAttribute('aria-expanded', _expanded ? 'true' : 'false');
-        head.setAttribute('aria-label', _expanded ? 'Sbalit upozornění' : ('Rozbalit upozornění (' + list.length + ')'));
+        head.setAttribute('aria-label', _expanded ? T('Sbalit upozornění') : T('Rozbalit upozornění ({n})', { n: list.length }));
         head.innerHTML = '<span class="ag-note-dot"></span>'
             + '<span class="ag-nhead-tx"></span>'
             + (list.length > 1 && !_expanded ? '<span class="ag-ncount">' + list.length + '</span>' : '')
@@ -346,7 +348,7 @@
             }
             var x = document.createElement('button');
             x.type = 'button'; x.className = 'ag-note-x';
-            x.setAttribute('aria-label', 'Vyškrtnout: ' + n.text);
+            x.setAttribute('aria-label', T('Vyškrtnout: {t}', { t: T(n.text) }));
             x.textContent = '×';
             x.addEventListener('click', function (ev) { ev.stopPropagation(); dismissNote(n); });
             row.appendChild(x);

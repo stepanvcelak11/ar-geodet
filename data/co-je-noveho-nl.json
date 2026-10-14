@@ -2,6 +2,14 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 411,
+      "datum": "2026-10-14",
+      "nadpis": "Vertaling voltooid",
+      "body": [
+        "Ook bedrijfs- en accountbeheer, de rekenmachine, Weer, as uitzetten, 3D-weergave, delen, nood-SOS en andere tools zijn vertaald — ruim 450 extra teksten in 8 talen."
+      ]
+    },
+    {
       "v": 410,
       "datum": "2026-10-14",
       "nadpis": "De hele app in het Engels en andere talen",

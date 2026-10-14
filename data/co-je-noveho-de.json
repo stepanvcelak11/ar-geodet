@@ -2,6 +2,14 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 411,
+      "datum": "2026-10-14",
+      "nadpis": "Übersetzung abgeschlossen",
+      "body": [
+        "Auch Firmen- und Kontoverwaltung, Rechner, Wetter, Achsabsteckung, 3D-Ansicht, Teilen, Notfall-SOS und weitere Werkzeuge sind übersetzt — über 450 weitere Texte in 8 Sprachen."
+      ]
+    },
+    {
       "v": 410,
       "datum": "2026-10-14",
       "nadpis": "Die ganze App auf Englisch und in weiteren Sprachen",

@@ -41,6 +41,8 @@
     var IKONA = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.6 6.2L21 9l-5 4.4L17.5 21 12 17.6 6.5 21 8 13.4 3 9l6.4-.8z"/></svg>';
 
     function swallow(e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'pro-prehled:' + kde); } catch (x) { } }
+    // překlad (js/jazyky.js) se zástupci {x}; česky vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function esc(s) {
         if (window.AG && AG.esc) return AG.esc(s);
         return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -214,7 +216,7 @@
     function seznam(vl, max) {
         var h = '', n = Math.min(vl.length, max);
         for (var i = 0; i < n; i++) h += '<li>' + esc(vl[i]) + '</li>';
-        if (vl.length > n) h += '<li class="dal">+ ' + (vl.length - n) + ' další</li>';
+        if (vl.length > n) h += '<li class="dal">' + T('+ {n} další', { n: vl.length - n }) + '</li>';
         return h;
     }
 
@@ -259,7 +261,7 @@
         for (i = 0; i < vse.length; i++) baseVl.push(vse[i].vl || vse[i].k);
         h += '<div class="agpp-karty">' +
             '<div class="agpp-karta zk"><b>Základ</b><i>zdarma · ' + d.zaklad + ' nástrojů</i><ul>' + seznam(baseVl, 6) + '</ul></div>' +
-            '<div class="agpp-karta pro"><b>Pro</b><i>navíc ' + d.pro + ' nástrojů</i><ul>';
+            '<div class="agpp-karta pro"><b>Pro</b><i>' + T('navíc {n} nástrojů', { n: d.pro }) + '</i><ul>';
         var ps = proPodleSloves(d);
         for (i = 0; i < ps.length; i++) {
             var vl = ps[i].vl.slice(0, 3), zb = ps[i].vl.length - vl.length;
@@ -288,7 +290,7 @@
         styly();
         m = document.createElement('div');
         m.id = MODAL_ID;
-        m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true'); m.setAttribute('aria-label', 'Základ a Pro');
+        m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true'); m.setAttribute('aria-label', T('Základ a Pro'));
         m.innerHTML =
             '<div class="agpp-head"><h2>Základ × Pro</h2><button type="button" class="agpp-x" aria-label="Zavřít">&times;</button></div>' +
             '<div class="agpp-body"></div>' +

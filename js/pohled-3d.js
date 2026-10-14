@@ -446,7 +446,7 @@
             + '<button type="button" id="ag3d-name"><svg class="icon"><use href="#i-crosshair"/></svg> Na mě</button>'
             + '<button type="button" id="ag3d-sever">Sever</button>'
             + '<button type="button" id="ag3d-pitch">2D / 3D</button>'
-            + '<button type="button" id="ag3d-teren" class="' + (st.teren ? 'on' : '') + '">Terén</button>'
+            + '<button type="button" id="ag3d-teren" class="' + (st.teren ? 'on' : '') + '">' + ((window.AGJazyk && AGJazyk.get && AGJazyk.get() !== 'cs') ? T('Terén (vrstva 3D)') : 'Terén') + '</button>'
             + '<button type="button" id="ag3d-zelen" class="' + (st.zelen ? 'on' : '') + '">Zeleň</button>'
             + '<button type="button" id="ag3d-chodniky" class="' + (st.chodniky ? 'on' : '') + '">Chodníky</button>'
             + '</div><div class="ag3d-pozn">Dva prsty = otočit a naklopit. Klepni na bod, budovu nebo trasu. Oddálení = glóbus.</div>';

@@ -42,6 +42,8 @@
 
     // ---- pomocné ---------------------------------------------------------------
     function agAlert(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert({ title: t, message: m }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'project-import:agAlert'); } agInfo(t + (m ? '\n\n' + String(m).replace(/<[^>]*>/g, '') : '')); }
+    // překlad (js/jazyky.js) se zástupci {x}; česky vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'project-import:toast'); } }
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
     function haveUser() { return (typeof userLat !== 'undefined' && userLat != null && typeof userLng !== 'undefined' && userLng != null); }
@@ -233,10 +235,10 @@
     }
     function popupCary(p, ev) {
         var r = prumetNaPoly(p, ev.latlng), l = delkaPoly(p);
-        var h = '<b>' + escapeHtml(p.layer) + '</b><br>délka ' + (l >= 1000 ? (l / 1000).toFixed(3) + ' km' : l.toFixed(1) + ' m');
+        var h = '<b>' + escapeHtml(p.layer) + '</b><br>' + T('délka') + ' ' + (l >= 1000 ? (l / 1000).toFixed(3) + ' km' : l.toFixed(1) + ' m');
         if (r) {
-            if (_design.osa === p.layer) h += '<br>staničení <b>' + fmtStan(r.stan) + '</b>';
-            else { var st = stanicteni(ev.latlng); h += '<br>od začátku čáry ' + r.stan.toFixed(1) + ' m' + (st ? '<br>osa: ' + st.text + ' · ' + st.d.toFixed(1) + ' m od osy' : ''); }
+            if (_design.osa === p.layer) h += '<br>' + T('staničení') + ' <b>' + fmtStan(r.stan) + '</b>';
+            else { var st = stanicteni(ev.latlng); h += '<br>' + T('od začátku čáry {v} m', { v: r.stan.toFixed(1) }) + (st ? '<br>' + T('osa: {s} · {d} m od osy', { s: st.text, d: st.d.toFixed(1) }) : ''); }
         }
         L.popup({ closeButton: true, autoPan: false }).setLatLng(r ? r.bod : ev.latlng).setContent(h).openOn(getMap());
     }
@@ -380,13 +382,13 @@
             try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'project-import:stakeOut'); }
         }
         closeModal();
-        toast('Vytyčuji #' + name + ' — sleduj šipku v AR');
+        toast(T('Vytyčuji #{n} — sleduj šipku v AR', { n: name }));
     }
     function transferAll() {
         var vs = stakeVertices(); if (!vs.length) { agAlert('Nic k přenosu', 'Žádné body ve viditelných vrstvách.'); return; }
         if (typeof window.addImportedPoints !== 'function') { agAlert('Nelze', 'Vkládání bodů není dostupné.'); return; }
         var added = window.addImportedPoints(vs.map(function (v) { return { name: 'V_' + v.name, lat: v.lat, lng: v.lng }; }));
-        agAlert('Přeneseno', added + ' bodů návrhu uloženo do zakázky. Najdeš je v seznamu Body a navigovat můžeš nativní šipkou i nástrojem Vytyčení osy.');
+        agAlert(T('Přeneseno'), T('{n} bodů návrhu uloženo do zakázky. Najdeš je v seznamu Body a navigovat můžeš nativní šipkou i nástrojem Vytyčení osy.', { n: added }));
         renderStakeList();
     }
 
@@ -506,7 +508,7 @@
                     agAlert('Souřadnice mimo ČR', 'Body výkresu po převodu nepadnou do ČR — DXF nejspíš není v S-JTSK (Křovák), ale v lokálním systému. Pro lokální výkres použij záložku „Situace (foto)" a georeferencuj dvěma body.');
                 }
                 _design = d; persist(); drawMap(); fitMap(); renderDxf(); startAr();
-                toast('Načteno: ' + d.points.length + ' bodů, ' + d.segs.length + ' úseků');
+                toast(T('Načteno: {p} bodů, {s} úseků', { p: d.points.length, s: d.segs.length }));
             } catch (e) { agAlert('Chyba čtení DXF', String(e && e.message || e)); }
         };
         rd.readAsArrayBuffer(f);   // binárně kvůli detekci kódování (Windows-1250 / UTF-8)
@@ -516,7 +518,7 @@
     function renderDxf() {
         var sum = document.getElementById('agpi-summary'); if (!sum) return;
         if (!_design) { sum.innerHTML = '<span style="opacity:.6">Žádný výkres. Načti DXF v S-JTSK.</span>'; document.getElementById('agpi-layers').innerHTML = ''; toggleStakeUi(false); return; }
-        sum.innerHTML = '<b>' + _design.points.length + '</b> bodů · <b>' + _design.segs.length + '</b> úseků · <b>' + _design.texts.length + '</b> popisků · <b>' + Object.keys(_design.layers).length + '</b> vrstev';
+        sum.innerHTML = T('<b>{p}</b> bodů · <b>{s}</b> úseků · <b>{t}</b> popisků · <b>{l}</b> vrstev', { p: _design.points.length, s: _design.segs.length, t: _design.texts.length, l: Object.keys(_design.layers).length });
         var box = document.getElementById('agpi-layers');
         box.innerHTML = Object.keys(_design.layers).map(function (n) {
             var on = _design.layers[n].on !== false;
@@ -592,15 +594,15 @@
     function updateRasStep() {
         var s = document.getElementById('agpi-ras-step'); if (!s) return;
         if (_rasTmp.length >= 2) { s.innerHTML = '<b style="color:#34d399">Hotovo</b> — podklad umístěn. Můžeš doladit průhlednost.'; }
-        else s.innerHTML = 'Klepni na obrázek na <b>kontrolní bod ' + (_rasTmp.length + 1) + '</b> (roh, známý bod…), pak zadáš jeho reálnou polohu.';
+        else s.innerHTML = T('Klepni na obrázek na <b>kontrolní bod {n}</b> (roh, známý bod…), pak zadáš jeho reálnou polohu.', { n: _rasTmp.length + 1 });
     }
     function askControlPoint(ix, iy) {
         var canGps = haveUser();
-        var msg = 'Kontrolní bod ' + (_rasTmp.length + 1) + ': zadej reálnou polohu.\n\n'
-            + 'Napiš "Y X" v metrech (S-JTSK), NEBO nech prázdné a potvrď pro použití aktuální GPS' + (canGps ? '' : ' (GPS zatím není)') + '.';
+        var msg = T('Kontrolní bod {n}: zadej reálnou polohu.', { n: _rasTmp.length + 1 }) + '\n\n'
+            + T(canGps ? 'Napiš "Y X" v metrech (S-JTSK), NEBO nech prázdné a potvrď pro použití aktuální GPS.' : 'Napiš "Y X" v metrech (S-JTSK), NEBO nech prázdné a potvrď pro použití aktuální GPS (GPS zatím není).');
         // nativní prompt() je v iOS PWA (standalone) nespolehlivý → použij agPrompt s fallbackem
         var getInput = (typeof window.agPrompt === 'function')
-            ? window.agPrompt({ title: 'Kontrolní bod ' + (_rasTmp.length + 1), message: msg, value: '', okText: 'Potvrdit' })
+            ? window.agPrompt({ title: T('Kontrolní bod {n}', { n: _rasTmp.length + 1 }), message: msg, value: '', okText: T('Potvrdit') })
             : Promise.resolve((function () { try { return prompt(msg, ''); } catch (e) { return null; } })());
         getInput.then(function (inp) {
             if (inp === null || inp === undefined) return;

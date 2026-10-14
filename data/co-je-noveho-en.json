@@ -2,6 +2,14 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 411,
+      "datum": "2026-10-14",
+      "nadpis": "Translation completed",
+      "body": [
+        "Company and account administration, the calculator, Weather, line stake-out, 3D view, sharing, emergency SOS and other tools are translated too — over 450 more texts in 8 languages."
+      ]
+    },
+    {
       "v": 410,
       "datum": "2026-10-14",
       "nadpis": "The whole app in English and other languages",

@@ -42,14 +42,16 @@
     function hasSat() { try { return typeof computeSatPositions === 'function' && typeof computePDOP === 'function'; } catch (e) { return false; } }
 
     // „dnes 14:30" / „zítra 9:05" / „28. 7. 14:30"
+    // překlad vět, které modul skládá sám (termín/název ve větě) — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function fmtWhen(ts) {
         var d = new Date(ts), now = new Date();
         var hm = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
         var day0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
         var dd = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
         var diff = Math.round((dd - day0) / 86400000);
-        if (diff === 0) return 'dnes ' + hm;
-        if (diff === 1) return 'zítra ' + hm;
+        if (diff === 0) return T('dnes {t}', { t: hm });
+        if (diff === 1) return T('zítra {t}', { t: hm });
         return d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + hm;
     }
 
@@ -172,17 +174,17 @@
             var k = Math.min(sessCount(), 3);
             var rows = camp.plan.map(function (w, i) {
                 var past = w.ts < Date.now();
-                return '<div class="geo-data-row" style="padding:6px 0;"><span class="geo-label">Návštěva ' + (i + 2) + '</span>'
+                return '<div class="geo-data-row" style="padding:6px 0;"><span class="geo-label">' + T('Návštěva {n}', { n: i + 2 }) + '</span>'
                     + '<span class="geo-value">' + fmtWhen(w.ts)
                     + (w.pdop != null ? ' · PDOP ' + w.pdop.toFixed(1) : '')
-                    + (w.diff != null ? ' · jiná obloha ' + Math.round(w.diff * 100) + ' %' : '')
-                    + (past ? ' (proběhlo?)' : '') + '</span></div>';
+                    + (w.diff != null ? ' · ' + T('jiná obloha {p} %', { p: Math.round(w.diff * 100) }) : '')
+                    + (past ? ' (' + T('proběhlo?') + ')' : '') + '</span></div>';
             }).join('');
             var notifState = ('Notification' in window) ? Notification.permission : 'unsupported';
-            body.innerHTML = '<p style="font-size:calc(13px * var(--ag-font-scale, 1));"><b>' + esc(camp.name || 'Bod') + '</b> — hotová sezení: <b>' + k + '/3</b>'
+            body.innerHTML = '<p style="font-size:calc(13px * var(--ag-font-scale, 1));"><b>' + esc(camp.name || T('Bod')) + '</b> — ' + T('hotová sezení:') + ' <b>' + k + '/3</b>'
                 + (camp.fallback ? '<br><span style="opacity:.7; font-size:calc(12px * var(--ag-font-scale, 1));">Plán bez drah družic (obecné pravidlo „jiná denní doba"). Pro chytřejší plán otevři jednou „GNSS satelity" a naplánuj znovu.</span>' : '') + '</p>'
                 + rows
-                + '<p style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:.75; margin:10px 0 6px;">Připomínka naskočí po otevření appky v okně ±' + (WINDOW_MIN / 60).toFixed(1).replace('.0', '') + ' h kolem termínu. Appka si sama „nezavolá" — notifikace na pozadí bez serveru neumí.</p>'
+                + '<p style="font-size:calc(12px * var(--ag-font-scale, 1)); opacity:.75; margin:10px 0 6px;">' + T('Připomínka naskočí po otevření appky v okně ±{h} h kolem termínu. Appka si sama „nezavolá" — notifikace na pozadí bez serveru neumí.', { h: (WINDOW_MIN / 60).toFixed(1).replace('.0', '') }) + '</p>'
                 + (notifState === 'granted'
                     ? '<p style="font-size:calc(12px * var(--ag-font-scale, 1)); color:var(--accent);">Notifikace povoleny ✓</p>'
                     : (notifState === 'unsupported' ? '' : '<button class="btn btn-secondary" id="ag-campaign-notif" style="margin-top:4px;">Povolit notifikace</button>'))
@@ -243,9 +245,9 @@
             var next = null;
             for (var i = 0; i < camp.plan.length; i++) { if (camp.plan[i].ts > Date.now() - WINDOW_MIN * 60000) { next = camp.plan[i]; break; } }
             card.style.display = '';
-            card.innerHTML = '<b><svg class="icon"><use href="#i-calendar"/></svg> Kampaň „' + esc(camp.name) + '": sezení ' + k + '/3</b>'
-                + (k >= 3 ? ' — hotovo, ulož bod.' : (next ? ' — další ' + fmtWhen(next.ts) + '.' : ' — termíny prošly, změř kdykoli (jinou denní dobu).'))
-                + ' <span style="opacity:.7;">(detail klepnutím)</span>';
+            card.innerHTML = '<b><svg class="icon"><use href="#i-calendar"/></svg> ' + T('Kampaň „{n}": sezení {k}/3', { n: esc(camp.name), k: k }) + '</b>'
+                + ' ' + (k >= 3 ? T('— hotovo, ulož bod.') : (next ? T('— další {t}.', { t: fmtWhen(next.ts) }) : T('— termíny prošly, změř kdykoli (jinou denní dobu).')))
+                + ' <span style="opacity:.7;">(' + T('detail klepnutím') + ')</span>';
         } else if (sessCount() >= 1) {
             card.style.display = '';
             card.innerHTML = '<b><svg class="icon"><use href="#i-calendar"/></svg> Naplánovat kampaň (3 návštěvy)</b> — jiná konstelace družic vyruší systematiku. <span style="opacity:.7;">(klepni)</span>';
@@ -261,13 +263,13 @@
         refreshCard();
         var camp = load();
         if (!camp && sessions && sessions.length === 1) {
-            toast('Tip: naplánuj kampaň „3 návštěvy" — 2 další sezení jindy zpřesní bod (karta dole).');
+            toast(T('Tip: naplánuj kampaň „3 návštěvy" — 2 další sezení jindy zpřesní bod (karta dole).'));
         }
         if (camp && sessions && sessions.length >= 3) {
-            toast('Kampaň „' + (camp.name || 'Bod') + '": 3/3 sezení hotová — můžeš uložit bod.');
+            toast(T('Kampaň „{n}": 3/3 sezení hotová — můžeš uložit bod.', { n: (camp.name || T('Bod')) }));
         }
     }
-    function onSaved() { if (load()) { clear(); toast('Kampaň dokončena a uzavřena — bod je uložen ze spojených sezení.'); } refreshCard(); }
+    function onSaved() { if (load()) { clear(); toast(T('Kampaň dokončena a uzavřena — bod je uložen ze spojených sezení.')); } refreshCard(); }
 
     // ---- připomínka při startu appky --------------------------------------------------
     function checkReminder() {
@@ -275,14 +277,14 @@
         if (!camp) return;
         if (!camp.notified) camp.notified = {};
         var now = Date.now(), k = Math.min(sessCount(), 3);
-        if (k >= 3) { toast('Kampaň „' + camp.name + '": vše změřeno — otevři Brutální GPS a ulož bod.'); return; }
+        if (k >= 3) { toast(T('Kampaň „{n}": vše změřeno — otevři Brutální GPS a ulož bod.', { n: camp.name })); return; }
         for (var i = 0; i < camp.plan.length; i++) {
             var w = camp.plan[i];
             if (Math.abs(now - w.ts) <= WINDOW_MIN * 60000) {
                 var key = 'w' + i;
-                var msg = 'Kampaň „' + camp.name + '": teď je vhodné okno na sezení ' + (k + 1) + '/3 (' + fmtWhen(w.ts) + ').';
+                var msg = T('Kampaň „{n}": teď je vhodné okno na sezení {k}/3 ({t}).', { n: camp.name, k: k + 1, t: fmtWhen(w.ts) });
                 toast(msg);
-                if (!camp.notified[key]) { notify('QTRIG — kampaň', msg); camp.notified[key] = 1; save(camp); }
+                if (!camp.notified[key]) { notify(T('QTRIG — kampaň'), msg); camp.notified[key] = 1; save(camp); }
                 return;
             }
         }
@@ -290,7 +292,7 @@
         for (var j = 0; j < camp.plan.length; j++) {
             var p = camp.plan[j];
             if (now - p.ts > WINDOW_MIN * 60000 && now - p.ts < 20 * 3600000 && k < j + 2) {
-                toast('Kampaň „' + camp.name + '": okno ' + fmtWhen(p.ts) + ' prošlo — změř sezení ' + (k + 1) + '/3 dnes kdykoli (hlavně jinou denní dobu).');
+                toast(T('Kampaň „{n}": okno {t} prošlo — změř sezení {k}/3 dnes kdykoli (hlavně jinou denní dobu).', { n: camp.name, t: fmtWhen(p.ts), k: k + 1 }));
                 return;
             }
         }

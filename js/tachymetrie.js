@@ -264,7 +264,7 @@
         renderDocs();
         if (tmap) fitView();
         redraw();
-        hint('Otevřen náčrt „' + curName() + '".');
+        hint(T('Otevřen náčrt „{n}".', { n: curName() }));
     };
     window.tachyNewDoc = function () {
         agAskText('Název nového náčrtu:', { title: 'Nový náčrt', value: freeName(), okText: 'Vytvořit' }).then(nm => {
@@ -279,7 +279,7 @@
             save();
             selIdx = -1; mode = 'view'; updateModeButtons(); updateStylePanel(); applyDrawInteraction();
             renderDocs(); redraw();
-            hint('Nový náčrt „' + curName() + '" — začni bodem (GPS) nebo kresli.');
+            hint(T('Nový náčrt „{n}" — začni bodem (GPS) nebo kresli.', { n: curName() }));
         });
     };
     window.tachyRenameDoc = function () {
@@ -307,10 +307,10 @@
             renderDocs();
             if (tmap) fitView();
             redraw();
-            hint('Otevřen náčrt „' + curName() + '".');
+            hint(T('Otevřen náčrt „{n}".', { n: curName() }));
         };
         if (empty) return doIt();   // prazdny nacrt smaz bez ptani
-        agAsk('Smazat náčrt „' + curName() + '" i s obsahem?', { title: 'Smazat náčrt', okText: 'Smazat', danger: true })
+        agAsk(T('Smazat náčrt „{n}" i s obsahem?', { n: curName() }), { title: T('Smazat náčrt'), okText: T('Smazat'), danger: true })
             .then(ok => { if (ok) doIt(); });
     };
 
@@ -347,7 +347,7 @@
             save();
             if (sketch.pts.length === 1 && tmap) tmap.setView([_lat, _lng], 20);
             redraw();
-            hint('Přidán bod „' + sketch.pts[sketch.pts.length - 1].name + '". Stůjte na bodě a měřte přesně.');
+            hint(T('Přidán bod „{n}". Stůjte na bodě a měřte přesně.', { n: sketch.pts[sketch.pts.length - 1].name }));
         });
     };
 
@@ -359,7 +359,7 @@
             if (!exists) { sketch.pts.push({ name: String(p.name || nextName()), lat: p.lat, lng: p.lng }); sketch.log.push('pt'); added++; }
         });
         save(); if (added && tmap) fitView(); redraw();
-        hint(added ? ('Přidáno ' + added + ' bodů z „Mé body".') : 'Všechny tvoje body už v náčrtu jsou.');
+        hint(added ? T('Přidáno {n} bodů z „Mé body".', { n: added }) : T('Všechny tvoje body už v náčrtu jsou.'));
     };
 
     // ---------- Režimy ----------
@@ -559,6 +559,8 @@
 
     // ---------- Vykreslení ----------
     function syncSize() { if (!tmap) return; const s = tmap.getSize(); if (canvas.width !== s.x || canvas.height !== s.y) { canvas.width = s.x; canvas.height = s.y; } }
+    // překlad (js/jazyky.js) se zástupci {x}; česky vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function hint(t) { const h = document.getElementById('tachy-hint'); if (h) h.innerText = t; }
 
     function redraw() {
@@ -598,7 +600,7 @@
             ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.strokeText(p.name, s.x + 9, s.y - 7); ctx.fillText(p.name, s.x + 9, s.y - 7);
         });
         const _ring = drawMeasure(ctx, false);
-        hint(`${sketch.pts.length} bodů · ${sketch.lines.length} čar · ${sketch.labels.length} popisků` + (sketch.strokes.length ? ` · ${sketch.strokes.length} tahů` : '') + (_ring ? ` · plocha ${fmtArea(_ring.area)} · obvod ${fmtLen(_ring.perim)}` : '') + (mode === 'connect' ? ' · spojuji' : mode === 'label' ? ' · popisek' : mode === 'draw' ? ' · kreslím' : ''));
+        hint(T('{p} bodů · {l} čar · {t} popisků', { p: sketch.pts.length, l: sketch.lines.length, t: sketch.labels.length }) + (sketch.strokes.length ? ' · ' + T('{n} tahů', { n: sketch.strokes.length }) : '') + (_ring ? ' · ' + T('plocha {a} · obvod {o}', { a: fmtArea(_ring.area), o: fmtLen(_ring.perim) }) : '') + (mode === 'connect' ? ' · ' + T('spojuji') : mode === 'label' ? ' · ' + T('popisek') : mode === 'draw' ? ' · ' + T('kreslím') : ''));
     }
 
     function roundRect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
@@ -618,7 +620,7 @@
         ctx.fillStyle = '#fff'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'left';
         ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,0.7)';
         ctx.strokeText(meters + ' m', x0 + px + 8, y0 + 4); ctx.fillText(meters + ' m', x0 + px + 8, y0 + 4);
-        ctx.textAlign = 'center'; ctx.strokeText('S ↑', canvas.width - 24, 24); ctx.fillText('S ↑', canvas.width - 24, 24);
+        ctx.textAlign = 'center'; ctx.strokeText(T('S ↑'), canvas.width - 24, 24); ctx.fillText(T('S ↑'), canvas.width - 24, 24);
     }
 
     // ---------- Export do PNG ----------

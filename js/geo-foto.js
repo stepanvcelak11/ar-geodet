@@ -69,6 +69,8 @@
     }
     function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:toast'); } }
     function fail(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert(t, m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:fail'); } toast(m); }
+    // překlad textů, které modul skládá sám (razítko, tiskový protokol mimo appku, toasty) — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function fmtT(ts) { try { return new Date(ts).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
     function fmtDT(ts) { var d = new Date(ts); return d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear() + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
     var DAYS_CS = ['neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota'];
@@ -208,14 +210,14 @@
     // Kreslí se do dolního pásu. Písmo se škáluje podle šířky snímku, aby razítko bylo
     // čitelné i po zmenšení do mailu — na malém náhledu je nečitelné razítko k ničemu.
     function stampLines(st, near, note) {
-        var l1 = projName() + (near ? '  ·  u bodu ' + near.name + ' (' + Math.round(near.d) + ' m)' : '');
+        var l1 = projName() + (near ? '  ·  ' + T('u bodu {n} ({d} m)', { n: near.name, d: Math.round(near.d) }) : '');
         var sj = (st.lat != null) ? toSJTSK(st.lat, st.lng) : null;
         var l2;
         if (sj) l2 = 'Y ' + fmtNum(sj.y) + '   X ' + fmtNum(sj.x) + (st.bpv != null ? '   Bpv ' + st.bpv.toFixed(1) + ' m' : '');
         else if (st.lat != null) l2 = st.lat.toFixed(6) + ', ' + st.lng.toFixed(6) + ' (WGS84)';
-        else l2 = 'poloha nedostupná — GPS nemá fix';
+        else l2 = T('poloha nedostupná — GPS nemá fix');
         var l3 = fmtDT(st.ts)
-            + '   ·   azimut ' + (st.az != null ? Math.round(st.az) + '°' : 'neurčen')
+            + '   ·   ' + T('azimut') + ' ' + (st.az != null ? Math.round(st.az) + '°' : T('neurčen'))
             + (st.acc != null ? '   ·   GPS ±' + Math.round(st.acc) + ' m' : '');
         var un = userName();
         if (un) l3 += '   ·   ' + un;
@@ -252,7 +254,7 @@
         // patička pásu: původ snímku + navázání na předchozí fotku (řetěz otisků)
         ctx.font = '500 ' + Math.round(fs * 0.72) + 'px -apple-system, "Segoe UI", Roboto, sans-serif';
         ctx.fillStyle = 'rgba(255,255,255,0.6)';
-        var foot = 'QTRIG · razítko vypáleno při pořízení' + (prevHash ? '  ·  navazuje na ' + short(prevHash) : '  ·  první snímek zakázky');
+        var foot = 'QTRIG · ' + T('razítko vypáleno při pořízení') + '  ·  ' + (prevHash ? T('navazuje na {h}', { h: short(prevHash) }) : T('první snímek zakázky'));
         ctx.fillText(foot, padX, H - Math.round(fs * 1.15));
         ctx.restore();
     }
@@ -326,8 +328,8 @@
             var sj = (st.lat != null) ? toSJTSK(st.lat, st.lng) : null;
             box.innerHTML = '<b>' + esc(projName()) + '</b><br>'
                 + (sj ? 'Y ' + esc(fmtNum(sj.y)) + ' · X ' + esc(fmtNum(sj.x)) + (st.bpv != null ? ' · Bpv ' + st.bpv.toFixed(1) + ' m' : '')
-                    : (st.lat != null ? esc(st.lat.toFixed(6) + ', ' + st.lng.toFixed(6)) : '<span class="warn">poloha nedostupná</span>'))
-                + '<br>azimut ' + (st.az != null ? Math.round(st.az) + '°' : '<span class="warn">neurčen</span>')
+                    : (st.lat != null ? esc(st.lat.toFixed(6) + ', ' + st.lng.toFixed(6)) : '<span class="warn">' + T('poloha nedostupná') + '</span>'))
+                + '<br>' + T('azimut') + ' ' + (st.az != null ? Math.round(st.az) + '°' : '<span class="warn">' + T('neurčen') + '</span>')
                 + (st.acc != null ? ' · GPS ±' + Math.round(st.acc) + ' m' : '');
         }
         setTimeout(tickView, 900);
@@ -374,7 +376,7 @@
                         _shooting = false;
                         try { if (navigator.vibrate) navigator.vibrate(25); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'geo-foto:shoot'); }
                         flash();
-                        toast('Fotka uložena' + (near ? ' (u bodu ' + near.name + ')' : '') + '.');
+                        toast(near ? T('Fotka uložena (u bodu {n}).', { n: near.name }) : T('Fotka uložena.'));
                         var ni = document.getElementById('ag-gf-vnotein'); if (ni) ni.value = '';
                         renderList();
                     }, function () { _shooting = false; fail('Uložení se nepovedlo', 'IndexedDB odmítla zápis — může být plná paměť zařízení.'); });
@@ -461,15 +463,15 @@
                 });
             }
             function report() {
-                var head = 'Zakázka: ' + esc(projName()) + '<br>Ověřeno snímků: <b>' + (mine.length - noHash) + '</b> z ' + mine.length
-                    + (noHash ? '<br><span style="color:var(--warning,#fbbf24);">' + noHash + '× otisk chybí (fotka z verze bez řetězu, nebo prohlížeč neuměl SHA-256).</span>' : '');
+                var head = T('Zakázka: {z}', { z: esc(projName()) }) + '<br>' + T('Ověřeno snímků: {b}{n}{_b} z {m}', { b: '<b>', _b: '</b>', n: mine.length - noHash, m: mine.length })
+                    + (noHash ? '<br><span style="color:var(--warning,#fbbf24);">' + T('{n}× otisk chybí (fotka z verze bez řetězu, nebo prohlížeč neuměl SHA-256).', { n: noHash }) + '</span>' : '');
                 if (!bad.length) {
                     fail('Řetěz otisků sedí', head + '<br><br>Žádná fotka nebyla po pořízení změněná a pořadí souhlasí.'
                         + '<br><br><i>Pozor: tohle dokládá neporušenost sady v tomhle telefonu, není to elektronický podpis.</i>');
                     return;
                 }
-                var h = head + '<br><br><b style="color:#f87171;">Nesedí ' + bad.length + ' snímků:</b><ul style="margin:6px 0 0;padding-left:18px;">';
-                bad.slice(0, 8).forEach(function (b) { h += '<li>' + esc(fmtDT(b.r.ts)) + ' — ' + esc(b.why) + '</li>'; });
+                var h = head + '<br><br><b style="color:#f87171;">' + T('Nesedí {n} snímků:', { n: bad.length }) + '</b><ul style="margin:6px 0 0;padding-left:18px;">';
+                bad.slice(0, 8).forEach(function (b) { h += '<li>' + esc(fmtDT(b.r.ts)) + ' — ' + esc(T(b.why)) + '</li>'; });
                 h += '</ul>';
                 fail('Řetěz otisků je porušený', h);
             }
@@ -485,9 +487,9 @@
     }
     function shareRec(rec) {
         var f = fileFor(rec);
-        var txt = projName() + ' — ' + fmtDT(rec.ts) + (rec.ptName ? ' — u bodu ' + rec.ptName : '');
+        var txt = projName() + ' — ' + fmtDT(rec.ts) + (rec.ptName ? ' — ' + T('u bodu {n}', { n: rec.ptName }) : '');
         if (f && navigator.canShare && navigator.canShare({ files: [f] })) {
-            navigator.share({ files: [f], title: 'Geo-fotka', text: txt })['catch'](function () {});
+            navigator.share({ files: [f], title: T('Geo-fotka'), text: txt })['catch'](function () {});
             return;
         }
         var url = URL.createObjectURL(rec.blob);
@@ -508,7 +510,7 @@
                 if (!Array.isArray(doc.photos)) doc.photos = [];
                 if (doc.photos.length >= 3) { toast('Bod už má 3 fotky — víc karta bodu neunese.'); return; }
                 doc.photos.push(fr.result); doc.t = Date.now();
-                savePointDoc(rec.ptId, doc).then(function () { toast('Připojeno k bodu ' + rec.ptName + '.'); });
+                savePointDoc(rec.ptId, doc).then(function () { toast(T('Připojeno k bodu {n}.', { n: rec.ptName })); });
             });
         };
         fr.onerror = function () { toast('Fotku se nepodařilo přečíst.'); };
@@ -527,7 +529,7 @@
                     fr.readAsDataURL(r.blob);
                 });
             })).then(function (urls) {
-                var h = '<!doctype html><html lang="cs"><head><meta charset="utf-8"><title>Fotodokumentace</title><style>'
+                var h = '<!doctype html><html lang="cs"><head><meta charset="utf-8"><title>' + T('Fotodokumentace') + '</title><style>'
                     + 'body{font:13px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;color:#111;margin:24px;}'
                     + 'h1{font-size:19px;margin:0 0 2px;} .sub{color:#555;margin:0 0 16px;font-size:12px;}'
                     + '.f{border:1px solid #ccc;border-radius:8px;padding:12px 14px;margin-bottom:12px;page-break-inside:avoid;}'
@@ -538,29 +540,29 @@
                     + '.note{margin-top:16px;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:11.5px;color:#555;}'
                     + '@media print{button{display:none}}'
                     + '</style></head><body>'
-                    + '<button onclick="window.print()" style="padding:8px 16px;margin-bottom:14px;">Tisk / Uložit PDF</button>'
-                    + '<h1>Fotodokumentace — ' + esc(projName()) + '</h1>'
-                    + '<p class="sub">' + esc(_day ? ('den ' + _day) : 'celá zakázka') + ' · ' + rows.length + ' snímků · vygenerováno ' + esc(fmtDT(Date.now())) + ' · QTRIG</p>';
+                    + '<button onclick="window.print()" style="padding:8px 16px;margin-bottom:14px;">' + T('Tisk / Uložit PDF') + '</button>'
+                    + '<h1>' + T('Fotodokumentace') + ' — ' + esc(projName()) + '</h1>'
+                    + '<p class="sub">' + esc(_day ? T('den {d}', { d: _day }) : T('celá zakázka')) + ' · ' + T('{n} snímků · vygenerováno {d}', { n: rows.length, d: esc(fmtDT(Date.now())) }) + ' · QTRIG</p>';
                 rows.forEach(function (r, i) {
                     var sj = (r.lat != null) ? toSJTSK(r.lat, r.lng) : null;
-                    h += '<div class="f"><h2>' + (i + 1) + '. ' + esc(fmtDT(r.ts)) + (r.ptName ? ' — u bodu ' + esc(r.ptName) + ' (' + r.ptDist + ' m)' : '') + '</h2>'
+                    h += '<div class="f"><h2>' + (i + 1) + '. ' + esc(fmtDT(r.ts)) + (r.ptName ? ' — ' + T('u bodu {n} ({d} m)', { n: esc(r.ptName), d: r.ptDist }) : '') + '</h2>'
                         + '<table>'
                         + (sj ? '<tr><td>' + agSys() + '</td><td>' + agOsy().osaA + ' ' + fmtNum(sj.y) + ' · ' + agOsy().osaB + ' ' + fmtNum(sj.x) + (r.bpv != null ? ' · ' + agOsy().vyska + ' ' + r.bpv.toFixed(2) + ' m' : '') + '</td></tr>'
-                            : (r.lat != null ? '<tr><td>WGS84</td><td>' + r.lat.toFixed(6) + ', ' + r.lng.toFixed(6) + '</td></tr>' : '<tr><td>Poloha</td><td>nedostupná</td></tr>'))
-                        + '<tr><td>Azimut pohledu</td><td>' + (r.az != null ? Math.round(r.az) + '°' : 'neurčen (systémová kamera)') + '</td></tr>'
-                        + '<tr><td>Přesnost GPS</td><td>' + (r.acc != null ? '±' + Math.round(r.acc) + ' m' : 'neuvedena') + '</td></tr>'
-                        + (r.user ? '<tr><td>Pořídil</td><td>' + esc(r.user) + '</td></tr>' : '')
-                        + (r.note ? '<tr><td>Poznámka</td><td>' + esc(r.note) + '</td></tr>' : '')
-                        + '<tr><td>Otisk SHA-256</td><td><code>' + esc(r.hash || 'nespočítán') + '</code></td></tr>'
-                        + '<tr><td>Navazuje na</td><td><code>' + esc(r.prev || '— první snímek') + '</code></td></tr>'
+                            : (r.lat != null ? '<tr><td>WGS84</td><td>' + r.lat.toFixed(6) + ', ' + r.lng.toFixed(6) + '</td></tr>' : '<tr><td>' + T('Poloha') + '</td><td>' + T('nedostupná') + '</td></tr>'))
+                        + '<tr><td>' + T('Azimut pohledu') + '</td><td>' + (r.az != null ? Math.round(r.az) + '°' : T('neurčen (systémová kamera)')) + '</td></tr>'
+                        + '<tr><td>' + T('Přesnost GPS') + '</td><td>' + (r.acc != null ? '±' + Math.round(r.acc) + ' m' : T('neuvedena')) + '</td></tr>'
+                        + (r.user ? '<tr><td>' + T('Pořídil') + '</td><td>' + esc(r.user) + '</td></tr>' : '')
+                        + (r.note ? '<tr><td>' + T('Poznámka') + '</td><td>' + esc(r.note) + '</td></tr>' : '')
+                        + '<tr><td>' + T('Otisk SHA-256') + '</td><td><code>' + esc(r.hash || T('nespočítán')) + '</code></td></tr>'
+                        + '<tr><td>' + T('Navazuje na') + '</td><td><code>' + esc(r.prev || T('— první snímek')) + '</code></td></tr>'
                         + '</table>'
-                        + (urls[i] ? '<img src="' + urls[i] + '" alt="snímek">' : '')
+                        + (urls[i] ? '<img src="' + urls[i] + '" alt="' + T('snímek') + '">' : '')
                         + '</div>';
                 });
-                h += '<div class="note">Souřadnice pocházejí z GPS mobilního telefonu (uvedená přesnost je hodnota hlášená přístrojem) — '
+                h += '<div class="note">' + T('Souřadnice pocházejí z GPS mobilního telefonu (uvedená přesnost je hodnota hlášená přístrojem) — '
                     + 'jde o dokumentaci stavu, ne o měřický výsledek. Razítko je vypálené do obrazu v okamžiku pořízení; '
                     + 'otisky SHA-256 tvoří řetěz, ve kterém každý snímek odkazuje na předchozí. Neporušenost sady lze ověřit '
-                    + 'v aplikaci tlačítkem „Ověřit řetěz". Nejde o elektronický podpis podle eIDAS.</div>'
+                    + 'v aplikaci tlačítkem „Ověřit řetěz". Nejde o elektronický podpis podle eIDAS.') + '</div>'
                     + '</body></html>';
                 var w = window.open('', '_blank');
                 if (!w) { fail('Protokol se neotevřel', 'Prohlížeč zablokoval nové okno. Povol vyskakovací okna pro tuto aplikaci.'); return; }
@@ -646,7 +648,7 @@
             var days = {}, out = [];
             mine.forEach(function (r) { var k = dayKey(r.ts); if (!days[k]) { days[k] = 1; out.push({ k: k, ts: r.ts }); } });
             out.sort(function (a, b) { return b.ts - a.ts; });
-            var h = '<option value="">Všechny dny (' + mine.length + ')</option>';
+            var h = '<option value="">' + T('Všechny dny ({n})', { n: mine.length }) + '</option>';
             out.forEach(function (d) { h += '<option value="' + d.k + '">' + esc(fmtDay(d.ts)) + '</option>'; });
             sel.innerHTML = h;
             sel.value = _day || '';
@@ -674,11 +676,11 @@
                 var url = URL.createObjectURL(r.blob); _urls.push(url);
                 var sj = (r.lat != null) ? toSJTSK(r.lat, r.lng) : null;
                 h += '<div class="ag-gf-item" data-id="' + esc(r.id) + '">'
-                    + '<img src="' + url + '" alt="snímek ' + esc(fmtT(r.ts)) + '">'
+                    + '<img src="' + url + '" alt="' + T('snímek') + ' ' + esc(fmtT(r.ts)) + '">'
                     + '<div class="ag-gf-meta"><b>' + esc(fmtT(r.ts)) + '</b>'
-                    + (r.ptName ? ' · u bodu <b>' + esc(r.ptName) + '</b> (' + r.ptDist + ' m)' : '')
+                    + (r.ptName ? ' · ' + T('u bodu {b}{n}{_b} ({d} m)', { b: '<b>', _b: '</b>', n: esc(r.ptName), d: r.ptDist }) : '')
                     + '<br>' + (sj ? 'Y ' + esc(fmtNum(sj.y)) + ' · X ' + esc(fmtNum(sj.x)) : (r.lat != null ? esc(r.lat.toFixed(6) + ', ' + r.lng.toFixed(6)) : 'bez polohy'))
-                    + (r.az != null ? ' · azimut ' + Math.round(r.az) + '°' : '')
+                    + (r.az != null ? ' · ' + T('azimut') + ' ' + Math.round(r.az) + '°' : '')
                     + (r.note ? '<br><i>' + esc(r.note) + '</i>' : '')
                     + '</div>'
                     + '<div class="ag-gf-acts">'

@@ -88,6 +88,9 @@
     function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-metr:lsSet'); } }
     function num(v, d) { var n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : d; }
     // česká čísla: 1234.5 -> "1 234,5"
+    // překlad textů, které metr skládá sám (číslo ve větě) — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
+    var B = { b: '<b>', _b: '</b>' };
     function fmt(v, dec) {
         if (v == null || !isFinite(v)) return '—';
         var s = Math.abs(v).toFixed(dec == null ? 1 : dec).replace('.', ',');
@@ -491,8 +494,8 @@
         var big = byId('ag-mtr-big'), sub = byId('ag-mtr-sub'), inf = byId('ag-mtr-scale');
         if (inf) {
             var span = _view.w * k / 10;                    // šířka obrazovky v cm
-            inf.innerHTML = 'záběr ' + fmt(span, 0) + ' cm · 1 px ≈ ' + fmt(k, 2) + ' mm'
-                + (isCalibrated() ? '' : ' · <b>nezkalibrováno</b> (odhad FOV ' + DEF_FOV + '°)');
+            inf.innerHTML = T('záběr {s} cm · 1 px ≈ {k} mm', { s: fmt(span, 0), k: fmt(k, 2) })
+                + (isCalibrated() ? '' : ' · <b>' + T('nezkalibrováno') + '</b> ' + T('(odhad FOV {f}°)', { f: DEF_FOV }));
         }
         if (!big || !sub) return;
         var bad = (_tilt != null && _tilt > WARN_TILT);
@@ -503,7 +506,7 @@
             big.textContent = 'jeden čtverec = 10 cm';
             big.style.fontSize = 'calc(17px * var(--ag-font-scale,1))';
             sub.innerHTML = 'Mřížka je po 10 cm, dílky na kříži po 1 cm.'
-                + (bad ? ' <span class="warn">Náklon ' + _tilt.toFixed(1) + '° — srovnej.</span>' : '');
+                + (bad ? ' <span class="warn">' + T('Náklon {t}° — srovnej.', { t: _tilt.toFixed(1) }) + '</span>' : '');
             return;
         }
         big.style.fontSize = '';
@@ -515,7 +518,7 @@
             return;
         }
         var warns = [];
-        if (bad) warns.push('<span class="warn">náklon ' + _tilt.toFixed(1) + '° — hodnota je nespolehlivá</span>');
+        if (bad) warns.push('<span class="warn">' + T('náklon {t}° — hodnota je nespolehlivá', { t: _tilt.toFixed(1) }) + '</span>');
         if (edgeRatio() > EDGE_R) warns.push('<span class="warn">bod je u kraje obrazu — zkreslení objektivu, přisuň měřené blíž ke středu</span>');
 
         if (_mode === 'rect') {
@@ -529,7 +532,7 @@
             var sl = slopePct();
             if (sl > 0) {
                 var alongSlope = m.d * Math.sqrt(1 + (sl / 100) * (sl / 100));
-                extra = ' · po spádnici ' + sl + ' % až ' + fmt(alongSlope, 0) + ' mm';
+                extra = ' · ' + T('po spádnici {s} % až {d} mm', { s: sl, d: fmt(alongSlope, 0) });
             }
             sub.innerHTML = fmt(m.d, 0) + ' mm' + extra + (warns.length ? '<br>' + warns.join('<br>') : '');
         }
@@ -616,7 +619,7 @@
         };
         var a = logAll(); a.push(rec); logSave(a);
         try { if (navigator.vibrate) navigator.vibrate(25); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ar-metr:saveMeasure'); }
-        toast('Uloženo: ' + recLabelSafe(rec) + (near ? ' (u bodu ' + near.name + ')' : ''));
+        toast(T('Uloženo: {l}', { l: recLabelSafe(rec) }) + (near ? ' ' + T('(u bodu {n})', { n: near.name }) : ''));
     }
     // rec z úložiště používá hMM místo h (h je výška držení) — sjednocení pro výpis
     function recLabelSafe(r) {
@@ -626,15 +629,15 @@
     // ---- kalibrace: dialog -------------------------------------------------------------------
     function calibrate() {
         if (_pts.length < 2 || _mode === 'scale') {
-            note('<b>Kalibrace zorného úhlu</b><br>Přepni na <b>Délka</b>, polož na zem něco, čemu znáš přesnou délku '
-                + '(svinovák, list A4 = 297 mm), a klepni na oba jeho konce. Pak sem klepni znovu.'
+            note('<b>' + T('Kalibrace zorného úhlu') + '</b><br>' + T('Přepni na {b}Délka{_b}, polož na zem něco, čemu znáš přesnou délku '
+                + '(svinovák, list A4 = 297 mm), a klepni na oba jeho konce. Pak sem klepni znovu.', B)
                 + '<br><button type="button" id="ag-mtr-note-ok">Rozumím</button>');
             return;
         }
         var m = measure(); if (!m || !m.d) return;
         var cur = m.d;
-        var html = '<b>Kalibrace</b><br>Změřená délka je teď <b>' + fmt(cur, 0) + ' mm</b>.<br>'
-            + 'Napiš, kolik má být <b>doopravdy</b> (v mm):<br>'
+        var html = '<b>Kalibrace</b><br>' + T('Změřená délka je teď {b}{d} mm{_b}.', { b: '<b>', _b: '</b>', d: fmt(cur, 0) }) + '<br>'
+            + T('Napiš, kolik má být {b}doopravdy{_b} (v mm):', B) + '<br>'
             + '<input id="ag-mtr-cal-in" type="number" inputmode="decimal" step="1" min="10" '
             + 'style="width:120px;margin-top:8px;padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.25);'
             + 'background:rgba(255,255,255,.1);color:#fff;font-size:calc(16px * var(--ag-font-scale,1));text-align:right">'
@@ -653,20 +656,20 @@
         var ratio = want / m.d;                       // >1 = obraz je ve skutečnosti větší
         if (what === 'h') {
             var nh = heightM() * ratio * 100;
-            if (!(nh > 5 && nh < 400)) { toast('Dopočtená výška ' + fmt(nh, 0) + ' cm je mimo rozsah — zkontroluj zadanou délku.'); return; }
+            if (!(nh > 5 && nh < 400)) { toast(T('Dopočtená výška {h} cm je mimo rozsah — zkontroluj zadanou délku.', { h: fmt(nh, 0) })); return; }
             lsSet(LS_H, String(Math.round(nh * 10) / 10));
             var inp = byId('ag-mtr-h'); if (inp) inp.value = Math.round(nh * 10) / 10;
             markPreset();
             note('');
-            toast('Výška držení dopočítána na ' + fmt(nh, 0) + ' cm.');
+            toast(T('Výška držení dopočítána na {h} cm.', { h: fmt(nh, 0) }));
             return;
         }
         // FOV: mm/px se má změnit ratio-krát, tedy tan(F/2) taky
         var nf = 2 * Math.atan(Math.tan(fovNow() * Math.PI / 360) * ratio) * 180 / Math.PI;
-        if (!(nf > MIN_FOV && nf < MAX_FOV)) { toast('Dopočtený zorný úhel ' + fmt(nf, 1) + '° je mimo rozsah — zkontroluj zadanou délku i výšku.'); return; }
+        if (!(nf > MIN_FOV && nf < MAX_FOV)) { toast(T('Dopočtený zorný úhel {f}° je mimo rozsah — zkontroluj zadanou délku i výšku.', { f: fmt(nf, 1) })); return; }
         setCalFov(nf);
         note('');
-        toast('Zorný úhel zkalibrován na ' + fmt(nf, 1) + '° (pro režim ' + camKey() + ').');
+        toast(T('Zorný úhel zkalibrován na {f}° (pro režim {m}).', { f: fmt(nf, 1), m: camKey() }));
     }
 
     // ---- nabídka „⋯" ---------------------------------------------------------------------------
@@ -674,10 +677,10 @@
         var c = calFov();
         note('<b>Metr v kameře</b><br>'
             + '<div style="text-align:left;margin:8px 0 4px;font-size:calc(12.5px * var(--ag-font-scale,1));opacity:.85">'
-            + 'Režim kamery: ' + (camKey() || '—') + '<br>'
-            + 'Zorný úhel: ' + (c != null ? fmt(c, 1) + '° (zkalibrováno)' : DEF_FOV + '° — <b>jen odhad</b>') + '<br>'
-            + 'Výška držení: ' + fmt(heightM() * 100, 1) + ' cm<br>'
-            + 'Sklon povrchu: ' + slopePct() + ' %'
+            + T('Režim kamery: {m}', { m: (camKey() || '—') }) + '<br>'
+            + (c != null ? T('Zorný úhel: {f}° (zkalibrováno)', { f: fmt(c, 1) }) : T('Zorný úhel: {f}° — {b}jen odhad{_b}', { f: DEF_FOV, b: '<b>', _b: '</b>' })) + '<br>'
+            + T('Výška držení: {h} cm', { h: fmt(heightM() * 100, 1) }) + '<br>'
+            + T('Sklon povrchu: {s} %', { s: slopePct() })
             + '</div>'
             + '<button type="button" id="ag-mtr-m-cal">Zkalibrovat</button> '
             + '<button type="button" id="ag-mtr-m-slope" style="background:rgba(255,255,255,.14);color:#fff">Sklon povrchu</button> '
@@ -688,8 +691,8 @@
         byId('ag-mtr-m-log').addEventListener('click', function () { note(''); openLog(); });
     }
     function askSlope() {
-        note('<b>Sklon povrchu</b><br>Nástroj měří <b>vodorovný průmět</b>. Když měříš po nakloněné ploše '
-            + '(příčný sklon vozovky, svah), skutečná délka po povrchu je delší.<br>Zadej sklon v procentech:<br>'
+        note('<b>' + T('Sklon povrchu') + '</b><br>' + T('Nástroj měří {b}vodorovný průmět{_b}. Když měříš po nakloněné ploše '
+            + '(příčný sklon vozovky, svah), skutečná délka po povrchu je delší.', B) + '<br>' + T('Zadej sklon v procentech:') + '<br>'
             + '<input id="ag-mtr-sl-in" type="number" inputmode="decimal" step="0.1" min="0" max="100" '
             + 'style="width:100px;margin-top:8px;padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.25);'
             + 'background:rgba(255,255,255,.1);color:#fff;font-size:calc(16px * var(--ag-font-scale,1));text-align:right">'
@@ -698,7 +701,7 @@
         byId('ag-mtr-sl-in').value = slopePct();
         byId('ag-mtr-sl-ok').addEventListener('click', function () {
             var v = Math.max(0, Math.min(100, num(byId('ag-mtr-sl-in').value, 0)));
-            lsSet(LS_SLOPE, String(v)); note(''); toast('Sklon povrchu ' + v + ' %.');
+            lsSet(LS_SLOPE, String(v)); note(''); toast(T('Sklon povrchu {v} %.', { v: v }));
         });
     }
 
@@ -735,12 +738,12 @@
         var html = '';
         rows.forEach(function (r) {
             var flags = [];
-            if (!r.cal) flags.push('nezkalibrováno');
-            if (r.tilt != null && r.tilt > WARN_TILT) flags.push('náklon ' + r.tilt + '°');
+            if (!r.cal) flags.push(T('nezkalibrováno'));
+            if (r.tilt != null && r.tilt > WARN_TILT) flags.push(T('náklon {t}°', { t: r.tilt }));
             html += '<div class="row" data-id="' + esc(r.id) + '">'
                 + '<div class="v"><b>' + esc(recLabelSafe(r)) + '</b>'
-                + '<span>' + esc(fmtDT(r.ts)) + ' · výška ' + fmt(r.h, 0) + ' cm'
-                + (r.ptName ? ' · u bodu ' + esc(r.ptName) : '')
+                + '<span>' + esc(fmtDT(r.ts)) + ' · ' + T('výška {h} cm', { h: fmt(r.h, 0) })
+                + (r.ptName ? ' · ' + T('u bodu {n}', { n: esc(r.ptName) }) : '')
                 + (flags.length ? ' · ⚠ ' + esc(flags.join(', ')) : '') + '</span></div>'
                 + (r.ptId ? '<button type="button" class="btn btn-secondary ag-mtr-att" data-id="' + esc(r.id) + '">K bodu</button>' : '')
                 + '<button type="button" class="btn btn-secondary ag-mtr-del" data-id="' + esc(r.id) + '">Smazat</button>'
@@ -773,7 +776,7 @@
             if (!Array.isArray(doc.photos)) doc.photos = [];
             doc.note = (doc.note ? doc.note + '\n' : '') + line;
             doc.t = Date.now();
-            savePointDoc(r.ptId, doc).then(function () { toast('Zapsáno do poznámky bodu ' + (r.ptName || r.ptId) + '.'); });
+            savePointDoc(r.ptId, doc).then(function () { toast(T('Zapsáno do poznámky bodu {n}.', { n: (r.ptName || r.ptId) })); });
         });
     }
     function exportCsv() {
