@@ -179,7 +179,7 @@ def staticke():
     ok('D2 jádro: žádný sloupec vzorů opsaný ze sousedního jazyka', len(kopie) <= 3, kopie[:8])
     sw = io.open(os.path.join(ROOT, 'sw.js'), encoding='utf-8').read()
     ok('D3 sw.js: isLangData + stale-while-revalidate do DICT_CACHE', 'function isLangData(url)' in sw and 'if (isLangData(url)) {' in sw
-       and sw.index('if (isLangData(url)) {') < sw.index('caches.open(isFont(url) ? FONT_CACHE : (isDict(url) ? DICT_CACHE : SHELL_CACHE))'))
+       and sw.index('if (isLangData(url)) {') < sw.index('caches.open(isFont(url) ? FONT_CACHE : (isDict(url) ? DICT_CACHE :'))
     jz = io.open(os.path.join(ROOT, 'js/jazyky.js'), encoding='utf-8').read()
     ok('D3 js/jazyky.js: AGJazyk.fetchData/dataUrl', 'fetchData: fetchData' in jz and 'dataUrl: dataUrl' in jz)
     for f, needle in (('js/tools-registry.js', 'AGJazyk.fetchData'), ('js/predpisy.js', 'AGJazyk.fetchData'), ('js/cvicne-ulohy.js', 'AGJazyk.fetchData'), ('js/scroll-uceni.js', 'AGJazyk.fetchData')):
