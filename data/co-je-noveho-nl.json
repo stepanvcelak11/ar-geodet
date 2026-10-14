@@ -2,6 +2,16 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 410,
+      "datum": "2026-10-14",
+      "nadpis": "De hele app in het Engels en andere talen",
+      "body": [
+        "Ruim 1900 extra teksten vertaald: rekenresultaten, foutmeldingen, bevestigingsvensters, de puntkaart, 3D-weergave, correctie vanuit de kaart, de rekenmachine en andere tools — in een andere taal blijft nergens meer Tsjechisch staan.",
+        "Het venster ‘GPS corrigeren op punt’, de nauwkeurigheidsnotitie bij een nieuw punt en het vak met de terreinhoogte zijn volledig vertaald, getallen inbegrepen.",
+        "Bronnen in Regelgeving (besluiten, wetten) zijn vertaald; maanden in het Jaaroverzicht en datums op de puntkaart volgen de taal van de app."
+      ]
+    },
+    {
       "v": 409,
       "datum": "2026-10-06",
       "nadpis": "Telefoonnauwkeurigheid waar je werkt",
