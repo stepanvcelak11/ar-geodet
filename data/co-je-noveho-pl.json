@@ -2,6 +2,14 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 411,
+      "datum": "2026-10-14",
+      "nadpis": "Tłumaczenie ukończone",
+      "body": [
+        "Przetłumaczono też administrację firmy i kont, kalkulator, Pogodę, tyczenie osi, widok 3D, udostępnianie, SOS i inne narzędzia — ponad 450 kolejnych tekstów w 8 językach."
+      ]
+    },
+    {
       "v": 410,
       "datum": "2026-10-14",
       "nadpis": "Cała aplikacja po angielsku i w innych językach",

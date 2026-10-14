@@ -2,6 +2,14 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 411,
+   "datum": "2026-10-14",
+   "nadpis": "Dokončený překlad",
+   "body": [
+    "Přeložená i správa firmy a účtů, kalkulačka, Počasí, vytyčení osy, 3D pohled, sdílení, nouzové SOS a další nástroje — dalších přes 450 textů v 8 jazycích."
+   ]
+  },
+  {
    "v": 410,
    "datum": "2026-10-14",
    "nadpis": "Celá appka v angličtině a dalších jazycích",
