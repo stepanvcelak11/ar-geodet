@@ -187,6 +187,7 @@
         // PDOP (orientačně)
         if (pdop != null && isFinite(pdop)) {
             var pq = pdop <= 2 ? 'výborná' : (pdop <= 4 ? 'dobrá' : (pdop <= 6 ? 'průměrná' : 'slabá'));
+            try { if (window.AGJazyk) pq = AGJazyk.t(pq); } catch (e) { /* česky */ }
             html += '<div class="sky-pdop">Geometrie družic (PDOP): <b>' + pdop.toFixed(1) + '</b> · ' + pq
                 + ' <span class="sky-pdop-note">(počítáno nad 10° — vlastní horizont nemusí sedět)</span></div>';
         }

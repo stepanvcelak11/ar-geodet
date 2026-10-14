@@ -22,6 +22,8 @@
     if (window.AGHrany) return;
     var swallow = function (e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'hrany:' + kde); } catch (e2) { /* nic */ } };
     var PRESNOST = { parcela: 0.1, dxf: 0.05, budova: 0.5 };
+    // popisky hran/vrcholů se zobrazují uživateli (přichytávání) — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
 
     function mPerDeg(lat) { var c = Math.cos(lat * Math.PI / 180); return { lat: 111320, lng: 111320 * c }; }
     function dist(a, b) { try { return GeoCore.getDistance(a.lat, a.lng, b.lat, b.lng); } catch (e) { var m = mPerDeg(a.lat); return Math.hypot((b.lat - a.lat) * m.lat, (b.lng - a.lng) * m.lng); } }
@@ -37,7 +39,7 @@
     }
     function budovaPopis(f) {
         var p = (f && f.properties) || {};
-        return 'budova' + (p.addr_housenumber ? ' č. ' + p.addr_housenumber : '');
+        return T('budova') + (p.addr_housenumber ? ' ' + T('č. {n}', { n: p.addr_housenumber }) : '');
     }
     function budovaVyska(f) {
         var p = (f && f.properties) || {};
@@ -69,13 +71,13 @@
                 if (j + 1 < ring.length) hrany.push({ a: ring[j], b: ring[j + 1], zdroj: zdroj, popis: popis, presnost: PRESNOST[zdroj] });
             }
         }
-        parcely().forEach(function (p) { (p.rings || []).forEach(function (ring) { pridejRing(ring, 'parcela', 'hranice parcely ' + (p.cislo || '') + (p.ku ? ' (' + p.ku + ')' : ''), true); }); });
+        parcely().forEach(function (p) { (p.rings || []).forEach(function (ring) { pridejRing(ring, 'parcela', T('hranice parcely {c}', { c: (p.cislo || '') }) + (p.ku ? ' (' + p.ku + ')' : ''), true); }); });
         budovy().forEach(function (f) { ringsZGeoJson(f.geometry).forEach(function (ring) { pridejRing(ring, 'budova', budovaPopis(f), true); }); });
         try {
             var d = window.AGProjektDxf && AGProjektDxf.design();
             if (d) {
-                (d.polys || []).forEach(function (p) { if (d.layers[p.layer] && d.layers[p.layer].on === false) return; pridejRing(p.pts, 'dxf', 'výkres · ' + p.layer + (d.osa === p.layer ? ' (osa)' : ''), p.closed); });
-                (d.points || []).forEach(function (q) { if (d.layers[q.layer] && d.layers[q.layer].on === false) return; if (vBoxu(q, lat, lng, dlat, dlng)) vrcholy.push({ lat: q.lat, lng: q.lng, zdroj: 'dxf', popis: 'výkres · bod ' + q.name, presnost: PRESNOST.dxf }); });
+                (d.polys || []).forEach(function (p) { if (d.layers[p.layer] && d.layers[p.layer].on === false) return; pridejRing(p.pts, 'dxf', T('výkres') + ' · ' + p.layer + (d.osa === p.layer ? ' (' + T('osa') + ')' : ''), p.closed); });
+                (d.points || []).forEach(function (q) { if (d.layers[q.layer] && d.layers[q.layer].on === false) return; if (vBoxu(q, lat, lng, dlat, dlng)) vrcholy.push({ lat: q.lat, lng: q.lng, zdroj: 'dxf', popis: T('výkres') + ' · ' + T('bod {n}', { n: q.name }), presnost: PRESNOST.dxf }); });
             }
         } catch (e) { swallow(e, 'dxf'); }
         return { vrcholy: vrcholy, hrany: hrany };

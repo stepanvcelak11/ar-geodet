@@ -272,17 +272,19 @@
         return true;
     }
 
+    // překlad vět s časem (popisek pod přepínačem) — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     // Popisek pod přepínačem: kdy se dnes přepne (nebo že běží).
     function markState() {
         var h = document.getElementById('ag-night-hint');
         if (!h) return;
-        var txt = 'Červená paleta bez modré — po tmě nezničí adaptaci oka a displej tolik nesvítí. Vybrat ho jde i ručně nahoře jako barevný odstín.';
+        var txt = T('Červená paleta bez modré — po tmě nezničí adaptaci oka a displej tolik nesvítí. Vybrat ho jde i ručně nahoře jako barevný odstín.');
         try {
             if (autoMode()) {
                 var S = window.AGSun, p = pos(), t = S && S.times ? S.times(new Date(), p.lat, p.lng, 96) : null;
                 var hh = function (d) { return d ? ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) : '–'; };
-                if (_autoOn) txt = 'Teď je zapnutý automaticky. Ráno v ' + (t ? hh(t.rise) : '–') + ' se vrátí motiv, který jsi měl předtím.';
-                else if (t && t.set) txt = 'Zapne se dnes v ' + hh(t.set) + ' (občanský soumrak) a ráno v ' + hh(t.rise) + ' se zase vrátí zpět.';
+                if (_autoOn) txt = T('Teď je zapnutý automaticky. Ráno v {r} se vrátí motiv, který jsi měl předtím.', { r: (t ? hh(t.rise) : '–') });
+                else if (t && t.set) txt = T('Zapne se dnes v {s} (občanský soumrak) a ráno v {r} se zase vrátí zpět.', { s: hh(t.set), r: hh(t.rise) });
             }
         } catch (e) { swallow(e, 'markState'); }
         h.textContent = txt;

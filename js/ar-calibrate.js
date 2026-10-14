@@ -218,7 +218,7 @@
         showAim(true);
         var txt = document.getElementById('agcal-aim-txt');
         var d = getDistance(userLat, userLng, pt.lat, pt.lng);
-        if (txt) txt.innerHTML = 'Namiř střed kříže přesně na <b>#' + esc(pt.name) + '</b>'
+        if (txt) txt.innerHTML = T('Namiř střed kříže přesně na') + ' <b>#' + esc(pt.name) + '</b>'
             + (d != null ? ' · ' + d.toFixed(0) + ' m' : '')
             + '<br><span class="agcal-dim">drž telefon svisle a klepni „Podrž a srovnej"</span>';
         var shot = document.getElementById('agcal-shot'); if (shot) { shot.disabled = false; shot.innerText = 'Podrž a srovnej'; }
@@ -255,9 +255,9 @@
         var m = document.getElementById('agcal-modal'); if (m) m.style.display = 'flex';
         var undoBtn = document.getElementById('agcal-undo'); if (undoBtn) undoBtn.style.display = 'block';
         renderList(); renderLive();
-        agAlert('Sever srovnán',
-            'Sever srovnán podle #' + esc(pt.name) + '.\nPosun severu: <b>' + (delta >= 0 ? '+' : '') + delta.toFixed(1) + '°</b>'
-            + ' (z ' + _capSamples.length + ' vzorků).\n\nPři pomalé chůzi to drží. Pokud máš zapnutou auto-korekci podle GPS, za rychlé chůze se může dolaďovat sama.');
+        agAlert(T('Sever srovnán'),
+            T('Sever srovnán podle #{n}.', { n: esc(pt.name) }) + '\n' + T('Posun severu: <b>{d}°</b> (z {s} vzorků).', { d: (delta >= 0 ? '+' : '') + delta.toFixed(1), s: _capSamples.length })
+            + '\n\n' + T('Při pomalé chůzi to drží. Pokud máš zapnutou auto-korekci podle GPS, za rychlé chůze se může dolaďovat sama.'));
     }
 
     // aplikace korekce přes existující „páku" appky (sdílená s Nastavením kompasu)
@@ -313,6 +313,8 @@
     window.agOpenCalibrate = openTool;
 
     // ---- drobné: escapování do HTML ------------------------------------------
+    // překlad (js/jazyky.js) se zástupci {x}; česky vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
     // Nástroj se otevírá z doku „Nástroje" přes window.agOpenCalibrate (žádná init

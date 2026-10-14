@@ -627,9 +627,9 @@
             '<div class="agfa-note">Heslo komukoli změní admin v sekci Uživatelé (Upravit → nové heslo) — z libovolného zařízení. ' +
             'Když je nedostupný i admin, na přihlašovací obrazovce je nouzové odpojení zařízení (body a zakázky zůstanou).</div>' +
             '<div class="agfa-pg">Přehled užívání</div>' +
-            '<div class="agfa-note">Appka si počítá přihlášení, přidané/upravené body, otevřené nástroje a hrubou stopu aktivity ' +
-            '(max 1 záznam za 20 minut — z ní je odhad odpracovaných hodin). V cloudu se záznamy sbíhají ze všech zařízení firmy' +
-            (f.cloud ? '' : ' (tady běží lokální režim — jen toto zařízení)') + '. Nic z toho neodchází mimo firmu.</div>' +
+            '<div class="agfa-note">' + T(f.cloud
+                ? 'Appka si počítá přihlášení, přidané/upravené body, otevřené nástroje a hrubou stopu aktivity (max 1 záznam za 20 minut — z ní je odhad odpracovaných hodin). V cloudu se záznamy sbíhají ze všech zařízení firmy. Nic z toho neodchází mimo firmu.'
+                : 'Appka si počítá přihlášení, přidané/upravené body, otevřené nástroje a hrubou stopu aktivity (max 1 záznam za 20 minut — z ní je odhad odpracovaných hodin). V cloudu se záznamy sbíhají ze všech zařízení firmy (tady běží lokální režim — jen toto zařízení). Nic z toho neodchází mimo firmu.') + '</div>' +
             '<div class="agfa-pg">Firemní chat</div>' +
             '<div class="agfa-note">Dlaždice <b>Firemní chat</b> v Nástrojích (Pomůcky). Nahoře se vybírá adresát: <b>Všem</b> (vidí celá firma), ' +
             'nebo konkrétní kolega — pak je zpráva <b>soukromá</b> (se zámkem, vidí ji jen on a ty) a chat na to upozorní žlutým pruhem. ' +

@@ -56,6 +56,8 @@
     // ------------------------------------------------------------------
     function U() { return window.AGUcty || null; }
     function pid() { try { return localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { return 'default'; } }
+    // překlad vět, které modul skládá sám (počet/čas ve větě) — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'cloud-sync:toast'); } }
 
     // klíč zakázky na serveru = normalizovaný NÁZEV zakázky (viz hlavička)
@@ -471,7 +473,7 @@
             var n = (res.add || 0) + (res.edit || 0) + (res.del || 0);
             if (n) {
                 persistAndRedraw(p, res);
-                toast('Bodů (' + n + ') mezitím upravil kolega novější verzí — ta má přednost, tvoje starší úprava se do firmy nezapsala.');
+                toast(T('Bodů ({n}) mezitím upravil kolega novější verzí — ta má přednost, tvoje starší úprava se do firmy nezapsala.', { n: n }));
             }
             return true;
         })['catch'](function () { return false; });
@@ -578,9 +580,9 @@
         var st = loadSt(p);
         if (st.ok) {
             var s = Math.max(0, Math.round((Date.now() - st.ok) / 1000));
-            return { t: 'Sync: před ' + (s < 60 ? s + ' s' : Math.round(s / 60) + ' min'), c: 'on' };
+            return { t: T('Sync: před {t}', { t: (s < 60 ? s + ' s' : Math.round(s / 60) + ' min') }), c: 'on' };
         }
-        if (_lastErr) return { t: 'Sync: chyba ' + _lastErr, c: 'warn' };
+        if (_lastErr) return { t: T('Sync: chyba {e}', { e: _lastErr }), c: 'warn' };
         return { t: 'Sync: čeká…', c: '' };
     }
 

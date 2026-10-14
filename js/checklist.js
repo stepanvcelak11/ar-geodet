@@ -27,6 +27,8 @@
     var LS_CUSTOM = 'agChecklistCustom_v1'; // ['vlastní položka', …]
     var PROF_PREFIX = 'agWorkProfile::';
 
+    // překlad (js/jazyky.js) se zástupci {x}; česky vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'checklist:toast'); } }
     function pid() { try { return localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { return 'default'; } }
@@ -159,7 +161,7 @@
         try {
             var ep = JSON.parse(raw('agEpochy_v1') || 'null');
             if (ep && Array.isArray(ep.items) && ep.items.length) {
-                out.push({ k: 'p_epocha', t: 'Monitoring: ' + ep.items.length + ' sledovaných bodů — vezmi čísla minulé epochy', why: 'epocha se měří na TÉŽ body, jinak je porovnání bezcenné' });
+                out.push({ k: 'p_epocha', t: T('Monitoring: {n} sledovaných bodů — vezmi čísla minulé epochy', { n: ep.items.length }), why: 'epocha se měří na TÉŽ body, jinak je porovnání bezcenné' });
             }
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'checklist:raw'); }
         return out;
@@ -199,15 +201,15 @@
         var w = weather(), wx = todayWx(w);
         var g = [];
         g.push({ title: 'Základ', items: BASE });
-        if (BY_PROFILE[prof] && BY_PROFILE[prof].length) g.push({ title: 'Pro ' + (PROF_LABEL[prof] || prof).toLowerCase(), items: BY_PROFILE[prof] });
+        if (BY_PROFILE[prof] && BY_PROFILE[prof].length) g.push({ title: T('Pro {p}', { p: (function (x) { try { return (window.AGJazyk && AGJazyk.get && AGJazyk.get() === 'de') ? x : x.toLowerCase(); } catch (e) { return x.toLowerCase(); } })(T(PROF_LABEL[prof] || prof)) }), items: BY_PROFILE[prof] });
         var wi = weatherItems(wx);
         if (wi.length) {
             var sub = [];
             if (wx.tmin != null) sub.push(Math.round(wx.tmin) + '–' + Math.round(wx.tmax) + ' °C');
-            if (wx.rain) sub.push('déšť');
-            if (wx.storm) sub.push('bouřka');
-            if ((wx.gust || wx.wind) >= 40) sub.push('vítr ' + Math.round(wx.gust || wx.wind) + ' km/h');
-            g.push({ title: 'Kvůli počasí', sub: sub.join(' · ') + (w && w.stale ? ' (starší data)' : ''), items: wi });
+            if (wx.rain) sub.push(T('déšť'));
+            if (wx.storm) sub.push(T('bouřka'));
+            if ((wx.gust || wx.wind) >= 40) sub.push(T('vítr {v} km/h', { v: Math.round(wx.gust || wx.wind) }));
+            g.push({ title: 'Kvůli počasí', sub: sub.join(' · ') + (w && w.stale ? ' (' + T('starší data') + ')' : ''), items: wi });
         } else if (!w) {
             g.push({ title: 'Kvůli počasí', sub: 'nemám stažené počasí — otevři nástroj Počasí a seznam se doplní', items: [] });
         }

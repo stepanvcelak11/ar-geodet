@@ -49,6 +49,8 @@
     }
 
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    // překlad (js/jazyky.js) se zástupci {x}; česky vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kos:toast'); } }
 
     // primy pristup k ulozisti CIZI (neaktivni) zakazky — getStoredData umi jen aktivni
@@ -182,7 +184,7 @@
                     // #18: zapiš obnovu do žurnálu, ať auditní stopa sedí se stavem
                     try { if (window.AGJournal) window.AGJournal.commit({ op: 'restore', id: rec.point.id, after: rec.point, origin: (rec.point.prov && rec.point.prov.origin) || null }); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kos:restorePoint'); }
                 }
-                toast('Bod #' + rec.point.name + ' obnoven' + (projExists ? '' : ' (do aktuální zakázky — původní už neexistuje)') + '.');
+                toast(T(projExists ? 'Bod #{n} obnoven.' : 'Bod #{n} obnoven (do aktuální zakázky — původní už neexistuje).', { n: rec.point.name }));
             } catch (e) { toast('Obnova bodu se nezdařila.'); }
             done();
         } else {
@@ -201,7 +203,7 @@
                         localStorage.setItem(lk, JSON.stringify(lcur));
                     } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'kos:restorePoint'); }
                 }
-                toast('Bod #' + rec.point.name + ' obnoven do zakázky.');
+                toast(T('Bod #{n} obnoven do zakázky.', { n: rec.point.name }));
                 done();
             });
         }
@@ -219,9 +221,9 @@
             // ⚠ #4: rict NAHLAS, co se nevratilo. Fotky a hlasovky u bodu lezi ve
             // vlastnich databazich (IndexedDB), kam kos nedosahne — kdyz to zamlci,
             // geodet zjisti ztratu az za tri tydny u reklamace.
-            var chybi = 'stažené úřední body si stáhni znovu; fotky a hlasovky u bodů se obnovit nedají';
-            if (rec.lsSkipped && rec.lsSkipped.length) chybi += '; příliš velká data se do koše nevešla (' + rec.lsSkipped.length + ' položek)';
-            toast('Zakázka „' + rec.name + '" obnovena (' + chybi + ').');
+            var chybi = T('stažené úřední body si stáhni znovu; fotky a hlasovky u bodů se obnovit nedají');
+            if (rec.lsSkipped && rec.lsSkipped.length) chybi += '; ' + T('příliš velká data se do koše nevešla ({n} položek)', { n: rec.lsSkipped.length });
+            toast(T('Zakázka „{n}" obnovena ({c}).', { n: rec.name, c: chybi }));
         } catch (e) { toast('Obnova zakázky se nezdařila.'); }
         done();
     }
@@ -249,12 +251,12 @@
         if (!list.length) { box.innerHTML = '<p style="text-align:center; opacity:0.7;">Koš je prázdný.</p>'; return; }
         box.innerHTML = '';
         list.forEach(function (rec) {
-            var when = new Date(rec.t).toLocaleString('cs-CZ', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
-            var title = rec.type === 'project' ? ('Zakázka „' + esc(rec.name) + '"') : ('Bod #' + esc(rec.point && rec.point.name || '?'));
+            var when = new Date(rec.t).toLocaleString((window.AGJazyk && AGJazyk.locale) ? AGJazyk.locale() : 'cs-CZ', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
+            var title = rec.type === 'project' ? T('Zakázka „{n}"', { n: esc(rec.name) }) : T('Bod #{n}', { n: esc(rec.point && rec.point.name || '?') });
             var row = document.createElement('div');
             row.className = 'cp-item';
             row.innerHTML = '<div style="flex:1; min-width:0;"><div class="cp-title">' + title + '</div>'
-                + '<div class="cp-coords">smazáno ' + when + (rec.type === 'point' && rec.lines && rec.lines.length ? ' · +' + rec.lines.length + ' spojnic' : '') + '</div></div>'
+                + '<div class="cp-coords">' + T('smazáno {w}', { w: when }) + (rec.type === 'point' && rec.lines && rec.lines.length ? ' · ' + T('+{n} spojnic', { n: rec.lines.length }) : '') + '</div></div>'
                 + '<div class="cp-actions"><button class="cp-btn cp-btn-edit" title="Obnovit" aria-label="Obnovit bod z koše"><svg class="icon"><use href="#i-download"/></svg></button>'
                 + '<button class="cp-btn cp-btn-delete" title="Smazat trvale" aria-label="Smazat bod natrvalo"><svg class="icon"><use href="#i-trash"/></svg></button></div>';
             row.querySelector('.cp-btn-edit').addEventListener('click', function () {

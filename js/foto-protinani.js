@@ -62,6 +62,8 @@
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
     function info(m, t) { try { if (typeof window.agInfo === 'function') return window.agInfo(m, t); } catch (e) { swallow(e, 'info'); } }
     function num(v) { return Math.round(v * 100) / 100; }
+    // překlad vět, které modul skládá sám (číslo ve větě) — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function cz(v, d) { return v.toFixed(d == null ? 1 : d).replace('.', ','); }
 
     function here() {
@@ -183,8 +185,8 @@
         var A = shots[0], B = shots[1];
         var pa = { lat: A.lat, lng: A.lng }, pb = { lat: B.lat, lng: B.lng };
         var base = dist(pa, pb), bAB = bear(pa, pb);
-        if (base == null || bAB == null) return { err: 'Nepodařilo se spočítat základnu mezi stanovisky.' };
-        if (base < MIN_BASE) return { err: 'Stanoviska jsou od sebe jen ' + cz(base) + ' m. Protnutí potřebuje aspoň ' + MIN_BASE + ' m základny — přejdi dál a vyfoť znovu.' };
+        if (base == null || bAB == null) return { err: T('Nepodařilo se spočítat základnu mezi stanovisky.') };
+        if (base < MIN_BASE) return { err: T('Stanoviska jsou od sebe jen {b} m. Protnutí potřebuje aspoň {m} m základny — přejdi dál a vyfoť znovu.', { b: cz(base), m: MIN_BASE }) };
 
         var ta = targetAz(A), tb = targetAz(B);
         var gA = ang(ta.az - bAB);
@@ -192,10 +194,10 @@
 
         // Paprsky se protnou před stanovisky jen když cíl leží na téže straně
         // základny z obou pohledů — tedy když mají úhly opačné znaménko.
-        if (gA * gB >= 0) return { err: 'Paprsky se před tebou neprotnou. Nejspíš je na jedné z fotek označený jiný detail než na druhé — zkontroluj, že křížek míří na TÝŽ bod.' };
+        if (gA * gB >= 0) return { err: T('Paprsky se před tebou neprotnou. Nejspíš je na jedné z fotek označený jiný detail než na druhé — zkontroluj, že křížek míří na TÝŽ bod.') };
 
         var a = Math.abs(gA), b = Math.abs(gB), cut = 180 - a - b;
-        if (cut <= 0) return { err: 'Geometrie nedává řešení (úhly ' + cz(a) + '° a ' + cz(b) + '°). Zkontroluj označení cíle na obou fotkách.' };
+        if (cut <= 0) return { err: T('Geometrie nedává řešení (úhly {a}° a {b}°). Zkontroluj označení cíle na obou fotkách.', { a: cz(a), b: cz(b) }) };
 
         var sinCut = Math.sin(cut * Math.PI / 180);
         var dA = base * Math.sin(b * Math.PI / 180) / sinCut;
@@ -303,7 +305,7 @@
             html += '<div class="fp-step">'
                 + (shots.length === 0
                     ? 'Postav se tak, abys na cíl <b>viděl</b>, a cvakni <b>první fotku</b>. Mířit nemusíš — cíl stačí mít kdekoli v záběru.'
-                    : 'Teď <b>přejdi stranou</b> (aspoň ' + MIN_BASE + ' m, ideálně tak, aby ses na cíl díval z jiného směru) a cvakni <b>druhou fotku</b>.')
+                    : T('Teď {b}přejdi stranou{_b} (aspoň {m} m, ideálně tak, aby ses na cíl díval z jiného směru) a cvakni {b}druhou fotku{_b}.', { b: '<b>', _b: '</b>', m: MIN_BASE }))
                 + '</div>';
             if (shots.length === 1) {
                 var d0 = me ? dist({ lat: shots[0].lat, lng: shots[0].lng }, me) : null;
@@ -321,8 +323,8 @@
 
         // ---- krok 3: označení cíle ve fotkách
         html += '<div class="fp-tabs" id="fp-tabs">'
-            + '<button type="button" class="fp-tab' + (active === 0 ? ' fp-on' : '') + (shots[0].target ? '' : ' fp-empty') + '" data-i="0">Fotka A' + (shots[0].target ? ' ✓' : '') + '</button>'
-            + '<button type="button" class="fp-tab' + (active === 1 ? ' fp-on' : '') + (shots[1].target ? '' : ' fp-empty') + '" data-i="1">Fotka B' + (shots[1].target ? ' ✓' : '') + '</button>'
+            + '<button type="button" class="fp-tab' + (active === 0 ? ' fp-on' : '') + (shots[0].target ? '' : ' fp-empty') + '" data-i="0">' + T('Fotka A') + (shots[0].target ? ' ✓' : '') + '</button>'
+            + '<button type="button" class="fp-tab' + (active === 1 ? ' fp-on' : '') + (shots[1].target ? '' : ' fp-empty') + '" data-i="1">' + T('Fotka B') + (shots[1].target ? ' ✓' : '') + '</button>'
             + '</div>';
 
         var s = shots[active];
@@ -361,7 +363,7 @@
         if (result && result.err) html += '<div class="fp-warn">' + esc(result.err) + '</div>';
         else if (result) {
             html += '<div class="fp-res">'
-                + '<div style="font-weight:700;margin-bottom:6px;">Cíl je ' + cz(result.dA) + ' m od A a ' + cz(result.dB) + ' m od B</div>'
+                + '<div style="font-weight:700;margin-bottom:6px;">' + T('Cíl je {a} m od A a {b} m od B', { a: cz(result.dA), b: cz(result.dB) }) + '</div>'
                 + '<div class="fp-row"><span>Úhel protnutí</span><b>' + cz(result.cut) + '°</b></div>'
                 + '<div class="fp-row"><span>Základna A–B</span><b>' + cz(result.base) + ' m</b></div>'
                 + '<div class="fp-row"><span>Převýšení nad okem</span><b>' + (result.dz >= 0 ? '+' : '') + cz(result.dz) + ' m</b></div>'
@@ -369,12 +371,12 @@
                 + '<div style="margin-top:8px;color:var(--text-muted,#9aa1ac);">'
                 + (result.oriented
                     ? 'Obě fotky mají orientaci na známý bod — chyba kompasu je z výsledku vyloučená.'
-                    : '⚠ Bez orientace na známý bod. Výsledek nese celou chybu kompasu (počítáno s ±' + SIGMA_COMPASS + '°) — ber ho jako orientační.')
+                    : T('⚠ Bez orientace na známý bod. Výsledek nese celou chybu kompasu (počítáno s ±{s}°) — ber ho jako orientační.', { s: SIGMA_COMPASS }))
                 + '</div>'
-                + '<div style="margin-top:6px;color:var(--text-muted,#9aa1ac);">Výška platí nad úrovní očí (' + cz(result.eyeH, 2) + ' m nad zemí u stanoviska); rozdíl mezi oběma odečty je ' + cz(result.dzSpread) + ' m.</div>'
+                + '<div style="margin-top:6px;color:var(--text-muted,#9aa1ac);">' + T('Výška platí nad úrovní očí ({e} m nad zemí u stanoviska); rozdíl mezi oběma odečty je {d} m.', { e: cz(result.eyeH, 2), d: cz(result.dzSpread) }) + '</div>'
                 + '<button class="btn btn-primary" id="fp-save" style="margin-top:10px;">Uložit jako nový bod</button>'
                 + '</div>';
-            if (result.cut < MIN_CUT) html += '<div class="fp-warn">Úhel protnutí je jen ' + cz(result.cut) + '°. Paprsky jsou skoro rovnoběžné a poloha je proto nejistá — přejdi dál do strany a druhou fotku zopakuj.</div>';
+            if (result.cut < MIN_CUT) html += '<div class="fp-warn">' + T('Úhel protnutí je jen {c}°. Paprsky jsou skoro rovnoběžné a poloha je proto nejistá — přejdi dál do strany a druhou fotku zopakuj.', { c: cz(result.cut) }) + '</div>';
         } else {
             html += '<div class="fp-hint" style="margin-top:10px;">Označ cíl na <b>obou</b> fotkách, pak se spočítá poloha.</div>';
         }
@@ -392,7 +394,7 @@
             if (!s) return;
             if (shots.length === 1) {
                 var d0 = dist({ lat: shots[0].lat, lng: shots[0].lng }, { lat: s.lat, lng: s.lng });
-                if (d0 != null && d0 < MIN_BASE) { info('Od první fotky jsi jen ' + cz(d0) + ' m. Přejdi aspoň ' + MIN_BASE + ' m stranou.'); return; }
+                if (d0 != null && d0 < MIN_BASE) { info(T('Od první fotky jsi jen {d} m. Přejdi aspoň {m} m stranou.', { d: cz(d0), m: MIN_BASE })); return; }
             }
             shots.push(s);
             active = shots.length - 1;
@@ -462,15 +464,14 @@
 
     function save() {
         if (!result || result.err) return;
-        if (typeof window.addImportedPoints !== 'function') { info('Vkládání bodů není v této verzi dostupné.'); return; }
+        if (typeof window.addImportedPoints !== 'function') { info(T('Vkládání bodů není v této verzi dostupné.')); return; }
         var name = 'FOTO' + new Date().toISOString().slice(11, 16).replace(':', '');
         try {
             var added = window.addImportedPoints([{ name: name, lat: result.lat, lng: result.lng }]);
-            info('Bod ' + name + ' uložen (přesnost ± ' + cz(result.sigma) + ' m'
-                + (result.oriented ? ', s orientací' : ', bez orientace — nese chybu kompasu') + ').');
+            info(T(result.oriented ? 'Bod {n} uložen (přesnost ± {s} m, s orientací).' : 'Bod {n} uložen (přesnost ± {s} m, bez orientace — nese chybu kompasu).', { n: name, s: cz(result.sigma) }));
             try { if (navigator.vibrate) navigator.vibrate([25, 40, 25]); } catch (e) { swallow(e, 'save:vib'); }
             return added;
-        } catch (e) { swallow(e, 'save'); info('Bod se nepodařilo uložit.'); }
+        } catch (e) { swallow(e, 'save'); info(T('Bod se nepodařilo uložit.')); }
     }
 
     function open() {

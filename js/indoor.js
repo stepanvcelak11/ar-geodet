@@ -74,6 +74,8 @@
 
     // ---- pomocné --------------------------------------------------------------------
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    // překlad (js/jazyky.js) se zástupci {x}; česky vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : agInfo(m)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'indoor:toast'); } }
     function info(t, m) { try { if (typeof window.agAlert === 'function') return window.agAlert(t, m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'indoor:info'); } toast(m); }
     function points() {
@@ -286,7 +288,7 @@
         try {
             if (typeof userLat === 'undefined' || userLat == null) { info('Není fix', 'GPS nemá polohu — vejdi dovnitř až potom, co se venku ustálí, nebo začni na známém bodě.'); return false; }
             var acc = (typeof currentGpsAccuracy !== 'undefined' && currentGpsAccuracy != null) ? currentGpsAccuracy : null;
-            _anchor = { lat: userLat, lng: userLng, name: 'poslední GPS' + (acc != null ? ' (±' + Math.round(acc) + ' m)' : ''), ts: Date.now() };
+            _anchor = { lat: userLat, lng: userLng, name: T('poslední GPS') + (acc != null ? ' (±' + Math.round(acc) + ' m)' : ''), ts: Date.now() };
             resetOffset();
             // Nejistota nezačíná na nule: dědí se přesnost fixu, ze kterého se vyšlo.
             _err = acc != null ? acc : 10;
@@ -331,8 +333,8 @@
         anchorFromPoint(p);
         if (_src === 'xr') _xrOrigin = null;         // vizuální sledování počítá od nové kotvy
         toast(drift != null
-            ? ('Srovnáno na ' + (p.name || 'bod') + '. Drift byl ' + drift.toFixed(1) + ' m na ' + Math.round(_fixes[0].dist) + ' m chůze.')
-            : ('Srovnáno na ' + (p.name || 'bod') + '.'));
+            ? T('Srovnáno na {n}. Drift byl {d} m na {w} m chůze.', { n: p.name || T('bod'), d: drift.toFixed(1), w: Math.round(_fixes[0].dist) })
+            : T('Srovnáno na {n}.', { n: p.name || T('bod') }));
         render();
     }
     function lockScreen() {
@@ -511,7 +513,7 @@
             h += '<div class="ag-in-h">Historie srovnání</div>';
             _fixes.forEach(function (f) {
                 h += '<div class="ag-in-fix"><div style="flex:1;">' + esc(f.name) + '</div><div>'
-                    + (f.drift != null ? 'drift ' + f.drift.toFixed(1) + ' m / ' + Math.round(f.dist) + ' m chůze' : 'srovnáno') + '</div></div>';
+                    + (f.drift != null ? T('drift {d} m / {w} m chůze', { d: f.drift.toFixed(1), w: Math.round(f.dist) }) : T('srovnáno')) + '</div></div>';
             });
         }
         return h;
@@ -537,9 +539,9 @@
         if (el) {
             el.className = 'ag-in-src ' + (_src === 'xr' ? 'xr' : 'pdr');
             el.textContent = (_src === 'xr')
-                ? 'Vizuální sledování (WebXR) — polohu drží kamera a čidla telefonu.'
-                : ('Krokový výpočet — ' + _steps + ' kroků po ' + stepLen().toFixed(2) + ' m, směr z kompasu. '
-                    + 'Uvnitř budovy kompas ruší kov: sleduj, jestli šipka odpovídá realitě.');
+                ? T('Vizuální sledování (WebXR) — polohu drží kamera a čidla telefonu.')
+                : (T('Krokový výpočet — {n} kroků po {l} m, směr z kompasu.', { n: _steps, l: stepLen().toFixed(2) }) + ' '
+                    + T('Uvnitř budovy kompas ruší kov: sleduj, jestli šipka odpovídá realitě.'));
         }
         var cells = document.getElementById('ag-in-cells');
         if (cells) {
@@ -552,8 +554,8 @@
         if (pos) {
             var sj = cur ? toSJTSK(cur.lat, cur.lng) : null;
             pos.innerHTML = sj
-                ? ('Odhad polohy: Y ' + esc(fmtNum(sj.y)) + ' · X ' + esc(fmtNum(sj.x)) + ' <span style="opacity:.7">(dopočet, ne měření)</span>')
-                : 'Odhad polohy se nedá převést do ' + agSys() + '.';
+                ? (T('Odhad polohy:') + ' Y ' + esc(fmtNum(sj.y)) + ' · X ' + esc(fmtNum(sj.x)) + ' <span style="opacity:.7">(dopočet, ne měření)</span>')
+                : T('Odhad polohy se nedá převést do {s}.', { s: agSys() });
         }
         var nav = document.getElementById('ag-in-navbox');
         if (nav) {
@@ -566,8 +568,8 @@
                 var rot = (hd != null) ? (az - hd) : null;
                 nav.innerHTML = '<div class="ag-in-nav">'
                     + '<div class="ag-in-arrow"' + (rot != null ? ' style="transform:rotate(' + rot.toFixed(0) + 'deg);"' : '') + '>↑</div>'
-                    + '<div class="ag-in-navt"><b>' + d.toFixed(1) + ' m</b>' + esc(_target.name || 'cíl')
-                    + ' · azimut ' + Math.round(az) + '°'
+                    + '<div class="ag-in-navt"><b>' + d.toFixed(1) + ' m</b>' + esc(_target.name || T('cíl'))
+                    + ' · ' + T('azimut {a}°', { a: Math.round(az) })
                     + (d < _err ? ' · <span style="color:var(--warning,#fbbf24);">jsi uvnitř kruhu nejistoty — hledej okolo</span>' : '')
                     + '</div></div>';
             } else nav.innerHTML = '';
@@ -579,7 +581,7 @@
                 fh = '<div class="ag-in-h">Srovnání</div>';
                 _fixes.slice(0, 5).forEach(function (f) {
                     fh += '<div class="ag-in-fix"><div style="flex:1;">' + esc(f.name) + '</div><div>'
-                        + (f.drift != null ? 'drift ' + f.drift.toFixed(1) + ' m / ' + Math.round(f.dist) + ' m' : 'srovnáno') + '</div></div>';
+                        + (f.drift != null ? 'drift ' + f.drift.toFixed(1) + ' m / ' + Math.round(f.dist) + ' m' : T('srovnáno')) + '</div></div>';
                 });
             }
             if (fb.innerHTML !== fh) fb.innerHTML = fh;

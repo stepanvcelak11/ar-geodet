@@ -90,6 +90,8 @@
     // ---- pomocné -------------------------------------------------------------
     function swallow(e, kde) { try { if (window.AG && AG.swallow) AG.swallow(e, kde || 'vektor-mapa'); } catch (err) { /* nic */ } }
     function toast(m) { try { return (window.AG && AG.toast) ? AG.toast(m) : (typeof quickToast === 'function' ? quickToast(m) : void 0); } catch (e) { swallow(e, 'vm:toast'); } }
+    // překlad (js/jazyky.js) se zástupci {x}; česky vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function esc(s) {
         return (window.AG && AG.esc) ? AG.esc(s)
             : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -230,7 +232,7 @@
         function zkus() {
             if (idx >= OVERPASS.length) return Promise.reject(new Error('Overpass neodpověděl'));
             var url = OVERPASS[idx++];
-            if (progress) progress('Stahuji z OpenStreetMap' + (idx > 1 ? ' (náhradní server)' : '') + '…');
+            if (progress) progress(T(idx > 1 ? 'Stahuji z OpenStreetMap (náhradní server)…' : 'Stahuji z OpenStreetMap…'));
             var ctrl = new AbortController();
             var t = setTimeout(function () { ctrl.abort(); }, 95000);
             return fetch(url, { method: 'POST', body: 'data=' + encodeURIComponent(q), signal: ctrl.signal })
@@ -452,24 +454,24 @@
         var v = vyrez();
         if (!v) { toast('Mapa ještě není připravená.'); return; }
         if (v.km2 > MAX_KM2) {
-            stav('Výřez je moc velký (' + v.km2.toFixed(1) + ' km²). Přibliž mapu — strop je ' + MAX_KM2 + ' km².');
+            stav(T('Výřez je moc velký ({a} km²). Přibliž mapu — strop je {m} km².', { a: v.km2.toFixed(1), m: MAX_KM2 }));
             return;
         }
         var nazev = null;
-        try { nazev = window.prompt('Název oblasti:', 'Oblast ' + new Date().toLocaleDateString('cs-CZ')); }
+        try { nazev = window.prompt(T('Název oblasti:'), T('Oblast') + ' ' + new Date().toLocaleDateString('cs-CZ')); }
         catch (e) { swallow(e, 'vm:sbalVyrez'); }
         if (nazev === null) return;
         _busy = true;
         var btn = document.getElementById('ag-vm-sbal'); if (btn) btn.disabled = true;
         stahni(v.bb, nazev || 'Oblast', stav).then(function (rec) {
             _busy = false; if (btn) btn.disabled = false;
-            stav('Sbaleno: ' + rec.feats.length + ' prvků, ' + fmtMB(rec.bytes) + '.');
+            stav(T('Sbaleno: {n} prvků, {s}.', { n: rec.feats.length, s: fmtMB(rec.bytes) }));
             toast('Oblast „' + rec.name + '“ je v telefonu.');
             return nactiOblast(rec.id).then(function () { zapni(); render(); });
         })['catch'](function (e) {
             _busy = false; if (btn) btn.disabled = false;
             swallow(e, 'vm:sbalVyrez');
-            stav('Nepodařilo se stáhnout: ' + (e && e.message || e) + ' — zkus to znovu, Overpass bývá občas přetížený.');
+            stav(T('Nepodařilo se stáhnout: {e} — zkus to znovu, Overpass bývá občas přetížený.', { e: (e && e.message || e) }));
         });
     }
 
@@ -487,9 +489,9 @@
             + '<label for="ag-vm-tlum">Ztlumit barvy (na slunci a v noci)</label></div>';
 
         if (v) {
-            h += '<div class="ag-vm-vyrez"><b>Co je teď v mapě:</b> ' + v.sirka.toFixed(2).replace('.', ',') + ' × '
+            h += '<div class="ag-vm-vyrez"><b>' + T('Co je teď v mapě:') + '</b> ' + v.sirka.toFixed(2).replace('.', ',') + ' × '
                 + v.vyska.toFixed(2).replace('.', ',') + ' km (' + v.km2.toFixed(2).replace('.', ',') + ' km²)'
-                + (v.km2 > MAX_KM2 ? '<br><span style="color:var(--warning,#fbbf24)">Nad strop ' + MAX_KM2 + ' km² — přibliž mapu.</span>' : '')
+                + (v.km2 > MAX_KM2 ? '<br><span style="color:var(--warning,#fbbf24)">' + T('Nad strop {m} km² — přibliž mapu.', { m: MAX_KM2 }) + '</span>' : '')
                 + '<br><small>Posuň a přibliž mapu tam, kam pojedeš, a ťukni na „Sbalit tento výřez“. GPS k tomu není potřeba.</small></div>';
         }
         h += '<div id="ag-vm-list"><p class="ag-vm-note">Načítám sbalené oblasti…</p></div>';
@@ -521,7 +523,7 @@
             var hh = '<h4 style="margin:14px 0 4px;font-size:calc(13px * var(--ag-font-scale,1));color:var(--text-muted,#9aa1ac);">Sbalené oblasti</h4>';
             list.forEach(function (o) {
                 hh += '<div class="ag-vm-row"><div><b>' + esc(o.name) + '</b>'
-                    + '<small>' + o.n + ' prvků · ' + fmtMB(o.bytes) + ' · ' + new Date(o.ts).toLocaleDateString('cs-CZ') + '</small></div>'
+                    + '<small>' + T('{n} prvků', { n: o.n }) + ' · ' + fmtMB(o.bytes) + ' · ' + new Date(o.ts).toLocaleDateString('cs-CZ') + '</small></div>'
                     + '<div class="ag-vm-act">'
                     + '<button type="button" data-use="' + esc(o.id) + '"' + (o.id === _aktId ? ' class="on"' : '') + '>' + (o.id === _aktId ? 'Používá se' : 'Použít') + '</button>'
                     + '<button type="button" data-del="' + esc(o.id) + '" aria-label="Smazat">✕</button>'
@@ -537,7 +539,7 @@
                         if (!rec) { stav('Oblast se nepodařilo načíst.'); return; }
                         zapni();
                         var sw = document.getElementById('ag-vm-on'); if (sw) sw.checked = true;
-                        stav('Kreslím „' + rec.name + '“ — ' + (rec.feats || []).length + ' prvků.');
+                        stav(T('Kreslím „{n}“ — {p} prvků.', { n: rec.name, p: (rec.feats || []).length }));
                         render();
                     });
                 });

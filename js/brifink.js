@@ -41,6 +41,8 @@
     // ---- pomocné -------------------------------------------------------------
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function TJ(cs) { try { return (window.AGJazyk && typeof AGJazyk.t === 'function') ? AGJazyk.t(cs) : cs; } catch (e) { return cs; } }   // překlad kousku slepence (18. 9. 2026)
+    // překlad celé věty se zástupci {x}; česky vrací původní text
+    function TT(cs, o) { var v = TJ(cs); return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function pad2(n) { return (n < 10 ? '0' : '') + n; }
     function todayStr() { var d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
     var DAYS_CS = ['neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota'];
@@ -130,9 +132,9 @@
         var prob = d.precipitation_probability_max ? d.precipitation_probability_max[0] : null;
         if (sum != null && sum > 0.1) {
             var sp = rainSpans(w.hourly);
-            rows.push('Srážky ' + String(sum.toFixed(1)).replace('.', ',') + ' mm' + (prob != null ? ' (pravděpodobnost ' + Math.round(prob) + ' %)' : '') + (sp.length ? ' — déšť ' + sp.join(', ') : ''));
+            rows.push(TT('Srážky {s} mm', { s: String(sum.toFixed(1)).replace('.', ',') }) + (prob != null ? ' (' + TT('pravděpodobnost {p} %', { p: Math.round(prob) }) + ')' : '') + (sp.length ? ' — ' + TT('déšť {t}', { t: sp.join(', ') }) : ''));
         } else {
-            rows.push('Bez výraznějších srážek' + (prob != null && prob > 30 ? ' (pravděpodobnost do ' + Math.round(prob) + ' %)' : '') + '.');
+            rows.push(TJ('Bez výraznějších srážek') + (prob != null && prob > 30 ? ' (' + TT('pravděpodobnost do {p} %', { p: Math.round(prob) }) + ')' : '') + '.');
         }
         if (d.sunrise && d.sunset) {
             var sr = fmtHM(d.sunrise[0]), ss = fmtHM(d.sunset[0]);
@@ -142,12 +144,12 @@
                 if (mSet) {
                     var now = new Date();
                     var mins = (parseInt(mSet[1], 10) * 60 + parseInt(mSet[2], 10)) - (now.getHours() * 60 + now.getMinutes());
-                    if (mins > 0) light = ' — světla zbývá ' + Math.floor(mins / 60) + ':' + pad2(mins % 60) + ' h';
+                    if (mins > 0) light = ' — ' + TT('světla zbývá {t} h', { t: Math.floor(mins / 60) + ':' + pad2(mins % 60) });
                 }
             } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'brifink:wxRows'); }
-            rows.push('Slunce ' + sr + '–' + ss + light);
+            rows.push(TT('Slunce {a}–{b}', { a: sr, b: ss }) + light);
         }
-        if (res.stale) rows.push('(offline — poslední stažená předpověď' + (res.when ? ' z ' + new Date(res.when).toLocaleString('cs-CZ') : '') + ')');
+        if (res.stale) rows.push('(' + (res.when ? TT('offline — poslední stažená předpověď z {t}', { t: new Date(res.when).toLocaleString((window.AGJazyk && AGJazyk.locale) ? AGJazyk.locale() : 'cs-CZ') }) : TJ('offline — poslední stažená předpověď')) + ')');
         return rows;
     }
 
@@ -196,7 +198,7 @@
             if (kp != null) {
                 var lbl = kp >= 5 ? '⚠ geomagnetická bouře — GNSS dnes může zlobit, přesné měření radši ověř dvakrát'
                     : (kp >= 4 ? 'zvýšená aktivita — na milimetry dnes nespoléhej' : 'ionosféra v klidu');
-                rows.push('Kp index dnes do ' + String(kp).replace('.', ',') + ' — ' + lbl);
+                rows.push(TT('Kp index dnes do {k}', { k: String(kp).replace('.', ',') }) + ' — ' + TJ(lbl));
             }
             done(rows);
         });
@@ -241,7 +243,7 @@
             });
             if (!od.length) return null;
             var names = od.slice(0, 3).join(', ') + (od.length > 3 ? ' +' + (od.length - 3) : '');
-            return [od.length + ' ' + (od.length === 1 ? 'bod je' : (od.length <= 4 ? 'body jsou' : 'bodů je')) + ' po termínu přeměření: ' + names];
+            return [TT(od.length === 1 ? '{n} bod je po termínu přeměření: {s}' : (od.length <= 4 ? '{n} body jsou po termínu přeměření: {s}' : '{n} bodů je po termínu přeměření: {s}'), { n: od.length, s: names })];
         } catch (e) { return null; }
     }
 

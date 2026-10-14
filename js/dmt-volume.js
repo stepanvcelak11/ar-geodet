@@ -108,6 +108,8 @@
         return true;
     }
 
+    // překlad textů s číslem / na canvasu — v češtině vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function quickToastSafe(m) { try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmt-volume:quickToastSafe'); } try { agInfo(m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'dmt-volume:quickToastSafe'); } }
 
     // ---- perzistence (per zakázka) -------------------------------------------
@@ -346,7 +348,7 @@
         ctx.fillStyle = '#0c0f13'; ctx.fillRect(0, 0, W, H);
         if (!pts.length) {
             ctx.fillStyle = '#8b95a1'; ctx.font = '14px sans-serif'; ctx.textAlign = 'center';
-            ctx.fillText('Načti body se zařízením výšky nebo vlož seznam Y X Z.', W / 2, H / 2);
+            ctx.fillText(T('Načti body se zařízením výšky nebo vlož seznam Y X Z.'), W / 2, H / 2);
             return;
         }
         if (!view.ready) fitView();
@@ -426,7 +428,7 @@
         if (!el) return;
         // Velký model se trianguluje vedle (worker) — bez téhle hlášky by po
         // spuštění chvíli svítily STARÉ výsledky a vypadaly jako nové.
-        if (pocitaSe) { el.innerHTML = '<span class="dmt-muted">Počítám model z ' + pts.length + ' bodů…</span>'; return; }
+        if (pocitaSe) { el.innerHTML = '<span class="dmt-muted">' + T('Počítám model z {n} bodů…', { n: pts.length }) + '</span>'; return; }
         if (!result || !pts.length) { el.innerHTML = '<span class="dmt-muted">Žádná data.</span>'; return; }
         function row(l, v, c) { return '<div class="dmt-rrow"><span>' + l + '</span><b' + (c ? ' style="color:' + c + '"' : '') + '>' + v + '</b></div>'; }
         el.innerHTML =
@@ -437,8 +439,8 @@
             row('Násyp (nad H₀)', result.fill.toFixed(1) + ' m³', '#34d399') +
             row('Výkop (pod H₀)', result.cut.toFixed(1) + ' m³', '#f87171') +
             row('Netto (násyp − výkop)', (result.net >= 0 ? '+' : '') + result.net.toFixed(1) + ' m³', result.net >= 0 ? '#34d399' : '#f87171') +
-            '<div class="dmt-muted" style="font-size:calc(11px * var(--ag-font-scale, 1)); margin-top:6px; line-height:1.35;">TIN pokrývá KONVEXNÍ obálku bodů — u nekonvexního obvodu (tvar L, koryto) '
-            + 'plochu i objem nadhodnotí. Zaměř obvod hustěji, nebo počítej po konvexních částech.</div>';
+            '<div class="dmt-muted" style="font-size:calc(11px * var(--ag-font-scale, 1)); margin-top:6px; line-height:1.35;">' + T('TIN pokrývá KONVEXNÍ obálku bodů — u nekonvexního obvodu (tvar L, koryto) '
+            + 'plochu i objem nadhodnotí. Zaměř obvod hustěji, nebo počítej po konvexních částech.') + '</div>';
     }
     function fmtArea(a) {
         if (a >= 10000) return (a / 10000).toFixed(3) + ' ha (' + Math.round(a) + ' m²)';
@@ -507,7 +509,7 @@
         overlay.querySelector('#dmt-load').addEventListener('click', function () {
             var list = gatherFromProject();
             if (!list.length) { quickToastSafe('V zakázce nemáš vlastní body s výškou. Vlož seznam Y X Z.'); return; }
-            if (setPoints(list)) quickToastSafe('Načteno bodů: ' + list.length);
+            if (setPoints(list)) quickToastSafe(T('Načteno bodů: {n}', { n: list.length }));
         });
         overlay.querySelector('#dmt-paste').addEventListener('click', function () {
             overlay.querySelector('#dmt-paste-modal').classList.add('show');
@@ -518,7 +520,7 @@
             var list = parsePasted(overlay.querySelector('#dmt-paste-ta').value);
             overlay.querySelector('#dmt-paste-modal').classList.remove('show');
             if (!list.length) { quickToastSafe('Nerozpoznal jsem žádný platný řádek Y X Z.'); return; }
-            if (setPoints(list)) quickToastSafe('Načteno bodů: ' + list.length);
+            if (setPoints(list)) quickToastSafe(T('Načteno bodů: {n}', { n: list.length }));
         });
         overlay.querySelector('#dmt-recalc').addEventListener('click', function () {
             var rv = num(overlay.querySelector('#dmt-ref').value);

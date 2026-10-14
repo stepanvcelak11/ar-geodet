@@ -43,6 +43,8 @@
         for (i = 0; i < l.length; i++) { if (l[i] && l[i].id === id) return l[i].name || id; }
         return id;
     }
+    // překlad (js/jazyky.js) se zástupci {x}; česky vrací původní text
+    function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? String(v).replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function toast(m) { try { if (typeof window.quickToast === 'function') window.quickToast(m); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zakazka-sablony:toast'); } }
 
     function hasAnySettings(pid) {
@@ -111,15 +113,15 @@
             var copied = copySettings(oldPid, newPid);
             if (copied > 0) {
                 applySettingsNow();
-                toast('Nastavení převzato ze zakázky „' + projName(oldPid) + '“.');
+                toast(T('Nastavení převzato ze zakázky „{n}“.', { n: projName(oldPid) }));
             }
             return;
         }
-        var msg = 'Převzít nastavení z předchozí zakázky „' + projName(oldPid) + '“?\n\n'
-            + 'Převezmou se filtry bodů, poloměry, vzhled a typ práce. Body a měření se NEkopírují.';
+        var msg = T('Převzít nastavení z předchozí zakázky „{n}“?', { n: projName(oldPid) }) + '\n\n'
+            + T('Převezmou se filtry bodů, poloměry, vzhled a typ práce. Body a měření se NEkopírují.');
         var ask;
         if (typeof window.agAsk === 'function') {
-            ask = window.agAsk(msg, { title: 'Nová zakázka', okText: 'Převzít nastavení' });
+            ask = window.agAsk(msg, { title: T('Nová zakázka'), okText: T('Převzít nastavení') });
         } else {
             var ok = false;
             try { ok = window.confirm(msg); } catch (e) { ok = false; }
