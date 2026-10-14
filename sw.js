@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v411';   // 14. 10.: dokončený překlad (správa firmy, kalkulačka, počasí, 3D…)
+const SHELL_CACHE = 'argeodet-shell-v412';   // 14. 10.: start bez signálu (opakované načtení modulů, doplnění předcache, MapLibre v LIB_CACHE)
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -51,9 +51,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=411',
-    './css/style.css?v=411',
-    './css/vylepseni.css?v=411',
+    './css/tokens.css?v=412',
+    './css/style.css?v=412',
+    './css/vylepseni.css?v=412',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -370,6 +370,11 @@ function isLangData(url) { return /\/data\/(jazyky|navody|predpisy|ulohy|co-je-n
 // SHELL_CACHE, prvni bump verze by je smazal a PDF protokol by v terenu skoncil
 // na pulce.
 function isLib(url) { return url.includes('cdn.jsdelivr.net') || url.includes('protomaps.github.io/basemaps-assets'); }   // + písma vektorové mapy (glyfy)
+// VLASTNÍ KNIHOVNY S VERZÍ V NÁZVU (14. 10. 2026, hlášení z terénu: „nelze načíst js/lib/maplibre-gl-5.24.0.js"):
+// MapLibre (~1 MB) a spol. se stahují až při zapnutí vektorové mapy, v předcache nejsou — a běhová větev
+// je ukládala do VERZOVANÉ SHELL_CACHE, kterou každá aktualizace smaže. Po aktualizaci bez signálu pak
+// vektorová mapa nešla. Verze je v názvu souboru, obsah pod týmž jménem se nemění → stabilní LIB_CACHE.
+function isOwnLib(url) { return url.includes('/js/lib/') && /-\d+\.\d+[\d.]*(\.min)?\.(js|css)(\?|$)/.test(url); }
 
 // Mapove dlazdice (OSM, CUZK WMS) ukladame do TILE_CACHE, aby prezily update kodu.
 function isTile(url) {
@@ -483,7 +488,37 @@ self.addEventListener('activate', event => {
     );
 });
 
-self.addEventListener('message', e => { if (e.data === 'SKIP_WAITING') self.skipWaiting(); });
+self.addEventListener('message', e => {
+    if (e.data === 'SKIP_WAITING') self.skipWaiting();
+    else if (e.data === 'AG_DOPLN') e.waitUntil(doplnChybejici(true));
+});
+
+// DOPLNĚNÍ PŘEDCACHE (14. 10. 2026, hlášení z terénu: v411 nenačetla 10 odložených modulů).
+// Instalace bere každý soubor zvlášť a výpadek signálu PŘESKOČÍ — to je správně (jinak by se
+// aktualizace nedokončila nikdy), jenže aktivace pak smaže starou cache a chybějící soubory
+// už nikdo nedoplnil: bez signálu se ty nástroje neotevřely vůbec, a se signálem až po
+// náhodném stažení. Teď se chybějící položky dotahují samy — při otevření appky (navigace)
+// a když appka hlásí, že je zase online (js/lazy-load.js → zpráva 'AG_DOPLN').
+let _doplnTs = 0;
+async function doplnChybejici(hned) {
+    const ted = Date.now();
+    if (!hned && ted - _doplnTs < 10 * 60 * 1000) return;
+    _doplnTs = ted;
+    try {
+        const cache = await caches.open(SHELL_CACHE);
+        const fontCache = await caches.open(FONT_CACHE);
+        for (const url of ASSETS_TO_CACHE) {
+            const target = isFont(url) ? fontCache : cache;
+            if (await target.match(url)) continue;
+            try {
+                const res = await fetch(new Request(url, { cache: 'no-cache' }));
+                if (res && (res.ok || res.type === 'opaque')) await target.put(url, res);
+            } catch (e) {
+                if (self.navigator && self.navigator.onLine === false) return;   // zase bez signálu — příště
+            }
+        }
+    } catch (e) { /* doplnění je nepovinné */ }
+}
 
 // PUSH PRO VLASTNIKA (13. 9. 2026): odber zaklada jen konzole vlastnika (cloud/worker.js
 // /owner/push), bezni uzivatel zadny push nikdy nedostane — handler je tu ale pro vsechny,
@@ -538,6 +573,7 @@ self.addEventListener('fetch', event => {
     if (url.startsWith(self.location.origin)) {
         const isNav = event.request.mode === 'navigate' || url === self.location.origin + '/' || url.endsWith('/index.html');
         if (isNav) {
+            try { event.waitUntil(doplnChybejici(false)); } catch (e) { /* nic */ }
             event.respondWith(
                 // ignoreSearch: klic cache je cela URL VCETNE query, ale v predcache je
                 // jen './index.html' a './'. Zkratky z plochy (manifest.json: Novy bod,
@@ -583,7 +619,7 @@ self.addEventListener('fetch', event => {
                 if (response && response.ok) {
                     const clone = response.clone();
                     // pisma do vlastni (neverzovane) cache, at prezijou update kodu
-                    caches.open(isFont(url) ? FONT_CACHE : (isDict(url) ? DICT_CACHE : SHELL_CACHE))
+                    caches.open(isFont(url) ? FONT_CACHE : (isDict(url) ? DICT_CACHE : (isOwnLib(url) ? LIB_CACHE : SHELL_CACHE)))
                         .then(cache => cache.put(event.request, clone));
                 }
                 return response;

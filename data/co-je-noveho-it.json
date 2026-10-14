@@ -2,6 +2,16 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 412,
+      "datum": "2026-10-14",
+      "nadpis": "Avvio più affidabile senza segnale",
+      "body": [
+        "Se il segnale cade durante l’avvio o un aggiornamento, gli strumenti non scaricati del tutto si caricano da soli appena il segnale torna — prima mancavano fino alla chiusura dell’app.",
+        "Un aggiornamento non scaricato del tutto per un’interruzione completa da solo i file mancanti.",
+        "La mappa vettoriale funziona senza segnale anche dopo un aggiornamento (la sua libreria non viene più cancellata a ogni versione)."
+      ]
+    },
+    {
       "v": 411,
       "datum": "2026-10-14",
       "nadpis": "Traduzione completata",

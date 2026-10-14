@@ -2,6 +2,16 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 412,
+      "datum": "2026-10-14",
+      "nadpis": "Betrouwbaarder starten zonder bereik",
+      "body": [
+        "Valt het bereik weg tijdens het starten of een update, dan laden tools die nog niet binnen waren vanzelf zodra er weer bereik is — eerder ontbraken ze tot je de app sloot.",
+        "Een update die door een storing niet volledig binnenkwam, vult ontbrekende bestanden zelf aan.",
+        "De vectorkaart werkt na een update ook zonder bereik (de bibliotheek wordt niet meer bij elke versie gewist)."
+      ]
+    },
+    {
       "v": 411,
       "datum": "2026-10-14",
       "nadpis": "Vertaling voltooid",

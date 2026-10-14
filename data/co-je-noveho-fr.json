@@ -2,6 +2,16 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 412,
+      "datum": "2026-10-14",
+      "nadpis": "Démarrage plus fiable sans réseau",
+      "body": [
+        "Si le réseau tombe pendant le démarrage ou une mise à jour, les outils pas encore téléchargés se chargent d’eux-mêmes dès le retour du réseau — avant, ils manquaient jusqu’à la fermeture de l’appli.",
+        "Une mise à jour incomplète à cause d’une coupure complète d’elle-même les fichiers manquants.",
+        "La carte vectorielle fonctionne hors ligne aussi après une mise à jour (sa bibliothèque n’est plus effacée à chaque version)."
+      ]
+    },
+    {
       "v": 411,
       "datum": "2026-10-14",
       "nadpis": "Traduction terminée",

@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 412,
+      "datum": "2026-10-14",
+      "nadpis": "More reliable start without signal",
+      "body": [
+        "If the signal drops during start or an update, tools that didn't finish downloading load by themselves once the signal is back — before, they were missing until the app was closed.",
+        "An update that didn't download completely because of an outage fills in the missing files by itself.",
+        "The vector map works offline after an update too (its library is no longer deleted with each new version)."
+      ]
+    },
+    {
       "v": 411,
       "datum": "2026-10-14",
       "nadpis": "Translation completed",

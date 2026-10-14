@@ -2,6 +2,16 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 412,
+      "datum": "2026-10-14",
+      "nadpis": "Arranque mais fiável sem rede",
+      "body": [
+        "Se a rede falhar durante o arranque ou uma atualização, as ferramentas que não acabaram de descarregar carregam sozinhas assim que a rede volta — antes faltavam até fechar a app.",
+        "Uma atualização que não descarregou toda por uma falha completa sozinha os ficheiros em falta.",
+        "O mapa vetorial funciona sem rede também depois de uma atualização (a biblioteca já não é apagada a cada versão)."
+      ]
+    },
+    {
       "v": 411,
       "datum": "2026-10-14",
       "nadpis": "Tradução concluída",

@@ -82,6 +82,9 @@
             //   se hlásí dál — ty jsou chyba nasazení.
             var _t = ev.target, _u = String(_t.src || _t.href || '');
             if ((_t.tagName && _t.tagName.toUpperCase() === 'IMG') || /tile\.openstreetmap|cuzk\.gov\.cz|cuzk\.cz\/wms|rainviewer|arcgis/i.test(_u)) return;
+            // odložené moduly (js/lazy-load.js) si výpadek hlídají samy: zkusí je znovu a zapíšou je,
+            // až když nedorazí ani po opakování (14. 10. 2026 — jinak 10 záznamů za jeden výpadek signálu)
+            try { if (_t.getAttribute && _t.getAttribute('data-ag-lazy') === '1') return; } catch (e) { /* nic */ }
             record('Nepodařilo se načíst: ' + _u, '', 0, 0, '');
             return;
         }

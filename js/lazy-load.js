@@ -128,19 +128,58 @@
         s.setAttribute('data-ag-lazy', '1');
         s.onload = function () { done(item.src); };
         s.onerror = function () {
-            // Nepadat: appka bez jednoho nástroje pořád měří. Ale nahlásit — tichá
-            // chybějící dlaždice je horší než záznam v protokolu chyb.
-            try {
-                if (window.agErrLog && typeof window.agErrLog.record === 'function') {
-                    window.agErrLog.record('lazy-load: nepodařilo se načíst ' + item.src);
-                } else if (window.console) {
-                    console.warn('[lazy-load] nenačteno: ' + item.src);
-                }
-            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'lazy-load:onerror'); }
+            // Nepadat: appka bez jednoho nástroje pořád měří. Modul se zkusí znovu (viz
+            // znovu() níž); do protokolu chyb jde, až když nedorazí ani napotřetí — tichá
+            // chybějící dlaždice je horší než záznam, ale výpadek signálu chyba appky není.
+            try { if (s.parentNode) s.parentNode.removeChild(s); } catch (e) { /* nic */ }
+            selhalo.push(item);
+            naplanujZnovu();
             done(item.src);
         };
         (document.body || document.documentElement).appendChild(s);
     }
+
+    // ZNOVU PO VÝPADKU SIGNÁLU (14. 10. 2026, hlášení z terénu: v411 nenačetla posledních
+    // 10 modulů fronty najednou — telefon zrovna ztratil signál). Dřív to bylo natrvalo až
+    // do zavření appky. Teď: znovu za 20 s, za 90 s a vždy, když prohlížeč hlásí `online`;
+    // service worker zároveň dostane pokyn doplnit chybějící soubory do cache (sw.js).
+    var selhalo = [];        // [{src, el, css}] čeká na další pokus
+    var pokusy = {};         // src → kolik pokusů už selhalo
+    var POKUSY_MAX = 3;
+    var _znovuT = null;
+    function naplanujZnovu() {
+        if (_znovuT) return;
+        var n = 0; for (var k in pokusy) if (pokusy[k] > n) n = pokusy[k];
+        _znovuT = setTimeout(function () { _znovuT = null; znovu(); }, n >= 1 ? 90000 : 20000);
+    }
+    function znovu() {
+        if (!selhalo.length) return;
+        if (typeof navigator !== 'undefined' && navigator.onLine === false) { naplanujZnovu(); return; }
+        try { if (navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage('AG_DOPLN'); } catch (e) { /* nic */ }
+        var dalsi = selhalo; selhalo = [];
+        for (var i = 0; i < dalsi.length; i++) (function (item) {
+            pokusy[item.src] = (pokusy[item.src] || 0) + 1;
+            var s = document.createElement('script');
+            s.src = item.src; s.async = false; s.setAttribute('data-ag-lazy', '1');
+            s.onload = function () {
+                try { if (typeof window.agFtSyncTiles === 'function') window.agFtSyncTiles(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'lazy-load:znovu'); }
+                try { window.dispatchEvent(new CustomEvent('ag:lazy-znovu', { detail: { src: item.src } })); } catch (e) { /* nic */ }
+            };
+            s.onerror = function () {
+                try { if (s.parentNode) s.parentNode.removeChild(s); } catch (e) { /* nic */ }
+                if (pokusy[item.src] >= POKUSY_MAX) {
+                    try {
+                        if (window.agErrLog && typeof window.agErrLog.record === 'function') window.agErrLog.record('lazy-load: nepodařilo se načíst ' + item.src + ' (ani po ' + POKUSY_MAX + ' pokusech)');
+                        else if (window.console) console.warn('[lazy-load] nenačteno: ' + item.src);
+                    } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'lazy-load:onerror'); }
+                    return;
+                }
+                selhalo.push(item); naplanujZnovu();
+            };
+            (document.body || document.documentElement).appendChild(s);
+        })(dalsi[i]);
+    }
+    try { window.addEventListener('online', function () { if (_znovuT) { clearTimeout(_znovuT); _znovuT = null; } znovu(); }); } catch (e) { /* nic */ }
 
     var hotovo = {};        // src → skript proběhl (onload/onerror) — viz need()
     function done(src) {

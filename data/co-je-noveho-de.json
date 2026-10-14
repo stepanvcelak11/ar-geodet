@@ -2,6 +2,16 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 412,
+      "datum": "2026-10-14",
+      "nadpis": "Zuverlässigerer Start ohne Signal",
+      "body": [
+        "Fällt beim Start oder bei einem Update das Signal aus, laden sich nicht fertig geladene Werkzeuge von selbst, sobald das Signal zurück ist — früher fehlten sie bis zum Schließen der App.",
+        "Ein Update, das wegen eines Ausfalls nicht vollständig geladen wurde, ergänzt fehlende Dateien selbst.",
+        "Die Vektorkarte funktioniert nach einem Update auch ohne Signal (ihre Bibliothek wird nicht mehr mit jeder Version gelöscht)."
+      ]
+    },
+    {
       "v": 411,
       "datum": "2026-10-14",
       "nadpis": "Übersetzung abgeschlossen",

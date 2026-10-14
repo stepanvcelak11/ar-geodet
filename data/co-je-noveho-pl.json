@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 412,
+      "datum": "2026-10-14",
+      "nadpis": "Pewniejszy start bez zasięgu",
+      "body": [
+        "Gdy podczas startu lub aktualizacji zniknie zasięg, narzędzia, które nie zdążyły się pobrać, wczytają się same po powrocie zasięgu — wcześniej brakowało ich aż do zamknięcia aplikacji.",
+        "Aktualizacja, która przez przerwę nie pobrała się w całości, sama uzupełni brakujące pliki.",
+        "Mapa wektorowa po aktualizacji działa także bez zasięgu (jej biblioteka nie jest już usuwana z każdą wersją)."
+      ]
+    },
+    {
       "v": 411,
       "datum": "2026-10-14",
       "nadpis": "Tłumaczenie ukończone",

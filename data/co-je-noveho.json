@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 412,
+   "datum": "2026-10-14",
+   "nadpis": "Spolehlivější start bez signálu",
+   "body": [
+    "Když při startu nebo aktualizaci vypadne signál, nástroje, které se nestihly stáhnout, se načtou samy, jakmile je signál zpět — dřív chyběly až do zavření appky.",
+    "Aktualizace, která se kvůli výpadku nestáhla celá, si chybějící soubory doplní sama.",
+    "Vektorová mapa po aktualizaci funguje i bez signálu (knihovna se už s novou verzí nemaže)."
+   ]
+  },
+  {
    "v": 411,
    "datum": "2026-10-14",
    "nadpis": "Dokončený překlad",

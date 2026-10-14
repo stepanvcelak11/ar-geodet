@@ -2,6 +2,16 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 412,
+      "datum": "2026-10-14",
+      "nadpis": "Arranque más fiable sin cobertura",
+      "body": [
+        "Si la cobertura se cae durante el arranque o una actualización, las herramientas que no terminaron de descargarse se cargan solas en cuanto vuelve la señal — antes faltaban hasta cerrar la app.",
+        "Una actualización que no se descargó completa por un corte completa sola los archivos que faltan.",
+        "El mapa vectorial funciona sin cobertura también tras una actualización (su biblioteca ya no se borra con cada versión)."
+      ]
+    },
+    {
       "v": 411,
       "datum": "2026-10-14",
       "nadpis": "Traducción completada",
