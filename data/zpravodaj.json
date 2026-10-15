@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-10-14",
-  "uvodnik": "Vydání 14. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-10-15",
+  "uvodnik": "Vydání 15. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,30 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "Smart Buildings Media Limited Acquired by Diversified",
+      "perex": "Diversified UK & Europe is pleased to announce the acquisition of Smart Buildings Media Limited (SBM).",
+      "telo": "Diversified UK & Europe is pleased to announce the acquisition of Smart Buildings Media Limited (SBM). The SBM portfolio consists of an event, Smart Buildings Show, and two digital publications, Smart Buildings Magazine and Smart Infrastructure Magazine. Held annually at Excel London, Smart Buildings Show is recognised as the leading event where the commercial smart buildings industry comes together. The event features over 100 exhibitors and 3,500 visitors, including professionals in energy management, IT & digital infrastructure, management & proptech, and controls. The digital publications support the industry and the event, reaching tens of thousands of subscribers each month. SBM’s even",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/10/14/smart-buildings-media-limited-acquired-by-diversified/?utm_source=rss&utm_medium=rss&utm_campaign=smart-buildings-media-limited-acquired-by-diversified",
+      "datum": "2026-10-14"
+    },
+    {
+      "rubrika": "Akce",
+      "top": false,
+      "nadpis": "Geo Week 2027 Conference Program and Speaker Roster Announced",
+      "perex": "Sessions tackle AI realities, subsurface mapping, resilient infrastructure, workforce challenges and more, plus new Digital Insider Access option Salt Lake City, UT – October 13, 2026 — Organizers of…",
+      "telo": "Sessions tackle AI realities, subsurface mapping, resilient infrastructure, workforce challenges and more, plus new Digital Insider Access option Salt Lake City, UT – October 13, 2026 — Organizers of Geo Week , the premier conference and trade show for geospatial and mapping professionals, have announced the conference program and speaker lineup for the 2027 event, taking place February 23–25, 2027, at the Salt Palace Convention Center in Salt Lake City, Utah. This year’s program tackles the most pressing and complex issues in the industry, with sessions on AI-enhanced workflows, accessible reality capture, scan to BIM, subsurface mapping, bathymetric lidar, resilient infrastructure, data ac",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/10/14/geo-week-2027-conference-program-and-speaker-roster-announced/?utm_source=rss&utm_medium=rss&utm_campaign=geo-week-2027-conference-program-and-speaker-roster-announced",
+      "datum": "2026-10-14"
     },
     {
       "rubrika": "Ze světa",
@@ -73,30 +97,6 @@
       "zdroj": "LiDAR Magazine",
       "odkaz": "https://lidarmag.com/2026/10/02/how-drone-surveys-expand-whats-surveyable-from-the-air/?utm_source=rss&utm_medium=rss&utm_campaign=how-drone-surveys-expand-whats-surveyable-from-the-air",
       "datum": "2026-10-03"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "Will Gaussian Splatting Replace 3D Textured Meshes?",
-      "perex": "Gaussian splatting is rapidly gaining attention as a new way to create highly realistic 3D representations from imagery.",
-      "telo": "Gaussian splatting is rapidly gaining attention as a new way to create highly realistic 3D representations from imagery. But beyond impressive visualization, what can Gaussian splats actually be used for in photogrammetry? Join our guest Dr. Jules Morel, Data Analyst at Mirukuru in Japan, as we examine how Gaussian splats are created, what is required to achieve high-quality results, and where the technology fits within real-world photogrammetry workflows. We will also compare Gaussian splats with traditional textured meshes and discuss when each approach makes sense. Register for the event: https://hubs.ly/Q04y9Nj20 Specifically, attendees will learn about: Understanding the fundamentals of",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/30/will-gaussian-splatting-replace-3d-textured-meshes/?utm_source=rss&utm_medium=rss&utm_campaign=will-gaussian-splatting-replace-3d-textured-meshes",
-      "datum": "2026-09-30"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "SFL Missions Inc. Wins Contract to Develop Next-Generation Greenhouse Gas Monitoring Satellite for GHGSat",
-      "perex": "Toronto, Ontario, Canada, 28 September 2026 – SFL Missions Inc. has been awarded a contract by GHGSat of Montreal to develop the GHGSat-D2 demonstration satellite with enhanced greenhouse gas monitoring capabilities.",
-      "telo": "Toronto, Ontario, Canada, 28 September 2026 – SFL Missions Inc. has been awarded a contract by GHGSat of Montreal to develop the GHGSat-D2 demonstration satellite with enhanced greenhouse gas monitoring capabilities. SFL Missions is designing GHGSat-D2 to support more accurate and frequent measurements of emissions from sources on the Earth’s surface. Rendering of the next-generation GHGSat-D2 greenhouse gas monitoring satellite being developed by SFL Missions Inc. To accommodate a larger, higher-accuracy sensor being manufactured by ABB Canada, which has delivered some previous GHGSat payloads, SFL Missions is building the demonstrator satellite on its expanded DEFIANT-XL bus. The mass of t",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/09/28/sfl-missions-inc-wins-contract-to-develop-next-generation-greenhouse-gas-monitoring-satellite-for-ghgsat/?utm_source=rss&utm_medium=rss&utm_campaign=sfl-missions-inc-wins-contract-to-develop-next-generation-greenhouse-gas-monitoring-satellite-for-ghgsat",
-      "datum": "2026-09-28"
     }
   ]
 }
