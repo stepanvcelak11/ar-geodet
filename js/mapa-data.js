@@ -42,6 +42,8 @@
         try {
             if (!window.pmtiles || !window.AGMapaVektor) return null;
             var url = AGMapaVektor.url(); if (!url) return null;
+            // zdroj s ukládáním do telefonu (offline) — stejný, jaký kreslí mapa
+            if (AGMapaVektor.pm) { var p0 = AGMapaVektor.pm(url); if (p0) return p0; }
             var proto = AGMapaVektor.protokol && AGMapaVektor.protokol();
             if (proto && proto.get(url)) return proto.get(url);
             if (_zdroj && _zdrojUrl === url) return _zdroj;

@@ -315,7 +315,8 @@
         if (!el || !window.L) return;
         try {
             var m = L.map(el, { zoomControl: false, attributionControl: false });
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 16 }).addTo(m);
+            // podklad = vlastní mapa appky (rastr OSM je od 15. 10. 2026 pryč); bez ní jen body na ploše
+            if (window.AGMapaVektor && AGMapaVektor.novaVrstva) AGMapaVektor.novaVrstva().then(function (v) { try { if (m._loaded !== undefined && el.isConnected) v.addTo(m); } catch (e2) { /* okno zavřené */ } }).catch(function () { /* bez mapy */ });
             var pts = [];
             shluky.forEach(function (s) {
                 pts.push([s.lat, s.lng]);

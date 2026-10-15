@@ -219,7 +219,8 @@
     function ensureMap() {
         if (tmap) return;
         tmap = L.map('tachy-map', { maxZoom: 22, minZoom: 10, zoomControl: true, attributionControl: true });
-        osmL = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 18 });
+        // podklad „Mapa" = vlastní mapa appky (js/mapa-vektor.js); rastr OSM je od 15. 10. 2026 pryč
+        osmL = null;
         ortoL = L.tileLayer.wms('https://ags.cuzk.gov.cz/arcgis1/services/ORTOFOTO/MapServer/WMSServer', { layers: '0', format: 'image/jpeg', version: '1.3.0', maxZoom: 22, attribution: '© ČÚZK' });
         applyBg();
         tmap.on('move zoom zoomend moveend viewreset resize', redraw);
@@ -229,7 +230,14 @@
         if (!tmap) return;
         if (osmL && tmap.hasLayer(osmL)) tmap.removeLayer(osmL);
         if (ortoL && tmap.hasLayer(ortoL)) tmap.removeLayer(ortoL);
-        if (curBg === 'osm') osmL.addTo(tmap);
+        if (curBg === 'osm') {
+            if (osmL) osmL.addTo(tmap);
+            else if (window.AGMapaVektor && AGMapaVektor.novaVrstva && !applyBg._nacitam) {
+                applyBg._nacitam = true;
+                AGMapaVektor.novaVrstva({ snimek: true }).then(function (v) { osmL = v; applyBg._nacitam = false; if (tmap && curBg === 'osm' && !tmap.hasLayer(v)) v.addTo(tmap); })
+                    .catch(function (e) { applyBg._nacitam = false; window.AG && AG.swallow && AG.swallow(e, 'tachymetrie:mapa'); });
+            }
+        }
         else if (curBg === 'ortofoto') ortoL.addTo(tmap);
         // 'none' -> zadna dlazdicova vrstva (tmava plocha)
     }
@@ -685,33 +693,9 @@
             c.drawImage(im, 0, 0, w, h);
             return true;
         }
-        const z = tmap.getZoom();
-        const zn = Math.min(Math.floor(z), 18);          // OSM dál než 18 nemá dlaždice
-        const scale = Math.pow(2, z - zn);
-        const size = 256 * scale, n = Math.pow(2, zn);
-        const x0 = Math.floor(b.min.x / size), x1 = Math.floor(b.max.x / size);
-        const y0 = Math.floor(b.min.y / size), y1 = Math.floor(b.max.y / size);
-        const jobs = [];
-        for (let x = x0; x <= x1; x++) {
-            for (let y = y0; y <= y1; y++) {
-                if (y < 0 || y >= n) continue;
-                jobs.push({ x: x, y: y, tx: ((x % n) + n) % n });
-            }
-        }
-        if (!jobs.length || jobs.length > 64) return false;   // nesmyslný výřez → radši bílá
-        // ⚠ `?agexp=1` NENÍ ozdoba. Service worker si dlaždice ukládá do TILE_CACHE
-        // tak, jak je stáhl Leaflet — tedy jako OPAQUE odpovědi z <img> (no-cors).
-        // Kdyby se sem sáhlo na tutéž adresu, caches.match() by tu opaque odpověď
-        // vrátil i našemu cors fetchi a prohlížeč ho zabije (ERR_FAILED: „an opaque
-        // response was used for a request whose type is not no-cors"). Jiná adresa =
-        // jiný klíč v cache, takže projde skutečná odpověď s hlavičkami CORS a plátno
-        // zůstane čisté. (Tohle je ta stará past crossOrigin × opaque cache.)
-        const imgs = await Promise.all(jobs.map(j =>
-            fetchImg('https://tile.openstreetmap.org/' + zn + '/' + j.tx + '/' + j.y + '.png?agexp=1')));
-        for (let i = 0; i < jobs.length; i++) {
-            c.drawImage(imgs[i], jobs[i].x * size - b.min.x, jobs[i].y * size - b.min.y, size, size);
-        }
-        return true;
+        // vlastní mapa: obrázek přímo z jejího plátna (bez stahování dlaždic, funguje i offline)
+        if (!osmL || !window.AGMapaVektor || !AGMapaVektor.snimek) return false;
+        return AGMapaVektor.snimek(osmL, tmap, c, w, h);
     }
 
     function downloadCanvas(exp) {

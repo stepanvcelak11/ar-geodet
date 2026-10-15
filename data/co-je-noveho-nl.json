@@ -2,6 +2,17 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 414,
+      "datum": "2026-10-15",
+      "nadpis": "Kaart zonder signaal",
+      "body": [
+        "Bij het opstarten knippert de oude kaart niet meer — de QTRIG-kaart wordt meteen getekend.",
+        "De QTRIG-kaart bewaart bekeken plekken op de telefoon en toont ze zonder signaal.",
+        "„Offline opslaan”, „Project inpakken” en „Gebied downloaden” bewaren nu de QTRIG-kaart (kleiner en sneller dan voorheen).",
+        "Weerradar, tachymetrie, schets en de kaart in de console gebruiken de QTRIG-kaart."
+      ]
+    },
+    {
       "v": 413,
       "datum": "2026-10-14",
       "nadpis": "Kleine verbeteringen",

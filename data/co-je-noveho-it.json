@@ -2,6 +2,17 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 414,
+      "datum": "2026-10-15",
+      "nadpis": "Mappa anche senza segnale",
+      "body": [
+        "All’avvio non lampeggia più la vecchia mappa: si disegna subito la mappa QTRIG.",
+        "La mappa QTRIG salva nel telefono i luoghi che guardi e li mostra senza segnale.",
+        "«Salva per l'offline», «Impacchetta il lavoro» e «Scarica area» ora salvano la mappa QTRIG (più piccola e veloce di prima).",
+        "Radar meteo, tacheometria, schizzo e la mappa nella console usano la mappa QTRIG."
+      ]
+    },
+    {
       "v": 413,
       "datum": "2026-10-14",
       "nadpis": "Piccole correzioni",

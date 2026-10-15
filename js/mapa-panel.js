@@ -5,12 +5,13 @@
 //   • ZÁLOŽKY Podklad · Vrstvy · Nástroje (#ms-tabs) — vidět je vždy jen jedno patro; poslední
 //     záložka se pamatuje (localStorage agMapaPanelTab). Bez tohoto modulu jsou patra pod sebou.
 //   • PODKLAD jako dvě karty se vzorkem (Mapa · Ortofoto) + karta Katastr (přepínač vrstvy):
-//     Mapa = vlastní vektorová mapa (js/mapa-vektor.js) a podklad „osm" — když se vektor nedá
-//     zapnout (slabší telefon, bez dat), zůstává pod kartou tiše rastr OSM, karta svítí dál;
+//     Mapa = vlastní vektorová mapa (js/mapa-vektor.js) a podklad „osm" — od 15. 10. 2026 JEDINÁ
+//     mapa (rastr OSM je z appky pryč); když se nedá nakreslit (bez WebGL, bez dat a signálu),
+//     je pod body jen barva země a karta to řekne;
 //     pod kartami styl vektorové mapy (Podle motivu · Den · Noc · Tisk) a řádek
 //     „Země měření". Karta „Mapa (rastr OSM)" jako samostatná volba ZRUŠENA 18. 9. 2026
 //     (uživatel: „ta moje mapa vizuálně funguje líp, obyčejnou mapu pryč"); mapa() zůstává
-//     jako API pro testy a pojistku.
+//     jako API pro testy a dělá totéž co vektor().
 //   • VRSTVY: řádky Překážky (schová/ukáže obtažené překážky, AGOkoli.viditelne) a Trasa terénem
 //     (AGTrasa.nastav) — odkryjí se, jakmile moduly existují; stav se zrcadlí do přepínačů.
 //   • NÁSTROJE: dlaždice 3D pohled / Kde se dá měřit / Náčrt / Stáhnout oblast volají otvíráky
@@ -65,8 +66,8 @@
     function vektor() {
         var mv = MV();
         try { if (typeof agMapSetBase === 'function') agMapSetBase('osm'); } catch (e) { swallow(e, 'base'); }
-        // bez modulu / ve slabším telefonu zůstává rastr — karta Mapa platí i tak, nic nehlásit
-        if (!mv || (window.AGLite && AGLite.lite) || vektorZap()) { sync(); return; }
+        // bez modulu / už zapnuto — karta Mapa platí i tak, nic nehlásit
+        if (!mv || vektorZap()) { sync(); return; }
         try { $('ms-base-vektor').classList.add('busy'); } catch (e) { /* nic */ }
         mv.nastav({ zap: true }).then(function (ok) {
             try { $('ms-base-vektor').classList.remove('busy'); } catch (e) { /* nic */ }
@@ -74,11 +75,8 @@
             sync();
         });
     }
-    function mapa() {
-        var mv = MV();
-        try { if (typeof agMapSetBase === 'function') agMapSetBase('osm'); } catch (e) { swallow(e, 'base'); }
-        if (mv && vektorZap()) mv.nastav({ zap: false }).then(sync); else sync();
-    }
+    // rastr OSM už není (15. 10. 2026) → „Mapa" je vždy vlastní mapa
+    function mapa() { vektor(); }
     function styl(v) { var mv = MV(); if (!mv) return; mv.nastav({ styl: v }).then(sync); }
     // ve splitu (nízká mapa, .ms-compact) panel zakrývá celou mapu — po volbě podkladu se zavře, ať je
     // vidět, že se něco stalo (18. 9. 2026: „ve splitu se mi vektor ani ortofoto nezapíná")
@@ -98,15 +96,15 @@
     // ---- zrcadlení stavu -----------------------------------------------------------------------------
     function sync() {
         try {
-            var orto = base() === 'ortofoto', vek = !orto && vektorZap(), lite = !!(window.AGLite && AGLite.lite);
+            var orto = base() === 'ortofoto', vek = !orto && vektorZap();
             var bo = $('btn-baselayer'), bm = $('ms-base-osm'), bv = $('ms-base-vektor');
             if (bo) bo.classList.toggle('on', orto);
             if (bm) bm.classList.toggle('on', !orto && !vek);   // starší markup se třemi kartami
-            // karta Mapa svítí vždy, když není ortofoto — i když pod ní běží rastr (slabší telefon, bez dat)
+            // karta Mapa svítí vždy, když není ortofoto — i když se mapa zrovna nedá nakreslit (bez dat/WebGL)
             if (bv) {
                 bv.classList.toggle('on', !orto);
                 var sm = bv.querySelector('small');
-                if (sm) { if (!sm.__cs) sm.__cs = sm.textContent; var chyba = !vek && !orto && MV() && MV().stav() === 'chyba'; sm.textContent = lite ? 'rastr (slabší telefon)' : (chyba ? 'rastr — data mapy nejsou' : sm.__cs); }
+                if (sm) { if (!sm.__cs) sm.__cs = sm.textContent; var chyba = !vek && !orto && MV() && MV().stav() === 'chyba'; sm.textContent = chyba ? 'data mapy nejsou' : sm.__cs; }
             }
             var st = $('ms-styl'); if (st) { st.hidden = !vek; var cur = (MV() && MV().nastaveni().styl) || 'auto'; st.querySelectorAll('[data-styl]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-styl') === cur); }); }
             var z = $('ms-zeme'); if (z) { var s = window.AGSour; z.hidden = !s; if (s) { var a = s.aktivni(); $('ms-zeme-t').textContent = 'Země měření: ' + (a && a.nazev || 'jinde') + (s.rezim() === 'auto' ? ' (podle GPS)' : ' (ručně)'); } }

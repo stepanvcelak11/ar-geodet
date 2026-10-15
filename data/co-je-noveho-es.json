@@ -2,6 +2,17 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 414,
+      "datum": "2026-10-15",
+      "nadpis": "Mapa sin señal",
+      "body": [
+        "Al arrancar ya no parpadea el mapa antiguo: se dibuja directamente el mapa de QTRIG.",
+        "El mapa de QTRIG guarda en el teléfono los lugares que ves y los muestra sin señal.",
+        "«Guardar sin conexión», «Empaquetar el trabajo» y «Descargar zona» guardan ahora el mapa de QTRIG (más pequeño y rápido que antes).",
+        "El radar meteorológico, la taquimetría, el croquis y el mapa de la consola usan el mapa de QTRIG."
+      ]
+    },
+    {
       "v": 413,
       "datum": "2026-10-14",
       "nadpis": "Pequeñas correcciones",

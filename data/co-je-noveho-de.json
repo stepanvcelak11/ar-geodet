@@ -2,6 +2,17 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 414,
+      "datum": "2026-10-15",
+      "nadpis": "Karte auch ohne Signal",
+      "body": [
+        "Beim Start blitzt die alte Karte nicht mehr auf — die QTRIG-Karte wird sofort gezeichnet.",
+        "Die QTRIG-Karte speichert angesehene Orte im Telefon und zeigt sie ohne Signal.",
+        "„Für Offline speichern“, „Auftrag einpacken“ und „Gebiet herunterladen“ speichern jetzt die QTRIG-Karte (kleiner und schneller als bisher).",
+        "Wetterradar, Tachymetrie, Skizze und die Karte in der Konsole nutzen die QTRIG-Karte."
+      ]
+    },
+    {
       "v": 413,
       "datum": "2026-10-14",
       "nadpis": "Kleine Korrekturen",

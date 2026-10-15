@@ -2,6 +2,17 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 414,
+      "datum": "2026-10-15",
+      "nadpis": "Mapa bez zasięgu",
+      "body": [
+        "Przy uruchomieniu nie miga już stara mapa — od razu rysuje się mapa QTRIG.",
+        "Mapa QTRIG zapisuje oglądane miejsca w telefonie i pokazuje je bez zasięgu.",
+        "„Zapisz offline”, „Spakuj zlecenie” i „Pobierz obszar” zapisują teraz mapę QTRIG (mniejszą i szybszą niż wcześniej).",
+        "Radar pogody, tachimetria, szkic i mapa w konsoli korzystają z mapy QTRIG."
+      ]
+    },
+    {
       "v": 413,
       "datum": "2026-10-14",
       "nadpis": "Drobne poprawki",

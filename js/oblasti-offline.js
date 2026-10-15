@@ -27,8 +27,9 @@
 // ULOŽENÍ: AGStore police 'oblasti' (js/ag-store.js):
 //   'meta'        → { balicky: [ {id, typ, kod, nazev, bbox, ts, body:{…}, mapa:{…}} ] }
 //   'c:<la>_<lo>' → JSON řetězec pole záhlaví bodů v buňce (viz compact/expand)
-// Dlaždice mapy jdou do TILE_CACHE 'argeodet-offline-v12' (stejné jako Uložit okolí),
-// takže je service worker najde cache-first jako dřív.
+// Mapa (od 15. 10. 2026 VLASTNÍ, rastr OSM je pryč) jde do cache oblasti 'argeodet-mapa-o-<id>'
+// přes AGMapaVektor.ulozOblast; mapa si ji bez signálu najde sama (js/mapa-vektor.js ZdrojSCache).
+// Starší balíčky z doby rastru mají dlaždice v TILE_CACHE 'argeodet-offline-v12' (smazání je umí).
 //
 // Hranice okresů/krajů: data/oblasti.json (RÚIAN © ČÚZK, zjednodušené).
 // Data bodů © ČÚZK, mapa © přispěvatelé OpenStreetMap.
@@ -309,7 +310,8 @@
         var y0 = lat2y(bbox[3]), y1 = lat2y(bbox[1]);
         return { x0: x0, x1: x1, y0: y0, y1: y1, n: (x1 - x0 + 1) * (y1 - y0 + 1) };
     }
-    function tileZooms(typ, detail) { var z = ZOOMS[typ].slice(); if (typ === 'okres' && detail) z.push(ZOOM_DETAIL); return z; }
+    // vlastní mapa má data jen do z15 (podrobnost si dokreslí) → „podrobnější z16" už nic nepřidá
+    function tileZooms(typ) { return ZOOMS[typ].slice(); }
     function tileCount(bbox, zooms) { var s = 0; zooms.forEach(function (z) { s += tileRange(bbox, z).n; }); return s; }
     // Když by to bylo přes strop, odpadají nejpodrobnější zoomy — přehled se stáhne vždycky.
     function tileZoomsCapped(bbox, zooms) { var zs = zooms.slice(); while (zs.length > 1 && tileCount(bbox, zs) > TILE_CAP) zs.pop(); return zs; }
@@ -376,30 +378,26 @@
             }).then(function () { return sleep(150); }).then(bodyKrok);
         }
 
+        // VLASTNÍ MAPA (15. 10. 2026 — rastr OSM je z appky pryč): kusy dat vlastní mapy do cache
+        // této oblasti ('argeodet-mapa-o-<id>', js/mapa-vektor.js ulozOblast). Nad z15 data nejsou
+        // (mapa si podrobnost dokreslí sama), z16 „podrobnější" tedy nic navíc nestahuje.
         function mapaKrok() {
             if (!b.mapa || b.mapa.stav === 'hotovo' || _abort) return Promise.resolve();
-            if (!('caches' in window)) { b.mapa.stav = 'chyba'; b.mapa.msg = 'prohlížeč neumí ukládat dlaždice'; return ulozit(); }
-            var urls = tileUrls(ob.bbox, b.mapa.zooms);
-            b.mapa.celkem = urls.length; b.mapa.hotovo = 0; b.mapa.chyby = 0;
-            return caches.open(TILE_CACHE).then(function (cache) {
-                var i = 0;
-                function davka() {
-                    if (_abort) return Promise.resolve();
-                    if (i >= urls.length) { b.mapa.stav = b.mapa.chyby > urls.length * 0.1 ? 'castecne' : 'hotovo'; b.ts = Date.now(); return ulozit(); }
-                    var chunk = urls.slice(i, i + 6); i += 6;
-                    return Promise.all(chunk.map(function (u) {
-                        return cache.match(u).then(function (hit) {
-                            if (hit) { b.mapa.hotovo++; return; }
-                            return fetch(u, { mode: 'cors' }).then(function (r) {
-                                if (!r.ok) throw new Error('HTTP ' + r.status);
-                                return cache.put(u, r).then(function () { b.mapa.hotovo++; });
-                            }).catch(function () { b.mapa.chyby++; });
-                        });
-                    })).then(function () {
-                        if ((i / 6) % 10 === 0) { report(T('Mapa: {a} / {b} dílků', { a: num(b.mapa.hotovo), b: num(b.mapa.celkem) })); return ulozit(); }
-                    }).then(davka);
-                }
-                return davka();
+            if (!('caches' in window) || !window.AGMapaVektor || !AGMapaVektor.ulozOblast) { b.mapa.stav = 'chyba'; b.mapa.msg = 'prohlížeč neumí ukládat mapu'; return ulozit(); }
+            b.mapa.hotovo = 0; b.mapa.chyby = 0;
+            var bb = { w: ob.bbox[0], s: ob.bbox[1], e: ob.bbox[2], n: ob.bbox[3] }, posl = 0;
+            return AGMapaVektor.ulozOblast(bb, b.mapa.zooms, function (h, n) {
+                b.mapa.hotovo = h; b.mapa.celkem = n;
+                if (h - posl >= 60 || h === n) { posl = h; report(T('Mapa: {a} / {b} dílků', { a: num(h), b: num(n) })); }
+            }, 0, { cache: cacheOblasti(b.id), zrus: function () { return _abort; } }).then(function (r) {
+                b.mapa.celkem = r.total; b.mapa.hotovo = r.ok + r.chybi; b.mapa.chyby = r.net; b.mapa.vektor = true;
+                if (r.zruseno) return ulozit();
+                b.mapa.stav = r.net > r.total * 0.1 ? 'castecne' : 'hotovo'; b.ts = Date.now();
+                return ulozit();
+            }, function (e) {
+                b.mapa.stav = 'chyba'; b.mapa.msg = (e && e.message) || String(e);
+                swallow(new Error('NetworkError: ' + b.mapa.msg), 'oblasti:mapa');
+                return ulozit();
             });
         }
 
@@ -416,8 +414,12 @@
     // Dlaždice balíčku ven z TILE_CACHE (přání 15. 9. 2026: „mít možnost je smazat a uvolnit
     // místo"). Dlaždice sdílené s jiným balíčkem / s „Uložit okolí" se smažou taky — jsou
     // znovu stažitelné, kdežto neuvolněné místo v telefonu nikomu nepomůže.
+    function cacheOblasti(id) { return 'argeodet-mapa-o-' + String(id).replace(/[^a-z0-9_-]/gi, '_'); }
     function smazatDlazdice(b) {
         if (!b || !b.mapa || !('caches' in window)) return Promise.resolve(0);
+        var vek = (window.AGMapaVektor && AGMapaVektor.smazUlozenou) ? AGMapaVektor.smazUlozenou(cacheOblasti(b.id)) : caches.delete(cacheOblasti(b.id));
+        if (b.mapa.vektor) return Promise.resolve(vek).then(function () { return b.mapa.celkem || 0; }).catch(function (e) { swallow(e, 'oblasti:smazatDlazdice'); return 0; });
+        // starší balíček z doby rastru OSM: jeho dlaždice v TILE_CACHE
         var urls = tileUrls(b.bbox, b.mapa.zooms || []);
         return caches.open(TILE_CACHE).then(function (cache) {
             var i = 0, n = 0;
@@ -508,7 +510,7 @@
             '    <select id="ago-sel" class="st-sel ago-sel" aria-label="Oblast"></select>' +
             '    <label class="ago-chk"><input type="checkbox" id="ago-body" checked> <span>Body bodového pole <small>TB, ZhB, PPBP, nivelační, tíhové — kompletní</small></span></label>' +
             '    <label class="ago-chk"><input type="checkbox" id="ago-mapa" checked> <span>Přehledová mapa <small id="ago-mapa-pop"></small></span></label>' +
-            '    <label class="ago-chk" id="ago-detail-row"><input type="checkbox" id="ago-detail"> <span>+ podrobnější mapa (z16) <small>jen u okresu; podrobnost z17–18 má „Uložit okolí"</small></span></label>' +
+            '    <label class="ago-chk" id="ago-detail-row" hidden><input type="checkbox" id="ago-detail"> <span>+ podrobnější mapa (z16) <small>jen u okresu; podrobnost z17–18 má „Uložit okolí"</small></span></label>' +
             '    <div id="ago-odhad" class="ago-odhad"></div>' +
             '    <div id="ago-prubeh" class="ago-prubeh" hidden></div>' +
             '    <div class="ago-lbl">V telefonu</div>' +
@@ -568,8 +570,8 @@
             sel.innerHTML = list.map(function (o) { return '<option value="' + o.kod + '"' + (o.kod === _vyber ? ' selected' : '') + '>' + esc(o.nazev) + '</option>'; }).join('');
             sel.disabled = false;
         }
-        _ov.querySelector('#ago-detail-row').style.display = _typ === 'okres' ? '' : 'none';
-        var zs = ZOOMS[_typ]; _ov.querySelector('#ago-mapa-pop').textContent = T('OSM do měřítka z{z}', { z: zs[zs.length - 1] }) + (_typ === 'okres' ? ' (~1 : 20 000)' : _typ === 'kraj' ? ' (~1 : 70 000)' : ' (~1 : 300 000)');
+        _ov.querySelector('#ago-detail-row').style.display = 'none';   // vlastní mapa: z16 nic nepřidá
+        var zs = ZOOMS[_typ]; _ov.querySelector('#ago-mapa-pop').textContent = T('mapa do měřítka z{z}', { z: zs[zs.length - 1] }) + (_typ === 'okres' ? ' (~1 : 20 000)' : _typ === 'kraj' ? ' (~1 : 70 000)' : ' (~1 : 300 000)');
         renderOdhad();
     }
     var _odhadTok = 0;

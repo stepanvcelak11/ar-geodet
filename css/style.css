@@ -603,6 +603,9 @@ body.ag-glove .grabber { width: 44px; height: 4px; }
     transition: transform 0.1s linear;
 }
 #map { width: 100%; height: 100%; cursor: crosshair; }
+/* podklad pod vlastní mapou = její barva země (styl den/noc z js/mapa-styl.js) — při startu nic nebliká */
+#map.leaflet-container { background: #151a19; }
+body.light-mode:not(.theme-night):not(.theme-blueprint) #map.leaflet-container { background: #f1f2ee; }
 /* Popup: mapa se otaci podle smeru, proto sipku (tip) skryvame - jinak by pri otoceni telefonu prekryvala obsah. Obsah se narovnava v renderAR. */
 .leaflet-popup-tip-container { display: none; }
 .leaflet-popup-close-button { display: none; } /* mizi pri otoceni mapy mimo zaber; nahrazeno tlacitkem Zrusit v obsahu */

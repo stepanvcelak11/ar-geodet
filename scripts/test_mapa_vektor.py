@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """VLASTNI VEKTOROVA MAPA (16. 9. 2026, faze 2 — A1 + M1): js/mapa-vektor.js + js/mapa-styl.js.
 
-  A  vychozi = ZAPNUTO (18. 9. 2026), ale bez dat (worker odstrizeny) → stav chyba, podklad zustava
-     rastr OSM, knihovny MapLibre se nestahuji (overeni dat je pred nimi), zadny dialog
+  A  vychozi = ZAPNUTO (18. 9. 2026), ale bez dat (worker odstrizeny) → stav chyba, pod body je jen
+     barva zeme (rastr OSM je od 15. 10. 2026 pryc), knihovny MapLibre se nestahuji, zadny dialog
   B  zapnuti s mistni fixture (tests/fixtures/mapa-praha.pmtiles pres Range na test_server):
      knihovny se dotahnou, v Leafletu je platno MapLibre (#map.base-vektor), styl nacteny,
      v dlazdicich jsou budovy (querySourceFeatures > 0) a vykreslene prvky (queryRenderedFeatures),
      AGMapaVektor.budovy() vraci polygony s vyskou, prepnuti Ortofoto a zpet mapu neztrati
   C  styl: tmavy motiv → varianta noc (pozadi tmave), rucni „tisk" → setStyle (modrotisk zrusen 19. 9. 2026),
      „tisk" → bile pozadi; styl „den" ma 4 varianty a vsechny projdou validaci vrstev
-  D  vypnuti vrati rastr OSM; nastaveni prezije reload (localStorage)
+  D  vypnuti (jen vnitrni API) necha prazdny podklad, zadny rastr OSM; nastaveni prezije reload
   E  VYKRES DXF JAKO VRSTVA (M3): tabulka LAYER s barvami ACI, LWPOLYLINE jako retezec, osa se
      stanicenim po 100 m, klepnuti na caru = popup se stanicenim, radek „Výkres (DXF)" ve Vrstvach,
      AGProjektDxf.vrcholy() pro prichyceni, prepnuti schova/ukaze
@@ -150,10 +150,11 @@ async def beh(url):
         chyby = []
         ctx, page = await stranka(br, url, INIT + "localStorage.removeItem('agMapaVektor_v1');", chyby)
         ok('A0 appka nastartovala', await cekej(page, "document.body.classList.contains('app-started')"))
-        # 18. 9. 2026: vektor je vychozi ZAPNUTY; bez dat (worker odstrizeny) skonci ve stavu chyba a pod kartou Mapa zustane rastr
+        # 18. 9. 2026: vektor je vychozi ZAPNUTY; bez dat (worker odstrizeny) skonci ve stavu chyba; rastr OSM uz neni (15. 10. 2026)
         ok('A1 modul je nacteny, vychozi zapnuto, bez dat = stav chyba (tise, bez dialogu)', await cekej(page, "window.AGMapaVektor && AGMapaVektor.nastaveni().zap === true && AGMapaVektor.stav() === 'chyba' && !document.querySelector('.ag-dlg-overlay.open')", 60), await page.evaluate("() => window.AGMapaVektor && [AGMapaVektor.stav(), AGMapaVektor.nastaveni(), AGMapaVektor.chyba()]"))
         ok('A2 knihovny MapLibre se NEstahuji, dokud nejsou data (overeni dat je pred knihovnami)', await page.evaluate("() => !window.maplibregl && !document.querySelector('script[src*=\"maplibre-gl-5\"]')"))
-        ok('A3 podklad je rastr OSM (.leaflet-tile v mape, zadne platno MapLibre)', await page.evaluate("() => !!document.querySelector('#map .leaflet-tile-pane img, #map .leaflet-tile') && !document.querySelector('#map .maplibregl-canvas')"))
+        a3 = await page.evaluate("() => ({ dlazdice: !!document.querySelector('#map .leaflet-tile-pane img, #map .leaflet-tile'), platno: !!document.querySelector('#map .maplibregl-canvas'), bg: getComputedStyle(document.getElementById('map')).backgroundColor, osm: typeof baseLayers.osm.getTileUrl })")
+        ok('A3 zadny rastr OSM (zadna dlazdice v mape), podklad = barva zeme vlastni mapy', a3 and not a3['dlazdice'] and not a3['platno'] and a3['osm'] == 'undefined' and a3['bg'] in ('rgb(21, 26, 25)', 'rgb(241, 242, 238)'), a3)
         await page.evaluate("() => { openSettings(); switchTab('tab-mapa'); }")   # 18. 9. 2026 večer: Data mapy (vektor) je na stránce Mapa a body
         # 18. 9. 2026 (N2): prepinac a styl maji JEDNO misto — panel Mapa → Podklad; v Nastavení → Data je jen adresa dat
         ok('A4 Nastaveni: prepinac mapy uz NENI ve Vzhledu, adresa PMTiles je v Mapa a body', await cekej(page, "!document.getElementById('s-mapa-vektor') && document.getElementById('s-mapa-url') && document.getElementById('tab-mapa').contains(document.getElementById('s-mapa-url')) && !document.getElementById('tab-vzhled').textContent.includes('Nová mapa (vektor')", 20))
@@ -194,8 +195,8 @@ async def beh(url):
         # ================= D: vypnuti + persistence ================================
         await page.evaluate("() => AGMapaVektor.nastav({ zap: false })")
         await page.wait_for_timeout(600)
-        d1 = await page.evaluate("() => [AGMapaVektor.stav(), document.getElementById('map').className, map.hasLayer(baseLayers.osm), typeof baseLayers.osm.getTileUrl]")
-        ok('D1 vypnuti vrati rastr OSM', d1[0] == 'vypnuto' and 'base-vektor' not in d1[1] and d1[2] and d1[3] == 'function', d1)
+        d1 = await page.evaluate("() => [AGMapaVektor.stav(), document.getElementById('map').className, typeof baseLayers.osm.getTileUrl, !!document.querySelector('#map .leaflet-tile')]")
+        ok('D1 vypnuti (vnitrni API) nevrati rastr OSM — zadna dlazdice, prazdny podklad', d1[0] == 'vypnuto' and 'base-vektor' not in d1[1] and d1[2] == 'undefined' and not d1[3], d1)
         # ================= E: vykres DXF jako vrstva (M3) ============================
         ok('E0 modul importu projektu ma API AGProjektDxf', await cekej(page, "window.AGProjektDxf && AGProjektDxf.nacti", 30))
         d = await page.evaluate("() => { var d = AGProjektDxf.nacti(" + DXF_JS + "); return { polys: d.polys.length, vrstvy: Object.keys(d.layers), aci: [d.layers.OSA.aci, d.layers.HRANA.aci], body: d.points.length, texty: d.texts.length, osaPts: d.polys[0].pts.length }; }")
@@ -379,12 +380,11 @@ async def beh(url):
         await page.wait_for_timeout(300)
         m3 = await page.evaluate("() => ({ orto: document.getElementById('btn-baselayer').classList.contains('on'), vek: document.getElementById('ms-base-vektor').classList.contains('on'), stylSkryt: document.getElementById('ms-styl').hidden })")
         ok('M3 karta Ortofoto: sviti jen ona, styl vektoru schovany', m3 and m3['orto'] and not m3['vek'] and m3['stylSkryt'], m3)
-        await page.evaluate("() => { AGMapaPanel.mapa(); }")   # API pojistky: rastr pod kartou Mapa (karta sviti dal)
-        # vypnuti jde FRONTOU za zapni() ze zmeny stylu (M2) — na pomalem stroji 800 ms nestacilo (18. 9. 2026)
-        await cekej(page, "AGMapaVektor.stav() === 'vypnuto'", 30)
+        await page.evaluate("() => { AGMapaPanel.mapa(); }")   # 15. 10. 2026: rastr OSM je pryc → mapa() = vlastni mapa
+        await cekej(page, "AGMapaVektor.stav() === 'zapnuto' && map.hasLayer(baseLayers.osm)", 30)
         await page.wait_for_timeout(300)
         m4 = await page.evaluate("() => ({ stav: AGMapaVektor.stav(), mapaOn: document.getElementById('ms-base-vektor').classList.contains('on'), rastr: !!document.querySelector('#map .leaflet-tile-pane img, #map .leaflet-tile'), styl: document.getElementById('ms-styl').hidden })")
-        ok('M4 AGMapaPanel.mapa() = rastr pod kartou Mapa: vektor vypnuty, karta Mapa sviti dal, styl schovany', m4 and m4['stav'] == 'vypnuto' and m4['mapaOn'] and m4['rastr'] and m4['styl'], m4)
+        ok('M4 AGMapaPanel.mapa() = vlastni mapa (zadny rastr OSM), karta Mapa sviti, styl videt', m4 and m4['stav'] == 'zapnuto' and m4['mapaOn'] and not m4['rastr'] and not m4['styl'], m4)
         await page.evaluate("() => AGMapaPanel.vektor()")
         ok('M5 karta Mapa vektor zase zapne', await cekej(page, "AGMapaVektor.stav() === 'zapnuto' && document.getElementById('ms-base-vektor').classList.contains('on')", 30))
         # karta Katastr = prepinac vrstvy: ctrl-active z grafika.js, vrstva v mape
@@ -408,7 +408,7 @@ async def beh(url):
         chyby = []
         ctx, page = await stranka(br, url, INIT + "localStorage.setItem('agMapaVektor_v1', JSON.stringify({zap:true, styl:'auto', url:%s}));" % json.dumps(fixture.replace('mapa-praha', 'neexistuje')), chyby)
         await cekej(page, "document.body.classList.contains('app-started')")
-        ok('K1 neexistujici data → stav chyba s textem, podklad zustal rastr', await cekej(page, "window.AGMapaVektor && AGMapaVektor.stav() === 'chyba' && /404|k dispozici/.test(AGMapaVektor.chyba()) && !document.querySelector('#map .maplibregl-canvas')", 40), await page.evaluate("() => window.AGMapaVektor && [AGMapaVektor.stav(), AGMapaVektor.chyba()]"))
+        ok('K1 neexistujici data → stav chyba s textem, zadne platno (ani rastr)', await cekej(page, "window.AGMapaVektor && AGMapaVektor.stav() === 'chyba' && /404|k dispozici/.test(AGMapaVektor.chyba()) && !document.querySelector('#map .maplibregl-canvas')", 40), await page.evaluate("() => window.AGMapaVektor && [AGMapaVektor.stav(), AGMapaVektor.chyba()]"))
         await ctx.close()
 
         chyby = []

@@ -2,6 +2,17 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 414,
+      "datum": "2026-10-15",
+      "nadpis": "Mapa sem sinal",
+      "body": [
+        "Ao arrancar, o mapa antigo já não pisca — o mapa QTRIG é desenhado de imediato.",
+        "O mapa QTRIG guarda no telefone os locais que vês e mostra-os sem sinal.",
+        "«Guardar para offline», «Empacotar a obra» e «Descarregar uma área» guardam agora o mapa QTRIG (mais pequeno e rápido do que antes).",
+        "O radar meteorológico, a taqueometria, o esboço e o mapa da consola usam o mapa QTRIG."
+      ]
+    },
+    {
       "v": 413,
       "datum": "2026-10-14",
       "nadpis": "Pequenas correções",

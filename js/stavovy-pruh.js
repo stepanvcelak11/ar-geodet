@@ -767,8 +767,10 @@
     }
     function checkTiles() {
         if (typeof caches === 'undefined') { _tilesCached = false; return; }
-        caches.open(TILE_CACHE).then(function (c) { return c.keys(); })
-            .then(function (keys) { _tilesCached = keys.length > 10; })
+        // + vlastní mapa v telefonu (js/mapa-vektor.js: prohlížení i uložené okolí/oblasti)
+        var vek = (window.AGMapaVektor && AGMapaVektor.vTelefonu) ? AGMapaVektor.vTelefonu().then(function (v) { return (v.prohlizeni || 0) + (v.ulozeno || 0); }).catch(function () { return 0; }) : Promise.resolve(0);
+        Promise.all([caches.open(TILE_CACHE).then(function (c) { return c.keys(); }).then(function (k) { return k.length; }).catch(function () { return 0; }), vek])
+            .then(function (a) { _tilesCached = (a[0] + a[1]) > 10; })
             .catch(function () { _tilesCached = false; });
     }
     function trackFix() {

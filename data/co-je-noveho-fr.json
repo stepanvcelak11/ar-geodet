@@ -2,6 +2,17 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 414,
+      "datum": "2026-10-15",
+      "nadpis": "Carte sans signal",
+      "body": [
+        "Au démarrage, l’ancienne carte ne clignote plus : la carte QTRIG s’affiche directement.",
+        "La carte QTRIG enregistre dans le téléphone les lieux consultés et les affiche sans signal.",
+        "« Enregistrer pour le hors ligne », « Emballer le chantier » et « Télécharger une zone » enregistrent désormais la carte QTRIG (plus petite et plus rapide qu’avant).",
+        "Le radar météo, la tachéométrie, le croquis et la carte de la console utilisent la carte QTRIG."
+      ]
+    },
+    {
       "v": 413,
       "datum": "2026-10-14",
       "nadpis": "Petites corrections",

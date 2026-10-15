@@ -9,6 +9,11 @@
 // takže se s nimi dá počítat (přichycení k rohu, korekce po hraně, mapa kvality GPS,
 // 3D pohled — další moduly téhle fáze).
 //
+// ⚠ OD 15. 10. 2026 JE TO JEDINÁ MAPA: rastr OSM je z appky pryč (blikal při startu, uživatel ho
+// nechce). `baseLayers.osm` je v logika.js prázdná skupina; když vlastní mapa nejde (bez WebGL,
+// bez dat a bez signálu), je pod body jen barva země. OFFLINE: kusy dat se ukládají do telefonu
+// (ZdrojSCache níž), „Uložit okolí" a oblasti stahují tuhle mapu (ulozOblast).
+//
 // JAK JE ZAPOJENÁ: NEnahrazuje Leaflet. Přes plugin maplibre-gl-leaflet se MapLibre
 // kreslí jako podkladová vrstva UVNITŘ Leafletu, takže všech ~10 modulů, které sahají
 // na `map` (body, spojnice, tachymetrie, radar, stopa…), jede beze změny. Když je
@@ -96,9 +101,20 @@
 
     var st = { zap: true, styl: 'auto', url: '' };   // zap: výchozí ZAPNUTO (18. 9. 2026), uložená volba má přednost
     try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && typeof s === 'object') { if (s.zap != null) st.zap = !!s.zap; if (s.styl && s.styl !== 'modrotisk') st.styl = s.styl; if (s.url) st.url = String(s.url); } } catch (e) { swallow(e, 'load'); }
+    // stará volba „vypnuto" znamenala rastr OSM — ten už není (15. 10. 2026), takže se JEDNOU
+    // přepne na zapnuto (jinak by měl takový telefon mapu prázdnou). Pak volba zůstává jen
+    // vnitřní (testy si mapu vypínají v scripts/ag_boot.py i se značkou migrace).
+    try { if (!localStorage.getItem('agMapaVektorMig_v1')) { localStorage.setItem('agMapaVektorMig_v1', '1'); if (!st.zap) { st.zap = true; localStorage.setItem(KEY, JSON.stringify(st)); } } } catch (e) { swallow(e, 'mig'); }
     function uloz() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { swallow(e, 'save'); } }
     function url() { return st.url || (URL_ZAKLAD + soubor()); }
-    function lite() { return !!(window.AGLite && AGLite.lite); }
+    // SLABŠÍ TELEFON (15. 10. 2026): rastr OSM je z appky pryč („klasickou mapu dej úplně pryč"),
+    // takže i slabší telefon kreslí vlastní mapu — jinak by měl podklad prázdný. Bez WebGL to nejde.
+    function webgl() {
+        if (webgl._v != null) return webgl._v;
+        try { var c = document.createElement('canvas'); webgl._v = !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl'))); } catch (e) { webgl._v = false; }
+        return webgl._v;
+    }
+    function lite() { return !webgl(); }
 
     var vrstva = null;          // L.maplibreGL vrstva
     var rastr = null;           // původní baseLayers.osm (rastr OSM) pro návrat
@@ -132,6 +148,194 @@
         return nacitam;
     }
 
+    // ---- MAPA V TELEFONU (15. 10. 2026, „je appka provozu schopná offline?") -----------------
+    // Data PMTiles se čtou Range požadavky mimo service worker (sw.js je pouští ven), takže bez
+    // signálu vlastní mapa neměla nic a offline držel jen starý rastr OSM. Teď jde každý kus
+    // souboru (hlavička, adresáře, dlaždice) přes tenhle zdroj: uloží se do Cache API pod
+    // vlastním klíčem (adresa + posun + délka) a bez signálu se vezme odtud.
+    //   • hlavička (posun 0) = nejdřív síť (do 4 s), aby se poznala nová data; jinak uložená,
+    //   • ostatní kusy = nejdřív telefon; klíč nese otisk hlavičky (nová data = nové klíče,
+    //     staré kusy s posuny ze starého souboru se nikdy nesmíchají s novou hlavičkou),
+    //   • při prohlížení jde do MAPA_CACHE (strop MAPA_STROP kusů, nejstarší pryč),
+    //     „Uložit okolí" do MAPA_OFFLINE a každá stažená oblast do vlastní cache
+    //     'argeodet-mapa-o-<id>' (smazání oblasti = smazání její cache), obojí bez stropu.
+    // Všechny začínají 'argeodet-mapa-' a sw.js je při aktualizaci nemaže (KEEP_CACHES + předpona).
+    var MAPA_CACHE = 'argeodet-mapa-v1', MAPA_OFFLINE = 'argeodet-mapa-offline-v1', MAPA_STROP = 8000;
+    function klic(u, ver, o, l) { return 'https://ag-mapa.invalid/k?u=' + encodeURIComponent(u) + '&v=' + encodeURIComponent(ver || '') + '&o=' + o + '&l=' + l; }
+    function klicHlavicky(u) { return 'https://ag-mapa.invalid/h?u=' + encodeURIComponent(u); }
+    function otisk(buf) {
+        // hlavička PMTiles v3 = prvních 127 bajtů (posuny adresářů, délky, počty dlaždic) → FNV-1a
+        var b = new Uint8Array(buf, 0, Math.min(127, buf.byteLength)), h = 0x811c9dc5;
+        for (var i = 0; i < b.length; i++) { h ^= b[i]; h = Math.imul(h, 0x01000193) >>> 0; }
+        return h.toString(36);
+    }
+    function maCache() { return typeof caches !== 'undefined' && caches && typeof caches.open === 'function'; }
+    function zCache(k, jmeno) {
+        if (!maCache()) return Promise.resolve(null);
+        var p = jmeno ? caches.open(jmeno).then(function (c) { return c.match(k); }) : caches.match(k);
+        return p.then(function (r) { return r ? r.arrayBuffer() : null; }).catch(function () { return null; });
+    }
+    function doCache(jmeno, k, buf) {
+        if (!maCache()) return Promise.resolve();
+        return caches.open(jmeno).then(function (c) { return c.put(k, new Response(buf, { headers: { 'Content-Type': 'application/octet-stream' } })); })
+            .then(function () { if (jmeno === MAPA_CACHE) prorezPozdeji(); })
+            .catch(function (e) { swallow(e, 'cache-put'); });
+    }
+    var _prorez = null;
+    function prorezPozdeji() {
+        if (_prorez) return;
+        _prorez = setTimeout(function () {
+            caches.open(MAPA_CACHE).then(function (c) {
+                return c.keys().then(function (ks) {
+                    var nav = ks.length - MAPA_STROP; if (nav <= 0) return;
+                    // klíče jdou v pořadí vložení → nejstarší první (hlavičky nemažeme)
+                    var smaz = ks.filter(function (r) { return r.url.indexOf('/h?') < 0; }).slice(0, nav + Math.round(MAPA_STROP / 10));
+                    return Promise.all(smaz.map(function (r) { return c.delete(r); }));
+                });
+            }).catch(function (e) { swallow(e, 'prorez'); }).then(function () { _prorez = null; });
+        }, 60000);
+    }
+    function sitSLimitem(p, ms) {
+        return new Promise(function (res, rej) {
+            var t = setTimeout(function () { var e = new Error('NetworkError: hlavička mapy nepřišla včas'); e.sitova = true; rej(e); }, ms);
+            p.then(function (v) { clearTimeout(t); res(v); }, function (e) { clearTimeout(t); rej(e); });
+        });
+    }
+    function ZdrojSCache(u) { this.url = u; this.fs = new pmtiles.FetchSource(u); this.ver = ''; this.cil = []; }   // cil = cache právě běžícího ukládání
+    ZdrojSCache.prototype.getKey = function () { return this.url; };
+    ZdrojSCache.prototype.getBytes = function (o, l, signal, etag) {
+        var self = this, u = this.url;
+        if (o === 0) {
+            var hk = klicHlavicky(u);
+            var ulozena = function () {
+                return zCache(hk).then(function (b) {
+                    if (!b) { var e = new Error('NetworkError: data mapy nejsou v telefonu a není signál'); e.sitova = true; throw e; }
+                    self.ver = otisk(b); return { data: b };
+                });
+            };
+            if (typeof navigator !== 'undefined' && navigator.onLine === false) return ulozena();
+            return sitSLimitem(this.fs.getBytes(o, l, signal, etag), 4000).then(function (r) {
+                var nova = otisk(r.data); self.ver = nova;
+                doCache(MAPA_OFFLINE, hk, r.data.slice(0));
+                return r;
+            }, function (e) {
+                if (e && e.name === 'AbortError') throw e;
+                return ulozena().catch(function () { throw e; });
+            });
+        }
+        var k = klic(u, this.ver, o, l), cil = this.cil.length ? this.cil[this.cil.length - 1] : null;
+        return zCache(k, cil).then(function (b) {
+            if (b) return { data: b };
+            var dal = cil ? zCache(k) : Promise.resolve(null);
+            return dal.then(function (b2) {
+                if (b2) { doCache(cil, k, b2.slice(0)); return { data: b2 }; }
+                return self.fs.getBytes(o, l, signal, etag).then(function (r) {
+                    doCache(cil || MAPA_CACHE, k, r.data.slice(0));
+                    return r;
+                });
+            });
+        });
+    };
+    // Jeden PMTiles na adresu, zapsaný v protokolu MapLibre (pmtiles://) i pro AGMapaData.
+    function pm(u) {
+        u = u || url();
+        if (!window.pmtiles || !knihovny._proto) return null;
+        var p = knihovny._proto.get(u);
+        if (!p) { p = new pmtiles.PMTiles(new ZdrojSCache(u)); knihovny._proto.add(p); }
+        return p;
+    }
+    // Uložit vlastní mapu obdélníku do telefonu (pro „Uložit okolí" a oblasti).
+    // bbox {s,w,n,e}, zooms [z…] (nad maximum dat se ořeže), prubeh(hotovo, celkem), strop = max dlaždic,
+    // o.cache = cílová cache (výchozí MAPA_OFFLINE), o.zrus() → true = přestat.
+    // → Promise<{ok, total, net, chybi, tooMany, zruseno}>
+    function tileXY(lat, lng, z) {
+        var n = Math.pow(2, z), x = Math.floor((lng + 180) / 360 * n);
+        var r = lat * Math.PI / 180, y = Math.floor((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * n);
+        return { x: Math.max(0, Math.min(n - 1, x)), y: Math.max(0, Math.min(n - 1, y)) };
+    }
+    function dlazdiceOblasti(bbox, zooms) {
+        var out = [];
+        zooms.forEach(function (z) {
+            var a = tileXY(bbox.n, bbox.w, z), b = tileXY(bbox.s, bbox.e, z);
+            for (var x = a.x; x <= b.x; x++) for (var y = a.y; y <= b.y; y++) out.push([z, x, y]);
+        });
+        return out;
+    }
+    function ulozOblast(bbox, zooms, prubeh, strop, o) {
+        o = o || {};
+        var res = { ok: 0, total: 0, net: 0, chybi: 0, tooMany: false, zruseno: false };
+        var cil = o.cache || MAPA_OFFLINE;
+        return knihovny().then(function () {
+            var p = pm(); if (!p) throw new Error('data mapy nejsou k dispozici');
+            return p.getHeader().then(function (h) {
+                var zs = zooms.filter(function (z) { return z >= h.minZoom && z <= h.maxZoom; });
+                var seznam = dlazdiceOblasti(bbox, zs);
+                res.total = seznam.length;
+                if (strop && seznam.length > strop) { res.tooMany = true; return res; }
+                var src = p.source; if (src.cil) src.cil.push(cil);
+                var i = 0, hotovo = 0;
+                function dalsi() {
+                    if (i >= seznam.length) return Promise.resolve();
+                    if (o.zrus && o.zrus()) { res.zruseno = true; return Promise.resolve(); }
+                    var t = seznam[i++];
+                    return p.getZxy(t[0], t[1], t[2]).then(function (d) { if (d) res.ok++; else res.chybi++; }, function (e) { res.net++; swallow(e && e.sitova ? e : new Error('NetworkError: ' + ((e && e.message) || e)), 'ulozOblast'); })
+                        .then(function () { hotovo++; try { prubeh && prubeh(hotovo, res.total); } catch (e2) { /* nic */ } return dalsi(); });
+                }
+                return Promise.all([dalsi(), dalsi(), dalsi(), dalsi(), dalsi(), dalsi()])
+                    .then(function () { konec(); return res; }, function (e) { konec(); throw e; });
+                function konec() { if (src.cil) { var j = src.cil.lastIndexOf(cil); if (j >= 0) src.cil.splice(j, 1); } }
+            });
+        });
+    }
+    // Smazat uloženou mapu: jméno cache (oblast), nebo vše ('*' — Nastavení → Uvolnit místo)
+    function smazUlozenou(jmeno) {
+        if (!maCache()) return Promise.resolve(0);
+        return caches.keys().then(function (ks) {
+            var del = ks.filter(function (j) { return jmeno === '*' ? j.indexOf('argeodet-mapa-') === 0 : j === jmeno; });
+            return Promise.all(del.map(function (j) { return caches.delete(j); })).then(function () { return del.length; });
+        }).catch(function (e) { swallow(e, 'smaz'); return 0; });
+    }
+    // VLASTNÍ MAPA PRO DALŠÍ OKNA (radar počasí, tachymetrie, místopisný náčrt, konzole vlastníka) —
+    // místo rastru OSM. → Promise<L.maplibreGL vrstva>; o.snimek = půjde z ní vyrobit obrázek
+    // (preserveDrawingBuffer), o.varianta = 'den'|'noc'|'tisk' (výchozí podle motivu).
+    function novaVrstva(o) {
+        o = o || {};
+        if (lite()) return Promise.reject(new Error('Telefon neumí WebGL — mapu nejde nakreslit.'));
+        return knihovny().then(function () {
+            var u = url(); pm(u);
+            return L.maplibreGL({ style: AGMapaStyl.vytvor(o.varianta || varianta(), u), interactive: false, attributionControl: false, pane: o.pane || 'tilePane', preserveDrawingBuffer: !!o.snimek });
+        });
+    }
+    // Obrázek výřezu Leaflet mapy `lm` z vrstvy novaVrstva({snimek:true}) do 2D kontextu ctx (w × h).
+    // Počká, až MapLibre dokreslí (nejvýš 6 s). → Promise<bool>
+    function snimek(v, lm, ctx, w, h) {
+        var m = null; try { m = v && v.getMaplibreMap(); } catch (e) { m = null; }
+        if (!m || !lm) return Promise.resolve(false);
+        return new Promise(function (res) {
+            var hotovo = false, t = setTimeout(function () { kresli(); }, 6000);
+            function kresli() {
+                if (hotovo) return; hotovo = true; clearTimeout(t);
+                try {
+                    var c = m.getCanvas(), b = lm.getBounds();
+                    var a = m.project([b.getWest(), b.getNorth()]), z = m.project([b.getEast(), b.getSouth()]);
+                    var k = c.width / (c.clientWidth || c.width);
+                    ctx.drawImage(c, a.x * k, a.y * k, (z.x - a.x) * k, (z.y - a.y) * k, 0, 0, w, h);
+                    res(true);
+                } catch (e) { swallow(e, 'snimek'); res(false); }
+            }
+            try { if (m.loaded() && m.areTilesLoaded && m.areTilesLoaded()) { m.once('render', kresli); m.triggerRepaint(); } else m.once('idle', kresli); } catch (e) { kresli(); }
+        });
+    }
+    // Kolik vlastní mapy je v telefonu (pro Nastavení → Úložiště / diagnostiku)
+    function vTelefonu() {
+        if (!maCache()) return Promise.resolve({ prohlizeni: 0, ulozeno: 0 });
+        var n = function (j) { return caches.open(j).then(function (c) { return c.keys(); }).then(function (k) { return k.length; }).catch(function () { return 0; }); };
+        return caches.keys().then(function (ks) {
+            var ul = ks.filter(function (j) { return j.indexOf('argeodet-mapa-') === 0 && j !== MAPA_CACHE; });
+            return Promise.all([n(MAPA_CACHE)].concat(ul.map(n))).then(function (a) { return { prohlizeni: a[0], ulozeno: a.slice(1).reduce(function (x, y) { return x + y; }, 0) }; });
+        }).catch(function () { return { prohlizeni: 0, ulozeno: 0 }; });
+    }
+
     // ---- varianta stylu podle motivu ---------------------------------------------------
     function variantaAuto() {
         var b = document.body.classList;
@@ -144,6 +348,7 @@
         if (!vrstva) return;
         var v = varianta(), u = url(); if (v === _varianta && u === _url) return;
         _varianta = v; _url = u; _rotPosl = null;
+        try { pm(u); } catch (e0) { swallow(e0, 'pm'); }
         try { var m = vrstva.getMaplibreMap(); if (m) m.setStyle(AGMapaStyl.vytvor(v, u)); } catch (e) { swallow(e, 'setStyle'); }
     }
     // přejezd do jiného DÍLU téže země: každých 20 s porovnat url(); změna → nastavStyl() přepne zdroj
@@ -157,6 +362,9 @@
     // se přepínač tvářil jako zapnutý a mapa byla prázdná (worker bez R2 vrací 503 s návodem).
     function overData() {
         if (typeof fetch !== 'function') return Promise.resolve(true);
+        // bez signálu stačí hlavička uložená v telefonu (mapa pak jede z uložených kusů)
+        var ulozena = function (eSit) { return zCache(klicHlavicky(url())).then(function (b) { if (b) return true; throw eSit; }); };
+        if (typeof navigator !== 'undefined' && navigator.onLine === false) { var e0 = new Error('Data mapy nejsou v telefonu a není signál.'); e0.sitova = true; return ulozena(e0); }
         return fetch(url(), { headers: { Range: 'bytes=0-16383' }, cache: 'no-store' }).then(function (r) {
             if (r.status === 206 || r.status === 200) return true;
             var t = (r.status === 404 ? (st.url ? 'Data mapy na zadané adrese nejsou (404).' : 'Data mapy pro tuhle zemi (' + soubor() + ') ještě nejsou nahraná.') : 'Data mapy nejsou k dispozici (server odpověděl ' + r.status + ').');
@@ -166,16 +374,18 @@
             //   tahle větev běží při KAŽDÉM startu v terénu bez signálu — a přes swallow() končila jako
             //   „Něco se pokazilo … Více → Protokol chyb" už na přihlašovací obrazovce. Označit jako
             //   síťový stav: zapni() ji nehlásí toastem, do protokolu jde jen jako NetworkError.
-            var e = new Error('Data mapy se nepodařilo načíst (bez signálu, nebo špatná adresa).'); e.sitova = true; throw e;
+            var e = new Error('Data mapy se nepodařilo načíst (bez signálu, nebo špatná adresa).'); e.sitova = true;
+            return ulozena(e);
         });
     }
     // tise = automatické zapnutí při startu / po návratu signálu: bez dialogu, jen toast
     function zapni(tise) {
-        if (lite()) { stav = 'chyba'; chybaText = 'V režimu slabší telefon vektorová mapa není (WebGL + 1 MB knihovny).'; return Promise.resolve(false); }
+        if (lite()) { stav = 'chyba'; chybaText = 'Telefon neumí WebGL — mapu nejde nakreslit.'; return Promise.resolve(false); }
         if (typeof baseLayers === 'undefined' || typeof map === 'undefined' || !window.AGMapaStyl) { stav = 'chyba'; chybaText = 'Mapa appky ještě neběží.'; return Promise.resolve(false); }
         stav = 'nacitam';
         nactiDily();
         return overData().then(knihovny).then(function () {
+            pm(url());
             if (!vrstva) {
                 _varianta = varianta(); _url = url();
                 vrstva = L.maplibreGL({ style: AGMapaStyl.vytvor(_varianta, _url), interactive: false, attributionControl: false, pane: 'tilePane' });
@@ -203,7 +413,7 @@
                 if (!tise) { try { window.quickToast && window.quickToast('Vektorová mapa: ' + chybaText); } catch (e4) { /* nic */ } }
             } else {
                 chybaText = (e && e.message) || String(e); swallow(e, 'zapni');
-                try { if (!zapni._rekl) { zapni._rekl = true; if (tise) { window.quickToast && window.quickToast('Mapa jede z rastru: ' + chybaText); } else if (typeof window.agInfo === 'function') window.agInfo('Vektorová mapa: ' + chybaText); } } catch (e2) { /* nic */ }
+                try { if (!zapni._rekl) { zapni._rekl = true; if (tise) { window.quickToast && window.quickToast('Mapa: ' + chybaText); } else if (typeof window.agInfo === 'function') window.agInfo('Vektorová mapa: ' + chybaText); } } catch (e2) { /* nic */ }
             }
             try { document.dispatchEvent(new CustomEvent('ag:mapa-vektor', { detail: { zap: false, chyba: chybaText } })); } catch (e3) { /* nic */ }
             return false;
@@ -295,7 +505,7 @@
     }
     function obnov() {
         var i = document.getElementById('s-mapa-vektor-info'); if (!i) return;
-        if (lite()) { i.textContent = 'v režimu slabší telefon není vektorová mapa k dispozici (WebGL)'; return; }
+        if (lite()) { i.textContent = 'telefon neumí WebGL — mapu nejde nakreslit'; return; }
         i.textContent = stav === 'zapnuto' ? ('zapnuto · styl ' + varianta() + ' · ' + (st.url ? 'vlastní data' : 'data z cloudu QTRIG'))
             : stav === 'nacitam' ? 'načítám knihovny mapy…'
             : stav === 'chyba' ? ('nejde zapnout: ' + chybaText)
@@ -329,5 +539,5 @@
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
-    window.AGMapaVektor = { nastav: nastav, zapni: zapni, vypni: vypni, stav: function () { return stav; }, chyba: function () { return chybaText; }, posledniChyba: function () { return _posledniChyba; }, mapa: mapa, budovy: budovy, plochy: plochy, cary: cary, url: url, varianta: varianta, nastaveni: function () { return { zap: st.zap, styl: st.styl, url: st.url }; }, protokol: function () { return knihovny._proto || null; }, knihovny: knihovny, overData: overData, srovnejPopisky: srovnejPopisky, otoceniMapy: otoceniMapy };
+    window.AGMapaVektor = { nastav: nastav, zapni: zapni, vypni: vypni, stav: function () { return stav; }, chyba: function () { return chybaText; }, posledniChyba: function () { return _posledniChyba; }, mapa: mapa, budovy: budovy, plochy: plochy, cary: cary, url: url, varianta: varianta, nastaveni: function () { return { zap: st.zap, styl: st.styl, url: st.url }; }, protokol: function () { return knihovny._proto || null; }, knihovny: knihovny, pm: pm, ulozOblast: ulozOblast, dlazdiceOblasti: dlazdiceOblasti, vTelefonu: vTelefonu, smazUlozenou: smazUlozenou, novaVrstva: novaVrstva, snimek: snimek, CACHE: [MAPA_CACHE, MAPA_OFFLINE], overData: overData, srovnejPopisky: srovnejPopisky, otoceniMapy: otoceniMapy };
 })();

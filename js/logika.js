@@ -177,7 +177,10 @@ if ('serviceWorker' in navigator) {
         // Rozhoduje se při startu (lite je uložený příznak / paměť telefonu); změna
         // režimu v Nastavení platí od dalšího spuštění.
         const _liteTiles = (window.AGLite && AGLite.lite) ? { updateWhenIdle: true, keepBuffer: 1, updateInterval: 400 } : {};
-        const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', Object.assign({ maxZoom: 22, maxNativeZoom: 18, zIndex: 1 }, _liteTiles));
+        // KLASICKÁ MAPA OSM JE PRYČ (15. 10. 2026, uživatel: „při zapínání mi tam problikne klasická
+        // mapa… dej ji úplně pryč"). Podklad „osm" je jen prázdné místo, do kterého js/mapa-vektor.js
+        // vloží vlastní mapu, jakmile se načte; do té doby je pod body barva země vlastní mapy (CSS).
+        const osmLayer = L.layerGroup();
         // Podklady CUZK (overeno: WMS 1.3.0, EPSG:3857). Ortofoto = base, katastr KN = pruhledny overlay nad base.
         const ortofotoLayer = L.tileLayer.wms('https://ags.cuzk.gov.cz/arcgis1/services/ORTOFOTO/MapServer/WMSServer', Object.assign({ layers: '0', format: 'image/jpeg', version: '1.3.0', maxZoom: 22, zIndex: 1, attribution: '© ČÚZK' }, _liteTiles));
         const katastrLayer = L.tileLayer.wms('https://services.cuzk.cz/wms/wms.asp', Object.assign({ layers: 'KN', format: 'image/png', transparent: true, version: '1.3.0', maxZoom: 22, zIndex: 2, attribution: '© ČÚZK' }, _liteTiles));
@@ -635,7 +638,7 @@ if ('serviceWorker' in navigator) {
         };
 
         
-        // Stazeni mapovych dlazdic (OSM, zoom 15-17) pro oblast do TILE_CACHE, aby mapa fungovala offline.
+        // Ulozeni mapy pro oblast (vlastni mapa do MAPA_OFFLINE, katastr/ortofoto WMS do TILE_CACHE), aby mapa fungovala offline.
         // Vraci podrobny vysledek vc. duvodu selhani — at nezustava nejasne "ulozeno X z Y".
         // STAHOVANI DLAZDIC S TIMEOUTEM. Bez nej se na mizerne siti jedno viseci
         // spojeni nikdy nevrati, cely blok Promise.all na nem uvizne a ukazatel
@@ -685,32 +688,23 @@ if ('serviceWorker' in navigator) {
             if (!('caches' in window)) return { unsupported: true, ok: 0, total: 0, net: 0, http: 0, quota: 0 };
             const latOffset = radius / 111320; const lonOffset = radius / (111320 * Math.cos(centerLat * Math.PI / 180));
             const minLat = centerLat - latOffset, maxLat = centerLat + latOffset, minLon = centerLng - lonOffset, maxLon = centerLng + lonOffset;
-            let urls = [];
-            // Mapa se otevira na zoomu 19, ale OSM vrstva ma maxNativeZoom 18 -> Leaflet stahuje dlazdice z18.
-            // Proto MUSI byt z18 v cache, jinak je offline v zakladnim pohledu prazdno. 14-15 = kontext pri odzoomovani.
-            [14, 15, 16, 17, 18].forEach(z => {
-                let minX = Math.floor((minLon + 180) / 360 * Math.pow(2, z)); let maxX = Math.floor((maxLon + 180) / 360 * Math.pow(2, z));
-                let minY = Math.floor((1 - Math.log(Math.tan(maxLat * Math.PI / 180) + 1 / Math.cos(maxLat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, z));
-                let maxY = Math.floor((1 - Math.log(Math.tan(minLat * Math.PI / 180) + 1 / Math.cos(minLat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, z));
-                for (let x = minX; x <= maxX; x++) { for (let y = minY; y <= maxY; y++) { urls.push(`https://tile.openstreetmap.org/${z}/${x}/${y}.png`); } }
-            });
-            // Pojistka: pri velkem polomeru by z18 znamenal tisice dlazdic (zatez serveru i uloziste, proti pravidlum OSM).
-            if (urls.length > 3000) return { tooMany: true, ok: 0, total: urls.length, net: 0, http: 0, quota: 0 };
-            const total = urls.length; let done = 0, ok = 0, net = 0, http = 0, quota = 0;
-            showOfflineProgress(0, total);
-            const cache = await caches.open('argeodet-offline-v12');
-            for (let i = 0; i < total; i += 10) {
-                const chunk = urls.slice(i, i + 10);
-                await Promise.all(chunk.map(async url => {
-                    try {
-                        const response = await _fetchTile(url, { mode: 'cors' });
-                        if (response.ok) { try { await cache.put(url, response); ok++; } catch (e) { quota++; } }
-                        else http++;
-                    } catch (e) { net++; }
-                    done++;
-                }));
-                updateOfflineProgress(done, total);
+            // VLASTNÍ MAPA (15. 10. 2026 — rastr OSM je z appky pryč): do telefonu jdou kusy dat
+            // vlastní mapy pro obdélník kolem bodu (js/mapa-vektor.js, ulozOblast → MAPA_OFFLINE).
+            // Data mají nejvýš z15 (Protomaps), podrobnější zoom si mapa dokreslí z nich, takže
+            // stačí z10–z15 — pro okolí 1 km je to pár desítek kusů, ne tisíce dlaždic jako u rastru.
+            let ok = 0, total = 0, net = 0, http = 0, quota = 0;
+            if (window.AGMapaVektor && AGMapaVektor.ulozOblast) {
+                showOfflineProgress(0, 1);
+                try {
+                    const r = await AGMapaVektor.ulozOblast({ s: minLat, w: minLon, n: maxLat, e: maxLon }, [10, 11, 12, 13, 14, 15], (h, n) => updateOfflineProgress(h, n), 3000);
+                    if (r.tooMany) { hideOfflineProgress(); return { tooMany: true, ok: 0, total: r.total, net: 0, http: 0, quota: 0 }; }
+                    ok = r.ok + r.chybi; total = r.total; net = r.net;
+                } catch (e) {
+                    window.AG && AG.swallow && AG.swallow(e && /NetworkError|signál/.test(String(e && e.message)) ? e : new Error('NetworkError: ' + ((e && e.message) || e)), 'logika:cacheTilesForArea');
+                    net = 1; total = Math.max(total, 1);
+                }
             }
+            const cache = await caches.open('argeodet-offline-v12');
             let wms = null;
             if (includeCuzk) {
                 // Katastralni mapa KN je pro geodeta v terenu nejdulezitejsi -> pracovni zoomy 17-18.

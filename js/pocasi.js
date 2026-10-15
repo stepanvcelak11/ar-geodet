@@ -2512,15 +2512,14 @@
                     scrollWheelZoom: false, keyboard: false,
                     minZoom: 4, maxZoom: 17, zoomSnap: 0.5, inertia: true
                 });
-                // podkladová mapa je záměrně potlačená (CSS filtr .wx-radar .leaflet-tile-pane),
-                // ať jsou srážky čitelné a přesto bylo poznat města a hranice
-                // POZOR: BEZ crossOrigin. Hlavní mapa appky načítá tytéž dlaždice bez CORS,
-                // takže je service worker uložil jako „opaque" odpovědi. Vrstva s crossOrigin
-                // by je z cache dostala taky — a prohlížeč opaque odpověď pro CORS požadavek
-                // zahodí → mapa se vykreslila jen tam, kde dlaždice v cache ještě nebyly.
-                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19, className: 'wx-radar-base'
-                }).addTo(_radar.map);
+                // PODKLAD = VLASTNÍ MAPA appky v noční variantě (15. 10. 2026 — rastr OSM je z appky
+                // pryč); tmavá, takže srážky jsou čitelné a města a hranice pořád poznat. Bez WebGL /
+                // dat zůstane jen tmavá plocha (srážky se kreslí i tak).
+                (function (rm) {
+                    if (!window.AGMapaVektor || !AGMapaVektor.novaVrstva) return;
+                    AGMapaVektor.novaVrstva({ varianta: 'noc' }).then(function (v) { if (_radar.map === rm) v.addTo(rm); })
+                        .catch(function (e) { window.AG && AG.swallow && AG.swallow(e, 'pocasi:radar-mapa'); });
+                })(_radar.map);
                 // tlačítko „na moje místo" zvýrazni, jen když je výřez odjetý jinam
                 _radar.map.on('zoomend moveend', function () {
                     var b = byId('ag-wx-radar-center');

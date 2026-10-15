@@ -29,14 +29,14 @@ URL = 'http://127.0.0.1:%d/index.html' % PORT
 BOOT_GATE = """
   localStorage.setItem('agTutProSeen','1');
   // vektorova mapa vypnuta (od v360 vychozi zapnuta) — test nema blokovanou sit, tahal by realna data
-  localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' }));
+  localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' })); localStorage.setItem('agMapaVektorMig_v1', '1');
   localStorage.setItem('agBrifinkAuto','0');
   localStorage.removeItem('agVlastnik_v1');
 """
 BOOT_OWNER = """
   localStorage.setItem('agTutProSeen','1');
   // vektorova mapa vypnuta (od v360 vychozi zapnuta) — test nema blokovanou sit, tahal by realna data
-  localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' }));
+  localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' })); localStorage.setItem('agMapaVektorMig_v1', '1');
   localStorage.setItem('agBrifinkAuto','0');
   localStorage.setItem('agVlastnik_v1','1');
   localStorage.setItem('agFbKey_v1','klic-na-zkousku');

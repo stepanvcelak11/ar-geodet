@@ -56,7 +56,10 @@
 
     function tileCount() {
         if (!('caches' in window)) return Promise.resolve(null);
-        return caches.open(TILE_CACHE).then(function (c) { return c.keys(); }).then(function (k) { return k.length; }).catch(function () { return null; });
+        // + vlastní mapa uložená do telefonu (Uložit okolí, oblasti) — od 15. 10. 2026 jediná mapa
+        var vek = (window.AGMapaVektor && AGMapaVektor.vTelefonu) ? AGMapaVektor.vTelefonu().then(function (v) { return v.ulozeno || 0; }).catch(function () { return 0; }) : Promise.resolve(0);
+        return Promise.all([caches.open(TILE_CACHE).then(function (c) { return c.keys(); }).then(function (k) { return k.length; }), vek])
+            .then(function (a) { return a[0] + a[1]; }).catch(function () { return null; });
     }
 
     var _busy = false;
@@ -94,7 +97,7 @@
         if (act === 'mapa') {
             confirmBox({ title: 'Smazat mapu offline', message: 'Smazat všechny stažené dílky mapy (Uložit okolí, Sbalit zakázku i Stáhnout oblast)? Body zůstanou. Bez signálu pak bude mapa prázdná, dokud si ji zase nestáhneš.', okText: 'Smazat', danger: true }).then(function (ok) {
                 if (!ok) return; _busy = true;
-                return caches.delete(TILE_CACHE).then(function () { return (window.AGOblasti && AGOblasti.mapaSmazana) ? AGOblasti.mapaSmazana() : null; })
+                return caches.delete(TILE_CACHE).then(function () { return (window.AGMapaVektor && AGMapaVektor.smazUlozenou) ? AGMapaVektor.smazUlozenou('*') : null; }).then(function () { return (window.AGOblasti && AGOblasti.mapaSmazana) ? AGOblasti.mapaSmazana() : null; })
                     .then(function () { toast('Mapa offline smazána.'); }).catch(function (e) { swallow(e, 'uvolnit:mapa'); toast('Smazání se nepovedlo.'); })
                     .then(function () { _busy = false; render(); refreshUsage(); });
             });

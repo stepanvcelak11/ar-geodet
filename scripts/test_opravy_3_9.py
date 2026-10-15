@@ -59,7 +59,7 @@ URL = None
 BOOT_ADMIN = """
   localStorage.setItem('agTutProSeen','1');
   // vektorova mapa vypnuta (od v360 vychozi zapnuta) — test nema blokovanou sit, tahal by realna data
-  localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' }));
+  localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' })); localStorage.setItem('agMapaVektorMig_v1', '1');
   localStorage.setItem('agBrifinkAuto','0');
   localStorage.setItem('arSurveyor','Stepan');
   localStorage.setItem('agFirmaBioAsk_v1', String(Date.now()));
@@ -75,7 +75,7 @@ BOOT_ADMIN = """
 BOOT_ZAM = """
   localStorage.setItem('agTutProSeen','1');
   // vektorova mapa vypnuta (od v360 vychozi zapnuta) — test nema blokovanou sit, tahal by realna data
-  localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' }));
+  localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' })); localStorage.setItem('agMapaVektorMig_v1', '1');
   localStorage.setItem('agBrifinkAuto','0');
   localStorage.setItem('arSurveyor','Josef');
   localStorage.setItem('agFirmaBioAsk_v1', String(Date.now()));
@@ -346,7 +346,7 @@ async def test_blokace(ctx, base):
     await page.add_init_script("""
       localStorage.setItem('agTutProSeen','1');
       // vektorova mapa vypnuta (od v360 vychozi zapnuta) — test nema blokovanou sit, tahal by realna data
-      localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' }));
+      localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' })); localStorage.setItem('agMapaVektorMig_v1', '1');
       localStorage.setItem('agBrifinkAuto','0');
       localStorage.setItem('arSurveyor','Josef');
       localStorage.setItem('agFirmaBioAsk_v1', String(Date.now()));
@@ -409,7 +409,7 @@ async def test_blokace(ctx, base):
 BOOT_OWNER = """
   localStorage.setItem('agTutProSeen','1');
   // vektorova mapa vypnuta (od v360 vychozi zapnuta) — test nema blokovanou sit, tahal by realna data
-  localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' }));
+  localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' })); localStorage.setItem('agMapaVektorMig_v1', '1');
   localStorage.setItem('agBrifinkAuto','0');
   localStorage.setItem('arSurveyor','Stepan');
   localStorage.setItem('agFirmaBioAsk_v1', String(Date.now()));

@@ -46,6 +46,7 @@ _SABLONA = u"""
   // bezna uzivatelska volba (karta Mapa → rastr), zadna zadni vratka; testy mapy si klic
   // prepisuji az PO tomhle bootu (test_mapa_vektor, test_v347, test_v360).
   localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' }));
+  localStorage.setItem('agMapaVektorMig_v1', '1');   // 15. 10. 2026: jinak by jednorázová migrace (rastr OSM pryč) mapu zase zapnula
   // ZALOHA DO UCTU VYPNUTA (25. 9. 2026): testovaci token je falesny, automatika by volala skutecny
   // server a konzole by hlasila 401 (test_opravy_11_9 I0, test_v316 Z). test_zaloha_ucet si ji zapina sam.
   if (!localStorage.getItem('agZalohaUcet_v1')) localStorage.setItem('agZalohaUcet_v1', JSON.stringify({ vyp: true, nabidnutoTs: Date.now() }));

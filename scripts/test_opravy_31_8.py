@@ -41,7 +41,7 @@ URL = None
 BOOT = """
   localStorage.setItem('agTutProSeen','1');
   // vektorova mapa vypnuta (od v360 vychozi zapnuta) — test nema blokovanou sit, tahal by realna data
-  localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' }));
+  localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' })); localStorage.setItem('agMapaVektorMig_v1', '1');
   localStorage.setItem('agBrifinkAuto','0');
   localStorage.setItem('arSurveyor','Stepan');
   localStorage.setItem('agFirmaBioAsk_v1', String(Date.now()));

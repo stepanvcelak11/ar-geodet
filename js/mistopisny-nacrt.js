@@ -4,7 +4,7 @@
 //
 // CO DĚLÁ: samostatné okno s mapou Leaflet kolem VYBRANÉHO BODU (úřední nebo vlastní):
 //   • PODKLAD: Papír (bílý list + hrubé obrysy z vektorové mapy: budovy, silnice, cesty, voda,
-//     koleje, les) · Mapa (rastr OSM) · Ortofoto (ČÚZK / podle země). Náčrt je v souřadnicích,
+//     koleje, les) · Mapa (vlastní mapa appky) · Ortofoto (ČÚZK / podle země). Náčrt je v souřadnicích,
 //     takže co nakreslím na ortofotu, vidím i na papíru a naopak.
 //   • VZDÁLENOST: dvě klepnutí = kótovaná čára odkud kam s délkou ze souřadnic; klepnutím na
 //     kótu se dá přepsat na hodnotu naměřenou pásmem (v náčrtu je pak tučně). Přichytává se
@@ -80,7 +80,15 @@
         podklad = p;
         ['osm', 'orto'].forEach(function (k) { if (_vrstvy[k] && m.hasLayer(_vrstvy[k])) m.removeLayer(_vrstvy[k]); });
         el.classList.toggle('papir', p === 'papir');
-        if (p === 'mapa') { if (!_vrstvy.osm) _vrstvy.osm = klonVrstvy(typeof baseLayers !== 'undefined' && baseLayers.osm && baseLayers.osm._url ? baseLayers.osm : null) || L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 18 }); _vrstvy.osm.addTo(m); }
+        // „Mapa" = vlastní mapa appky (rastr OSM je od 15. 10. 2026 pryč); načte se jednou, pak se jen přidává
+        if (p === 'mapa') {
+            if (_vrstvy.osm) _vrstvy.osm.addTo(m);
+            else if (window.AGMapaVektor && AGMapaVektor.novaVrstva && !nastavPodklad._nacitam) {
+                nastavPodklad._nacitam = true;
+                AGMapaVektor.novaVrstva().then(function (v) { nastavPodklad._nacitam = false; _vrstvy.osm = v; if (podklad === 'mapa' && m && !m.hasLayer(v)) v.addTo(m); })
+                    .catch(function (e) { nastavPodklad._nacitam = false; swallow(e, 'mapa'); });
+            }
+        }
         if (p === 'orto') { if (!_vrstvy.orto) _vrstvy.orto = klonVrstvy(typeof baseLayers !== 'undefined' ? baseLayers.ortofoto : null); if (_vrstvy.orto) _vrstvy.orto.addTo(m); }
         if (_vrstvy.obrysy) { _vrstvy.obrysy.eachLayer(function (l) { try { l.setStyle({ opacity: p === 'papir' ? 1 : 0.55, fillOpacity: p === 'papir' ? (l.options._fo || 0) : 0.08 }); } catch (e) { /* nic */ } }); }
         el.querySelectorAll('[data-podklad]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-podklad') === p); });

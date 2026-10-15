@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v413';   // 14. 10.: odchyt vchodu vlastníka na dokumentu (přihlášení hned po přepnutí firmy)
+const SHELL_CACHE = 'argeodet-shell-v414';   // 15. 10.: klasická mapa OSM pryč, vlastní mapa offline (cache PMTiles)
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -35,7 +35,13 @@ const LIB_CACHE = 'argeodet-lib-v1';
 // zapnuti rezimu vlastnika, maze pri ukonceni). Service worker nevidi do
 // localStorage, Cache Storage je jedine, co sdili se strankou. Viz brzda vydani nize.
 const OWNER_CACHE = 'ag-vlastnik';
-const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE, FONT_CACHE, DICT_CACHE, LIB_CACHE, OWNER_CACHE];
+// MAPA_CACHE / MAPA_OFFLINE — vlastní mapa v telefonu (js/mapa-vektor.js, ZdrojSCache): kusy souboru
+// PMTiles z prohlížení (se stropem) a z „Uložit okolí" (bez stropu); stažené oblasti mají každá
+// svou 'argeodet-mapa-o-<id>'. Zapisuje je stránka, SW je jen nesmí při aktualizaci smazat
+// (activate nechává vše s předponou 'argeodet-mapa-'). Názvy MUSÍ sedět s js/mapa-vektor.js.
+const MAPA_CACHE = 'argeodet-mapa-v1';
+const MAPA_OFFLINE = 'argeodet-mapa-offline-v1';
+const KEEP_CACHES = [SHELL_CACHE, TILE_CACHE, FONT_CACHE, DICT_CACHE, LIB_CACHE, OWNER_CACHE, MAPA_CACHE, MAPA_OFFLINE];
 
 const ASSETS_TO_CACHE = [
     // >>> GENEROVANO scripts/gen_sw_assets.py — needitovat rucne
@@ -51,9 +57,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=413',
-    './css/style.css?v=413',
-    './css/vylepseni.css?v=413',
+    './css/tokens.css?v=414',
+    './css/style.css?v=414',
+    './css/vylepseni.css?v=414',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -482,7 +488,7 @@ async function purgeBadTiles() {
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys()
-            .then(keys => Promise.all(keys.filter(key => !KEEP_CACHES.includes(key)).map(key => caches.delete(key))))
+            .then(keys => Promise.all(keys.filter(key => !KEEP_CACHES.includes(key) && key.indexOf('argeodet-mapa-') !== 0).map(key => caches.delete(key))))
             .then(purgeBadTiles)
             .then(() => self.clients.claim())
     );
