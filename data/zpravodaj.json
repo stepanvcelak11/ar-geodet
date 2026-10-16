@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-10-15",
-  "uvodnik": "Vydání 15. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-10-16",
+  "uvodnik": "Vydání 16. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,18 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "Trimble’s VRS Now Service is Now Available in Austria",
+      "perex": "Trimble is launching its Trimble® VRS Now service in Austria to provide 100% accurate and precise nationwide coverage and 24/7/365 network operations monitoring to ensure high availability and reliability.",
+      "telo": "Trimble is launching its Trimble® VRS Now service in Austria to provide 100% accurate and precise nationwide coverage and 24/7/365 network operations monitoring to ensure high availability and reliability. Trimble VRS Now is an instant, real-time network RTK correction service delivered via cellular connection. Powered by a fixed, highly redundant network of Continuously Operating Reference Stations (CORS), it gives operators sub-centimeter to centimeter-level accuracy (typically 2 cm horizontal and 3 cm vertical RMS) without needing a single physical base station on-site. By tracking full GNSS constellations, it ensures rapid convergence times and robust, dependable connectivity anywhere in",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/10/15/trimbles-vrs-now-service-is-now-available-in-austria/?utm_source=rss&utm_medium=rss&utm_campaign=trimbles-vrs-now-service-is-now-available-in-austria",
+      "datum": "2026-10-16"
     },
     {
       "rubrika": "Ze světa",
@@ -85,18 +97,6 @@
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/10/05/geo-week-keynote-examines-a-lake-in-crisis-mapping-utahs-great-salt-lake/?utm_source=rss&utm_medium=rss&utm_campaign=geo-week-keynote-examines-a-lake-in-crisis-mapping-utahs-great-salt-lake",
       "datum": "2026-10-06"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "How Drone Surveys Expand What’s Surveyable From the Air",
-      "perex": "Ten years ago, an aerial survey usually meant a manned aircraft, a mobilisation cost that ruled out anything but the largest jobs.",
-      "telo": "Ten years ago, an aerial survey usually meant a manned aircraft, a mobilisation cost that ruled out anything but the largest jobs. Drones changed the economics fast, and most of the conversation since has been about speed: faster mobilisation, faster processing, lower cost per hectare. The bigger shift is what UAV survey platforms have done for sites that were once barely surveyable at all. Reaching What Was Once Off-Limits Until recently, a coastal slope that had just failed, a quarry face still being cut, or a flood-damaged corridor with no stable ground to stand on simply didn’t get surveyed to the same standard as a stable site. Sending a crew and a total station into that terrain carrie",
-      "body": [],
-      "proc": "",
-      "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/10/02/how-drone-surveys-expand-whats-surveyable-from-the-air/?utm_source=rss&utm_medium=rss&utm_campaign=how-drone-surveys-expand-whats-surveyable-from-the-air",
-      "datum": "2026-10-03"
     }
   ]
 }
