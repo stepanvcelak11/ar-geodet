@@ -2,6 +2,14 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 416,
+      "datum": "2026-10-17",
+      "nadpis": "Map on a weak signal",
+      "body": [
+        "On first start with a slow signal the QTRIG map could stay empty until the app was restarted — now it loads, just a little later."
+      ]
+    },
+    {
       "v": 415,
       "datum": "2026-10-17",
       "nadpis": "Small fixes",

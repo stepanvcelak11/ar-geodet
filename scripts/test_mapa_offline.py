@@ -11,6 +11,7 @@ a offline držel jen on — vlastní mapa (PMTiles Range mimo service worker) se
   C  BEZ SIGNÁLU (všechny požadavky na .pmtiles odříznuté): mapa se zapne z uložené hlavičky,
      budovy jsou v datech i vykreslené
   D  oblast do vlastní cache 'argeodet-mapa-o-<id>', smazání ji odstraní
+  E  pomalý signál při prvním startu (hlavička za 6 s, v telefonu nic): mapa se i tak načte
   S  sw.js nemaže cache 'argeodet-mapa-*' při aktualizaci; v kódu appky není rastr OSM
 
 python scripts/test_mapa_offline.py [port]
@@ -114,7 +115,42 @@ async def beh(url):
             return { r: r, pred: pred, smazano: n, po: po, zbyva: (await caches.keys()).indexOf('argeodet-mapa-offline-v1') >= 0 };
         }""" % (LAT - 0.002, LNG - 0.003, LAT + 0.002, LNG + 0.003))
         ok('D1 oblast se uloží do své cache (i bez signálu z uložených kusů) a smazání odstraní jen ji', d and d['pred'] > 0 and d['smazano'] == 1 and d['po'] < 0 and d['zbyva'], d)
-        vazne = [c for c in chyby + chyby2 if 'WebGL' not in c]
+        await ctx.close()
+
+        # ================= E: POMALÝ SIGNÁL PŘI PRVNÍM STARTU ======================
+        # (17. 10. 2026, CI: hlavička dat přišla za > 4 s, zdroj ji odmítl a pmtiles si odmítnutí
+        #  pamatoval natrvalo → 0 budov). Bez uložené hlavičky se na síť čeká, jak dlouho to trvá.
+        ctx = await br.new_context(locale='cs-CZ', viewport={'width': 390, 'height': 844}, has_touch=True, is_mobile=True,
+                                   geolocation={'latitude': LAT, 'longitude': LNG, 'accuracy': 3}, permissions=['geolocation'], service_workers='block')
+        chyby3, pomale = [], {'n': 0}
+        page = await ctx.new_page()
+        page.on('pageerror', lambda e: chyby3.append('pageerror: ' + str(e)))
+
+        async def route_pomala(rt, rq):
+            u = rq.url
+            try:
+                if 'cuzk.cz/' in u or 'cuzk.gov.cz/' in u or 'openstreetmap' in u or 'workers.dev' in u or 'protomaps.github.io' in u or 'amazonaws.com' in u:
+                    return await rt.abort()
+                if '.pmtiles' in u and 'bytes=0-' in (rq.headers.get('range') or ''):
+                    pomale['n'] += 1
+                    await asyncio.sleep(6)          # hlavička až za 6 s (limit byl 4 s)
+            except Exception:
+                pass
+            try:
+                await rt.continue_()
+            except Exception:
+                pass
+        await page.route('**/*', route_pomala)
+        await page.add_init_script(init)
+        await page.goto(url, wait_until='domcontentloaded', timeout=45000)
+        ok('E0 start (pomalý signál, v telefonu nic)', await cekej(page, "document.body.classList.contains('app-started')", 60))
+        await cekej(page, "window.AGMapaVektor && AGMapaVektor.stav() === 'zapnuto'", 60)
+        await page.evaluate("() => { map.setView([%f, %f], 17, { animate: false }); }" % (LAT, LNG))
+        ok('E1 hlavička za 6 s: mapa se i tak načte a má budovy', await cekej(page, "AGMapaVektor.stav() === 'zapnuto' && AGMapaVektor.budovy().length > 50", 80),
+           await page.evaluate("() => window.AGMapaVektor && [AGMapaVektor.stav(), AGMapaVektor.budovy().length, AGMapaVektor.posledniChyba(), %d]" % 0))
+        ok('E2 zpoždění opravdu proběhlo', pomale['n'] >= 1, pomale)
+
+        vazne = [c for c in chyby + chyby2 + chyby3 if 'WebGL' not in c]
         ok('Z bez chyb stránky', not vazne, vazne[:5])
         await ctx.close()
         await br.close()

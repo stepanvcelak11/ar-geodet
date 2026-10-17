@@ -214,13 +214,20 @@
                 });
             };
             if (typeof navigator !== 'undefined' && navigator.onLine === false) return ulozena();
-            return sitSLimitem(this.fs.getBytes(o, l, signal, etag), 4000).then(function (r) {
-                var nova = otisk(r.data); self.ver = nova;
-                doCache(MAPA_OFFLINE, hk, r.data.slice(0));
-                return r;
-            }, function (e) {
-                if (e && e.name === 'AbortError') throw e;
-                return ulozena().catch(function () { throw e; });
+            // Limit 4 s JEN když je v telefonu uložená hlavička, na kterou se dá spadnout. Bez ní se čeká
+            // na síť, jak dlouho to trvá: odmítnutou hlavičku si pmtiles pamatuje natrvalo a mapa by do
+            // restartu zůstala prázdná (17. 10. 2026, CI: pomalý start → 0 budov v test_mapa_vektor).
+            return zCache(hk).then(function (ma) {
+                var sit = self.fs.getBytes(o, l, signal, etag);
+                return (ma ? sitSLimitem(sit, 4000) : sit).then(function (r) {
+                    self.ver = otisk(r.data);
+                    doCache(MAPA_OFFLINE, hk, r.data.slice(0));
+                    return r;
+                }, function (e) {
+                    if (e && e.name === 'AbortError') throw e;
+                    if (!ma) throw e;
+                    self.ver = otisk(ma); return { data: ma };
+                });
             });
         }
         var k = klic(u, this.ver, o, l), cil = this.cil.length ? this.cil[this.cil.length - 1] : null;
@@ -243,7 +250,12 @@
         u = u || url();
         if (!window.pmtiles || !knihovny._proto) return null;
         var p = knihovny._proto.get(u);
-        if (!p) { p = new pmtiles.PMTiles(new ZdrojSCache(u)); knihovny._proto.add(p); }
+        // bez našeho zdroje (protokol si mezitím vyrobil obyčejný) nebo s hlavičkou, která selhala
+        // (pmtiles si odmítnutí pamatuje), se zdroj vyrobí znovu — další pokus jde zase na síť / do telefonu
+        if (!p || !(p.source instanceof ZdrojSCache) || p._agVadna) {
+            p = new pmtiles.PMTiles(new ZdrojSCache(u)); knihovny._proto.add(p);
+            var pp = p; p.getHeader().catch(function () { pp._agVadna = true; });
+        }
         return p;
     }
     // Uložit vlastní mapu obdélníku do telefonu (pro „Uložit okolí" a oblasti).

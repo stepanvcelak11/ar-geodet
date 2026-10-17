@@ -2,6 +2,14 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 416,
+      "datum": "2026-10-17",
+      "nadpis": "Mappa anche con segnale debole",
+      "body": [
+        "Al primo avvio con segnale lento la mappa QTRIG poteva restare vuota fino al riavvio dell’app: ora si carica, solo un po’ più tardi."
+      ]
+    },
+    {
       "v": 415,
       "datum": "2026-10-17",
       "nadpis": "Piccole correzioni",

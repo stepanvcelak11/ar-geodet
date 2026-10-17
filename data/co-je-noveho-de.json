@@ -2,6 +2,14 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 416,
+      "datum": "2026-10-17",
+      "nadpis": "Karte auch bei schwachem Signal",
+      "body": [
+        "Beim ersten Start mit langsamem Signal konnte die QTRIG-Karte bis zum Neustart der App leer bleiben — jetzt lädt sie, nur etwas später."
+      ]
+    },
+    {
       "v": 415,
       "datum": "2026-10-17",
       "nadpis": "Kleine Korrekturen",

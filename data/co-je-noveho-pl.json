@@ -2,6 +2,14 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 416,
+      "datum": "2026-10-17",
+      "nadpis": "Mapa także przy słabym zasięgu",
+      "body": [
+        "Przy pierwszym uruchomieniu na wolnym zasięgu mapa QTRIG mogła pozostać pusta aż do ponownego uruchomienia — teraz się wczyta, tylko trochę później."
+      ]
+    },
+    {
       "v": 415,
       "datum": "2026-10-17",
       "nadpis": "Drobne poprawki",

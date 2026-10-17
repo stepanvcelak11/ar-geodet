@@ -2,6 +2,14 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 416,
+      "datum": "2026-10-17",
+      "nadpis": "Carte même avec un signal faible",
+      "body": [
+        "Au premier démarrage avec un signal lent, la carte QTRIG pouvait rester vide jusqu’au redémarrage de l’app — elle se charge maintenant, juste un peu plus tard."
+      ]
+    },
+    {
       "v": 415,
       "datum": "2026-10-17",
       "nadpis": "Petites corrections",
