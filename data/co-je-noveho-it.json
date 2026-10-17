@@ -2,6 +2,16 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 415,
+      "datum": "2026-10-17",
+      "nadpis": "Piccole correzioni",
+      "body": [
+        "L’avviso «sei dentro un edificio» non ripete più la parola edificio.",
+        "«Salva per l'offline» e lo scaricamento di un'area segnalano la fine solo quando la mappa è davvero salvata nel telefono.",
+        "L’informativa sulla privacy e la pagina per eliminare l’account sono ora anche in inglese."
+      ]
+    },
+    {
       "v": 414,
       "datum": "2026-10-15",
       "nadpis": "Mappa anche senza segnale",

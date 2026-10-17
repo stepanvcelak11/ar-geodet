@@ -228,10 +228,12 @@
             if (b) return { data: b };
             var dal = cil ? zCache(k) : Promise.resolve(null);
             return dal.then(function (b2) {
-                if (b2) { doCache(cil, k, b2.slice(0)); return { data: b2 }; }
+                // ukládání oblasti (cil) na zápis POČKÁ — jinak „Uložit pro offline" hlásilo hotovo dřív,
+                // než kusy v telefonu opravdu byly (a zavření appky je mohlo ztratit); prohlížení nečeká
+                if (b2) return doCache(cil, k, b2.slice(0)).then(function () { return { data: b2 }; });
                 return self.fs.getBytes(o, l, signal, etag).then(function (r) {
-                    doCache(cil || MAPA_CACHE, k, r.data.slice(0));
-                    return r;
+                    var z = doCache(cil || MAPA_CACHE, k, r.data.slice(0));
+                    return cil ? z.then(function () { return r; }) : r;
                 });
             });
         });

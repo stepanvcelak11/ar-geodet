@@ -46,6 +46,21 @@ Zbývá udělat ručně v Play Console (nic z toho appka neudělá sama):
 4. ~~Po prvním nahrání: otisk Play App Signing do `assetlinks.json` (A6).~~ hotovo 13. 9. (e0bf701)
 5. Uzavřený test 12 testerů / 14 dní (A7), texty v `play/pozvanka-testeri.md`.
 
+## Angličtina v Google Play (17. 10. 2026)
+
+Appka je v Playi jedna; angličtina se přidává jako **překlad záznamu v obchodě**, nový `.aab` netřeba
+(appka se přepne do angličtiny sama podle jazyka telefonu). Všechno je v **`play/en/`**:
+
+| Soubor | Co |
+|---|---|
+| `play/en/listing.md` | postup krok za krokem, anglický název, krátký a dlouhý popis, release notes, App access pro kontrolora, Zabezpečení dat (aktualizované), hodnocení obsahu, doporučené země |
+| `play/en/feature.png`, `play/en/screenshots/` | anglická grafika ze skutečné appky (`python scripts/gen_play_en.py`) |
+| `play/en/tester-invitation.md` | anglická pozvánka pro testery |
+| `privacy.html`, `account-deletion.html` | anglické zásady soukromí a smazání účtu (české stránky na ně odkazují „English") |
+
+⚠ Formulář **Zabezpečení dat** je potřeba upravit i pro češtinu (záloha do účtu od 25. 9. 2026) —
+tabulka je v `play/texty.md` i `play/en/listing.md`.
+
 ---
 
 ## Část A — Google Play (TWA přes PWABuilder)

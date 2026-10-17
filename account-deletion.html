@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QTRIG — Delete your account</title>
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="alternate" hreflang="cs" href="smazani-uctu.html">
+    <style>
+        :root { color-scheme: dark; }
+        body { margin: 0 auto; max-width: 720px; padding: 32px 20px 60px; background: #0f1216; color: #e8edf2;
+               font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif; }
+        h1 { font-size: 26px; margin: 0 0 4px; }
+        h2 { font-size: 18px; margin: 28px 0 8px; color: #4ccd99; }
+        p, li { color: #c7cdd6; }
+        .muted { color: #8b93a1; font-size: 13.5px; }
+        a { color: #4ccd99; }
+        ul, ol { padding-left: 22px; }
+        .box { border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 14px 16px; margin: 14px 0; }
+        .warn { border-color: rgba(229,83,75,0.5); }
+        .lang { float: right; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <a class="lang" href="smazani-uctu.html" hreflang="cs">Česky</a>
+    <h1>Delete your QTRIG account</h1>
+    <p class="muted">QTRIG app · operated by Štěpán Včelák · valid from 17 October 2026</p>
+    <!-- English version of smazani-uctu.html — the URL goes into Play Console → Data safety
+         → "Delete account URL" for the English listing. Change both pages together. -->
+
+    <p>You can delete your QTRIG account yourself at any time — directly in the app, or by asking us without the app.
+    Deletion is immediate and <b>cannot be undone</b>.</p>
+
+    <h2>1. Delete in the app (recommended)</h2>
+    <ol>
+        <li>Open the app and sign in to the account you want to delete.</li>
+        <li>Tap <b>Settings</b> (the gear in the right-hand column of buttons) → <b>More</b> at the top → <b>About</b>.</li>
+        <li>In the <b>Account</b> section at the bottom, tap <b>Delete account…</b></li>
+        <li>Type your account password and confirm with <b>Really delete the account</b>.</li>
+    </ol>
+    <p>With Pro, the same button is also on the <b>Where I work (workspaces)</b> screen.</p>
+
+    <h2>2. Request deletion without the app</h2>
+    <p>If you no longer have the app or cannot sign in, send a request at
+    <a href="https://github.com/stepanvcelak11/ar-geodet/issues/new?title=Account%20deletion">github.com/stepanvcelak11/ar-geodet/issues</a>
+    (or via “Write to the author” in the app if you still have it). Give your <b>account code</b> (the eight characters you got
+    when you created the account) and the name you signed up with. To check that the account is really yours we may ask
+    for one more detail (for example when and on which phone the account was created). We handle the request within
+    30 days at the latest and let you know the same way.</p>
+
+    <h2>What is deleted</h2>
+    <div class="box warn">
+        <ul>
+            <li><b>The account</b> — name, account code, password hash, optional contact, plan.</li>
+            <li><b>Account backups</b> of your points, jobs and settings.</li>
+            <li><b>Passkeys</b> (“Sign in with Face ID”) registered to the account. Remove the passkey from your phone's
+                keychain as well (iPhone: Settings → Passwords; Android: Google Password Manager).</li>
+            <li><b>Your own space</b> on the server, including points and jobs synced into it.</li>
+            <li><b>Memberships in companies</b> you were invited to, and your usage records and error reports in them.</li>
+            <li><b>Messages</b> from the app's author to your account.</li>
+        </ul>
+    </div>
+
+    <h2>What remains and why</h2>
+    <div class="box">
+        <ul>
+            <li><b>Points and jobs on your phone</b> — they are yours. Remove them by clearing the app's data on the phone
+                (Settings → Apps → QTRIG → Storage → Clear data; on iPhone by removing the icon from the home screen).</li>
+            <li><b>Points and jobs in a company</b> you were a member of — they belong to the company, not to one person
+                (just as when you leave the company). Your name stays on them as the record of who measured the point.</li>
+            <li><b>Pro orders and payments</b> (made outside Google Play) — accounting records that must be kept by law;
+                the link to the account is removed on deletion.</li>
+            <li><b>Error reports</b> that can no longer be linked to your name contain only the type of phone, the app
+                version and the error text, and are deleted automatically after 90 days. Anonymous phone accuracy
+                statistics (phone model and figures, no account) are not linked to you and stay.</li>
+        </ul>
+    </div>
+
+    <p class="muted">If you are the last admin of a company with other members, the app asks you to hand over the admin role
+    or leave the company before deletion — otherwise the company would be left without an admin.</p>
+
+    <p>Details of what the app stores are in the <a href="privacy.html">Privacy Policy</a>.</p>
+</body>
+</html>

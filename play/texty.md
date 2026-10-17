@@ -121,8 +121,9 @@ založ v appce nový demo účet a údaje tady přepiš).
 
 ## Data safety (Zabezpečení dat)
 
-Musí sedět s `soukromi.html`. Od 13. 9. 2026 appka posílá na server víc než jen polohu
-do dotazů — vyplň takhle:
+Musí sedět s `soukromi.html` (a anglickou `privacy.html`). ⚠ **17. 10. 2026 aktualizováno:** od 25. 9. 2026
+appka zálohuje body do účtu a posílá anonymní statistiku přesnosti telefonů — formulář v Console
+je potřeba **upravit** podle tabulky níž (anglické znění v `play/en/listing.md`). Vyplň takhle:
 
 - **Sbíráte nebo sdílíte uživatelská data?** ANO
 - **Šifrováno při přenosu:** ANO (HTTPS)
@@ -141,8 +142,9 @@ Typy dat (vše *shromažďováno*, nic *sdíleno s třetími stranami*, účel v
 | Osobní údaje | Jméno | povinné | jméno, které si člověk zvolí při založení účtu (nemusí být pravé) |
 | Osobní údaje | Jiné info (kontakt) | volitelné | telefon/e-mail, jen když si ho sám vyplní |
 | Aktivita v aplikaci | Interakce v aplikaci | povinné | které nástroje se otevřely, kolik bodů přibylo — bez souřadnic |
-| Aktivita v aplikaci | Jiný obsah vytvořený uživatelem | volitelné | zprávy autorovi, hodnocení; body zakázky jen při zapnuté synchronizaci ve firmě |
+| Aktivita v aplikaci | Jiný obsah vytvořený uživatelem | volitelné | **záloha bodů, zakázek a nastavení do účtu** (od 25. 9. 2026 automaticky, jde vypnout), zprávy autorovi, hodnocení, body ve firmě při synchronizaci |
 | Informace a výkon aplikace | Protokoly chyb | povinné | text chyby, verze appky, druh telefonu |
+| Informace a výkon aplikace | Jiné údaje o výkonu aplikace | volitelné | model telefonu + přesnosti z Terénní zkoušky, anonymně, jde vypnout (Moje přesnost) |
 | Zařízení nebo jiné ID | ID zařízení | povinné | anonymní identifikátor odvozený z prohlížeče |
 | Poloha | Přesná poloha | **NE — nesbírá se** | zpracovává se jen v telefonu; do dotazů třetích stran (ČÚZK, mapy, počasí) jde jako parametr, ale server aplikace ji neukládá |
 

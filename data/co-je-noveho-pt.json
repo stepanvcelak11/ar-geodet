@@ -2,6 +2,16 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 415,
+      "datum": "2026-10-17",
+      "nadpis": "Pequenas correções",
+      "body": [
+        "O aviso «estás dentro de um edifício» já não repete a palavra edifício.",
+        "«Guardar para offline» e a transferência de uma área só indicam que terminaram quando o mapa já está mesmo guardado no telefone.",
+        "A política de privacidade e a página para eliminar a conta estão agora também em inglês."
+      ]
+    },
+    {
       "v": 414,
       "datum": "2026-10-15",
       "nadpis": "Mapa sem sinal",

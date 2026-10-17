@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 415,
+      "datum": "2026-10-17",
+      "nadpis": "Small fixes",
+      "body": [
+        "The “you are inside a building” warning no longer repeats the word building.",
+        "“Save for offline” and area downloads report done only once the map is really stored in the phone.",
+        "The privacy policy and the account deletion page are now also in English."
+      ]
+    },
+    {
       "v": 414,
       "datum": "2026-10-15",
       "nadpis": "Map without signal",

@@ -2,6 +2,16 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 415,
+      "datum": "2026-10-17",
+      "nadpis": "Petites corrections",
+      "body": [
+        "L’avertissement « tu es dans un bâtiment » ne répète plus le mot bâtiment.",
+        "« Enregistrer pour le hors ligne » et le téléchargement d’une zone n’annoncent la fin qu’une fois la carte vraiment enregistrée dans le téléphone.",
+        "La politique de confidentialité et la page de suppression du compte existent désormais aussi en anglais."
+      ]
+    },
+    {
       "v": 414,
       "datum": "2026-10-15",
       "nadpis": "Carte sans signal",

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QTRIG — Zásady ochrany soukromí</title>
     <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="alternate" hreflang="en" href="privacy.html">
     <style>
         :root { color-scheme: dark; }
         body { margin: 0 auto; max-width: 720px; padding: 32px 20px 60px; background: #0f1216; color: #e8edf2;
@@ -16,11 +17,15 @@
         a { color: #4ccd99; }
         ul { padding-left: 22px; }
         code { background: rgba(255,255,255,0.08); border-radius: 5px; padding: 1px 6px; font-size: 14px; }
+        .lang { float: right; font-size: 14px; }
     </style>
 </head>
 <body>
+    <a class="lang" href="privacy.html" hreflang="en">English</a>
     <h1>Zásady ochrany soukromí</h1>
-    <p class="muted">Aplikace QTRIG · poslední aktualizace 13. 9. 2026</p>
+    <p class="muted">Aplikace QTRIG · poslední aktualizace 17. 10. 2026</p>
+    <!-- 17. 10. 2026: doplněna záloha do účtu, passkey, statistika přesnosti telefonů, vlastní mapa a
+         zdroje v cizině; anglická verze je privacy.html — měnit obě spolu. -->
     <!-- Přepsáno 13. 9. 2026 před vydáním do Google Play: od v287 appka ÚČET VYŽADUJE
          (host zrušen), na server chodí události užívání a hlášení chyb, docházka, chat
          a hodinky Garmin už v appce nejsou. Text musí sedět s tím, co appka opravdu dělá
@@ -37,13 +42,13 @@
     zůstává uložené ve vašem zařízení (localStorage / IndexedDB prohlížeče) a samo od sebe nikam neodchází.</p>
     <p>K používání appky je potřeba <b>účet</b> (jméno + heslo, appka vám přidělí osmiznakový kód účtu).
     Přes server aplikace pak procházejí jen údaje popsané níže: údaje účtu, anonymní záznamy užívání,
-    hlášení chyb a to, co si sami pošlete (zpráva autorovi, synchronizace bodů ve firmě). Účet můžete
+    hlášení chyb, automatická záloha vašich bodů (lze vypnout) a to, co si sami pošlete (zpráva autorovi, synchronizace bodů ve firmě). Účet můžete
     kdykoli <a href="smazani-uctu.html">smazat</a>.</p>
 
     <h2>Poloha (GPS)</h2>
     <p>Poloha se zpracovává přímo v zařízení — slouží k zobrazení vaší pozice na mapě, k navigaci na body
     a k měření. Souřadnice se odešlou mimo zařízení pouze jako parametr dotazu, když si vyžádáte data od
-    třetích stran (např. stažení bodů bodového pole z ČÚZK, mapových dlaždic nebo předpovědi počasí pro okolí).
+    třetích stran (např. stažení bodů bodového pole z ČÚZK či jiného státního úřadu, mapových dat, hledání místa nebo předpovědi počasí pro okolí).
     Tyto dotazy slouží jen k vyřízení požadavku a aplikace si z nich nic neukládá mimo vaše zařízení.
     Na server aplikace se poloha neposílá.</p>
 
@@ -52,7 +57,8 @@
     fotografie (OCR) — vše se zpracovává lokálně v zařízení. Záběry ani fotografie se nikam neodesílají.</p>
 
     <h2 id="hlas">Mikrofon a hlasové poznámky</h2>
-    <p>Mikrofon se zapne jen po klepnutí na „Nahrát poznámku". Nahrávka se ukládá do vašeho zařízení.
+    <p>Mikrofon se zapne jen při nahrávání hlasové poznámky nebo u akustického dálkoměru (ten měří ozvěnu v telefonu
+    a nic neukládá). Hlasové poznámky se ukládají do vašeho zařízení.
     Je-li zapnutý <b>přepis řeči na text</b> (lze vypnout přepínačem v nástroji), zvuk zpracovává
     rozpoznávání řeči vestavěné v prohlížeči — to na většině zařízení <b>odesílá zvuk na server výrobce
     prohlížeče či systému</b> (Google u Chromu a Androidu, Apple u Safari a iOS) a řídí se jeho zásadami
@@ -63,6 +69,8 @@
     <ul>
         <li><b>účet</b> — jméno, které si zvolíte, kód účtu, ověřovací otisk hesla (hash PBKDF2, nikoli heslo samotné),
             tarif (Základ / Pro), čas založení a posledního přihlášení, verze appky a druh telefonu (např. „iPhone");</li>
+        <li><b>přístupový klíč (passkey)</b> — nepovinné „Přihlásit přes Face ID": jen veřejný klíč a jeho identifikátor;
+            soukromý klíč zůstává v Klíčence telefonu (iCloud / Správce hesel Google);</li>
         <li><b>nepovinný kontakt</b> (telefon nebo e-mail), pokud si ho sami vyplníte, aby vám autor mohl odpovědět na hlášení;</li>
         <li><b>záznamy užívání</b> — čas přihlášení, který nástroj byl otevřen, kolik bodů přibylo či se změnilo
             (identifikátor bodu a zakázky, <b>bez souřadnic a bez obsahu bodu</b>) a anonymní identifikátor zařízení
@@ -70,6 +78,11 @@
         <li><b>hlášení chyb</b> — text chyby, soubor a řádek, verze appky, druh telefonu a vaše jméno v appce;
             mažou se po 90 dnech;</li>
         <li><b>zprávy autorovi</b> (hlášení, hodnocení, žádost o Pro), které sami odešlete, včetně textu a kontaktu, pokud ho uvedete;</li>
+        <li id="zaloha"><b>záloha do účtu</b> — aby o práci nepřišel ten, komu telefon data appky smaže, posílá appka jednou denně
+            a po každých 20 nových bodech komprimovanou zálohu <b>bodů, zakázek a nastavení</b> (bez fotek, hlasovek a přihlašovacích
+            údajů) do vašeho účtu. Server drží dvě poslední zálohy. Vypíná se v Nastavení → Záloha a údržba; se smazáním účtu zmizí;</li>
+        <li><b>statistika přesnosti telefonů</b> (nepovinné) — po Terénní zkoušce může appka poslat <b>jen model telefonu a naměřené
+            přesnosti</b>, bez polohy a bez účtu, aby ukázala, jak měří ostatní se stejným telefonem. Vypíná se v nástroji Moje přesnost;</li>
         <li><b>objednávky verze Pro</b> — číslo objednávky (variabilní symbol), částka a stav platby; jde o účetní doklady.</li>
     </ul>
     <p>Tyto údaje vidí jen provozovatel, kvůli provozu, údržbě a odpovědím na vaše zprávy. Nikomu se neprodávají
@@ -98,13 +111,17 @@
     <p>Aby aplikace mohla zobrazit mapy a stáhnout geodetická data, komunikuje s těmito službami
     (ty při požadavku standardně vidí vaši IP adresu):</p>
     <ul>
-        <li><b>ČÚZK</b> — body bodového pole, katastrální mapa, výškopis (© ČÚZK)</li>
-        <li><b>OpenStreetMap / Mapy.cz</b> — mapové podklady</li>
+        <li><b>ČÚZK</b> — body bodového pole, katastrální mapa, výškopis (© ČÚZK); v cizině obdobné státní úřady
+            (GKÚ SR, BEV, swisstopo, Kadaster/PDOK, IGN Francie a Španělsko, GUGiK, zeměměřické úřady spolkových zemí aj.)</li>
+        <li><b>vlastní mapa QTRIG</b> z dat OpenStreetMap (© přispěvatelé OSM, Protomaps) přes server aplikace na Cloudflare;
+            písma mapy z protomaps.github.io</li>
+        <li><b>služby OpenStreetMap</b> (Overpass, Photon od Komoot) — prvky mapy v okolí a hledání místa (hledaný text)</li>
+        <li><b>terénní dlaždice Mapzen na Amazon S3</b> — reliéf pro 3D pohled</li>
         <li><b>CelesTrak</b> — dráhy družic GNSS (predikce signálu, GNSS předpověď)</li>
         <li><b>NOAA SWPC</b> — geomagnetický index Kp</li>
-        <li><b>Open-Meteo, MET Norway, DWD</b> — předpověď počasí pro zadané souřadnice</li>
+        <li><b>Open-Meteo, Bright Sky (DWD), MET Norway</b> — předpověď počasí pro zadané souřadnice</li>
         <li><b>RainViewer</b> — snímky srážkového radaru</li>
-        <li><b>Google Fonts, unpkg (CDN)</b> — písma a knihovna mapy při prvním načtení</li>
+        <li><b>jsDelivr (CDN)</b> — knihovny některých nástrojů (PDF, OCR) při prvním použití</li>
         <li><b>GitHub Pages</b> — hosting aplikace a denního geodetického zpravodaje</li>
         <li><b>Cloudflare</b> — server aplikace (účty, záznamy užívání, hlášení chyb, sdílení bodů ve firmě — viz výše)</li>
     </ul>

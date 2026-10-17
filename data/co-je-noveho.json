@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 415,
+   "datum": "2026-10-17",
+   "nadpis": "Drobné opravy",
+   "body": [
+    "Varování „stojíš uvnitř budovy“ už nepíše slovo budova dvakrát.",
+    "„Uložit pro offline“ a stažení oblasti hlásí hotovo až ve chvíli, kdy je mapa opravdu uložená v telefonu.",
+    "Zásady ochrany soukromí a stránka smazání účtu jsou nově i anglicky."
+   ]
+  },
+  {
    "v": 414,
    "datum": "2026-10-15",
    "nadpis": "Mapa i bez signálu",

@@ -261,7 +261,7 @@
     }
     // shrnutí do jednoho stavu: { kod, text, trida, rada }
     function shrn(o) {
-        if (o.uvnitr) return { kod: 'uvnitr', trida: 'bad', text: T('Podle mapy stojíš uvnitř budovy ({b}) — GPS tu neplatí', { b: o.uvnitr }), rada: T('Bod ulož až venku, nebo použij krokový offset od rohu.') };
+        if (o.uvnitr) { var _b = String(o.uvnitr).replace(T('budova'), '').trim(); return { kod: 'uvnitr', trida: 'bad', text: _b ? T('Podle mapy stojíš uvnitř budovy ({b}) — GPS tu neplatí', { b: _b }) : T('Podle mapy stojíš uvnitř budovy — GPS tu neplatí'), rada: T('Bod ulož až venku, nebo použij krokový offset od rohu.') }; }
         if (o.prekazkaUvnitr) return { kod: 'prekazka-in', trida: 'bad', text: T('Stojíš v označené překážce: {n}', { n: nazevT(o.prekazkaUvnitr) }), rada: T('Bod měř mimo ni, nebo offsetem.') };
         if (o.budova && o.budova.d < 2) return { kod: 'budova2', trida: 'bad', text: T('{d} m od budovy ({b}) — GPS má odrazy, počítej s ±6 m', { d: fmt(o.budova.d), b: o.budova.popis }), rada: T('Odstup 10 m od zdi, nebo krokový offset od rohu.') };
         if (o.budova) return { kod: 'budova4', trida: 'warn', text: T('{d} m od budovy — půl nebe zakryté, GPS horší', { d: fmt(o.budova.d) }), rada: T('Měř déle (průměrování), nebo se posuň dál od zdi.') };

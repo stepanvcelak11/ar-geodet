@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QTRIG — Smazání účtu</title>
+    <link rel="alternate" hreflang="en" href="account-deletion.html">
     <link rel="icon" type="image/svg+xml" href="icon.svg">
     <!-- Google Play (13. 9. 2026): appka, ve které si člověk zakládá účet, musí mít
          veřejnou stránku, jak účet a data smazat i bez appky. Adresa téhle stránky
@@ -23,9 +24,11 @@
         code { background: rgba(255,255,255,0.08); border-radius: 5px; padding: 1px 6px; font-size: 14px; }
         .box { border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 14px 16px; margin: 14px 0; }
         .warn { border-color: rgba(229,83,75,0.5); }
+        .lang { float: right; font-size: 14px; }
     </style>
 </head>
 <body>
+    <a class="lang" href="account-deletion.html" hreflang="en">English</a>
     <h1>Smazání účtu QTRIG</h1>
     <p class="muted">Aplikace QTRIG · provozuje Štěpán Včelák · platí od 13. 9. 2026</p>
 
@@ -53,6 +56,9 @@
     <div class="box warn">
         <ul>
             <li><b>Účet</b> — jméno, kód účtu, otisk hesla, nepovinný kontakt, tarif.</li>
+            <li><b>Zálohy do účtu</b> (body, zakázky, nastavení).</li>
+            <li><b>Přístupové klíče</b> („Přihlásit přes Face ID") k účtu — z Klíčenky telefonu je smaž i ty
+                (iPhone: Nastavení → Hesla; Android: Správce hesel Google).</li>
             <li><b>Tvoje vlastní místo (prostor)</b> na serveru včetně bodů a zakázek, které se do něj synchronizovaly.</li>
             <li><b>Členství ve firmách</b>, do kterých jsi byl pozván, a tvoje záznamy užívání, polohy a hlášení chyb v nich.</li>
             <li><b>Vzkazy</b> od autora appky pro tvůj účet.</li>
@@ -62,8 +68,7 @@
     <h2>Co zůstává a proč</h2>
     <div class="box">
         <ul>
-            <li><b>Body a zakázky v tvém telefonu</b> — ty patří tobě a na serveru nikdy nebyly (pokud jsi nezapnul
-                synchronizaci ve firmě). Smažeš je smazáním dat aplikace v telefonu (Nastavení → Aplikace → QTRIG →
+            <li><b>Body a zakázky v tvém telefonu</b> — ty patří tobě (jejich zálohy v účtu se smažou, viz výše). Smažeš je smazáním dat aplikace v telefonu (Nastavení → Aplikace → QTRIG →
                 Vymazat data, na iPhonu smazáním ikony z plochy).</li>
             <li><b>Body a zakázky ve firmě</b>, jejímž jsi byl členem — patří firmě, ne jednotlivci (stejně jako
                 při odchodu z firmy). Jméno u nich zůstává jako informace, kdo bod měřil.</li>

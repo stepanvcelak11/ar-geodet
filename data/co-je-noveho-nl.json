@@ -2,6 +2,16 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 415,
+      "datum": "2026-10-17",
+      "nadpis": "Kleine verbeteringen",
+      "body": [
+        "De waarschuwing „je staat in een gebouw” herhaalt het woord gebouw niet meer.",
+        "„Offline opslaan” en het downloaden van een gebied melden pas klaar als de kaart echt op de telefoon staat.",
+        "Het privacybeleid en de pagina om je account te verwijderen zijn nu ook in het Engels."
+      ]
+    },
+    {
       "v": 414,
       "datum": "2026-10-15",
       "nadpis": "Kaart zonder signaal",

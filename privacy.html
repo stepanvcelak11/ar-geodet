@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QTRIG — Privacy Policy</title>
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="alternate" hreflang="cs" href="soukromi.html">
+    <style>
+        :root { color-scheme: dark; }
+        body { margin: 0 auto; max-width: 720px; padding: 32px 20px 60px; background: #0f1216; color: #e8edf2;
+               font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif; }
+        h1 { font-size: 26px; margin: 0 0 4px; }
+        h2 { font-size: 18px; margin: 28px 0 8px; color: #4ccd99; }
+        p, li { color: #c7cdd6; }
+        .muted { color: #8b93a1; font-size: 13.5px; }
+        a { color: #4ccd99; }
+        ul { padding-left: 22px; }
+        .lang { float: right; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <a class="lang" href="soukromi.html" hreflang="cs">Česky</a>
+    <h1>Privacy Policy</h1>
+    <p class="muted">QTRIG app · last updated 17 October 2026</p>
+    <!-- English version of soukromi.html (17 Oct 2026, Google Play listing in English).
+         Both pages must describe the same thing and match the Data safety form in Play Console
+         (play/en/listing.md, play/texty.md). Change them together. -->
+
+    <h2>Who runs the app</h2>
+    <p>QTRIG is created, owned and operated by <b>Štěpán Včelák</b>, a private individual in the Czech Republic,
+    who is also the controller for any privacy questions (contact below). © 2026 Štěpán Včelák, all rights reserved.</p>
+
+    <h2>Summary</h2>
+    <p><b>QTRIG has no advertising and no third-party tracking.</b> Your work — points, jobs, photos, settings —
+    is stored on your device (the browser's localStorage / IndexedDB). It leaves the device only in the cases
+    described below.</p>
+    <p>You need an <b>account</b> to use the app (a name and a password; the app gives you an eight-character
+    account code). The app's server receives only: account data, anonymous usage records, error reports, the
+    automatic backup of your points (which you can turn off) and whatever you send yourself (messages to the
+    author, point sync within a company). You can <a href="account-deletion.html">delete your account</a> at any time.</p>
+
+    <h2>Location (GPS)</h2>
+    <p>Your location is processed on the device: to show your position on the map, to guide you to points and
+    for measurements. Coordinates leave the device only as part of a request when you ask for data from a third
+    party (for example survey control points from a national mapping agency, map data, a place search or the
+    weather forecast for your area). These requests only serve to answer your request; nothing from them is
+    stored outside your device. <b>Your location is not sent to the app's server.</b></p>
+    <p>Points you measure yourself contain coordinates. They stay on the device, except for the account backup
+    and company sync described below.</p>
+
+    <h2>Camera</h2>
+    <p>The camera image is used only to display augmented reality (AR) and for features such as reading
+    coordinates from a photo (OCR). Everything is processed on the device. Images and photos are not uploaded anywhere.</p>
+
+    <h2>Microphone and voice notes</h2>
+    <p>The microphone turns on only when you record a voice note or use the acoustic rangefinder (which measures
+    the echo on the device and stores nothing). Voice notes are saved on your device.
+    If <b>speech-to-text</b> is on (it can be switched off in the tool), the audio is processed by the speech
+    recognition built into your browser, which on most devices <b>sends the audio to the browser or system
+    vendor</b> (Google for Chrome and Android, Apple for Safari and iOS) under their privacy policy. With
+    speech-to-text off, the recording stays on your phone.</p>
+
+    <h2>Sensors (compass, gyroscope)</h2>
+    <p>Device orientation is used only to draw the AR scene and the compass. It never leaves the device.</p>
+
+    <h2 id="account">Account and the app's server</h2>
+    <p>The app's server runs on Cloudflare (Workers and the D1 database). It stores:</p>
+    <ul>
+        <li><b>account</b> — the name you choose, the account code, a password verifier (a PBKDF2 hash, never the
+            password itself), plan (Basics / Pro), time of sign-up and last sign-in, app version and type of phone (e.g. “iPhone”);</li>
+        <li><b>passkey</b> (optional, “Sign in with Face ID / fingerprint”) — only the public key and its identifier.
+            The private key stays in your phone's keychain (Apple iCloud Keychain or Google Password Manager);</li>
+        <li><b>optional contact</b> (phone or e-mail), only if you fill it in so the author can reply to you;</li>
+        <li><b>usage records</b> — sign-in time, which tool was opened, how many points were added or changed
+            (point and job identifiers, <b>without coordinates and without point contents</b>) and an anonymous device
+            identifier derived from the browser. Used to see what is used in the app and to find bugs; deleted after 12 months;</li>
+        <li><b>error reports</b> — error text, file and line, app version, type of phone and your name in the app; deleted after 90 days;</li>
+        <li><b>messages to the author</b> (bug reports, ratings, Pro requests) that you send yourself, including the text
+            and contact if you give one;</li>
+        <li id="backup"><b>account backup</b> — so you do not lose your work when the phone deletes app data, the app
+            sends a compressed backup of your <b>points, jobs and settings</b> (no photos, no voice notes, no sign-in
+            details) to your account once a day and after every 20 new points. The server keeps the two latest backups.
+            You can turn it off in Settings → Backup and maintenance; the backups are deleted with your account;</li>
+        <li><b>phone accuracy statistics</b> (optional) — after a “Field test”, the app can send <b>only the phone model
+            and the measured accuracy figures</b>, without location and without your account, to show how other people
+            with the same phone measure. It can be turned off in the Field test / My accuracy tool;</li>
+        <li><b>Pro orders</b> (outside Google Play only) — order number, amount and payment status; these are accounting records.</li>
+    </ul>
+    <p>This data is seen only by the operator, for running and maintaining the app and for answering your messages.
+    It is never sold or passed on and is never used for advertising.</p>
+
+    <h2 id="company">Companies and shared points (optional)</h2>
+    <p>If you use the app in a company, you can join its space with an invitation code. In that case:</p>
+    <ul>
+        <li>your membership (name, role) is shown to the company admin;</li>
+        <li>the company admin can also see the company's usage records (who measured what and when);</li>
+        <li>if <b>point sync</b> is on, the company's points and jobs are stored on the server and shared between the company's devices.</li>
+    </ul>
+    <p>Points and jobs in a company belong to the company. When you leave the company or delete your account they stay
+    there (with your name on the points you measured). You can leave a company at any time.</p>
+
+    <h2 id="deletion">Deleting your account and data</h2>
+    <p>You delete your account and everything that belongs to it on the server directly in the app
+    (Settings → More → About → Delete account) or by a request without the app. The steps and the exact list of what is
+    deleted and what remains are on the <a href="account-deletion.html">Account deletion</a> page. Data on the phone is
+    removed by clearing the app's / browser's data.</p>
+
+    <h2 id="thirdparties">Third-party services</h2>
+    <p>To show maps and download survey data, the app talks to these services (like any web request, they see your IP address):</p>
+    <ul>
+        <li><b>National mapping and cadastral agencies</b> — survey control points, cadastral maps, orthophotos and
+            terrain heights for the country you work in: ČÚZK (Czechia), GKÚ / ÚGKK SR (Slovakia), BEV (Austria),
+            swisstopo (Switzerland), Kadaster / PDOK (Netherlands), IGN (France), IGN (Spain), GUGiK (Poland),
+            state surveying offices in Germany, and others listed in the app under each country;</li>
+        <li><b>QTRIG map data</b> — the app's own map built from OpenStreetMap data (© OpenStreetMap contributors,
+            Protomaps), served through the app's server on Cloudflare; map fonts from protomaps.github.io;</li>
+        <li><b>OpenStreetMap services</b> (Overpass, Photon by Komoot) — map features around you and place search (the text you search for);</li>
+        <li><b>Open-Meteo, Bright Sky (DWD), MET Norway</b> — weather forecast for given coordinates; <b>RainViewer</b> — rain radar images;</li>
+        <li><b>CelesTrak</b> — GNSS satellite orbits; <b>NOAA SWPC</b> — geomagnetic Kp index;</li>
+        <li><b>Mapzen terrain tiles on Amazon S3</b> — terrain for the 3D view;</li>
+        <li><b>jsDelivr (CDN)</b> — libraries for some tools (PDF export, OCR) when first used;</li>
+        <li><b>GitHub Pages</b> — hosting of the app; <b>Cloudflare</b> — the app's server (see above).</li>
+    </ul>
+    <p>After saving data for offline use the app works without a connection; usage records and error reports are sent
+    when there is a signal again.</p>
+
+    <h2>Exports and sharing</h2>
+    <p>Data exports (CSV, DXF, GeoJSON, .argeo…) and sharing via QR code are always started by you, and the data goes
+    only where you send it.</p>
+
+    <h2>Children</h2>
+    <p>QTRIG is a professional tool for surveyors and is not directed at children.</p>
+
+    <h2>Your rights</h2>
+    <p>You remove data stored on the device by clearing the app's / browser's data, and data on the server by deleting your
+    account (see above). You can also ask the operator for a copy, correction or erasure of data stored on the server using
+    the contact below; we handle requests without undue delay and within 30 days at the latest. If you use the app in a
+    company, the company admin also decides about data in the company space. You have the right to lodge a complaint with
+    a supervisory authority (in the Czech Republic: the Office for Personal Data Protection, uoou.gov.cz).</p>
+
+    <h2>Contact</h2>
+    <p>Privacy questions: <a href="https://github.com/stepanvcelak11/ar-geodet/issues">github.com/stepanvcelak11/ar-geodet</a>
+    or “Write to the author” in the app.</p>
+</body>
+</html>
