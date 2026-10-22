@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-10-21",
-  "uvodnik": "Vydání 21. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-10-22",
+  "uvodnik": "Vydání 22. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,30 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Drone Mapping and Local Voices Help Document and Preserve Ancient Maya Cities",
+      "perex": "Deep in the lush lowland forest of Belize, a small group of researchers, archaeologists, and students huddled around a computer in June 2025.",
+      "telo": "Deep in the lush lowland forest of Belize, a small group of researchers, archaeologists, and students huddled around a computer in June 2025. Damp with sweat and exhausted, covered in mosquito bites, they anxiously waited for images to appear on the screen. After two days spent collecting drone imagery, the results would determine the future of the newly formed Maya Mapping Collaborative . As a 3D model took shape before them, a collective cheer rang out. The Collaborative—led by experts from Auburn University , the University of Belize , and Belize’s Institute of Archaeology (IA)—had its first result: A 3D model of Altun Ha, forming the foundation of an archaeological digital twin. This spa",
+      "body": [],
+      "proc": "",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/10/21/drone-mapping-and-local-voices-help-document-and-preserve-ancient-maya-cities/?utm_source=rss&utm_medium=rss&utm_campaign=drone-mapping-and-local-voices-help-document-and-preserve-ancient-maya-cities",
+      "datum": "2026-10-22"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Mach9 Raises $34M Series A to Bring Civil Engineering into the AI Era",
+      "perex": "Most of America’s roads, utility poles, and power lines were designed to last 50 years.",
+      "telo": "Most of America’s roads, utility poles, and power lines were designed to last 50 years. That was 70 years ago. There has never been more to build and rebuild. San Francisco — October 21, 2026 — Mach9 , the AI CAD software for civil engineering, today announced a $34 million Series A co-led by First Round Capital and Bessemer Venture Partners, with participation from Prudence and continued participation from Quiet Capital. The new financing brings Mach9’s total funding to $49 million. The company will use the capital to expand its AI software for surveying and civil engineering as America faces a growing need to rebuild and maintain aging infrastructure. Much of America’s infrastructure was b",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/10/21/mach9-raises-34m-series-a-to-bring-civil-engineering-into-the-ai-era/?utm_source=rss&utm_medium=rss&utm_campaign=mach9-raises-34m-series-a-to-bring-civil-engineering-into-the-ai-era",
+      "datum": "2026-10-21"
     },
     {
       "rubrika": "Z praxe",
@@ -72,30 +96,6 @@
       "proc": "",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/10/06/carlson-2027-arrives-with-new-tools-and-greater-efficiency/?utm_source=rss&utm_medium=rss&utm_campaign=carlson-2027-arrives-with-new-tools-and-greater-efficiency",
-      "datum": "2026-10-06"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "SimActive Enables Online Sharing of Gaussian Splats",
-      "perex": "Montreal, Canada, October 6th, 2026 – SimActive Inc. announces a new sharing capability in Correlator3D , allowing users to publish Gaussian splat models online directly from the software.",
-      "telo": "Montreal, Canada, October 6th, 2026 – SimActive Inc. announces a new sharing capability in Correlator3D , allowing users to publish Gaussian splat models online directly from the software. The streamlined process makes photorealistic 3D results easy to distribute and view. Once a Cesium account is connected, users can initiate sharing from within Correlator3D. The software automatically publishes the Gaussian splat to the connected account, providing a simple and efficient workflow. “One of the greatest advantages of Gaussian splats is how intuitive they are to view and explore,” said Louis Simard, CTO at SimActive. “They are ideal for presenting 3D results to a broader audience, and this ne",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/10/05/simactive-enables-online-sharing-of-gaussian-splats/?utm_source=rss&utm_medium=rss&utm_campaign=simactive-enables-online-sharing-of-gaussian-splats",
-      "datum": "2026-10-06"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Geo Week Keynote Examines “A Lake in Crisis: Mapping Utah’s Great Salt Lake”",
-      "perex": "Keynote Panel to Reveal What New Bathymetric Lidar Data Reveals About One of the West’s Most Threatened Lakes Salt Lake City, UT – [October 6, 2026] — Geo Week announced its first 2027 keynote, A Lake…",
-      "telo": "Keynote Panel to Reveal What New Bathymetric Lidar Data Reveals About One of the West’s Most Threatened Lakes Salt Lake City, UT – [October 6, 2026] — Geo Week announced its first 2027 keynote, A Lake in Crisis: Mapping Utah’s Great Salt Lake , a presentation and panel discussion on a complex large-scale bathymetric lidar project to map the lakebed, wetlands, and deeper-water environments of the Great Salt Lake. The keynote will take place during Geo Week , February 23–25, 2027 at the Salt Palace Convention Center in Salt Lake City, Utah. USGS EROS imagery comparing the Great Salt Lake in 1987 and 2022 The Great Salt Lake is rapidly shrinking, and the implications reach well beyond its shore",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/10/05/geo-week-keynote-examines-a-lake-in-crisis-mapping-utahs-great-salt-lake/?utm_source=rss&utm_medium=rss&utm_campaign=geo-week-keynote-examines-a-lake-in-crisis-mapping-utahs-great-salt-lake",
       "datum": "2026-10-06"
     }
   ]
