@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-10-22",
-  "uvodnik": "Vydání 22. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-10-23",
+  "uvodnik": "Vydání 23. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,18 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "National Geospatial-Intelligence Agency Selects NV5 for Geophysical Data Purchasing and Survey Sourcing Contract",
+      "perex": "Single-award contract with a potential five-year term builds on NV5’s experience helping NGA acquire and deliver geophysical data supporting intelligence missions Houston, October 21, 2026 – NV5 , a T…",
+      "telo": "Single-award contract with a potential five-year term builds on NV5’s experience helping NGA acquire and deliver geophysical data supporting intelligence missions Houston, October 21, 2026 – NV5 , a TiC Solutions company and leading provider of geospatial software and services, today announced that it was awarded the National Geospatial‑Intelligence Agency’s (NGA) Geophysical Data Purchasing & Survey Sourcing (GDPSS) contract, an up-to-five-year single-award program supporting NGA’s acquisition of commercial geophysical data and survey services. NGA may acquire data and survey services under the contract as mission requirements arise. “We are honored by NGA’s continued confidence in NV5,” sa",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/10/22/national-geospatial-intelligence-agency-selects-nv5-for-geophysical-data-purchasing-and-survey-sourcing-contract/?utm_source=rss&utm_medium=rss&utm_campaign=national-geospatial-intelligence-agency-selects-nv5-for-geophysical-data-purchasing-and-survey-sourcing-contract",
+      "datum": "2026-10-23"
     },
     {
       "rubrika": "Technologie",
@@ -84,18 +96,6 @@
       "proc": "",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/10/06/nsps-to-mark-americas-250th-anniversary-with-mount-rushmore-celebration/?utm_source=rss&utm_medium=rss&utm_campaign=nsps-to-mark-americas-250th-anniversary-with-mount-rushmore-celebration",
-      "datum": "2026-10-06"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Carlson 2027 Arrives With New Tools and Greater Efficiency",
-      "perex": "Maysville, Kentucky, USA (October 6, 2026)– Carlson Software has released their latest CAD software versions—including Survey, Civil, Hydrology, GIS, Mining, and Point Cloud—introducing new features,…",
-      "telo": "Maysville, Kentucky, USA (October 6, 2026)– Carlson Software has released their latest CAD software versions—including Survey, Civil, Hydrology, GIS, Mining, and Point Cloud—introducing new features, enhancements, and powerful tools designed to boost user efficiency in the office. Carlson 2027 features IntelliCAD 14.1 as well as compatibility with AutoCAD® 2027. From native CAD tables and multiple ROW offsets to surface timelines and label style libraries, Carlson 2027 brings advances for every user. Here are a few of the highlights: Multiple Point Spreadsheet Editor The Edit Multiple Point routine offers a new Spreadsheet editor to facilitate quicker point edits with an “easy to read” inter",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/10/06/carlson-2027-arrives-with-new-tools-and-greater-efficiency/?utm_source=rss&utm_medium=rss&utm_campaign=carlson-2027-arrives-with-new-tools-and-greater-efficiency",
       "datum": "2026-10-06"
     }
   ]
