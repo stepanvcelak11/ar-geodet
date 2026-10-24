@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-10-23",
-  "uvodnik": "Vydání 23. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-10-24",
+  "uvodnik": "Vydání 24. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,18 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Mitigating Risk and Prioritizing Work for Distribution Vegetation Management with Lidar Analysis",
+      "perex": "From Ground Patrols to Geospatial Intelligence: A New Approach to Distribution Vegetation Management October 16, 2026 — For electric utilities, vegetation management has always required balancing risk…",
+      "telo": "From Ground Patrols to Geospatial Intelligence: A New Approach to Distribution Vegetation Management October 16, 2026 — For electric utilities, vegetation management has always required balancing risk, resources and the realities of the terrain. In heavily forested or difficult-to-access service territories, that challenge becomes even greater. Utilities need to inspect thousands of spans, identify vegetation that could threaten electrical infrastructure and prioritize work, all while managing limited field resources and increasing expectations around wildfire mitigation and system reliability. Traditionally, much of that work has depended on ground patrols, with arborists walking distributi",
+      "body": [],
+      "proc": "",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/10/23/mitigating-risk-and-prioritizing-work-for-distribution-vegetation-management-with-lidar-analysis/?utm_source=rss&utm_medium=rss&utm_campaign=mitigating-risk-and-prioritizing-work-for-distribution-vegetation-management-with-lidar-analysis",
+      "datum": "2026-10-24"
     },
     {
       "rubrika": "Technologie",
@@ -85,18 +97,6 @@
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/10/14/geo-week-2027-conference-program-and-speaker-roster-announced/?utm_source=rss&utm_medium=rss&utm_campaign=geo-week-2027-conference-program-and-speaker-roster-announced",
       "datum": "2026-10-14"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "NSPS to Mark America’s 250th Anniversary with Mount Rushmore Celebration",
-      "perex": "Deadwood, South Dakota — The National Society of Professional Surveyors (NSPS), hosted by the South Dakota Society of Professional Land Surveyors, will gather in the Black Hills of South Dakota Octobe…",
-      "telo": "Deadwood, South Dakota — The National Society of Professional Surveyors (NSPS), hosted by the South Dakota Society of Professional Land Surveyors, will gather in the Black Hills of South Dakota October 18–20, 2026, for a special America 250th Celebration followed by the NSPS Fall Business Meeting. The event will bring together professional surveyors, NSPS leaders, young surveyors, state representatives, invited public officials, and guests from across the country for a day focused on the history, significance, and future of surveying in the United States. Activities begin Sunday, October 18, with registration and an opening social at The Lodge at Deadwood. The main celebration will take plac",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/10/06/nsps-to-mark-americas-250th-anniversary-with-mount-rushmore-celebration/?utm_source=rss&utm_medium=rss&utm_campaign=nsps-to-mark-americas-250th-anniversary-with-mount-rushmore-celebration",
-      "datum": "2026-10-06"
     }
   ]
 }
