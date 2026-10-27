@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-10-26",
-  "uvodnik": "Vydání 26. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-10-27",
+  "uvodnik": "Vydání 27. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,18 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Akce",
+      "top": false,
+      "nadpis": "Live Workshop: How Fast Can You Map? Lessons From Defense",
+      "perex": "When every minute counts, how quickly can aerial imagery be turned into accurate mapping products?",
+      "telo": "When every minute counts, how quickly can aerial imagery be turned into accurate mapping products? Join our guest Jacob Hut, Application Engineering Director at Phase One, as he shares lessons from rapid mapping workflows for defense applications. The session will examine the technologies and techniques used to accelerate the entire process, from imagery acquisition to final deliverables, while maintaining the accuracy and reliability required for demanding applications. Register here: https://hubs.ly/Q04B_yy20 Specifically, attendees will learn about: • Selecting aerial imaging technology for rapid mapping • Optimizing flight and imagery acquisition for faster results • Accelerating orthore",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/10/26/live-workshop-how-fast-can-you-map-lessons-from-defense/?utm_source=rss&utm_medium=rss&utm_campaign=live-workshop-how-fast-can-you-map-lessons-from-defense",
+      "datum": "2026-10-26"
     },
     {
       "rubrika": "Technologie",
@@ -84,18 +96,6 @@
       "proc": "",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/10/14/smart-buildings-media-limited-acquired-by-diversified/?utm_source=rss&utm_medium=rss&utm_campaign=smart-buildings-media-limited-acquired-by-diversified",
-      "datum": "2026-10-14"
-    },
-    {
-      "rubrika": "Akce",
-      "top": false,
-      "nadpis": "Geo Week 2027 Conference Program and Speaker Roster Announced",
-      "perex": "Sessions tackle AI realities, subsurface mapping, resilient infrastructure, workforce challenges and more, plus new Digital Insider Access option Salt Lake City, UT – October 13, 2026 — Organizers of…",
-      "telo": "Sessions tackle AI realities, subsurface mapping, resilient infrastructure, workforce challenges and more, plus new Digital Insider Access option Salt Lake City, UT – October 13, 2026 — Organizers of Geo Week , the premier conference and trade show for geospatial and mapping professionals, have announced the conference program and speaker lineup for the 2027 event, taking place February 23–25, 2027, at the Salt Palace Convention Center in Salt Lake City, Utah. This year’s program tackles the most pressing and complex issues in the industry, with sessions on AI-enhanced workflows, accessible reality capture, scan to BIM, subsurface mapping, bathymetric lidar, resilient infrastructure, data ac",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/10/14/geo-week-2027-conference-program-and-speaker-roster-announced/?utm_source=rss&utm_medium=rss&utm_campaign=geo-week-2027-conference-program-and-speaker-roster-announced",
       "datum": "2026-10-14"
     }
   ]
