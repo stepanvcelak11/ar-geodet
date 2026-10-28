@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-10-27",
-  "uvodnik": "Vydání 27. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-10-28",
+  "uvodnik": "Vydání 28. 10. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,66 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Agentic AI Has to Know Where It Is",
+      "perex": "Esri’s distinguished product manager for geospatial AI has been shipping AI inside ArcGIS since the ArcMap era.",
+      "telo": "Esri’s distinguished product manager for geospatial AI has been shipping AI inside ArcGIS since the ArcMap era. A conversation after this year’s User Conference covers the real difference between an AI assistant and an agent, why Esri built its own governance board around the distinction, and what MCP actually solves for a profession that can’t afford a plausible-sounding wrong answer. Image: Esri Assistant, Tool, or Agent Ismael Chivite, Esri’s distinguished product manager for geospatial AI, opened by drawing a line between two things the industry tends to lump together under the same word. “There are three fundamental areas,” Chivite said. “The first one relates to enhancing the user expe",
+      "body": [],
+      "proc": "",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/cartography-2/agentic-ai-has-to-know-where-it-is/",
+      "datum": "2026-10-27"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Digital Twins Are a Journey, Not a Product",
+      "perex": "Esri’s Technology Director for AEC spent roughly three decades on the industry side, most of it at Arcadis, before joining Esri to work the problem from the platform side.",
+      "telo": "Esri’s Technology Director for AEC spent roughly three decades on the industry side, most of it at Arcadis, before joining Esri to work the problem from the platform side. His case for digital twins starts with the mix of expertise required inside an AEC firm and ends with a flood-control system in South Florida he built before the term “digital twin” existed. Image: Esri Micah Callough spent roughly three decades on the industry side of AEC before joining Esri in 2019 — nearly 18 years at Arcadis, where he held a series of technology and digital-solutions leadership roles, with earlier geospatial work tied to Bechtel-run U.S. Department of Energy site services. “I think I’ve fought this fig",
+      "body": [],
+      "proc": "",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/aerialuas/digital-twins-are-a-journey-not-a-product/",
+      "datum": "2026-10-27"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "Leica Geosystems Launches Leica CS50 Field Controller and Leica Captivate 2027",
+      "perex": "(Heerbrugg, Switzerland, 27 October 2026) – Leica Geosystems, part of Hexagon, today introduced the Leica CS50 field controller and Leica Captivate 2027 field software, designed to help surveyors work…",
+      "telo": "(Heerbrugg, Switzerland, 27 October 2026) – Leica Geosystems, part of Hexagon, today introduced the Leica CS50 field controller and Leica Captivate 2027 field software, designed to help surveyors work more efficiently, maintain reliable positioning in challenging environments, and set out points with greater confidence. The CS50 keeps up with the demanding timelines of fieldwork, even when handling large survey datasets. Captivate 2027 adds AI-RTK for faster and more reliable GNSS positioning around obstructions, camera-based GNSS visual stakeout, and shared projects for efficient collaboration. Surveying crews increasingly need to work with large CAD and IFC files on site, measure close to",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/10/27/leica-geosystems-launches-leica-cs50-field-controller-and-leica-captivate-2027/?utm_source=rss&utm_medium=rss&utm_campaign=leica-geosystems-launches-leica-cs50-field-controller-and-leica-captivate-2027",
+      "datum": "2026-10-27"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Reality Capture Is Becoming the New Mapping Process",
+      "perex": "Esri’s CTO of Digital Twins spent years building the photogrammetry engine underneath ArcGIS Reality before Esri acquired his company outright.",
+      "telo": "Esri’s CTO of Digital Twins spent years building the photogrammetry engine underneath ArcGIS Reality before Esri acquired his company outright. A conversation after this year’s User Conference covers what changed when Gaussian splatting arrived, why survey-grade accuracy still matters in an AI-driven capture environment, and what a working geospatial digital twin actually looks like in Zurich. Reality capture is no longer merely a source of contextual imagery; it is becoming an operational mapping process. Konrad Wenzel’s path to that conclusion — and to becoming Esri’s CTO of Digital Twins — ran through a company he built himself. Wenzel holds a PhD in photogrammetry from the University of",
+      "body": [],
+      "proc": "",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/aerialuas/reality-capture-is-becoming-the-new-mapping-process/",
+      "datum": "2026-10-27"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Should Smart Pixels Store Data—or Simply Reference It?",
+      "perex": "Qassim Abdullah’s article on Smart Pixels in LIDAR Magazine prompted me to view the concept from a different perspective.",
+      "telo": "Qassim Abdullah’s article on Smart Pixels in LIDAR Magazine prompted me to view the concept from a different perspective. Having spent more than twenty years working with building imagery and computer vision applications, I found myself asking a different question from the one I believe the original article was addressing. Rather than asking how much information a Smart Pixel should contain, I began asking what role a Smart Pixel should play in connecting imagery to the knowledge associated with a building. For purposes of this article, a Smart Pixel is an image pixel that can be related to a location in the physical world and to information associated with that pixel’s location. Imagine a f",
+      "body": [],
+      "proc": "",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/10/27/should-smart-pixels-store-data-or-simply-reference-it/?utm_source=rss&utm_medium=rss&utm_campaign=should-smart-pixels-store-data-or-simply-reference-it",
+      "datum": "2026-10-27"
     },
     {
       "rubrika": "Akce",
@@ -37,66 +97,6 @@
       "zdroj": "LiDAR Magazine",
       "odkaz": "https://lidarmag.com/2026/10/23/mitigating-risk-and-prioritizing-work-for-distribution-vegetation-management-with-lidar-analysis/?utm_source=rss&utm_medium=rss&utm_campaign=mitigating-risk-and-prioritizing-work-for-distribution-vegetation-management-with-lidar-analysis",
       "datum": "2026-10-24"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "National Geospatial-Intelligence Agency Selects NV5 for Geophysical Data Purchasing and Survey Sourcing Contract",
-      "perex": "Single-award contract with a potential five-year term builds on NV5’s experience helping NGA acquire and deliver geophysical data supporting intelligence missions Houston, October 21, 2026 – NV5 , a T…",
-      "telo": "Single-award contract with a potential five-year term builds on NV5’s experience helping NGA acquire and deliver geophysical data supporting intelligence missions Houston, October 21, 2026 – NV5 , a TiC Solutions company and leading provider of geospatial software and services, today announced that it was awarded the National Geospatial‑Intelligence Agency’s (NGA) Geophysical Data Purchasing & Survey Sourcing (GDPSS) contract, an up-to-five-year single-award program supporting NGA’s acquisition of commercial geophysical data and survey services. NGA may acquire data and survey services under the contract as mission requirements arise. “We are honored by NGA’s continued confidence in NV5,” sa",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/10/22/national-geospatial-intelligence-agency-selects-nv5-for-geophysical-data-purchasing-and-survey-sourcing-contract/?utm_source=rss&utm_medium=rss&utm_campaign=national-geospatial-intelligence-agency-selects-nv5-for-geophysical-data-purchasing-and-survey-sourcing-contract",
-      "datum": "2026-10-23"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Drone Mapping and Local Voices Help Document and Preserve Ancient Maya Cities",
-      "perex": "Deep in the lush lowland forest of Belize, a small group of researchers, archaeologists, and students huddled around a computer in June 2025.",
-      "telo": "Deep in the lush lowland forest of Belize, a small group of researchers, archaeologists, and students huddled around a computer in June 2025. Damp with sweat and exhausted, covered in mosquito bites, they anxiously waited for images to appear on the screen. After two days spent collecting drone imagery, the results would determine the future of the newly formed Maya Mapping Collaborative . As a 3D model took shape before them, a collective cheer rang out. The Collaborative—led by experts from Auburn University , the University of Belize , and Belize’s Institute of Archaeology (IA)—had its first result: A 3D model of Altun Ha, forming the foundation of an archaeological digital twin. This spa",
-      "body": [],
-      "proc": "",
-      "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/10/21/drone-mapping-and-local-voices-help-document-and-preserve-ancient-maya-cities/?utm_source=rss&utm_medium=rss&utm_campaign=drone-mapping-and-local-voices-help-document-and-preserve-ancient-maya-cities",
-      "datum": "2026-10-22"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Mach9 Raises $34M Series A to Bring Civil Engineering into the AI Era",
-      "perex": "Most of America’s roads, utility poles, and power lines were designed to last 50 years.",
-      "telo": "Most of America’s roads, utility poles, and power lines were designed to last 50 years. That was 70 years ago. There has never been more to build and rebuild. San Francisco — October 21, 2026 — Mach9 , the AI CAD software for civil engineering, today announced a $34 million Series A co-led by First Round Capital and Bessemer Venture Partners, with participation from Prudence and continued participation from Quiet Capital. The new financing brings Mach9’s total funding to $49 million. The company will use the capital to expand its AI software for surveying and civil engineering as America faces a growing need to rebuild and maintain aging infrastructure. Much of America’s infrastructure was b",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/10/21/mach9-raises-34m-series-a-to-bring-civil-engineering-into-the-ai-era/?utm_source=rss&utm_medium=rss&utm_campaign=mach9-raises-34m-series-a-to-bring-civil-engineering-into-the-ai-era",
-      "datum": "2026-10-21"
-    },
-    {
-      "rubrika": "Z praxe",
-      "top": false,
-      "nadpis": "Trimble’s VRS Now Service is Now Available in Austria",
-      "perex": "Trimble is launching its Trimble® VRS Now service in Austria to provide 100% accurate and precise nationwide coverage and 24/7/365 network operations monitoring to ensure high availability and reliability.",
-      "telo": "Trimble is launching its Trimble® VRS Now service in Austria to provide 100% accurate and precise nationwide coverage and 24/7/365 network operations monitoring to ensure high availability and reliability. Trimble VRS Now is an instant, real-time network RTK correction service delivered via cellular connection. Powered by a fixed, highly redundant network of Continuously Operating Reference Stations (CORS), it gives operators sub-centimeter to centimeter-level accuracy (typically 2 cm horizontal and 3 cm vertical RMS) without needing a single physical base station on-site. By tracking full GNSS constellations, it ensures rapid convergence times and robust, dependable connectivity anywhere in",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/10/15/trimbles-vrs-now-service-is-now-available-in-austria/?utm_source=rss&utm_medium=rss&utm_campaign=trimbles-vrs-now-service-is-now-available-in-austria",
-      "datum": "2026-10-16"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "Smart Buildings Media Limited Acquired by Diversified",
-      "perex": "Diversified UK & Europe is pleased to announce the acquisition of Smart Buildings Media Limited (SBM).",
-      "telo": "Diversified UK & Europe is pleased to announce the acquisition of Smart Buildings Media Limited (SBM). The SBM portfolio consists of an event, Smart Buildings Show, and two digital publications, Smart Buildings Magazine and Smart Infrastructure Magazine. Held annually at Excel London, Smart Buildings Show is recognised as the leading event where the commercial smart buildings industry comes together. The event features over 100 exhibitors and 3,500 visitors, including professionals in energy management, IT & digital infrastructure, management & proptech, and controls. The digital publications support the industry and the event, reaching tens of thousands of subscribers each month. SBM’s even",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/10/14/smart-buildings-media-limited-acquired-by-diversified/?utm_source=rss&utm_medium=rss&utm_campaign=smart-buildings-media-limited-acquired-by-diversified",
-      "datum": "2026-10-14"
     }
   ]
 }
