@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-11-02",
-  "uvodnik": "Vydání 2. 11. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-11-03",
+  "uvodnik": "Vydání 3. 11. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,42 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "Carrying Forward a Lifetime of Service",
+      "perex": "Every year, floods, earthquakes, typhoons, and hurricanes cause unfathomable damage to communities all over the world.",
+      "telo": "Every year, floods, earthquakes, typhoons, and hurricanes cause unfathomable damage to communities all over the world. When they do, responders know whom to reach out to: GISCorps. A program of the Geospatial Professional Network (GPN), GISCorps has attracted over 12,000 prospective volunteers from 162 countries and launched more than 380 missions worldwide since 2003. But the organization does more than assist with disaster response. It also helps nonprofits develop maps and apps, review and collect datasets, conduct GIS training, and more. So far in 2026, more than 500 GISCorps volunteers have contributed their expertise to 14 completed disaster and non-disaster missions, with more in prog",
+      "body": [],
+      "proc": "",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/11/02/carrying-forward-a-lifetime-of-service/?utm_source=rss&utm_medium=rss&utm_campaign=carrying-forward-a-lifetime-of-service",
+      "datum": "2026-11-02"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Charting the Caribbean’s Future: How Lidar Data Is Transforming Climate Resilience Across the Region",
+      "perex": "By Dr. Mark Bynoe and Sven Cowan When a major storm sweeps across the Caribbean, coastlines can change in an instant.",
+      "telo": "By Dr. Mark Bynoe and Sven Cowan When a major storm sweeps across the Caribbean, coastlines can change in an instant. Beaches vanish. Cliffs shear away. Floodwaters push inland into neighborhoods and tourist meccas once considered safe. Climate change poses significant problems in the region. Damaging floods and storms have more than tripled since the early 2000s, resulting in countries suffering yearly losses equal to 17% of their GDP. This is seen as perpetual recession as the region grapples with this constant threat. View of Turneffe Atoll, Belize. Topobathymetric surface model colored by water depth while above ground areas are colored by co-acquired imagery. Image by Chris Miwa. For ye",
+      "body": [],
+      "proc": "",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/magazine/magazine-magazine/charting-the-caribbeans-future-how-lidar-data-is-transforming-climate-resilience-across-the-region/",
+      "datum": "2026-11-02"
+    },
+    {
+      "rubrika": "Přístroje",
+      "top": false,
+      "nadpis": "MONOPOLY: Surveying Edition",
+      "perex": "Get Kids into Survey is bringing the geospatial profession to the family games table with the launch of MONOPOLY: Surveying Edition, a new way for children and families to discover the people, technol…",
+      "telo": "Get Kids into Survey is bringing the geospatial profession to the family games table with the launch of MONOPOLY: Surveying Edition, a new way for children and families to discover the people, technology and projects that help shape the world around them. After months of planning, designing and collaboration with organisations from across the surveying and geospatial profession, Get Kids into Survey is delighted to announce that pre-orders for MONOPOLY: Surveying Edition are officially open. Created with a real-world mission behind the fun, MONOPOLY: Surveying Edition takes the familiar family game and puts the world of surveying firmly on the map. For Get Kids into Survey, the idea began wi",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/11/02/monopoly-surveying-edition/?utm_source=rss&utm_medium=rss&utm_campaign=monopoly-surveying-edition",
+      "datum": "2026-11-02"
     },
     {
       "rubrika": "Technologie",
@@ -60,42 +96,6 @@
       "proc": "",
       "zdroj": "xyHt",
       "odkaz": "https://www.xyht.com/aerialuas/digital-twins-are-a-journey-not-a-product/",
-      "datum": "2026-10-27"
-    },
-    {
-      "rubrika": "Z praxe",
-      "top": false,
-      "nadpis": "Leica Geosystems Launches Leica CS50 Field Controller and Leica Captivate 2027",
-      "perex": "(Heerbrugg, Switzerland, 27 October 2026) – Leica Geosystems, part of Hexagon, today introduced the Leica CS50 field controller and Leica Captivate 2027 field software, designed to help surveyors work…",
-      "telo": "(Heerbrugg, Switzerland, 27 October 2026) – Leica Geosystems, part of Hexagon, today introduced the Leica CS50 field controller and Leica Captivate 2027 field software, designed to help surveyors work more efficiently, maintain reliable positioning in challenging environments, and set out points with greater confidence. The CS50 keeps up with the demanding timelines of fieldwork, even when handling large survey datasets. Captivate 2027 adds AI-RTK for faster and more reliable GNSS positioning around obstructions, camera-based GNSS visual stakeout, and shared projects for efficient collaboration. Surveying crews increasingly need to work with large CAD and IFC files on site, measure close to",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/10/27/leica-geosystems-launches-leica-cs50-field-controller-and-leica-captivate-2027/?utm_source=rss&utm_medium=rss&utm_campaign=leica-geosystems-launches-leica-cs50-field-controller-and-leica-captivate-2027",
-      "datum": "2026-10-27"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Reality Capture Is Becoming the New Mapping Process",
-      "perex": "Esri’s CTO of Digital Twins spent years building the photogrammetry engine underneath ArcGIS Reality before Esri acquired his company outright.",
-      "telo": "Esri’s CTO of Digital Twins spent years building the photogrammetry engine underneath ArcGIS Reality before Esri acquired his company outright. A conversation after this year’s User Conference covers what changed when Gaussian splatting arrived, why survey-grade accuracy still matters in an AI-driven capture environment, and what a working geospatial digital twin actually looks like in Zurich. Reality capture is no longer merely a source of contextual imagery; it is becoming an operational mapping process. Konrad Wenzel’s path to that conclusion — and to becoming Esri’s CTO of Digital Twins — ran through a company he built himself. Wenzel holds a PhD in photogrammetry from the University of",
-      "body": [],
-      "proc": "",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/reality-capture-is-becoming-the-new-mapping-process/",
-      "datum": "2026-10-27"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Should Smart Pixels Store Data—or Simply Reference It?",
-      "perex": "Qassim Abdullah’s article on Smart Pixels in LIDAR Magazine prompted me to view the concept from a different perspective.",
-      "telo": "Qassim Abdullah’s article on Smart Pixels in LIDAR Magazine prompted me to view the concept from a different perspective. Having spent more than twenty years working with building imagery and computer vision applications, I found myself asking a different question from the one I believe the original article was addressing. Rather than asking how much information a Smart Pixel should contain, I began asking what role a Smart Pixel should play in connecting imagery to the knowledge associated with a building. For purposes of this article, a Smart Pixel is an image pixel that can be related to a location in the physical world and to information associated with that pixel’s location. Imagine a f",
-      "body": [],
-      "proc": "",
-      "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/10/27/should-smart-pixels-store-data-or-simply-reference-it/?utm_source=rss&utm_medium=rss&utm_campaign=should-smart-pixels-store-data-or-simply-reference-it",
       "datum": "2026-10-27"
     }
   ]
