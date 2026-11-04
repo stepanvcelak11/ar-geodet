@@ -470,9 +470,35 @@ if ('serviceWorker' in navigator) {
             try { h = JSON.parse(localStorage.getItem('agKodHistory') || '[]'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agKodHistory'); }
             if (!Array.isArray(h)) h = [];
             AG_KOD_DEFAULTS.forEach(k => { if (h.indexOf(k) < 0) h.push(k); });
-            return h.slice(0, 12);
+            // kódovník z kanceláře má přednost (jeho kódy kancelář umí nakreslit)
+            const kv = agKodovnik().map(x => x.kod);
+            if (kv.length) h = kv.concat(h.filter(k => kv.indexOf(k) < 0 && AG_KOD_DEFAULTS.indexOf(k) < 0));
+            return h.slice(0, kv.length ? Math.max(12, kv.length) : 12);
         }
+        // KÓDOVÁNÍ PRO KRESBU V KANCELÁŘI (Kontrola výkresu → CAD, kresba z kódů):
+        // stejný kód = body se spojí do linie v pořadí měření; přípona /Z začne novou linii,
+        // /K ji ukončí, /U ji uzavře (budova). Do historie se pamatuje kód BEZ přípony.
+        function agKodZaklad(kod) { return String(kod || '').trim().replace(/\/[ZKUzku]$/, '').trim(); }
+        window.agKodZaklad = agKodZaklad;
+        // kódovník z kanceláře (CSV „kod;popis;druh;…" z Kontroly výkresu) — kódy jdou do nabídky jako první
+        function agKodovnik() {
+            try { var k = JSON.parse(localStorage.getItem('agKodovnik') || '[]'); return Array.isArray(k) ? k : []; } catch (e) { return []; }
+        }
+        function agKodovnikZTextu(text) {
+            var out = [], videno = {};
+            String(text || '').replace(/^\uFEFF/, '').split(/\r?\n/).forEach(function (r, i) {
+                var c = r.split(r.indexOf(';') >= 0 ? ';' : ',').map(function (x) { return x.trim().replace(/^"|"$/g, ''); });
+                var kod = c[0] || '';
+                if (!kod || (i === 0 && /^k[oó]d$/i.test(kod)) || videno[kod.toUpperCase()]) return;
+                videno[kod.toUpperCase()] = 1;
+                out.push({ kod: kod.slice(0, 60), popis: (c[1] || '').slice(0, 80), druh: (c[2] || '').toLowerCase() });
+            });
+            return out;
+        }
+        window.agKodovnik = agKodovnik; window.agKodovnikZTextu = agKodovnikZTextu;
         function agKodRemember(kod) {
+            kod = agKodZaklad(kod);
+            if (!kod) return;
             try {
                 let h = []; try { h = JSON.parse(localStorage.getItem('agKodHistory') || '[]'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agKodRemember'); }
                 if (!Array.isArray(h)) h = [];
@@ -486,6 +512,8 @@ if ('serviceWorker' in navigator) {
             const nm = document.getElementById('custom-name');
             if (nm) { nm.value = agNextSerieName(); if (nm.value) { nm.dataset.agAutofill = '1'; nm.addEventListener('input', function () { delete nm.dataset.agAutofill; }, { once: true }); } }
             ['custom-y', 'custom-x', 'custom-z'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            // kód zůstane (další bod téže linie), jen bez přípony /Z /K /U — ta platí pro jeden bod
+            { const kd = document.getElementById('custom-kod'); if (kd && kd.value) { kd.value = agKodZaklad(kd.value); try { if (window.agRenderKodRidici) agRenderKodRidici(); } catch (e) { } } }
             const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none';
             pendingPointAccuracy = null; window._agPointOrigin = null;
             try { if (typeof resetNewPointExtras === 'function') resetNewPointExtras(null); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agPrepNextPoint'); }

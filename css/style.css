@@ -2898,6 +2898,8 @@ body.outdoor-mode #map.base-osm .map-label-text {
 }
 .kod-chip:active { transform: scale(0.96); }
 body.light-mode .kod-chip { background: rgba(0, 0, 0, 0.05); }
+.kod-chip-on { outline: 2px solid var(--accent); font-weight: 600; }
+.kod-ridici-tip { flex-basis: 100%; font-size: calc(11.5px * var(--ag-font-scale, 1)); opacity: 0.75; }
 .cp-kod {
     display: inline-block;
     margin-left: 6px;

@@ -1850,11 +1850,61 @@ function TT(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } 
             const h = window.agKodHistory();
             dl.innerHTML = h.map(k => '<option value="' + _escHtml(k) + '">').join('');
             box.innerHTML = ''; box.style.display = h.length ? 'flex' : 'none';
-            h.slice(0, 6).forEach(k => {
+            const kv = (typeof window.agKodovnik === 'function') ? window.agKodovnik() : [];
+            const popisy = {}; kv.forEach(x => { popisy[x.kod] = x.popis + (x.druh ? ' (' + x.druh + ')' : ''); });
+            h.slice(0, kv.length ? 16 : 6).forEach(k => {
                 const b = document.createElement('button'); b.type = 'button'; b.className = 'kod-chip'; b.textContent = k;
-                b.onclick = () => { inp.value = (inp.value.trim() === k) ? '' : k; };
+                if (popisy[k]) b.title = popisy[k];
+                b.onclick = () => { const z = window.agKodZaklad ? agKodZaklad(inp.value) : inp.value.trim(); inp.value = (z === k) ? '' : k; agRenderKodRidici(); };
                 box.appendChild(b);
             });
+            agRenderKodRidici();
+        }
+        // Řízení linie pro kresbu z kódů v kanceláři: /Z začátek, /K konec, /U uzavřít (např. budova)
+        function agRenderKodRidici() {
+            const inp = document.getElementById('custom-kod'), box = document.getElementById('kod-chips');
+            if (!inp || !box || !box.parentNode) return;
+            let r = document.getElementById('kod-ridici');
+            if (!r) {
+                r = document.createElement('div'); r.id = 'kod-ridici'; r.className = 'kod-chips';
+                box.parentNode.insertBefore(r, box.nextSibling);
+                inp.addEventListener('input', agRenderKodRidici);
+            }
+            const zaklad = window.agKodZaklad ? agKodZaklad(inp.value) : inp.value.trim();
+            const m = /\/([ZKU])$/i.exec(inp.value.trim()); const akt = m ? m[1].toUpperCase() : '';
+            r.innerHTML = '';
+            r.style.display = zaklad ? 'flex' : 'none';
+            [['Z', TT('▶ Začátek linie')], ['K', TT('■ Konec linie')], ['U', TT('⟲ Uzavřít')]].forEach(([p, t]) => {
+                const b = document.createElement('button'); b.type = 'button'; b.className = 'kod-chip' + (akt === p ? ' kod-chip-on' : '');
+                b.textContent = t; b.setAttribute('aria-pressed', akt === p ? 'true' : 'false');
+                b.title = TT('Kód se uloží jako „{k}" — v kanceláři (Kontrola výkresu → CAD) se z kódů nakreslí linie', { k: zaklad + '/' + p });
+                b.onclick = () => { inp.value = (akt === p) ? zaklad : zaklad + '/' + p; agRenderKodRidici(); };
+                r.appendChild(b);
+            });
+            const n = document.createElement('span'); n.className = 'kod-ridici-tip';
+            n.textContent = TT('Stejný kód = body se spojí do linie.');
+            r.appendChild(n);
+            const imp = document.createElement('button'); imp.type = 'button'; imp.className = 'kod-chip';
+            imp.textContent = TT('Načíst kódovník…'); imp.title = TT('Kódovník z Kontroly výkresu (kodovnik.csv) — jeho kódy kancelář umí nakreslit');
+            imp.onclick = agImportKodovnik;
+            r.appendChild(imp);
+        }
+        window.agRenderKodRidici = agRenderKodRidici;
+        function agImportKodovnik() {
+            const f = document.createElement('input'); f.type = 'file'; f.accept = '.csv,.txt,text/csv,text/plain';
+            f.onchange = () => {
+                const file = f.files && f.files[0]; if (!file) return;
+                const rd = new FileReader();
+                rd.onload = () => {
+                    const kv = window.agKodovnikZTextu ? agKodovnikZTextu(rd.result) : [];
+                    if (!kv.length) return agInfo(TT('V souboru není žádný kód (čeká se CSV „kód;popis;druh" z Kontroly výkresu).'));
+                    try { localStorage.setItem('agKodovnik', JSON.stringify(kv.slice(0, 200))); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:kodovnik'); }
+                    agRenderKodChips();
+                    agInfo(TT('Načteno {n} kódů z kódovníku — nabízejí se u bodu jako první.', { n: kv.length }));
+                };
+                rd.readAsText(file, 'utf-8');
+            };
+            f.click();
         }
         // Spolecna priprava formulare bodu: kod, chipy, tlacitko „Uložit a další", predvyplneni serie
         function agSetupPointForm(editPt, allowNext) {
