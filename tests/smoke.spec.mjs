@@ -72,6 +72,8 @@ async function bootApp(page, context) {
             // brifink.js vůbec nečte — potlačení tedy nefungovalo.
             localStorage.setItem('agBrifinkAuto', '0');
             localStorage.setItem('agBrifinkLastShown', new Date().toISOString().slice(0, 10));
+            // Úvodní obrazovka Domů (js/domov.js) je taky celoobrazovková — v testech vypnutá.
+            localStorage.setItem('agDomov_v1', JSON.stringify({ auto: false }));
         } catch (e) { }
         // Značka „odložené moduly jsou dotažené". Většina nástrojů se načítá až po
         // vykreslení (js/lazy-load.js) a test, který na to nepočká, hlásí náhodně
@@ -593,6 +595,7 @@ async function bootLogin(page, context, failZaznam, odpoved) {
             localStorage.setItem('agFirma_v1', JSON.stringify(f));
             localStorage.setItem('agTutProSeen', '1');
             localStorage.setItem('agBrifinkAuto', '0');
+            localStorage.setItem('agDomov_v1', JSON.stringify({ auto: false }));
             if (z === null) localStorage.removeItem('agLoginFail_v1');
             else localStorage.setItem('agLoginFail_v1', JSON.stringify(z));
         } catch (e) { }
