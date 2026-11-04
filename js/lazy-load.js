@@ -266,6 +266,18 @@
         collect();
         if (!queue.length) return;
 
+        // VLASTNÍ MAPA HNED (4. 11. 2026, „mapa se mi načítá pomalu… problikne"): styl a mapa
+        // (js/mapa-styl.js, js/mapa-vektor.js) čekaly ve frontě až na START_MS po `load` + nečinnost,
+        // takže první ~2,5 s byl pod body prázdný podklad. Mapa je to první, co člověk po startu
+        // vidí — pouští se hned (knihovny MapLibre jdou z telefonu, sw.js je drží v LIB_CACHE).
+        // Kdo si mapu vypnul (agMapaVektor_v1.zap === false), ten čeká jako dřív; stejně tak start na
+        // přihlašovací bráně (bez přihlášení agFirmaSess_v1) — klepnutí na bráně frontu dotlačí samo (flushOn).
+        try {
+            var mv = null; try { mv = JSON.parse(localStorage.getItem('agMapaVektor_v1') || 'null'); } catch (e0) { mv = null; }
+            var sess = null; try { sess = localStorage.getItem('agFirmaSess_v1'); } catch (e1) { sess = null; }
+            if (sess && !(mv && mv.zap === false)) { need('js/mapa-styl.js'); need('js/mapa-vektor.js'); }
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'lazy-load:mapa'); }
+
         // Flush na první dotek ovládání, které nástroje potřebuje. Capture, ať to
         // stihneme dřív než inline onclick dlaždice.
         var flushOn = function (e) {
@@ -372,6 +384,7 @@
     window.AGLazy = {
         flush: flush,
         need: need,
-        pending: function () { return queue.map(function (q) { return q.src; }); }
+        pending: function () { return queue.map(function (q) { return q.src; }); },
+        hotovo: function () { return finished; }   // fronta prázdná a vše doběhlo (testy: scripts/test_mapa_vektor.py cekej)
     };
 })();

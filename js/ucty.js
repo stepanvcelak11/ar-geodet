@@ -3012,6 +3012,46 @@
         var left = trustLeft(t);
         if (left <= 3) setTimeout(function () { toast(T('Přihlášen jako {n} · za {k} spuštění bude potřeba heslo', { n: u.name, k: left })); }, 1200);
     }
+    // ------------------------------------------------------------------
+    // FACE ID BEZ SIGNÁLU (4. 11. 2026, uživatel: „když se chci přihlásit pomocí Face ID, musím mít
+    // zapnutá data, offline to nefunguje"). Přihlášení přístupovým klíčem (js/passkey.js) chtělo
+    // výzvu ze serveru — bez signálu tedy neprošlo nikdy. Offline telefon klíč ověří sám (stejně
+    // jako „Odemknout telefonem") a sem přijde jen id uživatele, kterému klíč na TOMHLE zařízení
+    // patří (zapamatované při zapnutí / prvním přihlášení se signálem). Pustí se dovnitř stejně
+    // jako po hesle offline: session + oprávnění, token zůstává z posledního přihlášení.
+    // → true = přihlášen, false = tenhle uživatel tu není (žádná firma v telefonu ho nezná)
+    function mistniPrihlaseni(userId) {
+        if (!userId) return false;
+        function najdi(f) {
+            if (!f || !f.users) return null;
+            for (var i = 0; i < f.users.length; i++) if (f.users[i].id === userId) return f.users[i].disabled ? null : f.users[i];
+            return null;
+        }
+        var u = najdi(getFirm());
+        if (!u) {
+            // jiný profil (firma) v telefonu? přepnout na něj a zkusit znovu
+            var a = listProfiles();
+            for (var i = 0; i < a.length && !u; i++) {
+                var f2 = null; try { f2 = JSON.parse((a[i].snap || {})[LS_FIRM] || 'null'); } catch (e) { f2 = null; }
+                if (najdi(f2) && switchProfile(a[i].key)) u = najdi(getFirm());
+            }
+        }
+        if (!u) return false;
+        clearGuest();
+        setSess({ userId: u.id, ts: Date.now() });
+        try { localStorage.setItem('arSurveyor', u.name); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:mistni'); }
+        try { localStorage.setItem(LS_LAST, u.id); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:mistni'); }
+        rememberDevUser(u.id);
+        ['ag-gate', 'ag-login'].forEach(function (id) { var el = document.getElementById(id); if (el) el.remove(); });
+        _touchActivity();
+        applyPerms();
+        try { applyProjPerms(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:mistni'); }
+        usageLog('login', 'passkey-offline');
+        try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: u, kind: 'bio', passkey: true, offline: true } })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:mistni'); }
+        enterApp();
+        return true;
+    }
+
     function logout() {
         // Vlastník se odhlašuje jako každý jiný — vrátí se brána a chce se klíč
         // znovu. Uložený příznak se NEMAŽE (ten se ruší v konzoli, položkou
@@ -3179,7 +3219,10 @@
         // Face ID / odemknutí telefonem (WebAuthn) — pro vlastníka (js/vlastnik.js)
         bio: { supported: bioSupported, available: bioAvailable, enroll: bioEnroll, verify: bioVerify, forget: bioForget,
             // js/passkey.js: klíč „QTRIG vlastník“ ze serveru slouží i jako místní odemknutí (zlaté tlačítko)
-            remember: function (userId, credId) { if (!userId || !credId) return; var o = bioStore(); o[userId] = { id: String(credId), ts: Date.now() }; bioSave(o); } },
+            remember: function (userId, credId) { if (!userId || !credId) return; var o = bioStore(); o[userId] = { id: String(credId), ts: Date.now() }; bioSave(o); },
+            // js/passkey.js offline: komu na tomhle zařízení patří klíč s tímhle id (null = nikomu)
+            kdo: function (credId) { var o = bioStore(); for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k) && o[k] && o[k].id === String(credId)) return k; return null; } },
+        mistniPrihlaseni: mistniPrihlaseni,   // js/passkey.js — Face ID bez signálu
         listProfiles: listProfiles,
         profileLimit: profileLimit,
         switchProfile: switchProfile,

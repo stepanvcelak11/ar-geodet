@@ -125,8 +125,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=416">
-    <link rel="stylesheet" href="css/style.css?v=416">
+    <link rel="stylesheet" href="css/tokens.css?v=418">
+    <link rel="stylesheet" href="css/style.css?v=418">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -257,7 +257,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=416">
+    <link rel="stylesheet" href="css/vylepseni.css?v=418">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -925,6 +925,9 @@
                         <label class="st-sw"><input type="checkbox" id="s-lefthand"><span class="st-sw-face"></span></label></div>
                     <div class="st-row"><span class="st-lab">Vibrace<small>potvrzení uložení bodu a ťuknutí v AR (iPhone vibrace neumí)</small></span>
                         <label class="st-sw"><input type="checkbox" id="s-vibration" checked onchange="toggleVibration()"><span class="st-sw-face"></span></label></div>
+                    <!-- ŘAZENÍ NÁSTROJŮ PODLE POUŽÍVÁNÍ (4. 11. 2026): obsluhuje js/field-tools.js (agToolSort_v1) -->
+                    <div class="st-row"><span class="st-lab">Řadit nástroje podle používání<small>v každé skupině Nástrojů jsou nahoře ty, které otevíráš nejčastěji</small></span>
+                        <label class="st-sw"><input type="checkbox" id="s-tool-sort" checked><span class="st-sw-face"></span></label></div>
                 </div>
                 <!-- VÝKON A BATERIE (nová stránka): karty Slabší telefon (js/slabsi-telefon.js) a Úspora
                      baterie (js/power-save.js) sem stěhuje poradek; vlastní nadpisy karet zůstávají. -->
@@ -1449,6 +1452,9 @@
     <script type="ag/lazy" data-src="js/hrany.js"></script>
     <script type="ag/lazy" data-src="js/prichyceni.js"></script>
     <script type="ag/lazy" data-src="js/hrana-auto.js"></script>
+    <!-- HLÍDAČ SKOKŮ GPS (4. 11. 2026): fix dál, než dovolují kroky od posledního dobrého fixu =
+         skok u budovy → poloha jde podle kroků a kompasu (háček v logika.js, odpojitelné: smaž řádek + soubor). -->
+    <script type="ag/lazy" data-src="js/hlidac-skoku.js"></script>
     <!-- HLÍDAČ OKOLÍ (16. 9. 2026, B2): u budovy / uvnitř / pod stromy / u kolejí / u ruční překážky
          řekne, co to dělá s GPS; překážky dvěma klepnutími (tlačítko v panelu Vrstvy). -->
     <script type="ag/lazy" data-src="js/hlidac-okoli.js"></script>
@@ -1499,6 +1505,10 @@
     <script defer src="js/licence.js"></script>
     <!-- TERÉNNÍ NÁSTROJE (odpojitelné) — launcher field-tools.js MUSÍ být první, registrují se do něj -->
     <script defer src="js/field-tools.js"></script>
+    <!-- DOMŮ (4. 11. 2026): úvodní obrazovka PO přihlášení — počasí, zakázka, poznámky, sdílení,
+         nastavení před výjezdem; appka pod ní nabíhá. Hned (ne ag/lazy), ať se ukáže se startem.
+         Odpojitelné: smaž řádek + js/domov.js. -->
+    <script defer src="js/domov.js"></script>
     <!-- DELENE NACITANI NASTROJU (odpojitelne) — misto 10 samostatnych <script>
          radku (~362 kB pri kazdem startu) zapise zastupne dlazdice a skutecny
          soubor stahne az pri prvnim klepnuti. Soubory zustavaji v predcache

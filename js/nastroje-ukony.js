@@ -498,6 +498,31 @@
         } catch (e) { return false; }
     }
 
+    // ---- ŘAZENÍ PODLE POUŽÍVÁNÍ (4. 11. 2026, přání uživatele) --------------------------
+    // Na každé stránce slovesa jdou nahoru nástroje, které člověk otevírá nejčastěji
+    // (počítadlo agToolUsage_v1 z js/field-tools.js, aspoň 2 použití); rozcestník počítá
+    // součet svých položek. Stránky (slovesa) zůstávají na místě, ★ Připnuté se neřadí.
+    // Vypínač: Nastavení → Ovládání → „Řadit nástroje podle používání" (agToolSort_v1).
+    function pouziti() { try { var o = JSON.parse(localStorage.getItem('agToolUsage_v1')); return (o && typeof o === 'object') ? o : {}; } catch (e) { return {}; } }
+    function razeniZap() { try { return localStorage.getItem('agToolSort_v1') !== '0'; } catch (e) { return true; } }
+    function skoreK(k, u) {
+        var n = u[k] || 0;
+        if (HUB[k]) { try { ((window.AGReg && AGReg.hubItems) ? AGReg.hubItems(k) : []).forEach(function (x) { n += u[x] || 0; }); } catch (e) { /* nic */ } }
+        return n >= 2 ? n : 0;
+    }
+    function seradDleUziti(items) {
+        if (!razeniZap()) return items;
+        var u = pouziti();
+        return items.map(function (it, i) { return { it: it, s: skoreK(it.k, u), i: i }; })
+            .sort(function (a, b) { return (b.s - a.s) || (a.i - b.i); })
+            .map(function (x) { return x.it; });
+    }
+    function poradiSig() {
+        if (!razeniZap()) return 'x';
+        var u = pouziti(), ks = Object.keys(u).filter(function (k) { return u[k] >= 2; });
+        ks.sort(function (a, b) { return (u[b] - u[a]) || (a < b ? -1 : 1); });
+        return ks.slice(0, 60).join(',');
+    }
     function gridSig() {
         var g = grid(); if (!g) return '';
         var tiles = g.querySelectorAll('.tool-tile'), out = [];
@@ -510,7 +535,7 @@
         try { own = (window.AGVlastnik && AGVlastnik.isOn && AGVlastnik.isOn()) ? '1' : '0'; } catch (e) { own = '0'; }
         try { kdo = (window.AGProfilOsoby && AGProfilOsoby.get()) || ''; } catch (e) { kdo = ''; }
         try { if (window.AGGesta && AGGesta.get) { var gg = AGGesta.get(); gz = (gg.off ? 'x' : gg.prefix) + JSON.stringify(gg.map || {}); } } catch (e) { gz = ''; }
-        return out.join(',') + '|f:' + favKeys().join(',') + '|p:' + profileKeys().join(',') + '|pro:' + pro + '|own:' + own + '|kdo:' + kdo + '|g:' + gz + '|z:' + zemeKod() + '|b:' + ((bodKarty() || {}).id || '');   // n7: jiná karta bodu = jiné nástroje nahoře
+        return out.join(',') + '|u:' + poradiSig() + '|f:' + favKeys().join(',') + '|p:' + profileKeys().join(',') + '|pro:' + pro + '|own:' + own + '|kdo:' + kdo + '|g:' + gz + '|z:' + zemeKod() + '|b:' + ((bodKarty() || {}).id || '');   // n7: jiná karta bodu = jiné nástroje nahoře
     }
 
     // ---- řádek nástroje -------------------------------------------------------------------
@@ -839,6 +864,7 @@
                 return true;
             });
             if (!volne.length) return;                      // celé sloveso je za peníze → jen na Pro
+            volne = seradDleUziti(volne);
             if (DO_DALSI[grp.t]) { dalsiSekce.push({ grp: grp, volne: volne }); return; }
             var sec = page(grp.t, grp.t, KRATCE[grp.t] || grp.t);
             heading(sec, grp.t, volne.length);
@@ -947,6 +973,7 @@
         }
 
         host.setAttribute('data-sig', gridSig());
+        _spinavy = false;
         host.setAttribute('data-moje-prazdne', mojePrazdne ? '1' : '0');
         adoptRp();
         // posluchač tahu — jednou na pás (pás se staví s každou přestavbou znovu)
@@ -999,7 +1026,7 @@
         if (_otevreno && !_byloOtevreno) { curPage = PAGE_MOJE; sbalHuby(); if (host) go(PAGE_MOJE, true); }
         var _prvniOtevreni = _otevreno && !_byloOtevreno;
         _byloOtevreno = _otevreno;
-        if (_otevreno && active === 'ukony' && (!host || host.getAttribute('data-sig') !== gridSig())) build();
+        if (_otevreno && active === 'ukony' && (_spinavy || !host || host.getAttribute('data-sig') !== gridSig())) build();
         // Prázdné Moje (nový uživatel) → rovnou první sloveso, ať je vidět nástroj (18. 9. 2026, N3)
         if (_prvniOtevreni && active === 'ukony') {
             try {
@@ -1013,7 +1040,21 @@
         //   to se 8. 9. 2026 stalo každému, kdo okno otevřel jinak než klepnutím.
         document.body.classList.toggle('ag-uk-on',
             active === 'ukony' && !!document.getElementById(LIST_ID));
-        if (active === 'ukony') { adoptRp(); fitHeight(); }
+        // ⚠ VÝŠKA JEN V OTEVŘENÉM OKNĚ (4. 11. 2026, profil startu): fitHeight() čte offsetHeight,
+        //   tedy vynutí přepočet rozvržení — v zavřeném okně každých 1400 ms pro nic
+        //   (naměřeno 85 ms za prvních 15 s na slabém telefonu).
+        if (active === 'ukony' && _otevreno) { adoptRp(); fitHeight(); }
+    }
+    // ⚠ PŘESTAVBA NA ŽÁDOST ZVENKU SE V ZAVŘENÉM OKNĚ JEN POZNAMENÁ (4. 11. 2026, profil startu).
+    //   js/moje-aktivita.js volá rebuild() při startu třikrát (seedHidden → saveHidden →
+    //   enforceHidden) a každé volání skládalo celý seznam do okna, které nikdo neotevřel:
+    //   ~300 ms hlavního vlákna na slabém telefonu. Postaví se při otevření okna (sync).
+    var _spinavy = false;
+    function rebuildZvenku() {
+        var m = modal();
+        var otevreno = !!(m && m.style.display && m.style.display !== 'none');
+        if (!otevreno) { _spinavy = true; return; }
+        build();
     }
 
     // Okno Nástrojů se otevírá inline onclickem (index.html), takže na něj není
@@ -1080,7 +1121,7 @@
     // mapy sloves a spouštějí nástroje STEJNOU cestou (klik na původní dlaždici).
     window.AGUkony = {
         _karta: function () { return { karta: _karta, bodOkna: _bodOkna }; },   // pro testy (n7)
-        rebuild: build,
+        rebuild: rebuildZvenku,
         setView: function () { sync(); },   // no-op po zrušení přepínače pohledů (starší volání)
         groups: GROUPS,
         run: run,

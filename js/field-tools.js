@@ -306,10 +306,80 @@
             }
         }
         flushHead();
+        try { seradPodlePouziti(grid, q, usage); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'field-tools:serad'); }
         try { document.body.classList.toggle('ag-ft-searching', !!q); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'field-tools:searching'); }
         var emptyMsg = ensureEmptyMsg(grid);
         emptyMsg.classList.toggle('on', !!q && !anyHit);
     }
+    // ---- ŘAZENÍ PODLE POUŽÍVÁNÍ (4. 11. 2026, přání uživatele) ---------------------------
+    // Uvnitř KAŽDÉ skupiny jdou nahoru nástroje, které člověk otevírá nejčastěji; skupiny
+    // samy zůstávají na svém místě (řádek „Nejčastější" nad mřížkou byl na přání ODEBRÁN,
+    // tohle ho nevrací — nic nového nepřibývá, jen se mění pořadí v rámci skupiny).
+    // ★ Oblíbené se neřadí: tam pořadí určuje člověk.
+    // Mřížka je CSS grid → stačí `order`; DOM se nepřesouvá (moduly ho hlídají podle id).
+    // Pořadí dostává KAŽDÝ potomek mřížky (nadpisy i cizí prvky), jinak by order 0 skočil nahoru.
+    // Počítá se jen nástroj použitý aspoň 2× — jednorázové klepnutí nic nepřehází.
+    var SORT_KEY = 'agToolSort_v1';
+    function razeniZap() { try { return localStorage.getItem(SORT_KEY) !== '0'; } catch (e) { return true; } }
+    // ⚠ Mřížku přeskupují i jiné moduly (★ Oblíbené v js/tools-plus.js přesouvá dlaždice
+    //   pod svůj nadpis, Jednoduché nástroje schovávají…) a applyFilter po nich nevolají.
+    //   Dlaždice by si nesla `order` ze staré skupiny a ukázala se na starém místě —
+    //   proto se po každé změně potomků pořadí přepočítá (změna `order` childList nespouští).
+    var _mo = null, _moTmr = null;
+    function hlidejMrizku(grid) {
+        if (_mo && _mo._grid === grid) return;
+        if (_mo) _mo.disconnect();
+        if (typeof MutationObserver === 'undefined') return;
+        _mo = new MutationObserver(function () {
+            if (_moTmr) return;
+            _moTmr = setTimeout(function () {
+                _moTmr = null;
+                var inp = document.getElementById('tools-search');
+                try { seradPodlePouziti(grid, norm(inp ? inp.value : ''), loadUsage()); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'field-tools:mo'); }
+            }, 30);
+        });
+        _mo._grid = grid;
+        _mo.observe(grid, { childList: true });
+    }
+    function seradPodlePouziti(grid, q, usage) {
+        hlidejMrizku(grid);
+        var kids = grid.children, i, el;
+        var isTile = function (x) { return x.classList.contains('tool-tile') || x.classList.contains('ag-ft-tile'); };
+        if (q || !razeniZap()) {
+            // při hledání řadí relevance (jen dlaždice); jinde pořadí z DOMu
+            for (i = 0; i < kids.length; i++) { el = kids[i]; if (q ? !isTile(el) : true) el.style.order = ''; }
+            return;
+        }
+        var seq = 0, sekce = null, oblibene = false;
+        function zavri() {
+            if (!sekce) return;
+            if (!oblibene) sekce.sort(function (a, b) { return (b.u - a.u) || (a.i - b.i); });
+            for (var k = 0; k < sekce.length; k++) sekce[k].el.style.order = String(++seq);
+            sekce = null;
+        }
+        for (i = 0; i < kids.length; i++) {
+            el = kids[i];
+            if (isTile(el)) {
+                if (!sekce) sekce = [];
+                var u = usage[tileToolKey(el)] || 0;
+                sekce.push({ el: el, u: u >= 2 ? u : 0, i: i });
+                continue;
+            }
+            zavri();
+            if (el.classList.contains('tool-cat') || el.classList.contains('ag-ft-head')) oblibene = el.id === 'ag-fav-head';
+            el.style.order = String(++seq);
+        }
+        zavri();
+    }
+    document.addEventListener('change', function (e) {
+        if (!e.target || e.target.id !== 's-tool-sort') return;
+        try { localStorage.setItem(SORT_KEY, e.target.checked ? '1' : '0'); } catch (er) { window.AG && AG.swallow && AG.swallow(er, 'field-tools:sortSave'); }
+        applyFilter();
+    });
+    // vypínač v Nastavení → Ovládání je statický řádek v index.html; stav se mění jen jím samým
+    function syncSortCb() { var cb = document.getElementById('s-tool-sort'); if (cb) cb.checked = razeniZap(); }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncSortCb); else syncSortCb();
+    window.AGRazeniNastroju = { zap: razeniZap, serad: function () { applyFilter(); } };
     window.agFilterTools = applyFilter;
     // Enter ve vyhledávání = otevřít nejlepší zásah
     document.addEventListener('keydown', function (e) {

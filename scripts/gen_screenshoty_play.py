@@ -93,7 +93,7 @@ def boot_script():
 try {
   localStorage.setItem('agVlastnik_v1','1');        // rezim vlastnika: bez brany, vse povoleno
   localStorage.setItem('agTutProSeen','1');         // bez uvodniho tutorialu pres obrazovku
-  localStorage.setItem('agBrifinkAuto','0');        // rannni brifink neotevirat sam
+  localStorage.setItem('agBrifinkAuto','0'); localStorage.setItem('agDomov_v1',JSON.stringify({auto:false}));        // rannni brifink neotevirat sam
   localStorage.setItem('arSurveyor','Stepan');
   localStorage.setItem('arLastPos', JSON.stringify({lat: %f, lng: %f}));   // stred shluku bodu
   localStorage.setItem('default_arCustomPoints12', %s);

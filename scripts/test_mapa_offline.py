@@ -104,6 +104,11 @@ async def beh(url):
         ok('C2 budovy v datech bez signálu', await cekej(page, "AGMapaVektor.budovy().length > 50", 60), await page.evaluate("() => [AGMapaVektor.budovy().length, AGMapaVektor.posledniChyba()]"))
         c3 = await page.evaluate("() => { var m = AGMapaVektor.mapa(); return m ? { budovy: m.queryRenderedFeatures({ layers: ['budovy'] }).length, silnice: m.queryRenderedFeatures({ layers: ['silnice'] }).length } : null; }")
         ok('C3 mapa je vykreslená (budovy i silnice) bez signálu', c3 and c3['budovy'] > 0 and c3['silnice'] > 0, c3)
+        # od 4. 11. 2026 se s uloženou hlavičkou na síť nečeká — nová hlavička se zkouší až na pozadí (~1,5 s)
+        for _ in range(20):
+            if [u for u in poz2 if '.pmtiles' in u]:
+                break
+            await page.wait_for_timeout(300)
         ok('C4 požadavky na data opravdu šly do zdi (test simuluje výpadek)', [u for u in poz2 if '.pmtiles' in u], len(poz2))
 
         # ================= D: oblast ve vlastní cache ===============================
@@ -149,6 +154,45 @@ async def beh(url):
         ok('E1 hlavička za 6 s: mapa se i tak načte a má budovy', await cekej(page, "AGMapaVektor.stav() === 'zapnuto' && AGMapaVektor.budovy().length > 50", 80),
            await page.evaluate("() => window.AGMapaVektor && [AGMapaVektor.stav(), AGMapaVektor.budovy().length, AGMapaVektor.posledniChyba(), %d]" % 0))
         ok('E2 zpoždění opravdu proběhlo', pomale['n'] >= 1, pomale)
+        await page.close()
+
+        # ================= F: HLAVIČKA V TELEFONU → MAPA HNED (4. 11. 2026) =========
+        # „Mapa se mi načítá pomalu": s uloženou hlavičkou se na síť nečeká (dřív až 4 s při každém
+        # startu + kontrola dat bez limitu). Hlavička ze sítě tu chodí až za 20 s — mapa musí být
+        # zapnutá a mít budovy dřív, než dorazí.
+        pomale2 = {'n': 0, 'hotovo': 0}
+
+        async def route_pomala2(rt, rq):
+            u = rq.url
+            try:
+                if 'cuzk.cz/' in u or 'cuzk.gov.cz/' in u or 'openstreetmap' in u or 'workers.dev' in u or 'protomaps.github.io' in u or 'amazonaws.com' in u:
+                    return await rt.abort()
+                if '.pmtiles' in u and 'bytes=0-' in (rq.headers.get('range') or ''):
+                    pomale2['n'] += 1
+                    await asyncio.sleep(20)
+                    pomale2['hotovo'] += 1
+            except Exception:
+                pass
+            try:
+                await rt.continue_()
+            except Exception:
+                pass
+        page = await ctx.new_page()
+        page.on('pageerror', lambda e: chyby3.append('pageerror: ' + str(e)))
+        await page.route('**/*', route_pomala2)
+        await page.add_init_script(init)
+        await page.goto(url, wait_until='domcontentloaded', timeout=45000)
+        await cekej(page, "window.AGMapaVektor && AGMapaVektor.stav() === 'zapnuto'", 60)
+        await page.evaluate("() => { map.setView([%f, %f], 17, { animate: false }); }" % (LAT, LNG))
+        f1 = await cekej(page, "AGMapaVektor.stav() === 'zapnuto' && AGMapaVektor.budovy().length > 50", 40)
+        ok('F1 hlavička v telefonu: mapa s budovami dřív, než dorazí hlavička ze sítě (na síť se nečeká)', f1 and pomale2['hotovo'] == 0, pomale2)
+
+        # ================= G: OKOLÍ DO TELEFONU SAMO ===============================
+        g = await page.evaluate("() => AGMapaVektor.okoliUloz()")
+        zaz = await page.evaluate("() => JSON.parse(localStorage.getItem('agMapaOkoli_v1') || 'null')")
+        ok('G1 okolí ~2,5 km se uloží do telefonu (z10–z15, MAPA_OFFLINE) a zapamatuje se místo', g and g['total'] > 10 and g['net'] == 0 and zaz and zaz.get('n', 0) > 0, (g, zaz))
+        g2 = await page.evaluate("() => AGMapaVektor.okoliUloz()")
+        ok('G2 na stejném místě se podruhé nestahuje', g2 is None, g2)
 
         vazne = [c for c in chyby + chyby2 + chyby3 if 'WebGL' not in c]
         ok('Z bez chyb stránky', not vazne, vazne[:5])

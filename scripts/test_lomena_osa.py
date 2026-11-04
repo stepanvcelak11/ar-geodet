@@ -53,7 +53,7 @@ LAT0, LNG0 = 50.0800, 14.4200
 
 BOOT = """
   localStorage.setItem('agTutProSeen','1');
-  localStorage.setItem('agBrifinkAuto','0');
+  localStorage.setItem('agBrifinkAuto','0'); localStorage.setItem('agDomov_v1',JSON.stringify({auto:false}));
   localStorage.setItem('arSurveyor','Stepan');
   // ⚠ VYTYCENI OSY JE OD 11. 9. 2026 PRO (js/tools-registry.js, `stakeout-line`).
   //   Bez tarifu by window.agOpenStakeLine() otevrel kartu "Verze Pro" misto

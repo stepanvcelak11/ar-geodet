@@ -2,6 +2,28 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 418,
+      "datum": "2026-11-04",
+      "nadpis": "Schermata Home, GPS più furbo e avvio più rapido",
+      "body": [
+        "Nuova schermata Home: meteo di oggi, lavoro, note, condivisione e impostazioni prima di partire. Intanto l’app si carica, poi tocca VAI A MISURARE.",
+        "Se il GPS vicino a un edificio salta più lontano di quanto potevi camminare, la posizione segue passi e bussola.",
+        "Gli strumenti di ogni gruppo sono ordinati in base a ciò che usi di più.",
+        "La modalità semplice ha una mappa: tocca un punto e l’app ti ci porta, con una linea verso la meta durante la navigazione.",
+        "Avvio più rapido e app più fluida; la mappa della qualità GPS si calcola in background."
+      ]
+    },
+    {
+      "v": 417,
+      "datum": "2026-11-04",
+      "nadpis": "Face ID senza segnale e mappa più veloce",
+      "body": [
+        "L’accesso con Face ID ora funziona anche senza segnale: il telefono verifica la chiave da solo. Basta accedere una volta con il segnale.",
+        "All’avvio la mappa si carica subito dal telefono senza attendere il segnale.",
+        "Con il segnale l’app salva da sola la mappa dei dintorni (circa 2,5 km), così funziona offline sul campo."
+      ]
+    },
+    {
       "v": 416,
       "datum": "2026-10-17",
       "nadpis": "Mappa anche con segnale debole",

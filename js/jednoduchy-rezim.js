@@ -18,6 +18,13 @@
 //                   i v tomhle režimu), s malým štítkem druhu; po klepnutí
 //                   celoobrazovková šipka + vzdálenost.
 //   • malý odkaz „Celá appka" vpravo nahoře → zpátky do plné appky.
+//   • MAPA (4. 11. 2026, přání: „hodila by se tam i mapa, ale ať je to pořád jednoduchý
+//     režim"): na domovské stránce okno s mapou appky (táž vektorová mapa, žádná druhá
+//     instance — prvek #map se do okna jen PŘESUNE a při odchodu vrátí). Bez vrstev,
+//     tlačítek a otáčení; klepnutí na bod v mapě = navigace k němu. V navigaci menší
+//     mapa s čarou k cíli. Nic jiného z plné appky klepnutím do mapy otevřít nejde
+//     (modály plné appky leží POD přebalem a otevřely by se neviditelně).
+//   • POSLAT BOD z navigace (odkaz ?bod= z js/hledat-misto.js, jinak souřadnice).
 //
 // NEINVAZIVNÍ: NEEDITUJE logika.js ani grafika.js. Body ukládá JEDINOU
 // oficiální cestou — window.addImportedPoints() (stejně jako import, hlasové
@@ -123,6 +130,8 @@
             + '<section class="jr-page" id="ag-jr-home">'
             + '  <div class="jr-top"><div class="jr-stav" id="ag-jr-stav">Hledám GPS…</div>'
             + '    <button type="button" class="jr-maly" id="ag-jr-konec">Celá appka</button></div>'
+            + '  <div class="jr-mapa" id="ag-jr-mapa-home" hidden><button type="button" class="jr-mapa-ja" data-jr-ja aria-label="Na mou polohu">' + ikona('i-locate') + '</button><div class="jr-mapa-tip">klepni na bod = navigace</div></div>'
+            + '  <div class="jr-souhrn" id="ag-jr-souhrn"></div>'
             + '  <div class="jr-hlavni">'
             + '    <button type="button" class="jr-velke jr-velke-pridat" id="ag-jr-pridat">' + ikona('i-plus') + 'PŘIDAT BOD<small>tady stojím, ulož si to</small></button>'
             + '    <button type="button" class="jr-velke jr-velke-jit" id="ag-jr-jit">' + ikona('i-navigation') + 'NAVIGOVAT K BODU<small>šipka a vzdálenost</small></button>'
@@ -171,6 +180,8 @@
             + '  </div>'
             + '  <div class="jr-vzdalenost" id="ag-jr-vzd">—</div>'
             + '  <div class="jr-pozn" id="ag-jr-pozn">&nbsp;</div>'
+            + '  <div class="jr-mapa jr-mapa-go" id="ag-jr-mapa-go" hidden><button type="button" class="jr-mapa-ja" data-jr-ja aria-label="Na mou polohu">' + ikona('i-locate') + '</button></div>'
+            + '  <button type="button" class="jr-maly jr-poslat" id="ag-jr-poslat">Poslat bod</button>'
             + '</section>';
         document.body.appendChild(root);
 
@@ -188,6 +199,11 @@
         root.querySelector('#ag-jr-nazev').addEventListener('input', prepocitejUlozit);
         root.querySelector('#ag-jr-y').addEventListener('input', rucneZmena);
         root.querySelector('#ag-jr-x').addEventListener('input', rucneZmena);
+        root.querySelector('#ag-jr-poslat').addEventListener('click', poslatBod);
+        Array.prototype.forEach.call(root.querySelectorAll('.jr-mapa'), hlidejKlepnutiDoMapy);
+        Array.prototype.forEach.call(root.querySelectorAll('[data-jr-ja]'), function (b) {
+            b.addEventListener('click', function (e) { e.stopPropagation(); naMe(true); });
+        });
         var h = root.querySelector('#ag-jr-hledat');
         h.addEventListener('input', function () { filtr = h.value.trim().toLowerCase(); vykresliSeznam(); });
         return root;
@@ -199,7 +215,101 @@
         Object.keys(stranky).forEach(function (k) {
             if (stranky[k]) stranky[k].classList.toggle('jr-vidno', k === kam);
         });
+        if (kam === 'home') { mapaDo('#ag-jr-mapa-home'); souhrn(); }
+        else if (kam === 'go') mapaDo('#ag-jr-mapa-go');
+        else mapaDo(null);
+        if (kam !== 'go') caraPryc();
         hlidejTik();
+    }
+
+    // ---- MAPA V JEDNODUCHÉM REŽIMU (4. 11. 2026) ------------------------------------
+    // Prvek #map (Leaflet + vektorová mapa) se PŘESUNE do okna stránky a při odchodu
+    // vrátí na původní místo (#map-wrapper). Druhá mapa by stála paměť a stahování
+    // znovu; tahle je hotová, s body i polohou. Mimo #map-wrapper se neotáčí podle
+    // kompasu (js/map-rotate.js otáčí obal) — v jednoduchém režimu je sever nahoře.
+    var _mapaDomov = null, _mapaSlot = null, _cara = null;
+    function leafletMapa() { try { return (typeof map !== 'undefined' && map && typeof map.invalidateSize === 'function') ? map : null; } catch (e) { return null; } }
+    function mapaDo(sel) {
+        var el = document.getElementById('map'), m = leafletMapa();
+        var slot = sel ? root.querySelector(sel) : null;
+        Array.prototype.forEach.call(root.querySelectorAll('.jr-mapa'), function (s) { s.hidden = !(el && m && s === slot); });
+        if (!el || !m) return;
+        if (!slot) {
+            if (_mapaDomov && el.parentNode !== _mapaDomov.parent) {
+                try { _mapaDomov.parent.insertBefore(el, _mapaDomov.next && _mapaDomov.next.parentNode === _mapaDomov.parent ? _mapaDomov.next : null); } catch (e) { swallow(e, 'mapaZpet'); }
+                setTimeout(function () { try { m.invalidateSize(false); } catch (e) { swallow(e, 'mapaZpetSize'); } }, 30);
+            }
+            _mapaSlot = null;
+            return;
+        }
+        if (!_mapaDomov || el.parentNode === _mapaDomov.parent) _mapaDomov = { parent: el.parentNode, next: el.nextSibling };
+        if (el.parentNode !== slot) slot.insertBefore(el, slot.firstChild);
+        var novy = _mapaSlot !== sel;
+        _mapaSlot = sel;
+        setTimeout(function () {
+            try { m.invalidateSize(false); } catch (e) { swallow(e, 'mapaSize'); }
+            if (novy && sel === '#ag-jr-mapa-home') naMe(false);
+        }, 30);
+    }
+    function naMe(animuj) {
+        var m = leafletMapa(); if (!m || !maFix()) return;
+        try { m.setView([userLat, userLng], Math.max(m.getZoom() || 0, 17), { animate: !!animuj }); } catch (e) { swallow(e, 'naMe'); }
+    }
+    // Klepnutí do mapy: CAPTURE na okně zastaví událost dřív, než dojde do Leafletu
+    // (posun a zoom prstem jdou přes pointer události, ty zůstávají). Místo toho se
+    // najde nejbližší bod do 36 px a spustí se k němu navigace.
+    function hlidejKlepnutiDoMapy(slot) {
+        ['click', 'dblclick', 'contextmenu'].forEach(function (typ) {
+            slot.addEventListener(typ, function (e) {
+                if (e.target && e.target.closest && e.target.closest('[data-jr-ja]')) return;
+                e.stopPropagation(); e.preventDefault();
+                if (typ !== 'click' || aktivni !== 'home') return;
+                var m = leafletMapa(); if (!m) return;
+                try {
+                    var bodKlik = m.mouseEventToContainerPoint(e), nej = null, nejD = 36;
+                    body().concat(uredni()).forEach(function (p) {
+                        if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
+                        var q = m.latLngToContainerPoint([p.lat, p.lng]);
+                        var d = Math.hypot(q.x - bodKlik.x, q.y - bodKlik.y);
+                        if (d < nejD) { nejD = d; nej = p; }
+                    });
+                    if (nej) naviguj(nej.id);
+                } catch (er) { swallow(er, 'klikMapa'); }
+            }, true);
+        });
+    }
+    function caraPryc() {
+        if (_cara) { try { _cara.remove(); } catch (e) { swallow(e, 'caraPryc'); } _cara = null; }
+    }
+    function cara() {
+        var m = leafletMapa(); if (!m || !cil || !maFix() || typeof L === 'undefined') return;
+        var ll = [[userLat, userLng], [cil.lat, cil.lng]];
+        try {
+            if (!_cara) {
+                _cara = L.polyline(ll, { color: '#f59e0b', weight: 4, dashArray: '8 8', interactive: false }).addTo(m);
+                m.fitBounds(_cara.getBounds(), { padding: [28, 28], maxZoom: 19, animate: false });
+            } else _cara.setLatLngs(ll);
+        } catch (e) { swallow(e, 'cara'); }
+    }
+    // jedna řádka nad tlačítky: kolik bodů mám a který jsem uložil naposledy
+    function souhrn() {
+        var el = root && root.querySelector('#ag-jr-souhrn'); if (!el) return;
+        var b = body(), t = '';
+        if (b.length) {
+            var posl = b[b.length - 1];
+            t = T('Bodů v zakázce: {n} · naposledy {p}', { n: '<b>' + b.length + '</b>', p: '<b>' + esc(posl.name || T('Bod')) + '</b>' });
+        }
+        el.innerHTML = t;
+        el.hidden = !t;
+    }
+    function poslatBod() {
+        if (!cil) return;
+        var nazev = cil.name || T('Bod');
+        try { if (window.AGHledat && AGHledat.sdilej) { AGHledat.sdilej(cil.lat, cil.lng, nazev); return; } } catch (e) { swallow(e, 'poslat'); }
+        var t = nazev + ' — ' + cil.lat.toFixed(6) + ', ' + cil.lng.toFixed(6);
+        try { if (navigator.share) { navigator.share({ title: nazev, text: t }).catch(function () { /* zrušeno */ }); return; } } catch (e) { swallow(e, 'share'); }
+        try { if (navigator.clipboard) { navigator.clipboard.writeText(t); toast(T('Zkopírováno') + ': ' + t); return; } } catch (e) { swallow(e, 'clip'); }
+        toast(t);
     }
     function zpet(kam) {
         if (kam === 'home') zrusMereni();
@@ -508,6 +618,7 @@
         var p = null;
         body().concat(uredni()).forEach(function (q) { if (!p && q.id === id) p = q; });
         if (!p) return;
+        caraPryc();
         cil = p; doma = false;
         _uhel = 0; _vzdText = null; _poznText = null;
         root.querySelector('#ag-jr-sipka').style.transform = 'rotate(0deg)';
@@ -562,6 +673,7 @@
             if (!jeDoma && d > DOMA_M * 3) doma = false;   // hystereze, ať to nevibruje na hraně
         }
 
+        cara();
         if (vzdHtml !== _vzdText) { vzdEl.innerHTML = vzdHtml; _vzdText = vzdHtml; }
         if (poznTxt !== _poznText) { poznEl.innerText = poznTxt; _poznText = poznTxt; }
         poznEl.classList.toggle('jr-varovani', varovani);
@@ -595,7 +707,7 @@
         zrusMereni();
         if (tick) { clearInterval(tick); tick = null; }
         cil = null; novy = null;
-        if (root) root.classList.remove('jr-on');
+        if (root) { mapaDo(null); caraPryc(); root.classList.remove('jr-on'); }
         document.body.classList.remove('ag-jr-on');
         // vrať zobrazení, které měl uživatel před zapnutím
         try {
@@ -663,6 +775,8 @@
     else window.addEventListener('ag:app-started', start, { once: true });
 
     window.AGJednoduchy = {
+        stranka: function () { return aktivni; },
+        naviguj: function (id) { naviguj(id); },
         zapnuto: zapnuto,
         zapni: function () { zapni(false); },
         vypni: vypni

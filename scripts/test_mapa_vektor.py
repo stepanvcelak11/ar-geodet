@@ -106,10 +106,13 @@ async def stranka(br, url, init, chyby):
 
 
 async def cekej(page, vyraz, kol=25):
+    # ⚠ 4. 11. 2026: vlastní mapa se pouští HNED (js/lazy-load.js), ne až s frontou odložených modulů —
+    #   „mapa zapnutá" už neznamená, že doběhl i zbytek (AGMapaPanel, AGHrany…). Proto se fronta
+    #   vždy dotlačí a podmínka platí, až je i fronta hotová.
     for _ in range(kol):
-        if await page.evaluate('() => !!(' + vyraz + ')'):
-            return True
         await page.evaluate('() => window.AGLazy && AGLazy.flush()')
+        if await page.evaluate('() => !!(' + vyraz + ') && (!window.AGLazy || !AGLazy.hotovo || AGLazy.hotovo())'):
+            return True
         await page.wait_for_timeout(400)
     return False
 
