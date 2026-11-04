@@ -2,6 +2,18 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 418,
+   "datum": "2026-11-04",
+   "nadpis": "Úvodní obrazovka, chytřejší GPS a rychlejší start",
+   "body": [
+    "Nová úvodní obrazovka Domů: dnešní počasí, zakázka, poznámky, sdílení a nastavení před výjezdem. Appka mezitím nabíhá, pak klepneš na JÍT MĚŘIT.",
+    "Když GPS u budovy odskočí dál, než jsi stihl dojít, poloha jde dál podle kroků a kompasu.",
+    "Nástroje se v každé skupině řadí podle toho, co používáš nejčastěji.",
+    "Jednoduchý režim má mapu: klepni na bod a appka tě k němu dovede, v navigaci vidíš čáru k cíli.",
+    "Rychlejší start a plynulejší appka, mapa kvality GPS se počítá na pozadí."
+   ]
+  },
+  {
    "v": 417,
    "datum": "2026-11-04",
    "nadpis": "Face ID bez signálu a rychlejší mapa",

@@ -2,6 +2,18 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 418,
+      "datum": "2026-11-04",
+      "nadpis": "Startbildschirm, klügeres GPS und schnellerer Start",
+      "body": [
+        "Neuer Startbildschirm: Wetter von heute, Auftrag, Notizen, Teilen und Einstellungen vor der Abfahrt. Die App lädt währenddessen, dann tippst du auf LOS MESSEN.",
+        "Springt das GPS an einem Gebäude weiter, als du gehen konntest, folgt die Position Schritten und Kompass.",
+        "Werkzeuge werden in jeder Gruppe nach deiner Nutzung sortiert.",
+        "Der einfache Modus hat eine Karte: Punkt antippen und die App führt dich hin, beim Navigieren mit Linie zum Ziel.",
+        "Schnellerer Start und flüssigere App; die GPS-Qualitätskarte wird im Hintergrund berechnet."
+      ]
+    },
+    {
       "v": 417,
       "datum": "2026-11-04",
       "nadpis": "Face ID ohne Netz und schnellere Karte",

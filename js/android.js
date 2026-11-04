@@ -125,9 +125,36 @@
         // v okamžiku změny stylu jsou ještě „neviditelné" → podívat se znovu za chvíli
         if (!_later) _later = setTimeout(function () { _later = null; if (!_guard && otevrene().length) hlidej(); }, 400);
     }
+    // ⚠ JEN ZMĚNY, KTERÉ SE TÝKAJÍ OKEN (4. 11. 2026, profil startu). Pozorovatel hlídá
+    //   style/class v CELÉ appce — stavový pruh, HUD a AR mění styl několikrát za snímek, takže
+    //   check() (querySelectorAll + getComputedStyle + getBoundingClientRect = vynucené
+    //   rozvržení) běžel každý snímek po celou dobu práce. Teď jen když se změna dotkne
+    //   prvku, který může být okno (nebo <body>/<html>, kde moduly okna zapínají třídou),
+    //   a pro jistotu jednou za 2 s, dokud není stráž.
+    var OKNO_SEL = '.modal-overlay, .ag-dlg-overlay, [id$="-overlay"], [id$="-modal"], [data-ag-okno], #side-menu, #bottom-sheet';
+    function tykaSeOken(recs) {
+        for (var i = 0; i < recs.length; i++) {
+            var r = recs[i], t = r.target;
+            if (r.type === 'childList') {
+                for (var j = 0; j < r.addedNodes.length; j++) {
+                    var n = r.addedNodes[j];
+                    if (n.nodeType === 1 && ((n.matches && n.matches(OKNO_SEL)) || (n.querySelector && n.querySelector(OKNO_SEL)))) return true;
+                }
+                continue;
+            }
+            if (t === document.body || t === document.documentElement) return true;
+            if (t.nodeType === 1 && t.matches && t.matches(OKNO_SEL)) return true;
+        }
+        return false;
+    }
     function start() {
         try {
-            _obs = new MutationObserver(function () { if (_pending) return; _pending = true; (window.requestAnimationFrame || setTimeout)(check); });
+            _obs = new MutationObserver(function (recs) {
+                if (_pending || _guard) return;
+                if (!tykaSeOken(recs)) return;
+                _pending = true; (window.requestAnimationFrame || setTimeout)(check);
+            });
+            setInterval(function () { if (!_guard && !_pending && !document.hidden) check(); }, 2000);
             _obs.observe(document.body, { attributes: true, attributeFilter: ['style', 'class'], subtree: true, childList: true });
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'android-zpet:observer'); }
         // v PWA na Androidu drž jednu stráž hned od startu, ať první Zpět neukončí appku bez varování

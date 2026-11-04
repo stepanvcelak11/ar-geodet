@@ -2,6 +2,18 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 418,
+      "datum": "2026-11-04",
+      "nadpis": "Écran d’accueil, GPS plus malin et démarrage plus rapide",
+      "body": [
+        "Nouvel écran d’accueil : météo du jour, chantier, notes, partage et réglages avant de partir. L’appli se charge pendant ce temps, puis touche ALLER MESURER.",
+        "Si le GPS saute près d’un bâtiment plus loin que tu n’as pu marcher, la position suit tes pas et la boussole.",
+        "Dans chaque groupe, les outils sont triés selon ce que tu utilises le plus.",
+        "Le mode simple a une carte : touche un point et l’appli t’y guide, avec une ligne vers la cible pendant la navigation.",
+        "Démarrage plus rapide et appli plus fluide ; la carte de qualité GPS est calculée en arrière-plan."
+      ]
+    },
+    {
       "v": 417,
       "datum": "2026-11-04",
       "nadpis": "Face ID hors ligne et carte plus rapide",

@@ -66,17 +66,48 @@
     }
     function barva(s) { return s >= 0.85 ? 'rgba(34,197,94,0.45)' : s >= 0.6 ? 'rgba(245,158,11,0.5)' : 'rgba(239,68,68,0.55)'; }
 
-    function spocitej(stred) {
-        var t0 = Date.now(), r = rastrVysek(stred), cells = Math.round(2 * R / BUNKA);
-        var cv = document.createElement('canvas'); cv.width = cells; cv.height = cells;
-        var ctx = cv.getContext('2d'); var stat = { z: 0, o: 0, c: 0 };
-        var mrizka = new Float32Array(cells * cells);
+    // ---- mřížka viditelnosti oblohy z rastru výšek -------------------------------------------
+    // ⚠ SAMOSTATNÁ FUNKCE BEZ ZÁVISLOSTÍ (4. 11. 2026): běží buď tady, nebo ve Web Workeru —
+    //   tam se posílá jako TEXT (mrizkaZ.toString()), takže nesmí sahat na nic mimo sebe
+    //   (konstanty přicházejí v K). 55 × 55 políček × 16 azimutů × 30 kroků ≈ 1,5 milionu
+    //   vzorků: na slabším telefonu stovky ms zablokované appky — ve workeru appka jede dál.
+    function mrizkaZ(v, n, cells, K) {
+        var out = new Float32Array(cells * cells);
         for (var j = 0; j < cells; j++) for (var i = 0; i < cells; i++) {
-            var x = (i + 0.5) * BUNKA / PX, y = (j + 0.5) * BUNKA / PX;
-            // uvnitř budovy = neměřitelné (červená)
-            var uvnitr = r.v[Math.round(y) * r.n + Math.round(x)] > 0;
-            var s = uvnitr ? 0 : obloha(r, x, y);
-            mrizka[j * cells + i] = s;
+            var x = (i + 0.5) * K.BUNKA / K.PX, y = (j + 0.5) * K.BUNKA / K.PX;
+            if (v[Math.round(y) * n + Math.round(x)] > 0) { out[j * cells + i] = 0; continue; }   // uvnitř budovy
+            var soucet = 0;
+            for (var a = 0; a < K.AZ; a++) {
+                var ang = a * 2 * Math.PI / K.AZ, dx = Math.sin(ang), dy = -Math.cos(ang), maxEl = K.MASKA;
+                for (var d = K.KROK; d <= K.DOSAH; d += K.KROK) {
+                    var xi = Math.round(x + dx * d / K.PX), yi = Math.round(y + dy * d / K.PX);
+                    if (xi < 0 || yi < 0 || xi >= n || yi >= n) break;
+                    var h = v[yi * n + xi] - 1.5; if (h <= 0) continue;
+                    var el = Math.atan2(h, d) * 180 / Math.PI; if (el > maxEl) maxEl = el;
+                }
+                soucet += (90 - maxEl) / (90 - K.MASKA);
+            }
+            out[j * cells + i] = soucet / K.AZ;
+        }
+        return out;
+    }
+    var K = { BUNKA: BUNKA, PX: PX, AZ: AZ, DOSAH: DOSAH, KROK: KROK, MASKA: MASKA };
+    var _worker = null, _workerUrl = null;
+    function worker() {
+        if (_worker) return _worker;
+        if (typeof Worker === 'undefined' || typeof Blob === 'undefined' || !window.URL || !URL.createObjectURL) return null;
+        try {
+            var src = 'var mrizkaZ = ' + mrizkaZ.toString() + ';\nself.onmessage = function (e) { var d = e.data; var m = mrizkaZ(d.v, d.n, d.cells, d.K); self.postMessage({ id: d.id, m: m }, [m.buffer]); };';
+            _workerUrl = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+            _worker = new Worker(_workerUrl);
+        } catch (e) { swallow(e, 'worker'); _worker = null; }
+        return _worker;
+    }
+    function dokonci(stred, r, cells, mrizka, t0) {
+        var cv = document.createElement('canvas'); cv.width = cells; cv.height = cells;
+        var ctx = cv.getContext('2d'), stat = { z: 0, o: 0, c: 0 };
+        for (var j = 0; j < cells; j++) for (var i = 0; i < cells; i++) {
+            var s = mrizka[j * cells + i];
             if (s >= 0.85) stat.z++; else if (s >= 0.6) stat.o++; else stat.c++;
             ctx.fillStyle = barva(s); ctx.fillRect(i, j, 1, 1);
         }
@@ -84,6 +115,28 @@
         var bounds = [[stred.lat - R / m.lat, stred.lng - R / m.lng], [stred.lat + R / m.lat, stred.lng + R / m.lng]];
         _posledni = { stred: stred, bounds: bounds, url: cv.toDataURL(), mrizka: mrizka, cells: cells, stat: stat, budov: r.budov, lesu: r.lesu, ms: Date.now() - t0, ts: Date.now() };
         return _posledni;
+    }
+    // synchronně (API pro ostatní moduly a testy)
+    function spocitej(stred) {
+        var t0 = Date.now(), r = rastrVysek(stred), cells = Math.round(2 * R / BUNKA);
+        return dokonci(stred, r, cells, mrizkaZ(r.v, r.n, cells, K), t0);
+    }
+    // ve Web Workeru (dlaždice „Kde se dá měřit"); bez workeru nebo při chybě synchronně
+    var _wid = 0;
+    function spocitejNaPozadi(stred) {
+        var t0 = Date.now(), r = rastrVysek(stred), cells = Math.round(2 * R / BUNKA);
+        var w = worker();
+        if (!w) return Promise.resolve(dokonci(stred, r, cells, mrizkaZ(r.v, r.n, cells, K), t0));
+        var id = ++_wid;
+        return new Promise(function (ok) {
+            var hotovo = false;
+            var konec = function (m) { if (hotovo) return; hotovo = true; w.removeEventListener('message', zprava); ok(dokonci(stred, r, cells, m || mrizkaZ(r.v, r.n, cells, K), t0)); };
+            var zprava = function (e) { if (e.data && e.data.id === id) konec(e.data.m); };
+            w.addEventListener('message', zprava);
+            w.onerror = function (e) { swallow(e && e.message ? new Error(e.message) : e, 'worker-chyba'); _worker = null; konec(null); };
+            setTimeout(function () { if (!hotovo) { _worker = null; try { w.terminate(); } catch (e) { /* nic */ } konec(null); } }, 15000);
+            try { w.postMessage({ id: id, v: r.v, n: r.n, cells: cells, K: K }); } catch (e) { swallow(e, 'post'); konec(null); }
+        });
     }
     function skoreV(lat, lng) {
         if (!_posledni) return null;
@@ -138,7 +191,9 @@
         var pokus = otevri._pokus || 0;
         if (!AGHrany.budovyPolygony(p.lat, p.lng, R).length && pokus < 8) { otevri._pokus = pokus + 1; setTimeout(otevri, 600); return; }
         otevri._pokus = 0;
-        var v = spocitej(p); _viditelna = true; vykresli();
+        spocitejNaPozadi(p).then(function (v) { _viditelna = true; vykresli(); hlaseni(p, v); });
+    }
+    function hlaseni(p, v) {
         var celkem = v.stat.z + v.stat.o + v.stat.c || 1;
         var tady = skoreV(p.lat, p.lng);
         var msg = T('Okolí {a} × {a} m, {b} budov', { a: (2 * R), b: v.budov }) + (v.lesu ? ', ' + T('les') : '') + ' (' + v.ms + ' ms).<br>'
@@ -151,7 +206,7 @@
     function agAlert(o) { try { if (typeof window.agAlert === 'function') return window.agAlert(o); } catch (e) { swallow(e, 'alert'); } try { alert(o.message.replace(/<[^>]+>/g, '')); } catch (e) { /* nic */ } }
 
     window.agOpenKvalitaGpsMapa = otevri;
-    window.AGKvalitaGpsMapa = { otevri: otevri, spocitej: spocitej, skoreV: skoreV, prepni: prepni, posledni: function () { return _posledni; }, obloha: obloha, rastrVysek: rastrVysek };
+    window.AGKvalitaGpsMapa = { otevri: otevri, spocitej: spocitej, spocitejNaPozadi: spocitejNaPozadi, mrizkaZ: mrizkaZ, skoreV: skoreV, prepni: prepni, posledni: function () { return _posledni; }, obloha: obloha, rastrVysek: rastrVysek };
     function register() {
         try { if (typeof window.agRegisterFieldTool === 'function') window.agRegisterFieldTool({ id: 'kvalita-gps-mapa', label: 'Kde se dá měřit', icon: ICON, cat: 'Přesné měření', onClick: otevri, order: 8 }); } catch (e) { swallow(e, 'register'); }
     }

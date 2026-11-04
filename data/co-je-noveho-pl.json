@@ -2,6 +2,18 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 418,
+      "datum": "2026-11-04",
+      "nadpis": "Ekran startowy, mądrzejszy GPS i szybszy start",
+      "body": [
+        "Nowy ekran startowy: dzisiejsza pogoda, zlecenie, notatki, udostępnianie i ustawienia przed wyjazdem. Aplikacja w tym czasie się wczytuje, potem dotknij IDŹ MIERZYĆ.",
+        "Gdy GPS przy budynku skoczy dalej, niż zdążyłeś dojść, pozycja idzie według kroków i kompasu.",
+        "Narzędzia w każdej grupie są sortowane według tego, czego używasz najczęściej.",
+        "Tryb prosty ma mapę: dotknij punktu, a aplikacja cię do niego doprowadzi, w nawigacji widać linię do celu.",
+        "Szybszy start i płynniejsza aplikacja; mapa jakości GPS liczy się w tle."
+      ]
+    },
+    {
       "v": 417,
       "datum": "2026-11-04",
       "nadpis": "Face ID bez zasięgu i szybsza mapa",

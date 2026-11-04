@@ -2,6 +2,18 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 418,
+      "datum": "2026-11-04",
+      "nadpis": "Home screen, smarter GPS and a faster start",
+      "body": [
+        "New Home screen: today’s weather, job, notes, sharing and settings before you head out. The app loads meanwhile, then tap START MEASURING.",
+        "If GPS jumps near a building further than you could have walked, the position follows your steps and compass.",
+        "Tools in each group are sorted by what you use most.",
+        "Simple mode now has a map: tap a point and the app guides you to it, with a line to the target while navigating.",
+        "Faster start and a smoother app; the GPS quality map is computed in the background."
+      ]
+    },
+    {
       "v": 417,
       "datum": "2026-11-04",
       "nadpis": "Face ID offline and a faster map",

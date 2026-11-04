@@ -51,6 +51,10 @@ _SABLONA = u"""
   // server a konzole by hlasila 401 (test_opravy_11_9 I0, test_v316 Z). test_zaloha_ucet si ji zapina sam.
   if (!localStorage.getItem('agZalohaUcet_v1')) localStorage.setItem('agZalohaUcet_v1', JSON.stringify({ vyp: true, nabidnutoTs: Date.now() }));
   if (!localStorage.getItem('agMojePresnost_v1')) localStorage.setItem('agMojePresnost_v1', JSON.stringify({ sdilet: false }));   // statistika telefonů (a1) — test_moje_presnost si ji zapíná
+  // DOMŮ PO STARTU VYPNUTÉ (4. 11. 2026): úvodní obrazovka js/domov.js leží přes celou appku,
+  // dokud se neklepne na JÍT MĚŘIT — testy by klikaly do ní. Běžná volba (zaškrtávátko dole na
+  // obrazovce Domů); scripts/test_domov.py si ji zapíná sám.
+  if (!localStorage.getItem('agDomov_v1')) localStorage.setItem('agDomov_v1', JSON.stringify({ auto: false }));
   localStorage.setItem('agTutProSeen', '1');
   localStorage.setItem('agBrifinkAuto', '0');
   localStorage.setItem('agBrifinkLastShown', new Date().toISOString().slice(0, 10));

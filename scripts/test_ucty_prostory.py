@@ -119,7 +119,7 @@ async def brana(browser):
     await ctx.add_init_script("""
       localStorage.setItem('agGuest_v1', JSON.stringify({ts: Date.now()}));
       localStorage.setItem('agTutProSeen','1');
-      localStorage.setItem('agBrifinkAuto','0');
+      localStorage.setItem('agBrifinkAuto','0'); localStorage.setItem('agDomov_v1',JSON.stringify({auto:false}));
     """)
     page = await ctx.new_page()
     chyby = []

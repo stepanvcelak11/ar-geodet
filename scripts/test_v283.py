@@ -38,7 +38,7 @@ BOOT = """
   localStorage.setItem('agTutProSeen','1');
   // vektorova mapa vypnuta (od v360 vychozi zapnuta) — test nema blokovanou sit, tahal by realna data
   localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' })); localStorage.setItem('agMapaVektorMig_v1', '1');
-  localStorage.setItem('agBrifinkAuto','0');
+  localStorage.setItem('agBrifinkAuto','0'); localStorage.setItem('agDomov_v1',JSON.stringify({auto:false}));
   localStorage.setItem('arSurveyor','Stepan');
   localStorage.setItem('agFirmaBioAsk_v1', String(Date.now()));
   (function () {
@@ -54,7 +54,7 @@ BOOT_VLASTNIK = """
   localStorage.setItem('agTutProSeen','1');
   // vektorova mapa vypnuta (od v360 vychozi zapnuta) — test nema blokovanou sit, tahal by realna data
   localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' })); localStorage.setItem('agMapaVektorMig_v1', '1');
-  localStorage.setItem('agBrifinkAuto','0');
+  localStorage.setItem('agBrifinkAuto','0'); localStorage.setItem('agDomov_v1',JSON.stringify({auto:false}));
   localStorage.setItem('agVlastnik_v1','1');
   localStorage.setItem('agFbKey_v1','klic-vlastnika-aspon-24-znaku!!');
 """
@@ -493,7 +493,7 @@ TARIF_PRO = "  localStorage.setItem('agTarifUctu_v1', JSON.stringify({ tarif: 'p
 # Telefon vyvojare v PLNEM balicku: Pro ma byt ODEMCENE a dlazdice ZIVE.
 BOOT_VLASTNIK_PRO = ("window.__AG_VYDANI = 'pro';\n"
                      "  localStorage.setItem('agTutProSeen','1');\n"
-                     "  localStorage.setItem('agBrifinkAuto','0');\n"
+                     "  localStorage.setItem('agBrifinkAuto','0'); localStorage.setItem('agDomov_v1',JSON.stringify({auto:false}));\n"
                      "  localStorage.setItem('agVlastnik_v1','1');\n"
                      "  localStorage.setItem('agFbKey_v1','klic-vlastnika-aspon-24-znaku!!');\n")
 

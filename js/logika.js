@@ -1969,6 +1969,14 @@ if ('serviceWorker' in navigator) {
                         var _zp = window.agZivyPosun();
                         if (_zp && isFinite(_zp.dlat) && isFinite(_zp.dlng)) { userLat += _zp.dlat; userLng += _zp.dlng; }
                     }
+                    // HLÍDAČ SKOKŮ (js/hlidac-skoku.js, 4. 11. 2026): fix dál, než dovolují kroky
+                    // od posledního dobrého fixu = skok GPS u budovy → poloha jde podle kroků
+                    // a kompasu. Odmítnutý fix nejde ani do průměru (_dr), je to odlehlá hodnota.
+                    var _dr = null;
+                    if (!(_mp && _mp.active) && typeof window.agHlidacSkoku === 'function') {
+                        try { _dr = window.agHlidacSkoku(userLat, userLng, position.coords.accuracy, position.coords.speed); } catch (e) { _dr = null; }
+                        if (_dr) { userLat = _dr.lat; userLng = _dr.lng; }
+                    }
                     try { if (window.AGSour) AGSour.poloha(userLat, userLng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:AGSour.poloha'); }
                     magneticDeclination = getDeclination(userLat, userLng);
                     try { if (window.AGPose) window.AGPose.checkDrift(userLat, userLng); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agStartGpsWatch'); }   // #1: kotvení se zneplatní, když reálně odejdu ze stanoviska
@@ -1976,6 +1984,7 @@ if ('serviceWorker' in navigator) {
                     currentGpsAccuracy = position.coords.accuracy;
                     // pri rucni poloze plati presnost odectu z mapy, ne presnost GPS
                     if (_mp && _mp.active) currentGpsAccuracy = _mp.acc;
+                    if (_dr) currentGpsAccuracy = _dr.acc;
                     // ⚠ typeof: první fix (cache polohy, power-save.js _startOne) přišel dřív, než se
                     //   vyhodnotila grafika.js, a v jednoduchém režimu to vyhodilo toast „Něco se
                     //   pokazilo (power-save:_startOne: updateInfoPanel is not defined)" (19. 9. 2026, G2).
@@ -1990,7 +1999,7 @@ if ('serviceWorker' in navigator) {
                     if (!window._agLastPosTs || Date.now() - window._agLastPosTs > 30000) { window._agLastPosTs = Date.now(); try { localStorage.setItem('arLastPos', JSON.stringify({ lat: userLat, lng: userLng })); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agStartGpsWatch'); } }
                     gpsSpeed = (position.coords.speed != null && !isNaN(position.coords.speed)) ? position.coords.speed : 0;
                     if (position.coords.heading != null && !isNaN(position.coords.heading) && gpsSpeed > 0.5) gpsCourse = position.coords.heading;
-                    updateGpsAveraging(userLat, userLng, currentGpsAccuracy, gpsSpeed, position.coords.altitude, position.coords.altitudeAccuracy);
+                    if (!_dr) updateGpsAveraging(userLat, userLng, currentGpsAccuracy, gpsSpeed, position.coords.altitude, position.coords.altitudeAccuracy);
                     if (accuracyCircle) { accuracyCircle.setLatLng([userLat, userLng]); accuracyCircle.setRadius(currentGpsAccuracy); accuracyCircle.setStyle({ color: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillColor: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399' }); } else { accuracyCircle = L.circle([userLat, userLng], { radius: currentGpsAccuracy, color: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillColor: currentGpsAccuracy >= 7 ? '#ef4444' : '#34d399', fillOpacity: 0.15, weight: 2 }).addTo(map); }
                     // RUCNI POLOHA: kruh jantarovy a cerchovany, at se neplete se zelenym
                     // (= dobrym) GPS fixem. Prebarvit se musi pri KAZDEM fixu, protoze radek
