@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-11-03",
-  "uvodnik": "Vydání 3. 11. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-11-04",
+  "uvodnik": "Vydání 4. 11. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,66 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Topcon to Support Scientific Research and Preservation of the Basilica of Vitruvius",
+      "perex": "Topcon Positioning Systems announces that Topcon Positioning Group in Italy has entered into a scientific sponsorship agreement with the Superintendency of Archaeology, Fine Arts and Landscape (SABAP)…",
+      "telo": "Topcon Positioning Systems announces that Topcon Positioning Group in Italy has entered into a scientific sponsorship agreement with the Superintendency of Archaeology, Fine Arts and Landscape (SABAP), a branch of the Italian Ministry of Culture, to support the documentation, real-time monitoring, and enhancement of the recently discovered Basilica of Vitruvius site in Fano, Italy. The sponsorship has two objectives: to support the Superintendency with surveying and data-capture activities at the excavation site and to enable the development of a digital twin to support further research and new ways of presenting and interpreting the site. Topcon technologies, including 3D laser scanning, GN",
+      "body": [],
+      "proc": "",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/aerialuas/topcon-to-support-scientific-research-and-preservation-of-the-basilica-of-vitruvius/",
+      "datum": "2026-11-03"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "SimActive and Phase One Accelerate Large-Scale Defense Mapping",
+      "perex": "Montreal, Canada, November 3 rd , 2026 – SimActive Inc. announces the use of Correlator3D with Phase One aerial imaging systems to help defense users process tens of thousands of large-format images under tight deadlines.",
+      "telo": "Montreal, Canada, November 3 rd , 2026 – SimActive Inc. announces the use of Correlator3D with Phase One aerial imaging systems to help defense users process tens of thousands of large-format images under tight deadlines. The combined workflow addresses a critical challenge: turning massive volumes of high-resolution aerial imagery into accurate mapping products, faster. Phase One imagery feeds directly into Correlator3D , eliminating separate conversion steps before photogrammetric processing. Users can then automate production and distribute processing across multiple computers to accelerate the generation of elevation models and orthomosaics. By reducing manual intervention from data prep",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/11/03/simactive-and-phase-one-accelerate-large-scale-defense-mapping/?utm_source=rss&utm_medium=rss&utm_campaign=simactive-and-phase-one-accelerate-large-scale-defense-mapping",
+      "datum": "2026-11-03"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "GISCorps Seeks Executive Director to Build on Two Decades of Humanitarian Service",
+      "perex": "The volunteer-driven geospatial organization is recruiting its first paid executive director as founder Shoreh Elhami prepares for a leadership transition.",
+      "telo": "The volunteer-driven geospatial organization is recruiting its first paid executive director as founder Shoreh Elhami prepares for a leadership transition. GISCorps, the humanitarian GIS volunteer program of the Geospatial Professional Network (GPN), is seeking its first paid executive director to help guide the organization into its next chapter. Founded in 2003 by GIS professional Shoreh Elhami, GISCorps connects geospatial expertise with organizations responding to disasters, humanitarian emergencies, and other challenges around the world. Its volunteers have supported projects ranging from earthquake and hurricane response to disease mapping, nonprofit data development, and GIS training.",
+      "body": [],
+      "proc": "",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/aerialuas/giscorps-seeks-executive-director-to-build-on-two-decades-of-humanitarian-service/",
+      "datum": "2026-11-03"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "The Flock and the Fleet: The Rise of Coordinated Multi-Platform Hydrography",
+      "perex": "Hydrographic survey has always demanded precision, expertise and significant resources.",
+      "telo": "Hydrographic survey has always demanded precision, expertise and significant resources. Now, it’s also becoming fast, accessible and scalable. By Vicki Speed The hardest part of hydrographic survey in modern practice is typically not the physics. Multibeam sonars, inertial navigation and sound-velocity profiling have been able to map the seafloor in exceptional detail for years. The real friction has been everything around those solutions from mobilizing a crewed vessel and working tight weather windows to repeating lines with precision to trust change detection while doing it all without blowing the budget. Unmanned surface vehicles (USVs) are changing that calculus. By pairing high-resolut",
+      "body": [],
+      "proc": "",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/magazine/the-flock-and-the-fleet-the-rise-of-coordinated-multi-platform-hydrography/",
+      "datum": "2026-11-03"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "McKim & Creed Selected by U.S. Army Corps of Engineers for New Jersey Flood Risk Management Project",
+      "perex": "Raleigh, N.C. – NOV. 2, 2026 – McKim & Creed has been selected by the U.S.",
+      "telo": "Raleigh, N.C. – NOV. 2, 2026 – McKim & Creed has been selected by the U.S. Army Corps of Engineers (USACE), New York District, to provide surveying and geospatial services for the Green Brook Segments Flood Risk Management Project in New Jersey. The project encompasses portions of North Plainfield, Plainfield, Green Brook Township and Middlesex within the Green Brook sub-basin of the Raritan River Basin. McKim & Creed’s Geospatial team will provide topographic mapping, airborne lidar, topobathy lidar, subsurface utility engineering (SUE), aerial photography and GIS services. The team will document current surface, subsurface and underwater conditions to give USACE an accurate, integrated pic",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/11/03/mckim-creed-selected-by-u-s-army-corps-of-engineers-for-new-jersey-flood-risk-management-project/?utm_source=rss&utm_medium=rss&utm_campaign=mckim-creed-selected-by-u-s-army-corps-of-engineers-for-new-jersey-flood-risk-management-project",
+      "datum": "2026-11-03"
     },
     {
       "rubrika": "Ze světa",
@@ -37,66 +97,6 @@
       "zdroj": "xyHt",
       "odkaz": "https://www.xyht.com/magazine/magazine-magazine/charting-the-caribbeans-future-how-lidar-data-is-transforming-climate-resilience-across-the-region/",
       "datum": "2026-11-02"
-    },
-    {
-      "rubrika": "Přístroje",
-      "top": false,
-      "nadpis": "MONOPOLY: Surveying Edition",
-      "perex": "Get Kids into Survey is bringing the geospatial profession to the family games table with the launch of MONOPOLY: Surveying Edition, a new way for children and families to discover the people, technol…",
-      "telo": "Get Kids into Survey is bringing the geospatial profession to the family games table with the launch of MONOPOLY: Surveying Edition, a new way for children and families to discover the people, technology and projects that help shape the world around them. After months of planning, designing and collaboration with organisations from across the surveying and geospatial profession, Get Kids into Survey is delighted to announce that pre-orders for MONOPOLY: Surveying Edition are officially open. Created with a real-world mission behind the fun, MONOPOLY: Surveying Edition takes the familiar family game and puts the world of surveying firmly on the map. For Get Kids into Survey, the idea began wi",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/11/02/monopoly-surveying-edition/?utm_source=rss&utm_medium=rss&utm_campaign=monopoly-surveying-edition",
-      "datum": "2026-11-02"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "CoStar Group to Acquire Vexcel",
-      "perex": "Adds the World’s Largest Survey Grade High-Resolution Aerial Imagery Program to Power Richer Search and Discovery Across CoStar with Tens of Billions of New AI-Derived Data Fields Vexcel’s imagery cov…",
-      "telo": "Adds the World’s Largest Survey Grade High-Resolution Aerial Imagery Program to Power Richer Search and Discovery Across CoStar with Tens of Billions of New AI-Derived Data Fields Vexcel’s imagery covers more than 45 countries, 320 major global metros and 99.6% of the U.S. Population and is licensed by the world’s largest technology companies Arlinton, Va. October 27, 2026 — CoStar Group, Inc. (NASDAQ: CSGP), a leading global provider of online real estate marketplaces, information, analytics, and digital twins in the property markets, announced today that it has entered into a definitive agreement to acquire Vexcel Group, Inc. (“Vexcel”), the operator of one of the world’s largest survey-gr",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/10/30/costar-group-to-acquire-vexcel/?utm_source=rss&utm_medium=rss&utm_campaign=costar-group-to-acquire-vexcel",
-      "datum": "2026-10-30"
-    },
-    {
-      "rubrika": "Akce",
-      "top": false,
-      "nadpis": "xyHt and FARO Nov. 4 Webinar on Hybrid Scanning Workflows for Roadway Surveys",
-      "perex": "xyHt will host a live webinar with FARO on Wednesday, November 4, at 1:00 p.m.",
-      "telo": "xyHt will host a live webinar with FARO on Wednesday, November 4, at 1:00 p.m. ET (10:00 a.m. PT), examining how hybrid scanning workflows are changing the way surveyors capture, process and deliver geospatial data. The session, titled “Building Better with Hybrid Scanner Workflows,” is free to attend with registration. Register Here to Reserve Your Space. Cutting Time and Traffic Exposure Traditional roadway surveys can be time-consuming, expose field crews to traffic hazards and require extensive processing before the data is useful to engineers and project teams. The webinar looks at how vehicle-mounted scanning can capture road corridors while reducing the time surveyors spend working in",
-      "body": [],
-      "proc": "",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/xyht-and-faro-nov-4-webinar-on-hybrid-scanning-workflows-for-roadway-surveys/",
-      "datum": "2026-10-30"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Agentic AI Has to Know Where It Is",
-      "perex": "Esri’s distinguished product manager for geospatial AI has been shipping AI inside ArcGIS since the ArcMap era.",
-      "telo": "Esri’s distinguished product manager for geospatial AI has been shipping AI inside ArcGIS since the ArcMap era. A conversation after this year’s User Conference covers the real difference between an AI assistant and an agent, why Esri built its own governance board around the distinction, and what MCP actually solves for a profession that can’t afford a plausible-sounding wrong answer. Image: Esri Assistant, Tool, or Agent Ismael Chivite, Esri’s distinguished product manager for geospatial AI, opened by drawing a line between two things the industry tends to lump together under the same word. “There are three fundamental areas,” Chivite said. “The first one relates to enhancing the user expe",
-      "body": [],
-      "proc": "",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/cartography-2/agentic-ai-has-to-know-where-it-is/",
-      "datum": "2026-10-27"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Digital Twins Are a Journey, Not a Product",
-      "perex": "Esri’s Technology Director for AEC spent roughly three decades on the industry side, most of it at Arcadis, before joining Esri to work the problem from the platform side.",
-      "telo": "Esri’s Technology Director for AEC spent roughly three decades on the industry side, most of it at Arcadis, before joining Esri to work the problem from the platform side. His case for digital twins starts with the mix of expertise required inside an AEC firm and ends with a flood-control system in South Florida he built before the term “digital twin” existed. Image: Esri Micah Callough spent roughly three decades on the industry side of AEC before joining Esri in 2019 — nearly 18 years at Arcadis, where he held a series of technology and digital-solutions leadership roles, with earlier geospatial work tied to Bechtel-run U.S. Department of Energy site services. “I think I’ve fought this fig",
-      "body": [],
-      "proc": "",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/digital-twins-are-a-journey-not-a-product/",
-      "datum": "2026-10-27"
     }
   ]
 }
