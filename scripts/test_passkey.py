@@ -130,6 +130,24 @@ async def beh():
             ok('L2 token z přihlášení klíčem uložen', 'TOK-PASSKEY' in st['tok'], st)
             ok('L3 klíč vlastníka obnoven do telefonu (vlastnický režim bez psaní klíče)', st['owner'] == '1' and st['key'] == OWNER, st)
 
+            # ---- FACE ID BEZ SIGNÁLU (4. 11. 2026) ----
+            bio0 = await page.evaluate("() => JSON.parse(localStorage.getItem('agFirmaBio_v1') || '{}')")
+            ok('F1 zapnutí i přihlášení klíčem si zapamatují, komu klíč na zařízení patří (místní odemknutí)',
+               (bio0.get('test-user-1') or {}).get('id') == S['reg']['id'] and (bio0.get('u1') or {}).get('id') == S['login']['id'], bio0)
+            await page.evaluate("() => { localStorage.removeItem('agVlastnik_v1'); localStorage.removeItem('agFirmaSess_v1'); }")
+            await ctx.set_offline(True)
+            n0s, n0f = S['nstart'], S['nfinish']
+            lo = await page.evaluate("() => AGPasskey.prihlasit().then(d => ({ ok: true, d }), e => ({ chyba: String(e && e.message || e) }))")
+            cu = await page.evaluate("() => (AGUcty.currentUser() || {}).id || null")
+            ok('F2 bez signálu: Face ID ověří telefon a pustí dovnitř toho, komu klíč patří (nic na server)',
+               lo.get('ok') and lo['d'].get('offline') and cu == 'test-user-1' and S['nstart'] == n0s and S['nfinish'] == n0f, (lo, cu, S['nstart'] - n0s, S['nfinish'] - n0f))
+            await page.evaluate("() => { localStorage.removeItem('agFirmaSess_v1'); const o = JSON.parse(localStorage.getItem('agFirmaBio_v1') || '{}'); delete o['test-user-1']; delete o['u1']; localStorage.setItem('agFirmaBio_v1', JSON.stringify(o)); }")
+            lo2 = await page.evaluate("() => AGPasskey.prihlasit().then(d => ({ ok: true }), e => ({ chyba: String(e && e.message || e) }))")
+            ok('F3 bez signálu a s klíčem, který tu nikomu nepatří → srozumitelná hláška, nikdo přihlášen',
+               'chyba' in lo2 and 'Bez signálu' in lo2['chyba'] and not await page.evaluate("() => !!AGUcty.currentUser()"), lo2)
+            await ctx.set_offline(False)
+            await page.evaluate("() => localStorage.setItem('agFirmaSess_v1', JSON.stringify({ userId: 'test-user-1', ts: Date.now() }))")
+
             # ---- KLÍČ VLASTNÍKA BEZ ÚČTU (6. 10. 2026) ----
             await page.evaluate("() => new Promise(r => AGLazy.need('js/vlastnik.js', r))")
             await page.evaluate("(k) => { localStorage.setItem('agVlastnik_v1', '1'); localStorage.setItem('agFbKey_v1', k); }", OWNER)

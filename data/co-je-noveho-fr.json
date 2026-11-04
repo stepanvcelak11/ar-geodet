@@ -2,6 +2,16 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 417,
+      "datum": "2026-11-04",
+      "nadpis": "Face ID hors ligne et carte plus rapide",
+      "body": [
+        "La connexion par Face ID fonctionne désormais sans réseau — le téléphone vérifie la clé lui-même. Il suffit de se connecter une fois avec réseau.",
+        "Au démarrage, la carte se charge directement depuis le téléphone sans attendre le réseau.",
+        "Avec réseau, l’app enregistre seule la carte des environs (environ 2,5 km) pour fonctionner hors ligne sur le terrain."
+      ]
+    },
+    {
       "v": 416,
       "datum": "2026-10-17",
       "nadpis": "Carte même avec un signal faible",

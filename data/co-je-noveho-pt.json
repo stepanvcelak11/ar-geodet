@@ -2,6 +2,16 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 417,
+      "datum": "2026-11-04",
+      "nadpis": "Face ID sem sinal e mapa mais rápido",
+      "body": [
+        "O início de sessão com Face ID funciona agora também sem sinal — o telefone verifica a chave sozinho. Basta entrar uma vez com sinal.",
+        "Ao iniciar, o mapa carrega logo a partir do telefone, sem esperar pelo sinal.",
+        "Com sinal, a app guarda sozinha o mapa dos arredores (cerca de 2,5 km), para funcionar offline no terreno."
+      ]
+    },
+    {
       "v": 416,
       "datum": "2026-10-17",
       "nadpis": "Mapa também com sinal fraco",

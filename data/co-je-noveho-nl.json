@@ -2,6 +2,16 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 417,
+      "datum": "2026-11-04",
+      "nadpis": "Face ID zonder bereik en snellere kaart",
+      "body": [
+        "Inloggen met Face ID werkt nu ook zonder bereik — de telefoon controleert de sleutel zelf. Eén keer inloggen met bereik is genoeg.",
+        "Bij het starten laadt de kaart direct uit de telefoon en wacht niet meer op bereik.",
+        "Met bereik slaat de app de kaart van de omgeving (ca. 2,5 km) zelf op, zodat hij in het veld ook offline werkt."
+      ]
+    },
+    {
       "v": 416,
       "datum": "2026-10-17",
       "nadpis": "Kaart ook bij zwak signaal",

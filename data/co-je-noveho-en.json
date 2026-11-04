@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 417,
+      "datum": "2026-11-04",
+      "nadpis": "Face ID offline and a faster map",
+      "body": [
+        "Signing in with Face ID now works without a signal — the phone checks the key itself. Sign in with it once while online.",
+        "On start the map loads straight from the phone instead of waiting for the signal.",
+        "While online the app saves the map around you (about 2.5 km) on its own, so it works offline in the field."
+      ]
+    },
+    {
       "v": 416,
       "datum": "2026-10-17",
       "nadpis": "Map on a weak signal",

@@ -58,6 +58,7 @@
     // Server drží výzvu 5 minut; bereme ji jen do 4 minut stáří a jen jednou.
     var MAX_STARI = 4 * 60e3;
     var _vyzva = null;      // přihlášení: { ch, rpId, api, ts }
+    var _bezSite = false;   // poslední dotaz na server neprošel sítí → další klepnutí ověří klíč offline (bod 4)
     var _reg = {};          // zapnutí: { ucet|vlastnik: { o, ts } }
     function cerstva(x) { return !!(x && Date.now() - x.ts < MAX_STARI); }
     function predpriprav(api) {
@@ -65,10 +66,11 @@
         if (cerstva(_vyzva) && _vyzva.api === (api || '')) return Promise.resolve(true);
         var o = { method: 'POST', body: {} }; if (api) o.api = api;
         return AGUcty.cloudFetch('/passkey/login/start', o).then(function (r) {
+            _bezSite = !r || r.status === 0;
             if (!r || !r.ok || !r.data || !r.data.challenge) return false;
             _vyzva = { ch: r.data.challenge, rpId: r.data.rpId, api: api || '', ts: Date.now() };
             return true;
-        }, function () { return false; });
+        }, function () { _bezSite = true; return false; });
     }
     function regFetch(kdo) {
         if (kdo === 'vlastnik') {
@@ -119,13 +121,17 @@
     function zapnout() {
         if (!podpora()) return Promise.reject(new Error(t('Tenhle telefon přihlášení přes Face ID (passkey) neumí.')));
         var u = ucet(); if (!u || !window.AGUcty) return Promise.reject(new Error(t('Nejdřív se přihlas ke svému účtu.')));
+        var credId = null;
         return sGestem('ucet').then(function (cred) {
+            credId = cred.id;
             var body = telo(cred);
             var ok = vlastnikKlic(); if (ok) body.ownerKey = ok;
             return AGUcty.cloudFetch('/passkey/register/finish', { method: 'POST', body: body });
         }).then(function (r) {
             if (!r || !r.ok) throw chyba(r);
             var s = st(); s[u.id] = { ts: Date.now(), owner: !!(r.data && r.data.owner) }; ulozSt(s);
+            // tentýž klíč i jako místní odemknutí → přihlášení přes Face ID funguje i bez signálu (bod 4)
+            try { var cu = AGUcty.currentUser && AGUcty.currentUser(); if (cu && credId) pamatuj(cu.id, credId); } catch (e) { swallow(e, 'pamatuj'); }
             karta();
             return { ok: true, owner: !!(r.data && r.data.owner) };
         });
@@ -173,6 +179,31 @@
             : t('Tenhle klíč jen odemyká telefon pro člověka z firmy — server ho nezná. V nabídce vyber klíč s kódem účtu, nebo se přihlas heslem.'));
     }
 
+    // ---- FACE ID BEZ SIGNÁLU (4. 11. 2026, bod 4 — „musím mít zapnutá data, offline to nefunguje") ----
+    // Přihlášení klíčem stálo na výzvě ze serveru, takže bez signálu neprošlo nikdy. Klíč ale leží
+    // v telefonu (Klíčenka / správce hesel) a telefon ho umí ověřit i offline — stejně jako
+    // „Odemknout telefonem". Proto: při zapnutí a při každém přihlášení klíčem se signálem si appka
+    // zapamatuje, komu na TOMHLE zařízení klíč patří (AGUcty.bio — tentýž záznam, ze kterého žije
+    // tlačítko „Odemknout telefonem" na přihlašovací obrazovce). Bez signálu se pak klíč ověří
+    // v telefonu a pustí se dovnitř ten, komu patří (AGUcty.mistniPrihlaseni) — jako heslo offline.
+    // Na novém telefonu / po smazání dat appky je potřeba poprvé signál (není komu klíč přiřadit).
+    function pamatuj(userId, credId) {
+        try { if (window.AGUcty && AGUcty.bio && AGUcty.bio.remember) AGUcty.bio.remember(userId, credId); } catch (e) { swallow(e, 'pamatuj'); }
+    }
+    function bezSite() { return _bezSite || (typeof navigator !== 'undefined' && navigator.onLine === false); }
+    function overitOffline() {
+        var ch = new Uint8Array(32); try { crypto.getRandomValues(ch); } catch (e) { for (var i = 0; i < 32; i++) ch[i] = Math.floor(Math.random() * 256); }
+        return navigator.credentials.get({ publicKey: { challenge: ch, userVerification: 'required', timeout: 60000 } });
+    }
+    function prihlasitOffline(a) {
+        var h = handle(a.response);
+        var kdo = null; try { kdo = (window.AGUcty && AGUcty.bio && AGUcty.bio.kdo) ? AGUcty.bio.kdo(a.id) : null; } catch (e) { kdo = null; }
+        if (h === 'ag:vlastnik' || kdo === 'vlastnik') return mistniKlic('ag:vlastnik');
+        if (!kdo && h.indexOf('ag:') === 0) kdo = h.slice(3);   // staré místní odemknutí nese id uživatele rovnou
+        if (kdo && window.AGUcty && AGUcty.mistniPrihlaseni && AGUcty.mistniPrihlaseni(kdo)) return { offline: true, userId: kdo };
+        throw new Error(t('Bez signálu se přes Face ID přihlásíš jen tam, kde ses tímhle klíčem už jednou přihlásil se signálem. Teď použij heslo, nebo se připoj k internetu.'));
+    }
+
     // ---- přihlášení ----
     function overit(ch, rpId) {
         return navigator.credentials.get({ publicKey: { challenge: dec(ch), rpId: rpId, userVerification: 'required', timeout: 60000 } });
@@ -182,12 +213,25 @@
         var o = { method: 'POST', body: {} }; if (api) o.api = api;
         var v = _vyzva; _vyzva = null;
         var krok;
+        if (!cerstva(v) && bezSite()) {
+            // bez signálu: ověří telefon sám, hned v gestu klepnutí (bod 4)
+            var k0; try { k0 = overitOffline(); } catch (e) { k0 = Promise.reject(e); }
+            return k0.then(prihlasitOffline).then(function (d) {
+                try { if (typeof quickToast === 'function') quickToast(t('Přihlášeno přes Face ID (bez signálu).')); } catch (e) { /* nic */ }
+                return d;
+            }, function (e) {
+                predpriprav(api);
+                if (zrusenoUzivatelem(e)) throw new Error(t('Přihlášení přes Face ID bylo zrušené. Zkus to znovu, nebo použij heslo.'));
+                throw e;
+            });
+        }
         if (cerstva(v) && v.api === (api || '')) {
             // výzva je připravená → Face ID hned v gestu klepnutí (viz hlavička bod 1)
             try { krok = overit(v.ch, v.rpId); } catch (e) { krok = Promise.reject(e); }
         } else {
             krok = AGUcty.cloudFetch('/passkey/login/start', o).then(function (r) {
-                if (!r || !r.ok || !r.data || !r.data.challenge) throw chyba(r, t('Server není dosažitelný — přihlášení přes Face ID potřebuje internet.'));
+                if (!r || r.status === 0) { _bezSite = true; var e0 = new Error(t('Server teď není dosažitelný — klepni na Přihlásit přes Face ID znovu, ověří se jen v telefonu.')); e0.sit = true; throw e0; }
+                if (!r.ok || !r.data || !r.data.challenge) throw chyba(r, t('Server není dosažitelný — přihlášení přes Face ID potřebuje internet.'));
                 return overit(r.data.challenge, r.data.rpId);
             });
         }
@@ -212,8 +256,11 @@
                 try { if (typeof quickToast === 'function') quickToast(t('Přihlášen jako vlastník.')); } catch (e) { /* nic */ }
                 return r.data;
             }
+            if (r && r.status === 0) { _bezSite = true; throw new Error(t('Spojení se serverem spadlo — klepni na Přihlásit přes Face ID znovu, ověří se jen v telefonu.')); }
             if (!r || !r.ok || !r.data || !r.data.token) throw chyba(r);
             AGUcty._adoptLogin(r.data, api, null);
+            _bezSite = false;
+            if (r.data.user && r.data.user.id && credId) pamatuj(r.data.user.id, credId);   // příště i bez signálu (bod 4)
             if (r.data.ucet && r.data.ucet.id) { var s = st(); s[r.data.ucet.id] = s[r.data.ucet.id] || { ts: Date.now() }; ulozSt(s); }
             if (r.data.ownerKey) {
                 // vlastník: klíč zpátky do telefonu → vlastnický režim naběhne (bez psaní 24znakového klíče)
@@ -223,7 +270,7 @@
             try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: r.data.user, passkey: true } })); } catch (e) { swallow(e, 'event'); }
             return r.data;
         }).then(null, function (e) {
-            predpriprav(api);   // další pokus zase hned v gestu
+            if (!e || !e.sit) predpriprav(api);   // další pokus zase hned v gestu (bez sítě by jen zdržel)
             if (zrusenoUzivatelem(e)) throw new Error(t('Přihlášení přes Face ID bylo zrušené. Zkus to znovu, nebo použij heslo.'));
             throw e;
         });

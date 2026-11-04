@@ -2,6 +2,16 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 417,
+      "datum": "2026-11-04",
+      "nadpis": "Face ID ohne Netz und schnellere Karte",
+      "body": [
+        "Die Anmeldung mit Face ID funktioniert jetzt auch ohne Netz — das Telefon prüft den Schlüssel selbst. Einmal mit Netz anmelden genügt.",
+        "Beim Start lädt die Karte sofort aus dem Telefon und wartet nicht mehr auf das Netz.",
+        "Mit Netz speichert die App die Karte der Umgebung (ca. 2,5 km) selbst, damit sie im Gelände auch offline läuft."
+      ]
+    },
+    {
       "v": 416,
       "datum": "2026-10-17",
       "nadpis": "Karte auch bei schwachem Signal",

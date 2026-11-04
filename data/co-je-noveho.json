@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 417,
+   "datum": "2026-11-04",
+   "nadpis": "Face ID bez signálu a rychlejší mapa",
+   "body": [
+    "Přihlášení přes Face ID funguje i bez signálu — telefon klíč ověří sám. Stačí se jím jednou přihlásit se signálem.",
+    "Mapa se při startu načte hned z telefonu, už nečeká na signál.",
+    "Se signálem si appka sama uloží mapu okolí (asi 2,5 km), takže v terénu jede i offline."
+   ]
+  },
+  {
    "v": 416,
    "datum": "2026-10-17",
    "nadpis": "Mapa i na slabém signálu",
