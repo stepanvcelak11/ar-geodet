@@ -2,6 +2,17 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 420,
+      "datum": "2026-11-05",
+      "nadpis": "Zoeken en snelkoppelingen hersteld, luchtdruk op jouw hoogte",
+      "body": [
+        "Gereedschap zoeken: „Bedrijf en accounts” springt tijdens het typen niet meer naar boven.",
+        "Snelkoppelingen op het app-icoon (Nieuw punt, Doorgaan) werken weer – het Startscherm bedekt ze niet meer.",
+        "Het weer op Start toont de luchtdruk op zeeniveau en omgerekend naar jouw hoogte.",
+        "Start laadt sneller: laatste weer meteen, actueel zodra je positie bekend is, gereedschap in één keer."
+      ]
+    },
+    {
       "v": 418,
       "datum": "2026-11-04",
       "nadpis": "Startscherm, slimmere GPS en snellere start",

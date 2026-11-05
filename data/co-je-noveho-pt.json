@@ -2,6 +2,17 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 420,
+      "datum": "2026-11-05",
+      "nadpis": "Pesquisa e atalhos corrigidos, pressão à tua altitude",
+      "body": [
+        "Pesquisa de ferramentas: «Empresa e contas» já não salta para o topo enquanto escreves.",
+        "Os atalhos do ícone (Novo ponto, Continuar) voltam a funcionar: o ecrã Início já não os tapa.",
+        "O tempo no Início mostra a pressão ao nível do mar e convertida para a tua altitude.",
+        "O Início carrega mais depressa: último tempo logo, atual quando a posição for conhecida, ferramentas de uma vez."
+      ]
+    },
+    {
       "v": 418,
       "datum": "2026-11-04",
       "nadpis": "Ecrã inicial, GPS mais esperto e arranque mais rápido",

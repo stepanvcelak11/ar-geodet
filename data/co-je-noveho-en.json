@@ -2,6 +2,17 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 420,
+      "datum": "2026-11-05",
+      "nadpis": "Search and shortcut fixes, pressure at your altitude",
+      "body": [
+        "Tools search: “Company and accounts” no longer jumps to the top while you type, so you tap what you searched for.",
+        "App icon shortcuts (New point, Continue) work again — the Home screen no longer covers them.",
+        "Weather on Home shows sea-level pressure and pressure converted to your altitude.",
+        "Home loads faster: last weather right away, fresh once your position is known, tools load all at once."
+      ]
+    },
+    {
       "v": 418,
       "datum": "2026-11-04",
       "nadpis": "Home screen, smarter GPS and a faster start",

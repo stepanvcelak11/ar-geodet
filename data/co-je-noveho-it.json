@@ -2,6 +2,17 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 420,
+      "datum": "2026-11-05",
+      "nadpis": "Ricerca e scorciatoie corrette, pressione alla tua quota",
+      "body": [
+        "Ricerca strumenti: «Azienda e account» non salta più in cima mentre scrivi.",
+        "Le scorciatoie dell’icona (Nuovo punto, Continua) funzionano di nuovo: la schermata Home non le copre.",
+        "Il meteo nella Home mostra la pressione al livello del mare e quella riportata alla tua quota.",
+        "La Home si carica più in fretta: ultimo meteo subito, aggiornato appena nota la posizione, strumenti tutti insieme."
+      ]
+    },
+    {
       "v": 418,
       "datum": "2026-11-04",
       "nadpis": "Schermata Home, GPS più furbo e avvio più rapido",

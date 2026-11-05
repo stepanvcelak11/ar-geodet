@@ -2,6 +2,17 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 420,
+      "datum": "2026-11-05",
+      "nadpis": "Recherche et raccourcis corrigés, pression à ton altitude",
+      "body": [
+        "Recherche d’outils : « Entreprise et comptes » ne saute plus en haut pendant la saisie.",
+        "Les raccourcis de l’icône (Nouveau point, Continuer) refonctionnent : l’écran Accueil ne les masque plus.",
+        "La météo de l’Accueil affiche la pression au niveau de la mer et ramenée à ton altitude.",
+        "L’Accueil charge plus vite : dernière météo tout de suite, actualisée dès la position connue, outils d’un coup."
+      ]
+    },
+    {
       "v": 418,
       "datum": "2026-11-04",
       "nadpis": "Écran d’accueil, GPS plus malin et démarrage plus rapide",

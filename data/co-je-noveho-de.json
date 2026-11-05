@@ -2,6 +2,17 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 420,
+      "datum": "2026-11-05",
+      "nadpis": "Suche und Verknüpfungen repariert, Luftdruck auf deiner Höhe",
+      "body": [
+        "Werkzeugsuche: „Firma und Konten“ springt beim Tippen nicht mehr nach oben – unter dem Finger ist, was du suchst.",
+        "Verknüpfungen am App-Symbol (Neuer Punkt, Fortsetzen) funktionieren wieder – der Startbildschirm verdeckt sie nicht.",
+        "Das Wetter auf Start zeigt den Luftdruck auf Meeresniveau und umgerechnet auf deine Höhe.",
+        "Start lädt schneller: letztes Wetter sofort, aktuelles nach der Ortung, Werkzeuge auf einmal."
+      ]
+    },
+    {
       "v": 418,
       "datum": "2026-11-04",
       "nadpis": "Startbildschirm, klügeres GPS und schnellerer Start",

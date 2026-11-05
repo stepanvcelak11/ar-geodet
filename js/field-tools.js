@@ -53,6 +53,9 @@
             '#tools-modal .ag-ft-tile span{display:block;}',
             // při hledání mlčí oblíbené i pás „Co dnes děláš"
             'body.ag-ft-searching #ag-tp-editbtn,body.ag-ft-searching #ag-rp-wrap{display:none !important;}',
+            // dlaždice, která neodpovídá hledání — třída místo display, aby ji neodkryl jiný modul
+            // (js/ucty-admin.js při agucty:perms přepisuje display „Firmy a účtů" → skočila nahoru)
+            'body.ag-ft-searching #tools-modal .tool-grid .ag-ft-miss{display:none !important;}',
             // sbalitelné kategorie: nadpis je klikací, šipka ukazuje stav
             '#tools-modal .tool-cat,#tools-modal .ag-ft-head{cursor:pointer;-webkit-user-select:none;user-select:none;}',
             // ⚠ 31. 8. 2026: šipka byla ZNAK (▾ / ▸ při sbalení) — viz .ag-chev
@@ -295,11 +298,13 @@
                 if (!q) {
                     el.style.display = secClosed ? 'none' : '';
                     el.style.order = '';
+                    el.classList.remove('ag-ft-miss');
                     continue;
                 }
                 var score = tileScore(el, tokens, usage);
                 var hit = score > 0;
                 el.style.display = hit ? '' : 'none';
+                el.classList.toggle('ag-ft-miss', !hit);
                 // řazení podle relevance: mřížka je CSS grid → stačí order (vyšší skóre dřív)
                 el.style.order = hit ? String(Math.max(0, 1000 - Math.round(score * 50))) : '';
                 if (hit) { headHasHit = true; anyHit = true; if (score > bestScore) { bestScore = score; _bestTile = el; } }
@@ -346,15 +351,23 @@
         var kids = grid.children, i, el;
         var isTile = function (x) { return x.classList.contains('tool-tile') || x.classList.contains('ag-ft-tile'); };
         if (q || !razeniZap()) {
-            // při hledání řadí relevance (jen dlaždice); jinde pořadí z DOMu
-            for (i = 0; i < kids.length; i++) { el = kids[i]; if (q ? !isTile(el) : true) el.style.order = ''; }
+            // při hledání řadí relevance (jen dlaždice); jinde pořadí z DOMu.
+            // ⚠ Maže se JEN pořadí, které sem dalo řazení (data-ft-ord). Cizí prvky mají
+            //   vlastní: blok „Jinde v appce" (js/app-search.js) má order 9999 a bez něj
+            //   skočil při psaní NAD výsledky (5. 11. 2026).
+            for (i = 0; i < kids.length; i++) {
+                el = kids[i];
+                if (!el.hasAttribute('data-ft-ord')) continue;
+                el.removeAttribute('data-ft-ord');
+                if (!(q && isTile(el))) el.style.order = '';
+            }
             return;
         }
         var seq = 0, sekce = null, oblibene = false;
         function zavri() {
             if (!sekce) return;
             if (!oblibene) sekce.sort(function (a, b) { return (b.u - a.u) || (a.i - b.i); });
-            for (var k = 0; k < sekce.length; k++) sekce[k].el.style.order = String(++seq);
+            for (var k = 0; k < sekce.length; k++) { sekce[k].el.style.order = String(++seq); sekce[k].el.setAttribute('data-ft-ord', '1'); }
             sekce = null;
         }
         for (i = 0; i < kids.length; i++) {
@@ -368,6 +381,7 @@
             zavri();
             if (el.classList.contains('tool-cat') || el.classList.contains('ag-ft-head')) oblibene = el.id === 'ag-fav-head';
             el.style.order = String(++seq);
+            el.setAttribute('data-ft-ord', '1');
         }
         zavri();
     }

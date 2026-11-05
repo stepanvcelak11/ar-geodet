@@ -23,7 +23,7 @@ PORT = next((int(a) for a in sys.argv[1:] if a.isdigit()), 9134)
 SNIMEK = '--snimek' in sys.argv
 VYSLEDKY = []
 ZAVRI = "() => { document.querySelectorAll('.ag-dlg-overlay.open .ag-dlg-btn:not(.ag-ok)').forEach(b => b.click()); }"
-WX = {'current': {'temperature_2m': 11.6, 'weather_code': 2, 'wind_speed_10m': 3.1},
+WX = {'elevation': 250.0, 'current': {'temperature_2m': 11.6, 'weather_code': 2, 'wind_speed_10m': 3.1, 'pressure_msl': 1018.0, 'surface_pressure': 988.0},
       'daily': {'weather_code': [61], 'temperature_2m_max': [14.2], 'temperature_2m_min': [5.8], 'precipitation_sum': [2.4], 'precipitation_probability_max': [70],
                 'wind_speed_10m_max': [6.2], 'wind_gusts_10m_max': [11], 'sunrise': ['2026-11-04T06:58'], 'sunset': ['2026-11-04T16:32']},
       'hourly': {'precipitation': [0] * 13 + [0.6, 0.9, 0.4] + [0] * 8}}
@@ -55,6 +55,11 @@ async def beh(url):
         ok('A0 po přihlášení se ukáže Domů', await V.cekej(page, "document.body.classList.contains('app-started') && !!window.AGDomov && AGDomov.otevreno()", 60))
         ok('A1 pozdrav se jménem a datum', await page.evaluate("() => /Tester/.test(document.getElementById('agd-pozdrav').textContent) && document.getElementById('agd-datum').textContent.length > 5"))
         ok('A2 počasí: teplota, popis, déšť s hodinami, slunce', await V.cekej(page, "(() => { const t = document.getElementById('agd-wx').textContent; return /12°/.test(t) && /Polojasno/.test(t) && /13–16 h/.test(t) && /06:58–16:32/.test(t); })()", 15),
+           await page.evaluate("() => document.getElementById('agd-wx').textContent"))
+        # tlak: moře 1018, ve 250 m (terén, bez GPS výšky) ≈ 988 hPa (barometrická rovnice, 11,6 °C)
+        tl = await page.evaluate("() => document.getElementById('agd-wx').textContent")
+        ok('A2b tlak na moři i přepočtený na výšku', '1018 hPa' in tl and ('988 hPa' in tl or '987 hPa' in tl or '989 hPa' in tl) and 'm n. m.' in tl, tl)
+        ok('A2c přepočet tlaku: 1013,25 hPa v 1000 m při 15 °C ≈ 899 hPa', await page.evaluate("() => { const w = {elevation: 1000, current: {pressure_msl: 1013.25, temperature_2m: 8.5}}; AGDomov._pocasi({w: Object.assign({daily: {}}, w)}); return /89[89] hPa/.test(document.getElementById('agd-wx').textContent); }"),
            await page.evaluate("() => document.getElementById('agd-wx').textContent"))
         ok('A3 zakázka s počtem bodů', await page.evaluate("() => document.getElementById('agd-zak').textContent.length > 0 && /bod/i.test(document.getElementById('agd-zak-sub').textContent)"))
         ok('A4 sdílení: poslat/načíst zakázku, QR', await page.evaluate("() => ['poslat','nacist','qr','skenovat'].every(a => !!document.querySelector('#ag-domov [data-agd=\"' + a + '\"]'))"))
@@ -115,6 +120,16 @@ async def beh(url):
         await page.evaluate("() => { localStorage.setItem('agJednoduchy_v1','1'); }")
         ok('F1 v jednoduchém režimu se Domů neotevře', await page.evaluate("() => AGDomov.otevri() === false && !AGDomov.otevreno()"))
         await page.evaluate("() => localStorage.setItem('agJednoduchy_v1','0')")
+        # zkratka z ikony appky (Nový bod): Domů ji nesmí zakrýt (5. 11. 2026)
+        p2 = await ctx.new_page()
+        await p2.route('**/*', route)
+        await p2.add_init_script("localStorage.removeItem('agDomov_v1');")
+        await p2.goto(url + ('&' if '?' in url else '?') + 'zkratka=novy-bod', wait_until='domcontentloaded', timeout=90000)
+        await V.cekej(p2, "document.body.classList.contains('app-started') && !!window.AGDomov", 60)
+        await p2.wait_for_timeout(4000)
+        r = await p2.evaluate("() => ({ domov: AGDomov.otevreno(), novy: document.getElementById('custom-modal-overlay').style.display })")
+        ok('G1 spuštění zkratkou „Nový bod": okno bodu, Domů se neukáže', not r['domov'] and r['novy'] == 'flex', r)
+        await p2.close()
         ok('Z bez chyb stránky', not chyby, chyby[:5])
         await ctx.close()
         await br.close()
