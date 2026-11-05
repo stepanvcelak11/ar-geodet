@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-11-04",
-  "uvodnik": "Vydání 4. 11. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-11-05",
+  "uvodnik": "Vydání 5. 11. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,54 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "Trimble Announces Winners of 2026 Construction Innovation Awards",
+      "perex": "Westminster, Colo., Nov. 4, 2026 — Trimble today announced winners of the annual Trimble Construction Innovation Awards , honoring North American industry trailblazers leveraging advanced Trimble hardware and software.",
+      "telo": "Westminster, Colo., Nov. 4, 2026 — Trimble today announced winners of the annual Trimble Construction Innovation Awards , honoring North American industry trailblazers leveraging advanced Trimble hardware and software. Awards were presented in four construction categories and given to two educators shaping the next generation of industry talent through education and advocacy. “The 2026 award winners showcase the transformative power of Trimble technology and their ingenuity in deploying it to advance our industry,” said Mark Schwartz, group president of AECO software at Trimble. “From discovering millimeter-scale discrepancies before steel hits the site, to achieving real-time, data-driven c",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/11/04/trimble-announces-winners-of-2026-construction-innovation-awards/?utm_source=rss&utm_medium=rss&utm_campaign=trimble-announces-winners-of-2026-construction-innovation-awards",
+      "datum": "2026-11-04"
+    },
+    {
+      "rubrika": "Přístroje",
+      "top": false,
+      "nadpis": "Hardware Ships in Days. Competence Takes Weeks.",
+      "perex": "A four-level ladder for handheld SLAM operators — and the training projects that climb it The geospatial industry is buying handheld SLAM scanners faster than it is building the people who can run them.",
+      "telo": "A four-level ladder for handheld SLAM operators — and the training projects that climb it The geospatial industry is buying handheld SLAM scanners faster than it is building the people who can run them. The instrument looks effortless, the live preview always shows something, and whether that something survives as a professional deliverable is decided by operator habits invisible to a bystander. Here is a practical, vendor-neutral competency ladder — and a first-90-days plan for a firm taking delivery of its first scanner. By Peter Yang and Mark Chen Every technology wave in surveying has had its skills lag. Total stations demanded new field procedures; GNSS demanded an understanding of datu",
+      "body": [],
+      "proc": "",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/magazine/hardware-ships-in-days-competence-takes-weeks/",
+      "datum": "2026-11-04"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Geo Week Opening Keynote Explores Digitally Preserving 90 Years of Fallingwater",
+      "perex": "From Scan to BIM to Digital Twin: The story behind digitally preserving one of architecture’s most iconic landmarks Salt Lake City, UT — November 4, 2027 — Geo Week announced its 2027 opening keynote,…",
+      "telo": "From Scan to BIM to Digital Twin: The story behind digitally preserving one of architecture’s most iconic landmarks Salt Lake City, UT — November 4, 2027 — Geo Week announced its 2027 opening keynote, From Legacy to Longevity: Digitally Preserving 90 Years of Fallingwater , a presentation on the digital preservation initiative behind Frank Lloyd Wright’s architectural masterpiece. The keynote will take place on February 23, 2027, during Geo Week at the Salt Palace Convention Center in Salt Lake City, Utah. Image Credit: Case Technologies Fallingwater’s visionary design demands an equally forward-thinking approach to its preservation. Safeguarding its architectural integrity, cultural signifi",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/11/04/geo-week-opening-keynote-explores-digitally-preserving-90-years-of-fallingwater/?utm_source=rss&utm_medium=rss&utm_campaign=geo-week-opening-keynote-explores-digitally-preserving-90-years-of-fallingwater",
+      "datum": "2026-11-04"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Mach9 Now Works in the Sky",
+      "perex": "Turn data from drones, helicopters, and planes into finished survey deliverables faster with Mach9’s AI CAD software.",
+      "telo": "Turn data from drones, helicopters, and planes into finished survey deliverables faster with Mach9’s AI CAD software. Today, Mach9 expands beyond mobile and terrestrial scanning to support aerial LiDAR and photogrammetry-derived datasets. Survey and geospatial teams can now use Mach9 to turn aerial data into a first draft in hours, then review and refine it into finished drawings and surfaces. Dozens of civil engineering firms, including Langan, McElhanney, and Welch Comer have already expanded their use of Mach9 from mobile and terrestrial data to include aerial, allowing them to cut delivery times and take on more work. AI-extracted linework from an urban site for utility basemapping. For",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/11/04/mach9-now-works-in-the-sky/?utm_source=rss&utm_medium=rss&utm_campaign=mach9-now-works-in-the-sky",
+      "datum": "2026-11-04"
     },
     {
       "rubrika": "Technologie",
@@ -49,54 +97,6 @@
       "zdroj": "xyHt",
       "odkaz": "https://www.xyht.com/aerialuas/giscorps-seeks-executive-director-to-build-on-two-decades-of-humanitarian-service/",
       "datum": "2026-11-03"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "The Flock and the Fleet: The Rise of Coordinated Multi-Platform Hydrography",
-      "perex": "Hydrographic survey has always demanded precision, expertise and significant resources.",
-      "telo": "Hydrographic survey has always demanded precision, expertise and significant resources. Now, it’s also becoming fast, accessible and scalable. By Vicki Speed The hardest part of hydrographic survey in modern practice is typically not the physics. Multibeam sonars, inertial navigation and sound-velocity profiling have been able to map the seafloor in exceptional detail for years. The real friction has been everything around those solutions from mobilizing a crewed vessel and working tight weather windows to repeating lines with precision to trust change detection while doing it all without blowing the budget. Unmanned surface vehicles (USVs) are changing that calculus. By pairing high-resolut",
-      "body": [],
-      "proc": "",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/magazine/the-flock-and-the-fleet-the-rise-of-coordinated-multi-platform-hydrography/",
-      "datum": "2026-11-03"
-    },
-    {
-      "rubrika": "Z praxe",
-      "top": false,
-      "nadpis": "McKim & Creed Selected by U.S. Army Corps of Engineers for New Jersey Flood Risk Management Project",
-      "perex": "Raleigh, N.C. – NOV. 2, 2026 – McKim & Creed has been selected by the U.S.",
-      "telo": "Raleigh, N.C. – NOV. 2, 2026 – McKim & Creed has been selected by the U.S. Army Corps of Engineers (USACE), New York District, to provide surveying and geospatial services for the Green Brook Segments Flood Risk Management Project in New Jersey. The project encompasses portions of North Plainfield, Plainfield, Green Brook Township and Middlesex within the Green Brook sub-basin of the Raritan River Basin. McKim & Creed’s Geospatial team will provide topographic mapping, airborne lidar, topobathy lidar, subsurface utility engineering (SUE), aerial photography and GIS services. The team will document current surface, subsurface and underwater conditions to give USACE an accurate, integrated pic",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/11/03/mckim-creed-selected-by-u-s-army-corps-of-engineers-for-new-jersey-flood-risk-management-project/?utm_source=rss&utm_medium=rss&utm_campaign=mckim-creed-selected-by-u-s-army-corps-of-engineers-for-new-jersey-flood-risk-management-project",
-      "datum": "2026-11-03"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "Carrying Forward a Lifetime of Service",
-      "perex": "Every year, floods, earthquakes, typhoons, and hurricanes cause unfathomable damage to communities all over the world.",
-      "telo": "Every year, floods, earthquakes, typhoons, and hurricanes cause unfathomable damage to communities all over the world. When they do, responders know whom to reach out to: GISCorps. A program of the Geospatial Professional Network (GPN), GISCorps has attracted over 12,000 prospective volunteers from 162 countries and launched more than 380 missions worldwide since 2003. But the organization does more than assist with disaster response. It also helps nonprofits develop maps and apps, review and collect datasets, conduct GIS training, and more. So far in 2026, more than 500 GISCorps volunteers have contributed their expertise to 14 completed disaster and non-disaster missions, with more in prog",
-      "body": [],
-      "proc": "",
-      "zdroj": "LiDAR Magazine",
-      "odkaz": "https://lidarmag.com/2026/11/02/carrying-forward-a-lifetime-of-service/?utm_source=rss&utm_medium=rss&utm_campaign=carrying-forward-a-lifetime-of-service",
-      "datum": "2026-11-02"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Charting the Caribbean’s Future: How Lidar Data Is Transforming Climate Resilience Across the Region",
-      "perex": "By Dr. Mark Bynoe and Sven Cowan When a major storm sweeps across the Caribbean, coastlines can change in an instant.",
-      "telo": "By Dr. Mark Bynoe and Sven Cowan When a major storm sweeps across the Caribbean, coastlines can change in an instant. Beaches vanish. Cliffs shear away. Floodwaters push inland into neighborhoods and tourist meccas once considered safe. Climate change poses significant problems in the region. Damaging floods and storms have more than tripled since the early 2000s, resulting in countries suffering yearly losses equal to 17% of their GDP. This is seen as perpetual recession as the region grapples with this constant threat. View of Turneffe Atoll, Belize. Topobathymetric surface model colored by water depth while above ground areas are colored by co-acquired imagery. Image by Chris Miwa. For ye",
-      "body": [],
-      "proc": "",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/magazine/magazine-magazine/charting-the-caribbeans-future-how-lidar-data-is-transforming-climate-resilience-across-the-region/",
-      "datum": "2026-11-02"
     }
   ]
 }
