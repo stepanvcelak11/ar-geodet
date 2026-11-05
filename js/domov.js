@@ -94,7 +94,7 @@
         if (cerstva) return Promise.resolve({ w: c.data, stale: false });
         if (!p || navigator.onLine === false) return Promise.resolve(c && c.data ? { w: c.data, stale: true, when: c.t } : null);
         var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + p.lat.toFixed(3) + '&longitude=' + p.lng.toFixed(3)
-            + '&current=temperature_2m,weather_code,wind_speed_10m'
+            + '&current=temperature_2m,weather_code,wind_speed_10m,pressure_msl,surface_pressure'
             + '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,sunrise,sunset'
             + '&hourly=precipitation&forecast_days=1&timezone=auto&wind_speed_unit=ms';
         return Promise.race([
@@ -105,6 +105,40 @@
             try { localStorage.setItem(KEY_WX, JSON.stringify({ t: Date.now(), day: dnes(), lat: p.lat, lng: p.lng, data: j })); } catch (e) { swallow(e, 'wxSave'); }
             return { w: j, stale: false };
         })['catch'](function () { var c2 = wxCache(); return c2 && c2.data ? { w: c2.data, stale: true, when: c2.t } : null; });
+    }
+    // ---- TLAK PŘEPOČTENÝ NA VÝŠKU (5. 11. 2026, přání uživatele) ----
+    // Open-Meteo dává tlak redukovaný na hladinu moře (QNH, jak ho hlásí předpovědi) — pro
+    // atmosférickou korekci dálkoměru a barometrickou výšku je ale potřeba tlak V MÍSTĚ.
+    // Přepočet barometrickou rovnicí (standardní gradient 0,0065 K/m, teplota z předpovědi):
+    //   p = p₀ · (1 − 0,0065·h / (T + 0,0065·h + 273,15))^5,257
+    // Výška: z GPS (elipsoidická − kvazigeoid → Bpv), jinak výška terénu z Open-Meteo (DEM 90 m).
+    function vyskaMista(w) {
+        try {
+            var f = window.AGFix;
+            if (f && f.alt != null && isFinite(f.alt) && (Date.now() - f.ts) < 10 * 60000 && !f.manual) {
+                var N = (typeof getGeoidUndulation === 'function') ? getGeoidUndulation(f.lat, f.lng) : 45;
+                var h = f.alt - N;
+                if (h > -450 && h < 9000) return { h: h, zdroj: 'GPS' };
+            }
+        } catch (e) { swallow(e, 'vyska'); }
+        if (w && w.elevation != null && isFinite(w.elevation)) return { h: +w.elevation, zdroj: T('terén') };
+        return null;
+    }
+    function tlakVeVysce(pMsl, h, t) {
+        if (!isFinite(pMsl) || !isFinite(h)) return null;
+        var T0 = isFinite(t) ? t : 15;
+        return pMsl * Math.pow(1 - 0.0065 * h / (T0 + 0.0065 * h + 273.15), 5.257);
+    }
+    function radekTlaku(w) {
+        var c = (w && w.current) || {};
+        if (c.pressure_msl == null || !isFinite(c.pressure_msl)) return '';
+        var v = vyskaMista(w);
+        var out = T('Tlak {p} hPa (moře)', { p: Math.round(c.pressure_msl) });
+        if (v) {
+            var p = tlakVeVysce(c.pressure_msl, v.h, c.temperature_2m);
+            if (p) out += ' · ' + T('u tebe {p} hPa ({h} m n. m., {z})', { p: Math.round(p), h: Math.round(v.h), z: v.zdroj });
+        }
+        return out;
     }
     function hm(iso) { var m = /T(\d{2}):(\d{2})/.exec(String(iso || '')); return m ? m[1] + ':' + m[2] : ''; }
     function destHodiny(h) {
@@ -138,6 +172,7 @@
             if (m) { var n = new Date(), min = (+m[1] * 60 + +m[2]) - (n.getHours() * 60 + n.getMinutes()); if (min > 0) zbyva = ' · ' + T('světla zbývá {t} h', { t: Math.floor(min / 60) + ':' + pad2(min % 60) }); }
             radky.push(T('Slunce {a}–{b}', { a: hm(d.sunrise[0]), b: hm(d.sunset[0]) }) + zbyva);
         }
+        var tl = radekTlaku(w); if (tl) radky.push(tl);
         box.innerHTML = '<div class="agd-wx-hl"><span class="agd-wx-t">' + (teplota != null ? teplota + '°' : '–') + '</span><span class="agd-wx-co">' + esc(T(WMO[kod] || '')) + '</span></div>'
             + radky.map(function (r) { return '<div class="agd-wx-r">' + esc(r) + '</div>'; }).join('')
             + (res.stale ? '<div class="agd-wx-off">' + esc(T('bez signálu — předpověď z {t}', { t: new Date(res.when).toLocaleTimeString(loc(), { hour: '2-digit', minute: '2-digit' }) })) + '</div>' : '');
@@ -398,6 +433,8 @@
     function tik() {
         if (!root || !root.classList.contains('on')) return;
         try { vykresliStav(); vykresliPrubeh(); if (_poznPid !== pid()) { nactiPoznamku(); vykresliZakazku(); } } catch (e) { swallow(e, 'tik'); }
+        // počasí ještě není čerstvé → po příchodu polohy / každých 20 s zkusit znovu
+        try { if (!_wx.ok && !_wx.bezi && poloha() && navigator.onLine !== false && (!_wx.mel || Date.now() - _wx.pokus > 20000)) nactiWx(); } catch (e) { swallow(e, 'tikWx'); }
     }
 
     // ---- otevřít / zavřít ---------------------------------------------------------------------------
@@ -409,7 +446,21 @@
         root.querySelector('#agd-datum').textContent = d.charAt(0).toUpperCase() + d.slice(1);
         vykresliZakazku(); nactiPoznamku(); vykresliNastaveni(); vykresliStav(); vykresliPrubeh();
         try { var jb = root.querySelector('[data-agd="jednoduchy"]').closest('.agd-row'); jb.hidden = !window.AGJednoduchy; } catch (e) { swallow(e, 'jb'); }
-        nactiPocasi().then(vykresliPocasi, function () { vykresliPocasi(null); });
+        nactiWx();
+    }
+    // Počasí: hned poslední stažené (i starší, se štítkem), pak čerstvé. Když ještě není
+    // poloha (GPS se v telefonu chytá i desítky sekund), zkusí se znovu, jakmile přijde —
+    // dřív zůstalo „Počasí ukážu, až bude známá poloha" viset do zavření Domů.
+    var _wx = { bezi: false, ok: false, pokus: 0, mel: false };
+    function nactiWx() {
+        if (_wx.bezi) return;
+        if (!_wx.ok) { var c = wxCache(); if (c && c.data && c.data.daily) vykresliPocasi({ w: c.data, stale: true, when: c.t }); }
+        _wx.bezi = true; _wx.pokus = Date.now(); _wx.mel = !!poloha();
+        nactiPocasi().then(function (r) {
+            _wx.bezi = false;
+            if (r && r.w && r.w.daily) { _wx.ok = !r.stale; vykresliPocasi(r); }
+            else if (!_wx.ok && !wxCache()) vykresliPocasi(null);
+        }, function () { _wx.bezi = false; if (!_wx.ok && !wxCache()) vykresliPocasi(null); });
     }
     function otevri() {
         if (jednoduchy()) return false;
@@ -418,6 +469,10 @@
         document.body.classList.add('ag-domov-on');
         obnov();
         if (!_tik) _tik = setInterval(tik, 1000);
+        // „v tu chvíli by nabíhalo vše, co appka umí": dokud člověk čte Domů, nic neměří —
+        // odložené moduly se dotáhnou NAJEDNOU (jinak po dávkách v nečinnosti i desítky
+        // sekund na slabém telefonu). Až po vykreslení Domů, ať se ukáže hned.
+        setTimeout(function () { try { if (otevreno() && window.AGLazy && AGLazy.flush) AGLazy.flush(); } catch (e) { swallow(e, 'flush'); } }, 600);
         // ranní brífink dnes sám neotvírat — počasí je tady
         try { localStorage.setItem('agBrifinkLastShown', dnes()); } catch (e) { swallow(e, 'brifink'); }
         return true;
@@ -465,12 +520,30 @@
     function synchronizujNastaveni() { var cb = document.getElementById('agd-set-auto'); if (cb) cb.checked = st.auto; }
 
     // ---- start ----------------------------------------------------------------------------------------
+    function jineOkno() {
+        try {
+            var ov = document.querySelectorAll('.modal-overlay, .ag-modal, [role="dialog"]');
+            for (var i = 0; i < ov.length; i++) {
+                var e = ov[i];
+                if (e.id === 'ag-domov' || !e.isConnected) continue;
+                var cs = getComputedStyle(e);
+                // okna appky jsou zavřená i přes opacity 0 + pointer-events none (ne jen display)
+                if (cs.display !== 'none' && cs.visibility !== 'hidden' && parseFloat(cs.opacity) > 0.05 && cs.pointerEvents !== 'none'
+                    && e.getClientRects().length && e.offsetWidth > 200) return true;
+            }
+        } catch (e) { swallow(e, 'jineOkno'); }
+        return false;
+    }
     function poStartu() {
         try { vlozVstupy(); } catch (e) { swallow(e, 'vstupy'); }
         if (_ukazanoStart || !st.auto) return;
         _ukazanoStart = true;
         // odkaz na bod (?bod= / ?geo=) nebo sdílený soubor = člověk jde za konkrétní věcí
-        if (/[?&](bod|geo|share|import)=/.test(location.search || '')) return;
+        if (/[?&](bod|geo|share|import|zkratka)=/.test(location.search || '')) return;
+        // zkratka z ikony appky (js/shortcuts.js parametr z adresy hned maže, proto příznak)
+        if (window.__agZkratka) return;
+        // už je otevřené okno (zkratka, odkaz, obnovený nástroj) — Domů by ho zakryl
+        if (jineOkno()) return;
         otevri();
     }
     if (document.body && document.body.classList.contains('app-started')) poStartu();

@@ -92,6 +92,19 @@ async def beh(url):
         await page.wait_for_timeout(300)
         n = await page.evaluate("() => Array.from(document.querySelectorAll('#tools-modal .tool-grid > *')).filter(e => e.getClientRects().length > 0 && (e.classList.contains('tool-tile') || e.classList.contains('ag-ft-tile'))).length")
         ok('C1 hledání funguje dál', n >= 1, n)
+        # 5. 11. 2026: „zadám počasí a zapne se mi firma" — js/ucty-admin.js při agucty:perms
+        #   přepíše display dlaždice „Firma a účty" a ta bez pořadí skočila NAHORU pod prst
+        await page.fill('#tools-search', 'počasí')
+        await page.wait_for_timeout(300)
+        await page.evaluate("() => { const t = document.querySelector('#tools-modal .tool-tile[data-tool=\"ucty-firma\"]'); if (t) t.style.display = ''; window.dispatchEvent(new Event('agucty:perms')); }")
+        await page.wait_for_timeout(300)
+        prvni = await page.evaluate("() => { const v = Array.from(document.querySelectorAll('#tools-modal .tool-grid > .tool-tile')).filter(e => e.getClientRects().length > 0); v.sort((a, b) => (+getComputedStyle(a).order) - (+getComputedStyle(b).order)); return v.map(e => e.getAttribute('data-tool') || e.textContent.trim().slice(0, 20)); }")
+        ok('C2 hledání „počasí": Firma a účty se neukáže ani po přepnutí oprávnění, první je Počasí', 'ucty-firma' not in prvni and prvni and 'pocasi' in prvni[0].lower().replace('í', 'i').replace('č', 'c').replace('a', 'a'), prvni[:4])
+        box = await page.evaluate("() => { const b = document.getElementById('ag-as-tools'); return b ? b.style.order : null; }")
+        await page.fill('#tools-search', 'po')
+        await page.wait_for_timeout(300)
+        box = await page.evaluate("() => { const b = document.getElementById('ag-as-tools'); return b ? b.style.order : 'x'; }")
+        ok('C3 blok „Jinde v appce" zůstává pod výsledky (order 9999)', box in ('9999', 'x'), box)
         await page.fill('#tools-search', '')
 
         # vypnutí v Nastavení

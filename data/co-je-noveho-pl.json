@@ -2,6 +2,17 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 420,
+      "datum": "2026-11-05",
+      "nadpis": "Poprawki wyszukiwania i skrótów, ciśnienie na twojej wysokości",
+      "body": [
+        "Wyszukiwanie narzędzi: „Firma i konta” nie wyskakuje już na górę podczas pisania – pod palcem jest to, czego szukasz.",
+        "Skróty z ikony aplikacji (Nowy punkt, Kontynuuj) znów działają – ekran Start ich nie zasłania.",
+        "Pogoda na ekranie Start pokazuje ciśnienie na poziomie morza i przeliczone na twoją wysokość.",
+        "Start ładuje się szybciej: ostatnia pogoda od razu, aktualna po ustaleniu pozycji, narzędzia naraz."
+      ]
+    },
+    {
       "v": 418,
       "datum": "2026-11-04",
       "nadpis": "Ekran startowy, mądrzejszy GPS i szybszy start",

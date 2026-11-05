@@ -2,6 +2,17 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 420,
+      "datum": "2026-11-05",
+      "nadpis": "Arreglos de búsqueda y accesos directos, presión a tu altitud",
+      "body": [
+        "Búsqueda de herramientas: «Empresa y cuentas» ya no salta arriba mientras escribes.",
+        "Los accesos directos del icono (Nuevo punto, Continuar) vuelven a funcionar: la pantalla Inicio ya no los tapa.",
+        "El tiempo en Inicio muestra la presión a nivel del mar y la convertida a tu altitud.",
+        "Inicio carga más rápido: el último tiempo al instante, el actual al conocer la posición, herramientas de una vez."
+      ]
+    },
+    {
       "v": 418,
       "datum": "2026-11-04",
       "nadpis": "Pantalla de inicio, GPS más listo y arranque más rápido",

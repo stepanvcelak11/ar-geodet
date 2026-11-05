@@ -36,6 +36,9 @@
             try { window.history.replaceState(null, '', clean); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'shortcuts'); }
         }
     } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'shortcuts'); }
+    // Úvodní obrazovka Domů (js/domov.js) se po spuštění zkratkou neukazuje — člověk jde
+    // za konkrétní věcí a Domů by mu ji zakryl (5. 11. 2026). Parametr je tou dobou už pryč z adresy.
+    if (action) window.__agZkratka = action;
     if (action !== 'novy-bod' && action !== 'pokracovat') return;
 
     // ---- pomocníci --------------------------------------------------------------------
