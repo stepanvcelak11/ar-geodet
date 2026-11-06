@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-11-05",
-  "uvodnik": "Vydání 5. 11. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-11-06",
+  "uvodnik": "Vydání 6. 11. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,42 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Trimble Integrates Drone Data Processing Directly into WorksManager Software",
+      "perex": "WorksManager Drone software turns flight data into actionable site data — all from one integrated and connected platform Westminster, Colo ., Nov. 5, 2026 – Trimble today announced Trimble Ⓡ WorksMana…",
+      "telo": "WorksManager Drone software turns flight data into actionable site data — all from one integrated and connected platform Westminster, Colo ., Nov. 5, 2026 – Trimble today announced Trimble Ⓡ WorksManager Drone processing software, enabling civil contractors to process drone data in the cloud, directly within the Trimble ecosystem. This new photogrammetry functionality makes it easy for contractors to process and overlay true-to-scale flight data with project designs, machine data, as-builts and other site data to calculate volumes, take measurements and verify material for monitoring site progress. Trimble WorksManager is a cloud-based software and data management tool that connects the cons",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/11/05/trimble-integrates-drone-data-processing-directly-into-worksmanager-software/?utm_source=rss&utm_medium=rss&utm_campaign=trimble-integrates-drone-data-processing-directly-into-worksmanager-software",
+      "datum": "2026-11-05"
+    },
+    {
+      "rubrika": "Přístroje",
+      "top": false,
+      "nadpis": "Sodex Innovations launches SDX-AutoScan",
+      "perex": "SDX-AutoScan uses the Trimble positioning system already on the machine and syncs 3D site models to Trimble Connect, so site documentation becomes a byproduct of normal work Lorüns, Austria – November…",
+      "telo": "SDX-AutoScan uses the Trimble positioning system already on the machine and syncs 3D site models to Trimble Connect, so site documentation becomes a byproduct of normal work Lorüns, Austria – November 5, 2026 – Sodex Innovations announces the launch of SDX-AutoScan for TrimbleⓇ Earthworks grade control platform on bulldozers. Announced ahead of Trimble Dimensions, the 3D lidar system integrates with existing Trimble GNSS/INS positioning to produce continuous as-built terrain records during normal bulldozer operation. This avoids the need to install a second positioning system or manage a separate platform. The solution captures centimeter-accurate, high-resolution point clouds with no operat",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/11/05/sodex-innovations-launches-sdx-autoscan/?utm_source=rss&utm_medium=rss&utm_campaign=sodex-innovations-launches-sdx-autoscan",
+      "datum": "2026-11-05"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "The Billion-Dollar Basemap",
+      "perex": "After two decades and a collaboration commonly valued at around a billion dollars, the United States has been mapped wall to wall in high-resolution lidar.",
+      "telo": "After two decades and a collaboration commonly valued at around a billion dollars, the United States has been mapped wall to wall in high-resolution lidar. The harder question begins now — what it costs to keep a national elevation model current, and who documents it well enough to trust. XYHT STAFF In a packed auditorium at Geo Week 2026 in Denver, the U.S. Geological Survey marked a milestone two decades in the making: baseline data acquisition for the 3D Elevation Program — 3DEP — is complete. For the first time, the entire United States has been mapped with consistent high-resolution lidar, with interferometric synthetic aperture radar (IfSAR) standing in for the cloud-shrouded terrain o",
+      "body": [],
+      "proc": "",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/magazine/magazine-magazine/the-billion-dollar-basemap/",
+      "datum": "2026-11-05"
     },
     {
       "rubrika": "Z praxe",
@@ -61,42 +97,6 @@
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/11/04/mach9-now-works-in-the-sky/?utm_source=rss&utm_medium=rss&utm_campaign=mach9-now-works-in-the-sky",
       "datum": "2026-11-04"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Topcon to Support Scientific Research and Preservation of the Basilica of Vitruvius",
-      "perex": "Topcon Positioning Systems announces that Topcon Positioning Group in Italy has entered into a scientific sponsorship agreement with the Superintendency of Archaeology, Fine Arts and Landscape (SABAP)…",
-      "telo": "Topcon Positioning Systems announces that Topcon Positioning Group in Italy has entered into a scientific sponsorship agreement with the Superintendency of Archaeology, Fine Arts and Landscape (SABAP), a branch of the Italian Ministry of Culture, to support the documentation, real-time monitoring, and enhancement of the recently discovered Basilica of Vitruvius site in Fano, Italy. The sponsorship has two objectives: to support the Superintendency with surveying and data-capture activities at the excavation site and to enable the development of a digital twin to support further research and new ways of presenting and interpreting the site. Topcon technologies, including 3D laser scanning, GN",
-      "body": [],
-      "proc": "",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/topcon-to-support-scientific-research-and-preservation-of-the-basilica-of-vitruvius/",
-      "datum": "2026-11-03"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "SimActive and Phase One Accelerate Large-Scale Defense Mapping",
-      "perex": "Montreal, Canada, November 3 rd , 2026 – SimActive Inc. announces the use of Correlator3D with Phase One aerial imaging systems to help defense users process tens of thousands of large-format images under tight deadlines.",
-      "telo": "Montreal, Canada, November 3 rd , 2026 – SimActive Inc. announces the use of Correlator3D with Phase One aerial imaging systems to help defense users process tens of thousands of large-format images under tight deadlines. The combined workflow addresses a critical challenge: turning massive volumes of high-resolution aerial imagery into accurate mapping products, faster. Phase One imagery feeds directly into Correlator3D , eliminating separate conversion steps before photogrammetric processing. Users can then automate production and distribute processing across multiple computers to accelerate the generation of elevation models and orthomosaics. By reducing manual intervention from data prep",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/11/03/simactive-and-phase-one-accelerate-large-scale-defense-mapping/?utm_source=rss&utm_medium=rss&utm_campaign=simactive-and-phase-one-accelerate-large-scale-defense-mapping",
-      "datum": "2026-11-03"
-    },
-    {
-      "rubrika": "Ze světa",
-      "top": false,
-      "nadpis": "GISCorps Seeks Executive Director to Build on Two Decades of Humanitarian Service",
-      "perex": "The volunteer-driven geospatial organization is recruiting its first paid executive director as founder Shoreh Elhami prepares for a leadership transition.",
-      "telo": "The volunteer-driven geospatial organization is recruiting its first paid executive director as founder Shoreh Elhami prepares for a leadership transition. GISCorps, the humanitarian GIS volunteer program of the Geospatial Professional Network (GPN), is seeking its first paid executive director to help guide the organization into its next chapter. Founded in 2003 by GIS professional Shoreh Elhami, GISCorps connects geospatial expertise with organizations responding to disasters, humanitarian emergencies, and other challenges around the world. Its volunteers have supported projects ranging from earthquake and hurricane response to disease mapping, nonprofit data development, and GIS training.",
-      "body": [],
-      "proc": "",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/giscorps-seeks-executive-director-to-build-on-two-decades-of-humanitarian-service/",
-      "datum": "2026-11-03"
     }
   ]
 }
