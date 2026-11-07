@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-11-06",
-  "uvodnik": "Vydání 6. 11. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-11-07",
+  "uvodnik": "Vydání 7. 11. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,18 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "Bridging PPP and a Legacy National Datum: A Velocity-Driven Transformation to HGRS1987",
+      "perex": "D. Ampatzidis, A. Tsimerikas, G. Moschopoulos, K.",
+      "telo": "D. Ampatzidis, A. Tsimerikas, G. Moschopoulos, K. Balidakis and A. Mouratidis EDITORIAL DISCLOSURE — The article is an editorial adaptation and professional-magazine presentation of research already published by the authors in the peer-reviewed Bulletin of Geophysics and Oceanography: Ampatzidis, D., Tsimerikas, A., Moschopoulos, G., Balidakis, K. and Mouratidis, A. (2025), “The alignment of PPP-derived coordinates to a local geodetic reference system through a reliable velocity field: case study in Greece,” Vol. 66, No. 1, pp. 43–56, doi: 10.4430/bgo00486. The present article does not claim new experimental results; it reframes and explains the previously published methodology and results f",
+      "body": [],
+      "proc": "",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/magazine/magazine-magazine/bridging-ppp-and-a-legacy-national-datum-a-velocity-driven-transformation-to-hgrs1987/",
+      "datum": "2026-11-06"
     },
     {
       "rubrika": "Technologie",
@@ -84,18 +96,6 @@
       "proc": "",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/11/04/geo-week-opening-keynote-explores-digitally-preserving-90-years-of-fallingwater/?utm_source=rss&utm_medium=rss&utm_campaign=geo-week-opening-keynote-explores-digitally-preserving-90-years-of-fallingwater",
-      "datum": "2026-11-04"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Mach9 Now Works in the Sky",
-      "perex": "Turn data from drones, helicopters, and planes into finished survey deliverables faster with Mach9’s AI CAD software.",
-      "telo": "Turn data from drones, helicopters, and planes into finished survey deliverables faster with Mach9’s AI CAD software. Today, Mach9 expands beyond mobile and terrestrial scanning to support aerial LiDAR and photogrammetry-derived datasets. Survey and geospatial teams can now use Mach9 to turn aerial data into a first draft in hours, then review and refine it into finished drawings and surfaces. Dozens of civil engineering firms, including Langan, McElhanney, and Welch Comer have already expanded their use of Mach9 from mobile and terrestrial data to include aerial, allowing them to cut delivery times and take on more work. AI-extracted linework from an urban site for utility basemapping. For",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/11/04/mach9-now-works-in-the-sky/?utm_source=rss&utm_medium=rss&utm_campaign=mach9-now-works-in-the-sky",
       "datum": "2026-11-04"
     }
   ]
