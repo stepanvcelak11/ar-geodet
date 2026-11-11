@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-11-10",
-  "uvodnik": "Vydání 10. 11. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-11-11",
+  "uvodnik": "Vydání 11. 11. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,30 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Ze světa",
+      "top": false,
+      "nadpis": "Trimble Expands Design and Constructability Workflows With New SketchUp Capabilities",
+      "perex": "Modeling and documentation advancements remove friction and accelerate iteration, while new SketchUp Importer for Revit reduces rework and accelerates workflows Las Vegas , Nov. 10, 2026 — Trimble ann…",
+      "telo": "Modeling and documentation advancements remove friction and accelerate iteration, while new SketchUp Importer for Revit reduces rework and accelerates workflows Las Vegas , Nov. 10, 2026 — Trimble announced several new capabilities for its Trimble ® SketchUp ® design and collaboration solution with the release of SketchUp 2027 and SketchUp Importer for Revit ® . The announcement was made at the Trimble Dimensions User Conference and 3D Basecamp. The enhancements remove friction from design workflows and enable professionals to work faster from concept to documentation without sacrificing creative exploration. Together, these advances close the loop on two of the most costly forms of rework i",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/11/10/https-amerisurv-com-2026-11-10-trimble-launches-new-ai-accelerated-scheduling-solution/?utm_source=rss&utm_medium=rss&utm_campaign=https-amerisurv-com-2026-11-10-trimble-launches-new-ai-accelerated-scheduling-solution",
+      "datum": "2026-11-11"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "Leica Geosystems Introduces Leica DMC-5 Large-Format Camera",
+      "perex": "Capturing over 30% more data than previous generations, the new system increases coverage and gives operators the flexibility to adapt to a wide range of mapping requirements.",
+      "telo": "Capturing over 30% more data than previous generations, the new system increases coverage and gives operators the flexibility to adapt to a wide range of mapping requirements. Significant time and cost saving for customers: The Leica DMC-5 captures over 30% more data than previous generations, covering larger areas with fewer flight lines. Adaptable to different missions : Configurable field-of-view options enable operators to adapt coverage and ground resolution to different project and airspace requirements. Greater operational efficiency : Increased coverage and system flexibility help operators address a wider range of projects while optimising airborne operations. Heerbrugg, Switzerland",
+      "body": [],
+      "proc": "",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/11/10/leica-geosystems-introduces-leica-dmc-5-large-format-camera/?utm_source=rss&utm_medium=rss&utm_campaign=leica-geosystems-introduces-leica-dmc-5-large-format-camera",
+      "datum": "2026-11-10"
     },
     {
       "rubrika": "Přístroje",
@@ -72,30 +96,6 @@
       "proc": "",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/11/05/trimble-integrates-drone-data-processing-directly-into-worksmanager-software/?utm_source=rss&utm_medium=rss&utm_campaign=trimble-integrates-drone-data-processing-directly-into-worksmanager-software",
-      "datum": "2026-11-05"
-    },
-    {
-      "rubrika": "Přístroje",
-      "top": false,
-      "nadpis": "Sodex Innovations launches SDX-AutoScan",
-      "perex": "SDX-AutoScan uses the Trimble positioning system already on the machine and syncs 3D site models to Trimble Connect, so site documentation becomes a byproduct of normal work Lorüns, Austria – November…",
-      "telo": "SDX-AutoScan uses the Trimble positioning system already on the machine and syncs 3D site models to Trimble Connect, so site documentation becomes a byproduct of normal work Lorüns, Austria – November 5, 2026 – Sodex Innovations announces the launch of SDX-AutoScan for TrimbleⓇ Earthworks grade control platform on bulldozers. Announced ahead of Trimble Dimensions, the 3D lidar system integrates with existing Trimble GNSS/INS positioning to produce continuous as-built terrain records during normal bulldozer operation. This avoids the need to install a second positioning system or manage a separate platform. The solution captures centimeter-accurate, high-resolution point clouds with no operat",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/11/05/sodex-innovations-launches-sdx-autoscan/?utm_source=rss&utm_medium=rss&utm_campaign=sodex-innovations-launches-sdx-autoscan",
-      "datum": "2026-11-05"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "The Billion-Dollar Basemap",
-      "perex": "After two decades and a collaboration commonly valued at around a billion dollars, the United States has been mapped wall to wall in high-resolution lidar.",
-      "telo": "After two decades and a collaboration commonly valued at around a billion dollars, the United States has been mapped wall to wall in high-resolution lidar. The harder question begins now — what it costs to keep a national elevation model current, and who documents it well enough to trust. XYHT STAFF In a packed auditorium at Geo Week 2026 in Denver, the U.S. Geological Survey marked a milestone two decades in the making: baseline data acquisition for the 3D Elevation Program — 3DEP — is complete. For the first time, the entire United States has been mapped with consistent high-resolution lidar, with interferometric synthetic aperture radar (IfSAR) standing in for the cloud-shrouded terrain o",
-      "body": [],
-      "proc": "",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/magazine/magazine-magazine/the-billion-dollar-basemap/",
       "datum": "2026-11-05"
     }
   ]
