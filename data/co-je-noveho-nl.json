@@ -2,6 +2,18 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 421,
+      "datum": "2026-11-12",
+      "nadpis": "Start: direct naar je opdracht",
+      "body": [
+        "Start is nu een paneel boven de live kaart: kies een opdracht en met één tik ben je in het veld. Op de kaart tikken of het paneel omlaag trekken = meten in de open opdracht.",
+        "Bij elke opdracht zie je het aantal punten, wanneer er laatst gemeten is en hoe ver weg die is. De opdracht waar je staat wordt vanzelf aangeboden.",
+        "Maak een nieuwe opdracht direct op Start — nieuwe plek, schone puntenlijst.",
+        "Start verschijnt alleen ’s ochtends en na een langere pauze. Start de app direct en toont GPS een andere opdracht, dan stelt hij voor over te schakelen.",
+        "Het weer is één kaart (temperatuur, regen, licht, luchtdruk hier); tik voor details."
+      ]
+    },
+    {
       "v": 420,
       "datum": "2026-11-05",
       "nadpis": "Zoeken en snelkoppelingen hersteld, luchtdruk op jouw hoogte",

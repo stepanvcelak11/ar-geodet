@@ -2,6 +2,18 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 421,
+      "datum": "2026-11-12",
+      "nadpis": "Home: dritto al lavoro",
+      "body": [
+        "La Home ora è un pannello sopra la mappa dal vivo: scegli il lavoro e con un tocco sei in campo. Toccare la mappa o abbassare il pannello = misurare nel lavoro aperto.",
+        "Ogni lavoro mostra i punti, l’ultima misura e la distanza. Il lavoro presso cui ti trovi viene proposto da solo.",
+        "Crea un nuovo lavoro direttamente dalla Home: nuovo luogo, elenco punti pulito.",
+        "La Home appare solo al mattino e dopo una pausa lunga. Se l’app parte subito e il GPS indica un altro lavoro, propone di passarci.",
+        "Il meteo è una scheda (temperatura, pioggia, luce, pressione qui); toccala per i dettagli."
+      ]
+    },
+    {
       "v": 420,
       "datum": "2026-11-05",
       "nadpis": "Ricerca e scorciatoie corrette, pressione alla tua quota",

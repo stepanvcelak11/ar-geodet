@@ -2,6 +2,18 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 421,
+   "datum": "2026-11-12",
+   "nadpis": "Domů: rovnou k zakázce",
+   "body": [
+    "Domů je teď panel nad živou mapou: vybereš zakázku a jedním klepnutím jsi v terénu. Klepnutí na mapu nebo stažení panelu = měřit v otevřené zakázce.",
+    "U každé zakázky vidíš počet bodů, kdy se v ní naposledy měřilo a jak daleko je. Zakázka, u které stojíš, se nabídne sama.",
+    "Nová zakázka se založí přímo na Domů — nové místo, čistý seznam bodů.",
+    "Domů se ukazuje jen ráno a po delší pauze. Když appka naběhne rovnou a GPS ukáže, že stojíš u jiné zakázky, nabídne přepnutí.",
+    "Počasí je jedna karta (teplota, déšť, světlo, tlak u tebe); klepnutím se rozbalí podrobnosti."
+   ]
+  },
+  {
    "v": 420,
    "datum": "2026-11-05",
    "nadpis": "Opravy hledání a zkratek, tlak na tvou výšku",

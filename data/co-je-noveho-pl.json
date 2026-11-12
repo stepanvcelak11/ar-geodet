@@ -2,6 +2,18 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 421,
+      "datum": "2026-11-12",
+      "nadpis": "Start: prosto do zlecenia",
+      "body": [
+        "Start to teraz panel nad mapą na żywo: wybierasz zlecenie i jednym dotknięciem jesteś w terenie. Dotknięcie mapy lub zsunięcie panelu = pomiar w otwartym zleceniu.",
+        "Przy każdym zleceniu widać liczbę punktów, kiedy ostatnio mierzono i jak daleko jest. Zlecenie, przy którym stoisz, zaproponuje się samo.",
+        "Nowe zlecenie założysz od razu na ekranie Start — nowe miejsce, czysta lista punktów.",
+        "Start pokazuje się tylko rano i po dłuższej przerwie. Gdy aplikacja uruchomi się od razu, a GPS pokaże inne zlecenie, zaproponuje przełączenie.",
+        "Pogoda to jedna karta (temperatura, deszcz, światło, ciśnienie u ciebie); dotknij, by rozwinąć."
+      ]
+    },
+    {
       "v": 420,
       "datum": "2026-11-05",
       "nadpis": "Poprawki wyszukiwania i skrótów, ciśnienie na twojej wysokości",
