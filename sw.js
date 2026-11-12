@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v420';   // 5. 11.: hledání nástrojů bez skákající Firmy, zkratky z ikony nezakryje Domů, tlak na výšku, rychlejší Domů
+const SHELL_CACHE = 'argeodet-shell-v421';   // 12. 11.: Domů předělaný — výběr zakázky nad živou mapou, zakázka u tebe, chytré ukazování
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -57,9 +57,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=420',
-    './css/style.css?v=420',
-    './css/vylepseni.css?v=420',
+    './css/tokens.css?v=421',
+    './css/style.css?v=421',
+    './css/vylepseni.css?v=421',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -70,6 +70,7 @@ const ASSETS_TO_CACHE = [
     './css/qc-engine.css',
     './css/tools-polish.css',
     './css/jednoduchy-rezim.css',
+    './css/domov.css',
     './css/nav-pas.css',
     './css/tokens-outdoor.css',
     './css/dmt-volume.css',

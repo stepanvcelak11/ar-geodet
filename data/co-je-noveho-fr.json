@@ -2,6 +2,18 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 421,
+      "datum": "2026-11-12",
+      "nadpis": "Accueil : droit au chantier",
+      "body": [
+        "L’Accueil est désormais un panneau sur la carte en direct : choisis le chantier et d’un geste tu es sur le terrain. Toucher la carte ou baisser le panneau = mesurer dans le chantier ouvert.",
+        "Chaque chantier affiche ses points, la dernière mesure et la distance. Le chantier où tu te trouves est proposé automatiquement.",
+        "Crée un nouveau chantier directement depuis l’Accueil — nouveau lieu, liste de points propre.",
+        "L’Accueil ne s’affiche que le matin et après une longue pause. Si l’appli démarre directement et que le GPS indique un autre chantier, elle propose d’y basculer.",
+        "La météo tient en une carte (température, pluie, jour, pression ici) ; touche-la pour les détails."
+      ]
+    },
+    {
       "v": 420,
       "datum": "2026-11-05",
       "nadpis": "Recherche et raccourcis corrigés, pression à ton altitude",

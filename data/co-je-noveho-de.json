@@ -2,6 +2,18 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 421,
+      "datum": "2026-11-12",
+      "nadpis": "Start: direkt zum Auftrag",
+      "body": [
+        "Start ist jetzt ein Panel über der Live-Karte: Auftrag wählen, ein Tipp und du bist im Gelände. Tipp auf die Karte oder Panel nach unten ziehen = im offenen Auftrag messen.",
+        "Jeder Auftrag zeigt Punktanzahl, letzte Messung und Entfernung. Der Auftrag, bei dem du stehst, wird automatisch angeboten.",
+        "Neuen Auftrag direkt auf Start anlegen — neuer Ort, saubere Punktliste.",
+        "Start erscheint nur morgens und nach längerer Pause. Startet die App direkt und GPS zeigt einen anderen Auftrag, wird ein Wechsel angeboten.",
+        "Das Wetter ist eine Karte (Temperatur, Regen, Tageslicht, Luftdruck bei dir); antippen für Details."
+      ]
+    },
+    {
       "v": 420,
       "datum": "2026-11-05",
       "nadpis": "Suche und Verknüpfungen repariert, Luftdruck auf deiner Höhe",

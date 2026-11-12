@@ -2,6 +2,18 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 421,
+      "datum": "2026-11-12",
+      "nadpis": "Início: direto ao trabalho",
+      "body": [
+        "O Início é agora um painel sobre o mapa ao vivo: escolhes o trabalho e com um toque estás no terreno. Tocar no mapa ou baixar o painel = medir no trabalho aberto.",
+        "Cada trabalho mostra os pontos, quando foi medido pela última vez e a que distância está. O trabalho onde estás é sugerido automaticamente.",
+        "Cria um trabalho novo diretamente no Início — novo local, lista de pontos limpa.",
+        "O Início só aparece de manhã e após uma pausa longa. Se a app arrancar diretamente e o GPS mostrar outro trabalho, sugere mudar.",
+        "O tempo é um só cartão (temperatura, chuva, luz, pressão aqui); toca para ver detalhes."
+      ]
+    },
+    {
       "v": 420,
       "datum": "2026-11-05",
       "nadpis": "Pesquisa e atalhos corrigidos, pressão à tua altitude",

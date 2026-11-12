@@ -2,6 +2,18 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 421,
+      "datum": "2026-11-12",
+      "nadpis": "Home: straight to your job",
+      "body": [
+        "Home is now a panel over the live map: pick a job and one tap takes you into the field. Tapping the map or pulling the panel down = survey in the open job.",
+        "Each job shows its number of points, when it was last surveyed and how far away it is. The job you are standing at is offered automatically.",
+        "Create a new job right on Home — new site, clean list of points.",
+        "Home only shows in the morning and after a longer break. If the app starts straight away and GPS shows you are at another job, it offers to switch.",
+        "Weather is a single card (temperature, rain, daylight, pressure here); tap it for details."
+      ]
+    },
+    {
       "v": 420,
       "datum": "2026-11-05",
       "nadpis": "Search and shortcut fixes, pressure at your altitude",

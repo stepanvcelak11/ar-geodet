@@ -77,23 +77,62 @@ async def beh(url):
             await page.wait_for_timeout(300)
             await page.screenshot(path=os.path.join(d, 'domov-2.png'))
 
-        # poznámky k zakázce
+        # poznámky k zakázce (skryté pod tlačítkem na kartě zakázky)
         await page.evaluate(ZAVRI)
+        await page.click('#agd-pozn-btn')
         await page.fill('#agd-pozn', 'Klíč u souseda, brána 4412')
         await page.wait_for_timeout(900)
         ok('B1 poznámka uložena k zakázce', await page.evaluate("() => getStoredData('agPoznamkyZakazky') === 'Klíč u souseda, brána 4412' && /Uloženo/.test(document.getElementById('agd-pozn-st').textContent)"))
 
-        # nastavení před výjezdem
-        fs0 = await page.evaluate("() => visSettings.fontScale || 1")
-        await page.click('#ag-domov [data-fs="1"]')
+        # kontrast na slunci z řádku ikon
+        await page.evaluate(ZAVRI)
         await page.click('#agd-outdoor')
-        await page.click('#agd-mode [data-mode="light"]')
-        r = await page.evaluate("() => ({ fs: visSettings.fontScale, css: getComputedStyle(document.documentElement).getPropertyValue('--ag-font-scale').trim(), out: document.body.classList.contains('outdoor-mode'), light: document.body.classList.contains('light-mode'), ulozeno: JSON.parse(getStoredData('arVisSettings12') || '{}') })")
-        ok('C1 větší písmo: +10 %, uloženo i použito', abs(r['fs'] - (fs0 + 0.1)) < 0.001 and r['css'] == str(r['fs']).rstrip('0').rstrip('.') or abs(float(r['css'] or 0) - r['fs']) < 0.001, r)
-        ok('C2 venkovní režim zapnut a uložen', r['out'] and r['ulozeno'].get('outdoorMode') is True, r)
-        ok('C3 světlý vzhled zapnut a uložen', r['light'] and r['ulozeno'].get('mode') == 'light', r)
+        r = await page.evaluate("() => ({ out: document.body.classList.contains('outdoor-mode'), ulozeno: JSON.parse(getStoredData('arVisSettings12') || '{}'), on: document.getElementById('agd-outdoor').classList.contains('on') })")
+        ok('C1 „Na slunci" zapne venkovní režim a uloží ho', r['out'] and r['on'] and r['ulozeno'].get('outdoorMode') is True, r)
+        await page.click('#agd-outdoor')
+
+        # ZAKÁZKY: jedna u tebe (body 40–120 m od polohy), jedna v Brně; otevřená je bez bodů
+        await page.evaluate("""async (ll) => {
+            const [lat, lng] = ll;
+            const u = [{id:'u1', name:'L1', lat: lat + 0.0004, lng: lng, mts: Date.now() - 86400000}, {id:'u2', name:'L2', lat: lat + 0.0010, lng: lng + 0.0005, mts: Date.now() - 2*86400000}];
+            const b = [{id:'b1', name:'B1', lat: 49.195, lng: 16.608, mts: Date.now() - 9*86400000}];
+            await _idbSet('proj_les_arCustomPoints12', JSON.stringify(u));
+            await _idbSet('proj_brno_arCustomPoints12', JSON.stringify(b));
+            projects.push({id:'proj_les', name:'U lesa 123/4'}, {id:'proj_brno', name:'Brno Kraví hora'});
+            localStorage.setItem('arProjectsList', JSON.stringify(projects));
+            AGDomov.zavri(); AGDomov.otevri();
+        }""", [V.LAT, V.LNG])
+        ok('J1 zakázka, u které stojíš, je nahoře: „Jsi u této zakázky"', await V.cekej(page, "/U lesa 123\\/4/.test(document.getElementById('agd-zak').textContent) && /Jsi u této/.test(document.getElementById('agd-hl').textContent)", 15),
+           await page.evaluate("() => document.getElementById('agd-hl').textContent"))
+        ok('J2 u zakázky počet bodů a kdy naposledy', await page.evaluate("() => /2 body/.test(document.getElementById('agd-zak-sub').textContent) && /včera/.test(document.getElementById('agd-zak-sub').textContent)"),
+           await page.evaluate("() => document.getElementById('agd-zak-sub').textContent"))
+        ok('J3 ostatní zakázky: vzdálenost (Brno v km), otevřená označená', await page.evaluate("() => { const t = document.getElementById('agd-sez').textContent; return /Brno Kraví hora/.test(t) && /\\d+ km/.test(t) && /otevřená/.test(t); }"),
+           await page.evaluate("() => document.getElementById('agd-sez').textContent"))
+        if SNIMEK:
+            await page.wait_for_timeout(500)
+            d = os.environ.get('SNIMKY', '.')
+            await page.screenshot(path=os.path.join(d, 'domov-3.png'))
+        await page.click('#agd-jit')
+        ok('J4 „Otevřít a měřit" přepne zakázku a pustí do terénu', await V.cekej(page, "!AGDomov.otevreno() && activeProjectId === 'proj_les'", 10), await page.evaluate("() => activeProjectId"))
+
+        # nová zakázka přímo z Domů
+        await page.evaluate("() => AGDomov.otevri()")
+        await page.click('#ag-domov [data-agd="nova-otevri"]')
+        await page.fill('#agd-nova-in', 'Parcela 77/1 Lhota')
+        await page.click('#ag-domov [data-agd="nova"]')
+        ok('N1 Nová zakázka: jméno → založit a měřit', await V.cekej(page, "!AGDomov.otevreno() && projects.some(p => p.name === 'Parcela 77/1 Lhota' && p.id === activeProjectId)", 10),
+           await page.evaluate("() => projects.map(p => p.name)"))
+
+        # zpátky na zakázku u lesa (kvůli dalším krokům)
+        await page.evaluate("() => { AGDomov.otevri(); }")
+        await page.click('#ag-domov .agd-z[data-zak="proj_les"]')
+        ok('N2 klepnutí na řádek zakázky = přepnout a jít měřit', await V.cekej(page, "!AGDomov.otevreno() && activeProjectId === 'proj_les'", 10))
+        await page.evaluate("() => AGDomov.otevri()")
+        await page.click('#ag-domov .agd-z[data-zak="proj_brno"]')
+        await V.cekej(page, "activeProjectId === 'proj_brno'", 10)
 
         # JÍT MĚŘIT
+        await page.evaluate("() => AGDomov.otevri()")
         await page.click('#agd-jit')
         ok('D1 JÍT MĚŘIT zavře Domů', not await page.evaluate("() => AGDomov.otevreno()"))
         # Nastavení → Časté
@@ -114,6 +153,23 @@ async def beh(url):
         await page.evaluate("() => { const c = JSON.parse(localStorage.getItem('agDomovWx_v1')); c.t -= 3600000; localStorage.setItem('agDomovWx_v1', JSON.stringify(c)); AGDomov.otevri(); }")
         ok('E2 bez signálu: poslední stažené počasí se štítkem', await V.cekej(page, "/12°/.test(document.getElementById('agd-wx').textContent) && /bez signálu/.test(document.getElementById('agd-wx').textContent)", 10) and wx['n'] == n0)
         await ctx.set_offline(False)
+        await page.evaluate("() => AGDomov.zavri()")
+
+        # CHYTŘE: dnes už ukázáno a appka běžela před chvílí → po startu se Domů NEukáže,
+        # ale GPS ukáže, že stojíš u jiné zakázky (otevřená je Brno) → nabídka „Přepnout"
+        await page.evaluate("() => { localStorage.setItem('agDomov_v1', JSON.stringify({auto:true})); localStorage.setItem('agDomovAkt_v1', JSON.stringify({den: (d => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'))(new Date()), ts: Date.now()})); }")
+        await page.reload(wait_until='domcontentloaded')
+        await V.cekej(page, "document.body.classList.contains('app-started')", 60)
+        await page.wait_for_timeout(1500)
+        ok('S1 chytře: dnes už viděno a bez pauzy → rovnou do terénu', not await page.evaluate("() => AGDomov.otevreno()"))
+        ok('S2 u jiné zakázky, než je otevřená → nabídka „Jsi u zakázky…"', await V.cekej(page, "!!document.querySelector('#agd-tip.on') && /U lesa/.test(document.getElementById('agd-tip').textContent)", 25),
+           await page.evaluate("() => ({ a: activeProjectId, s: AGDomov._seznam().map(z => [z.id, z.d && Math.round(z.d)]) })"))
+        await page.evaluate(ZAVRI)
+        await page.evaluate("() => document.querySelector('#agd-tip [data-t=\"ano\"]').click()")
+        ok('S3 „Přepnout" otevře zakázku u tebe', await V.cekej(page, "activeProjectId === 'proj_les' && !document.querySelector('#agd-tip.on')", 10))
+        await page.evaluate("() => localStorage.setItem('agDomovAkt_v1', JSON.stringify({den: '2000-01-01', ts: Date.now() - 5*3600000}))")
+        await page.reload(wait_until='domcontentloaded')
+        ok('S4 po pauze delší než 3 h se Domů ukáže', await V.cekej(page, "document.body.classList.contains('app-started') && AGDomov.otevreno()", 60))
         await page.evaluate("() => AGDomov.zavri()")
 
         # jednoduchý režim: Domů se neukazuje
