@@ -2,6 +2,16 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 424,
+      "datum": "2026-11-14",
+      "nadpis": "Écran d’accueil à chaque démarrage",
+      "body": [
+        "L’Accueil s’affiche désormais à chaque démarrage de l’appli (pas au retour d’arrière-plan). « Seulement le matin et après une pause » se règle dans Réglages → Fréquents.",
+        "Corrigé : sur iPhone, l’Accueil pouvait être ouvert mais transparent et le premier toucher sur la carte le fermait.",
+        "Réglages → Fréquents indique quand l’Accueil s’est affiché pour la dernière fois, ou pourquoi pas."
+      ]
+    },
+    {
       "v": 423,
       "datum": "2026-11-13",
       "nadpis": "Le téléphone se souvient de la connexion",

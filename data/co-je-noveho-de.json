@@ -2,6 +2,16 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 424,
+      "datum": "2026-11-14",
+      "nadpis": "Startbildschirm bei jedem Start",
+      "body": [
+        "Start erscheint jetzt bei jedem App-Start (nicht bei Rückkehr aus dem Hintergrund). „Nur morgens und nach einer Pause“ in Einstellungen → Häufig.",
+        "Behoben: Auf dem iPhone konnte Start offen, aber durchsichtig sein, und der erste Tipp auf die Karte schloss ihn.",
+        "In Einstellungen → Häufig steht, wann Start zuletzt erschien oder warum nicht."
+      ]
+    },
+    {
       "v": 423,
       "datum": "2026-11-13",
       "nadpis": "Das Telefon merkt sich die Anmeldung",

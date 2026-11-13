@@ -2,6 +2,16 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 424,
+      "datum": "2026-11-14",
+      "nadpis": "Startscherm bij elke start",
+      "body": [
+        "Start verschijnt nu bij elke start van de app (niet bij terugkeer uit de achtergrond). „Alleen ’s ochtends en na een pauze” stel je in bij Instellingen → Vaak.",
+        "Opgelost: op iPhone kon Start open maar doorzichtig zijn en sloot de eerste tik op de kaart het.",
+        "Instellingen → Vaak toont wanneer Start laatst verscheen, of waarom niet."
+      ]
+    },
+    {
       "v": 423,
       "datum": "2026-11-13",
       "nadpis": "Je telefoon onthoudt het inloggen",
