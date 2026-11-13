@@ -2,6 +2,16 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 423,
+      "datum": "2026-11-13",
+      "nadpis": "El teléfono recuerda el inicio de sesión",
+      "body": [
+        "Tras iniciar sesión, la app se abre directamente en los siguientes arranques, sin Face ID ni contraseña. Cada 15.º arranque vuelve a preguntar como control (Face ID o contraseña).",
+        "Lo mismo vale para el acceso del propietario con clave.",
+        "Cerrar sesión lo anula; también se desactiva en Ajustes → Empresa."
+      ]
+    },
+    {
       "v": 422,
       "datum": "2026-11-13",
       "nadpis": "Inicio vuelve a aparecer, arranque más rápido",

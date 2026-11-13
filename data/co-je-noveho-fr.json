@@ -2,6 +2,16 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 423,
+      "datum": "2026-11-13",
+      "nadpis": "Le téléphone se souvient de la connexion",
+      "body": [
+        "Après connexion, l’appli s’ouvre directement aux lancements suivants — sans Face ID ni mot de passe. Chaque 15e lancement redemande pour contrôle (Face ID ou mot de passe).",
+        "Idem pour la connexion du propriétaire par clé.",
+        "La déconnexion l’annule ; désactivable aussi dans Réglages → Entreprise."
+      ]
+    },
+    {
       "v": 422,
       "datum": "2026-11-13",
       "nadpis": "L’Accueil réapparaît, démarrage plus rapide",

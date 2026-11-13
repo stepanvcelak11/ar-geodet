@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 423,
+      "datum": "2026-11-13",
+      "nadpis": "Your phone remembers the sign-in",
+      "body": [
+        "After signing in, the app opens straight away on the next launches — no Face ID, no password. Every 15th launch asks again as a check (Face ID or password).",
+        "The same applies to the owner key sign-in.",
+        "Signing out cancels it; you can also turn it off in Settings → Company."
+      ]
+    },
+    {
       "v": 422,
       "datum": "2026-11-13",
       "nadpis": "Home shows again, faster start",
