@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 423,
+   "datum": "2026-11-13",
+   "nadpis": "Přihlášení si telefon pamatuje",
+   "body": [
+    "Po přihlášení se appka další spuštění otevírá rovnou — bez Face ID i bez hesla. Každé 15. spuštění se pro kontrolu zeptá znovu (Face ID nebo heslo).",
+    "Totéž platí pro přihlášení vlastníka klíčem.",
+    "Odhlášení pamatování zruší; vypnout jde i v Nastavení → Firma."
+   ]
+  },
+  {
    "v": 422,
    "datum": "2026-11-13",
    "nadpis": "Domů se zase ukazuje, rychlejší start",

@@ -78,7 +78,8 @@
     var LS_BIO = 'agFirmaBio_v1';        // Face ID / odemknutí telefonem {userId:{id,ts}}
     var LS_BIOASK = 'agFirmaBioAsk_v1';  // kdy se naposledy ptalo na zapnutí Face ID (aby to neotravovalo)
     var LS_PACL = 'agProjAcl_v1';        // zakázky povolené účtu NA TOMTO ZAŘÍZENÍ {userId:[projId]}
-    var TRUST_MAX = 20;                  // po kolikátém automatickém přihlášení chtít znovu heslo/PIN
+    var TRUST_MAX = 15;                  // po kolikátém automatickém přihlášení chtít znovu heslo/PIN/Face ID (13. 11. 2026: 20 → 15, přání uživatele)
+    var LS_OWNTRUST = 'agVlastnikTrust_v1'; // pamatované přihlášení VLASTNÍKA na tomto zařízení {n, ts}
     var STYLE_ID = 'ag-ucty-style';
     var DB = 'argeodet-usage', STORE = 'ev', VER = 1;
     // adresa API (Cloudflare Worker, cloud/worker.js). Konstanta je jen výchozí —
@@ -2323,9 +2324,8 @@
                 // Zapamatovat přihlášení jen když si to uživatel přeje — odemčení
                 // telefonem nesmí vrátit pamatování tomu, kdo si ho vypnul.
                 if (keepOn()) {
-                    var t = trustFor(u.id) || { userId: u.id, mode: 'bio', n: 0, ts: Date.now() };
-                    t.mode = 'bio';
-                    bumpTrust(t);
+                    // Face ID je skutečné ověření (jako heslo) → počítadlo kontrolního přihlášení od nuly
+                    rememberTrust(u.id, 'bio');
                 } else { var t0 = getTrust(); if (t0 && t0.userId === u.id) clearTrust(); }
                 setSess({ userId: u.id, ts: Date.now() });
                 try { localStorage.setItem('arSurveyor', u.name); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:bioUnlock'); }
@@ -2951,8 +2951,30 @@
     //   do pole kódu VLASTNIK, do hesla OWNER_KEY (viz js/vlastnik.js).
     //   Bránu proto nepřeskakuje ULOŽENÝ PŘÍZNAK, ale až přihlášení v TOMHLE
     //   běhu — jinak by se brána po dvou vteřinách vrátila přes už běžící appku.
-    var _ownerIn = false;
+    var _ownerIn = false, _ownerBezHesla = false;
+    // PAMATOVANÝ VLASTNÍK (13. 11. 2026): stejně jako u běžného účtu — po přihlášení klíčem se appka
+    // dalších TRUST_MAX−1 spuštění otevře rovnou, každé TRUST_MAX-té chce klíč znovu. Klíč vlastníka
+    // (OWNER_KEY) zůstává uložený jen v tomhle telefonu (js/vlastnik.js); odhlášení pamatování ruší.
+    function getOwnerTrust() { try { var o = JSON.parse(localStorage.getItem(LS_OWNTRUST) || 'null'); return (o && typeof o.n === 'number') ? o : null; } catch (e) { return null; } }
+    function setOwnerTrust(o) { try { if (o) localStorage.setItem(LS_OWNTRUST, JSON.stringify(o)); else localStorage.removeItem(LS_OWNTRUST); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:ownerTrust'); } }
+    function ownerTrustStart() {
+        if (!isOwner()) return false;
+        var o = getOwnerTrust();
+        if (!o) return false;
+        if (o.n >= TRUST_MAX - 1) { setOwnerTrust(null); return false; }   // kontrolní přihlášení klíčem
+        o.n++; o.ts = Date.now(); setOwnerTrust(o);
+        _ownerBezHesla = true;
+        ownerEnter();
+        // menu a konzole vlastníka (js/vlastnik.js je odložený modul)
+        var hotovo = function () { try { if (window.AGVlastnik && AGVlastnik.vstup) AGVlastnik.vstup(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:ownerTrust'); } };
+        try { if (window.AGVlastnik) hotovo(); else if (window.AGLazy && AGLazy.need) AGLazy.need('js/vlastnik.js', hotovo); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:ownerTrust'); }
+        var left = TRUST_MAX - 1 - o.n;
+        if (left <= 3) setTimeout(function () { toast(left > 0 ? T('Vlastník · za {k} spuštění bude potřeba klíč', { k: left }) : T('Vlastník · příště bude potřeba klíč')); }, 1500);
+        return true;
+    }
     function ownerEnter() {
+        // přihlášení klíčem v tomhle běhu (ne pamatované) = počítadlo od nuly
+        if (!_ownerBezHesla && !_ownerIn) setOwnerTrust({ n: 0, ts: Date.now() });
         _ownerIn = true;
         bustFirm();
         applyPerms();
@@ -2993,13 +3015,13 @@
     // appka prostě pokračuje pod posledním účtem (jako když je zámek vypnutý —
     // úvodní obrazovka se ukáže normálně, žádný tap navíc).
     function autoLogin(u, t) {
-        if (t.mode === 'bio') {
-            // Face ID zmizelo (uživatel ho vypnul v systému, jiný telefon) — zapamatování
-            // se opíralo o ověření telefonem, takže bez něj se musí zadat heslo
-            if (!bioAvailable(u.id)) { clearTrust(); lock(); return; }
-            _lastUserId = u.id;
-            showLogin(true);
-            return;
+        // ⚠ FACE ID UŽ SE NEPTÁ PŘI KAŽDÉM SPUŠTĚNÍ (13. 11. 2026, uživatel: „aby si mobil pamatoval,
+        //   že jsem se už jednou přihlásil, a nemusel jsem se pokaždé přihlašovat — ale třeba každé
+        //   15. otevření ať to vyžaduje přihlášení"). Režim 'bio' se teď chová jako 'auto': appka se
+        //   otevře přihlášená a Face ID (nebo heslo) chce až kontrolní přihlášení po TRUST_MAX spuštěních.
+        if (t.mode === 'bio' && !bioAvailable(u.id)) {
+            // Face ID zmizelo (vypnuté v systému, jiný telefon) — pamatování stálo na něm → heslo
+            clearTrust(); lock(); return;
         }
         setSess({ userId: u.id, ts: Date.now() });
         bumpTrust(t);
@@ -3056,7 +3078,7 @@
         // Vlastník se odhlašuje jako každý jiný — vrátí se brána a chce se klíč
         // znovu. Uložený příznak se NEMAŽE (ten se ruší v konzoli, položkou
         // „Ukončit režim vlastníka"), takže se stačí znovu přihlásit.
-        if (_ownerIn) { _ownerIn = false; setSess(null); applyPerms(); showGate(); return; }
+        if (_ownerIn) { _ownerIn = false; _ownerBezHesla = false; setOwnerTrust(null); setSess(null); applyPerms(); showGate(); return; }
         _lastUserId = null;
         try { localStorage.removeItem(LS_IDCUR); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:logout'); }   // odhlášení ruší i SSO
         clearTrust();          // „odhlásit" musí zrušit i pamatované přihlášení
@@ -3097,7 +3119,10 @@
         //   odemyká oprávnění a Pro — jen už nenahrazuje přihlášení.
         var f = getFirm();
         if (prechodVlastnika()) {
+            _ownerBezHesla = true;                 // přechod není nové přihlášení — počítadlo nenulovat
             ownerEnter();                          // přišel z Základu jako vlastník — viz prechodNaPro
+        } else if (ownerTrustStart()) {
+            // pamatovaný vlastník — dovnitř bez klíče (každé TRUST_MAX-té spuštění klíč)
         } else if (f) {
             rememberCurrentFirm();                 // ať je aktivní firma vždy v profilech
             var u = currentUser();

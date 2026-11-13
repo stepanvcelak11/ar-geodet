@@ -2,6 +2,16 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 423,
+      "datum": "2026-11-13",
+      "nadpis": "Il telefono ricorda l’accesso",
+      "body": [
+        "Dopo l’accesso l’app si apre subito ai successivi avvii, senza Face ID né password. Ogni 15° avvio lo richiede di nuovo come controllo (Face ID o password).",
+        "Lo stesso vale per l’accesso del proprietario con chiave.",
+        "Il logout lo annulla; si disattiva anche in Impostazioni → Azienda."
+      ]
+    },
+    {
       "v": 422,
       "datum": "2026-11-13",
       "nadpis": "La Home riappare, avvio più rapido",

@@ -351,8 +351,14 @@ async def beh2(br, url):
     ok('D3 zapnuti ulozi WebAuthn klic pro pseudo-ucet vlastnik', await pockej(page, "() => { try { var o = JSON.parse(localStorage.getItem('agFirmaBio_v1')||'{}'); return !!(o.vlastnik && o.vlastnik.id); } catch (e) { return false; } }", 40),
        await page.evaluate("() => localStorage.getItem('agFirmaBio_v1')"))
     # restart: prihlaseni musi nabidnout zlate tlacitko
+    # 13. 11. 2026: přihlášení vlastníka se PAMATUJE — další start jde rovnou dovnitř,
+    # každé 15. spuštění (TRUST_MAX) chce klíč nebo Face ID znovu (kontrolní přihlášení)
     await page.reload(wait_until='domcontentloaded')
-    ok('D4 po restartu stoji prihlaseni a je na nem „Vlastnik — odemknout Face ID"', await pockej(page, "() => !!document.getElementById('ag-login') && !!document.getElementById('agv-bio-btn')", 60))
+    ok('D4a po restartu pamatovany vlastnik: bez prihlaseni rovnou do appky', await pockej(page, "() => !document.getElementById('ag-login') && !document.getElementById('ag-gate') && document.body.classList.contains('app-started') && !!document.getElementById('agv-menu-btn') && JSON.parse(localStorage.getItem('agVlastnikTrust_v1')).n === 1", 60),
+       await page.evaluate("() => localStorage.getItem('agVlastnikTrust_v1')"))
+    await page.evaluate("() => localStorage.setItem('agVlastnikTrust_v1', JSON.stringify({n: AGUcty.TRUST_MAX - 1, ts: Date.now()}))")
+    await page.reload(wait_until='domcontentloaded')
+    ok('D4 kontrolni prihlaseni (15. spusteni): stoji prihlaseni a je na nem „Vlastnik — odemknout Face ID"', await pockej(page, "() => !!document.getElementById('ag-login') && !!document.getElementById('agv-bio-btn')", 60))
     await page.evaluate("() => document.getElementById('agv-bio-btn').click()")
     ok('D5 Face ID pusti vlastnika dovnitr bez klice', await pockej(page, "() => !document.getElementById('ag-login') && document.body.classList.contains('app-started') && !!document.getElementById('agv-menu-btn')", 60))
     ok('D6 zadna chyba v konzoli', not [c for c in chyby if 'vlastnik' in c or 'ucty' in c], chyby[:3])

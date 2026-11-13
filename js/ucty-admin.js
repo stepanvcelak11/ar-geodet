@@ -1824,11 +1824,11 @@
             'Vyžadovat přihlášení při každém spuštění appky</label>' +
             '<div class="agfa-note">Zapnuto (doporučeno): appka po spuštění ověří, kdo ji drží. Nemusí to být psaní hesla — ' +
             'na přihlášení stačí zaškrtnout <b>Zůstat přihlášený na tomhle telefonu</b> a appka se pak otevírá přihlášená, ' +
-            'jen každé <b>' + (u.TRUST_MAX || 20) + '.</b> spuštění se pro kontrolu zeptá na heslo. Vypnuto: nekontroluje se nikdy. ' +
+            'jen každé <b>' + (u.TRUST_MAX || 20) + '.</b> spuštění se pro kontrolu zeptá na heslo (nebo Face ID). Vypnuto: nekontroluje se nikdy. ' +
             'Platí pro <b>toto zařízení</b>.</div>';
         if (me) {
             html += '<div class="agfa-note" style="margin-top:2px;"><b>Teď na tomhle telefonu:</b> ' +
-                (t ? T('pamatované přihlášení {m} · do kontrolního hesla zbývá {n} spuštění', { m: T(t.mode === 'bio' ? '(odemyká se telefonem)' : '(bez ptaní)'), n: (u.trustLeft ? u.trustLeft(t) : '?') })
+                (t ? T('pamatované přihlášení {m} · do kontrolního hesla zbývá {n} spuštění', { m: T(t.mode === 'bio' ? '(kontrola přes Face ID)' : '(bez ptaní)'), n: (u.trustLeft ? u.trustLeft(t) : '?') })
                    : T('pamatované přihlášení vypnuté — příště se zadává {x}', { x: T(u.getFirm() && u.getFirm().cloud ? 'heslo' : 'PIN') })) +
                 '</div>' +
                 '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">' +

@@ -1,32 +1,8 @@
-// ===== QTRIG — DOMŮ: „kde dnes měříš?" nad živou mapou (ODPOJITELNÁ) ==============================
-// (4. 11. 2026 první verze; 12. 11. 2026 PŘEDĚLÁNO podle uživatele:
-//  „působí to neprofesionálně… dřív se mi to rovnou zaplo v kameře s mapou a mohl jsem hned
-//   pracovat, teď to vnímám jako zdržení. Ale když jsem měl všechno v jedné zakázce, byl v tom
-//   bordel — tomu by to mohlo zamezit.")
-//
-// CO Z TOHO PLYNE:
-//   • Domů NENÍ stránka přes celou obrazovku. Je to SPODNÍ PANEL nad appkou, která pod ním už
-//     běží — nahoře je vidět živá mapa/kamera. Klepnutí na mapu, stažení panelu dolů nebo
-//     „Měřit" = jsi v terénu. Žádná stránka navíc mezi tebou a prací.
-//   • Hlavní a skoro jediná otázka je ZAKÁZKA: jedním klepnutím vybereš, kde dnes měříš, a rovnou
-//     jdeš měřit. Appka u každé zakázky ví, kolik má bodů, kdy se v ní naposledy měřilo a JAK DALEKO
-//     od tebe leží — zakázka, u které právě stojíš, se nabídne sama („Jsi u této zakázky").
-//     Nová zakázka se založí přímo tady (jméno → Založit a měřit), takže nové místo = nová zakázka.
-//   • Počasí je jedna sklíčková karta nad mapou (teplota, déšť, světlo, tlak u tebe); klepnutí
-//     rozbalí podrobnosti. Sdílení, mapa offline, kontrast na slunci a nastavení jsou řádek ikon.
-//   • Neukazuje se pokaždé („zdržení"): CHYTŘE jen při prvním spuštění dne nebo po pauze delší než
-//     3 h. Jindy appka naběhne rovnou do terénu — a když GPS ukáže, že stojíš u JINÉ zakázky, než
-//     je otevřená, nahoře se objeví nenápadná nabídka „Jsi u zakázky X — přepnout?".
-//     Nastavení → Časté: Otevřít / Ukazovat po spuštění (+ „vždy" místo „chytře").
-//
-// DATA ZAKÁZEK: body otevřené zakázky jsou v paměti (persistentCustomPoints), ostatních v IndexedDB
-// pod `<id>_arCustomPoints12` (logika.js _idbGet). Z nich se počítá souhrn {n, last, střed, poloměr}
-// a ukládá do agDomovZak_v1, takže seznam je při dalším otevření hned (čtení IDB běží na pozadí).
-// Poznámky k zakázce: `<id>_agPoznamkyZakazky` (stejný klíč jako getStoredData, jedou i v .argeo).
-// Přepnutí zakázky dělá jádro (AGUcty.applyProject) — drží se tím i oprávnění firemních účtů.
-//
-// Odstranění: smaž js/domov.js + <script> v index.html; gen_sw_assets --bump.
-// ==========================================================================================
+// ===== QTRIG — DOMŮ: „kde dnes měříš?" nad živou mapou (ODPOJITELNÁ) =====
+// Spodní panel nad běžící appkou: výběr zakázky (počet bodů, kdy naposledy, vzdálenost;
+// zakázka u tebe nahoře), nová zakázka, poznámka, počasí s tlakem u tebe, rychlé akce.
+// Ukazuje se ráno a po pauze > 3 h; jinak nabídka „Jsi u zakázky X — přepnout?".
+// Styly: css/domov.css. Odstranění: smaž js/domov.js + css/domov.css + řádky v index.html.
 (function () {
     'use strict';
     if (window.AGDomov) return;

@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 423,
+      "datum": "2026-11-13",
+      "nadpis": "Telefon pamięta logowanie",
+      "body": [
+        "Po zalogowaniu aplikacja przy kolejnych uruchomieniach otwiera się od razu — bez Face ID i bez hasła. Co 15. uruchomienie dla kontroli zapyta ponownie (Face ID lub hasło).",
+        "To samo dotyczy logowania właściciela kluczem.",
+        "Wylogowanie to anuluje; wyłączysz też w Ustawienia → Firma."
+      ]
+    },
+    {
       "v": 422,
       "datum": "2026-11-13",
       "nadpis": "Start znów się pokazuje, szybsze uruchamianie",

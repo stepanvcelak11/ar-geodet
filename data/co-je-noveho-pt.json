@@ -2,6 +2,16 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 423,
+      "datum": "2026-11-13",
+      "nadpis": "O telefone lembra-se do início de sessão",
+      "body": [
+        "Depois de entrar, a app abre logo nos arranques seguintes — sem Face ID nem palavra-passe. A cada 15.º arranque volta a pedir como verificação (Face ID ou palavra-passe).",
+        "O mesmo vale para a entrada do proprietário com chave.",
+        "Terminar sessão anula-o; também se desliga em Definições → Empresa."
+      ]
+    },
+    {
       "v": 422,
       "datum": "2026-11-13",
       "nadpis": "O Início volta a aparecer, arranque mais rápido",
