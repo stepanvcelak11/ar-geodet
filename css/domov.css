@@ -1,5 +1,7 @@
 /* QTRIG — Domů (js/domov.js): výběr zakázky nad živou mapou. Styly mimo JS kvůli rozpočtu startu. */
-#ag-domov{position:fixed;inset:0;z-index:999990;display:none;flex-direction:column;color:var(--text-color,#e8eaed);font-family:var(--font-ui,system-ui),sans-serif;overscroll-behavior:contain;
+/* z-index POD --z-modal (19999): dialogy a okna appky (Face ID, kompas, Co je nového, nástroje)
+   musí být NAD Domů, ne pod ním — jinak se Domů buď neukázal, nebo dialog zakryl (13. 11. 2026). */
+#ag-domov{position:fixed;inset:0;z-index:19990;display:none;flex-direction:column;color:var(--text-color,#e8eaed);font-family:var(--font-ui,system-ui),sans-serif;overscroll-behavior:contain;
   background:linear-gradient(180deg,rgba(6,9,12,.55) 0%,rgba(6,9,12,.10) 34%,rgba(6,9,12,.30) 60%,rgba(6,9,12,.62) 100%);opacity:0;transition:opacity .22s ease;}
 #ag-domov.on{display:flex;}
 #ag-domov.vid{opacity:1;}

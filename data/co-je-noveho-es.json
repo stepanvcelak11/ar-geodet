@@ -2,6 +2,16 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 422,
+      "datum": "2026-11-13",
+      "nadpis": "Inicio vuelve a aparecer, arranque más rápido",
+      "body": [
+        "La pantalla Inicio aparece también tras entrar con Face ID y cuando al arrancar salta un diálogo: el diálogo queda encima e Inicio debajo.",
+        "Si desactivaste la antigua pantalla de inicio, verás la nueva una vez; se desactiva abajo en Inicio o en Ajustes → Frecuentes.",
+        "Arranque más rápido: las herramientas se cargan por partes en segundo plano, ya no todas a la vez."
+      ]
+    },
+    {
       "v": 421,
       "datum": "2026-11-12",
       "nadpis": "Inicio: directo a tu trabajo",

@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 422,
+      "datum": "2026-11-13",
+      "nadpis": "Start znów się pokazuje, szybsze uruchamianie",
+      "body": [
+        "Ekran Start pokazuje się też po zalogowaniu Face ID i gdy przy starcie wyskoczy okno dialogowe — dialog zostaje na wierzchu, Start pod nim.",
+        "Kto wyłączył stary ekran startowy, zobaczy nowy jeden raz; wyłączysz go na dole ekranu Start lub w Ustawienia → Częste.",
+        "Szybsze uruchamianie: narzędzia ładują się po kawałku w tle, już nie wszystkie naraz."
+      ]
+    },
+    {
       "v": 421,
       "datum": "2026-11-12",
       "nadpis": "Start: prosto do zlecenia",

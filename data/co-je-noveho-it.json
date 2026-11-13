@@ -2,6 +2,16 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 422,
+      "datum": "2026-11-13",
+      "nadpis": "La Home riappare, avvio più rapido",
+      "body": [
+        "La schermata Home appare anche dopo l’accesso con Face ID e quando all’avvio compare un dialogo: il dialogo resta sopra, la Home sotto.",
+        "Se avevi disattivato la vecchia schermata iniziale, vedrai la nuova una volta; si disattiva in fondo alla Home o in Impostazioni → Frequenti.",
+        "Avvio più rapido: gli strumenti si caricano a pezzi in background, non più tutti insieme."
+      ]
+    },
+    {
       "v": 421,
       "datum": "2026-11-12",
       "nadpis": "Home: dritto al lavoro",

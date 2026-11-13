@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 422,
+   "datum": "2026-11-13",
+   "nadpis": "Domů se zase ukazuje, rychlejší start",
+   "body": [
+    "Úvodní obrazovka Domů se ukáže i po přihlášení přes Face ID a když při startu vyskočí dialog — ten zůstane nahoře a Domů je pod ním.",
+    "Kdo si dřív starou úvodní obrazovku vypnul, uvidí jednou novou; vypnout ji jde dole na Domů nebo v Nastavení → Časté.",
+    "Rychlejší start: nástroje se dotahují po částech na pozadí, už ne všechny naráz."
+   ]
+  },
+  {
    "v": 421,
    "datum": "2026-11-12",
    "nadpis": "Domů: rovnou k zakázce",

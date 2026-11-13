@@ -2,6 +2,16 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 422,
+      "datum": "2026-11-13",
+      "nadpis": "Start verschijnt weer, sneller opstarten",
+      "body": [
+        "Het Startscherm verschijnt nu ook na inloggen met Face ID en als er bij het starten een dialoog opent — die blijft bovenop, Start eronder.",
+        "Wie het oude startscherm had uitgezet, ziet het nieuwe één keer; uitzetten onderaan Start of in Instellingen → Vaak.",
+        "Sneller opstarten: gereedschap laadt in delen op de achtergrond, niet meer alles tegelijk."
+      ]
+    },
+    {
       "v": 421,
       "datum": "2026-11-12",
       "nadpis": "Start: direct naar je opdracht",
