@@ -2,6 +2,16 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 422,
+      "datum": "2026-11-13",
+      "nadpis": "Start erscheint wieder, schnellerer Start",
+      "body": [
+        "Der Startbildschirm erscheint jetzt auch nach der Anmeldung mit Face ID und wenn beim Start ein Dialog aufgeht — der Dialog bleibt oben, Start darunter.",
+        "Wer den alten Startbildschirm ausgeschaltet hat, sieht den neuen einmal; ausschalten unten auf Start oder in Einstellungen → Häufig.",
+        "Schnellerer Start: Werkzeuge laden stückweise im Hintergrund, nicht mehr alle auf einmal."
+      ]
+    },
+    {
       "v": 421,
       "datum": "2026-11-12",
       "nadpis": "Start: direkt zum Auftrag",

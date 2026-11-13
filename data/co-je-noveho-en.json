@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 422,
+      "datum": "2026-11-13",
+      "nadpis": "Home shows again, faster start",
+      "body": [
+        "The Home screen now also shows after signing in with Face ID and when a dialog pops up at start — the dialog stays on top with Home underneath.",
+        "If you turned off the old start screen, you will see the new one once; switch it off at the bottom of Home or in Settings → Frequent.",
+        "Faster start: tools load in parts in the background, no longer all at once."
+      ]
+    },
+    {
       "v": 421,
       "datum": "2026-11-12",
       "nadpis": "Home: straight to your job",

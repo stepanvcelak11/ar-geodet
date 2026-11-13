@@ -53,6 +53,7 @@ async def beh(url):
         await page.add_init_script(boot(tarif='pro') + "localStorage.setItem('agZemeUvod_v1','CZ'); localStorage.setItem('agSlabsiTelefon_v1','off'); if (!sessionStorage.getItem('agdT')) { sessionStorage.setItem('agdT', '1'); localStorage.removeItem('agDomov_v1'); localStorage.removeItem('agBrifinkLastShown'); }")
         await page.goto(url, wait_until='domcontentloaded', timeout=90000)
         ok('A0 po přihlášení se ukáže Domů', await V.cekej(page, "document.body.classList.contains('app-started') && !!window.AGDomov && AGDomov.otevreno()", 60))
+        ok('A0b dialog svítící při startu (kompas, Face ID…) je NAD Domů, ne pod ním', await page.evaluate("() => { const d = document.querySelector('.ag-dlg-overlay.open, .modal-overlay[style*=\"flex\"]'); if (!d) return true; const r = d.getBoundingClientRect(); const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!el && !el.closest('#ag-domov'); }"))
         ok('A1 pozdrav se jménem a datum', await page.evaluate("() => /Tester/.test(document.getElementById('agd-pozdrav').textContent) && document.getElementById('agd-datum').textContent.length > 5"))
         ok('A2 počasí: teplota, popis, déšť s hodinami, slunce', await V.cekej(page, "(() => { const t = document.getElementById('agd-wx').textContent; return /12°/.test(t) && /Polojasno/.test(t) && /13–16 h/.test(t) && /06:58–16:32/.test(t); })()", 15),
            await page.evaluate("() => document.getElementById('agd-wx').textContent"))
@@ -133,7 +134,8 @@ async def beh(url):
 
         # JÍT MĚŘIT
         await page.evaluate("() => AGDomov.otevri()")
-        await page.click('#agd-jit')
+        await page.evaluate(ZAVRI)
+        await page.click('#ag-domov .agd-x')   # křížek = měřit v OTEVŘENÉ zakázce (ne v navržené)
         ok('D1 JÍT MĚŘIT zavře Domů', not await page.evaluate("() => AGDomov.otevreno()"))
         # Nastavení → Časté
         await page.evaluate(ZAVRI)
@@ -186,6 +188,17 @@ async def beh(url):
         r = await p2.evaluate("() => ({ domov: AGDomov.otevreno(), novy: document.getElementById('custom-modal-overlay').style.display })")
         ok('G1 spuštění zkratkou „Nový bod": okno bodu, Domů se neukáže', not r['domov'] and r['novy'] == 'flex', r)
         await p2.close()
+        # přihlášení svítí při startu → Domů až PO něm (13. 11. 2026: „vůbec nevidím úvodní obrazovku")
+        p3 = await ctx.new_page()
+        await p3.route('**/*', route)
+        await p3.add_init_script("""localStorage.setItem('agDomov_v1', JSON.stringify({auto:true, v:2})); localStorage.removeItem('agDomovAkt_v1');
+            window.addEventListener('ag:app-started', () => { const d = document.createElement('div'); d.id = 'ag-login'; d.style.cssText = 'position:fixed;inset:0;z-index:999999;background:#000'; document.body.appendChild(d); setTimeout(() => d.remove(), 3000); }, true);""")
+        await p3.goto(url, wait_until='domcontentloaded', timeout=90000)
+        await V.cekej(p3, "document.body.classList.contains('app-started') && !!document.getElementById('ag-login')", 60)
+        await p3.wait_for_timeout(1200)
+        pod = await p3.evaluate("() => AGDomov.otevreno()")
+        ok('H1 Domů se ukáže až po přihlášení (ne pod přihlašovací obrazovkou)', not pod and await V.cekej(p3, "!document.getElementById('ag-login') && AGDomov.otevreno()", 15), pod)
+        await p3.close()
         ok('Z bez chyb stránky', not chyby, chyby[:5])
         await ctx.close()
         await br.close()

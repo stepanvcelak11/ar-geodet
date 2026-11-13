@@ -2,6 +2,16 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 422,
+      "datum": "2026-11-13",
+      "nadpis": "L’Accueil réapparaît, démarrage plus rapide",
+      "body": [
+        "L’écran Accueil s’affiche aussi après la connexion Face ID et quand une boîte de dialogue apparaît au démarrage — elle reste au-dessus, l’Accueil dessous.",
+        "Si tu avais désactivé l’ancien écran d’accueil, tu verras le nouveau une fois ; désactive-le en bas de l’Accueil ou dans Réglages → Fréquents.",
+        "Démarrage plus rapide : les outils se chargent par morceaux en arrière-plan, plus tous d’un coup."
+      ]
+    },
+    {
       "v": 421,
       "datum": "2026-11-12",
       "nadpis": "Accueil : droit au chantier",

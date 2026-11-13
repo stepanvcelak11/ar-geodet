@@ -46,8 +46,14 @@
         var s0 = JSON.parse(localStorage.getItem(KEY) || 'null');
         if (s0 && typeof s0.auto === 'boolean') st.auto = s0.auto;
         if (s0 && (s0.rezim === 'vzdy' || s0.rezim === 'chytre')) st.rezim = s0.rezim;
+        // ⚠ JEDNORÁZOVĚ ZNOVU ZAPNOUT (13. 11. 2026): kdo si starý Domů (v418–v420, stránka přes
+        //   celou obrazovku při KAŽDÉM startu) vypnul, protože překážel, ten předělaný (výběr
+        //   zakázky, jen ráno a po pauze) nikdy neuviděl — a hlásil „vůbec nevidím úvodní
+        //   obrazovku". Starý zápis nemá `v`; vypnutí v novém Domů (v:2) se už respektuje.
+        //   V automatizovaném prohlížeči (testy si Domů vypínají starým zápisem) se nemigruje.
+        if (s0 && !s0.v && s0.auto === false && !navigator.webdriver) { st.auto = true; st.v = 2; localStorage.setItem(KEY, JSON.stringify(st)); }
     } catch (e) { swallow(e, 'load'); }
-    function uloz() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { swallow(e, 'save'); } }
+    function uloz() { st.v = 2; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { swallow(e, 'save'); } }
 
     var root = null, _tik = null, _poznTmr = null, _ukazanoStart = false, _dotek = false, _vse = false;
 
@@ -667,9 +673,9 @@
         obnov();
         requestAnimationFrame(function () { requestAnimationFrame(function () { if (root.classList.contains('on')) root.classList.add('vid'); }); });
         if (!_tik) _tik = setInterval(tik, 1000);
-        // „v tu chvíli by nabíhalo vše, co appka umí": dokud člověk vybírá zakázku, nic neměří —
-        // odložené moduly se dotáhnou NAJEDNOU. Až po vykreslení Domů, ať se ukáže hned.
-        setTimeout(function () { try { if (otevreno() && window.AGLazy && AGLazy.flush) AGLazy.flush(); } catch (e) { swallow(e, 'flush'); } }, 600);
+        // ⚠ ŽÁDNÉ AGLazy.flush() (13. 11. 2026): v zabaleném vydání je odložených modulů ~8 MB
+        //   (obfuskace) a naráz to slabší telefon zpracovává vteřiny — appka „strašně dlouho
+        //   nabíhá". Moduly dál jedou po dávkách v nečinnosti (js/lazy-load.js), změřeno ~6 s.
         // ranní brífink dnes sám neotvírat — počasí je tady
         try { localStorage.setItem('agBrifinkLastShown', dnes()); } catch (e) { swallow(e, 'brifink'); }
         zapisAkt(true);
@@ -764,31 +770,34 @@
     function synchronizujNastaveni() { var cb = document.getElementById('agd-set-auto'); if (cb) cb.checked = st.auto; }
 
     // ---- start ----------------------------------------------------------------------------------------
-    function jineOkno() {
+    var _cekej = 0;
+    function prihlaseni() {
         try {
-            var ov = document.querySelectorAll('.modal-overlay, .ag-modal, [role="dialog"]');
-            for (var i = 0; i < ov.length; i++) {
-                var e = ov[i];
-                if (e.id === 'ag-domov' || !e.isConnected) continue;
-                var cs = getComputedStyle(e);
-                // okna appky jsou zavřená i přes opacity 0 + pointer-events none (ne jen display)
-                if (cs.display !== 'none' && cs.visibility !== 'hidden' && parseFloat(cs.opacity) > 0.05 && cs.pointerEvents !== 'none'
-                    && e.getClientRects().length && e.offsetWidth > 200) return true;
-            }
-        } catch (e) { swallow(e, 'jineOkno'); }
+            if (document.documentElement.classList.contains('ag-prelock')) return true;
+            var ids = ['ag-login', 'ag-gate', 'ag-reg', 'ag-kod'];
+            for (var i = 0; i < ids.length; i++) { var e = document.getElementById(ids[i]); if (e && e.isConnected && getComputedStyle(e).display !== 'none') return true; }
+        } catch (e) { swallow(e, 'prihlaseni'); }
         return false;
     }
     function poStartu() {
         try { vlozVstupy(); } catch (e) { swallow(e, 'vstupy'); }
         if (_ukazanoStart) return;
+        // přihlášení (Face ID / heslo) ještě svítí → rozhodnout až po něm, jinak by Domů
+        // naběhl pod přihlašovací obrazovku a pak by ho zavřel vstup do appky
+        if (prihlaseni()) { if (++_cekej < 600) setTimeout(poStartu, 500); return; }
         _ukazanoStart = true;
         var ukaz = st.auto && maSeUkazat();
+        var duvod = !st.auto ? 'vypnuto' : (ukaz ? '' : 'dnes už byl a bez pauzy');
         // odkaz na bod (?bod= / ?geo=) nebo sdílený soubor = člověk jde za konkrétní věcí
-        if (/[?&](bod|geo|share|import|zkratka)=/.test(location.search || '')) ukaz = false;
+        if (ukaz && /[?&](bod|geo|share|import|zkratka)=/.test(location.search || '')) { ukaz = false; duvod = 'odkaz'; }
         // zkratka z ikony appky (js/shortcuts.js parametr z adresy hned maže, proto příznak)
-        if (window.__agZkratka) ukaz = false;
-        // už je otevřené okno (zkratka, odkaz, obnovený nástroj) — Domů by ho zakryl
-        if (ukaz && jineOkno()) ukaz = false;
+        if (ukaz && window.__agZkratka) { ukaz = false; duvod = 'zkratka'; }
+        // ⚠ JINÉ OKNO UŽ DOMŮ NEPŘESKAKUJE (13. 11. 2026): při startu skoro vždy něco svítí
+        //   (povolení kompasu, „Odemykat telefonem?", Co je nového) a Domů se tím pádem
+        //   neukázal nikdy. Domů teď leží POD okny (z-index pod --z-modal), takže dialog
+        //   zůstane nahoře a Domů je vidět po jeho zavření.
+        if (ukaz && jednoduchy()) { ukaz = false; duvod = 'jednoduchý režim'; }
+        try { localStorage.setItem('agDomovDuvod_v1', JSON.stringify({ ts: Date.now(), ukazano: !!ukaz, duvod: duvod })); } catch (e) { swallow(e, 'duvod'); }
         if (ukaz && otevri()) return;
         zapisAkt(false);
         // Domů se neukázal → aspoň pohlídat, jestli nestojíš u jiné zakázky
