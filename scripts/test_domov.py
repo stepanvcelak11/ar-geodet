@@ -54,6 +54,8 @@ async def beh(url):
         await page.goto(url, wait_until='domcontentloaded', timeout=90000)
         ok('A0 po přihlášení se ukáže Domů', await V.cekej(page, "document.body.classList.contains('app-started') && !!window.AGDomov && AGDomov.otevreno()", 60))
         ok('A0b dialog svítící při startu (kompas, Face ID…) je NAD Domů, ne pod ním', await page.evaluate("() => { const d = document.querySelector('.ag-dlg-overlay.open, .modal-overlay[style*=\"flex\"]'); if (!d) return true; const r = d.getBoundingClientRect(); const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!el && !el.closest('#ag-domov'); }"))
+        await page.wait_for_timeout(600)
+        ok('A0c Domů je opravdu vidět (neprůhledný, panel na místě) i bez requestAnimationFrame', await page.evaluate("() => { const d = document.getElementById('ag-domov'); const p = document.getElementById('agd-panel').getBoundingClientRect(); return getComputedStyle(d).opacity === '1' && p.top < innerHeight - 100; }"))
         ok('A1 pozdrav se jménem a datum', await page.evaluate("() => /Tester/.test(document.getElementById('agd-pozdrav').textContent) && document.getElementById('agd-datum').textContent.length > 5"))
         ok('A2 počasí: teplota, popis, déšť s hodinami, slunce', await V.cekej(page, "(() => { const t = document.getElementById('agd-wx').textContent; return /12°/.test(t) && /Polojasno/.test(t) && /13–16 h/.test(t) && /06:58–16:32/.test(t); })()", 15),
            await page.evaluate("() => document.getElementById('agd-wx').textContent"))
@@ -159,7 +161,7 @@ async def beh(url):
 
         # CHYTŘE: dnes už ukázáno a appka běžela před chvílí → po startu se Domů NEukáže,
         # ale GPS ukáže, že stojíš u jiné zakázky (otevřená je Brno) → nabídka „Přepnout"
-        await page.evaluate("() => { localStorage.setItem('agDomov_v1', JSON.stringify({auto:true})); localStorage.setItem('agDomovAkt_v1', JSON.stringify({den: (d => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'))(new Date()), ts: Date.now()})); }")
+        await page.evaluate("() => { localStorage.setItem('agDomov_v1', JSON.stringify({auto:true, rezim:'chytre', v:3})); localStorage.setItem('agDomovAkt_v1', JSON.stringify({den: (d => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'))(new Date()), ts: Date.now()})); }")
         await page.reload(wait_until='domcontentloaded')
         await V.cekej(page, "document.body.classList.contains('app-started')", 60)
         await page.wait_for_timeout(1500)
@@ -172,6 +174,11 @@ async def beh(url):
         await page.evaluate("() => localStorage.setItem('agDomovAkt_v1', JSON.stringify({den: '2000-01-01', ts: Date.now() - 5*3600000}))")
         await page.reload(wait_until='domcontentloaded')
         ok('S4 po pauze delší než 3 h se Domů ukáže', await V.cekej(page, "document.body.classList.contains('app-started') && AGDomov.otevreno()", 60))
+        await page.evaluate("() => AGDomov.zavri()")
+        # výchozí (v3): při KAŽDÉM spuštění — i hned znovu týž den
+        await page.evaluate("() => { localStorage.setItem('agDomov_v1', JSON.stringify({auto:true, rezim:'vzdy', v:3})); }")
+        await page.reload(wait_until='domcontentloaded')
+        ok('S5 výchozí „při každém spuštění": ukáže se i hned po předchozím', await V.cekej(page, "document.body.classList.contains('app-started') && AGDomov.otevreno()", 60))
         await page.evaluate("() => AGDomov.zavri()")
 
         # jednoduchý režim: Domů se neukazuje

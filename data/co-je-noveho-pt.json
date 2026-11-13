@@ -2,6 +2,16 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 424,
+      "datum": "2026-11-14",
+      "nadpis": "Ecrã inicial em cada arranque",
+      "body": [
+        "O Início aparece agora sempre que a app arranca (não ao voltar do segundo plano). «Só de manhã e após uma pausa» define-se em Definições → Frequentes.",
+        "Corrigido: no iPhone o Início podia estar aberto mas transparente e o primeiro toque no mapa fechava-o.",
+        "Em Definições → Frequentes vê-se quando o Início apareceu pela última vez, ou porque não."
+      ]
+    },
+    {
       "v": 423,
       "datum": "2026-11-13",
       "nadpis": "O telefone lembra-se do início de sessão",

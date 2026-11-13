@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 424,
+      "datum": "2026-11-14",
+      "nadpis": "Ekran Start przy każdym uruchomieniu",
+      "body": [
+        "Start pokazuje się teraz przy każdym uruchomieniu aplikacji (nie po powrocie z tła). „Tylko rano i po przerwie” ustawisz w Ustawienia → Częste.",
+        "Naprawiono: na iPhonie Start mógł być otwarty, ale przezroczysty, a pierwsze dotknięcie mapy go zamykało.",
+        "W Ustawienia → Częste widać, kiedy Start ostatnio się pokazał lub dlaczego nie."
+      ]
+    },
+    {
       "v": 423,
       "datum": "2026-11-13",
       "nadpis": "Telefon pamięta logowanie",

@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 424,
+      "datum": "2026-11-14",
+      "nadpis": "Home screen on every start",
+      "body": [
+        "Home now shows every time the app starts (not when returning from the background). “Only in the morning and after a break” can be set in Settings → Frequent.",
+        "Fixed: on iPhone, Home could be open but transparent, and the first tap on the map closed it.",
+        "Settings → Frequent shows when Home was last shown, or why not."
+      ]
+    },
+    {
       "v": 423,
       "datum": "2026-11-13",
       "nadpis": "Your phone remembers the sign-in",

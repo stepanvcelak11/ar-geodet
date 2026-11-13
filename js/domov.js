@@ -17,7 +17,7 @@
     var PAUZA_MS = 3 * 3600000;            // chytré ukazování: po pauze delší než 3 h
     var BLIZKO_M = 150;                    // „jsi u zakázky": do 150 m od okraje jejích bodů
     var ID = 'ag-domov';
-    var st = { auto: true, rezim: 'chytre' };
+    var st = { auto: true, rezim: 'vzdy' };
     try {
         var s0 = JSON.parse(localStorage.getItem(KEY) || 'null');
         if (s0 && typeof s0.auto === 'boolean') st.auto = s0.auto;
@@ -28,9 +28,14 @@
         //   obrazovku". Starý zápis nemá `v`; vypnutí v novém Domů (v:2) se už respektuje.
         //   V automatizovaném prohlížeči (testy si Domů vypínají starým zápisem) se nemigruje.
         if (s0 && !s0.v && s0.auto === false && !navigator.webdriver) { st.auto = true; st.v = 2; localStorage.setItem(KEY, JSON.stringify(st)); }
+        // ⚠ v3 (14. 11. 2026): výchozí je ukazovat při KAŽDÉM spuštění (ne při návratu z pozadí).
+        //   „Chytře" (ráno a po pauze > 3 h) zůstává volbou v Nastavení. Kdo měl uložené staré
+        //   výchozí 'chytre' (v:2 — nikdo si ho nevybral, zapsalo se samo), přejde na 'vzdy'.
+        if (s0 && (s0.v || 0) < 3 && st.rezim === 'chytre' && !navigator.webdriver) { st.rezim = 'vzdy'; st.v = 3; localStorage.setItem(KEY, JSON.stringify(st)); }
     } catch (e) { swallow(e, 'load'); }
-    function uloz() { st.v = 2; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { swallow(e, 'save'); } }
+    function uloz() { st.v = 3; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { swallow(e, 'save'); } }
 
+    var _otevrenoTs = 0;
     var root = null, _tik = null, _poznTmr = null, _ukazanoStart = false, _dotek = false, _vse = false;
 
     // ---- pomocné ------------------------------------------------------------------------------
@@ -398,7 +403,7 @@
             + akceB('jednoduchy', 'i-walk', 'Jednoduchý režim') + akceB('nastaveni', 'i-settings', 'Nastavení')
             + '</div>'
             + '<div class="agd-stav" id="agd-stav"></div>'
-            + '<label class="agd-pata"><input type="checkbox" id="agd-auto"> <span>' + esc(T('Ukazovat ráno a po delší pauze')) + '</span></label>'
+            + '<label class="agd-pata"><input type="checkbox" id="agd-auto"> <span>' + esc(T('Ukazovat po spuštění appky')) + '</span></label>'
             + '<span id="agd-prubeh-t" hidden></span>'
             + '</div></div></section>';
         document.body.appendChild(root);
@@ -406,6 +411,8 @@
         root.addEventListener('click', function (e) {
             var t = e.target && e.target.closest ? e.target.closest('[data-agd],[data-zak]') : null;
             // klepnutí do prázdné plochy nad panelem (na mapu) = jít měřit
+            // klepnutí do prázdna v první půlvteřině = dotyk ze spuštění appky, ne „jít měřit"
+            if (!t && Date.now() - _otevrenoTs < 600) return;
             if (!t) { if (e.target === root || e.target.id === 'agd-nad' || (e.target.classList && e.target.classList.contains('agd-nad-in'))) { _dotek = true; vyber(pid()); } return; }
             _dotek = true;
             if (t.hasAttribute('data-zak')) { vyber(t.getAttribute('data-zak')); return; }
@@ -647,7 +654,7 @@
         root.classList.add('on');
         document.body.classList.add('ag-domov-on');
         obnov();
-        requestAnimationFrame(function () { requestAnimationFrame(function () { if (root.classList.contains('on')) root.classList.add('vid'); }); });
+        _otevrenoTs = Date.now();
         if (!_tik) _tik = setInterval(tik, 1000);
         // ⚠ ŽÁDNÉ AGLazy.flush() (13. 11. 2026): v zabaleném vydání je odložených modulů ~8 MB
         //   (obfuskace) a naráz to slabší telefon zpracovává vteřiny — appka „strašně dlouho
@@ -660,7 +667,7 @@
     function zavri() {
         if (!root) return;
         if (_poznTmr) ulozPoznamku();
-        root.classList.remove('on', 'vid');
+        root.classList.remove('on');
         document.body.classList.remove('ag-domov-on');
         if (_tik) { clearInterval(_tik); _tik = null; }
         try { document.dispatchEvent(new CustomEvent('ag:domov-zavreno')); } catch (e) { swallow(e, 'evt'); }
@@ -720,7 +727,8 @@
             if (caste) {
                 var r = document.createElement('div');
                 r.className = 'st-row'; r.id = 'agd-set-row'; r.setAttribute('data-ns-keep', '');
-                r.innerHTML = '<span class="st-lab">' + esc(T('Úvodní obrazovka Domů')) + '<small>' + esc(T('výběr zakázky, počasí a sdílení; ukáže se ráno a po delší pauze')) + '</small></span>'
+                r.innerHTML = '<span class="st-lab">' + esc(T('Úvodní obrazovka Domů')) + '<small>' + esc(T('výběr zakázky, počasí a sdílení po spuštění appky')) + '<br><span id="agd-set-diag"></span></small>'
+                    + '<select id="agd-set-rezim" style="margin-top:6px;min-height:36px;"><option value="vzdy">' + esc(T('při každém spuštění')) + '</option><option value="chytre">' + esc(T('jen ráno a po pauze')) + '</option></select></span>'
                     + '<span style="display:flex;align-items:center;gap:10px;"><button type="button" class="st-seg-b" id="agd-set-open">' + esc(T('Otevřít')) + '</button>'
                     + '<label class="st-sw"><input type="checkbox" id="agd-set-auto"><span class="st-sw-face"></span></label></span>';
                 caste.insertBefore(r, caste.firstChild);
@@ -728,7 +736,8 @@
                     try { document.getElementById('settings-modal').style.display = 'none'; } catch (e) { swallow(e, 'setClose'); }
                     otevri();
                 });
-                r.querySelector('#agd-set-auto').addEventListener('change', function (e) { st.auto = e.target.checked; uloz(); });
+                r.querySelector('#agd-set-auto').addEventListener('change', function (e) { st.auto = e.target.checked; uloz(); synchronizujNastaveni(); });
+                r.querySelector('#agd-set-rezim').addEventListener('change', function (e) { st.rezim = e.target.value === 'chytre' ? 'chytre' : 'vzdy'; uloz(); });
             }
         }
         if (!document.getElementById('agd-menu-btn')) {
@@ -743,7 +752,17 @@
         }
         synchronizujNastaveni();
     }
-    function synchronizujNastaveni() { var cb = document.getElementById('agd-set-auto'); if (cb) cb.checked = st.auto; }
+    function synchronizujNastaveni() {
+        var cb = document.getElementById('agd-set-auto'); if (cb) cb.checked = st.auto;
+        var sel = document.getElementById('agd-set-rezim'); if (sel) { sel.value = st.rezim; sel.disabled = !st.auto; }
+        // diagnostika: kdy se Domů naposledy ukázal / proč ne (agDomovDuvod_v1)
+        var dg = document.getElementById('agd-set-diag');
+        if (dg) {
+            var d = null; try { d = JSON.parse(localStorage.getItem('agDomovDuvod_v1') || 'null'); } catch (e) { d = null; }
+            var kdy = d && d.ts ? new Date(d.ts).toLocaleString(loc(), { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+            dg.textContent = !d ? '' : (d.ukazano ? T('naposledy ukázáno {k}', { k: kdy }) : T('naposledy neukázáno {k}: {d}', { k: kdy, d: T(d.duvod || '?') }));
+        }
+    }
 
     // ---- start ----------------------------------------------------------------------------------------
     var _cekej = 0;

@@ -2,6 +2,16 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 424,
+      "datum": "2026-11-14",
+      "nadpis": "Schermata Home a ogni avvio",
+      "body": [
+        "La Home ora appare a ogni avvio dell’app (non al ritorno dal background). «Solo al mattino e dopo una pausa» si imposta in Impostazioni → Frequenti.",
+        "Corretto: su iPhone la Home poteva essere aperta ma trasparente e il primo tocco sulla mappa la chiudeva.",
+        "In Impostazioni → Frequenti si vede quando la Home è apparsa l’ultima volta o perché no."
+      ]
+    },
+    {
       "v": 423,
       "datum": "2026-11-13",
       "nadpis": "Il telefono ricorda l’accesso",
