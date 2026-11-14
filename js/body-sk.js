@@ -73,7 +73,7 @@
         body.forEach(function (b) { var e = ix[b.id]; if (e) { if (e.hidden) e.hidden = false; if (e.cat !== b.cat) { e.cat = b.cat; e.type = b.type; } ['druh', 'vyska', 'ku', 'okres', 'znacka', 'popis', 'zdroj', 'vrstva'].forEach(function (k) { if (b[k] != null) e[k] = b[k]; }); return; } arPoints.push(b); n++; });
         try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) { swallow(e, 'ar'); }
         try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { swallow(e, 'mapa'); }
-        try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) { /* nic */ }
+        try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) { self.AG && AG.swallow(e, 'body-sk:76'); }
         return n;
     }
     function obnov(vynutit) {
@@ -84,9 +84,9 @@
         _bezi = true; var stred = { lat: me.lat, lng: me.lng };
         return stahni(stred.lat, stred.lng).then(function (body) {
             _posl = stred; _pocet = body.length; var n = vloz(body);
-            if (n) { try { (window.quickToast || window.agInfo)('Slovensko: ' + body.length + ' bodů GKÚ SR v okolí (ŠTS, ŠNS, ŠGS). Poloha z S-JTSK, ±1 m.'); } catch (e) { /* nic */ } }
+            if (n) { try { (window.quickToast || window.agInfo)('Slovensko: ' + body.length + ' bodů GKÚ SR v okolí (ŠTS, ŠNS, ŠGS). Poloha z S-JTSK, ±1 m.'); } catch (e) { self.AG && AG.swallow(e, 'body-sk:87'); } }
             return n;
-        }).catch(function (e) { _posl = stred; try { (window.quickToast || window.agInfo)('Body GKÚ SR se nepodařilo stáhnout: ' + ((e && e.message) || e)); } catch (e2) { /* nic */ } return 0; }).finally(function () { _bezi = false; });
+        }).catch(function (e) { _posl = stred; try { (window.quickToast || window.agInfo)('Body GKÚ SR se nepodařilo stáhnout: ' + ((e && e.message) || e)); } catch (e2) { self.AG && AG.swallow(e2, 'body-sk:89'); } return 0; }).finally(function () { _bezi = false; });
     }
     function start() {
         document.addEventListener('ag:zeme', function () { _posl = null; setTimeout(function () { obnov(true); }, 300); });

@@ -69,8 +69,8 @@
             .catch(function (e) { swallow(e, 'dily'); });
     }
     function poloha() {
-        try { if (typeof userLat === 'number' && typeof userLng === 'number' && isFinite(userLat) && isFinite(userLng) && userLat) return { lat: userLat, lng: userLng }; } catch (e) { /* nic */ }
-        try { if (typeof map !== 'undefined' && map && map.getCenter) { var c = map.getCenter(); return { lat: c.lat, lng: c.lng }; } } catch (e2) { /* nic */ }
+        try { if (typeof userLat === 'number' && typeof userLng === 'number' && isFinite(userLat) && isFinite(userLng) && userLat) return { lat: userLat, lng: userLng }; } catch (e) { self.AG && AG.swallow(e, 'mapa-vektor:72'); }
+        try { if (typeof map !== 'undefined' && map && map.getCenter) { var c = map.getCenter(); return { lat: c.lat, lng: c.lng }; } } catch (e2) { self.AG && AG.swallow(e2, 'mapa-vektor:73'); }
         return null;
     }
     function dil(kod) {
@@ -309,7 +309,7 @@
                     if (o.zrus && o.zrus()) { res.zruseno = true; return Promise.resolve(); }
                     var t = seznam[i++];
                     return p.getZxy(t[0], t[1], t[2]).then(function (d) { if (d) res.ok++; else res.chybi++; }, function (e) { res.net++; swallow(e && e.sitova ? e : new Error('NetworkError: ' + ((e && e.message) || e)), 'ulozOblast'); })
-                        .then(function () { hotovo++; try { prubeh && prubeh(hotovo, res.total); } catch (e2) { /* nic */ } return dalsi(); });
+                        .then(function () { hotovo++; try { prubeh && prubeh(hotovo, res.total); } catch (e2) { self.AG && AG.swallow(e2, 'mapa-vektor:312'); } return dalsi(); });
                 }
                 return Promise.all([dalsi(), dalsi(), dalsi(), dalsi(), dalsi(), dalsi()])
                     .then(function () { konec(); return res; }, function (e) { konec(); throw e; });
@@ -384,7 +384,7 @@
     // přejezd do jiného DÍLU téže země: každých 20 s porovnat url(); změna → nastavStyl() přepne zdroj
     setInterval(function () { try { if (st.zap && vrstva && !st.url && DILY && url() !== _url) nastavStyl(); } catch (e) { swallow(e, 'dilTik'); } }, 20000);
     // jiná země = jiný soubor dat (cz → sk…); když pro ni data nejsou, mapa to řekne
-    document.addEventListener('ag:zeme', function () { if (st.zap && vrstva && !st.url) overData().then(nastavStyl).catch(function (e) { chybaText = (e && e.message) || String(e); if (e && e.sitova) return; try { window.agInfo && window.agInfo('Vektorová mapa: ' + chybaText); } catch (e2) { /* nic */ } }); });
+    document.addEventListener('ag:zeme', function () { if (st.zap && vrstva && !st.url) overData().then(nastavStyl).catch(function (e) { chybaText = (e && e.message) || String(e); if (e && e.sitova) return; try { window.agInfo && window.agInfo('Vektorová mapa: ' + chybaText); } catch (e2) { self.AG && AG.swallow(e2, 'mapa-vektor:387'); } }); });
     try { new MutationObserver(function () { nastavStyl(); }).observe(document.body, { attributes: true, attributeFilter: ['class'] }); } catch (e) { swallow(e, 'observer'); }
 
     // ---- zapnutí / vypnutí ---------------------------------------------------------------
@@ -427,8 +427,8 @@
                 vrstva = L.maplibreGL({ style: AGMapaStyl.vytvor(_varianta, _url), interactive: false, attributionControl: false, pane: 'tilePane' });
                 // chyby MapLibre (dlaždice, glyfy) do protokolu + poslední pro diagnostiku
                 try { vrstva.on('add', function () { var m = vrstva.getMaplibreMap(); if (m && !m._agErr) { m._agErr = 1; m.on('error', function (ev) { _posledniChyba = (ev && ev.error && ev.error.message) || String(ev && ev.error); swallow(ev && ev.error, 'maplibre'); }); } }); } catch (e) { swallow(e, 'on-error'); }
-                vrstva.on('add', function () { try { document.getElementById('map').classList.add('base-vektor'); } catch (e) { /* nic */ } });
-                vrstva.on('remove', function () { try { document.getElementById('map').classList.remove('base-vektor'); } catch (e) { /* nic */ } });
+                vrstva.on('add', function () { try { document.getElementById('map').classList.add('base-vektor'); } catch (e) { self.AG && AG.swallow(e, 'mapa-vektor:430'); } });
+                vrstva.on('remove', function () { try { document.getElementById('map').classList.remove('base-vektor'); } catch (e) { self.AG && AG.swallow(e, 'mapa-vektor:431'); } });
             }
             if (!rastr) rastr = baseLayers.osm;
             var bylOsm = map.hasLayer(baseLayers.osm);
@@ -438,7 +438,7 @@
             stav = 'zapnuto'; chybaText = '';
             // zapnutí (i z 3D pohledu / panelu Mapa) = volba uživatele: jinak další nastav({styl}) mapu zase vypnulo (st.zap zůstalo false)
             if (!st.zap) { st.zap = true; uloz(); }
-            try { document.dispatchEvent(new CustomEvent('ag:mapa-vektor', { detail: { zap: true } })); } catch (e) { /* nic */ }
+            try { document.dispatchEvent(new CustomEvent('ag:mapa-vektor', { detail: { zap: true } })); } catch (e) { self.AG && AG.swallow(e, 'mapa-vektor:441'); }
             return true;
         }).catch(function (e) {
             stav = 'chyba';
@@ -446,12 +446,12 @@
                 // síť: bez toastu (stav říká pilulka nahoře a řádek Mapa v Nastavení), do protokolu jen síťově
                 chybaText = 'data mapy teď nejsou dostupná (bez signálu) — zkusím znovu, až se signál vrátí.';
                 swallow(new Error('NetworkError: data mapy (' + soubor() + ') bez signálu'), 'zapni');
-                if (!tise) { try { window.quickToast && window.quickToast('Vektorová mapa: ' + chybaText); } catch (e4) { /* nic */ } }
+                if (!tise) { try { window.quickToast && window.quickToast('Vektorová mapa: ' + chybaText); } catch (e4) { self.AG && AG.swallow(e4, 'mapa-vektor:449'); } }
             } else {
                 chybaText = (e && e.message) || String(e); swallow(e, 'zapni');
-                try { if (!zapni._rekl) { zapni._rekl = true; if (tise) { window.quickToast && window.quickToast('Mapa: ' + chybaText); } else if (typeof window.agInfo === 'function') window.agInfo('Vektorová mapa: ' + chybaText); } } catch (e2) { /* nic */ }
+                try { if (!zapni._rekl) { zapni._rekl = true; if (tise) { window.quickToast && window.quickToast('Mapa: ' + chybaText); } else if (typeof window.agInfo === 'function') window.agInfo('Vektorová mapa: ' + chybaText); } } catch (e2) { self.AG && AG.swallow(e2, 'mapa-vektor:452'); }
             }
-            try { document.dispatchEvent(new CustomEvent('ag:mapa-vektor', { detail: { zap: false, chyba: chybaText } })); } catch (e3) { /* nic */ }
+            try { document.dispatchEvent(new CustomEvent('ag:mapa-vektor', { detail: { zap: false, chyba: chybaText } })); } catch (e3) { self.AG && AG.swallow(e3, 'mapa-vektor:454'); }
             return false;
         });
     }
@@ -462,7 +462,7 @@
         baseLayers.osm = rastr;
         if (byl) rastr.addTo(map);
         stav = 'vypnuto';
-        try { document.dispatchEvent(new CustomEvent('ag:mapa-vektor', { detail: { zap: false } })); } catch (e) { /* nic */ }
+        try { document.dispatchEvent(new CustomEvent('ag:mapa-vektor', { detail: { zap: false } })); } catch (e) { self.AG && AG.swallow(e, 'mapa-vektor:465'); }
     }
     // Změny jdou FRONTOU za sebou: zapni() je asynchronní (knihovny), a kdyby mezitím přišlo
     // vypni(), dokončené zapnutí by vrstvu zase přidalo (závod z testu, 16. 9. 2026).
@@ -598,10 +598,10 @@
     function start() {
         try { ui(); } catch (e) { swallow(e, 'ui'); }
         // po přesunu (GPS) zkusit uložit nové okolí — kontrola každé 2 minuty, stahuje se jen po přesunu > 1,5 km
-        setInterval(function () { try { if (stav === 'zapnuto') okoliUloz(); } catch (e) { /* nic */ } }, 120000);
-        if (!_rotTik) _rotTik = setInterval(function () { try { if (vrstva && typeof map !== 'undefined' && map.hasLayer(vrstva)) srovnejPopisky(false); } catch (e) { /* nic */ } }, 400);
+        setInterval(function () { try { if (stav === 'zapnuto') okoliUloz(); } catch (e) { self.AG && AG.swallow(e, 'mapa-vektor:601'); } }, 120000);
+        if (!_rotTik) _rotTik = setInterval(function () { try { if (vrstva && typeof map !== 'undefined' && map.hasLayer(vrstva)) srovnejPopisky(false); } catch (e) { self.AG && AG.swallow(e, 'mapa-vektor:602'); } }, 400);
         document.addEventListener('ag:mapa-vektor', function () { _rotPosl = null; setTimeout(function () { srovnejPopisky(true); }, 800); });
-        document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"]')) setTimeout(ui, 50); } catch (e) { /* nic */ } }, true);
+        document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"]')) setTimeout(ui, 50); } catch (e) { self.AG && AG.swallow(e, 'mapa-vektor:604'); } }, true);
         if (st.zap && !lite()) {
             // HNED, jakmile běží mapa appky (4. 11. 2026): dřív se čekalo na nečinnost a do té doby byl
             // pod body jen prázdný podklad (a modul sám je ag/lazy — js/lazy-load.js ho teď pouští první)

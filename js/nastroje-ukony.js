@@ -507,7 +507,7 @@
     function razeniZap() { try { return localStorage.getItem('agToolSort_v1') !== '0'; } catch (e) { return true; } }
     function skoreK(k, u) {
         var n = u[k] || 0;
-        if (HUB[k]) { try { ((window.AGReg && AGReg.hubItems) ? AGReg.hubItems(k) : []).forEach(function (x) { n += u[x] || 0; }); } catch (e) { /* nic */ } }
+        if (HUB[k]) { try { ((window.AGReg && AGReg.hubItems) ? AGReg.hubItems(k) : []).forEach(function (x) { n += u[x] || 0; }); } catch (e) { self.AG && AG.swallow(e, 'nastroje-ukony:510'); } }
         return n >= 2 ? n : 0;
     }
     function seradDleUziti(items) {
@@ -602,7 +602,7 @@
             var r = (window.AGReg && AGReg.get(k)) || {}; var n = String((AGReg.label && AGReg.label(k)) || r.vl || k);   // živý popisek (Proč ±N m?)
             // každý název zvlášť přes slovník: spojený výčet žádný klíč nemá, v EN/DE… zůstával česky (18. 9. 2026)
             var cs = true;
-            try { if (window.AGJazyk && typeof AGJazyk.t === 'function') { n = String(AGJazyk.t(n) || n); cs = (AGJazyk.get() || 'cs') === 'cs'; } } catch (e) { /* nic */ }
+            try { if (window.AGJazyk && typeof AGJazyk.t === 'function') { n = String(AGJazyk.t(n) || n); cs = (AGJazyk.get() || 'cs') === 'cs'; } } catch (e) { self.AG && AG.swallow(e, 'nastroje-ukony:605'); }
             return cs ? n.charAt(0).toLowerCase() + n.slice(1) : n;   // malé písmeno jen česky (německá podstatná jména jsou velká)
         });
         return names.length ? names.join(' · ') : (zaloha || '');
@@ -846,7 +846,7 @@
         //   úkony — bydlí na stránce „Další" jako sekce s nadpisem (student má Učit se dál první).
         var DO_DALSI = { 'Před výjezdem': 1, 'Firma a papíry': 1, 'Příručka a výpočty': 1, 'Učit se': 1 };
         var dalsiSekce = [];
-        try { if (window.AGProfilOsoby && AGProfilOsoby.je('student')) delete DO_DALSI['Učit se']; } catch (e) { /* nic */ }
+        try { if (window.AGProfilOsoby && AGProfilOsoby.je('student')) delete DO_DALSI['Učit se']; } catch (e) { self.AG && AG.swallow(e, 'nastroje-ukony:849'); }
         // ⚠ ZAMČENÉ (PRO BEZ LICENCE) STRANOU (12. 9. 2026 dolů, 15. 9. 2026 na vlastní
         //   stránku, přání: „aby ta Pro nebyly rozházený v těch daných kategoriích,
         //   ale aby to bylo stranou a nepřekáželo"). Slovesné stránky obsahují jen to,

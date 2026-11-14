@@ -223,7 +223,7 @@
             o.online = (typeof navigator !== 'undefined' && navigator.onLine === false) ? 0 : 1;
             var n = pocetBodu(); if (n != null) o.bodu = n;
             var z = zakazka(); if (z) o.zakazka = z;
-            try { if (typeof viewMode !== 'undefined' && viewMode) o.pohled = String(viewMode); } catch (e2) { }
+            try { if (typeof viewMode !== 'undefined' && viewMode) o.pohled = String(viewMode); } catch (e2) { self.AG && AG.swallow(e2, 'zpetna-vazba:226'); }
             var f = window.AGFix;
             if (f && f.acc != null) o.gps = Math.round(f.acc * 10) / 10 + (f.manual ? ' (ručně)' : '');
         } catch (e) { swallow(e, 'ctx'); }

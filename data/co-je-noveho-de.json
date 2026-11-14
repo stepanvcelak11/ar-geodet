@@ -2,6 +2,17 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 425,
+      "datum": "2026-11-14",
+      "nadpis": "Schnellerer Start und sicherere Anmeldung",
+      "body": [
+        "Die App lädt beim Start ~400 kB weniger: Firmenverwaltung und Besitzerkonsole laden erst beim Öffnen.",
+        "Die PIN auf dem Telefon wird jetzt deutlich sicherer gespeichert (die alte wird bei der nächsten Anmeldung umgewandelt). Eine Cloud-Firma ohne gültige Server-Anmeldung fordert eine Anmeldung an.",
+        "Größere Tippflächen für „?“ bei Werkzeugen, die Schalter in den Einstellungen und das Schließen der Kartenwerkzeuge.",
+        "Versteckte Fehler werden jetzt ins Fehlerprotokoll geschrieben, damit sie gefunden und behoben werden können."
+      ]
+    },
+    {
       "v": 424,
       "datum": "2026-11-14",
       "nadpis": "Startbildschirm bei jedem Start",

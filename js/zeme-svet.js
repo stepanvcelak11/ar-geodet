@@ -176,8 +176,8 @@
         var coBtn = co.querySelector('button'); coBtn.textContent = 'Co tu appka umí';
         coBtn.addEventListener('click', function () {
             var k = sel.value === 'auto' ? AGSour.kod() : sel.value;
-            if (k === 'CZ' || k === 'XX') { try { (window.quickToast || window.agInfo)(k === 'CZ' ? 'V Česku je všechno: body ČÚZK, katastr RÚIAN, ortofoto ČÚZK.' : 'Mimo evidované země: souřadnice UTM, ortofoto Esri, bez katastru a bez úředních bodů.'); } catch (e) { /* nic */ } return; }
-            var go = function () { try { AGZdroje.uvod(k, true); } catch (e) { /* nic */ } };
+            if (k === 'CZ' || k === 'XX') { try { (window.quickToast || window.agInfo)(k === 'CZ' ? 'V Česku je všechno: body ČÚZK, katastr RÚIAN, ortofoto ČÚZK.' : 'Mimo evidované země: souřadnice UTM, ortofoto Esri, bez katastru a bez úředních bodů.'); } catch (e) { self.AG && AG.swallow(e, 'zeme-svet:179'); } return; }
+            var go = function () { try { AGZdroje.uvod(k, true); } catch (e) { self.AG && AG.swallow(e, 'zeme-svet:180'); } };
             if (window.AGZdroje) go(); else if (window.AGLazy && AGLazy.need) AGLazy.need('js/zdroje-zemi.js', go);
         });
         // SIMULACE CIZÍ ZEMĚ (17. 9. 2026, přání: „abych mohl otestovat, jak to funguje u nich"):
@@ -194,11 +194,11 @@
     function simulace(kod) {
         try {
             if (window.AGManualPos && AGManualPos.active && simulace._bezi) { AGManualPos.clear(false); simulace._bezi = false; AGSour.nastav('auto'); obnov();
-                try { for (var i = (arPoints || []).length - 1; i >= 0; i--) if (arPoints[i] && arPoints[i].zkouska && /^zkouska-zeme-/.test(arPoints[i].id)) { if (arPoints[i].element) arPoints[i].element.remove(); arPoints.splice(i, 1); } if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { /* nic */ } try { window.agInfo && window.agInfo('Simulace ukončena — zpět na GPS a automatickou zemi.'); } catch (e) { /* nic */ } var b0 = document.getElementById('s-zeme-sim-btn'); if (b0) b0.textContent = 'Vyzkoušet'; return; }
+                try { for (var i = (arPoints || []).length - 1; i >= 0; i--) if (arPoints[i] && arPoints[i].zkouska && /^zkouska-zeme-/.test(arPoints[i].id)) { if (arPoints[i].element) arPoints[i].element.remove(); arPoints.splice(i, 1); } if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { self.AG && AG.swallow(e, 'zeme-svet:197'); } try { window.agInfo && window.agInfo('Simulace ukončena — zpět na GPS a automatickou zemi.'); } catch (e) { self.AG && AG.swallow(e, 'zeme-svet:197'); } var b0 = document.getElementById('s-zeme-sim-btn'); if (b0) b0.textContent = 'Vyzkoušet'; return; }
             if (!kod || kod === 'auto') kod = 'CZ';
             var z = AGSour.ZEME[kod], m = MESTA[kod];
             var lat = m ? m[0] : (z ? (z.bbox[0] + z.bbox[2]) / 2 : 50.0875), lng = m ? m[1] : (z ? (z.bbox[1] + z.bbox[3]) / 2 : 14.4213);
-            if (!window.AGManualPos || typeof AGManualPos.take !== 'function') { try { window.agInfo && window.agInfo('Ruční poloha není k dispozici (modul poloha-z-mapy).'); } catch (e) { /* nic */ } return; }
+            if (!window.AGManualPos || typeof AGManualPos.take !== 'function') { try { window.agInfo && window.agInfo('Ruční poloha není k dispozici (modul poloha-z-mapy).'); } catch (e) { self.AG && AG.swallow(e, 'zeme-svet:201'); } return; }
             AGSour.nastav(kod === 'XX' ? 'XX' : kod);
             AGManualPos.take(lat, lng, 19);
             simulace._bezi = true;
@@ -208,14 +208,14 @@
                 if (kod !== 'CZ' && typeof arPoints !== 'undefined') {
                     var m0 = 1 / 111320, ml0 = m0 / Math.cos(lat * Math.PI / 180);
                     [[25, 10, 'A'], [-40, 30, 'B'], [15, -55, 'C']].forEach(function (q) { arPoints.push({ id: 'zkouska-zeme-' + q[2], name: 'Ukázka ' + q[2], lat: lat + q[1] * m0, lng: lng + q[0] * ml0, type: 'custom', cat: 'CUSTOM', hidden: false, zkouska: true, vyska: null }); });
-                    try { if (typeof initARMarkers === 'function') initARMarkers(); if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { /* nic */ }
+                    try { if (typeof initARMarkers === 'function') initARMarkers(); if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { self.AG && AG.swallow(e, 'zeme-svet:211'); }
                 }
             } catch (e) { swallow(e, 'ukazky'); }
-            try { if (typeof map !== 'undefined' && map) map.setView([lat, lng], 17); } catch (e) { /* nic */ }
-            try { document.getElementById('settings-modal').style.display = 'none'; } catch (e) { /* nic */ }
+            try { if (typeof map !== 'undefined' && map) map.setView([lat, lng], 17); } catch (e) { self.AG && AG.swallow(e, 'zeme-svet:214'); }
+            try { document.getElementById('settings-modal').style.display = 'none'; } catch (e) { self.AG && AG.swallow(e, 'zeme-svet:215'); }
             var b = document.getElementById('s-zeme-sim-btn'); if (b) b.textContent = 'Ukončit simulaci';
             // bublina, ne dialog: dialog by přebil kartu „Měříš v zemi" (zdroje-zemi.js), která o bodech a podkladech říká všechno (18. 9. 2026 noc)
-            try { (window.quickToast || window.agInfo)(TT('Simulace: stojíš v {m}. Souřadnice {s}.', { m: TT((m && m[2]) || (z && z.nazev) || kod), s: (AGSour.popisky().system || '') }) + (kod !== 'CZ' ? ' ' + TT('Přidal jsem 3 ukázkové body (A, B, C).') : '') + ' ' + TT('Zpět: Nastavení → Mapa a body → Ukončit simulaci.')); } catch (e) { /* nic */ }
+            try { (window.quickToast || window.agInfo)(TT('Simulace: stojíš v {m}. Souřadnice {s}.', { m: TT((m && m[2]) || (z && z.nazev) || kod), s: (AGSour.popisky().system || '') }) + (kod !== 'CZ' ? ' ' + TT('Přidal jsem 3 ukázkové body (A, B, C).') : '') + ' ' + TT('Zpět: Nastavení → Mapa a body → Ukončit simulaci.')); } catch (e) { self.AG && AG.swallow(e, 'zeme-svet:218'); }
             obnov();
         } catch (e) { swallow(e, 'simulace'); }
     }
@@ -247,5 +247,5 @@
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
     // Nastavení se může vykreslit později (lazy moduly) — dorovnat i při otevření.
-    document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"], #tabbtn-ar')) setTimeout(function () { ui(); obnov(); }, 50); } catch (e) { /* nic */ } }, true);
+    document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"], #tabbtn-ar')) setTimeout(function () { ui(); obnov(); }, 50); } catch (e) { self.AG && AG.swallow(e, 'zeme-svet:250'); } }, true);
 })();

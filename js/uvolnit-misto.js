@@ -28,7 +28,7 @@
     function T(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } catch (e) { v = cs; } return o ? v.replace(/\{(\w+)\}/g, function (m, k) { return o[k] != null ? o[k] : m; }) : v; }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function swallow(e, kde) { try { if (window.AG && AG.swallow) AG.swallow(e, kde); } catch (x) { } }
-    function toast(m) { try { if (window.AG && AG.toast) return AG.toast(m); } catch (e) { } try { if (typeof quickToast === 'function') quickToast(m); } catch (e) { } }
+    function toast(m) { try { if (window.AG && AG.toast) return AG.toast(m); } catch (e) { self.AG && AG.swallow(e, 'uvolnit-misto:31'); } try { if (typeof quickToast === 'function') quickToast(m); } catch (e) { self.AG && AG.swallow(e, 'uvolnit-misto:31'); } }
     function confirmBox(o) { if (typeof window.agConfirm === 'function') return window.agConfirm(o); return Promise.resolve(window.confirm(String(o.message || '').replace(/<[^>]+>/g, ''))); }
     function mb(b) { return b < 1048576 ? Math.round(b / 1024) + ' kB' : (b / 1048576).toFixed(b < 10485760 ? 1 : 0).replace('.', ',') + ' MB'; }
     function num(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
@@ -104,7 +104,7 @@
         } else if (act === 'oblast' && window.AGOblasti) {
             confirmBox({ title: 'Smazat oblast', message: 'Smazat tenhle balíček (body i jeho dílky mapy) z telefonu? Body se pak zase stahují ze sítě.', okText: 'Smazat', danger: true }).then(function (ok) {
                 if (!ok) return; _busy = true;
-                return AGOblasti.smazat(id).then(function () { toast('Oblast smazána.'); try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { } })
+                return AGOblasti.smazat(id).then(function () { toast('Oblast smazána.'); try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { self.AG && AG.swallow(e, 'uvolnit-misto:107'); } })
                     .catch(function (e) { swallow(e, 'uvolnit:oblast'); toast('Smazání se nepovedlo.'); })
                     .then(function () { _busy = false; render(); refreshUsage(); });
             });

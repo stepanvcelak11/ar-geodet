@@ -78,7 +78,7 @@
                     // sklad nevznikne a každý zápis padá na „object store was not found"
                     // (Měření použití hlásilo toast „Něco se pokazilo (ucty:usageLog)").
                     // Zrušení upgradu při oldVersion 0 databázi nezaloží.
-                    if (dbName !== DB_NAME && e && e.oldVersion === 0) { try { rq.transaction.abort(); } catch (e2) { } return; }
+                    if (dbName !== DB_NAME && e && e.oldVersion === 0) { try { rq.transaction.abort(); } catch (e2) { self.AG && AG.swallow(e2, 'ag-store:81'); } return; }
                     if (!db.objectStoreNames.contains(storeName)) db.createObjectStore(storeName);
                 } catch (e3) { swallow(e3, 'ag-store:upgrade'); }
             };
@@ -200,7 +200,7 @@
             if (typeof indexedDB === 'undefined') return res([]);
             var rq; try { rq = indexedDB.open(dbName); } catch (e) { return res([]); }
             // neexistující databázi nezakládat (viz open() výš) — přehled má jen číst
-            rq.onupgradeneeded = function (e) { if (e && e.oldVersion === 0) { try { rq.transaction.abort(); } catch (e2) { } } };
+            rq.onupgradeneeded = function (e) { if (e && e.oldVersion === 0) { try { rq.transaction.abort(); } catch (e2) { self.AG && AG.swallow(e2, 'ag-store:203'); } } };
             rq.onsuccess = function () {
                 var db = rq.result, names = [];
                 try { for (var i = 0; i < db.objectStoreNames.length; i++) names.push(db.objectStoreNames[i]); } catch (e) { swallow(e, 'ag-store:storesOf'); }

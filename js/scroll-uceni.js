@@ -134,7 +134,7 @@
     }
     // viděná karta = byla na obrazovce aspoň 1,2 s (IntersectionObserver), ne jen prolétla
     function sleduj() {
-        try { if (_io) _io.disconnect(); } catch (e) { /* nic */ }
+        try { if (_io) _io.disconnect(); } catch (e) { self.AG && AG.swallow(e, 'scroll-uceni:137'); }
         if (!('IntersectionObserver' in window)) return;
         var casovace = {};
         _io = new IntersectionObserver(function (ents) {
@@ -173,7 +173,7 @@
             + '<div class="agsu-filtry">' + FILTRY.map(function (f) { return '<button type="button" data-f="' + f[0] + '"' + (f[0] === filtr ? ' class="on"' : '') + '>' + f[1] + '</button>'; }).join('') + '</div>'
             + '<div id="agsu-feed"><section class="agsu-slot"><div class="agsu-karta t-tip"><h2>Načítám kartičky…</h2></div></section></div>';
     }
-    function zavri() { try { if (_io) _io.disconnect(); } catch (e) { /* nic */ } if (el) { el.style.display = 'none'; el.innerHTML = ''; } }
+    function zavri() { try { if (_io) _io.disconnect(); } catch (e) { self.AG && AG.swallow(e, 'scroll-uceni:176'); } if (el) { el.style.display = 'none'; el.innerHTML = ''; } }
     // maskot Toti (js/maskot.js, ag/lazy) — když chybí, nic se neděje
     function maskot(fn) { try { if (window.AGMaskot) return fn(window.AGMaskot); if (window.AGLazy) AGLazy.need('js/maskot.js', function () { if (window.AGMaskot) fn(window.AGMaskot); }); } catch (e) { /* bez maskota */ } }
     function otevri() {

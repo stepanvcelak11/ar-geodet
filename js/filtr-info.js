@@ -159,7 +159,7 @@
             // od v365 jsou chipy druhů na PRVNÍ obrazovce Nastavení (karta Časté), ne na stránce Data —
             // AGSettings.reveal si stránku najde sám; bez něj stačí zůstat na první obrazovce
             if (window.AGSettings && AGSettings.reveal && document.getElementById('f-tb')) { AGSettings.reveal('f-tb'); return; }
-            try { if (typeof window.agSettingsHome === 'function') window.agSettingsHome(); } catch (e0) { /* nic */ }
+            try { if (typeof window.agSettingsHome === 'function') window.agSettingsHome(); } catch (e0) { self.AG && AG.swallow(e0, 'filtr-info:162'); }
             var row = document.getElementById('f-tb');
             if (row && row.closest) {
                 var box = row.closest('.st-chip');
@@ -258,7 +258,7 @@
         try {
             // „Max. bodů v AR" je od v365 na kartě Časté (první obrazovka), ne na stránce AR kamera
             if (window.AGSettings && AGSettings.reveal && document.getElementById('s-max-ar-slider')) { AGSettings.reveal('s-max-ar-slider'); return; }
-            try { if (typeof window.agSettingsHome === 'function') window.agSettingsHome(); } catch (e0) { /* nic */ }
+            try { if (typeof window.agSettingsHome === 'function') window.agSettingsHome(); } catch (e0) { self.AG && AG.swallow(e0, 'filtr-info:261'); }
             var sl = document.getElementById('s-max-ar-slider');
             if (sl && sl.scrollIntoView) sl.scrollIntoView({ block: 'center' });
         } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'filtr-info:openArSettings'); }

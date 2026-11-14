@@ -582,7 +582,7 @@
                 // SAMOLÉČBA (18. 9. 2026): přehled místa (js/ag-store.js) uměl databázi založit prázdnou;
                 // chybí-li sklad, otevřít o verzi výš — upgrade ho doplní, fotky zůstanou.
                 if (d && !d.objectStoreNames.contains(PSTORE)) {
-                    const v2 = d.version + 1; try { d.close(); } catch (e) { }
+                    const v2 = d.version + 1; try { d.close(); } catch (e) { self.AG && AG.swallow(e, 'vylepseni:585'); }
                     const r2 = indexedDB.open(PDB, v2);
                     r2.onupgradeneeded = function () { try { r2.result.createObjectStore(PSTORE); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'vylepseni:onupgradeneeded'); } };
                     r2.onsuccess = function () { res(r2.result); };
@@ -700,7 +700,7 @@
             '<button class="prn" onclick="window.print()">' + T('Tisk / Uložit PDF') + '</button>' +
             '<div class="note">' + T('Orientační pomůcka, ne měřicí přístroj. Zaznamenaná „přesnost" je odhad z GPS telefonu — ten má systematickou chybu ~5–15 m, kterou průměrování neodstraní. Body v terénu ověřte.') + '</div>' +
             cards +
-            '<script>window.onload=function(){setTimeout(function(){try{window.print()}catch(e){}},500)}<\/script>' +
+            '<script>window.onload=function(){setTimeout(function(){try{window.print()}catch (e) {}},500)}<\/script>' +
             '</body></html>';
     }
 

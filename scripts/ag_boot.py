@@ -32,6 +32,16 @@ _SABLONA = u"""
   // Zamek pri startu vypnuty: jinak by appka po kazdem nacteni stranky chtela
   // heslo a test by koukal na prihlasovaci obrazovku misto na appku.
   localStorage.setItem('agLockStart_v1', '0');
+  // KOMPAS JAKO NA TELEFONU S POVOLENÍM (14. 11. 2026): novější Chromium zná
+  // DeviceOrientationEvent.requestPermission a bez senzorů vrací 'denied' → appka
+  // ukázala „Kompas nemá povolení" a dialog sebral klepnutí půlce testů. Totéž
+  // dělá tests/smoke.spec.mjs. Test, který zamítnutí zkouší, si to přepíše sám.
+  try {
+    ['DeviceOrientationEvent', 'DeviceMotionEvent'].forEach(function (n) {
+      var E = window[n];
+      if (E && typeof E.requestPermission === 'function') E.requestPermission = function () { return Promise.resolve('granted'); };
+    });
+  } catch (e) { /* nic */ }
   localStorage.setItem('agUcet_v1', JSON.stringify({
     id: 'test-acc-1', code: 'TESTACC1', name: 'Tester', tarif: %(tarif)s, tarifDo: 0
   }));

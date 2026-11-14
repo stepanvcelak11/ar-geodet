@@ -2,6 +2,17 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 425,
+      "datum": "2026-11-14",
+      "nadpis": "Snellere start en veiliger aanmelden",
+      "body": [
+        "De app downloadt bij het starten ~400 kB minder: bedrijfsbeheer en de eigenaarsconsole laden pas bij openen.",
+        "De pincode op de telefoon wordt nu veel veiliger opgeslagen (de oude wordt bij de volgende aanmelding vanzelf omgezet). Een cloudbedrijf zonder geldige aanmelding bij de server vraagt om aan te melden.",
+        "Grotere tikvlakken voor „?” bij gereedschappen, de schakelaars in Instellingen en het sluiten van de kaartgereedschappen.",
+        "Verborgen fouten worden nu in het Foutenlogboek geschreven, zodat ze gevonden en opgelost kunnen worden."
+      ]
+    },
+    {
       "v": 424,
       "datum": "2026-11-14",
       "nadpis": "Startscherm bij elke start",

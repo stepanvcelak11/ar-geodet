@@ -33,7 +33,7 @@
     // Stylopis uz nevisi v index.html: modul je odlozeny (type="ag/lazy"),
     // takze by jeho <link> jen zbytecne blokoval prvni vykresleni. Pripoji se
     // tady, tedy davno pred tim, nez uzivatel okno otevre.
-    try { window.AG && AG.cssFile && AG.cssFile('agbz-css', 'css/balicek-zakazky.css'); } catch (e) { }
+    try { window.AG && AG.cssFile && AG.cssFile('agbz-css', 'css/balicek-zakazky.css'); } catch (e) { self.AG && AG.swallow(e, 'balicek-zakazky:36'); }
 
     if (window.AGBalicek) return;
 

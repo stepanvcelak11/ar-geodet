@@ -44,7 +44,7 @@
     // řazení a filtr Lidí (13. 9. 2026, přání uživatele: „řadit podle vytvoření účtu, podle toho,
     // kdo appku naposledy používal a jak moc ji používají); pamatuje se v telefonu
     var _rad = 'aktivita', _jen = '';
-    try { _rad = localStorage.getItem('agPdRad_v1') || 'aktivita'; } catch (e) { }
+    try { _rad = localStorage.getItem('agPdRad_v1') || 'aktivita'; } catch (e) { self.AG && AG.swallow(e, 'prodej-konzole:47'); }
 
     function swallow(e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'prodej-konzole:' + kde); } catch (x) { } }
     function esc(s) {
@@ -461,7 +461,7 @@
     }
     function wire(b) {
         each(b, '[data-tab]', 'click', function (el) { _tab = el.getAttribute('data-tab'); _open = ''; render(); });
-        each(b, '[data-rad]', 'click', function (el) { _rad = el.getAttribute('data-rad'); try { localStorage.setItem('agPdRad_v1', _rad); } catch (e) { } render(); });
+        each(b, '[data-rad]', 'click', function (el) { _rad = el.getAttribute('data-rad'); try { localStorage.setItem('agPdRad_v1', _rad); } catch (e) { self.AG && AG.swallow(e, 'prodej-konzole:464'); } render(); });
         each(b, '[data-jen]', 'click', function (el) { _jen = el.getAttribute('data-jen'); render(); });
         var q = b.querySelector('#ag-pd-q');
         if (q) {

@@ -30,7 +30,7 @@
     }
     function maJmeno(el) {
         if (el.getAttribute('aria-label') || el.getAttribute('aria-labelledby') || el.getAttribute('title')) return true;
-        if (el.id) { try { if (document.querySelector('label[for="' + CSS.escape(el.id) + '"]')) return true; } catch (e) { /* nic */ } }
+        if (el.id) { try { if (document.querySelector('label[for="' + CSS.escape(el.id) + '"]')) return true; } catch (e) { self.AG && AG.swallow(e, 'pristupnost:33'); } }
         if (el.closest('label') && textBez(el.closest('label'))) return true;
         return false;
     }

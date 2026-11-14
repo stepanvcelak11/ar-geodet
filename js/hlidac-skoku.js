@@ -51,7 +51,7 @@
     }
     function smer() {
         // currentHeading = zeměpisný azimut displeje z logika.js (po fúzi gyro + kompas)
-        try { if (typeof currentHeading === 'number' && isFinite(currentHeading)) return currentHeading; } catch (e) { /* nic */ }
+        try { if (typeof currentHeading === 'number' && isFinite(currentHeading)) return currentHeading; } catch (e) { self.AG && AG.swallow(e, 'hlidac-skoku:54'); }
         return null;
     }
 
@@ -145,7 +145,7 @@
     }
     function start() {
         try { ui(); } catch (e) { swallow(e, 'ui'); }
-        document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"]')) setTimeout(ui, 50); } catch (e) { /* nic */ } }, true);
+        document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"]')) setTimeout(ui, 50); } catch (e) { self.AG && AG.swallow(e, 'hlidac-skoku:148'); } }, true);
         if (st.zap) zapniCidlo();
         // aplikace na pozadí: čidlo nechat spát (baterie), po návratu začít od nového fixu
         document.addEventListener('visibilitychange', function () {

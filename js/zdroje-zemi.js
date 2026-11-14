@@ -76,11 +76,11 @@
         if (kod === 'CZ') return false;
         var la = null, lo = null; try { la = window.userLat; lo = window.userLng; } catch (e) { la = null; }
         var p = PORTALY[kod];
-        if (!p) { try { if (typeof quickToast === 'function') quickToast(T('Katastr tu stát online nenabízí — v mapě zůstává vrstva Katastr, pokud ji země má.')); } catch (e) { /* nic */ } return true; }
+        if (!p) { try { if (typeof quickToast === 'function') quickToast(T('Katastr tu stát online nenabízí — v mapě zůstává vrstva Katastr, pokud ji země má.')); } catch (e) { self.AG && AG.swallow(e, 'zdroje-zemi:79'); } return true; }
         var u = null; try { u = (la != null && lo != null) ? p.u(la, lo) : p.u(0, 0); } catch (e) { u = null; }
         if (!u) return true;
         try { window.open(u, '_blank', 'noopener'); } catch (e) { swallow(e, 'portal'); }
-        try { if (typeof quickToast === 'function') quickToast(T('Katastr země') + ': ' + p.n + ' ↗'); } catch (e) { /* nic */ }
+        try { if (typeof quickToast === 'function') quickToast(T('Katastr země') + ': ' + p.n + ' ↗'); } catch (e) { self.AG && AG.swallow(e, 'zdroje-zemi:83'); }
         return true;
     }
 
@@ -194,7 +194,7 @@
     function rtkPro(kod) { return RTK[kod] || null; }
 
     var _origOrto = null, _origKat = null, _aktualni = 'CZ', _vrstvaOrto = null;
-    function toast(m) { try { if (typeof window.agInfo === 'function') window.agInfo(m); } catch (e) { /* nic */ } }
+    function toast(m) { try { if (typeof window.agInfo === 'function') window.agInfo(m); } catch (e) { self.AG && AG.swallow(e, 'zdroje-zemi:197'); } }
     function T(t) { try { return (window.AGJazyk && AGJazyk.t) ? AGJazyk.t(t) : t; } catch (e) { return t; } }
     function vrstvaZ(z) {
         if (z.typ === 'xyz') return L.tileLayer(z.url, { maxZoom: 22, maxNativeZoom: z.maxNativeZoom || 18, zIndex: 1, attribution: z.attribution });
@@ -223,7 +223,7 @@
             else uvod(kod, true);   // karta „Měříš v zemi" místo dvou hlášek (18. 9. 2026 noc)
         }
         if (tise && kod !== 'CZ') naplanujUvod(kod);   // start appky rovnou v cizině: ukázat jednou na zemi
-        try { document.dispatchEvent(new CustomEvent('ag:zdroje', { detail: { kod: kod, orto: orto, katastr: kat } })); } catch (e) { /* nic */ }
+        try { document.dispatchEvent(new CustomEvent('ag:zdroje', { detail: { kod: kod, orto: orto, katastr: kat } })); } catch (e) { self.AG && AG.swallow(e, 'zdroje-zemi:226'); }
         return true;
     }
     // ---- KARTA „MĚŘÍŠ V ZEMI X" (18. 9. 2026 noc) ----------------------------------------------
@@ -236,7 +236,7 @@
     // běží (body.app-started) a není otevřený jiný dialog, ať nepřekryje bránu nebo průvodce.
     var UVOD_KLIC = 'agZemeUvod_v1', _uvodTik = null;
     function uvodVideno() { try { return JSON.parse(localStorage.getItem(UVOD_KLIC) || '{}') || {}; } catch (e) { return {}; } }
-    function uvodZapis(kod) { try { var v = uvodVideno(); v[kod] = Date.now(); localStorage.setItem(UVOD_KLIC, JSON.stringify(v)); } catch (e) { /* nic */ } }
+    function uvodZapis(kod) { try { var v = uvodVideno(); v[kod] = Date.now(); localStorage.setItem(UVOD_KLIC, JSON.stringify(v)); } catch (e) { self.AG && AG.swallow(e, 'zdroje-zemi:239'); } }
     function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
     function uvodHtml(kod) {
         var z = (window.AGSour && AGSour.ZEME[kod]) || null, jm = z ? z.nazev : kod;

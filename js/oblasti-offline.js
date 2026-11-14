@@ -41,7 +41,7 @@
 (function () {
     'use strict';
     if (window.AGOblasti) return;
-    try { window.AG && AG.cssFile && AG.cssFile('ago-css', 'css/oblasti-offline.css'); } catch (e) { }
+    try { window.AG && AG.cssFile && AG.cssFile('ago-css', 'css/oblasti-offline.css'); } catch (e) { self.AG && AG.swallow(e, 'oblasti-offline:44'); }
 
     var SHELF = 'oblasti';
     var META = 'meta';
@@ -93,8 +93,8 @@
     function num(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
     function mb(b) { return b < 1048576 ? Math.round(b / 1024) + ' kB' : (b / 1048576).toFixed(b < 10485760 ? 1 : 0).replace('.', ',') + ' MB'; }
     function dist(a, b, c, d) {
-        try { if (typeof getDistance === 'function') return getDistance(a, b, c, d); } catch (e) { }
-        try { if (window.GeoCore && GeoCore.getDistance) return GeoCore.getDistance(a, b, c, d); } catch (e) { }
+        try { if (typeof getDistance === 'function') return getDistance(a, b, c, d); } catch (e) { self.AG && AG.swallow(e, 'oblasti-offline:96'); }
+        try { if (window.GeoCore && GeoCore.getDistance) return GeoCore.getDistance(a, b, c, d); } catch (e) { self.AG && AG.swallow(e, 'oblasti-offline:97'); }
         var R = 6382000, dl = (d - b) * Math.PI / 180, dp = (c - a) * Math.PI / 180;
         var x = dl * Math.cos((a + c) / 2 * Math.PI / 180);
         return Math.sqrt(x * x + dp * dp) * R;
@@ -290,8 +290,8 @@
     }
     function kdeJsem() {
         var lat = null, lng = null;
-        try { if (typeof userLat !== 'undefined' && userLat != null) { lat = userLat; lng = userLng; } } catch (e) { }
-        if (lat == null) { try { var p = JSON.parse(localStorage.getItem('arLastPos')); if (p && p.lat != null) { lat = +p.lat; lng = +(p.lng != null ? p.lng : p.lon); } } catch (e) { } }
+        try { if (typeof userLat !== 'undefined' && userLat != null) { lat = userLat; lng = userLng; } } catch (e) { self.AG && AG.swallow(e, 'oblasti-offline:293'); }
+        if (lat == null) { try { var p = JSON.parse(localStorage.getItem('arLastPos')); if (p && p.lat != null) { lat = +p.lat; lng = +(p.lng != null ? p.lng : p.lon); } } catch (e) { self.AG && AG.swallow(e, 'oblasti-offline:294'); } }
         if (lat == null || !_hranice) return null;
         var o = null, k = null;
         _hranice.okresy.forEach(function (x) { if (!o && x.kod !== 3100 && vPoly(x.poly, lat, lng)) o = x; });

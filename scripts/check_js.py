@@ -449,7 +449,7 @@ def check_orphan_modules(js_files):
         orphans += 1
         problem(rel, 'modul nikdo nenacita - neni v index.html (src ani data-src), '
                      'v MANIFESTu js/lazy-tools.js ani v ASSETS_TO_CACHE v sw.js. '
-                     'Bud ho zapoj, nebo presun do _archiv/')
+                     'Bud ho zapoj, nebo presun do docs/archiv/')
     return orphans
 
 

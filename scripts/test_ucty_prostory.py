@@ -268,6 +268,11 @@ async def smazani(browser):
     vchod = await page.evaluate("() => { var b = [].slice.call(document.querySelectorAll('#about-modal button')).find(function (x) { return /Smazat účet/.test(x.textContent); }); return !!b; }")
     ok('U7b v O aplikaci je tlacitko Smazat ucet', vchod)
     await page.evaluate("() => AGUcty.smazatUcet()")
+    # okno žije v js/ucty-okna.js, který se dotahuje až při prvním použití → počkat na něj
+    for _ in range(40):
+        if await page.evaluate("() => !!document.getElementById('ag-smazani')"):
+            break
+        await page.wait_for_timeout(250)
     await page.wait_for_timeout(300)
     okno = await page.evaluate("() => { var o = document.getElementById('ag-smazani'); return o ? { kod: /TESTACC1/.test(o.textContent), pass: !!o.querySelector('#ags-pass') } : null; }")
     ok('U7c okno ukazuje kod uctu a chce heslo', okno and okno['kod'] and okno['pass'], okno)

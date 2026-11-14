@@ -40,7 +40,13 @@ async def otevri(page, k):
     await page.evaluate("() => document.getElementById('dock-nastroje-btn').click()")
     await page.wait_for_timeout(800)
     await page.evaluate("(k) => { for (let i = 0; i < 3; i++) document.querySelectorAll('#tools-modal .ag-uk-i[aria-expanded=\"false\"]').forEach(h => h.click()); const r = document.querySelector('#tools-modal .ag-uk-i[data-k=\"' + k + '\"]'); if (r) { r.scrollIntoView(); r.click(); } }", k)
-    await page.wait_for_timeout(2200)
+    # nástroj se dotahuje líně — počkat, až se okno Nástrojů zavře (nástroj převzal obrazovku),
+    # ne pevnou dobu (pod zátěží to 2,2 s nestačilo)
+    for _ in range(60):
+        if await page.evaluate("() => { const m = document.getElementById('tools-modal'); return !m || m.style.display === 'none'; }"):
+            break
+        await page.wait_for_timeout(250)
+    await page.wait_for_timeout(1200)
 
 
 VIDITELNY = """(sel) => { const e = [...document.querySelectorAll(sel)].find(x => x.getClientRects().length); if (!e) return null;

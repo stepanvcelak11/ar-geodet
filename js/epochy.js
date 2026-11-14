@@ -263,7 +263,7 @@
                 if (!isFinite(p.lat) || !isFinite(p.lng)) continue;
                 out += '<option value="' + esc(p.id) + '">' + esc(p.name) + (p.cat && p.cat !== 'CUSTOM' ? ' (' + esc(p.cat) + ')' : '') + '</option>';
             }
-        } catch (e) {}
+        } catch (e) { self.AG && AG.swallow(e, 'epochy:266'); }
         return out;
     }
     // jen VLASTNÍ body (cp_…) — pro zakládání sledovaného bodu z existujícího
@@ -279,7 +279,7 @@
                 if (!isFinite(p.lat) || !isFinite(p.lng) || linked[p.id]) continue;
                 out += '<option value="' + esc(p.id) + '">' + esc(p.name) + '</option>';
             }
-        } catch (e) {}
+        } catch (e) { self.AG && AG.swallow(e, 'epochy:282'); }
         return out;
     }
 
@@ -304,7 +304,7 @@
                     break;
                 }
             }
-        } catch (e) {}
+        } catch (e) { self.AG && AG.swallow(e, 'epochy:307'); }
     }
     // poloha propojeného bodu = POSLEDNÍ epocha (mapa/AR ukazují aktuální stav)
     function updateLinkedPoint(it) {
@@ -324,11 +324,11 @@
                 for (var j = 0; j < arPoints.length; j++) {
                     if (arPoints[j].id === it.ptId) { arPoints[j].lat = ll.lat; arPoints[j].lng = ll.lng; if (last.z != null) arPoints[j].vyska = Math.round(last.z * 100) / 100; break; }
                 }
-            } catch (e2) {}
+            } catch (e2) { self.AG && AG.swallow(e2, 'epochy:327'); }
             if (typeof setStoredData === 'function') setStoredData('arCustomPoints12', JSON.stringify(persistentCustomPoints));
-            try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e3) {}
-            try { if (typeof renderManageList === 'function') renderManageList(); } catch (e4) {}
-        } catch (e) {}
+            try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e3) { self.AG && AG.swallow(e3, 'epochy:329'); }
+            try { if (typeof renderManageList === 'function') renderManageList(); } catch (e4) { self.AG && AG.swallow(e4, 'epochy:330'); }
+        } catch (e) { self.AG && AG.swallow(e, 'epochy:331'); }
     }
     // založení sledovaného bodu z existujícího vlastního bodu (+ předvyplnění 1. epochy)
     function createItemFromPoint(pid) {
@@ -347,7 +347,7 @@
             _view = { mode: 'detail', itemId: id };
             render();
             toast('Souřadnice bodu jsou předvyplněné — zkontroluj a ulož jako referenční epochu.');
-        } catch (e) {}
+        } catch (e) { self.AG && AG.swallow(e, 'epochy:350'); }
     }
 
     // ---- akce -------------------------------------------------------------------
@@ -420,7 +420,7 @@
                 var tmp = y; y = x; x = tmp;
                 toast('Y a X vypadaly prohozeně — opraveno (Y < X).');
             }
-        } catch (e) {}
+        } catch (e) { self.AG && AG.swallow(e, 'epochy:423'); }
         it.epochs.push({
             t: t, y: y, x: x, z: z,
             src: (document.getElementById('ag-ep-src') || {}).value || '',
@@ -445,7 +445,7 @@
             document.getElementById('ag-ep-x').value = agFmtPresne(s.x);
             if (p.vyska != null) document.getElementById('ag-ep-z').value = agFmtPresne(p.vyska);
             toast(T('Souřadnice převzaty z bodu „{n}" — zkontroluj a ulož.', { n: p.name }));
-        } catch (e) {}
+        } catch (e) { self.AG && AG.swallow(e, 'epochy:448'); }
     }
 
     function gpsFill() {
@@ -460,7 +460,7 @@
                 yEl.value = agFmtPresne(s.y);
                 document.getElementById('ag-ep-x').value = agFmtPresne(s.x);
                 if (c.altitude != null && isFinite(c.altitude)) {
-                    var und = 0; try { und = GeoCore.geoidUndulation(c.latitude, c.longitude) || 0; } catch (e2) {}
+                    var und = 0; try { und = GeoCore.geoidUndulation(c.latitude, c.longitude) || 0; } catch (e2) { self.AG && AG.swallow(e2, 'epochy:463'); }
                     document.getElementById('ag-ep-z').value = (c.altitude - und).toFixed(2);
                 }
                 var srcEl = document.getElementById('ag-ep-src'); if (srcEl) srcEl.value = 'mobil (orientační)';
@@ -500,7 +500,7 @@
             })
             .then(function (r) {
                 _ocrBusy = false;
-                try { if (worker) worker.terminate(); } catch (e) {}
+                try { if (worker) worker.terminate(); } catch (e) { self.AG && AG.swallow(e, 'epochy:503'); }
                 if (!r || (r.y == null && r.x == null && r.z == null)) return toast('Souřadnice se z fotky přečíst nepodařilo — zkus ostřejší záběr, nebo zapiš ručně.');
                 var yEl = document.getElementById('ag-ep-y'), xEl = document.getElementById('ag-ep-x'), zEl = document.getElementById('ag-ep-z');
                 if (yEl && r.y != null) yEl.value = r.y;
@@ -510,7 +510,7 @@
             })
             .catch(function () {
                 _ocrBusy = false;
-                try { if (worker) worker.terminate(); } catch (e) {}
+                try { if (worker) worker.terminate(); } catch (e) { self.AG && AG.swallow(e, 'epochy:513'); }
                 toast('OCR selhalo — zapiš souřadnice ručně.');
             });
     }
@@ -533,7 +533,7 @@
             a.href = URL.createObjectURL(blob);
             a.download = 'epochy_' + it.name.replace(/[^\wěščřžýáíéúůťďňó-]+/gi, '_') + '.csv';
             document.body.appendChild(a); a.click();
-            setTimeout(function () { try { URL.revokeObjectURL(a.href); a.remove(); } catch (e) {} }, 2000);
+            setTimeout(function () { try { URL.revokeObjectURL(a.href); a.remove(); } catch (e) { self.AG && AG.swallow(e, 'epochy:536'); } }, 2000);
             toast('CSV vyexportováno.');
         } catch (e) { toast('Export se nepovedl.'); }
     }
@@ -600,7 +600,7 @@
     function closeModal() {
         var m = document.getElementById(MODAL_ID);
         if (m) m.style.display = 'none';
-        try { if (typeof fixAppLayout === 'function') fixAppLayout(); } catch (e) {}
+        try { if (typeof fixAppLayout === 'function') fixAppLayout(); } catch (e) { self.AG && AG.swallow(e, 'epochy:603'); }
     }
     window.agOpenEpochy = openModal;
     window.agCloseEpochy = closeModal;
@@ -612,13 +612,13 @@
             if (typeof orig === 'function' && !orig._agEpWrapped) {
                 var wrapped = function () {
                     var r = orig.apply(this, arguments);
-                    try { load(); if (isOpen()) { _view = { mode: 'list', itemId: null }; render(); } } catch (e) {}
+                    try { load(); if (isOpen()) { _view = { mode: 'list', itemId: null }; render(); } } catch (e) { self.AG && AG.swallow(e, 'epochy:615'); }
                     return r;
                 };
                 wrapped._agEpWrapped = true;
                 window.loadProjectSettings = wrapped;
             }
-        } catch (e) {}
+        } catch (e) { self.AG && AG.swallow(e, 'epochy:621'); }
     });
 
     // ---- registrace do launcheru -------------------------------------------------

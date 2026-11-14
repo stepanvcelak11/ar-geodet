@@ -134,7 +134,7 @@
             var zprava = function (e) { if (e.data && e.data.id === id) konec(e.data.m); };
             w.addEventListener('message', zprava);
             w.onerror = function (e) { swallow(e && e.message ? new Error(e.message) : e, 'worker-chyba'); _worker = null; konec(null); };
-            setTimeout(function () { if (!hotovo) { _worker = null; try { w.terminate(); } catch (e) { /* nic */ } konec(null); } }, 15000);
+            setTimeout(function () { if (!hotovo) { _worker = null; try { w.terminate(); } catch (e) { self.AG && AG.swallow(e, 'mapa-kvality-gps:137'); } konec(null); } }, 15000);
             try { w.postMessage({ id: id, v: r.v, n: r.n, cells: cells, K: K }); } catch (e) { swallow(e, 'post'); konec(null); }
         });
     }
@@ -147,14 +147,14 @@
     }
     function vykresli() {
         var mp = getMap(); if (!mp || !_posledni) return;
-        if (_overlay) { try { mp.removeLayer(_overlay); } catch (e) { /* nic */ } _overlay = null; }
+        if (_overlay) { try { mp.removeLayer(_overlay); } catch (e) { self.AG && AG.swallow(e, 'mapa-kvality-gps:150'); } _overlay = null; }
         if (!_viditelna) { radek(); return; }
         _overlay = L.imageOverlay(_posledni.url, _posledni.bounds, { opacity: 1, interactive: false, className: 'ag-kvgps-overlay' }).addTo(mp);
-        try { _overlay.getElement().style.imageRendering = 'pixelated'; } catch (e) { /* nic */ }
+        try { _overlay.getElement().style.imageRendering = 'pixelated'; } catch (e) { self.AG && AG.swallow(e, 'mapa-kvality-gps:153'); }
         radek();
     }
     function radek() {
-        try { var row = document.getElementById('ms-kvgps'); if (row) { row.hidden = !_posledni; row.classList.toggle('ctrl-active', !!_posledni && _viditelna); } } catch (e) { /* nic */ }
+        try { var row = document.getElementById('ms-kvgps'); if (row) { row.hidden = !_posledni; row.classList.toggle('ctrl-active', !!_posledni && _viditelna); } } catch (e) { self.AG && AG.swallow(e, 'mapa-kvality-gps:157'); }
         pilulka();
     }
     // PILULKA „SKRÝT" PŘÍMO V MAPĚ (17. 9. 2026, hlášení: „vrstva Kde se dá měřit ať jde i skrýt,
@@ -170,7 +170,7 @@
             'body.ag-simple #' + id + '{display:none!important;}'].join('\n')); } catch (e) { swallow(e, 'css'); }
         p = document.createElement('button'); p.type = 'button'; p.id = id; p.setAttribute('aria-label', 'Skrýt vrstvu Kde se dá měřit');
         p.innerHTML = '<b></b>Kde se dá měřit<span>Skrýt</span>';
-        p.addEventListener('click', function (ev) { ev.stopPropagation(); prepni(false); try { (window.quickToast || window.agInfo)('Vrstva schovaná. Znovu: Nástroje → Kde se dá měřit, nebo panel Vrstvy.'); } catch (e) { /* nic */ } });
+        p.addEventListener('click', function (ev) { ev.stopPropagation(); prepni(false); try { (window.quickToast || window.agInfo)('Vrstva schovaná. Znovu: Nástroje → Kde se dá měřit, nebo panel Vrstvy.'); } catch (e) { self.AG && AG.swallow(e, 'mapa-kvality-gps:173'); } });
         var host = document.getElementById('map-container') || document.body;
         host.appendChild(p);
     }

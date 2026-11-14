@@ -32,7 +32,7 @@
     // Stylopis uz nevisi v index.html: modul je odlozeny (type="ag/lazy"),
     // takze by jeho <link> jen zbytecne blokoval prvni vykresleni. Pripoji se
     // tady, tedy davno pred tim, nez uzivatel okno otevre.
-    try { window.AG && AG.cssFile && AG.cssFile('bp-css', 'css/bodove-pole.css'); } catch (e) { }
+    try { window.AG && AG.cssFile && AG.cssFile('bp-css', 'css/bodove-pole.css'); } catch (e) { self.AG && AG.swallow(e, 'bodove-pole:35'); }
 
 
     // Kategorie tak, jak je plní fetchGeodata() v logika.js. `q` = pořadí kvality:
@@ -68,7 +68,7 @@
     function stop(h) {
         if (!h) return;
         try { if (window.AG && AG.clearUiInterval) return AG.clearUiInterval(h); } catch (e) { /* fallback níž */ }
-        try { clearInterval(h); } catch (e) { /* nic */ }
+        try { clearInterval(h); } catch (e) { self.AG && AG.swallow(e, 'bodove-pole:71'); }
     }
 
 

@@ -83,6 +83,7 @@
     function setOn(v) {
         try { if (v) localStorage.setItem(LS_ON, '1'); else localStorage.removeItem(LS_ON); } catch (e) { swallow(e, 'setOn'); }
         znackaSw(v);
+        if (v) plus();
     }
     // Značka pro service worker „tenhle telefon je vlastníka" — sw.js nevidí do
     // localStorage, Cache Storage je jediné společné místo. Bez ní by brzda vydání
@@ -1289,6 +1290,13 @@
         m.style.display = 'flex';
         m.classList.add('ag-open');
         render();
+        plus(function () { if (!_view && document.getElementById(MODAL_ID) && document.getElementById(MODAL_ID).style.display === 'flex') render(); });
+    }
+    // js/vlastnik-plus.js se od 14. 11. 2026 stahuje NA VYŽÁDÁNÍ (data-na-vyzadani v index.html):
+    // potřebuje ho jen režim vlastníka, ostatním telefonům to bylo ~100 kB kódu při každém startu.
+    function plus(cb) {
+        if (window.AGVlastnikPlus) return;
+        try { if (window.AGLazy && AGLazy.need) AGLazy.need('js/vlastnik-plus.js', cb); } catch (e) { swallow(e, 'plus'); }
     }
     function close() {
         var m = document.getElementById(MODAL_ID);
@@ -1626,7 +1634,7 @@
             }
             if (navigator.serviceWorker) navigator.serviceWorker.addEventListener('message', function (ev) { if (ev.data && ev.data.agKonzole) zNotifikace(ev.data.agKonzole === '1' ? '' : ev.data.agKonzole); });
         } catch (e) { swallow(e, 'konzole-param'); }
-        if (isOn()) znackaSw(true);   // telefony, kde režim běžel už před brzdou vydání
+        if (isOn()) { znackaSw(true); plus(); }   // odznak „něco čeká“ na vstupech do konzole   // telefony, kde režim běžel už před brzdou vydání
         setTimeout(overKlic, 12000);
         (window.AG && window.AG.uiInterval ? window.AG.uiInterval : setInterval)(function () {
             try { hookForm(); injectMenu(); injectTools(); injectVstupy(); injectBio(); } catch (e) { swallow(e, 'tick'); }

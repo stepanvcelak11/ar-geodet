@@ -29,9 +29,9 @@
 
     // ---- záložky ---------------------------------------------------------------------------------
     var tab = 'vrstvy';
-    try { var t0 = localStorage.getItem(KEY); if (t0 === 'podklad' || t0 === 'vrstvy' || t0 === 'nastroje') tab = t0; } catch (e) { /* nic */ }
+    try { var t0 = localStorage.getItem(KEY); if (t0 === 'podklad' || t0 === 'vrstvy' || t0 === 'nastroje') tab = t0; } catch (e) { self.AG && AG.swallow(e, 'mapa-panel:32'); }
     function ukazTab(t, bezUlozeni) {
-        tab = t; if (!bezUlozeni) { try { localStorage.setItem(KEY, t); } catch (e) { /* nic */ } }
+        tab = t; if (!bezUlozeni) { try { localStorage.setItem(KEY, t); } catch (e) { self.AG && AG.swallow(e, 'mapa-panel:34'); } }
         var sh = sheet(); if (!sh) return;
         sh.querySelectorAll('.ms-tab').forEach(function (s) { s.hidden = s.getAttribute('data-ms-tab') !== t; });
         var btns = sh.querySelectorAll('#ms-tabs [data-ms-tab]'), i = 0, akt = 0;
@@ -68,10 +68,10 @@
         try { if (typeof agMapSetBase === 'function') agMapSetBase('osm'); } catch (e) { swallow(e, 'base'); }
         // bez modulu / už zapnuto — karta Mapa platí i tak, nic nehlásit
         if (!mv || vektorZap()) { sync(); return; }
-        try { $('ms-base-vektor').classList.add('busy'); } catch (e) { /* nic */ }
+        try { $('ms-base-vektor').classList.add('busy'); } catch (e) { self.AG && AG.swallow(e, 'mapa-panel:71'); }
         mv.nastav({ zap: true }).then(function (ok) {
-            try { $('ms-base-vektor').classList.remove('busy'); } catch (e) { /* nic */ }
-            if (!ok) { try { window.agInfo && window.agInfo('Vektorová mapa se nezapnula: ' + (mv.chyba() || 'neznámá chyba')); } catch (e) { /* nic */ } }
+            try { $('ms-base-vektor').classList.remove('busy'); } catch (e) { self.AG && AG.swallow(e, 'mapa-panel:73'); }
+            if (!ok) { try { window.agInfo && window.agInfo('Vektorová mapa se nezapnula: ' + (mv.chyba() || 'neznámá chyba')); } catch (e) { self.AG && AG.swallow(e, 'mapa-panel:74'); } }
             sync();
         });
     }
@@ -80,7 +80,7 @@
     function styl(v) { var mv = MV(); if (!mv) return; mv.nastav({ styl: v }).then(sync); }
     // ve splitu (nízká mapa, .ms-compact) panel zakrývá celou mapu — po volbě podkladu se zavře, ať je
     // vidět, že se něco stalo (18. 9. 2026: „ve splitu se mi vektor ani ortofoto nezapíná")
-    function poVolbePodkladu() { try { var sh = sheet(); if (sh && sh.classList.contains('ms-compact')) setTimeout(function () { var mc = $('map-controls'); if (mc) mc.classList.remove('expanded'); }, 250); } catch (e) { /* nic */ } }
+    function poVolbePodkladu() { try { var sh = sheet(); if (sh && sh.classList.contains('ms-compact')) setTimeout(function () { var mc = $('map-controls'); if (mc) mc.classList.remove('expanded'); }, 250); } catch (e) { self.AG && AG.swallow(e, 'mapa-panel:83'); } }
     function podkladUi() {
         var bm = $('ms-base-osm'); if (bm && !bm.__wired) { bm.__wired = true; bm.addEventListener('click', function () { setTimeout(mapa, 0); poVolbePodkladu(); }); }
         var bo = $('btn-baselayer'); if (bo && !bo.__wired) { bo.__wired = true; bo.addEventListener('click', function () { setTimeout(sync, 0); poVolbePodkladu(); }); }

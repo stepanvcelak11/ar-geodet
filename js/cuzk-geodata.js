@@ -84,9 +84,9 @@
         var cp = document.getElementById('aggd-copy');
         if (cp) cp.onclick = function () { var ok = copy('#' + pt.name + '  Y=' + Y + '  X=' + X + '  (' + pt.lat.toFixed(6) + ', ' + pt.lng.toFixed(6) + ')'); cp.innerHTML = ok ? '✓ Zkopírováno' : 'Kopírování selhalo'; setTimeout(function () { cp.innerHTML = '<svg class="icon"><use href="#i-upload"/></svg> Kopírovat číslo a souřadnice'; }, 1500); };
         var dz = document.getElementById('aggd-dataz');
-        if (dz) dz.onclick = function () { copy(pt.name); try { window.open('https://dataz.cuzk.gov.cz/', '_blank', 'noopener'); } catch (e) {} };
+        if (dz) dz.onclick = function () { copy(pt.name); try { window.open('https://dataz.cuzk.gov.cz/', '_blank', 'noopener'); } catch (e) { self.AG && AG.swallow(e, 'cuzk-geodata:87'); } };
         var mp = document.getElementById('aggd-map');
-        if (mp) mp.onclick = function () { try { window.open('https://mapy.cz/zakladni?source=coor&id=' + pt.lng.toFixed(6) + ',' + pt.lat.toFixed(6) + '&x=' + pt.lng.toFixed(6) + '&y=' + pt.lat.toFixed(6) + '&z=18', '_blank', 'noopener'); } catch (e) {} };
+        if (mp) mp.onclick = function () { try { window.open('https://mapy.cz/zakladni?source=coor&id=' + pt.lng.toFixed(6) + ',' + pt.lat.toFixed(6) + '&x=' + pt.lng.toFixed(6) + '&y=' + pt.lat.toFixed(6) + '&z=18', '_blank', 'noopener'); } catch (e) { self.AG && AG.swallow(e, 'cuzk-geodata:89'); } };
 
         document.getElementById('aggd-modal').style.display = 'flex';
     }

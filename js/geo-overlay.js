@@ -365,7 +365,7 @@
         el.querySelector('#aggo-del').onclick = function () {
             agAsk('Odebrat vlastní podklad z této zakázky?', { title: 'Odebrat podklad', okText: 'Odebrat', danger: true }).then(function (ok) {
             if (!ok) return;
-            idbDel('img_' + projId()); try { if (typeof removeStoredData === 'function') removeStoredData(PKEY); else if (typeof setStoredData === 'function') setStoredData(PKEY, ''); } catch (e) {}
+            idbDel('img_' + projId()); try { if (typeof removeStoredData === 'function') removeStoredData(PKEY); else if (typeof setStoredData === 'function') setStoredData(PKEY, ''); } catch (e) { self.AG && AG.swallow(e, 'geo-overlay:368'); }
             resetState(); renderInfo(); renderCpList();
             var st = document.getElementById('aggo-status'); if (st) st.innerHTML = '';
             });
@@ -376,7 +376,7 @@
         var m = getMap(); if (!m || !_img || !_imgToWorld || typeof L === 'undefined') { agAlert('Není co zaměřit', 'Nejdřív umísti podklad (≥2 body).'); return; }
         var corners = [[0, 0], [_img.width, 0], [_img.width, _img.height], [0, _img.height]], lls = [];
         for (var i = 0; i < 4; i++) { var w = _imgToWorld(corners[i][0], corners[i][1]); var ll = worldToLatLng(w); if (ll) lls.push([ll.lat, ll.lng]); }
-        if (lls.length) try { m.fitBounds(lls, { padding: [30, 30] }); } catch (e) {}
+        if (lls.length) try { m.fitBounds(lls, { padding: [30, 30] }); } catch (e) { self.AG && AG.swallow(e, 'geo-overlay:379'); }
     }
 
     function openTool() {
@@ -393,9 +393,9 @@
                 loadProjectSettings = function () { var r = _orig.apply(this, arguments); resetState(); loadAll().then(renderInfoSafe); return r; };
                 loadProjectSettings.__aggo = true;
             }
-        } catch (e) {}
+        } catch (e) { self.AG && AG.swallow(e, 'geo-overlay:396'); }
     }
-    function renderInfoSafe() { try { renderInfo(); renderCpList(); } catch (e) {} }
+    function renderInfoSafe() { try { renderInfo(); renderCpList(); } catch (e) { self.AG && AG.swallow(e, 'geo-overlay:398'); } }
 
     // ---- registrace + init -----------------------------------------------------
     function register() {

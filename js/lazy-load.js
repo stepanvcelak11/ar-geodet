@@ -74,12 +74,20 @@
     var pending = {};        // src -> [callbacky]
     var outstanding = 0;     // kolik skriptů je vloženo a ještě neohlásilo konec
     var started = false, finished = false;
+    var vyzadani = {};       // src -> item: moduly s data-na-vyzadani (mimo frontu)
 
+    var _sebrano = false;
     function collect() {
+        if (_sebrano) return;
+        _sebrano = true;
         var tags = document.querySelectorAll('script[type="ag/lazy"][data-src]');
         for (var i = 0; i < tags.length; i++) {
             var src = tags[i].getAttribute('data-src');
             if (!src || loaded[src]) continue;
+            // NA VYŽÁDÁNÍ (14. 11. 2026): data-na-vyzadani = modul se při startu NESTAHUJE,
+            // jen ho dotáhne need() (např. administrace firmy — potřebuje ji jen admin).
+            // Tag v index.html zůstává kvůli buildu, minifikaci a předcache service workeru.
+            if (tags[i].hasAttribute('data-na-vyzadani')) { vyzadani[src] = { src: src, el: tags[i], css: tags[i].getAttribute('data-css') || '' }; continue; }
             queue.push({ src: src, el: tags[i], css: tags[i].getAttribute('data-css') || '' });
         }
     }
@@ -131,7 +139,7 @@
             // Nepadat: appka bez jednoho nástroje pořád měří. Modul se zkusí znovu (viz
             // znovu() níž); do protokolu chyb jde, až když nedorazí ani napotřetí — tichá
             // chybějící dlaždice je horší než záznam, ale výpadek signálu chyba appky není.
-            try { if (s.parentNode) s.parentNode.removeChild(s); } catch (e) { /* nic */ }
+            try { if (s.parentNode) s.parentNode.removeChild(s); } catch (e) { self.AG && AG.swallow(e, 'lazy-load:142'); }
             selhalo.push(item);
             naplanujZnovu();
             done(item.src);
@@ -155,7 +163,7 @@
     function znovu() {
         if (!selhalo.length) return;
         if (typeof navigator !== 'undefined' && navigator.onLine === false) { naplanujZnovu(); return; }
-        try { if (navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage('AG_DOPLN'); } catch (e) { /* nic */ }
+        try { if (navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage('AG_DOPLN'); } catch (e) { self.AG && AG.swallow(e, 'lazy-load:166'); }
         var dalsi = selhalo; selhalo = [];
         for (var i = 0; i < dalsi.length; i++) (function (item) {
             pokusy[item.src] = (pokusy[item.src] || 0) + 1;
@@ -163,10 +171,10 @@
             s.src = item.src; s.async = false; s.setAttribute('data-ag-lazy', '1');
             s.onload = function () {
                 try { if (typeof window.agFtSyncTiles === 'function') window.agFtSyncTiles(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'lazy-load:znovu'); }
-                try { window.dispatchEvent(new CustomEvent('ag:lazy-znovu', { detail: { src: item.src } })); } catch (e) { /* nic */ }
+                try { window.dispatchEvent(new CustomEvent('ag:lazy-znovu', { detail: { src: item.src } })); } catch (e) { self.AG && AG.swallow(e, 'lazy-load:174'); }
             };
             s.onerror = function () {
-                try { if (s.parentNode) s.parentNode.removeChild(s); } catch (e) { /* nic */ }
+                try { if (s.parentNode) s.parentNode.removeChild(s); } catch (e) { self.AG && AG.swallow(e, 'lazy-load:177'); }
                 if (pokusy[item.src] >= POKUSY_MAX) {
                     try {
                         if (window.agErrLog && typeof window.agErrLog.record === 'function') window.agErrLog.record('lazy-load: nepodařilo se načíst ' + item.src + ' (ani po ' + POKUSY_MAX + ' pokusech)');
@@ -179,7 +187,7 @@
             (document.body || document.documentElement).appendChild(s);
         })(dalsi[i]);
     }
-    try { window.addEventListener('online', function () { if (_znovuT) { clearTimeout(_znovuT); _znovuT = null; } znovu(); }); } catch (e) { /* nic */ }
+    try { window.addEventListener('online', function () { if (_znovuT) { clearTimeout(_znovuT); _znovuT = null; } znovu(); }); } catch (e) { self.AG && AG.swallow(e, 'lazy-load:190'); }
 
     var hotovo = {};        // src → skript proběhl (onload/onerror) — viz need()
     function done(src) {
@@ -226,6 +234,7 @@
     // načti konkrétní modul teď a zavolej callback, až je venku
     function need(src, cb) {
         var i;
+        if (!_sebrano && document.readyState !== 'loading') collect();
         for (i = 0; i < queue.length; i++) {
             if (queue[i].src === src || queue[i].src.indexOf(src) >= 0) {
                 var item = queue.splice(i, 1)[0];
@@ -240,6 +249,12 @@
         //   menu na pomalém telefonu). Teď se počká na onload toho skriptu.
         for (var k in loaded) if (Object.prototype.hasOwnProperty.call(loaded, k) && !hotovo[k] && (k === src || k.indexOf(src) >= 0)) {
             if (cb) (pending[k] = pending[k] || []).push(cb);
+            return true;
+        }
+        for (var v in vyzadani) if (Object.prototype.hasOwnProperty.call(vyzadani, v) && (v === src || v.indexOf(src) >= 0)) {
+            var it = vyzadani[v]; delete vyzadani[v];
+            if (cb) (pending[it.src] = pending[it.src] || []).push(cb);
+            inject(it);
             return true;
         }
         if (cb) cb();       // už načtený (nebo tu vůbec není) → nečekat
@@ -265,6 +280,10 @@
     function init() {
         collect();
         if (!queue.length) return;
+
+        // DOMŮ HNED (14. 11. 2026): úvodní obrazovka se má ukázat se startem, ale nemusí brzdit první
+        // obraz — dotahuje se hned po DOMContentLoaded, mimo frontu (sama počká na přihlášení).
+        try { need('js/domov.js'); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'lazy-load:domov'); }
 
         // VLASTNÍ MAPA HNED (4. 11. 2026, „mapa se mi načítá pomalu… problikne"): styl a mapa
         // (js/mapa-styl.js, js/mapa-vektor.js) čekaly ve frontě až na START_MS po `load` + nečinnost,

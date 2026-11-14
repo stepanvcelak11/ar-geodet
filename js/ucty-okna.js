@@ -130,7 +130,7 @@
                     err.textContent = (r.data && r.data.error) || T('Registrace selhala ({s}).', { s: r.status });
                 });
             };
-            setTimeout(function () { try { ov.querySelector('#agr-name').focus(); } catch (e) { } }, 60);
+            setTimeout(function () { try { ov.querySelector('#agr-name').focus(); } catch (e) { self.AG && AG.swallow(e, 'ucty-okna:133'); } }, 60);
         }
         // ---- sken přihlašovacího QR od admina (payload 'AGF1\ncode\tname\tapi?';
         // heslo se NIKDY nepřenáší — to zadá zaměstnanec sám) ----------------------
@@ -250,7 +250,7 @@
                     });
                 });
             };
-            setTimeout(function () { try { ov.querySelector(predvyplnenyKod ? '#ago-rec' : '#ago-code').focus(); } catch (e) { } }, 60);
+            setTimeout(function () { try { ov.querySelector(predvyplnenyKod ? '#ago-rec' : '#ago-code').focus(); } catch (e) { self.AG && AG.swallow(e, 'ucty-okna:253'); } }, 60);
         }
         // ---- smazání účtu ---------------------------------------------------------
         // Google Play (13. 9. 2026): appka, ve které si člověk zakládá účet, musí umět
@@ -303,7 +303,7 @@
                     showGate();
                 });
             };
-            setTimeout(function () { try { ov.querySelector('#ags-pass').focus(); } catch (e) { } }, 60);
+            setTimeout(function () { try { ov.querySelector('#ags-pass').focus(); } catch (e) { self.AG && AG.swallow(e, 'ucty-okna:306'); } }, 60);
         }
         // Rozcestník „Přepnout firmu" z přihlašovací obrazovky: uložené firemní profily
         // tohoto telefonu (přepnutí = jiná firma + její přihlášení, viz switchProfile) a
@@ -378,7 +378,7 @@
                     err.textContent = r.status === 0 ? 'Server není dosažitelný — kód se vyrábí přes internet.' : ((r.data && r.data.error) || T('Nepovedlo se ({s}).', { s: r.status }));
                 });
             };
-            setTimeout(function () { try { ov.querySelector('#agrc-pass').focus(); } catch (e) { } }, 60);
+            setTimeout(function () { try { ov.querySelector('#agrc-pass').focus(); } catch (e) { self.AG && AG.swallow(e, 'ucty-okna:381'); } }, 60);
         }
         // Kód účtu po registraci. Zůstává na obrazovce, dokud ho člověk neodklikne —
         // je to jediné, čím se příště přihlásí, a heslo mu nikdo neobnoví.

@@ -73,7 +73,9 @@ async def beh(url):
         page.on('pageerror', lambda e: chyby.append('pageerror: ' + str(e)))
         page.on('console', lambda m: chyby.append('console: ' + m.text[:300]) if m.type == 'error' and 'ERR_FAILED' not in m.text else None)
         await page.route('**/*', T.route_vse)
-        await page.add_init_script(boot(tarif='pro') + T.SEED + "localStorage.setItem('agViewMode','map'); localStorage.setItem('agSlabsiTelefon_v1','off');")
+        # init skript běží i v izolovaném (sandbox) rámu bez localStorage — tam ho tiše přeskočit,
+        # jinak to test hlásí jako chybu appky
+        await page.add_init_script("try { window.localStorage; } catch (e) { window.__agBezLS = true; }\nif (!window.__agBezLS) { " + boot(tarif='pro') + T.SEED + "localStorage.setItem('agViewMode','map'); localStorage.setItem('agSlabsiTelefon_v1','off'); }")
         await page.goto(url, wait_until='domcontentloaded', timeout=45000)
         await T.cekej(page, "document.body.classList.contains('app-started')")
         await T.cekej(page, "typeof userLat === 'number' && userLat", 30)

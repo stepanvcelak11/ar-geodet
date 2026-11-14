@@ -406,6 +406,8 @@ async def test_firmy(ctx):
     await page.evaluate("() => window.AGLazy && AGLazy.flush()")
     await page.wait_for_timeout(600)
 
+    # 14. 11. 2026: administrace se stahuje až na vyžádání (data-na-vyzadani)
+    await page.evaluate("() => new Promise(r => AGLazy.need('js/ucty-admin.js', r))")
     st = await page.evaluate("""async () => {
         if (!window.AGUctyAdmin || typeof AGUctyAdmin.open !== 'function') return { api: false };
         AGUctyAdmin.open();

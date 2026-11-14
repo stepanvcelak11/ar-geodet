@@ -120,7 +120,7 @@
         var ask = (typeof window.agAsk === 'function') ? agAsk(msg, { danger: true, okText: t('Obnovit') }) : Promise.resolve(confirm(msg));
         return ask.then(function (ok) {
             if (!ok) return false;
-            try { if (typeof quickToast === 'function') quickToast(t('Obnovuji zálohu z účtu…')); } catch (e) { /* nic */ }
+            try { if (typeof quickToast === 'function') quickToast(t('Obnovuji zálohu z účtu…')); } catch (e) { self.AG && AG.swallow(e, 'zaloha-ucet:123'); }
             return obnov(z.slot).catch(function (e) { (window.agAlert ? agAlert({ title: t('Obnova se nezdařila'), message: (e && e.message) || String(e) }) : agInfo(String(e))); return false; });
         });
     }
@@ -160,7 +160,7 @@
             var b = this; b.disabled = true; var puv = b.textContent; b.textContent = t('Zálohuji…');
             zalohuj(true).then(function (v) {
                 b.textContent = puv; b.disabled = false;
-                try { if (typeof quickToast === 'function') quickToast(v.ok ? t('Záloha je v účtu.') : (t('Záloha se nezdařila:') + ' ' + (v.msg || ''))); } catch (e) { /* nic */ }
+                try { if (typeof quickToast === 'function') quickToast(v.ok ? t('Záloha je v účtu.') : (t('Záloha se nezdařila:') + ' ' + (v.msg || ''))); } catch (e) { self.AG && AG.swallow(e, 'zaloha-ucet:163'); }
             });
         });
         el.querySelector('#ag-zu-obnov').addEventListener('click', function () {

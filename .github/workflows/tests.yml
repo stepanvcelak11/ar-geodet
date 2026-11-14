@@ -85,7 +85,7 @@ jobs:
       # zari, ale NIC je nepoustelo — cisty pomnik prace. Zmereno 5. 9. 2026:
       # vsech deset po dvou opravach prochazi (test_body_paleta.py mel natvrdo
       # zapsanou cestu k plose jednoho stroje a nevracel chybovy kod), takze se
-      # radi do CI a ne do _archiv/.
+      # radi do CI a ne do docs/archiv/.
       #
       # Dve zavislosti, dve party:
       #   playwright    — osm testu, ktere appku SPUSTI v Chromiu (server si
