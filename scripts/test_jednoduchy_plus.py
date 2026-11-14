@@ -143,28 +143,68 @@ async def beh(url):
         await page.evaluate("() => { const b = document.querySelector('#ag-jr-nas [data-jr-vyb][aria-pressed=false]'); if (b) b.click(); }")
         nvyb = await page.evaluate("() => document.querySelectorAll('#ag-jr-nas [data-jr-vyb][aria-pressed=true]').length")
         ok('D3 strop 10 nástrojů', nvyb == 10, nvyb)
-        ma_mereni = await page.evaluate("() => !!document.querySelector('#ag-jr-nas [data-jr-vyb=\"openMeasureModal\"][aria-pressed=true]')")
-        if not ma_mereni:
-            await page.evaluate("() => { document.querySelector('#ag-jr-nas [data-jr-vyb][aria-pressed=true]').click(); document.querySelector('#ag-jr-nas [data-jr-vyb=\"openMeasureModal\"]').click(); }")
+        # vybrat určitě tři nástroje s průvodcem / jednodušší podobou, zbytek doplnit do 10
+        await page.evaluate("""() => {
+            document.querySelectorAll('#ag-jr-nas [data-jr-vyb][aria-pressed=true]').forEach(() => { const x = document.querySelector('#ag-jr-nas [data-jr-vyb][aria-pressed=true]'); if (x) x.click(); });
+            ['openMeasureModal', 'openStakeoutModal', 'brutal-gps'].forEach(k => { const x = document.querySelector('#ag-jr-nas [data-jr-vyb="' + k + '"]'); if (x) x.click(); });
+            let x; while ((x = document.querySelector('#ag-jr-nas [data-jr-vyb][aria-pressed=false]:not(.jr-nas-plno)')) && document.querySelectorAll('#ag-jr-nas [data-jr-vyb][aria-pressed=true]').length < 10) x.click();
+        }""")
         await page.click('#ag-jr-nas-hotovo')
         ok('D4 po uložení jen vybrané nástroje (10) a „Upravit výběr"', await V.cekej(page, "document.querySelectorAll('#ag-jr-nas [data-jr-nas]').length === 10 && !!document.getElementById('ag-jr-nas-upravit') && JSON.parse(localStorage.getItem('agJrNastroje_v1')).length === 10", 3))
         await page.click('#ag-jr-nas-zavri')
         await page.click('#ag-jr-nas-btn')
         ok('D5 příště se otevře rovnou seznam vybraných', await V.cekej(page, "document.querySelectorAll('#ag-jr-nas [data-jr-nas]').length === 10 && !document.querySelector('#ag-jr-nas [data-jr-vyb]')", 3))
+        # ---- průvodce Změřit vzdálenost
         await page.click('#ag-jr-nas [data-jr-nas="openMeasureModal"]')
+        ok('M1 Měření vzdálenosti = průvodce krok 1/2 (žádné okno plné appky)', await V.cekej(page, "AGJednoduchy.stranka() === 'mer' && /1\\/2/.test(document.getElementById('ag-jr-mer-krok').textContent) && !AGJednoduchy.pauza()", 4))
+        await page.click('#ag-jr-mer-btn')
+        ok('M2 po klepnutí krok 2/2', await V.cekej(page, "/2\\/2/.test(document.getElementById('ag-jr-mer-krok').textContent)", 3))
+        await ctx.set_geolocation({'latitude': V.LAT + 30 / 111320, 'longitude': V.LNG, 'accuracy': 4})
+        ok('M3 cestou ukazuje vzdálenost od začátku', await V.cekej(page, "/(29|30|31)/.test(document.getElementById('ag-jr-mer-vysl').textContent)", 8))
+        await page.click('#ag-jr-mer-btn')
+        vysl = await page.evaluate("() => [document.getElementById('ag-jr-mer-vysl').textContent, document.getElementById('meas-horiz').textContent]")
+        ok('M4 výsledek je výpočet Měření vzdálenosti plné appky (~30 m)', ('30' in vysl[1] or '29,9' in vysl[0] or '30,0' in vysl[0]) and vysl[1].replace('.', ',').split(' ')[0] in vysl[0], vysl)
+        await ctx.set_geolocation({'latitude': V.LAT, 'longitude': V.LNG, 'accuracy': 4})
+        await page.click('#ag-jr-mer [data-jr-plna]')
         ok('D6 spuštění nástroje: přebal schovaný, nahoře „Jednoduchý režim", okno nástroje vidět', await V.cekej(page, "AGJednoduchy.pauza() && getComputedStyle(document.getElementById('ag-jr')).display === 'none' && !document.getElementById('ag-jr-pill').hidden && getComputedStyle(document.getElementById('measure-modal')).display !== 'none'", 5))
         ok('D6b nástroj má větší písmo a tlačítka (≥ 52 px)', await page.evaluate("() => { const b = [...document.querySelectorAll('#measure-modal button')].find(x => x.offsetHeight && /Uložit/.test(x.textContent)); return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ag-font-scale')) > 1.1 && b && b.offsetHeight >= 52; }"))
         ok('D7 mapa je po dobu nástroje zpátky v plné appce', await page.evaluate("() => document.getElementById('map').parentNode.id === 'map-wrapper'"))
         await page.evaluate("() => { if (typeof closeModal === 'function') closeModal('measure-modal'); else document.getElementById('measure-modal').style.display = 'none'; }")
-        ok('D8 po zavření okna nástroje se přebal vrátí sám', await V.cekej(page, "!AGJednoduchy.pauza() && getComputedStyle(document.getElementById('ag-jr')).display !== 'none' && document.getElementById('ag-jr-pill').hidden && document.getElementById('map').parentNode.id === 'ag-jr-mapa-home'", 5))
+        ok('D8 po zavření okna nástroje se přebal vrátí sám', await V.cekej(page, "!AGJednoduchy.pauza() && getComputedStyle(document.getElementById('ag-jr')).display !== 'none' && document.getElementById('ag-jr-pill').hidden", 5))
         # ruční návrat tlačítkem
-        await page.click('#ag-jr-nas-btn')
-        await page.click('#ag-jr-nas [data-jr-nas="openMeasureModal"]')
+        await page.click('#ag-jr-mer [data-jr-plna]')
         await V.cekej(page, "AGJednoduchy.pauza()", 3)
         await page.click('#ag-jr-pill')
         ok('D9b po návratu je písmo zase původní', await V.cekej(page, "!document.documentElement.style.getPropertyValue('--ag-font-scale') || parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ag-font-scale')) < 1.1", 3))
-        ok('D9 tlačítko „Jednoduchý režim" vrátí přebal ručně', await V.cekej(page, "!AGJednoduchy.pauza() && getComputedStyle(document.getElementById('ag-jr')).display !== 'none'", 3))
+        ok('D9 tlačítko „Jednoduchý režim" vrátí přebal ručně a okno nástroje zavře', await V.cekej(page, "!AGJednoduchy.pauza() && getComputedStyle(document.getElementById('ag-jr')).display !== 'none' && getComputedStyle(document.getElementById('measure-modal')).display === 'none'", 3))
         await page.evaluate("() => { if (typeof closeModal === 'function') closeModal('measure-modal'); }")
+        await page.click('#ag-jr-mer [data-jr-zpet="home"]')
+
+        # ---- průvodce Vytyčit body
+        await page.evaluate(ZAVRI)
+        await page.click('#ag-jr-nas-btn')
+        await page.click('#ag-jr-nas [data-jr-nas="openStakeoutModal"]')
+        ok('V1 Vytyčení = seznam bodů k vytyčení v jednoduchém režimu', await V.cekej(page, "AGJednoduchy.stranka() === 'vyt' && !!document.querySelector('#ag-jr-vyt-seznam [data-jr-vyt]') && /0 z/.test(document.getElementById('ag-jr-vyt-stav').textContent)", 6))
+        await page.click('#ag-jr-vyt-seznam [data-jr-vyt]')
+        ok('V2 klepnutí na bod = šipka a tlačítko VYTYČENO', await V.cekej(page, "AGJednoduchy.stranka() === 'go' && !document.getElementById('ag-jr-vyt-btn').hidden", 3))
+        await page.click('#ag-jr-vyt-btn')
+        ok('V3 „Vytyčeno" zapíše bod do vytyčovacího checklistu (toggleStaked)', await V.cekej(page, "isStaked(arPoints.find(p => p.name === '701').id)", 3))
+        ok('V4 poslední bod → zpět na seznam s ✓', await V.cekej(page, "AGJednoduchy.stranka() === 'vyt' && /✓/.test(document.getElementById('ag-jr-vyt-seznam').textContent)", 3))
+        await page.click('#ag-jr-vyt [data-jr-zpet="home"]')
+        ok('V5 obyčejná navigace z karty bodu tlačítko Vytyčeno nemá', await page.evaluate("() => { AGJednoduchy.naviguj(arPoints.find(p => p.name === '701').id); return document.getElementById('ag-jr-vyt-btn').hidden; }"))
+        await page.click('#ag-jr-go [data-jr-zpet="list"]')
+        await page.click('#ag-jr-list [data-jr-zpet="home"]')
+
+        # ---- Přesná GPS v jednodušší podobě
+        await page.evaluate(ZAVRI)
+        await page.click('#ag-jr-nas-btn')
+        await page.click('#ag-jr-nas [data-jr-nas="brutal-gps"]')
+        ok('P1 Přesná GPS: krátký návod, bez vysvětlivek a statistik, název předvyplněný', await V.cekej(page, """(() => { const o = document.getElementById('ag-bgps-overlay'); if (!o || !o.offsetHeight) return false;
+            const vid = s => { const e = o.querySelector(s); return !!(e && e.getClientRects().length && getComputedStyle(e).display !== 'none'); };
+            return vid('.bgps-jr-tip') && !vid('.bgps-sub') && !vid('.bgps-stats') && vid('#bgps-start') && /702|\\d/.test(o.querySelector('#bgps-name').value); })()""", 6))
+        ok('P2 tlačítko Spustit je velké (≥ 60 px)', await page.evaluate("() => document.getElementById('bgps-start').offsetHeight >= 60"))
+        await page.click('#bgps-close')
+        ok('P3 po zavření Přesné GPS zpátky v jednoduchém režimu', await V.cekej(page, "!AGJednoduchy.pauza() && getComputedStyle(document.getElementById('ag-jr')).display !== 'none'", 5))
         await page.evaluate(ZAVRI); await page.click('#ag-jr-konec')
         ok('E1 Celá appka: mapa i kamera na svých místech', await V.cekej(page, "!document.body.classList.contains('ag-jr-on') && document.getElementById('map').parentNode.id === 'map-wrapper' && !document.getElementById('ag-jr-mapa-home').contains(document.getElementById('camera-container'))", 5))
         ok('Z bez chyb stránky', not chyby, chyby[:5])

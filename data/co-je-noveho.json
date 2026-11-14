@@ -9,7 +9,8 @@
     "Mapou v jednoduchém režimu jde hýbat prstem a přibližovat dvěma prsty. Po posunu se objeví tlačítko Vycentrovat.",
     "Tlačítkem Kamera se místo mapy ukáže živý obraz s body v AR.",
     "Klepnutí na bod (v mapě i v kameře) ukáže jeho souřadnice, výšku a vzdálenost. Navigace se spustí tlačítkem na kartě.",
-    "Malé tlačítko vpravo nahoře skrývá nástroje. Napoprvé si vybereš až 10, které používáš, a pak vidíš jen je. Po zavření nástroje se appka vrátí do jednoduchého režimu sama."
+    "Malé tlačítko vpravo nahoře skrývá nástroje. Napoprvé si vybereš až 10, které používáš, a pak vidíš jen je. Po zavření nástroje se appka vrátí do jednoduchého režimu sama.",
+    "Měření vzdálenosti a Vytyčení mají v jednoduchém režimu postup krok za krokem s velkými tlačítky, Přesná GPS ukáže jen krátký návod. Počítají stejně jako plné nástroje (ty jsou dál po ruce pod „Plná verze nástroje“)."
    ]
   },
   {

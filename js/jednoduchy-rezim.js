@@ -207,7 +207,27 @@
             + '  <div class="jr-vzdalenost" id="ag-jr-vzd">—</div>'
             + '  <div class="jr-pozn" id="ag-jr-pozn">&nbsp;</div>'
             + '  <div class="jr-mapa jr-mapa-go" id="ag-jr-mapa-go" hidden><button type="button" class="jr-mapa-ja" data-jr-ja aria-label="Vycentrovat" hidden>' + ikona('i-locate') + '<span>Vycentrovat</span></button></div>'
+            + '  <button type="button" class="jr-ulozit jr-vyt-btn" id="ag-jr-vyt-btn" hidden></button>'
             + '  <button type="button" class="jr-maly jr-poslat" id="ag-jr-poslat">Poslat bod</button>'
+            + '</section>'
+            // ---------- průvodce: změřit vzdálenost ----------
+            + '<section class="jr-page" id="ag-jr-mer">'
+            + '  <div class="jr-top"><div class="jr-stav" id="ag-jr-stav5">&nbsp;</div>'
+            + '    <button type="button" class="jr-maly" data-jr-zpet="home">Zpět</button></div>'
+            + '  <div class="jr-nadpis">Změřit vzdálenost</div>'
+            + '  <div class="jr-krok" id="ag-jr-mer-krok"></div>'
+            + '  <div class="jr-mer-vysl" id="ag-jr-mer-vysl"></div>'
+            + '  <div class="jr-pata"><button type="button" class="jr-ulozit" id="ag-jr-mer-btn"></button>'
+            + '    <button type="button" class="jr-maly jr-plna" data-jr-plna="openMeasureModal">Plná verze nástroje</button></div>'
+            + '</section>'
+            // ---------- průvodce: vytyčit body ----------
+            + '<section class="jr-page" id="ag-jr-vyt">'
+            + '  <div class="jr-top"><div class="jr-stav" id="ag-jr-stav6">&nbsp;</div>'
+            + '    <button type="button" class="jr-maly" data-jr-zpet="home">Zpět</button></div>'
+            + '  <div class="jr-nadpis">Vytyčit body</div>'
+            + '  <div class="jr-krok jr-krok-maly" id="ag-jr-vyt-stav"></div>'
+            + '  <div class="jr-telo" id="ag-jr-vyt-seznam"></div>'
+            + '  <div class="jr-pata"><button type="button" class="jr-maly jr-plna" data-jr-plna="openStakeoutModal">Plná verze nástroje</button></div>'
             + '</section>'
             // ---------- nástroje (vrstva nad domovskou stránkou) ----------
             + '<section class="jr-nas" id="ag-jr-nas" hidden>'
@@ -220,7 +240,7 @@
             + '</section>';
         document.body.appendChild(root);
 
-        ['home', 'new', 'list', 'go'].forEach(function (k) { stranky[k] = root.querySelector('#ag-jr-' + k); });
+        ['home', 'new', 'list', 'go', 'mer', 'vyt'].forEach(function (k) { stranky[k] = root.querySelector('#ag-jr-' + k); });
 
         root.querySelector('#ag-jr-konec').addEventListener('click', function () { vypni(); });
         root.querySelector('#ag-jr-pridat').addEventListener('click', otevriNovy);
@@ -241,6 +261,11 @@
         });
         root.querySelector('#ag-jr-pohled').addEventListener('click', function (e) { e.stopPropagation(); prepniPohled(); });
         root.querySelector('#ag-jr-nas-btn').addEventListener('click', otevriNastroje);
+        root.querySelector('#ag-jr-mer-btn').addEventListener('click', merKlik);
+        root.querySelector('#ag-jr-vyt-btn').addEventListener('click', vytKlik);
+        Array.prototype.forEach.call(root.querySelectorAll('[data-jr-plna]'), function (b) {
+            b.addEventListener('click', function () { spustNastroj(b.getAttribute('data-jr-plna'), true); });
+        });
         root.querySelector('#ag-jr-nas-zavri').addEventListener('click', zavriNastroje);
         var nh = root.querySelector('#ag-jr-nas-hledat');
         nh.addEventListener('input', function () { _nasFiltr = nh.value.trim().toLowerCase(); vykresliNastroje(); });
@@ -257,6 +282,8 @@
             if (stranky[k]) stranky[k].classList.toggle('jr-vidno', k === kam);
         });
         zavriKartu();
+        if (kam === 'home' || kam === 'list') _vytycuji = false;
+        if (kam !== 'go') { var vb = root.querySelector('#ag-jr-vyt-btn'); if (vb) vb.hidden = true; }
         if (kam === 'home') {
             if (pohled() === 'kamera' && kameraDo(true)) { /* okno drží kamera */ }
             else { kameraDo(false); mapaDo('#ag-jr-mapa-home'); }
@@ -667,11 +694,18 @@
     // počítají) a nahoře zůstane tlačítko „Jednoduchý režim". Když nástroj otevřel okno
     // a to se zase zavřelo (uprostřed obrazovky je zase mapa), přebal se vrátí sám.
     var _pauza = null, _pill = null;
-    function spustNastroj(k) {
+    // Nástroje se ZJEDNODUŠENÝM POSTUPEM (14. 11. 2026, výběr uživatele): místo okna plné
+    // appky vlastní obrazovka krok za krokem. Počítá ale VŽDY původní nástroj (stejné funkce
+    // appky), takže výsledek je stejný jako v plné verzi. „Plná verze nástroje" je na každé
+    // obrazovce průvodce.
+    var PRUVODCE = { openMeasureModal: otevriMer, openStakeoutModal: otevriVyt };
+    function spustNastroj(k, plna) {
         var d = null; dlazdice().forEach(function (x) { if (x.k === k) d = x; });
         if (!d) { toast(T('Nástroj teď není k dispozici.')); return; }
         zavriNastroje();
+        if (!plna && PRUVODCE[k]) { PRUVODCE[k](); return; }
         pauza();
+        if (k === 'brutal-gps') presnaGps();
         try { d.el.click(); } catch (e) { swallow(e, 'spustNastroj'); obnovZPauzy(); return; }
         // okno nástroje se většinou otevře hned — zaznamenat to dřív než první tik hlídače
         // (kdo okno rychle zavře, nesmí zůstat v plné appce)
@@ -694,7 +728,7 @@
         if (!_pill) {
             _pill = document.createElement('button');
             _pill.type = 'button'; _pill.id = 'ag-jr-pill';
-            _pill.addEventListener('click', obnovZPauzy);
+            _pill.addEventListener('click', function () { zavriOknaNastroju(); obnovZPauzy(); });
             document.body.appendChild(_pill);
         }
         _pill.innerHTML = '‹ ' + esc(T('Jednoduchý režim'));
@@ -705,6 +739,141 @@
             if (_pauza.videl && ++_pauza.prazdno >= 2) obnovZPauzy();
         }, 300) };
     }
+    // ---- PRŮVODCE: ZMĚŘIT VZDÁLENOST ----------------------------------------------------
+    // Body A a B ukládá setMeasurePoint() plné appky a výsledek čte z jejího okna (#meas-*):
+    // stejný výpočet (vodorovně, převýšení z GPS výšek, šikmo) jako v Měření vzdálenosti.
+    var _mer = null;
+    function otevriMer() {
+        _mer = { krok: 'A', a: null };
+        try { if (typeof resetMeasure === 'function') resetMeasure(); } catch (e) { swallow(e, 'merReset'); }
+        ukaz('mer');
+        merVykresli();
+    }
+    function merVykresli() {
+        var k = root.querySelector('#ag-jr-mer-krok'), v = root.querySelector('#ag-jr-mer-vysl'), b = root.querySelector('#ag-jr-mer-btn');
+        if (_mer.krok === 'A') {
+            k.innerHTML = '<span class="jr-krok-c">1/2</span>' + T('Stoupni si na první místo a klepni na tlačítko.');
+            v.innerHTML = ''; v.hidden = true;
+            b.textContent = T('TADY JE ZAČÁTEK');
+        } else if (_mer.krok === 'B') {
+            k.innerHTML = '<span class="jr-krok-c">2/2</span>' + T('Dojdi na druhé místo a klepni na tlačítko.');
+            v.hidden = false; merTik();
+            b.textContent = T('TADY JE KONEC');
+        } else {
+            k.innerHTML = '<span class="jr-krok-c">✓</span>' + T('Hotovo.');
+            var cti = function (id) { var e = document.getElementById(id); return e ? e.textContent.trim() : '—'; };
+            v.hidden = false;
+            v.innerHTML = '<div class="jr-mer-hlavni">' + esc(cti('meas-horiz')).replace('.', ',') + '</div>'
+                + '<div class="jr-mer-pod">' + T('vodorovně') + '</div>'
+                + '<div class="jr-mer-r">' + T('Převýšení') + ' <b>' + esc(cti('meas-elev')).replace('.', ',') + '</b></div>'
+                + '<div class="jr-mer-r">' + T('Šikmo') + ' <b>' + esc(cti('meas-slant')).replace('.', ',') + '</b></div>';
+            b.textContent = T('MĚŘIT ZNOVU');
+        }
+        merTik();
+    }
+    function merTik() {
+        var b = root.querySelector('#ag-jr-mer-btn'); if (!b || !_mer) return;
+        b.disabled = (_mer.krok !== 'hotovo') && !maFix();
+        if (_mer.krok === 'B' && _mer.a) {
+            var v = root.querySelector('#ag-jr-mer-vysl');
+            var t = maFix() ? ('<div class="jr-mer-hlavni">' + popisD(vzdal(_mer.a.lat, _mer.a.lng, userLat, userLng)) + '</div><div class="jr-mer-pod">' + T('od začátku (zatím)') + '</div>') : '<div class="jr-mer-pod">' + T('Čekám na GPS.') + '</div>';
+            if (v.innerHTML !== t) v.innerHTML = t;
+        }
+    }
+    function merKlik() {
+        if (!_mer) return;
+        if (_mer.krok === 'hotovo') { otevriMer(); return; }
+        if (!maFix() || typeof setMeasurePoint !== 'function') { toast(T('Čekám na GPS.')); return; }
+        try { setMeasurePoint(_mer.krok); } catch (e) { swallow(e, 'merBod'); return; }
+        vibruj(30);
+        if (_mer.krok === 'A') { _mer.a = { lat: userLat, lng: userLng }; _mer.krok = 'B'; }
+        else _mer.krok = 'hotovo';
+        merVykresli();
+    }
+
+    // ---- PRŮVODCE: VYTYČIT BODY -----------------------------------------------------
+    // Seznam a odškrtnutí jsou z js/vytycovani.js (stakeoutCandidates, isStaked,
+    // toggleStaked — ten zapíše i dosaženou přesnost do protokolu), navigace je šipka
+    // jednoduchého režimu. Po „Vytyčeno" jde rovnou na nejbližší další nevytyčený bod.
+    var _vytycuji = false;
+    function vytOk() { return typeof stakeoutCandidates === 'function' && typeof isStaked === 'function' && typeof toggleStaked === 'function'; }
+    function otevriVyt() {
+        if (!vytOk()) {
+            if (window.AGLazy && AGLazy.need) { try { AGLazy.need('js/vytycovani.js', function () { if (vytOk()) otevriVyt(); }); } catch (e) { swallow(e, 'vytNeed'); } }
+            return;
+        }
+        _vytycuji = true;
+        ukaz('vyt');
+        vytVykresli();
+    }
+    function vytKandidati() {
+        var c = []; try { c = stakeoutCandidates(); } catch (e) { swallow(e, 'vytKand'); }
+        return c.map(function (p) { return { p: p, d: maFix() ? vzdal(userLat, userLng, p.lat, p.lng) : null, hotovo: isStaked(p.id) }; })
+            .sort(function (a, b) { if (a.hotovo !== b.hotovo) return a.hotovo ? 1 : -1; return (a.d == null || b.d == null) ? 0 : a.d - b.d; });
+    }
+    function vytVykresli() {
+        var box = root.querySelector('#ag-jr-vyt-seznam'), st = root.querySelector('#ag-jr-vyt-stav');
+        var k = vytKandidati(), hot = k.filter(function (x) { return x.hotovo; }).length, html = '';
+        st.innerHTML = k.length ? T('Vytyčeno {h} z {n}. Klepni na bod — šipka tě k němu dovede.', { h: '<b>' + hot + '</b>', n: '<b>' + k.length + '</b>' }) : '';
+        if (!k.length) html = '<div class="jr-prazdno">' + T('V zakázce nejsou body k vytyčení. Nahraj je v Celé appce (import souboru) nebo je přidej tlačítkem Přidat bod.') + '</div>';
+        k.forEach(function (x) {
+            html += '<button type="button" class="jr-radek' + (x.hotovo ? ' jr-vyt-hotovo' : '') + '" data-jr-vyt="' + esc(x.p.id) + '">'
+                + '<span class="jr-radek-jm">' + (x.hotovo ? '✓ ' : '') + esc(x.p.name || T('Bod')) + '</span>'
+                + '<span class="jr-radek-vzd" data-jr-vd="' + esc(x.p.id) + '">' + popisD(x.d) + '</span></button>';
+        });
+        box.innerHTML = html;
+        Array.prototype.forEach.call(box.querySelectorAll('[data-jr-vyt]'), function (b) {
+            b.addEventListener('click', function () { naviguj(b.getAttribute('data-jr-vyt')); });
+        });
+    }
+    function vytTik() {
+        if (!maFix()) return;
+        Array.prototype.forEach.call(root.querySelectorAll('#ag-jr-vyt-seznam [data-jr-vd]'), function (s) {
+            var p = najdiBod(s.getAttribute('data-jr-vd')); if (!p) return;
+            var t = popisD(vzdal(userLat, userLng, p.lat, p.lng)); if (s.textContent !== t) s.textContent = t;
+        });
+    }
+    function vytBod(id) { try { if (typeof arPoints !== 'undefined') for (var i = 0; i < arPoints.length; i++) if (arPoints[i] && arPoints[i].id === id) return arPoints[i]; } catch (e) { swallow(e, 'vytBod'); } return null; }
+    function vytBtn() {
+        var b = root && root.querySelector('#ag-jr-vyt-btn'); if (!b) return;
+        b.hidden = !(_vytycuji && cil && vytOk());
+        if (b.hidden) return;
+        var h = isStaked(cil.id);
+        b.textContent = h ? T('✓ VYTYČENO — zrušit') : T('VYTYČENO ✓');
+        b.classList.toggle('jr-vyt-zrus', h);
+    }
+    function vytKlik() {
+        if (!cil || !vytOk()) return;
+        var p = vytBod(cil.id) || cil, bylo = isStaked(p.id);
+        try { toggleStaked(p); } catch (e) { swallow(e, 'vytToggle'); return; }
+        if (bylo) { vytBtn(); return; }
+        vibruj([30, 40, 30]);
+        var dalsi = vytKandidati().filter(function (x) { return !x.hotovo; })[0];
+        if (dalsi) { toast(T('Bod {n} vytyčen. Další: {d}.', { n: cil.name || '', d: dalsi.p.name || '' })); naviguj(dalsi.p.id); }
+        else { toast(T('Všechny body jsou vytyčené.')); cil = null; otevriVyt(); }
+    }
+
+    // ---- PŘESNÁ GPS: stejné okno, jednodušší podoba ------------------------------------
+    // Měření (zahřátí, filtry, otáčení o 90°, vážený průměr) zůstává beze změny — jen se
+    // pod body.ag-jr-pauza schovají vysvětlivky, statistiky a opakovaná sezení
+    // (css/jednoduchy-rezim.css), nahoru přibude krátký návod a název se předvyplní.
+    function presnaGps() {
+        var n = 0, t = setInterval(function () {
+            var ov = document.getElementById('ag-bgps-overlay');
+            if (ov || ++n > 30) clearInterval(t);
+            if (!ov) return;
+            if (!ov.querySelector('.bgps-jr-tip')) {
+                var tip = document.createElement('div');
+                tip.className = 'bgps-jr-tip';
+                tip.innerHTML = T('Polož telefon displejem nahoru <b>středem na bod</b> a klepni na <b>Spustit</b>. Když appka řekne, otoč ho o 90°. Pak <b>Uložit bod</b>.');
+                var top = ov.querySelector('.bgps-top');
+                if (top && top.parentNode) top.parentNode.insertBefore(tip, top.nextSibling);
+            }
+            var nm = ov.querySelector('#bgps-name');
+            if (nm && !nm.value) nm.value = navrhNazev();
+        }, 100);
+    }
+
     // NÁSTROJ V JEDNODUCHÉM REŽIMU (14. 11. 2026, přání: „nástroje by mohly mít zjednodušenou
     // podobu, ale stejnou funkčnost"): po dobu nástroje se písmo appky zvětší o 15 % (násobí se
     // volba uživatele z Nastavení, ne přepisuje) a css/jednoduchy-rezim.css pod třídou
@@ -722,6 +891,18 @@
                 _pismoPred = null;
             }
         } catch (e) { swallow(e, 'zvetsi'); }
+    }
+    // Ruční návrat tlačítkem: okno nástroje by jinak zůstalo otevřené pod přebalem
+    // a vyskočilo by při příštím nástroji (a hlídač návratu by ho bral za nový nástroj).
+    function zavriOknaNastroju() {
+        try {
+            Array.prototype.forEach.call(document.querySelectorAll('.modal-overlay'), function (m) {
+                if (m.style.display && m.style.display !== 'none') m.style.display = 'none';
+                m.classList.remove('open');
+            });
+            var bg = document.getElementById('ag-bgps-overlay');
+            if (bg && bg.classList.contains('on')) { var x = bg.querySelector('#bgps-close'); if (x) x.click(); }
+        } catch (e) { swallow(e, 'zavriOkna'); }
     }
     function obnovZPauzy() {
         if (_pauza) { clearInterval(_pauza.t); _pauza = null; }
@@ -767,7 +948,8 @@
         toast(t);
     }
     function zpet(kam) {
-        if (kam === 'home') zrusMereni();
+        if (kam === 'list' && _vytycuji) { cil = null; doma = false; otevriVyt(); return; }
+        if (kam === 'home') { zrusMereni(); _vytycuji = false; }
         if (kam === 'list') { cil = null; doma = false; }
         ukaz(kam);
         if (kam === 'list') vykresliSeznam();
@@ -775,7 +957,7 @@
 
     // Interval běží jen tam, kde se čísla opravdu mění (seznam, navigace, měření).
     function hlidejTik() {
-        var chce = (aktivni === 'list' || aktivni === 'go' || avgT != null || aktivni === 'home');
+        var chce = (aktivni === 'list' || aktivni === 'go' || avgT != null || aktivni === 'home' || aktivni === 'mer' || aktivni === 'vyt');
         if (chce && !tick) tick = setInterval(tikni, TICK_MS);
         if (!chce && tick) { clearInterval(tick); tick = null; }
     }
@@ -787,6 +969,8 @@
         if (karta) { var kv = root.querySelector('#ag-jr-karta-vzd'), kt = kartaVzd(karta); if (kv && kv.innerHTML !== kt) kv.innerHTML = kt; }
         if (aktivni === 'list') obnovVzdalenosti();
         if (aktivni === 'go') vykresliNavigaci();
+        if (aktivni === 'mer') merTik();
+        if (aktivni === 'vyt') vytTik();
     }
 
     // Přepisuje se JEN při změně textu. Tik jede 5x/s, ale ± se mění nejvýš
@@ -803,7 +987,7 @@
         }
         if (txt === _stavText) return;
         _stavText = txt;
-        ['#ag-jr-stav', '#ag-jr-stav2', '#ag-jr-stav3', '#ag-jr-stav4'].forEach(function (sel) {
+        ['#ag-jr-stav', '#ag-jr-stav2', '#ag-jr-stav3', '#ag-jr-stav4', '#ag-jr-stav5', '#ag-jr-stav6'].forEach(function (sel) {
             var el = root.querySelector(sel); if (!el) return;
             el.innerHTML = txt;
             el.classList.toggle('jr-bez', bez);
@@ -1081,6 +1265,7 @@
         root.querySelector('#ag-jr-sipka').style.transform = 'rotate(0deg)';
         root.querySelector('#ag-jr-cilnazev').innerText = p.name || T('Bod');
         ukaz('go');
+        vytBtn();
         vykresliNavigaci();
     }
 

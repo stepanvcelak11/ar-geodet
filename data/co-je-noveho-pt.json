@@ -9,7 +9,8 @@
         "No modo simples o mapa move-se com um dedo e amplia-se com dois. Depois de o mover aparece o botão Centralizar.",
         "O botão Câmera mostra a imagem ao vivo com pontos em RA em vez do mapa.",
         "Tocar num ponto (no mapa ou na câmera) mostra as coordenadas, a altitude e a distância. A navegação começa no botão do cartão.",
-        "Um pequeno botão no canto superior direito esconde as ferramentas. Na primeira vez escolhe até 10 e depois só vê essas. Ao fechar uma ferramenta, a app volta sozinha ao modo simples."
+        "Um pequeno botão no canto superior direito esconde as ferramentas. Na primeira vez escolhe até 10 e depois só vê essas. Ao fechar uma ferramenta, a app volta sozinha ao modo simples.",
+        "Medir distância e Implantação têm no modo simples um fluxo passo a passo com botões grandes, e GPS preciso mostra só um guia curto. Calculam exatamente como as ferramentas completas (ainda disponíveis em «Versão completa da ferramenta»)."
       ]
     },
     {

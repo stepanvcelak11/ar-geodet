@@ -614,3 +614,74 @@ body.ag-jr-pauza .ag-dlg-overlay input:not([type="checkbox"]):not([type="radio"]
 }
 body.ag-jr-pauza .modal-overlay input[type="checkbox"],
 body.ag-jr-pauza .modal-overlay input[type="radio"] { width: 24px; height: 24px; }
+
+/* ---- průvodci (14. 11. 2026): změřit vzdálenost, vytyčit body ---------------- */
+.jr-krok {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 14px 0 6px;
+    font-size: calc(21px * var(--ag-font-scale, 1));
+    font-weight: 700;
+    line-height: 1.3;
+}
+.jr-krok-maly { display: block; font-size: var(--fs-md); font-weight: 500; color: var(--text-muted); margin: 6px 0 2px; }
+.jr-krok-maly b { color: var(--text-color); }
+.jr-krok-c {
+    flex: 0 0 auto;
+    min-width: 54px;
+    height: 54px;
+    padding: 0 8px;
+    border-radius: 27px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-fill);
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: calc(19px * var(--ag-font-scale, 1));
+    font-weight: 800;
+}
+.jr-mer-vysl { flex: 1 1 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 0; }
+.jr-mer-vysl[hidden] { display: flex; visibility: hidden; }
+.jr-mer-hlavni {
+    font-family: var(--font-display);
+    font-size: calc(64px * var(--ag-font-scale, 1));
+    font-weight: 800;
+    color: var(--data);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.05;
+}
+.jr-mer-pod { color: var(--text-muted); font-size: var(--fs-lg); margin-bottom: 14px; }
+.jr-mer-r { font-size: calc(20px * var(--ag-font-scale, 1)); margin: 4px 0; font-variant-numeric: tabular-nums; }
+.jr-mer-r b { color: var(--text-color); }
+.jr-plna { display: block; margin: 10px auto 0; background: transparent; border-color: transparent; color: var(--text-muted); font-weight: 500; }
+.jr-vyt-hotovo { opacity: 0.55; }
+.jr-vyt-btn { margin-top: 10px; flex: 0 0 auto; }
+.jr-vyt-btn[hidden] { display: none; }
+.jr-vyt-btn.jr-vyt-zrus { background: var(--surface-2); color: var(--text-color); box-shadow: none; }
+
+/* PŘESNÁ GPS spuštěná z jednoduchého režimu: stejné měření, méně textu.
+   Vysvětlivky, statistiky a opakovaná sezení se schovají, nahoře je krátký návod. */
+.bgps-jr-tip { display: none; }
+body.ag-jr-pauza .bgps-jr-tip {
+    display: block;
+    margin: 6px 0 10px;
+    padding: 12px 14px;
+    border-radius: var(--r-lg, 14px);
+    background: var(--surface-1, rgba(255,255,255,.06));
+    font-size: calc(17px * var(--ag-font-scale, 1));
+    line-height: 1.4;
+}
+body.ag-jr-pauza #ag-bgps-overlay .bgps-sub,
+body.ag-jr-pauza #ag-bgps-overlay .bgps-place-tx,
+body.ag-jr-pauza #ag-bgps-overlay .bgps-how,
+body.ag-jr-pauza #ag-bgps-overlay .bgps-stats,
+body.ag-jr-pauza #ag-bgps-overlay .bgps-rej,
+body.ag-jr-pauza #ag-bgps-overlay #bgps-reocc,
+body.ag-jr-pauza #ag-bgps-overlay #bgps-reocc-add,
+body.ag-jr-pauza #ag-bgps-overlay #bgps-when { display: none !important; }
+body.ag-jr-pauza #ag-bgps-overlay .bgps-btn { min-height: 60px; font-size: calc(19px * var(--ag-font-scale, 1)); }
+body.ag-jr-pauza #ag-bgps-overlay .bgps-chip { min-height: 48px; min-width: 64px; }
+body.ag-jr-pauza #ag-bgps-overlay .bgps-name { min-height: 52px; font-size: calc(18px * var(--ag-font-scale, 1)); }
