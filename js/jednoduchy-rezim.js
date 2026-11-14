@@ -690,6 +690,7 @@
         if (tick) { clearInterval(tick); tick = null; }
         root.classList.add('jr-pauza');
         document.body.classList.add('ag-jr-pauza');
+        zvetsi(true);
         if (!_pill) {
             _pill = document.createElement('button');
             _pill.type = 'button'; _pill.id = 'ag-jr-pill';
@@ -704,10 +705,29 @@
             if (_pauza.videl && ++_pauza.prazdno >= 2) obnovZPauzy();
         }, 300) };
     }
+    // NÁSTROJ V JEDNODUCHÉM REŽIMU (14. 11. 2026, přání: „nástroje by mohly mít zjednodušenou
+    // podobu, ale stejnou funkčnost"): po dobu nástroje se písmo appky zvětší o 15 % (násobí se
+    // volba uživatele z Nastavení, ne přepisuje) a css/jednoduchy-rezim.css pod třídou
+    // body.ag-jr-pauza zvětší tlačítka a políčka v oknech nástrojů. Funkce ani postup se nemění.
+    var ZVETSENI = 1.15, _pismoPred = null;
+    function zvetsi(zap) {
+        var de = document.documentElement;
+        try {
+            if (zap && _pismoPred == null) {
+                _pismoPred = de.style.getPropertyValue('--ag-font-scale') || '';
+                var v = parseFloat(getComputedStyle(de).getPropertyValue('--ag-font-scale')) || 1;
+                de.style.setProperty('--ag-font-scale', String(Math.round(v * ZVETSENI * 100) / 100));
+            } else if (!zap && _pismoPred != null) {
+                if (_pismoPred) de.style.setProperty('--ag-font-scale', _pismoPred); else de.style.removeProperty('--ag-font-scale');
+                _pismoPred = null;
+            }
+        } catch (e) { swallow(e, 'zvetsi'); }
+    }
     function obnovZPauzy() {
         if (_pauza) { clearInterval(_pauza.t); _pauza = null; }
         if (_pill) _pill.hidden = true;
         document.body.classList.remove('ag-jr-pauza');
+        zvetsi(false);
         if (!root || !zapnuto()) return;
         root.classList.remove('jr-pauza');
         ukaz(aktivni);
@@ -1147,6 +1167,7 @@
         if (_pauza) { clearInterval(_pauza.t); _pauza = null; }
         if (_pill) _pill.hidden = true;
         document.body.classList.remove('ag-jr-pauza');
+        zvetsi(false);
         if (root) { kameraDo(false); zavriKartu(); zavriNastroje(); mapaDo(null); caraPryc(); root.classList.remove('jr-on', 'jr-pauza'); }
         document.body.classList.remove('ag-jr-on');
         // vrať zobrazení, které měl uživatel před zapnutím
