@@ -52,7 +52,7 @@ async def beh(p, url, tarif, hlaseni):
                 return await r.fulfill(status=200, content_type='application/json', body='{"ok":true}', headers={'Access-Control-Allow-Origin': '*'})
             return await V.route_vse(r, q)
         await page.route('**/*', route)
-        await page.add_init_script(boot(tarif=tarif) + "localStorage.setItem('agZemeUvod_v1','CZ'); localStorage.setItem('agDomov_v1', JSON.stringify({auto:false}));")
+        await page.add_init_script(boot(tarif=tarif) + "localStorage.setItem('agZemeUvod_v1','CZ'); localStorage.setItem('agDomov_v1', JSON.stringify({auto:false})); localStorage.setItem('agHlaseniTest_v1', '1');")
         await page.goto(url, wait_until='domcontentloaded', timeout=90000)
         await V.cekej(page, "document.body.classList.contains('app-started') && !!window.AGHlaseni", 60)
         return br, ctx, page, chyby
@@ -104,6 +104,10 @@ async def hlavni2(p, url):
     await page.wait_for_timeout(800)
     ok('P7 po zapnutí odešlo hlášení', len(hl) == n + 1, len(hl))
     ok('Z1 bez chyb stránky (Pro)', not chyby, chyby[:5])
+    n2 = len(hl)
+    await page.evaluate("() => { localStorage.removeItem('agHlaseniTest_v1'); localStorage.removeItem('agHlaseniDen_v1'); AGHlaseni.nahlas(true); }")
+    await page.wait_for_timeout(800)
+    ok('A1 automatický prohlížeč (testy v CI) bez povolení nic nehlásí', len(hl) == n2, len(hl))
     await br.close()
 
     # ---- bez Pro

@@ -156,7 +156,7 @@ async def test_zapnuti(ctx):
             nastaveniZavrena: (document.getElementById('settings-modal') || {}).style.display === 'none',
             // ikonka „Na mou polohu" na mapě (od 4. 11. 2026) se nepočítá — jen tlačítka úvodu;
             // od 14. 11. 2026 ani přepínač Mapa/Kamera, karta bodu a malé tlačítko Nástroje
-            tlacitka: [...document.querySelectorAll('#ag-jr-home button:not([data-jr-ja]):not(#ag-jr-pohled):not(#ag-jr-nas-btn):not(.jr-karta button)')].map(b => b.innerText.replace(/\\s+/g,' ').trim())
+            tlacitka: [...document.querySelectorAll('#ag-jr-home button:not([data-jr-ja]):not(#ag-jr-pohled):not(#ag-jr-nas-btn):not(.jr-karta button):not(#ag-jr-vrstvy-btn):not(.jr-vrstvy button)')].map(b => b.innerText.replace(/\\s+/g,' ').trim())
         };
     }""")
     ok('rezim je zapnuty a ulozeny', st['zapnuto'] and st['klic'] == '1', st)

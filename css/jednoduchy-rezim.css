@@ -721,7 +721,8 @@ body.ag-jr-pauza #ag-bgps-overlay .bgps-name { min-height: 52px; font-size: calc
 .jr-vr-r.on i { background: var(--accent-fill); }
 .jr-vr-r.on i::after { left: 21px; }
 .jr-vr-a { display: block; width: 100%; min-height: 48px; margin-bottom: 6px; padding: 8px 12px; text-align: left; font-size: var(--fs-md); font-weight: 600; }
-.jr-zamek { margin-left: 6px; font-size: 13px; }
+.jr-zamek { margin-left: 6px; display: inline-flex; vertical-align: -2px; color: #e6bd76; }
+.jr-zamek .icon { width: 14px; height: 14px; }
 
 /* měření podržením prstu */
 .jr-mereni {

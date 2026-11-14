@@ -81,8 +81,12 @@
     }
 
     var _bezi = false;
+    // AUTOMATICKÝ PROHLÍŽEČ (testy v CI, Playwright: navigator.webdriver) NIC NEHLÁSÍ — jinak by
+    // každý běh testů přidal do grafů vlastníka „zařízení", která nikdo nedrží v ruce.
+    // Test samotného hlášení si to povolí klíčem agHlaseniTest_v1.
+    function automat() { try { return navigator.webdriver === true && localStorage.getItem('agHlaseniTest_v1') !== '1'; } catch (e) { return false; } }
     function nahlas(vynutit) {
-        if (vypnuto() || _bezi) return;
+        if (vypnuto() || _bezi || automat()) return;
         if (!vynutit && ls(LS_DEN) === dnes()) return;
         if (navigator.onLine === false) return;
         _bezi = true;

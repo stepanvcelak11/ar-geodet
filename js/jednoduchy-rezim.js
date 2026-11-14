@@ -634,7 +634,7 @@
     var _kvalitaVid = false;
     function kvalitaZap() { return _kvalitaVid; }
     function vykresliVrstvy() {
-        var el = root.querySelector('#ag-jr-vrstvy'), pd = podklad(), Z = '<span class="jr-zamek" aria-label="Pro">🔒</span>';
+        var el = root.querySelector('#ag-jr-vrstvy'), pd = podklad(), Z = '<span class="jr-zamek" aria-label="Pro">' + ikona('i-lock') + '</span>';
         el.innerHTML = '<div class="jr-vr-h">' + T('Podklad') + '</div>'
             + '<div class="jr-vr-seg"><button type="button" data-vr="mapa" class="' + (pd === 'mapa' ? 'on' : '') + '">' + T('Mapa') + '</button>'
             + '<button type="button" data-vr="ortofoto" class="' + (pd === 'ortofoto' ? 'on' : '') + '">' + T('Ortofoto') + '</button></div>'
