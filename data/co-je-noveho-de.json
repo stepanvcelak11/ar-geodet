@@ -2,6 +2,14 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 429,
+      "datum": "2026-11-14",
+      "nadpis": "Navigation: Luftlinie",
+      "body": [
+        "Die große Zahl in der Navigation ist wieder die Luftlinie. Die Länge der Route um Zäune und Gebäude steht darunter."
+      ]
+    },
+    {
       "v": 428,
       "datum": "2026-11-14",
       "nadpis": "Punkte finden: eigenes Festpunktfeld und bessere Karte",

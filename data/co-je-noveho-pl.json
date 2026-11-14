@@ -2,6 +2,14 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 429,
+      "datum": "2026-11-14",
+      "nadpis": "Nawigacja: odległość w linii prostej",
+      "body": [
+        "Duża liczba w nawigacji to znów odległość w linii prostej. Długość trasy wokół płotów i budynków jest pod nią."
+      ]
+    },
+    {
       "v": 428,
       "datum": "2026-11-14",
       "nadpis": "Odnajdywanie punktów: własna osnowa i lepsza mapa",

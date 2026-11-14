@@ -2,6 +2,14 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 429,
+      "datum": "2026-11-14",
+      "nadpis": "Navigation : distance à vol d'oiseau",
+      "body": [
+        "Le grand nombre redevient la distance à vol d'oiseau. La longueur du trajet autour des clôtures et bâtiments est indiquée dessous."
+      ]
+    },
+    {
       "v": 428,
       "datum": "2026-11-14",
       "nadpis": "Retrouver les points : votre propre canevas et une meilleure carte",
