@@ -124,7 +124,7 @@
         }
         function tk(e) { return e.touches ? e.touches : null; }
         function xy(e) { var t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e; return { x: t.clientX, y: t.clientY }; }
-        function zrusTah() { _kres.active = false; _kres.pts = []; if (_kres.line) { try { mp.removeLayer(_kres.line); } catch (x) { /* nic */ } _kres.line = null; } }
+        function zrusTah() { _kres.active = false; _kres.pts = []; if (_kres.line) { try { mp.removeLayer(_kres.line); } catch (x) { self.AG && AG.swallow(x, 'hlidac-okoli:127'); } _kres.line = null; } }
         function start(e) {
             if (!_kres) return;
             var t = tk(e);
@@ -145,7 +145,7 @@
                     var nz = Math.max(mp.getMinZoom(), Math.min(mp.getMaxZoom(), pc.z0 + Math.log2(dd / pc.d0)));
                     mp.panBy([pc.cx - cx, pc.cy - cy], { animate: false }); pc.cx = cx; pc.cy = cy;
                     if (Math.abs(nz - mp.getZoom()) > 0.02) mp.setZoomAround(mp.containerPointToLatLng([cx - mp.getContainer().getBoundingClientRect().left, cy - mp.getContainer().getBoundingClientRect().top]), nz, { animate: false });
-                } catch (x) { /* nic */ }
+                } catch (x) { self.AG && AG.swallow(x, 'hlidac-okoli:148'); }
                 e.preventDefault(); return;
             }
             if (!_kres.active || _kres.multi) return;
@@ -161,7 +161,7 @@
             if (_kres.multi) { _kres.multi = false; _kres.pinch = null; return; }
             if (!_kres.active) return;
             _kres.active = false;
-            var pts = _kres.pts; if (_kres.line) { try { mp.removeLayer(_kres.line); } catch (x) { /* nic */ } _kres.line = null; }
+            var pts = _kres.pts; if (_kres.line) { try { mp.removeLayer(_kres.line); } catch (x) { self.AG && AG.swallow(x, 'hlidac-okoli:164'); } _kres.line = null; }
             var obvod = 0; for (var i = 1; i < pts.length; i++) obvod += AGHrany.dist(pts[i - 1], pts[i]);
             if (pts.length < 4 || obvod < 3 || _kres.tah < 12) {
                 // klepnutí = starý obdélník dvěma klepnutími (take), jinak nic
@@ -174,8 +174,8 @@
             prekazky.push({ body: body.map(function (q) { return { lat: +q.lat.toFixed(7), lng: +q.lng.toFixed(7) }; }), nazev: _sber ? _sber.nazev : d.n, druh: _sber ? _sber.druh : null, ts: Date.now() });
             _sber = null; AGOkoli.armed = false; ukoncitKresleni();
             ulozPrekazky(); kresliPrekazky();
-            try { (window.quickToast || window.agInfo)(T('Překážka uložena — trasa ji obejde, hlídač varuje. Klepnutím na ni ji přejmenuješ nebo smažeš.')); } catch (x) { /* nic */ }
-            try { document.dispatchEvent(new CustomEvent('ag:prekazky')); } catch (x) { /* nic */ }
+            try { (window.quickToast || window.agInfo)(T('Překážka uložena — trasa ji obejde, hlídač varuje. Klepnutím na ni ji přejmenuješ nebo smažeš.')); } catch (x) { self.AG && AG.swallow(x, 'hlidac-okoli:177'); }
+            try { document.dispatchEvent(new CustomEvent('ag:prekazky')); } catch (x) { self.AG && AG.swallow(x, 'hlidac-okoli:178'); }
         }
         _kres.h = { s: start, m: move, e: end };
         platno.addEventListener('touchstart', start, { passive: false }); platno.addEventListener('touchmove', move, { passive: false }); platno.addEventListener('touchend', end, { passive: false }); platno.addEventListener('touchcancel', end, { passive: false });
@@ -184,8 +184,8 @@
     function ukoncitKresleni() {
         if (!_kres) return;
         var k = _kres; _kres = null;
-        try { var mp = getMap(); if (k.line) mp.removeLayer(k.line); } catch (e) { /* nic */ }
-        try { if (k.platno) k.platno.remove(); } catch (e) { /* nic */ }
+        try { var mp = getMap(); if (k.line) mp.removeLayer(k.line); } catch (e) { self.AG && AG.swallow(e, 'hlidac-okoli:187'); }
+        try { if (k.platno) k.platno.remove(); } catch (e) { self.AG && AG.swallow(e, 'hlidac-okoli:188'); }
         var bar = document.getElementById('ag-prekazka-kresli'); if (bar) bar.remove();
     }
     // Ramer–Douglas–Peucker v metrech (tvar z prstu má stovky bodů)
@@ -218,15 +218,15 @@
         prekazky.push({ a: _sber.body[0], b: _sber.body[1], nazev: _sber.nazev, druh: _sber.druh, ts: Date.now() });
         _sber = null; AGOkoli.armed = false; ukoncitKresleni();
         ulozPrekazky(); kresliPrekazky();
-        try { (window.quickToast || window.agInfo)(T('Překážka uložena. Trasa terénem ji obejde, hlídač před ní varuje.')); } catch (e) { /* nic */ }
-        try { document.dispatchEvent(new CustomEvent('ag:prekazky')); } catch (e) { /* nic */ }
+        try { (window.quickToast || window.agInfo)(T('Překážka uložena. Trasa terénem ji obejde, hlídač před ní varuje.')); } catch (e) { self.AG && AG.swallow(e, 'hlidac-okoli:221'); }
+        try { document.dispatchEvent(new CustomEvent('ag:prekazky')); } catch (e) { self.AG && AG.swallow(e, 'hlidac-okoli:222'); }
     }
     function prejmenuj(i) {
         var p = prekazky[i]; if (!p) return;
         var pr = (typeof window.agPrompt === 'function') ? window.agPrompt({ title: T('Název překážky'), value: p.nazev, okText: T('Uložit') }) : Promise.resolve(prompt(T('Název překážky:'), p.nazev));
-        pr.then(function (v) { if (v) { p.nazev = v; ulozPrekazky(); kresliPrekazky(); try { getMap().closePopup(); } catch (e) { /* nic */ } } });
+        pr.then(function (v) { if (v) { p.nazev = v; ulozPrekazky(); kresliPrekazky(); try { getMap().closePopup(); } catch (e) { self.AG && AG.swallow(e, 'hlidac-okoli:227'); } } });
     }
-    function smazPrekazku(i) { prekazky.splice(i, 1); ulozPrekazky(); kresliPrekazky(); try { getMap().closePopup(); } catch (e) { /* nic */ } try { document.dispatchEvent(new CustomEvent('ag:prekazky')); } catch (e) { /* nic */ } }
+    function smazPrekazku(i) { prekazky.splice(i, 1); ulozPrekazky(); kresliPrekazky(); try { getMap().closePopup(); } catch (e) { self.AG && AG.swallow(e, 'hlidac-okoli:229'); } try { document.dispatchEvent(new CustomEvent('ag:prekazky')); } catch (e) { self.AG && AG.swallow(e, 'hlidac-okoli:229'); } }
 
     // ---- vyhodnocení okolí -------------------------------------------------------------------
     function bodVPolygonu(ring, lat, lng) {
@@ -276,7 +276,7 @@
         var p = document.getElementById(PILL); if (p) return p;
         try { AG.style('ag-okoli-pill-style', ['#' + PILL + '{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 76px);z-index:11980;display:none;align-items:center;gap:7px;padding:5px 12px;border-radius:999px;font:600 12px/1.2 var(--font-ui,system-ui),sans-serif;color:#fff;border:1px solid rgba(255,255,255,.22);box-shadow:0 4px 16px rgba(0,0,0,.45);max-width:88vw;background:rgba(146,94,7,.92);cursor:pointer;}', '#' + PILL + '.show{display:flex;}', '#' + PILL + '.bad{background:rgba(140,28,28,.94);}', 'body.ag-simple #' + PILL + '{display:none!important;}'].join('\n')); } catch (e) { swallow(e, 'css'); }
         p = document.createElement('div'); p.id = PILL; p.setAttribute('role', 'status');
-        p.addEventListener('click', function () { if (_stav) try { window.agAlert && window.agAlert({ title: T('Hlídač okolí'), message: _stav.text + '<br><br><b>' + T('Co s tím:') + '</b> ' + _stav.rada + '<br><small>' + T('Vypnout: Nastavení → Mapa a body → Hlídač okolí.') + '</small>' }); } catch (e) { /* nic */ } });
+        p.addEventListener('click', function () { if (_stav) try { window.agAlert && window.agAlert({ title: T('Hlídač okolí'), message: _stav.text + '<br><br><b>' + T('Co s tím:') + '</b> ' + _stav.rada + '<br><small>' + T('Vypnout: Nastavení → Mapa a body → Hlídač okolí.') + '</small>' }); } catch (e) { self.AG && AG.swallow(e, 'hlidac-okoli:279'); } });
         document.body.appendChild(p); return p;
     }
     function ukaz(stav) {
@@ -288,7 +288,7 @@
     function tik() {
         try {
             // překážky jsou per zakázka — po přepnutí zakázky (děje se bez reloadu) je načíst znovu
-            try { var pid = (typeof activeProjectId !== 'undefined') ? activeProjectId : null; if (pid !== _proj) { _proj = pid; nactiPrekazky(); kresliPrekazky(); } } catch (e) { /* nic */ }
+            try { var pid = (typeof activeProjectId !== 'undefined') ? activeProjectId : null; if (pid !== _proj) { _proj = pid; nactiPrekazky(); kresliPrekazky(); } } catch (e) { self.AG && AG.swallow(e, 'hlidac-okoli:291'); }
             if (!st.zap) { if (_stav) { _stav = null; ukaz(null); } return; }
             var q = poloha(); if (!q) return;
             var o = vyhodnot(q.lat, q.lng), s = shrn(o);
@@ -300,7 +300,7 @@
                 // ⚠ NIKDY MODÁLNĚ (18. 9. 2026): s vektorovou mapou zapnutou pro všechny by dialog „stojíš uvnitř
                 //   budovy — Rozumím" vyskočil každému, kdo vejde do domu nebo k plotu (a v testech ležel přes
                 //   celou obrazovku). Stačí toast; podrobnosti a „co s tím" dává klepnutí na pilulku.
-                if (!_hlasky[kod] || now - _hlasky[kod] > 60000) { _hlasky[kod] = now; try { (window.quickToast || function () {})(s.text + '. ' + s.rada); } catch (e) { /* nic */ } }
+                if (!_hlasky[kod] || now - _hlasky[kod] > 60000) { _hlasky[kod] = now; try { (window.quickToast || function () {})(s.text + '. ' + s.rada); } catch (e) { self.AG && AG.swallow(e, 'hlidac-okoli:303'); } }
             }
         } catch (e) { swallow(e, 'tik'); }
     }
@@ -351,7 +351,7 @@
             if (stack) {
                 var b = document.createElement('button'); b.type = 'button'; b.id = 'btn-prekazka'; b.className = 'ms-tile'; b.setAttribute('aria-label', 'Překážka');
                 b.innerHTML = '<svg class="icon"><use href="#i-area"/></svg><span>Překážka</span>';
-                b.addEventListener('click', function () { vyberDruh(); try { document.getElementById('map-controls').classList.remove('expanded'); } catch (e) { /* nic */ } });
+                b.addEventListener('click', function () { vyberDruh(); try { document.getElementById('map-controls').classList.remove('expanded'); } catch (e) { self.AG && AG.swallow(e, 'hlidac-okoli:354'); } });
                 stack.appendChild(b);
             }
         }
@@ -359,14 +359,14 @@
     function start() {
         nactiPrekazky(); kresliPrekazky(); obal();
         try { ui(); } catch (e) { swallow(e, 'ui'); }
-        document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"], #map-fab, #btn-layers')) setTimeout(ui, 50); } catch (e) { /* nic */ } }, true);
+        document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"], #map-fab, #btn-layers')) setTimeout(ui, 50); } catch (e) { self.AG && AG.swallow(e, 'hlidac-okoli:362'); } }, true);
         if (!_tik) _tik = setInterval(tik, 3000);
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
     window.AGOkoli = {
         armed: false, take: take, kresliNovou: kresliNovou, smazPrekazku: smazPrekazku, prejmenuj: prejmenuj, DRUHY: DRUHY, vyberDruh: vyberDruh, ukoncitKresleni: ukoncitKresleni, kresleni: function () { return _kres; }, viditelne: viditelne, prekazky: function () { return prekazky; }, prekazkaRings: prekazkaRings,
-        pridejPrekazku: function (a, b, nazev, druhKlic) { prekazky.push(Array.isArray(a) ? { body: a, nazev: nazev || 'Překážka', druh: druhKlic || null, ts: Date.now() } : { a: a, b: b, nazev: nazev || 'Překážka', druh: druhKlic || null, ts: Date.now() }); ulozPrekazky(); kresliPrekazky(); try { document.dispatchEvent(new CustomEvent('ag:prekazky')); } catch (e) { /* nic */ } },
+        pridejPrekazku: function (a, b, nazev, druhKlic) { prekazky.push(Array.isArray(a) ? { body: a, nazev: nazev || 'Překážka', druh: druhKlic || null, ts: Date.now() } : { a: a, b: b, nazev: nazev || 'Překážka', druh: druhKlic || null, ts: Date.now() }); ulozPrekazky(); kresliPrekazky(); try { document.dispatchEvent(new CustomEvent('ag:prekazky')); } catch (e) { self.AG && AG.swallow(e, 'hlidac-okoli:369'); } },
         vyhodnot: vyhodnot, shrn: shrn, stav: function () { return _stav; }, tik: tik, popisProBod: popisProBod, nastav: function (o) { if (o && o.zap != null) st.zap = !!o.zap; uloz(); }, zapnuto: function () { return st.zap; }, LIMIT: LIMIT
     };
 })();

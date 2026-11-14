@@ -256,7 +256,7 @@
             });
         });
         // aktuální lekci do středu obrazovky
-        try { var cur = view().querySelector('.cu-uzel.ted'); if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'center' }); } catch (e) { /* nic */ }
+        try { var cur = view().querySelector('.cu-uzel.ted'); if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'center' }); } catch (e) { self.AG && AG.swallow(e, 'cesta-uceni:259'); }
         var s3 = st();
         if (!ted) hlaska(t('Celou cestu máš hotovou! Lekce si můžeš kdykoli zopakovat.'));
         else if (s3.dnesN >= s3.cil) hlaska(t('Dnešní cíl splněný. Série běží! Chceš ještě jednu?'));
@@ -331,7 +331,7 @@
         D.innerHTML = '<div class="cu-fb" role="status"><b>' + esc(ok ? t('Správně!') : t('Tentokrát ne')) + '</b>' + esc(q.vysvetleni || '') + '</div>'
             + '<button type="button" class="cu-go">' + esc(t('Pokračovat')) + '</button>';
         D.querySelector('.cu-go').addEventListener('click', function () { L.fronta.shift(); L.n++; otazka(); });
-        try { D.querySelector('.cu-go').focus(); } catch (e) { /* nic */ }
+        try { D.querySelector('.cu-go').focus(); } catch (e) { self.AG && AG.swallow(e, 'cesta-uceni:334'); }
     }
     function konecLekce() {
         var L = _lekce; L.konec = true;

@@ -217,7 +217,7 @@
             // bez signálu: ověří telefon sám, hned v gestu klepnutí (bod 4)
             var k0; try { k0 = overitOffline(); } catch (e) { k0 = Promise.reject(e); }
             return k0.then(prihlasitOffline).then(function (d) {
-                try { if (typeof quickToast === 'function') quickToast(t('Přihlášeno přes Face ID (bez signálu).')); } catch (e) { /* nic */ }
+                try { if (typeof quickToast === 'function') quickToast(t('Přihlášeno přes Face ID (bez signálu).')); } catch (e) { self.AG && AG.swallow(e, 'passkey:220'); }
                 return d;
             }, function (e) {
                 predpriprav(api);
@@ -253,7 +253,7 @@
                 // tentýž klíč jako místní odemknutí → zlaté tlačítko na bráně příště i bez signálu
                 try { if (window.AGUcty && AGUcty.bio && AGUcty.bio.remember) AGUcty.bio.remember('vlastnik', credId); } catch (e) { swallow(e, 'bio'); }
                 vstupVlastnika();
-                try { if (typeof quickToast === 'function') quickToast(t('Přihlášen jako vlastník.')); } catch (e) { /* nic */ }
+                try { if (typeof quickToast === 'function') quickToast(t('Přihlášen jako vlastník.')); } catch (e) { self.AG && AG.swallow(e, 'passkey:256'); }
                 return r.data;
             }
             if (r && r.status === 0) { _bezSite = true; throw new Error(t('Spojení se serverem spadlo — klepni na Přihlásit přes Face ID znovu, ověří se jen v telefonu.')); }
@@ -265,7 +265,7 @@
             if (r.data.ownerKey) {
                 // vlastník: klíč zpátky do telefonu → vlastnický režim naběhne (bez psaní 24znakového klíče)
                 try { localStorage.setItem('agFbKey_v1', r.data.ownerKey); localStorage.setItem('agVlastnik_v1', '1'); } catch (e) { swallow(e, 'owner'); }
-                try { if (typeof quickToast === 'function') quickToast(t('Klíč vlastníka obnoven.')); } catch (e) { /* nic */ }
+                try { if (typeof quickToast === 'function') quickToast(t('Klíč vlastníka obnoven.')); } catch (e) { self.AG && AG.swallow(e, 'passkey:268'); }
             }
             try { window.dispatchEvent(new CustomEvent('agucty:login', { detail: { user: r.data.user, passkey: true } })); } catch (e) { swallow(e, 'event'); }
             return r.data;
@@ -289,7 +289,7 @@
             ask.then(function (ano) {
                 if (!ano) return;
                 zapnout().then(function (v) {
-                    try { if (typeof quickToast === 'function') quickToast(v.owner ? t('Face ID zapnuté — i pro vlastníka.') : t('Face ID zapnuté. Příště stačí jedno klepnutí.')); } catch (e) { /* nic */ }
+                    try { if (typeof quickToast === 'function') quickToast(v.owner ? t('Face ID zapnuté — i pro vlastníka.') : t('Face ID zapnuté. Příště stačí jedno klepnutí.')); } catch (e) { self.AG && AG.swallow(e, 'passkey:292'); }
                 }, function (e) { if (!zrusenoUzivatelem(e)) (window.agInfo || alert)(t('Face ID se nepodařilo zapnout:') + ' ' + ((e && e.message) || e)); });
             });
         }, 1500);
@@ -314,7 +314,7 @@
                 b.disabled = true;
                 zapnout().then(function (v) {
                     b.disabled = false;
-                    try { if (typeof quickToast === 'function') quickToast(v.owner ? t('Face ID zapnuté — i pro vlastníka.') : t('Face ID zapnuté. Příště stačí jedno klepnutí.')); } catch (e) { /* nic */ }
+                    try { if (typeof quickToast === 'function') quickToast(v.owner ? t('Face ID zapnuté — i pro vlastníka.') : t('Face ID zapnuté. Příště stačí jedno klepnutí.')); } catch (e) { self.AG && AG.swallow(e, 'passkey:317'); }
                 }, function (e) { b.disabled = false; if (!zrusenoUzivatelem(e)) (window.agInfo || alert)(t('Face ID se nepodařilo zapnout:') + ' ' + ((e && e.message) || e)); });
             });
         }

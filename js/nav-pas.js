@@ -64,7 +64,7 @@
         kont.style.transform = '';               // perspektivu řídí css/nav-pas.css, ne inline styl z grafika.js
         document.body.classList.add('ag-nav-pas');
         // volba tvaru staré šipky u pásu nemá smysl — schovat select i jeho popisek
-        try { var sel = document.getElementById('v-arrow-shape'); if (sel) { sel.hidden = true; var lab = sel.previousElementSibling; if (lab && lab.tagName === 'LABEL') lab.hidden = true; } } catch (e) { /* nic */ }
+        try { var sel = document.getElementById('v-arrow-shape'); if (sel) { sel.hidden = true; var lab = sel.previousElementSibling; if (lab && lab.tagName === 'LABEL') lab.hidden = true; } } catch (e) { self.AG && AG.swallow(e, 'nav-pas:67'); }
         _init = true;
         return true;
     }

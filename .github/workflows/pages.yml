@@ -132,7 +132,7 @@ jobs:
                    --exclude 'tests' --exclude 'playwright-report' --exclude 'test-results' \
                    --exclude '_site' --exclude 'scripts' --exclude 'cloud' \
                    --exclude '*.md' --exclude 'package.json' --exclude 'package-lock.json' \
-                   --exclude 'playwright.config.mjs' \
+                   --exclude 'playwright.config.mjs' --exclude '/docs' \
                    --exclude '/play' --exclude '/garmin' --exclude '/_archiv' \
                    --exclude '/logo-navrhy' --exclude '/nahledy-*' --exclude '/navrhy-*' \
                    --exclude '/test-fullscreen*' --exclude '/manifest-test*' \
@@ -218,7 +218,7 @@ jobs:
                    --exclude 'tests' --exclude 'playwright-report' --exclude 'test-results' \
                    --exclude '_site' --exclude 'scripts' --exclude 'cloud' \
                    --exclude '*.md' --exclude 'package.json' --exclude 'package-lock.json' \
-                   --exclude 'playwright.config.mjs' \
+                   --exclude 'playwright.config.mjs' --exclude '/docs' \
                    --exclude '/play' --exclude '/garmin' --exclude '/_archiv' \
                    --exclude '/logo-navrhy' --exclude '/nahledy-*' --exclude '/navrhy-*' \
                    --exclude '/test-fullscreen*' --exclude '/manifest-test*' \

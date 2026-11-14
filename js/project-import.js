@@ -244,7 +244,7 @@
     }
     function drawMap() {
         var g = ensureMapGroup(); if (!g) return; g.clearLayers();
-        try { var row = document.getElementById('ms-dxf'); if (row) { row.hidden = !_design; row.classList.toggle('ctrl-active', !!_design && _vrstvaViditelna); } } catch (e) { /* nic */ }
+        try { var row = document.getElementById('ms-dxf'); if (row) { row.hidden = !_design; row.classList.toggle('ctrl-active', !!_design && _vrstvaViditelna); } } catch (e) { self.AG && AG.swallow(e, 'project-import:247'); }
         if (!_design || !_vrstvaViditelna) return;
         if (_design.polys && _design.polys.length) {
             // řetězce: barva vrstvy/entity, klepnutí = vrstva + délka + staničení; osa tlustší
@@ -490,7 +490,7 @@
         if (typeof window._agDecodeBuf === 'function') return window._agDecodeBuf(buf);
         try {
             var utf = new TextDecoder('utf-8', { fatal: false }).decode(buf);
-            if (utf.indexOf('�') >= 0) { try { return new TextDecoder('windows-1250').decode(buf); } catch (e) {} }
+            if (utf.indexOf('�') >= 0) { try { return new TextDecoder('windows-1250').decode(buf); } catch (e) { self.AG && AG.swallow(e, 'project-import:493'); } }
             return utf;
         } catch (e) { try { return new TextDecoder('windows-1250').decode(buf); } catch (e2) { return ''; } }
     }
@@ -704,9 +704,9 @@
         },
         osa: osaPoly, stanicteni: stanicteni, delkaPoly: delkaPoly, prumetNaPoly: prumetNaPoly, barvaVrstvy: barvaVrstvy,
         viditelna: function () { return _vrstvaViditelna; },
-        prepni: function (stav) { _vrstvaViditelna = (stav == null) ? !_vrstvaViditelna : !!stav; try { localStorage.setItem('agDxfVrstva_v1', _vrstvaViditelna ? '1' : '0'); } catch (e) { /* nic */ } drawMap(); return _vrstvaViditelna; },
+        prepni: function (stav) { _vrstvaViditelna = (stav == null) ? !_vrstvaViditelna : !!stav; try { localStorage.setItem('agDxfVrstva_v1', _vrstvaViditelna ? '1' : '0'); } catch (e) { self.AG && AG.swallow(e, 'project-import:707'); } drawMap(); return _vrstvaViditelna; },
         nacti: function (text) { var d = parseDXF(text); _design = d; persist(); drawMap(); fitMap(); try { renderDxf(); } catch (e) { /* nástroj není otevřený */ } startAr(); return d; },
         smaz: function () { _design = null; persist(); drawMap(); stopAr(); try { renderDxf(); } catch (e) { /* nástroj není otevřený */ } }
     };
-    try { if (localStorage.getItem('agDxfVrstva_v1') === '0') _vrstvaViditelna = false; } catch (e) { /* nic */ }
+    try { if (localStorage.getItem('agDxfVrstva_v1') === '0') _vrstvaViditelna = false; } catch (e) { self.AG && AG.swallow(e, 'project-import:711'); }
 })();

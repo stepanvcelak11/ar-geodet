@@ -139,7 +139,7 @@
                 else if (!on && katastrOn() && !lm.hasLayer(w) && typeof applyMapLayers === 'function') applyMapLayers();
             } catch (e) { swallow(e, 'wms'); }
         }
-        if (on !== _naposledy) { _naposledy = on; try { document.dispatchEvent(new CustomEvent('ag:mapa-parcely', { detail: { zap: on } })); } catch (e) { /* nic */ } }
+        if (on !== _naposledy) { _naposledy = on; try { document.dispatchEvent(new CustomEvent('ag:mapa-parcely', { detail: { zap: on } })); } catch (e) { self.AG && AG.swallow(e, 'mapa-parcely:142'); } }
     }
     // po setStyle() (jiná varianta, jiný díl dat) je zdroj nový a prázdný → naplnit znovu
     function hook(m) {
@@ -170,14 +170,14 @@
         lm.on('moveend zoomend', naplanuj);
         // applyMapLayers WMS přidá při každém volání — při aktivním vektoru ho hned zase sundat
         lm.on('layeradd', function (ev) { try { if (ev && ev.layer && ev.layer === wms()) setTimeout(function () { if (aktivni()) { var w = wms(); if (w && lm.hasLayer(w)) lm.removeLayer(w); } }, 0); } catch (e) { swallow(e, 'layeradd'); } });
-        lm.on('layeradd layerremove', function (ev) { try { if (ev && ev.layer && ev.layer === wms()) naplanuj(); } catch (e) { /* nic */ } });
+        lm.on('layeradd layerremove', function (ev) { try { if (ev && ev.layer && ev.layer === wms()) naplanuj(); } catch (e) { self.AG && AG.swallow(e, 'mapa-parcely:173'); } });
         document.addEventListener('ag:mapa-vektor', function () { setTimeout(naplanuj, 300); });
         document.addEventListener('ag:zeme', naplanuj);
         // podklad (vektor ↔ ortofoto) se pozná podle třídy #map.base-vektor
         try { var el = document.getElementById('map'); if (el) new MutationObserver(naplanuj).observe(el, { attributes: true, attributeFilter: ['class'] }); } catch (e) { swallow(e, 'observer'); }
         window.addEventListener('online', naplanuj);
         // 3D pohled (js/pohled-3d.js) se otevírá až na klepnutí — jeho mapu naplnit, jakmile existuje
-        setInterval(function () { try { var m3 = window.AGPohled3d && AGPohled3d.mapa && AGPohled3d.mapa(); if (m3 && m3 !== _hook3d && katastrOn()) prekresli(); } catch (e) { /* nic */ } }, 2000);
+        setInterval(function () { try { var m3 = window.AGPohled3d && AGPohled3d.mapa && AGPohled3d.mapa(); if (m3 && m3 !== _hook3d && katastrOn()) prekresli(); } catch (e) { self.AG && AG.swallow(e, 'mapa-parcely:180'); } }, 2000);
         naplanuj();
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();

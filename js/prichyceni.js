@@ -107,7 +107,7 @@
     function start() {
         obal();
         try { ui(); } catch (e) { swallow(e, 'ui'); }
-        document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"]')) setTimeout(ui, 50); } catch (e) { /* nic */ } }, true);
+        document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"]')) setTimeout(ui, 50); } catch (e) { self.AG && AG.swallow(e, 'prichyceni:110'); } }, true);
         // kdyby saveCustomPoint obalil ještě někdo po nás, náš obal zůstane uvnitř — obalujeme až po startu
         setTimeout(obal, 1500);
     }

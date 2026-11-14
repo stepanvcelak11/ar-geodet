@@ -337,7 +337,7 @@
         h += radek('Číslování', p.stavebni ? 'stavební parcela' : 'pozemková parcela');
         // zdroj geometrie TÉTO parcely rozhoduje, jak věřit hranici (DKM ±0,14 m; UKM = přepočtená analogová mapa, metry)
         h += radek('Hranice', p.zdroj === 1 ? 'DKM — digitální, na cm až dm' : (p.zdroj === 2 ? 'UKM — z analogové mapy, na metry' : (p.dkm ? 'digitální (DKM/KMD)' : 'v k.ú. ještě není digitální mapa')));
-        if (p.platiod) { try { var dt = new Date(+p.platiod); if (!isNaN(dt)) h += radek('Platí od', dt.toLocaleDateString('cs-CZ')); } catch (e) { /* nic */ } }
+        if (p.platiod) { try { var dt = new Date(+p.platiod); if (!isNaN(dt)) h += radek('Platí od', dt.toLocaleDateString('cs-CZ')); } catch (e) { self.AG && AG.swallow(e, 'parcela-klik:340'); } }
         if (p.adresa && p.adresa.adresa) h += radek(p.adresa.d > 5 ? T('Adresa ({d} m)', { d: Math.round(p.adresa.d) }) : 'Adresa', esc(p.adresa.adresa));
         if (p.teren != null) { var ti = (typeof window.terrainElevInfo === 'function') ? window.terrainElevInfo() : { zdroj: 'DMR 5G', system: 'Bpv' }; h += radek(T('Terén ({z})', { z: ti.zdroj }), p.teren.toFixed(1).replace('.', ',') + ' m ' + ti.system); }
         if (p.stavba) {
@@ -351,7 +351,7 @@
             h += radek('Podlahová plocha', so.podlahovaplocha ? num(so.podlahovaplocha) + ' m²' : '');
             h += radek('Obestavěný prostor', so.obestavenyprostor ? num(so.obestavenyprostor) + ' m³' : '');
             h += radek('Konstrukce', so.druhkonstrukcekod ? esc(KONSTRUKCE[so.druhkonstrukcekod] || T('kód {n}', { n: so.druhkonstrukcekod })) : '');
-            if (so.dokonceni) { try { var dd = new Date(+so.dokonceni); if (!isNaN(dd)) h += radek('Dokončení', String(dd.getFullYear())); } catch (e) { /* nic */ } }
+            if (so.dokonceni) { try { var dd = new Date(+so.dokonceni); if (!isNaN(dd)) h += radek('Dokončení', String(dd.getFullYear())); } catch (e) { self.AG && AG.swallow(e, 'parcela-klik:354'); } }
             h += radek('Byty', so.pocetbytu ? String(so.pocetbytu) : '');
         }
         // OCHRANA A OMEZENÍ (RÚIAN účelové prvky) — geodet tu vidí, kam smí sáhnout

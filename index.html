@@ -289,7 +289,7 @@
     <link rel="stylesheet" href="css/domov.css">
     <link rel="stylesheet" href="css/nav-pas.css">
     <!-- TOKENOVÁ VRSTVA ČITELNOSTI — venkovní režim + rukavice přes design tokeny;
-         MUSÍ být POSLEDNÍ css (přepisuje tokeny). Náhled: nahledy-kontrast.html.
+         MUSÍ být POSLEDNÍ css (přepisuje tokeny). Náhled: docs/navrhy/nahledy-kontrast.html.
          Odpojitelné: smaž tento řádek + css/tokens-outdoor.css -->
     <link rel="stylesheet" href="css/tokens-outdoor.css">
 </head>
@@ -1341,7 +1341,7 @@
          — souhrn dne, kdo je v terenu, denik vlastnika, kalendar vyprseni Pro, zaloha
          serveru, pohled ocima uctu, tecka "neco ceka" na vstupech do konzole. 13 navrhu
          schvalenych 12. 9. 2026; vidi to jen rezim vlastnika (server chce OWNER_KEY). -->
-    <script type="ag/lazy" data-src="js/vlastnik-plus.js"></script>
+    <script type="ag/lazy" data-src="js/vlastnik-plus.js" data-na-vyzadani></script>
     <!-- KARTA BODU, obsah (odlozene: mozaika dat, nacrt okoli nad mapou, tazeni karty za prouzek);
          eager shim js/karta-bodu.js jen obaluje showDetails a tohle dotahne pres AGLazy.need -->
     <script type="ag/lazy" data-src="js/karta-bodu-plus.js"></script>
@@ -1508,9 +1508,10 @@
     <!-- TERÉNNÍ NÁSTROJE (odpojitelné) — launcher field-tools.js MUSÍ být první, registrují se do něj -->
     <script defer src="js/field-tools.js"></script>
     <!-- DOMŮ (4. 11. 2026): úvodní obrazovka PO přihlášení — počasí, zakázka, poznámky, sdílení,
-         nastavení před výjezdem; appka pod ní nabíhá. Hned (ne ag/lazy), ať se ukáže se startem.
+         nastavení před výjezdem; appka pod ní nabíhá. Odložené, ale js/lazy-load.js ho dotahuje
+         HNED po prvním obrazu (need), ne až ve frontě — 55 kB nebrzdí první vykreslení (14. 11. 2026).
          Odpojitelné: smaž řádek + js/domov.js. -->
-    <script defer src="js/domov.js"></script>
+    <script type="ag/lazy" data-src="js/domov.js"></script>
     <!-- DELENE NACITANI NASTROJU (odpojitelne) — misto 10 samostatnych <script>
          radku (~362 kB pri kazdem startu) zapise zastupne dlazdice a skutecny
          soubor stahne az pri prvnim klepnuti. Soubory zustavaji v predcache
@@ -1650,7 +1651,9 @@
     <script defer src="js/qc-engine.js"></script>
     <!-- Firemní režim: účty, role, přihlašování (ucty.js = jádro, ucty-admin.js = administrace) -->
     <script defer src="js/ucty.js"></script>
-    <script type="ag/lazy" data-src="js/ucty-admin.js"></script>
+    <!-- vstup do administrace (dlaždice, menu); samotná administrace se stahuje až při otevření -->
+    <script type="ag/lazy" data-src="js/ucty-admin-vstup.js"></script>
+    <script type="ag/lazy" data-src="js/ucty-admin.js" data-na-vyzadani></script>
     <!-- Docházka (js/dochazka.js) ZRUŠENA 13. 9. 2026 na přání uživatele („docházku dej pryč"); firemní chat ZRUŠEN 11. 9. 2026 — cesty /chat a /usage t=shift na serveru zůstávají nevolané. -->
     <!-- ŽIVÁ SYNCHRONIZACE BODŮ VE FIRMĚ (odpojitelné: smaž tento řádek + js/cloud-sync.js) — opt-in per zakázka v Nastavení → Data; potřebuje js/ucty.js (cloudová firma) -->
     <script type="ag/lazy" data-src="js/cloud-sync.js"></script>

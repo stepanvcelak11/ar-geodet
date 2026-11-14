@@ -40,6 +40,8 @@
             'i.ag-tp-help{position:absolute;top:4px;right:4px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;',
             '  border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid var(--glass-border,rgba(255,255,255,0.14));',
             '  color:var(--text-muted,#9aa1ac);font:700 12px/1 var(--font-ui,system-ui);font-style:normal;cursor:pointer;z-index:2;}',
+            // dotyková plocha 44×44 (prst/rukavice) při zachování malého kolečka 22×22
+            'i.ag-tp-help::before,#tools-modal .tool-tile i.ag-tp-star::before{content:"";position:absolute;inset:-11px;border-radius:50%;}',
             'i.ag-tp-help:active{background:var(--accent-soft,rgba(47,158,116,0.18));color:var(--accent,#2f9e74);}',
             '#tools-modal .tool-tile i.ag-tp-star{position:absolute;top:4px;left:4px;width:24px;height:24px;display:none !important;align-items:center;justify-content:center;',
             '  border-radius:50%;background:rgba(0,0,0,0.35);border:1px solid rgba(251,191,36,0.6);color:var(--warning,#fbbf24);font-size:calc(14px * var(--ag-font-scale, 1));font-style:normal;cursor:pointer;z-index:2;}',

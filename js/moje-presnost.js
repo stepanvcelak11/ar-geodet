@@ -28,7 +28,7 @@
     function nast() { var s = null; try { s = JSON.parse(localStorage.getItem(LS) || 'null'); } catch (e) { s = null; } s = s && typeof s === 'object' ? s : {}; if (s.sdilet == null) s.sdilet = true; return s; }
     function ulozNast(s) { try { localStorage.setItem(LS, JSON.stringify(s)); } catch (e) { swallow(e, 'ls'); } }
     function vzd(a, b, c, d) {
-        try { if (typeof getDistance === 'function') return getDistance(a, b, c, d); } catch (e) { /* nic */ }
+        try { if (typeof getDistance === 'function') return getDistance(a, b, c, d); } catch (e) { self.AG && AG.swallow(e, 'moje-presnost:31'); }
         var R = 6371000, r = Math.PI / 180, x = Math.sin((c - a) * r / 2), y = Math.sin((d - b) * r / 2);
         return 2 * R * Math.asin(Math.sqrt(x * x + Math.cos(a * r) * Math.cos(c * r) * y * y));
     }
@@ -56,7 +56,7 @@
             if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
                 return navigator.userAgentData.getHighEntropyValues(['model']).then(function (v) { return hotovo(v && v.model ? v.model : modelUA()); }, function () { return hotovo(modelUA()); });
             }
-        } catch (e) { /* nic */ }
+        } catch (e) { self.AG && AG.swallow(e, 'moje-presnost:59'); }
         return Promise.resolve(hotovo(modelUA()));
     }
     function os() { var ua = String(navigator.userAgent || ''), i = /iPhone OS (\d+)_(\d+)/.exec(ua), a = /Android ([\d.]+)/.exec(ua); return i ? 'iOS ' + i[1] + '.' + i[2] : (a ? 'Android ' + a[1] : ''); }
@@ -208,7 +208,7 @@
         var f = window.openNewPointModal;
         if (typeof f === 'function' && !f._agMp) {
             var w = function () { var r = f.apply(this, arguments); setTimeout(tipNovyBod, 50); return r; };
-            w._agMp = true; try { Object.keys(f).forEach(function (k) { w[k] = f[k]; }); } catch (e) { /* nic */ }
+            w._agMp = true; try { Object.keys(f).forEach(function (k) { w[k] = f[k]; }); } catch (e) { self.AG && AG.swallow(e, 'moje-presnost:211'); }
             window.openNewPointModal = w;
         }
         sesbirejKontroly();

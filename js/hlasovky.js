@@ -133,7 +133,7 @@
                 // SAMOLÉČBA (18. 9. 2026): přehled místa (js/ag-store.js) uměl databázi založit prázdnou;
                 // chybí-li sklad, otevřít o verzi výš — upgrade ho doplní, data zůstanou.
                 if (d && !d.objectStoreNames.contains(STORE)) {
-                    var v2 = d.version + 1; try { d.close(); } catch (e) { }
+                    var v2 = d.version + 1; try { d.close(); } catch (e) { self.AG && AG.swallow(e, 'hlasovky:136'); }
                     var r2 = indexedDB.open(DB_NAME, v2);
                     r2.onupgradeneeded = function () { r2.result.createObjectStore(STORE, { keyPath: 'id' }); };
                     r2.onsuccess = function () { _db = r2.result; res(_db); };

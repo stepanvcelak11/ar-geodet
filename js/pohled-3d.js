@@ -424,7 +424,7 @@
                 var z = m.getZoom(), o = Math.max(0, Math.min(1, (13.5 - z) / 2));   // plně do z11,5, pryč od z13,5
                 cv.style.opacity = o; cv.style.visibility = o > 0 ? 'visible' : 'hidden';
                 cv.style.transform = 'translate(-50%,-50%) rotate(' + (-m.getBearing()).toFixed(1) + 'deg)';
-            } catch (e) { /* nic */ }
+            } catch (e) { self.AG && AG.swallow(e, 'pohled-3d:427'); }
         }
         // obloha se překresluje PŘI POHYBU (1× za snímek, jen když je vidět) — katalog hvězd je předpočítaný a pozadí
         // předkreslené, takže snímek stojí pár ms a hvězdy jedou s glóbem plynule (dřív poskočily až 300 ms po konci posunu)
@@ -469,10 +469,10 @@
             else {
                 highlightedPointId = p.id;
                 // stejná cesta jako z karty bodu: mapa a AR to vezmou samy (renderAR/cil-navigace)
-                try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) { /* nic */ }
-                try { if (window.AGTrasa) AGTrasa.prepocitej('3D'); } catch (e) { /* nic */ }
+                try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) { self.AG && AG.swallow(e, 'pohled-3d:472'); }
+                try { if (window.AGTrasa) AGTrasa.prepocitej('3D'); } catch (e) { self.AG && AG.swallow(e, 'pohled-3d:473'); }
             }
-            try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { /* nic */ }
+            try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { self.AG && AG.swallow(e, 'pohled-3d:475'); }
         } catch (e) { swallow(e, 'naviguj'); }
         karta(p); obnovTrasu();
         info(cilId() === p.id ? T('Navigace na {n} — běží i po zavření (mapa, AR).', { n: p.name }) : T('Navigace zrušena.'));
@@ -485,10 +485,10 @@
     function obnovTrasu() { try { if (m3 && m3.getSource('trasa')) m3.getSource('trasa').setData(trasaGeo()); } catch (e) { swallow(e, 'trasa-set'); } }
     function obnovChodniky() { /* čáry ze zdroje pm — nic k obnově */ }
     function zavri() {
-        try { if (_sleduj) { clearInterval(_sleduj); _sleduj = null; } } catch (e) { /* nic */ }
+        try { if (_sleduj) { clearInterval(_sleduj); _sleduj = null; } } catch (e) { self.AG && AG.swallow(e, 'pohled-3d:488'); }
         try { if (m3) { m3.remove(); m3 = null; } } catch (e) { swallow(e, 'remove'); }
         _vybrany = null;
-        try { document.body.classList.remove('ag-3d-open'); } catch (e) { /* nic */ }
+        try { document.body.classList.remove('ag-3d-open'); } catch (e) { self.AG && AG.swallow(e, 'pohled-3d:491'); }
         if (el) { el.style.display = 'none'; el.innerHTML = ''; }
     }
     function otevri(bod) {
@@ -506,7 +506,7 @@
             if (!document.querySelector('link[href$="css/pohled-3d.css"]')) { var lk = document.createElement('link'); lk.rel = 'stylesheet'; lk.href = 'css/pohled-3d.css'; document.head.appendChild(lk); }
             if (!el) { el = document.createElement('div'); el.id = 'ag3d'; document.body.appendChild(el); }
             el.innerHTML = html(); el.style.display = 'block';
-            try { document.body.classList.add('ag-3d-open'); } catch (e) { /* nic */ }
+            try { document.body.classList.add('ag-3d-open'); } catch (e) { self.AG && AG.swallow(e, 'pohled-3d:509'); }
             var p = (bod && typeof bod.lat === 'number') ? bod : (poloha() || (function () { try { var c = map.getCenter(); return { lat: c.lat, lng: c.lng }; } catch (e) { return { lat: 49.8, lng: 15.5 }; } })());
             m3 = new maplibregl.Map({ container: 'ag3d-mapa', style: styl(), center: [p.lng, p.lat], zoom: 17.5, pitch: st.pitch, bearing: heading(), attributionControl: false, maxPitch: 75, antialias: false });
             m3.touchZoomRotate.enableRotation(); m3.dragRotate.enable();

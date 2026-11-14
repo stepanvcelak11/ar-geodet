@@ -296,7 +296,7 @@
         body.forEach(function (b) { var e = ix[b.id]; if (e) { if (e.hidden) e.hidden = false; ['cat', 'type', 'druh', 'vyska', 'ku', 'znacka', 'popis', 'zdroj', 'vrstva', 'nazevBodu', 'rawData'].forEach(function (k) { if (b[k] != null) e[k] = b[k]; }); return; } arPoints.push(b); n++; });
         try { if (typeof initARMarkers === 'function') initARMarkers(); } catch (e) { swallow(e, 'ar'); }
         try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { swallow(e, 'mapa'); }
-        try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) { /* nic */ }
+        try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) { self.AG && AG.swallow(e, 'body-svet:299'); }
         return n;
     }
     function obnov(vynutit) {
@@ -308,13 +308,13 @@
         _bezi = true; var stred = { lat: me.lat, lng: me.lng };
         return stahni(z, stred.lat, stred.lng).then(function (body) {
             _posl = stred; _kod = z.kod; _pocet = body.length; var n = vloz(body);
-            if (n) { try { (window.quickToast || window.agInfo)(hlaska(z, body.length)); } catch (e) { /* nic */ } }
+            if (n) { try { (window.quickToast || window.agInfo)(hlaska(z, body.length)); } catch (e) { self.AG && AG.swallow(e, 'body-svet:311'); } }
             else if (z.kod === 'DE' && !deOblasti(stred.lat, stred.lng).length && _deMimo !== true) {
                 _deMimo = true;   // jednou za běh, ne při každém posunu o 800 m
-                try { (window.quickToast || window.agInfo)(T('Tady spolková země úřední body jako data nezveřejňuje. V Německu je appka stáhne jen v Berlíně, Meklenbursku-Předním Pomořansku a Bádensku-Württembersku.')); } catch (e) { /* nic */ }
+                try { (window.quickToast || window.agInfo)(T('Tady spolková země úřední body jako data nezveřejňuje. V Německu je appka stáhne jen v Berlíně, Meklenbursku-Předním Pomořansku a Bádensku-Württembersku.')); } catch (e) { self.AG && AG.swallow(e, 'body-svet:314'); }
             }
             return n;
-        }).catch(function (e) { _posl = stred; _kod = z.kod; try { (window.quickToast || window.agInfo)(T('Úřední body ({z}) se nepodařilo stáhnout: {e}', { z: z.zdroj, e: ((e && e.message) || e) })); } catch (e2) { /* nic */ } return 0; }).finally(function () { _bezi = false; });
+        }).catch(function (e) { _posl = stred; _kod = z.kod; try { (window.quickToast || window.agInfo)(T('Úřední body ({z}) se nepodařilo stáhnout: {e}', { z: z.zdroj, e: ((e && e.message) || e) })); } catch (e2) { self.AG && AG.swallow(e2, 'body-svet:317'); } return 0; }).finally(function () { _bezi = false; });
     }
     function hlaska(z, n) {
         if (z.kod === 'CH') return T('Švýcarsko: {n} bodů swisstopo v okolí (LFP1, LFP2, HFP). Výšky LN02.', { n: n });

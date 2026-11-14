@@ -224,6 +224,7 @@ const ASSETS_TO_CACHE = [
     './js/welcome-card.js',
     './js/qc-engine.js',
     './js/ucty.js',
+    './js/ucty-admin-vstup.js',
     './js/ucty-admin.js',
     './js/cloud-sync.js',
     './js/zavady.js',

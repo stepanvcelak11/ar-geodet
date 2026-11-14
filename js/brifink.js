@@ -48,7 +48,7 @@
     var DAYS_CS = ['neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota'];
     function fmtDay(d) {
         // den slovy podle jazyka appky (18. 9. 2026 vecer: v EN zustavalo „pátek 18. 9. · job")
-        try { if (window.AGJazyk && AGJazyk.get() !== 'cs') return d.toLocaleDateString(AGJazyk.locale(), { weekday: 'long' }) + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '.'; } catch (e) { /* nic */ }
+        try { if (window.AGJazyk && AGJazyk.get() !== 'cs') return d.toLocaleDateString(AGJazyk.locale(), { weekday: 'long' }) + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '.'; } catch (e) { self.AG && AG.swallow(e, 'brifink:51'); }
         return DAYS_CS[d.getDay()] + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '.';
     }
     function fmtHM(iso) { var m = /T(\d{2}):(\d{2})/.exec(String(iso || '')); return m ? m[1] + ':' + m[2] : ''; }

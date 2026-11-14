@@ -128,7 +128,7 @@
             var btn = e.target.closest && e.target.closest('button[data-a]'); if (!btn) return;
             var a = btn.getAttribute('data-a');
             zavri();
-            if (a === 'nikdy') { var s = st(); s.vyp = true; ulozSt(s); try { if (typeof quickToast === 'function') quickToast(t('Nabídka vypnutá. Opravit GPS podle bodu jde dál z karty bodu.')); } catch (x) { /* nic */ } }
+            if (a === 'nikdy') { var s = st(); s.vyp = true; ulozSt(s); try { if (typeof quickToast === 'function') quickToast(t('Nabídka vypnutá. Opravit GPS podle bodu jde dál z karty bodu.')); } catch (x) { self.AG && AG.swallow(x, 'kotva-nabidka:131'); } }
             else if (a === 'ano') {
                 var go = function () { try { if (typeof window.agRefCalibrateFromPoint === 'function') window.agRefCalibrateFromPoint(b.p); } catch (x) { swallow(x, 'oprava'); } };
                 if (typeof window.agRefCalibrateFromPoint === 'function' || !window.AGLazy) go(); else AGLazy.need('js/ref-calibration.js', go);
@@ -153,7 +153,7 @@
         r.querySelector('input').addEventListener('change', function (ev) { var x = st(); x.vyp = !ev.target.checked; ulozSt(x); });
     }
     try { ui(); } catch (e) { swallow(e, 'ui'); }
-    document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"]')) setTimeout(ui, 80); } catch (e) { /* nic */ } }, true);
+    document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"]')) setTimeout(ui, 80); } catch (e) { self.AG && AG.swallow(e, 'kotva-nabidka:156'); } }, true);
     document.addEventListener('ag:nastaveni-strana', function () { try { ui(); } catch (e) { swallow(e, 'ui'); } });
 
     setInterval(function () { if (document.visibilityState === 'visible') { try { tik(); } catch (e) { swallow(e, 'tik'); } } }, 4000);

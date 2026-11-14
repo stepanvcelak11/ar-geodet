@@ -2197,69 +2197,14 @@
         openModal('firmy');
     }
 
-    function syncMenuBtn() {
-        var u = U(); if (!u) return;
-        var f = u.getFirm();
-        var btn = document.getElementById('agfa-switch-btn');
-        var adm = document.getElementById('agfa-admin-btn');
-        var scroll = document.querySelector('#side-menu .menu-scroll');
-        if (!f) { if (btn) btn.remove(); if (adm) adm.remove(); return; }
-        if (!scroll) return;
-        var hr = scroll.querySelector('hr');
-        if (!btn) {
-            btn = document.createElement('button');
-            btn.id = 'agfa-switch-btn';
-            btn.className = 'menu-btn';
-            btn.innerHTML = '<svg class="icon"><use href="#i-users"/></svg> Přepnout uživatele / zamknout';
-            btn.onclick = function () {
-                try { if (typeof window.toggleMenu === 'function') toggleMenu(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onclick'); }
-                var uu = U(); if (uu) uu.lock();
-            };
-            scroll.insertBefore(btn, hr || null);
-        }
-        // admin má administraci po ruce (nemusí ji hledat v Nástrojích)
-        if (u.isAdmin()) {
-            if (!adm) {
-                adm = document.createElement('button');
-                adm.id = 'agfa-admin-btn';
-                adm.className = 'menu-btn';
-                adm.innerHTML = '<svg class="icon"><use href="#i-users"/></svg> Administrace firmy (admin)';
-                adm.setAttribute('data-tool', 'ucty-firma');
-                adm.onclick = function () {
-                    try { if (typeof window.toggleMenu === 'function') toggleMenu(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:onclick'); }
-                    // ⚠ Vstup MIMO mřížku nástrojů: odchyt kliku v js/pro-zamky.js
-                    //   hledá dlaždici (data-tool / .tool-tile), takže sem nedosáhne
-                    //   a Pro nástroj by šel v Základu otevřít bez klíče.
-                    if (window.AGProZamky && AGProZamky.zamceno('ucty-firma')) { AGProZamky.karta('ucty-firma'); return; }
-                    openEntry();
-                };
-                scroll.insertBefore(adm, btn);
-            }
-        } else if (adm) adm.remove();
-    }
-
     function init() {
         if (!U()) return;   // jádro chybí -> nic neinjektovat
-        var reg = function () {
-            if (typeof window.agRegisterFieldTool !== 'function') return;
+        // Dlaždici, tlačítka v menu a skrývání podle oprávnění obstarává od 14. 11. 2026
+        // malý js/ucty-admin-vstup.js — tenhle modul se stahuje až při otevření administrace.
+        // Přeregistrace pod stejným id jen přesměruje dlaždici rovnou na openEntry.
+        if (typeof window.agRegisterFieldTool === 'function' && !(window.AGUctyAdminVstup)) {
             window.agRegisterFieldTool({ id: 'ucty-firma', label: (SK().n === 'parta' ? 'Parta a účty' : 'Firma a účty'), icon: ICON, onClick: openEntry, order: 90, cat: 'Pomůcky' });
-        };
-        reg();
-        // student-start: po změně „Kdo jsi" se dlaždice přejmenuje (Firma ↔ Parta a účty)
-        window.addEventListener('ag:profil-osoby', reg);
-        syncMenuBtn();
-        // BATERIE: jen DOM v bočním menu — přes AG.uiInterval se na pozadí uspí
-        (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(syncMenuBtn, 3000);
-        // dlaždici „Firma a účty" skrýt zaměstnancům (nemají v ní co dělat).
-        // POZOR: musí umět i UKÁZAT — dřív jen skrývala, takže když se vyhodnotila
-        // před přihlášením (zámek při startu: firma je, uživatel ještě ne), dlaždice
-        // zmizela i adminovi a vrátila se až s překreslením mřížky Nástrojů.
-        // PŘEPNUTÍ FIRMY: administrace patří JEDNÉ firmě — po přepnutí v ní visela
-        // celá předchozí (zelený pruh, seznam uživatelů, oprávnění, docházka), jen
-        // překrytá přihlašovací obrazovkou. Kdo se pak přihlásil do nové firmy,
-        // koukal na účty té staré a vypadalo to, že přepnutí nefunguje a že se
-        // nedá dostat zpět. Panel proto zavřeme a příště se postaví od nuly —
-        // renderNav() si sekci i oprávnění spočítá znovu podle nové firmy.
+        }
         window.addEventListener('agucty:firmswitch', function () {
             try {
                 var m = document.getElementById('agfa-modal');
@@ -2275,18 +2220,6 @@
         // obrazovkou, přečte si kdokoli, kdo telefon vezme do ruky.
         window.addEventListener('agucty:logout', function () {
             try { var m = document.getElementById('agfa-modal'); if (m) m.style.display = 'none'; } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:init'); }
-        });
-        window.addEventListener('agucty:perms', function () {
-            try {
-                var u = U(); if (!u) return;
-                var tile = document.querySelector('#tools-modal .tool-tile[data-tool="ucty-firma"]');
-                if (!tile) return;
-                if (!u.getFirm()) { tile.style.display = ''; return; }   // bez firmy = vstup pro založení
-                var usr = u.currentUser ? u.currentUser() : null;
-                // bez přihlášeného uživatele nerozhodovat (za zámkem stejně nejde otevřít)
-                var show = !usr || u.isAdmin() || u.can('x.dashboard');
-                tile.style.display = show ? '' : 'none';
-            } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty-admin:init'); }
         });
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 400); });

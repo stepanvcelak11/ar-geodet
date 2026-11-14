@@ -117,7 +117,7 @@
     }
     function text() {
         var L = [t('Terénní zkouška telefonu') + ' — ' + new Date().toLocaleString('cs-CZ')];
-        try { L.push(String(navigator.userAgent || '').slice(0, 140)); } catch (e) { /* nic */ }
+        try { L.push(String(navigator.userAgent || '').slice(0, 140)); } catch (e) { self.AG && AG.swallow(e, 'terenni-zkouska:120'); }
         if (V.gps) L.push('GPS 60 s: 95 % ' + cz(V.gps.r95) + ' m, max ' + cz(V.gps.max) + ' m, hlášeno ±' + cz(V.gps.acc || 0) + ' m, ' + V.gps.n + ' fixů');
         if (V.kompas) L.push(V.kompas.preskoceno ? 'Kompas × Slunce: přeskočeno' : 'Kompas × Slunce: ' + cz(V.kompas.dif, 0) + '° (Slunce az ' + cz(V.kompas.az, 0) + '°, výška ' + cz(V.kompas.el, 0) + '°)');
         if (V.fov) L.push('FOV: ' + cz(V.fov.h) + '° ' + (V.fov.kal ? 'změřený' : 'výchozí'));

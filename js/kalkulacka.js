@@ -1260,7 +1260,7 @@ function decoratePointItem(item, pt, preloadedDoc) {
         const out = [];
         for (const pt of persistentCustomPoints) {
             const o = Object.assign({}, pt);
-            try { const doc = await loadPointDoc(pt.id); _normalizeDoc(doc); if (doc && ((doc.photos && doc.photos.length) || doc.note)) o.doc = doc; } catch (e) {}
+            try { const doc = await loadPointDoc(pt.id); _normalizeDoc(doc); if (doc && ((doc.photos && doc.photos.length) || doc.note)) o.doc = doc; } catch (e) { self.AG && AG.swallow(e, 'kalkulacka:1263'); }
             out.push(o);
         }
         // ⚠ #9 TICHÁ PAST: tenhle exportPoints PŘEBÍJÍ ten z js/logika.js (načítá se
@@ -1279,7 +1279,7 @@ function decoratePointItem(item, pt, preloadedDoc) {
         const a = document.createElement('a');
         a.href = url; a.download = nazev;
         document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) {} }, 1500);
+        setTimeout(function () { try { URL.revokeObjectURL(url); } catch (e) { self.AG && AG.swallow(e, 'kalkulacka:1282'); } }, 1500);
     };
 })();
 
@@ -1305,7 +1305,7 @@ function decoratePointItem(item, pt, preloadedDoc) {
         // znovu pres window.deleteCustomPoint(id, true), takze zahozeny priznak
         // = nekonecna smycka dialogu a bod se nesmaze vubec.
         const ret = _origDel.apply(this, arguments);
-        if (typeof persistentCustomPoints !== 'undefined' && persistentCustomPoints.length < before) { try { deletePointDoc(id); } catch (e) {} }
+        if (typeof persistentCustomPoints !== 'undefined' && persistentCustomPoints.length < before) { try { deletePointDoc(id); } catch (e) { self.AG && AG.swallow(e, 'kalkulacka:1308'); } }
         return ret;
     };
     // ⚠⚠ #27 PRENOS PRIZNAKU OBALENI. Tenhle obal je v retezu NEJZEVNEJSI (nacita se

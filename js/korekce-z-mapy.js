@@ -56,7 +56,7 @@
     function shift() { try { return (window.agRefShift && typeof window.agRefShift === 'object') ? window.agRefShift : null; } catch (e) { return null; } }
     function zivyAktivni() { var s = shift(); return !!(s && s.on && s.live && isFinite(s.dlat) && isFinite(s.dlng)); }
     function rawGps() {
-        try { var mp = window.AGManualPos; if (mp && mp.active) return null; } catch (e0) { /* nic */ }   // statická poloha z mapy = žádná GPS
+        try { var mp = window.AGManualPos; if (mp && mp.active) return null; } catch (e0) { self.AG && AG.swallow(e0, 'korekce-z-mapy:59'); }   // statická poloha z mapy = žádná GPS
         // 1) průměr GPS (gpsAvgResult z logika.js) — když běží živý posun, je už posunutý → odečíst
         try {
             if (typeof gpsAvgResult !== 'undefined' && gpsAvgResult && !gpsAvgResult.manual && isFinite(gpsAvgResult.lat) && (gpsAvgResult.n || 0) >= 3
@@ -91,7 +91,7 @@
         window.agRefShift = s;
         try { localStorage.setItem('agRefShift', JSON.stringify(s)); } catch (e) { swallow(e, 'save'); }
         try { if (window.agRefShiftWatch) window.agRefShiftWatch(); } catch (e) { swallow(e, 'watch'); }
-        try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) { /* nic */ }
+        try { if (typeof updateInfoPanel === 'function') updateInfoPanel(); } catch (e) { self.AG && AG.swallow(e, 'korekce-z-mapy:94'); }
     }
     function vypni() {
         var s = shift(); if (!s) return;
@@ -111,7 +111,7 @@
                 var d = Math.hypot((rawLng + s.dlng - s.lng) * m.lng, (rawLat + s.dlat - s.lat) * m.lat);
                 if (d > PLATI_M * 1.5) return null;   // 150 m = tvrdý strop (100 m hlásí pilulka)
             }
-        } catch (e) { /* nic */ }
+        } catch (e) { self.AG && AG.swallow(e, 'korekce-z-mapy:114'); }
         return { dlat: s.dlat, dlng: s.dlng };
     }
     // (window.agZivyPosun pro logika.js definuje js/ref-calibration.js — ten je načtený vždy, tenhle nástroj ne)
@@ -119,7 +119,7 @@
     // ---- klepnutí do mapy ------------------------------------------------------------------
     function pickOnMap() {
         var m = theMap();
-        var vm = null; try { vm = viewMode; } catch (e) { /* nic */ }
+        var vm = null; try { vm = viewMode; } catch (e) { self.AG && AG.swallow(e, 'korekce-z-mapy:122'); }
         if (!m) { alertBox('Mapa', 'Mapa zatím neběží — přepni na mapu.'); return; }
         if (vm === 'ar') { alertBox('Mapa', 'Přepni na mapu nebo dělené zobrazení, pak klepni, kde stojíš.'); return; }
         if (!rawGps()) { alertBox('Není GPS', 'Nemám čerstvou polohu z GPS — bez ní není co opravovat. Je-li zapnutá statická „Poloha z mapy", vypni ji.'); return; }

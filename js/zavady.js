@@ -111,7 +111,7 @@
                 // SAMOLÉČBA (18. 9. 2026): přehled místa (js/ag-store.js) uměl databázi založit prázdnou;
                 // chybí-li sklad, otevřít o verzi výš — upgrade ho doplní, fotky zůstanou.
                 if (d && !d.objectStoreNames.contains(PSTORE)) {
-                    var v2 = d.version + 1; try { d.close(); } catch (e) { }
+                    var v2 = d.version + 1; try { d.close(); } catch (e) { self.AG && AG.swallow(e, 'zavady:114'); }
                     var r2 = indexedDB.open(PDB, v2);
                     r2.onupgradeneeded = function () { try { r2.result.createObjectStore(PSTORE); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'zavady:onupgradeneeded'); } };
                     r2.onsuccess = function () { res(r2.result); };
@@ -375,7 +375,7 @@
             if (typeof arPoints !== 'undefined' && Array.isArray(arPoints)) {
                 return arPoints.filter(function (p) { return p && !p.hidden && p.lat != null && p.lng != null; });
             }
-        } catch (e) {}
+        } catch (e) { self.AG && AG.swallow(e, 'zavady:378'); }
         return [];
     }
     function ensurePtModal() {
@@ -606,7 +606,7 @@
     // ==== AR ==========================================================================
     function originLL() {
         if (window.AGPose && typeof window.AGPose.origin === 'function' && haveUser()) {
-            try { var o = window.AGPose.origin(userLat, userLng); if (o && o[0] != null) return { lat: o[0], lng: o[1] }; } catch (e) {}
+            try { var o = window.AGPose.origin(userLat, userLng); if (o && o[0] != null) return { lat: o[0], lng: o[1] }; } catch (e) { self.AG && AG.swallow(e, 'zavady:609'); }
         }
         return haveUser() ? { lat: userLat, lng: userLng } : null;
     }
@@ -663,8 +663,8 @@
     }
     function startAr() { if (ensureArSvg() && !_arRAF) _arRAF = requestAnimationFrame(arLoop); }
     function stopAr() {
-        if (_arRAF) { try { cancelAnimationFrame(_arRAF); } catch (e) {} _arRAF = null; }
-        try { if (_arSvg && _arSvg.childNodes.length) _arSvg.innerHTML = ''; } catch (e) {}
+        if (_arRAF) { try { cancelAnimationFrame(_arRAF); } catch (e) { self.AG && AG.swallow(e, 'zavady:666'); } _arRAF = null; }
+        try { if (_arSvg && _arSvg.childNodes.length) _arSvg.innerHTML = ''; } catch (e) { self.AG && AG.swallow(e, 'zavady:667'); }
         _lastH = null;
     }
     // BATERIE: smyčka smí běžet jen když je co kreslit A je vidět AR. Dřív ji tick()
@@ -717,7 +717,7 @@
             return z.foto ? photoGet(photoKey(z)).catch(function () { return null; }) : Promise.resolve(null);
         })).then(function (fotky) {
             var projName = _pid;
-            try { if (typeof projects !== 'undefined' && projects) { var p = projects.find(function (x) { return x.id === _pid; }); if (p && p.name) projName = p.name; } } catch (e) {}
+            try { if (typeof projects !== 'undefined' && projects) { var p = projects.find(function (x) { return x.id === _pid; }); if (p && p.name) projName = p.name; } } catch (e) { self.AG && AG.swallow(e, 'zavady:720'); }
             var h = '<!doctype html><html lang="cs"><head><meta charset="utf-8"><title>' + T('Protokol závad') + '</title><style>'
                 + 'body{font:13px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;color:#111;margin:24px;}'
                 + 'h1{font-size:calc(19px * var(--ag-font-scale, 1));margin:0 0 2px;} .sub{color:#555;margin:0 0 18px;font-size:calc(12px * var(--ag-font-scale, 1));}'
@@ -766,7 +766,7 @@
             clear();
             timer = setTimeout(function () {
                 fired = true;
-                if (navigator.vibrate) { try { navigator.vibrate(30); } catch (e) {} }
+                if (navigator.vibrate) { try { navigator.vibrate(30); } catch (e) { self.AG && AG.swallow(e, 'zavady:769'); } }
                 openForm();
             }, 550);
         });
@@ -788,7 +788,7 @@
             // mapová vrstva po startu mapy
             if (!_mapGroup && getMap()) drawMap();
             syncAr();
-        } catch (e) {}
+        } catch (e) { self.AG && AG.swallow(e, 'zavady:791'); }
     }
     function openTool() { openList(); }
 

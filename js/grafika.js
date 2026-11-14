@@ -864,11 +864,11 @@ function TT(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } 
                 const sig = _mkSig(pt), key = _mkKey(pt);
                 const have = _mk.get(key);
                 if (have && have.sig === sig) {
-                    if (have.lat !== pt.lat || have.lng !== pt.lng) { try { have.m.setLatLng([pt.lat, pt.lng]); } catch (e) { } have.lat = pt.lat; have.lng = pt.lng; }
+                    if (have.lat !== pt.lat || have.lng !== pt.lng) { try { have.m.setLatLng([pt.lat, pt.lng]); } catch (e) { self.AG && AG.swallow(e, 'grafika:867'); } have.lat = pt.lat; have.lng = pt.lng; }
                     if (_mkKeep) _mkKeep.add(key);
                     return;
                 }
-                if (have) { try { markersGroup.removeLayer(have.m); } catch (e) { } _mk.delete(key); }
+                if (have) { try { markersGroup.removeLayer(have.m); } catch (e) { self.AG && AG.swallow(e, 'grafika:871'); } _mk.delete(key); }
                 let col = agBarvaBodu(pt);
                 const stakedBadge = (window.isStaked && isStaked(pt.id)) ? `<div style="position:absolute; top:-7px; right:-7px; width:13px; height:13px; border-radius:50%; background:#10b981; border:1.5px solid #fff; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>` : '';
                 // LOVCI BODŮ (js/lovci-bodu.js): objevený úřední bod má zlatou hvězdičku — na první pohled, co ještě nemáš
@@ -884,7 +884,7 @@ function TT(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } 
         // vypadl z dosahu, filtr). Zavolá se až po poslední dávce, ne po každé.
         function _mkUklid(keep) {
             let n = 0;
-            _mk.forEach((v, id) => { if (!keep.has(id)) { try { markersGroup.removeLayer(v.m); } catch (e) { } _mk.delete(id); n++; } });
+            _mk.forEach((v, id) => { if (!keep.has(id)) { try { markersGroup.removeLayer(v.m); } catch (e) { self.AG && AG.swallow(e, 'grafika:887'); } _mk.delete(id); n++; } });
             if (n) window._labelsDirty = true;
         }
 
@@ -1100,7 +1100,7 @@ function TT(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } 
             if (sd) sd.querySelectorAll('.st-seg-b').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-des') === dd); });
         }
         function syncSettingsControls() {
-            try { var sd0 = document.getElementById('seg-des'), dd0 = String(window.agDes ? agDes() : 2); if (sd0) sd0.querySelectorAll('.st-seg-b').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-des') === dd0); }); } catch (e) { /* nic */ }
+            try { var sd0 = document.getElementById('seg-des'), dd0 = String(window.agDes ? agDes() : 2); if (sd0) sd0.querySelectorAll('.st-seg-b').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-des') === dd0); }); } catch (e) { self.AG && AG.swallow(e, 'grafika:1103'); }
             var sm = document.getElementById('settings-modal'); if (!sm) return;
             var sel = document.getElementById('v-mode'); var m = (sel && sel.value) ? sel.value : 'dark';
             var seg = document.getElementById('seg-mode');
@@ -1966,7 +1966,7 @@ function TT(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } 
             document.getElementById('custom-modal-overlay').style.display = 'flex';
         }
         function openNewPointModal() { editingCustomPointId = null; pendingPointAccuracy = null; { const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none'; } { const _h = document.getElementById('custom-create-helpers'); if (_h) _h.style.display = ''; } document.getElementById('custom-modal-title').innerText = "Vložit bod"; document.getElementById('custom-name').value = ''; document.getElementById('custom-y').value = ''; document.getElementById('custom-x').value = ''; { const _z = document.getElementById('custom-z'); if (_z) _z.value = ''; } resetNewPointExtras(null); agSetupPointForm(null, true); document.getElementById('custom-modal-overlay').style.display = 'flex'; window._agPointOrigin = null; try { agAutoGpsStart(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'grafika:openNewPointModal'); } }
-        function closeCustomModal() { document.getElementById('custom-modal-overlay').style.display = 'none'; try { agAutoGpsStop(); } catch (e) { /* nic */ } fixAppLayout(); }
+        function closeCustomModal() { document.getElementById('custom-modal-overlay').style.display = 'none'; try { agAutoGpsStop(); } catch (e) { self.AG && AG.swallow(e, 'grafika:1969'); } fixAppLayout(); }
         function closeBottomSheet() { document.getElementById('bottom-sheet').classList.remove('open'); arPoints.forEach(p => { if (p.element) p.element.classList.remove('active-reading'); }); activePointIdForModal = null; }
 
         function toggleHighlight() { if (highlightedPointId === activePointIdForModal) { highlightedPointId = null; } else { highlightedPointId = activePointIdForModal; } closeBottomSheet(); arPoints.forEach(p => { if (p.element) { if (p.id === highlightedPointId) { p.element.classList.add('highlighted'); } else { p.element.classList.remove('highlighted'); } } }); if (!highlightedPointId) { document.getElementById('ar-hud').style.display = 'none'; } updateNavGlow(); }
@@ -3184,7 +3184,7 @@ function TT(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } 
         var mc = document.querySelector('meta[name="theme-color"]'); if (mc) mc.setAttribute('content', light ? '#f4f5f7' : '#0f1216');
         // krytka horní safe-area v Nastavení (viz css/style.css u #ag-safe-top): barvu psát PŘÍMO,
         // WebKit vrstvu s position:fixed uvnitř transformovaného rodiče po změně třídy předka nepřekreslí
-        try { var st = document.getElementById('ag-safe-top'); if (st) { st.style.background = light ? 'rgb(247,248,250)' : 'rgb(14,18,24)'; st.style.display = 'none'; void st.offsetHeight; st.style.display = ''; } } catch (e) { /* nic */ } }
+        try { var st = document.getElementById('ag-safe-top'); if (st) { st.style.background = light ? 'rgb(247,248,250)' : 'rgb(14,18,24)'; st.style.display = 'none'; void st.offsetHeight; st.style.display = ''; } } catch (e) { self.AG && AG.swallow(e, 'grafika:3187'); } }
 
         // ===== DUHOVY OKRAJ: zari po celou navigaci na bod, zesili a zrychli pri dohledavani (< 2 m) =====
         let _egEl = null;

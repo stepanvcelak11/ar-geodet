@@ -326,7 +326,7 @@
         if (pt.kod) h += '<span class="ag-kb-chip kod">' + esc(pt.kod) + '</span>';
         if (pt.list && (pt.cat === 'TB' || pt.cat === 'ZHB')) h += '<span class="ag-kb-chip kod" title="triangulační list">TL ' + esc(pt.list) + '</span>';
         if (pt.cat === 'TIHA' && pt.nazevBodu) h += '<span class="ag-kb-chip kod">' + esc(pt.nazevBodu) + '</span>';
-        try { if (typeof agZHodinek === 'function' && agZHodinek(pt)) h += '<span class="ag-kb-chip"><svg class="icon"><use href="#i-watch"/></svg> z hodinek</span>'; } catch (e) { }
+        try { if (typeof agZHodinek === 'function' && agZHodinek(pt)) h += '<span class="ag-kb-chip"><svg class="icon"><use href="#i-watch"/></svg> z hodinek</span>'; } catch (e) { self.AG && AG.swallow(e, 'karta-bodu-plus:329'); }
         sub.innerHTML = h;
         sub.setAttribute('data-kb', String(pt.id));
     }
@@ -395,7 +395,7 @@
         tile('', 'Výška Bpv', '<b>' + (z != null ? nD(z) + ' m' : '—') + '</b>' + (zZdroj ? '<small class="t" style="display:block;opacity:.75;">' + zZdroj + '</small>' : ''));
         tile('', 'Ode mě', '<b id="ag-kb-dist">— m</b>');
         var kdy = (pt.prov && pt.prov.ts) || pt.mts || null, kdyS = null;
-        if (kdy) { try { kdyS = new Date(kdy).toLocaleString((window.AGJazyk && AGJazyk.locale) ? AGJazyk.locale() : 'cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { } }
+        if (kdy) { try { kdyS = new Date(kdy).toLocaleString((window.AGJazyk && AGJazyk.locale) ? AGJazyk.locale() : 'cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { self.AG && AG.swallow(e, 'karta-bodu-plus:398'); } }
         var ZDROJ = { 'gps-avg': 'průměr GPS', gps: 'GPS', import: 'import ze souboru', firma: 'z firmy', foto: 'z fotky', map: 'z mapy', resekce: 'resekce', protinani: 'protínání', argeo: 'přenos zakázky', watch: 'hodinky', ruc: 'ručně', katastr: 'přichyceno k lomu parcely (katastr)', vykres: 'přichyceno k bodu výkresu', 'mapa-budova': 'přichyceno k rohu budovy (mapa)' };
         var o = pt.prov && pt.prov.origin;
         var odkud = o ? (ZDROJ[o] ? T(ZDROJ[o]) : o) : (pt.type !== 'custom' ? T('bodové pole ČÚZK') : null);
@@ -418,7 +418,7 @@
         if (z != null) { var dup = body.querySelectorAll('.geo-highlight .geo-data-row'); for (var d = 0; d < dup.length; d++) { var dl = dup[d].querySelector('.geo-label'); if (dl && /^Nadmořská/.test(dl.textContent || '')) dup[d].remove(); } }
         // když v rámečku (stabilizace, kód…) po tom úklidu nic nezbylo, zůstával prázdný
         // modrý proužek pod náčrtem (15. 9. 2026) → schovat
-        try { var gh = body.querySelector('.geo-highlight'); if (gh && !(gh.textContent || '').trim()) gh.style.display = 'none'; } catch (e) { }
+        try { var gh = body.querySelector('.geo-highlight'); if (gh && !(gh.textContent || '').trim()) gh.style.display = 'none'; } catch (e) { self.AG && AG.swallow(e, 'karta-bodu-plus:421'); }
         var box = document.createElement('div'); box.id = 'ag-kb-bento'; box.className = 'ag-kb-bento';
         box.innerHTML = t.join('');
         (dev || body.firstChild).insertAdjacentElement('afterend', box);
@@ -463,7 +463,7 @@
             var p = pt.rawData; if (!p) return null;
             if (p.GEODETICKE_UDAJE && /^http/.test(String(p.GEODETICKE_UDAJE))) return String(p.GEODETICKE_UDAJE);
             for (var k in p) if (typeof p[k] === 'string' && /^http/.test(p[k])) return p[k];
-        } catch (e) { }
+        } catch (e) { self.AG && AG.swallow(e, 'karta-bodu-plus:466'); }
         return null;
     }
     function omerneHtml(sb) {
@@ -473,7 +473,7 @@
         var old = document.getElementById('ag-kb-sk'); if (old) old.remove();
         var oldO = document.getElementById('ag-kb-om'); if (oldO) oldO.remove();
         var oldA = document.getElementById('ag-kb-app'); if (oldA) oldA.remove();
-        if (_mapa) { try { _mapa.remove(); } catch (e) { } _mapa = null; }
+        if (_mapa) { try { _mapa.remove(); } catch (e) { self.AG && AG.swallow(e, 'karta-bodu-plus:476'); } _mapa = null; }
         var sb = sousede(pt);
         _nacrtSeq++;
         // ÚŘEDNÍ BOD S ODKAZEM NA GEODETICKÉ ÚDAJE → oficiální místopisný náčrt ČÚZK
@@ -496,7 +496,7 @@
         try {
             var all = JSON.parse(localStorage.getItem(NACRT_LS) || '{}'), r = all[link];
             if (r && r.ts && Date.now() - r.ts < NACRT_TTL && Array.isArray(r.img)) return r;
-        } catch (e) { }
+        } catch (e) { self.AG && AG.swallow(e, 'karta-bodu-plus:499'); }
         return null;
     }
     function nacrtCachePut(link, r) {
@@ -506,7 +506,7 @@
             var keys = Object.keys(all);
             if (keys.length > 400) { keys.sort(function (a, b) { return (all[a].ts || 0) - (all[b].ts || 0); }); keys.slice(0, keys.length - 300).forEach(function (k) { delete all[k]; }); }
             localStorage.setItem(NACRT_LS, JSON.stringify(all));
-        } catch (e) { }
+        } catch (e) { self.AG && AG.swallow(e, 'karta-bodu-plus:509'); }
     }
     function apiBase() {
         var b = '';
@@ -671,7 +671,7 @@
         L.circleMarker([pt.lat, pt.lng], { radius: 12, color: '#3fbc8c', weight: 1, opacity: .5, fill: false, interactive: false }).addTo(m);
         L.circleMarker([pt.lat, pt.lng], { radius: 6.5, color: '#0b0f15', weight: 1.5, fillColor: '#3fbc8c', fillOpacity: 1, interactive: false }).addTo(m);
         lab([pt.lat, pt.lng], String(pt.name || ''), 'ja', 9, 22);
-        try { L.control.scale({ imperial: false, position: 'bottomleft', maxWidth: 90 }).addTo(m); } catch (e) { }
+        try { L.control.scale({ imperial: false, position: 'bottomleft', maxWidth: 90 }).addTo(m); } catch (e) { self.AG && AG.swallow(e, 'karta-bodu-plus:674'); }
         function usad() {
             try {
                 // karta zavřená dřív, než doběhla animace → mapka už v DOM není (jinak
@@ -775,5 +775,5 @@
     init();
     window.AGKartaBoduPlus = { render: render, refresh: function () { if (_pt) render(_pt); } };
     // karta uz muze byt otevrena (shim ji otevrel driv, nez tenhle modul dojel)
-    try { var bs = document.getElementById('bottom-sheet'); if (bs && bs.classList.contains('open') && window.__agKbCekaBod) render(window.__agKbCekaBod); } catch (e) { }
+    try { var bs = document.getElementById('bottom-sheet'); if (bs && bs.classList.contains('open') && window.__agKbCekaBod) render(window.__agKbCekaBod); } catch (e) { self.AG && AG.swallow(e, 'karta-bodu-plus:778'); }
 })();

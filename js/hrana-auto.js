@@ -97,7 +97,7 @@
         window.agRefShift = sh;
         try { localStorage.setItem('agRefShift', JSON.stringify(sh)); } catch (e) { swallow(e, 'saveShift'); }
         try { if (window.agRefShiftWatch) window.agRefShiftWatch(); } catch (e) { swallow(e, 'watch'); }
-        try { if (typeof window.agInfo === 'function') window.agInfo('Korekce GPS podle hrany: ' + fmt(nav.posun) + ' m kolmo (' + nav.popis + ', ' + nav.delka + ' m souběžně). Přičítá se k novým bodům; pilulka nahoře.'); } catch (e) { /* nic */ }
+        try { if (typeof window.agInfo === 'function') window.agInfo('Korekce GPS podle hrany: ' + fmt(nav.posun) + ' m kolmo (' + nav.popis + ', ' + nav.delka + ' m souběžně). Přičítá se k novým bodům; pilulka nahoře.'); } catch (e) { self.AG && AG.swallow(e, 'hrana-auto:100'); }
         stopa = [];
     }
     function tik() {
@@ -134,7 +134,7 @@
     }
     function start() {
         try { ui(); } catch (e) { swallow(e, 'ui'); }
-        document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"]')) setTimeout(ui, 50); } catch (e) { /* nic */ } }, true);
+        document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"]')) setTimeout(ui, 50); } catch (e) { self.AG && AG.swallow(e, 'hrana-auto:137'); } }, true);
         if (!_tik) _tik = setInterval(tik, 1000);
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();

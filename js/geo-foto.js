@@ -74,7 +74,7 @@
     function fmtT(ts) { try { return new Date(ts).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
     function fmtDT(ts) { var d = new Date(ts); return d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear() + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
     var DAYS_CS = ['neděle', 'pondělí', 'úterý', 'středa', 'čtvrtek', 'pátek', 'sobota'];
-    function fmtDay(ts) { var d = new Date(ts); try { if (window.AGJazyk && AGJazyk.get() !== 'cs') return d.toLocaleDateString(AGJazyk.locale(), { weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { /* nic */ } return DAYS_CS[d.getDay()] + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear(); }
+    function fmtDay(ts) { var d = new Date(ts); try { if (window.AGJazyk && AGJazyk.get() !== 'cs') return d.toLocaleDateString(AGJazyk.locale(), { weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { self.AG && AG.swallow(e, 'geo-foto:77'); } return DAYS_CS[d.getDay()] + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear(); }
     function dayKey(ts) { var d = new Date(ts); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
     function fmtNum(v) { return v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
     // S-JTSK počítá VÝHRADNĚ GeoCore: je to jediné místo v appce, které si ověří
@@ -145,7 +145,7 @@
                 // SAMOLÉČBA (18. 9. 2026): přehled místa (js/ag-store.js) uměl databázi založit prázdnou;
                 // chybí-li sklad, otevřít o verzi výš — upgrade ho doplní, data zůstanou.
                 if (d && !d.objectStoreNames.contains(STORE)) {
-                    var v2 = d.version + 1; try { d.close(); } catch (e) { }
+                    var v2 = d.version + 1; try { d.close(); } catch (e) { self.AG && AG.swallow(e, 'geo-foto:148'); }
                     var r2 = indexedDB.open(DB_NAME, v2);
                     r2.onupgradeneeded = function () { r2.result.createObjectStore(STORE, { keyPath: 'id' }); };
                     r2.onsuccess = function () { _db = r2.result; res(_db); };
@@ -777,7 +777,7 @@
                 new MutationObserver(function () {
                     if (m.style.display === 'none') { closeView(); freeUrls(); }
                 }).observe(m, { attributes: true, attributeFilter: ['style'] });
-            } catch (e) {}
+            } catch (e) { self.AG && AG.swallow(e, 'geo-foto:780'); }
         }
         m.style.display = 'flex';
         renderList();
@@ -787,7 +787,7 @@
     try {
         window.addEventListener('pagehide', function () { closeView(); });
         document.addEventListener('visibilitychange', function () { if (document.hidden) closeView(); });
-    } catch (e) {}
+    } catch (e) { self.AG && AG.swallow(e, 'geo-foto:790'); }
 
     // ---- veřejné API (Deník dne / protokoly) -----------------------------------------------------------
     window.AGGeoFoto = {

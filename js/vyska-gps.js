@@ -197,10 +197,10 @@
         // na stránku Mapa a body); na konec stránky by spadl do sběrné „Další volby"
         if (!radek || !radek.parentNode) return;   // řádek přichytávání ještě není — příští otevření Nastavení
         radek.parentNode.insertBefore(r, radek.nextSibling);
-        r.querySelector('input').addEventListener('change', function (ev) { try { localStorage.setItem(LS, JSON.stringify({ vyp: !ev.target.checked })); } catch (e) { /* nic */ } });
+        r.querySelector('input').addEventListener('change', function (ev) { try { localStorage.setItem(LS, JSON.stringify({ vyp: !ev.target.checked })); } catch (e) { self.AG && AG.swallow(e, 'vyska-gps:200'); } });
     }
-    document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"]')) setTimeout(ui, 80); } catch (e) { /* nic */ } }, true);
-    document.addEventListener('ag:nastaveni-strana', function () { try { ui(); } catch (e) { /* nic */ } });
+    document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"]')) setTimeout(ui, 80); } catch (e) { self.AG && AG.swallow(e, 'vyska-gps:202'); } }, true);
+    document.addEventListener('ag:nastaveni-strana', function () { try { ui(); } catch (e) { self.AG && AG.swallow(e, 'vyska-gps:203'); } });
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install);
     else install();
     window.addEventListener('load', function () { setTimeout(install, 450); });

@@ -51,8 +51,8 @@
     function pid() { try { return (typeof activeProjectId !== 'undefined' && activeProjectId) || localStorage.getItem('arActiveProjectId') || 'default'; } catch (e) { return 'default'; } }
     function body() { try { return (typeof persistentCustomPoints !== 'undefined' && Array.isArray(persistentCustomPoints)) ? persistentCustomPoints : []; } catch (e) { return []; } }
     function poloha() {
-        try { if (typeof userLat !== 'undefined' && userLat) return { lat: userLat, lng: userLng, gps: true }; } catch (e) { /* nic */ }
-        try { var p = JSON.parse(localStorage.getItem('arLastPos')); if (p && p.lat != null) return { lat: +p.lat, lng: +p.lng, gps: false }; } catch (e) { /* nic */ }
+        try { if (typeof userLat !== 'undefined' && userLat) return { lat: userLat, lng: userLng, gps: true }; } catch (e) { self.AG && AG.swallow(e, 'domov:54'); }
+        try { var p = JSON.parse(localStorage.getItem('arLastPos')); if (p && p.lat != null) return { lat: +p.lat, lng: +p.lng, gps: false }; } catch (e) { self.AG && AG.swallow(e, 'domov:55'); }
         return null;
     }
     function jmeno() {
@@ -95,7 +95,7 @@
         var u = window.AGUcty;
         try { if (u && u.allowedProjects) { var a = u.allowedProjects(u.currentUser ? u.currentUser() : null); if (Array.isArray(a) && a.length) return a; } } catch (e) { swallow(e, 'list'); }
         try { if (typeof projects !== 'undefined' && Array.isArray(projects) && projects.length) return projects; } catch (e) { swallow(e, 'list2'); }
-        try { var l = JSON.parse(localStorage.getItem('arProjectsList')); if (Array.isArray(l) && l.length) return l; } catch (e) { /* nic */ }
+        try { var l = JSON.parse(localStorage.getItem('arProjectsList')); if (Array.isArray(l) && l.length) return l; } catch (e) { self.AG && AG.swallow(e, 'domov:98'); }
         return [{ id: 'default', name: 'Výchozí zakázka' }];
     }
     function nazev(p) { return (p && p.name) ? (p.id === 'default' && p.name === 'Výchozí zakázka' ? T('Výchozí zakázka') : p.name) : T('Zakázka'); }
@@ -439,7 +439,7 @@
     function tahPanelu() {
         var p = root.querySelector('#agd-panel'), u = root.querySelector('#agd-ucho');
         var y0 = null, dy = 0;
-        u.addEventListener('pointerdown', function (e) { y0 = e.clientY; dy = 0; p.classList.add('tah'); try { u.setPointerCapture(e.pointerId); } catch (er) { /* nic */ } });
+        u.addEventListener('pointerdown', function (e) { y0 = e.clientY; dy = 0; p.classList.add('tah'); try { u.setPointerCapture(e.pointerId); } catch (er) { self.AG && AG.swallow(er, 'domov:442'); } });
         u.addEventListener('pointermove', function (e) { if (y0 == null) return; dy = Math.max(0, e.clientY - y0); p.style.transform = 'translateY(' + dy + 'px)'; });
         var konec = function () {
             if (y0 == null) return;
@@ -461,7 +461,7 @@
             case 'pozn': otevriPoznamku(); break;
             case 'nova-otevri': {
                 var f = root.querySelector('#agd-nova'); f.classList.add('on');
-                var inp = root.querySelector('#agd-nova-in'); if (inp) { try { inp.focus(); } catch (e) { /* nic */ } }
+                var inp = root.querySelector('#agd-nova-in'); if (inp) { try { inp.focus(); } catch (e) { self.AG && AG.swallow(e, 'domov:464'); } }
                 break;
             }
             case 'nova': zalozit((root.querySelector('#agd-nova-in') || {}).value); break;
@@ -535,7 +535,7 @@
         var w = root.querySelector('#agd-pozn-w'); if (!w) return;
         w.hidden = false;
         var b = root.querySelector('#agd-pozn-btn'); if (b) b.hidden = true;
-        var ta = root.querySelector('#agd-pozn'); if (ta) { try { ta.focus(); } catch (e) { /* nic */ } }
+        var ta = root.querySelector('#agd-pozn'); if (ta) { try { ta.focus(); } catch (e) { self.AG && AG.swallow(e, 'domov:538'); } }
     }
     var _hlId = null;
     function vykresliZakazky() {
@@ -601,7 +601,7 @@
         try { ok = JSON.parse(localStorage.getItem('agMapaOkoli_v1') || 'null'); } catch (e) { ok = null; }
         r.push(ok && ok.ts ? ['ok', T('mapa offline {kdy}', { kdy: pred(ok.ts) })] : ['', T('mapa offline se uloží se signálem')]);
         var zal = 0;
-        ['agLastBackupTs', 'arLastBackupAt', 'agLastBackup'].forEach(function (k) { try { var v = +localStorage.getItem(k); if (!isFinite(v)) v = Date.parse(localStorage.getItem(k)) || 0; if (v > zal) zal = v; } catch (e) { /* nic */ } });
+        ['agLastBackupTs', 'arLastBackupAt', 'agLastBackup'].forEach(function (k) { try { var v = +localStorage.getItem(k); if (!isFinite(v)) v = Date.parse(localStorage.getItem(k)) || 0; if (v > zal) zal = v; } catch (e) { self.AG && AG.swallow(e, 'domov:604'); } });
         var zalStare = !zal || (Date.now() - zal) > 7 * 86400000;
         r.push([zalStare ? 'poz' : 'ok', zal ? T('záloha {kdy}', { kdy: pred(zal) }) : T('záloha zatím žádná')]);
         try {

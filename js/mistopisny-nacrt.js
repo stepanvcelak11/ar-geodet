@@ -66,7 +66,7 @@
     }
     function sestavSnapy() {
         _snapy = [{ lat: pt.lat, lng: pt.lng }];
-        try { (typeof arPoints !== 'undefined' ? arPoints : []).forEach(function (p) { if (p && !p.hidden && typeof p.lat === 'number' && dist(p, pt) <= R_DATA) _snapy.push({ lat: p.lat, lng: p.lng }); }); } catch (e) { /* nic */ }
+        try { (typeof arPoints !== 'undefined' ? arPoints : []).forEach(function (p) { if (p && !p.hidden && typeof p.lat === 'number' && dist(p, pt) <= R_DATA) _snapy.push({ lat: p.lat, lng: p.lng }); }); } catch (e) { self.AG && AG.swallow(e, 'mistopisny-nacrt:69'); }
         if (_bodyObrysu) _snapy = _snapy.concat(_bodyObrysu);
         (_prvky || []).forEach(function (x) { if (x.t === 'obj' || x.t === 'text') _snapy.push(x.p); else if (x.t === 'dim') { _snapy.push(x.a); _snapy.push(x.b); } else if (x.t === 'cara') x.pts.forEach(function (q) { _snapy.push(q); }); });
     }
@@ -90,7 +90,7 @@
             }
         }
         if (p === 'orto') { if (!_vrstvy.orto) _vrstvy.orto = klonVrstvy(typeof baseLayers !== 'undefined' ? baseLayers.ortofoto : null); if (_vrstvy.orto) _vrstvy.orto.addTo(m); }
-        if (_vrstvy.obrysy) { _vrstvy.obrysy.eachLayer(function (l) { try { l.setStyle({ opacity: p === 'papir' ? 1 : 0.55, fillOpacity: p === 'papir' ? (l.options._fo || 0) : 0.08 }); } catch (e) { /* nic */ } }); }
+        if (_vrstvy.obrysy) { _vrstvy.obrysy.eachLayer(function (l) { try { l.setStyle({ opacity: p === 'papir' ? 1 : 0.55, fillOpacity: p === 'papir' ? (l.options._fo || 0) : 0.08 }); } catch (e) { self.AG && AG.swallow(e, 'mistopisny-nacrt:93'); } }); }
         el.querySelectorAll('[data-podklad]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-podklad') === p); });
         uloz();
     }
@@ -137,7 +137,7 @@
         if (_vrstvy.prvky) m.removeLayer(_vrstvy.prvky);
         var g = L.layerGroup().addTo(m); _vrstvy.prvky = g;
         // bod náčrtu + ostatní body appky
-        try { (typeof arPoints !== 'undefined' ? arPoints : []).forEach(function (p) { if (!p || p.hidden || p.id === pt.id || typeof p.lat !== 'number' || dist(p, pt) > R_DATA) return; L.circleMarker([p.lat, p.lng], { radius: 4, color: '#555', fillColor: '#fff', fillOpacity: 1, weight: 1.5, interactive: false }).bindTooltip(String(p.name), { permanent: true, direction: 'right', offset: [4, 0], className: 'agn-tip agn-tip-jiny' }).addTo(g); }); } catch (e) { /* nic */ }
+        try { (typeof arPoints !== 'undefined' ? arPoints : []).forEach(function (p) { if (!p || p.hidden || p.id === pt.id || typeof p.lat !== 'number' || dist(p, pt) > R_DATA) return; L.circleMarker([p.lat, p.lng], { radius: 4, color: '#555', fillColor: '#fff', fillOpacity: 1, weight: 1.5, interactive: false }).bindTooltip(String(p.name), { permanent: true, direction: 'right', offset: [4, 0], className: 'agn-tip agn-tip-jiny' }).addTo(g); }); } catch (e) { self.AG && AG.swallow(e, 'mistopisny-nacrt:140'); }
         L.circleMarker([pt.lat, pt.lng], { radius: 7, color: '#b71c1c', fillColor: '#ff5252', fillOpacity: 1, weight: 2, interactive: false }).bindTooltip(String(pt.name), { permanent: true, direction: 'right', offset: [6, 0], className: 'agn-tip agn-tip-bod' }).addTo(g);
         (_prvky || []).forEach(function (x, i) {
             if (x.t === 'dim') {
@@ -226,7 +226,7 @@
             } catch (e) { swallow(e, 'png-obrysy'); }
         }
         c.font = '600 22px system-ui, sans-serif'; c.textBaseline = 'middle';
-        try { (typeof arPoints !== 'undefined' ? arPoints : []).forEach(function (p) { if (!p || p.hidden || p.id === pt.id || typeof p.lat !== 'number' || dist(p, pt) > r * 1.4) return; c.beginPath(); c.arc(X(p), Y(p), 6, 0, 7); c.fillStyle = '#fff'; c.fill(); c.strokeStyle = '#444'; c.lineWidth = 2; c.stroke(); c.fillStyle = '#333'; c.fillText(String(p.name), X(p) + 10, Y(p)); }); } catch (e) { /* nic */ }
+        try { (typeof arPoints !== 'undefined' ? arPoints : []).forEach(function (p) { if (!p || p.hidden || p.id === pt.id || typeof p.lat !== 'number' || dist(p, pt) > r * 1.4) return; c.beginPath(); c.arc(X(p), Y(p), 6, 0, 7); c.fillStyle = '#fff'; c.fill(); c.strokeStyle = '#444'; c.lineWidth = 2; c.stroke(); c.fillStyle = '#333'; c.fillText(String(p.name), X(p) + 10, Y(p)); }); } catch (e) { self.AG && AG.swallow(e, 'mistopisny-nacrt:229'); }
         (_prvky || []).forEach(function (x) {
             if (x.t === 'cara') { var cc = CARY[x.k] || CARY.plot; line(x.pts, cc.col, 3, cc.dash ? [10, 6] : null); }
         });
@@ -248,14 +248,14 @@
         // hlavička, severka, měřítko, legenda
         c.fillStyle = '#111'; c.textAlign = 'left'; c.font = '800 40px system-ui, sans-serif'; c.fillText(T('Místopisný náčrt') + ' · ' + pt.name, okraj, 60);
         c.font = '400 22px system-ui, sans-serif'; c.fillStyle = '#444';
-        var popis = []; try { if (pt.druh) popis.push(T(pt.druh)); if (pt.ku) popis.push('k. ú. ' + pt.ku); var sj = GeoCore.toSJTSK(pt.lat, pt.lng); popis.push('Y ' + Math.abs(sj.y).toFixed(2) + '  X ' + Math.abs(sj.x).toFixed(2)); if (pt.vyska != null) popis.push('H ' + (+pt.vyska).toFixed(2) + ' m'); } catch (e) { /* nic */ }
+        var popis = []; try { if (pt.druh) popis.push(T(pt.druh)); if (pt.ku) popis.push('k. ú. ' + pt.ku); var sj = GeoCore.toSJTSK(pt.lat, pt.lng); popis.push('Y ' + Math.abs(sj.y).toFixed(2) + '  X ' + Math.abs(sj.x).toFixed(2)); if (pt.vyska != null) popis.push('H ' + (+pt.vyska).toFixed(2) + ' m'); } catch (e) { self.AG && AG.swallow(e, 'mistopisny-nacrt:251'); }
         popis.push(new Date().toLocaleDateString('cs-CZ')); c.fillText(popis.join('  ·  '), okraj, 100);
         var nx = W - okraj - 40, ny = hlav + okraj + 50; c.beginPath(); c.moveTo(nx, ny - 34); c.lineTo(nx + 12, ny + 10); c.lineTo(nx, ny); c.lineTo(nx - 12, ny + 10); c.closePath(); c.fillStyle = '#111'; c.fill(); c.font = '800 24px system-ui, sans-serif'; c.textAlign = 'center'; c.fillText(SEVER(), nx, ny - 50);
         var mer = [1, 2, 5, 10, 20, 50, 100].filter(function (v) { return v * sc <= plocha / 3; }).pop() || 1, mx0 = cx - plocha / 2, my0 = cy + plocha / 2 + 30;
         c.fillStyle = '#111'; c.fillRect(mx0, my0, mer * sc, 8); c.font = '600 20px system-ui, sans-serif'; c.textAlign = 'left'; c.fillText(mer + ' m', mx0 + mer * sc + 10, my0 + 4);
         var ly = my0 + 50, lx = mx0; c.font = '400 20px system-ui, sans-serif';
         var pouzite = {}; (_prvky || []).forEach(function (x) { if (x.t === 'obj') pouzite[x.k] = 1; });
-        Object.keys(pouzite).forEach(function (k2) { var o = OBJEKTY[k2]; if (o) { var im = obrazek(k2); try { if (im.complete && im.naturalWidth) c.drawImage(im, lx, ly - 14, 28, 28); } catch (e) { /* nic */ } var on = T(o.n); c.fillStyle = '#333'; c.fillText(on, lx + 34, ly); lx += 34 + c.measureText(on).width + 30; if (lx > W - 260) { lx = mx0; ly += 34; } } });
+        Object.keys(pouzite).forEach(function (k2) { var o = OBJEKTY[k2]; if (o) { var im = obrazek(k2); try { if (im.complete && im.naturalWidth) c.drawImage(im, lx, ly - 14, 28, 28); } catch (e) { self.AG && AG.swallow(e, 'mistopisny-nacrt:258'); } var on = T(o.n); c.fillStyle = '#333'; c.fillText(on, lx + 34, ly); lx += 34 + c.measureText(on).width + 30; if (lx > W - 260) { lx = mx0; ly += 34; } } });
         c.fillStyle = '#666'; c.font = '400 18px system-ui, sans-serif'; c.textAlign = 'right'; c.fillText(T('tučná kóta = pásmo · obrysy © OpenStreetMap · QTRIG'), W - okraj, H - 30);
         // objekty jsou SVG obrázky — které ještě nebyly načtené, dokreslit po načtení; pak PNG
         var hotovo = function () {
@@ -267,7 +267,7 @@
             } catch (e) { swallow(e, 'png-blob'); }
         };
         if (!cekaji.length) { hotovo(); return; }
-        var zb = cekaji.length, tik = function () { if (--zb > 0) return; try { c.save(); c.beginPath(); c.rect(cx - plocha / 2, cy - plocha / 2, plocha, plocha); c.clip(); cekaji.forEach(function (x) { var im = obrazek(x.k); if (im.complete && im.naturalWidth) c.drawImage(im, X(x.p) - 20, Y(x.p) - 20, 40, 40); }); c.restore(); } catch (e) { /* nic */ } hotovo(); };
+        var zb = cekaji.length, tik = function () { if (--zb > 0) return; try { c.save(); c.beginPath(); c.rect(cx - plocha / 2, cy - plocha / 2, plocha, plocha); c.clip(); cekaji.forEach(function (x) { var im = obrazek(x.k); if (im.complete && im.naturalWidth) c.drawImage(im, X(x.p) - 20, Y(x.p) - 20, 40, 40); }); c.restore(); } catch (e) { self.AG && AG.swallow(e, 'mistopisny-nacrt:270'); } hotovo(); };
         cekaji.forEach(function (x) { var im = obrazek(x.k); if (im.complete) tik(); else { im.addEventListener('load', tik, { once: true }); im.addEventListener('error', tik, { once: true }); } });
     }
     var _obrazky = {};
@@ -409,7 +409,7 @@
         el.querySelectorAll('[data-rezim]').forEach(function (b) { b.onclick = function () { nastavRezim(b.getAttribute('data-rezim')); }; });
         el.querySelectorAll('#agn-paleta-obj button').forEach(function (b) { b.onclick = function () { objTyp = b.getAttribute('data-obj'); el.querySelectorAll('#agn-paleta-obj button').forEach(function (x) { x.classList.toggle('on', x === b); }); nastavRezim('objekt'); }; });
         el.querySelectorAll('#agn-paleta-cara button').forEach(function (b) { b.onclick = function () { if (rezim === 'cara' && caraTyp !== b.getAttribute('data-cara')) hotovoCara(); caraTyp = b.getAttribute('data-cara'); el.querySelectorAll('#agn-paleta-cara button').forEach(function (x) { x.classList.toggle('on', x === b); }); nastavRezim('cara'); }; });
-        try { var sv = el.querySelector('.agn-sever'); if (sv) sv.style.transform = 'rotate(0deg)'; } catch (e) { /* nic */ }
+        try { var sv = el.querySelector('.agn-sever'); if (sv) sv.style.transform = 'rotate(0deg)'; } catch (e) { self.AG && AG.swallow(e, 'mistopisny-nacrt:412'); }
         el.querySelector('#agn-hotovo').onclick = function () { hotovoCara(); info('Čára uložena. Další čára: klepej dál, nebo přepni režim.'); };
         el.querySelector('#agn-zpet').onclick = zpet;
         el.querySelector('#agn-stromy').onclick = function () { stromyZOrtofota(); };

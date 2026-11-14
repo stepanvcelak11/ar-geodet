@@ -226,7 +226,7 @@
                 if (tile.getAttribute('data-tool') || tile.getAttribute('data-k')) return;  // klíč není název funkce
                 if (typeof window[k] === 'function') return;
                 var fronta = [];
-                try { fronta = (window.AGLazy && AGLazy.pending()) || []; } catch (x2) { }
+                try { fronta = (window.AGLazy && AGLazy.pending()) || []; } catch (x2) { self.AG && AG.swallow(x2, 'priznaky:229'); }
                 if (fronta.length) return;                  // modul se ještě dotahuje
                 mrtvy = true;
             }

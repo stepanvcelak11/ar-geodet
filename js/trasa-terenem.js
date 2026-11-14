@@ -365,7 +365,7 @@
         // ⚠ NIKDY MODÁLNĚ (18. 9. 2026): agInfo = okno s tlačítkem Rozumím; při chůzi k bodu ho musel
         //   uživatel odklikat a v CI leželo přes dělič (test_v283 L). Teď nenápadná pilulka v mapě,
         //   sama zmizí, klepnutí ji zavře.
-        try { if (!trasa && _duvod && c && prepocitej._hlaseno !== c.id + '|' + _duvod) { prepocitej._hlaseno = c.id + '|' + _duvod; pilulka(TT('Trasa terénem: {d}.', { d: _duvod })); } } catch (e) { /* nic */ }
+        try { if (!trasa && _duvod && c && prepocitej._hlaseno !== c.id + '|' + _duvod) { prepocitej._hlaseno = c.id + '|' + _duvod; pilulka(TT('Trasa terénem: {d}.', { d: _duvod })); } } catch (e) { self.AG && AG.swallow(e, 'trasa-terenem:368'); }
         return trasa;
     }
     // Pilulka dole v mapě (stejný vzhled jako #ag-kvgps-pill): nic neblokuje, zmizí za 6 s.
@@ -382,7 +382,7 @@
                 (document.getElementById('map-container') || document.body).appendChild(p);
             }
             p.innerHTML = '<b></b><span></span>'; p.lastChild.textContent = text;
-            clearTimeout(p._t); p._t = setTimeout(function () { try { p.remove(); } catch (e) { /* nic */ } }, 6000);
+            clearTimeout(p._t); p._t = setTimeout(function () { try { p.remove(); } catch (e) { self.AG && AG.swallow(e, 'trasa-terenem:385'); } }, 6000);
         } catch (e) { swallow(e, 'pilulka'); }
     }
     // vzdálenost ode mě k trase + index nejbližšího úseku
@@ -448,7 +448,7 @@
     }
     function start() {
         try { ui(); } catch (e) { swallow(e, 'ui'); }
-        document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"]')) setTimeout(ui, 50); } catch (e) { /* nic */ } }, true);
+        document.addEventListener('click', function (ev) { try { if (ev.target && ev.target.closest && ev.target.closest('#settings-btn, [data-open="settings"]')) setTimeout(ui, 50); } catch (e) { self.AG && AG.swallow(e, 'trasa-terenem:451'); } }, true);
         document.addEventListener('ag:prekazky', function () { if (trasa) prepocitej('překážka'); });
         if (!_tik) _tik = setInterval(tik, 1000);
     }

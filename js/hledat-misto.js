@@ -40,7 +40,7 @@
     function swallow(e, kde) { try { window.AG && AG.swallow && AG.swallow(e, 'hledat-misto:' + kde); } catch (e2) { /* nic */ } }
     function esc(s) { return (window.AG && AG.esc) ? AG.esc(s) : String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
     function T(s) { try { return (window.AGJazyk && AGJazyk.t) ? AGJazyk.t(s) : s; } catch (e) { return s; } }
-    function toast(m) { try { if (typeof quickToast === 'function') quickToast(m); else if (typeof agInfo === 'function') agInfo(m); } catch (e) { /* nic */ } }
+    function toast(m) { try { if (typeof quickToast === 'function') quickToast(m); else if (typeof agInfo === 'function') agInfo(m); } catch (e) { self.AG && AG.swallow(e, 'hledat-misto:43'); } }
     function getMap() { try { return (typeof map !== 'undefined' && map) ? map : null; } catch (e) { return null; } }
     function mojePoloha() { try { return (typeof userLat === 'number' && userLat) ? { lat: userLat, lng: userLng } : null; } catch (e) { return null; } }
     function jazyk() { try { var l = window.AGJazyk && AGJazyk.get ? AGJazyk.get() : 'cs'; return (l === 'en' || l === 'de' || l === 'fr') ? l : 'default'; } catch (e) { return 'default'; } }
@@ -156,7 +156,7 @@
     function open(q) {
         build(); _ov.style.display = 'flex';
         var i = _ov.querySelector('#aghm-q');
-        if (q) { i.value = q; hledej(q); } else { try { i.focus(); } catch (e) { /* nic */ } }
+        if (q) { i.value = q; hledej(q); } else { try { i.focus(); } catch (e) { self.AG && AG.swallow(e, 'hledat-misto:159'); } }
     }
     function close() { if (_ov) _ov.style.display = 'none'; _seq++; }
     function hledej(q) {
@@ -183,7 +183,7 @@
     }
     function vyber(r, btn) {
         if (!r) return; _posledni = r;
-        try { _ov.querySelectorAll('.aghm-r').forEach(function (x) { x.classList.toggle('on', x === btn); }); } catch (e) { /* nic */ }
+        try { _ov.querySelectorAll('.aghm-r').forEach(function (x) { x.classList.toggle('on', x === btn); }); } catch (e) { self.AG && AG.swallow(e, 'hledat-misto:186'); }
         ukaz(r);
         var acts = _ov.querySelector('#aghm-acts');
         acts.innerHTML = '<button type="button" class="btn btn-blue" data-act="poloha">' + esc(T('Vzít jako mou polohu')) + '</button>'
@@ -197,7 +197,7 @@
             if (_marker) { m.removeLayer(_marker); _marker = null; }
             _marker = L.marker([r.lat, r.lng], { interactive: false, icon: L.divIcon({ className: 'ag-hm-pin-wrap', html: '<span class="ag-hm-pin">' + esc(r.nazev).slice(0, 40) + '</span>', iconAnchor: [0, 0] }) }).addTo(m);
             m.setView([r.lat, r.lng], Math.max(m.getZoom() || 0, 17));
-            try { var vm = document.getElementById('map-view'); if (vm && typeof applyViewMode === 'function' && typeof viewMode !== 'undefined' && viewMode === 'ar') { viewMode = 'map'; applyViewMode(); } } catch (e) { /* nic */ }
+            try { var vm = document.getElementById('map-view'); if (vm && typeof applyViewMode === 'function' && typeof viewMode !== 'undefined' && viewMode === 'ar') { viewMode = 'map'; applyViewMode(); } } catch (e) { self.AG && AG.swallow(e, 'hledat-misto:200'); }
         } catch (e) { swallow(e, 'ukaz'); }
     }
     function odkaz(lat, lng, nazev) {
@@ -245,7 +245,7 @@
             if (window.AGManualPos && typeof AGManualPos.take === 'function') { AGManualPos.take(r.lat, r.lng, 18); toast(T('Ruční poloha') + ': ' + r.nazev + '. ' + T('Okolí se stáhne odsud; skutečná GPS ji zase nahradí.')); close(); }
             else toast(T('Ruční poloha není k dispozici (modul poloha-z-mapy).'));
         } else if (act === 'bod') {
-            var v = ulozBod(r); if (v && v.pt) { toast(v.novy ? T('Bod uložen do zakázky') + ': ' + v.pt.name : T('Takový bod už v zakázce je') + ': ' + v.pt.name); try { if (typeof showDetails === 'function') { close(); showDetails(v.pt, 0); } } catch (e) { /* nic */ } }
+            var v = ulozBod(r); if (v && v.pt) { toast(v.novy ? T('Bod uložen do zakázky') + ': ' + v.pt.name : T('Takový bod už v zakázce je') + ': ' + v.pt.name); try { if (typeof showDetails === 'function') { close(); showDetails(v.pt, 0); } } catch (e) { self.AG && AG.swallow(e, 'hledat-misto:248'); } }
             else jinaZeme(r);
         } else if (act === 'nav') {
             var w = ulozBod(r); if (w && w.pt) { close(); naviguj(w.pt); toast(T('Cíl navigace') + ': ' + w.pt.name); }
@@ -324,7 +324,7 @@
         var stack = document.getElementById('map-ctrl-stack'); if (!stack) return false;
         var b = document.createElement('button'); b.type = 'button'; b.id = 'btn-hledat-misto'; b.className = 'ms-tile'; b.setAttribute('aria-label', 'Najít místo');
         b.innerHTML = ICON.replace('<svg ', '<svg class="icon" ') + '<span>Najít místo</span>';
-        b.addEventListener('click', function () { try { document.getElementById('map-controls').classList.remove('expanded'); } catch (e) { /* nic */ } open(); });
+        b.addEventListener('click', function () { try { document.getElementById('map-controls').classList.remove('expanded'); } catch (e) { self.AG && AG.swallow(e, 'hledat-misto:327'); } open(); });
         stack.appendChild(b);
         return true;
     }

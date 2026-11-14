@@ -40,7 +40,7 @@
 (function () {
     'use strict';
     if (window.AGLovci) return;
-    try { window.AG && AG.cssFile && AG.cssFile('agl-css', 'css/lovci-bodu.css'); } catch (e) { }
+    try { window.AG && AG.cssFile && AG.cssFile('agl-css', 'css/lovci-bodu.css'); } catch (e) { self.AG && AG.swallow(e, 'lovci-bodu:43'); }
 
     var SHELF = 'lovci', KEY = 'nalezy';
     var BLIZKO_M = 5, PRESNOST_M = 8, POSTOJ_S = 15;
@@ -74,8 +74,8 @@
     //   globální lexikální vazba je vidět z každého klasického skriptu (typeof-guard).
     function pts() { try { return (typeof arPoints !== 'undefined' && Array.isArray(arPoints)) ? arPoints : null; } catch (e) { return null; } }
     function dist(a, b, c, d) {
-        try { if (typeof getDistance === 'function') return getDistance(a, b, c, d); } catch (e) { }
-        try { if (window.GeoCore && GeoCore.getDistance) return GeoCore.getDistance(a, b, c, d); } catch (e) { }
+        try { if (typeof getDistance === 'function') return getDistance(a, b, c, d); } catch (e) { self.AG && AG.swallow(e, 'lovci-bodu:77'); }
+        try { if (window.GeoCore && GeoCore.getDistance) return GeoCore.getDistance(a, b, c, d); } catch (e) { self.AG && AG.swallow(e, 'lovci-bodu:78'); }
         var R = 6382000, dl = (d - b) * Math.PI / 180, dp = (c - a) * Math.PI / 180, x = dl * Math.cos((a + c) / 2 * Math.PI / 180);
         return Math.sqrt(x * x + dp * dp) * R;
     }
@@ -89,7 +89,7 @@
         var f = window.AGFix;
         if (f && f.lat != null && Date.now() - (f.ts || 0) <= 30000) return f;
         // bez čerstvého AGFix (starší appka, klidně stojící telefon bez nového fixu): poslední známá poloha
-        try { if (typeof userLat !== 'undefined' && userLat != null) return { lat: userLat, lng: userLng, acc: (typeof currentGpsAccuracy !== 'undefined' && currentGpsAccuracy != null) ? currentGpsAccuracy : 99, ts: 0 }; } catch (e) { }
+        try { if (typeof userLat !== 'undefined' && userLat != null) return { lat: userLat, lng: userLng, acc: (typeof currentGpsAccuracy !== 'undefined' && currentGpsAccuracy != null) ? currentGpsAccuracy : 99, ts: 0 }; } catch (e) { self.AG && AG.swallow(e, 'lovci-bodu:92'); }
         return null;
     }
     function kdo() { try { return localStorage.getItem('arSurveyor') || ''; } catch (e) { return ''; } }
@@ -184,7 +184,7 @@
     function mujOkres() {
         try {
             var P = pts(); if (P) for (var i = 0; i < P.length; i++) if (P[i].okres && P[i].currentDist != null && P[i].currentDist < 2000) return P[i].okres;
-        } catch (e) { }
+        } catch (e) { self.AG && AG.swallow(e, 'lovci-bodu:187'); }
         if (_nalezy.length) return _nalezy[_nalezy.length - 1].okres || null;
         return null;
     }
@@ -306,8 +306,8 @@
         for (var i = 0; i < P.length; i++) if (jeUredni(P[i]) && idBodu(P[i]) === id) { cil = P[i]; break; }
         if (!cil) { cil = pt; P.push(cil); }
         try { if (typeof highlightPoint === 'function') highlightPoint(cil); } catch (e) { swallow(e, 'lovci:doved'); }
-        try { if (window.AGDosah && AGDosah.vzdy) AGDosah.vzdy(cil.id); } catch (e) { }
-        try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { }
+        try { if (window.AGDosah && AGDosah.vzdy) AGDosah.vzdy(cil.id); } catch (e) { self.AG && AG.swallow(e, 'lovci-bodu:309'); }
+        try { if (typeof drawAllMarkersOnMap === 'function') drawAllMarkersOnMap(); } catch (e) { self.AG && AG.swallow(e, 'lovci-bodu:310'); }
         close();
         toast(T('Navádím na') + ' ' + katLabel(cil.cat) + ' ' + cil.name + ' — ' + Math.round(dist(fix() ? fix().lat : cil.lat, fix() ? fix().lng : cil.lng, cil.lat, cil.lng)) + ' m.');
     }
@@ -338,7 +338,7 @@
             var act = b.getAttribute('data-act');
             if (act === 'doved') { var p = _lovList[parseInt(b.getAttribute('data-i'), 10)]; if (p) doved(p.pt); }
             else if (act === 'oblasti') { close(); if (window.AGOblasti && AGOblasti.open) AGOblasti.open(); else toast('Nástroj Stáhnout oblast je ve verzi Pro.'); }
-            else if (act === 'odebrat') { var id = b.getAttribute('data-id'); odebrat(id).then(function () { render(); try { drawAllMarkersOnMap(); } catch (e) { } }); }
+            else if (act === 'odebrat') { var id = b.getAttribute('data-id'); odebrat(id).then(function () { render(); try { drawAllMarkersOnMap(); } catch (e) { self.AG && AG.swallow(e, 'lovci-bodu:341'); } }); }
         });
         return _ov;
     }

@@ -46,7 +46,7 @@
                 // SAMOLÉČBA (18. 9. 2026): přehled místa (js/ag-store.js) uměl databázi založit
                 // prázdnou — sklad chybí a verze sedí; otevřít o verzi výš ho doplní (viz ucty.js).
                 if (db && !db.objectStoreNames.contains(STORE)) {
-                    var v2 = db.version + 1; try { db.close(); } catch (e) { }
+                    var v2 = db.version + 1; try { db.close(); } catch (e) { self.AG && AG.swallow(e, 'journal:49'); }
                     var r2; try { r2 = indexedDB.open(DB, v2); } catch (e) { return res(null); }
                     r2.onupgradeneeded = r.onupgradeneeded;
                     r2.onsuccess = function () { _db = r2.result; res(_db); };

@@ -574,7 +574,7 @@
         if (!modal || skipped(modal)) return;
         if (modal.querySelector('.ag-mini-fab') || modal.querySelector('.ag-mini-btn')) return;
         var core = coreWin(modal);
-        if (!core && !modWin(modal)) { try { modal.__agMiniNe = (modal.className && modal.className.baseVal !== undefined ? modal.className.baseVal : String(modal.className || '')) + '|' + (modal.style ? modal.style.cssText : ''); } catch (e) { } return; }
+        if (!core && !modWin(modal)) { try { modal.__agMiniNe = (modal.className && modal.className.baseVal !== undefined ? modal.className.baseVal : String(modal.className || '')) + '|' + (modal.style ? modal.style.cssText : ''); } catch (e) { self.AG && AG.swallow(e, 'mini-panel:577'); } return; }
         if (!fromTool(modal)) return;
         injectStyles();
         var mk = function () {

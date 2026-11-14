@@ -151,8 +151,8 @@ if ('serviceWorker' in navigator) {
             try { localStorage.setItem('agDesMista_v1', String(d === 3 ? 3 : 2)); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agSetDes'); }
             var seg = document.getElementById('seg-des');
             if (seg) seg.querySelectorAll('.st-seg-b').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-des') === String(agDes())); });
-            try { if (typeof renderManageList === 'function') renderManageList(); } catch (e) { /* nic */ }
-            try { document.dispatchEvent(new CustomEvent('ag:des', { detail: { des: agDes() } })); } catch (e) { /* nic */ }
+            try { if (typeof renderManageList === 'function') renderManageList(); } catch (e) { self.AG && AG.swallow(e, 'logika:154'); }
+            try { document.dispatchEvent(new CustomEvent('ag:des', { detail: { des: agDes() } })); } catch (e) { self.AG && AG.swallow(e, 'logika:155'); }
         }
         // do FORMULÁŘŮ (úprava bodu, předvyplnění): nikdy méně, než bod skutečně má — bod s mm ukáže 3 místa i při volbě 2,
         // jinak by „Uložit“ po úpravě názvu tiše uřízlo 3. desetinné místo
@@ -513,7 +513,7 @@ if ('serviceWorker' in navigator) {
             if (nm) { nm.value = agNextSerieName(); if (nm.value) { nm.dataset.agAutofill = '1'; nm.addEventListener('input', function () { delete nm.dataset.agAutofill; }, { once: true }); } }
             ['custom-y', 'custom-x', 'custom-z'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
             // kód zůstane (další bod téže linie), jen bez přípony /Z /K /U — ta platí pro jeden bod
-            { const kd = document.getElementById('custom-kod'); if (kd && kd.value) { kd.value = agKodZaklad(kd.value); try { if (window.agRenderKodRidici) agRenderKodRidici(); } catch (e) { } } }
+            { const kd = document.getElementById('custom-kod'); if (kd && kd.value) { kd.value = agKodZaklad(kd.value); try { if (window.agRenderKodRidici) agRenderKodRidici(); } catch (e) { self.AG && AG.swallow(e, 'logika:516'); } } }
             const _n = document.getElementById('custom-acc-note'); if (_n) _n.style.display = 'none';
             pendingPointAccuracy = null; window._agPointOrigin = null;
             try { if (typeof resetNewPointExtras === 'function') resetNewPointExtras(null); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'logika:agPrepNextPoint'); }
@@ -1823,7 +1823,7 @@ if ('serviceWorker' in navigator) {
                     //   PPBP"). Bod stažený starší verzí měl cat 'PBPP'; doplnil se mu jen `druh`,
                     //   kategorie zůstala → kolečko v mapě, špatný nadpis karty. Vrstva ČÚZK je
                     //   autoritativní; značka v mapě se přestaví sama (klíč id|cat|name), AR prvek zahodit.
-                    if (pt.cat && existing.cat !== pt.cat && existing.cat !== 'CUSTOM') { existing.cat = pt.cat; existing.type = pt.type; if (existing.element) { try { existing.element.remove(); } catch (e) { /* nic */ } existing.element = null; } }
+                    if (pt.cat && existing.cat !== pt.cat && existing.cat !== 'CUSTOM') { existing.cat = pt.cat; existing.type = pt.type; if (existing.element) { try { existing.element.remove(); } catch (e) { self.AG && AG.swallow(e, 'logika:1826'); } existing.element = null; } }
                 }
             });
             return n;

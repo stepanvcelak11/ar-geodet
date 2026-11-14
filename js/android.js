@@ -92,8 +92,8 @@
         try { history.pushState(STAV, ''); _guard = true; } catch (e) { /* file:// apod. */ }
     }
     function toast(m) {
-        try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) { /* nic */ }
-        try { if (window.AG && AG.toast) return AG.toast(m); } catch (e) { /* nic */ }
+        try { if (typeof quickToast === 'function') return quickToast(m); } catch (e) { self.AG && AG.swallow(e, 'android:95'); }
+        try { if (window.AG && AG.toast) return AG.toast(m); } catch (e) { self.AG && AG.swallow(e, 'android:96'); }
     }
 
     window.addEventListener('popstate', function () {
@@ -108,7 +108,7 @@
         // nic otevřené = hlavní obrazovka
         if (!(android() && standalone())) return;   // v prohlížeči nech Zpět prohlížeči
         var now = Date.now();
-        if (now - _exitTs < EXIT_MS) { try { history.back(); } catch (e) { /* nic */ } return; }
+        if (now - _exitTs < EXIT_MS) { try { history.back(); } catch (e) { self.AG && AG.swallow(e, 'android:111'); } return; }
         _exitTs = now;
         toast('Ještě jednou Zpět zavře appku.');
         hlidej();
@@ -169,20 +169,20 @@
     var _inst = null, _instTimer = null;
     function instalaceNabidnout() {
         if (!_inst || standalone()) return;
-        try { var t = parseInt(localStorage.getItem(LS_INST) || '0', 10); if (t && Date.now() - t < INST_ODKLAD) return; } catch (e) { /* nic */ }
+        try { var t = parseInt(localStorage.getItem(LS_INST) || '0', 10); if (t && Date.now() - t < INST_ODKLAD) return; } catch (e) { self.AG && AG.swallow(e, 'android:172'); }
         if (!document.body.classList.contains('app-started')) { _instTimer = setTimeout(instalaceNabidnout, 15000); return; }
         if (otevrene().length) { _instTimer = setTimeout(instalaceNabidnout, 20000); return; }   // nerušit uprostřed práce v okně
         var ask = window.agConfirm;
         if (typeof ask !== 'function') return;
         ask({ title: 'Přidat QTRIG na plochu?', message: 'Spustí se jako appka přes celý displej, má vlastní ikonu a funguje i bez signálu. Jde to kdykoli zrušit jako u každé appky.', okText: 'Přidat', cancelText: 'Teď ne' })
             .then(function (ok) {
-                if (!ok) { try { localStorage.setItem(LS_INST, String(Date.now())); } catch (e) { /* nic */ } return; }
+                if (!ok) { try { localStorage.setItem(LS_INST, String(Date.now())); } catch (e) { self.AG && AG.swallow(e, 'android:179'); } return; }
                 var ev = _inst; _inst = null;
                 try { ev.prompt(); } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'android:prompt'); }
             });
     }
     function bip(e) {
-        try { e.preventDefault(); } catch (x) { /* nic */ }
+        try { e.preventDefault(); } catch (x) { self.AG && AG.swallow(x, 'android:185'); }
         _inst = e;
         clearTimeout(_instTimer);
         _instTimer = setTimeout(instalaceNabidnout, INST_ZPOZDENI);
@@ -191,5 +191,5 @@
     // událost, která přišla dřív, než se tenhle (odložený) modul načetl — odchytil ji index.html
     if (window.__agBip) { bip(window.__agBip); window.__agBip = null; }
     window.addEventListener('appinstalled', function () { _inst = null; clearTimeout(_instTimer); toast('QTRIG je na ploše.'); });
-    window.AGAndroid = { instalovat: function () { if (_inst) { var ev = _inst; _inst = null; try { ev.prompt(); } catch (e) { /* nic */ } return true; } return false; }, muzeInstalovat: function () { return !!_inst; }, _test: { nabidnout: instalaceNabidnout } };
+    window.AGAndroid = { instalovat: function () { if (_inst) { var ev = _inst; _inst = null; try { ev.prompt(); } catch (e) { self.AG && AG.swallow(e, 'android:194'); } return true; } return false; }, muzeInstalovat: function () { return !!_inst; }, _test: { nabidnout: instalaceNabidnout } };
 })();

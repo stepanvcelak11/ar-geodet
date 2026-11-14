@@ -238,7 +238,7 @@
                 return Tesseract.createWorker('eng', 1, { logger: function (m) { if (m.status === 'recognizing text' && typeof updateOfflineProgress === 'function') updateOfflineProgress(Math.round((m.progress || 0) * 100), 100); } });
             })
             .then(function (w) {
-                try { localStorage.setItem(OCR_LS, String(Date.now())); } catch (e) { /* nic */ }   // stažené = příště i offline
+                try { localStorage.setItem(OCR_LS, String(Date.now())); } catch (e) { self.AG && AG.swallow(e, 'foto-body:241'); }   // stažené = příště i offline
                 // BEZ whitelistu číslic: s ním Tesseract „četl“ každé písmeno jako číslici. Záměny
                 // uvnitř čísel opravuje opravToken(). PSM 6 = souvislý blok (seznam, štítek, tabulka).
                 return w.setParameters({ preserve_interword_spaces: '1', tessedit_pageseg_mode: '6' }).then(function () { return w; });
@@ -246,7 +246,7 @@
             .catch(function (e) { _worker = null; throw e; });
         return _worker;
     }
-    function ukonciWorker() { var p = _worker; _worker = null; if (p) p.then(function (w) { try { w.terminate(); } catch (e) { /* nic */ } }).catch(function () { /* nic */ }); }
+    function ukonciWorker() { var p = _worker; _worker = null; if (p) p.then(function (w) { try { w.terminate(); } catch (e) { self.AG && AG.swallow(e, 'foto-body:249'); } }).catch(function () { /* nic */ }); }
 
     function radky(res, k) {
         var data = (res && res.data) || {}, out = [];

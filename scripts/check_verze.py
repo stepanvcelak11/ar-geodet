@@ -75,6 +75,9 @@ PRO_SOUBORY_NAVIC = {
     # window.AGStakeLine. Od 11. 9. 2026 je stakeout-line Pro, takze by v Zakladu
     # zustal 15kB modul, ktery nema odkud vzit geometrii (check_zaklad.py to hlasil).
     'js/stakeout-line-ar.js': u'kamerova vrstva k Pro nastroji Vytyceni osy (js/stakeout-line.js)',
+    # 14. 11. 2026: dlazdice „Firma a ucty“ + menu; samotna administrace (js/ucty-admin.js)
+    # se stahuje az pri otevreni. Bez ni by v Zakladu zustala dlazdice, ktera nema co otevrit.
+    'js/ucty-admin-vstup.js': u'vstup do administrace firmy (js/ucty-admin.js se stahuje na vyzadani)',
 }
 
 

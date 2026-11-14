@@ -522,7 +522,7 @@
             var k = e.target.getAttribute('data-k'), x = nast();
             if (k === 'zap') x.zap = !!e.target.checked;
             else if (k === 'jen') x.jenVlastni = !!e.target.checked;
-            else if (k === 'hlas') { x.hlas = !!e.target.checked; if (!x.hlas) { try { speechSynthesis.cancel(); } catch (er) { /* nic */ } } }
+            else if (k === 'hlas') { x.hlas = !!e.target.checked; if (!x.hlas) { try { speechSynthesis.cancel(); } catch (er) { self.AG && AG.swallow(er, 'maskot:525'); } } }
             else return;
             uloz(x); obnovVse();
         });
@@ -595,7 +595,7 @@
         moz.sort(function () { return Math.random() - 0.5; });
         // definice bez samotného názvu (jinak by se odpověď prozradila)
         var def = t(c.d), nazev = t(c.t);
-        try { def = def.replace(new RegExp(nazev.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '…'); } catch (e) { /* nic */ }
+        try { def = def.replace(new RegExp(nazev.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '…'); } catch (e) { self.AG && AG.swallow(e, 'maskot:598'); }
         var otazka = vyber('otazka_uvod') + ' „' + zkrat(def, 190) + '“';
         rekniDo(el, 'otazka_uvod', null, 'mysli', { text: otazka, akce: moz.map(function (m) {
             return { l: t(m.t), fn: function (b, host) {

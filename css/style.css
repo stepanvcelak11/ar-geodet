@@ -1941,10 +1941,13 @@ body.light-mode .tools-search { background: rgba(0, 0, 0, 0.04); }
 #settings-modal .st-seg label { display: inline-flex; margin: 0; position: relative; }
 #settings-modal .st-seg input { position: absolute; opacity: 0; width: 0; height: 0; }
 #settings-modal .st-seg .st-seg-b,
-#settings-modal .st-seg label > span { display: block; padding: 7px 13px; border: none; background: none; border-radius: 99px; font-size: calc(12.5px * var(--ag-font-scale, 1)); font-weight: 600; font-family: inherit; color: var(--text-muted); cursor: pointer; white-space: nowrap; transition: background .18s ease, color .18s ease; }
+#settings-modal .st-seg label > span { display: block; padding: 10px 13px; border: none; background: none; border-radius: 99px; font-size: calc(12.5px * var(--ag-font-scale, 1)); font-weight: 600; font-family: inherit; color: var(--text-muted); cursor: pointer; white-space: nowrap; transition: background .18s ease, color .18s ease; }
 #settings-modal .st-seg .st-seg-b.on,
 #settings-modal .st-seg input:checked + span { background: var(--accent-fill, var(--accent)); color: #fff; }
 body.light-mode #settings-modal .st-seg { background: rgba(0,0,0,.06); }
+/* Zavírací křížek nástrojů mapy: dotyková plocha 44×44 při zachování malé ikonky */
+#map-ctrl-close { position: relative; }
+#map-ctrl-close::after { content: ""; position: absolute; inset: -9px; }
 
 /* Chips (druh hledanych bodu) */
 #settings-modal .st-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
