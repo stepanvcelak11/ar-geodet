@@ -2,6 +2,17 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 425,
+      "datum": "2026-11-14",
+      "nadpis": "Arranque mais rápido e início de sessão mais seguro",
+      "body": [
+        "A app descarrega ~400 kB a menos ao arrancar: a administração da empresa e a consola do proprietário só carregam quando abertas.",
+        "O PIN no telemóvel é agora guardado de forma muito mais segura (o antigo converte-se sozinho no próximo início de sessão). Uma empresa na nuvem sem sessão válida no servidor pede para iniciar sessão.",
+        "Áreas de toque maiores para «?» nas ferramentas, os interruptores nas Definições e o fecho das ferramentas do mapa.",
+        "Os erros ocultos são agora escritos no Registo de erros, para poderem ser encontrados e corrigidos."
+      ]
+    },
+    {
       "v": 424,
       "datum": "2026-11-14",
       "nadpis": "Ecrã inicial em cada arranque",

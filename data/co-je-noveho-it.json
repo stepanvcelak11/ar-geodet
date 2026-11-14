@@ -2,6 +2,17 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 425,
+      "datum": "2026-11-14",
+      "nadpis": "Avvio più rapido e accesso più sicuro",
+      "body": [
+        "All’avvio l’app scarica ~400 kB in meno: l’amministrazione dell’azienda e la console del proprietario si caricano solo quando si aprono.",
+        "Il PIN sul telefono è ora salvato in modo molto più sicuro (quello vecchio si converte da solo al prossimo accesso). Un’azienda nel cloud senza accesso valido al server richiede l’accesso.",
+        "Aree di tocco più grandi per «?» sugli strumenti, gli interruttori nelle Impostazioni e la chiusura degli strumenti mappa.",
+        "Gli errori nascosti ora vengono scritti nel Registro errori, così si possono trovare e correggere."
+      ]
+    },
+    {
       "v": 424,
       "datum": "2026-11-14",
       "nadpis": "Schermata Home a ogni avvio",

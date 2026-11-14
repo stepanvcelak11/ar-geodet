@@ -2,6 +2,17 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 425,
+      "datum": "2026-11-14",
+      "nadpis": "Faster start and safer sign-in",
+      "body": [
+        "The app downloads ~400 kB less at start: company administration and the owner console load only when opened.",
+        "The PIN on the phone is now stored much more securely (the old one converts itself at the next sign-in). A cloud company without a valid server sign-in asks you to sign in.",
+        "Larger touch targets for “?” on tools, the switches in Settings and closing the map tools.",
+        "Hidden errors are now written to the Error log, so they can be found and fixed."
+      ]
+    },
+    {
       "v": 424,
       "datum": "2026-11-14",
       "nadpis": "Home screen on every start",

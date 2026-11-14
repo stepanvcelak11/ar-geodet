@@ -2,6 +2,17 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 425,
+      "datum": "2026-11-14",
+      "nadpis": "Szybszy start i bezpieczniejsze logowanie",
+      "body": [
+        "Aplikacja pobiera przy starcie ~400 kB mniej: administracja firmy i konsola właściciela wczytują się dopiero po otwarciu.",
+        "PIN w telefonie jest teraz przechowywany znacznie bezpieczniej (stary sam się przekształci przy następnym logowaniu). Firma w chmurze bez ważnego logowania na serwerze poprosi o zalogowanie.",
+        "Większe pola dotyku dla „?” przy narzędziach, przełączników w Ustawieniach i zamykania narzędzi mapy.",
+        "Ukryte błędy są teraz zapisywane w Dzienniku błędów, więc da się je znaleźć i naprawić."
+      ]
+    },
+    {
       "v": 424,
       "datum": "2026-11-14",
       "nadpis": "Ekran Start przy każdym uruchomieniu",
