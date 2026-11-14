@@ -154,7 +154,8 @@ async def test_zapnuti(ctx):
             klic: localStorage.getItem('agJednoduchy_v1'),
             kryje: kryje,
             nastaveniZavrena: (document.getElementById('settings-modal') || {}).style.display === 'none',
-            tlacitka: [...document.querySelectorAll('#ag-jr-home button')].map(b => b.innerText.replace(/\\s+/g,' ').trim())
+            // ikonka „Na mou polohu" na mapě (od 4. 11. 2026) se nepočítá — jen tlačítka úvodu
+            tlacitka: [...document.querySelectorAll('#ag-jr-home button:not([data-jr-ja])')].map(b => b.innerText.replace(/\\s+/g,' ').trim())
         };
     }""")
     ok('rezim je zapnuty a ulozeny', st['zapnuto'] and st['klic'] == '1', st)
@@ -465,6 +466,8 @@ async def main():
                 ctx = await browser.new_context(locale='cs-CZ', viewport={'width': 412, 'height': 915}, has_touch=True,
                                                 permissions=['geolocation'], geolocation=GEO,
                                                 service_workers='block')
+                # kompas jako na telefonu s povolením (viz ag_boot.py) — jinak dialog „Kompas nemá povolení"
+                await ctx.add_init_script("try { ['DeviceOrientationEvent','DeviceMotionEvent'].forEach(function (n) { var E = window[n]; if (E && typeof E.requestPermission === 'function') E.requestPermission = function () { return Promise.resolve('granted'); }; }); } catch (e) {}")
                 await ctx.add_init_script(boot)
                 await fn(ctx)
                 await ctx.close()

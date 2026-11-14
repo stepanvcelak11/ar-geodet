@@ -123,6 +123,10 @@ async def stranka(pw, br, url, init, chyby):
         except Exception:
             pass
     await page.route('**/*', route_vse)
+    # ANDROID BEZ requestPermission (14. 11. 2026): novější Chromium ji zná i na desktopu a bez
+    # senzorů vrací 'denied' — test ale emuluje Chrome na Androidu, kde se na kompas neptá.
+    await page.add_init_script("""try { ['DeviceOrientationEvent', 'DeviceMotionEvent'].forEach(function (n) {
+        var E = window[n]; if (E && 'requestPermission' in E) Object.defineProperty(E, 'requestPermission', { value: undefined, configurable: true, writable: true }); }); } catch (e) {}""")
     await page.add_init_script(init)
     await page.goto(url, wait_until='domcontentloaded', timeout=60000)
     await page.wait_for_timeout(3000)

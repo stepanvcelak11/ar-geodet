@@ -121,8 +121,12 @@ async def beh(url):
            not any(k in g['ar'] for k in ('ref-calibration', 'kalibrace-hranou')) and not any(k in g['urcit'] for k in ('brutal-gps', 'dgps', 'akusticky-dalkomer')) and 'dvoji-mereni' not in g['zmerit'], g)
         hub = await page.evaluate("() => (window.AGHub && AGHub.hubs ? AGHub.hubs() : []).filter(h => h.id === 'srovnat-sever').map(h => h.poradi)[0] || null")
         ok('S4 rozcestník „Srovnat jinak" už kalibrace GPS nenabízí', hub is None or not any(k in hub for k in ('ref-calibration', 'kalibrace-hranou')), hub)
+        # seznam úkonů se staví až v OTEVŘENÉM okně Nástrojů (rebuild zavřeného jen označí „špinavé")
+        await page.evaluate("() => { document.getElementById('tools-modal').style.display = 'flex'; }")
+        await page.wait_for_timeout(800)
         lst = await page.evaluate("""() => { try { if (window.AGUkony && AGUkony.rebuild) AGUkony.rebuild(); } catch (e) {}
             return Array.from(document.querySelectorAll('.ag-uk-h')).map(h => (h.textContent || '').replace(/\\s+/g, ' ').trim()); }""")
+        await page.evaluate("() => { document.getElementById('tools-modal').style.display = 'none'; }")
         ok('S5 seznam úkonů má hlavičku Přesné měření', any('Přesné měření'.upper() in t.upper() for t in lst), lst)
         role = await page.evaluate("() => !!document.querySelector('.tool-grid .tool-cat') && Array.from(document.querySelectorAll('.tool-grid .tool-cat')).some(e => e.textContent.trim() === 'Přesné měření')")
         ok('S6 mřížka má nadpis kategorie Přesné měření (klikací cíl)', role)

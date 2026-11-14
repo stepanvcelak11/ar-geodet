@@ -35,6 +35,7 @@ URL = None
 
 # Bezny prihlaseny uzivatel (appka dojede az k obrazovce).
 BOOT = """
+  try { ['DeviceOrientationEvent','DeviceMotionEvent'].forEach(function (n) { var E = window[n]; if (E && typeof E.requestPermission === 'function') E.requestPermission = function () { return Promise.resolve('granted'); }; }); } catch (e) {}  // kompas s povolením (viz ag_boot.py); sekce I si ho přepíše
   localStorage.setItem('agTutProSeen','1');
   // vektorova mapa vypnuta (od v360 vychozi zapnuta) — test nema blokovanou sit, tahal by realna data
   localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' })); localStorage.setItem('agMapaVektorMig_v1', '1');
@@ -51,6 +52,7 @@ BOOT = """
 
 # Telefon vyvojare: priznak vlastnika i klic uz ulozene, ZADNA firma.
 BOOT_VLASTNIK = """
+  try { ['DeviceOrientationEvent','DeviceMotionEvent'].forEach(function (n) { var E = window[n]; if (E && typeof E.requestPermission === 'function') E.requestPermission = function () { return Promise.resolve('granted'); }; }); } catch (e) {}  // kompas s povolením (viz ag_boot.py); sekce I si ho přepíše
   localStorage.setItem('agTutProSeen','1');
   // vektorova mapa vypnuta (od v360 vychozi zapnuta) — test nema blokovanou sit, tahal by realna data
   localStorage.setItem('agMapaVektor_v1', JSON.stringify({ zap: false, styl: 'auto', url: '' })); localStorage.setItem('agMapaVektorMig_v1', '1');

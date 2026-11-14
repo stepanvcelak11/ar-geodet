@@ -1874,7 +1874,7 @@ function TT(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } 
             const m = /\/([ZKU])$/i.exec(inp.value.trim()); const akt = m ? m[1].toUpperCase() : '';
             r.innerHTML = '';
             r.style.display = zaklad ? 'flex' : 'none';
-            [['Z', TT('▶ Začátek linie')], ['K', TT('■ Konec linie')], ['U', TT('⟲ Uzavřít')]].forEach(([p, t]) => {
+            [['Z', TT('► Začátek linie')], ['K', TT('■ Konec linie')], ['U', TT('⟲ Uzavřít')]].forEach(([p, t]) => {
                 const b = document.createElement('button'); b.type = 'button'; b.className = 'kod-chip' + (akt === p ? ' kod-chip-on' : '');
                 b.textContent = t; b.setAttribute('aria-pressed', akt === p ? 'true' : 'false');
                 b.title = TT('Kód se uloží jako „{k}" — v kanceláři (Kontrola výkresu → CAD) se z kódů nakreslí linie', { k: zaklad + '/' + p });

@@ -305,6 +305,9 @@ async def main():
                         "() => { const e = document.getElementById('agv-stav'); return e && e.textContent.indexOf('Zjišťuji') < 0; }",
                         timeout=20000)
                     sv = await page2.evaluate("() => document.getElementById('agv-stav').textContent")
+                    if 'neodpov' in sv.lower() or 'bez sign' in sv.lower():
+                        # server nedosažitelný (sandbox bez sítě, výpadek) — vada prostředí, ne kódu
+                        raise RuntimeError('server nedosazitelny: ' + sv[:60])
                     ok('stav serveru se vypsal (verze workeru)', 'Worker' in sv, sv[:120])
                     # ⚠ TOHLE SE DA OVERIT, JEN KDYZ SERVER NEJAKY KLIC MA.
                     #   Kontrola ma rict, ze appka pozna NESEDICI klic (403). Kdyz
