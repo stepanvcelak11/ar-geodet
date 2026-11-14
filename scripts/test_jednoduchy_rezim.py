@@ -190,8 +190,10 @@ async def test_provoz(ctx):
     ok('ULOZIT je zamcene, dokud nejsou souradnice', st['zamcene'], st)
     ok('zamcene tlacitko rekne, co chybi', 'SOUŘADNICE' in st['popis'], st['popis'])
 
+    # delka mereni je od 14. 11. 2026 volitelna (vychozi 10 s) — tady nejkratsi 5 s
+    await page.click('[data-doba="5"]')
     await page.click('#ag-jr-zgps')
-    await page.wait_for_timeout(7200)          # prumerovani je 6 s
+    await page.wait_for_timeout(6200)          # prumerovani je 5 s
     st = await page.evaluate("""() => ({
         vysledek: (document.getElementById('ag-jr-vysledek') || {}).innerText || '',
         ulozitZamcene: document.getElementById('ag-jr-ulozit').disabled

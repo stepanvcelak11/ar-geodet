@@ -13,7 +13,12 @@
 
 #ag-jr {
     position: fixed;
-    inset: 0;
+    /* výška z --app-vh (index.html setH), NE inset:0 — iOS z plochy hlásí pro position:fixed
+       viewport o stavový řádek menší a dole zůstával prázdný pruh (14. 11. 2026) */
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--app-vh, 100dvh);
     z-index: 999995;
     display: none;
     flex-direction: column;
@@ -791,3 +796,10 @@ body.ag-jr-pauza #ag-bgps-overlay .bgps-name { min-height: 52px; font-size: calc
 #ag-jr-go.jr-plno .jr-vzdalenost { font-size: calc(42px * var(--ag-font-scale, 1)); }
 #ag-jr-go.jr-plno .jr-mapa-go { flex: 0 0 20vh; min-height: 120px; }
 #ag-jr-go.jr-plno .jr-poslat { display: none; }
+
+/* délka měření „Z GPS" (5 s / 10 s / 30 s / 1 min) */
+.jr-doba { margin: 10px 0 4px; }
+.jr-doba > span { display: block; margin-bottom: 6px; color: var(--text-muted); font-size: var(--fs-sm); font-weight: 600; }
+.jr-doba-seg { display: flex; gap: 6px; }
+.jr-doba-seg button { flex: 1 1 0; min-height: 48px; border-radius: var(--r-md); border: 1px solid var(--glass-border-strong); background: var(--surface-1); color: var(--text-color); font-family: inherit; font-size: var(--fs-md); font-weight: 700; cursor: pointer; }
+.jr-doba-seg button.on { background: var(--accent-fill); color: #fff; border-color: transparent; }

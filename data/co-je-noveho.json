@@ -2,6 +2,15 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 430,
+   "datum": "2026-11-14",
+   "nadpis": "Bez pruhu dole a volitelná délka měření",
+   "body": [
+    "Opraveno: na iPhonu z plochy mohl po návratu do appky zůstat dole prázdný pruh, jako by se appka posunula nahoru.",
+    "Jednoduchý režim: u „Z GPS“ si vybereš, jak dlouho měřit — 5 s, 10 s (výchozí), 30 s nebo 1 min."
+   ]
+  },
+  {
    "v": 429,
    "datum": "2026-11-14",
    "nadpis": "Navigace: vzdálenost vzdušnou čarou",

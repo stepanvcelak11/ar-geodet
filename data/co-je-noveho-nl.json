@@ -2,6 +2,15 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 430,
+      "datum": "2026-11-14",
+      "nadpis": "Geen balk onderaan en instelbare meetduur",
+      "body": [
+        "Opgelost: op de iPhone (app vanaf beginscherm) kon na terugkeer onderaan een lege balk blijven.",
+        "Eenvoudige modus: bij „Via GPS” kies je hoe lang je meet — 5 s, 10 s (standaard), 30 s of 1 min."
+      ]
+    },
+    {
       "v": 429,
       "datum": "2026-11-14",
       "nadpis": "Navigatie: afstand in rechte lijn",

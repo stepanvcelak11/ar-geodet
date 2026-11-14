@@ -2,6 +2,15 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 430,
+      "datum": "2026-11-14",
+      "nadpis": "Kein Streifen unten und wählbare Messdauer",
+      "body": [
+        "Behoben: Auf dem iPhone (App vom Home-Bildschirm) konnte nach der Rückkehr unten ein leerer Streifen bleiben.",
+        "Einfacher Modus: Bei „Per GPS“ wählst du die Messdauer — 5 s, 10 s (Standard), 30 s oder 1 min."
+      ]
+    },
+    {
       "v": 429,
       "datum": "2026-11-14",
       "nadpis": "Navigation: Luftlinie",
