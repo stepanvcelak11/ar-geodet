@@ -2,6 +2,17 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 426,
+      "datum": "2026-11-14",
+      "nadpis": "Modo simple: mover el mapa, cámara y tus herramientas",
+      "body": [
+        "En el modo simple el mapa se mueve con un dedo y se amplía con dos. Tras moverlo aparece el botón Centrar.",
+        "El botón Cámara muestra la imagen en vivo con puntos en RA en lugar del mapa.",
+        "Al tocar un punto (en el mapa o en la cámara) se ven sus coordenadas, altura y distancia. La navegación se inicia con el botón de la tarjeta.",
+        "Un pequeño botón arriba a la derecha oculta las herramientas. La primera vez eliges hasta 10 y después solo ves esas. Al cerrar una herramienta, la app vuelve sola al modo simple."
+      ]
+    },
+    {
       "v": 425,
       "datum": "2026-11-14",
       "nadpis": "Inicio más rápido e inicio de sesión más seguro",

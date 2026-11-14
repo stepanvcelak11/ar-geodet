@@ -2,6 +2,17 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 426,
+      "datum": "2026-11-14",
+      "nadpis": "Eenvoudige modus: kaart verschuiven, camera en eigen gereedschap",
+      "body": [
+        "In de eenvoudige modus verschuif je de kaart met één vinger en zoom je met twee. Na het verschuiven verschijnt de knop Centreren.",
+        "De knop Camera toont in plaats van de kaart het livebeeld met punten in AR.",
+        "Tikken op een punt (op de kaart of in de camera) toont coördinaten, hoogte en afstand. Navigatie start met de knop op de kaart.",
+        "Een kleine knop rechtsboven verbergt het gereedschap. De eerste keer kies je er maximaal 10, daarna zie je alleen die. Na het sluiten van een gereedschap keert de app zelf terug naar de eenvoudige modus."
+      ]
+    },
+    {
       "v": 425,
       "datum": "2026-11-14",
       "nadpis": "Snellere start en veiliger aanmelden",

@@ -25,6 +25,22 @@
 //     mapa s čarou k cíli. Nic jiného z plné appky klepnutím do mapy otevřít nejde
 //     (modály plné appky leží POD přebalem a otevřely by se neviditelně).
 //   • POSLAT BOD z navigace (odkaz ?bod= z js/hledat-misto.js, jinak souřadnice).
+//   • 14. 11. 2026 (přání: „jednoduchý mód je pomalu ta nejlepší verze … ale appka měla
+//     pointu té kamery"):
+//       – mapou jde hýbat prstem (posun, dva prsty = zoom, kolečko myši). Ovládání mapy
+//         v plné appce visí na #map-container (grafika.js), takže v okně režimu nefungovalo
+//         vůbec — tady má vlastní. Posun vypne sledování polohy (window._mapHold) a objeví
+//         se tlačítko „Vycentrovat", stejně jako v plné appce.
+//       – přepínač MAPA / KAMERA: místo mapy živý obraz s body v AR (#camera-container se
+//         do okna přesune stejně jako mapa). Volba se pamatuje (agJrPohled_v1).
+//       – klepnutí na bod (v mapě i na značku v kameře) = KARTA BODU (souřadnice, výška,
+//         vzdálenost, azimut) s tlačítkem Navigovat. Dřív rovnou navigace.
+//       – NÁSTROJE schované pod malým tlačítkem vpravo nahoře: napoprvé si uživatel vybere
+//         nejvýš 10 nástrojů, pak vidí jen je (výběr jde kdykoli změnit). Nástroj se
+//         spustí klepnutím na svou dlaždici v mřížce (jako js/nastroje-ukony.js — platí
+//         práva rolí, zámky Pro i počítání použití). Okna nástrojů leží POD přebalem,
+//         proto se přebal na dobu nástroje SCHOVÁ (pauza) a vrátí se sám, až se okno
+//         nástroje zavře — nebo tlačítkem „Jednoduchý režim" nahoře.
 //
 // NEINVAZIVNÍ: NEEDITUJE logika.js ani grafika.js. Body ukládá JEDINOU
 // oficiální cestou — window.addImportedPoints() (stejně jako import, hlasové
@@ -61,6 +77,10 @@
     var novy = null;                   // rozdělaný bod: {lat, lng, acc, vyska, zpusob}
     var avgT = null, avgDo = 0, avgVzorky = [];
     var filtr = '';
+    var POHLED_KEY = 'agJrPohled_v1';  // 'kamera' | 'mapa' — co ukazuje okno na domovské stránce
+    var NAS_KEY = 'agJrNastroje_v1';   // JSON pole klíčů dlaždic, které si uživatel vybral
+    var NAS_MAX = 10;
+    var karta = null;                  // bod, jehož karta je otevřená
 
     function swallow(e, kde) { try { if (window.AG && AG.swallow) AG.swallow(e, 'jednoduchy-rezim:' + kde); } catch (e2) { /* ani logovat nejde */ } }
 
@@ -129,8 +149,14 @@
             // ---------- domů ----------
             + '<section class="jr-page" id="ag-jr-home">'
             + '  <div class="jr-top"><div class="jr-stav" id="ag-jr-stav">Hledám GPS…</div>'
+            + '    <button type="button" class="jr-maly jr-ikonka" id="ag-jr-nas-btn" aria-label="Nástroje" title="Nástroje">' + ikona('i-grid') + '</button>'
             + '    <button type="button" class="jr-maly" id="ag-jr-konec">Celá appka</button></div>'
-            + '  <div class="jr-mapa" id="ag-jr-mapa-home" hidden><button type="button" class="jr-mapa-ja" data-jr-ja aria-label="Na mou polohu">' + ikona('i-locate') + '</button><div class="jr-mapa-tip">klepni na bod = navigace</div></div>'
+            + '  <div class="jr-mapa" id="ag-jr-mapa-home" hidden>'
+            + '    <button type="button" class="jr-pohled" id="ag-jr-pohled" data-jr-ovl></button>'
+            + '    <button type="button" class="jr-mapa-ja" data-jr-ja aria-label="Vycentrovat na mou polohu" hidden>' + ikona('i-locate') + '<span>Vycentrovat</span></button>'
+            + '    <div class="jr-mapa-tip" id="ag-jr-tip">klepni na bod = informace</div>'
+            + '    <div class="jr-karta" id="ag-jr-karta" data-jr-ovl hidden></div>'
+            + '  </div>'
             + '  <div class="jr-souhrn" id="ag-jr-souhrn"></div>'
             + '  <div class="jr-hlavni">'
             + '    <button type="button" class="jr-velke jr-velke-pridat" id="ag-jr-pridat">' + ikona('i-plus') + 'PŘIDAT BOD<small>tady stojím, ulož si to</small></button>'
@@ -180,8 +206,17 @@
             + '  </div>'
             + '  <div class="jr-vzdalenost" id="ag-jr-vzd">—</div>'
             + '  <div class="jr-pozn" id="ag-jr-pozn">&nbsp;</div>'
-            + '  <div class="jr-mapa jr-mapa-go" id="ag-jr-mapa-go" hidden><button type="button" class="jr-mapa-ja" data-jr-ja aria-label="Na mou polohu">' + ikona('i-locate') + '</button></div>'
+            + '  <div class="jr-mapa jr-mapa-go" id="ag-jr-mapa-go" hidden><button type="button" class="jr-mapa-ja" data-jr-ja aria-label="Vycentrovat" hidden>' + ikona('i-locate') + '<span>Vycentrovat</span></button></div>'
             + '  <button type="button" class="jr-maly jr-poslat" id="ag-jr-poslat">Poslat bod</button>'
+            + '</section>'
+            // ---------- nástroje (vrstva nad domovskou stránkou) ----------
+            + '<section class="jr-nas" id="ag-jr-nas" hidden>'
+            + '  <div class="jr-top"><div class="jr-nadpis jr-nas-nadpis" id="ag-jr-nas-nadpis">Nástroje</div>'
+            + '    <button type="button" class="jr-maly" id="ag-jr-nas-zavri">Zavřít</button></div>'
+            + '  <div class="jr-nas-info" id="ag-jr-nas-info"></div>'
+            + '  <input type="search" id="ag-jr-nas-hledat" class="jr-vstup" placeholder="Hledat nástroj…" autocomplete="off" hidden>'
+            + '  <div class="jr-telo" id="ag-jr-nas-seznam"></div>'
+            + '  <div class="jr-pata" id="ag-jr-nas-pata"></div>'
             + '</section>';
         document.body.appendChild(root);
 
@@ -200,10 +235,15 @@
         root.querySelector('#ag-jr-y').addEventListener('input', rucneZmena);
         root.querySelector('#ag-jr-x').addEventListener('input', rucneZmena);
         root.querySelector('#ag-jr-poslat').addEventListener('click', poslatBod);
-        Array.prototype.forEach.call(root.querySelectorAll('.jr-mapa'), hlidejKlepnutiDoMapy);
+        Array.prototype.forEach.call(root.querySelectorAll('.jr-mapa'), function (slot) { hlidejKlepnutiDoMapy(slot); hlidejGesta(slot); });
         Array.prototype.forEach.call(root.querySelectorAll('[data-jr-ja]'), function (b) {
-            b.addEventListener('click', function (e) { e.stopPropagation(); naMe(true); });
+            b.addEventListener('click', function (e) { e.stopPropagation(); vycentruj(); });
         });
+        root.querySelector('#ag-jr-pohled').addEventListener('click', function (e) { e.stopPropagation(); prepniPohled(); });
+        root.querySelector('#ag-jr-nas-btn').addEventListener('click', otevriNastroje);
+        root.querySelector('#ag-jr-nas-zavri').addEventListener('click', zavriNastroje);
+        var nh = root.querySelector('#ag-jr-nas-hledat');
+        nh.addEventListener('input', function () { _nasFiltr = nh.value.trim().toLowerCase(); vykresliNastroje(); });
         var h = root.querySelector('#ag-jr-hledat');
         h.addEventListener('input', function () { filtr = h.value.trim().toLowerCase(); vykresliSeznam(); });
         return root;
@@ -211,14 +251,23 @@
 
     // ---- přepínání obrazovek -----------------------------------------------------
     function ukaz(kam) {
+        var bylo = aktivni;
         aktivni = kam;
         Object.keys(stranky).forEach(function (k) {
             if (stranky[k]) stranky[k].classList.toggle('jr-vidno', k === kam);
         });
-        if (kam === 'home') { mapaDo('#ag-jr-mapa-home'); souhrn(); }
-        else if (kam === 'go') mapaDo('#ag-jr-mapa-go');
-        else mapaDo(null);
+        zavriKartu();
+        if (kam === 'home') {
+            if (pohled() === 'kamera' && kameraDo(true)) { /* okno drží kamera */ }
+            else { kameraDo(false); mapaDo('#ag-jr-mapa-home'); }
+            souhrn();
+        } else {
+            kameraDo(false);
+            if (kam === 'go') mapaDo('#ag-jr-mapa-go'); else mapaDo(null);
+        }
+        if (kam !== bylo && (kam === 'home' || kam === 'go')) window._mapHold = false;   // nová stránka = zase sledovat polohu
         if (kam !== 'go') caraPryc();
+        obnovPohledBtn();
         hlidejTik();
     }
 
@@ -232,7 +281,7 @@
     function mapaDo(sel) {
         var el = document.getElementById('map'), m = leafletMapa();
         var slot = sel ? root.querySelector(sel) : null;
-        Array.prototype.forEach.call(root.querySelectorAll('.jr-mapa'), function (s) { s.hidden = !(el && m && s === slot); });
+        Array.prototype.forEach.call(root.querySelectorAll('.jr-mapa'), function (s) { s.hidden = !((el && m && s === slot) || (_kamera && s.id === 'ag-jr-mapa-home')); });
         if (!el || !m) return;
         if (!slot) {
             if (_mapaDomov && el.parentNode !== _mapaDomov.parent) {
@@ -255,29 +304,415 @@
         var m = leafletMapa(); if (!m || !maFix()) return;
         try { m.setView([userLat, userLng], Math.max(m.getZoom() || 0, 17), { animate: !!animuj }); } catch (e) { swallow(e, 'naMe'); }
     }
-    // Klepnutí do mapy: CAPTURE na okně zastaví událost dřív, než dojde do Leafletu
-    // (posun a zoom prstem jdou přes pointer události, ty zůstávají). Místo toho se
-    // najde nejbližší bod do 36 px a spustí se k němu navigace.
+    // „Vycentrovat": zapne zpátky sledování polohy (jako #map-recenter v plné appce).
+    // V navigaci místo středu na mně ukáže zase celou čáru ke konci.
+    function vycentruj() {
+        window._mapHold = false;
+        var m = leafletMapa();
+        if (aktivni === 'go' && _cara && m) { try { m.fitBounds(_cara.getBounds(), { padding: [28, 28], maxZoom: 19, animate: true }); } catch (e) { swallow(e, 'vycentrujGo'); } }
+        else naMe(true);
+        obnovNaMe();
+    }
+    // tlačítko „Vycentrovat" jen když mapa nesleduje polohu (uživatel s ní pohnul)
+    var _drzi = null;
+    function obnovNaMe() {
+        var d = !!window._mapHold && !_kamera;
+        if (d === _drzi) return;
+        _drzi = d;
+        Array.prototype.forEach.call(root.querySelectorAll('[data-jr-ja]'), function (b) { b.hidden = !d; });
+    }
+
+    // ---- POSUN A ZOOM PRSTEM (14. 11. 2026) -----------------------------------------
+    // Leaflet má vlastní tažení vypnuté (logika.js: dragging:false, touchZoom:false) —
+    // mapu v plné appce posouvá grafika.js posluchači na #map-container. Jenže v okně
+    // jednoduchého režimu #map v #map-container NENÍ, takže se mapou nedalo hnout vůbec.
+    // Tady je tedy totéž v malém: jeden prst = posun, dva prsty = zoom kolem středu prstů,
+    // myš = tažení a kolečko. Sever je v okně vždy nahoře, takže posun se nepřepočítává.
+    var _posunT = 0;                   // kdy naposledy skončil posun (klepnutí hned po něm není klepnutí)
+    function bodVOkne(m, x, y) { return m.mouseEventToContainerPoint({ clientX: x, clientY: y }); }
+    function hlidejGesta(slot) {
+        var g = null;
+        var mimo = function (e) { return _kamera || (e.target && e.target.closest && e.target.closest('button, [data-jr-ovl]')); };
+        var vzd2 = function (t) { return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY) || 1; };
+        var stred2 = function (t) { return { x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 }; };
+        var zacni = function (t, m) {
+            if (t.length >= 2) g = { dva: true, d: vzd2(t), z: m.getZoom(), pohnul: true };
+            else g = { dva: false, x: t[0].clientX, y: t[0].clientY, sx: t[0].clientX, sy: t[0].clientY, pohnul: g ? g.pohnul : false };
+        };
+        slot.addEventListener('touchstart', function (e) {
+            if (mimo(e)) return;
+            var m = leafletMapa(); if (!m) return;
+            zacni(e.touches, m);
+        }, { passive: true });
+        slot.addEventListener('touchmove', function (e) {
+            if (!g) return;
+            var m = leafletMapa(); if (!m) return;
+            if (e.cancelable) e.preventDefault();
+            var t = e.touches;
+            try {
+                if (g.dva && t.length >= 2) {
+                    var z = Math.max(m.getMinZoom(), Math.min(m.getMaxZoom(), g.z + Math.log(vzd2(t) / g.d) / Math.LN2));
+                    var c = stred2(t);
+                    m.setZoomAround(bodVOkne(m, c.x, c.y), z, { animate: false });
+                    window._mapHold = true;
+                } else if (!g.dva && t.length === 1) {
+                    var dx = t[0].clientX - g.x, dy = t[0].clientY - g.y;
+                    if (!g.pohnul && Math.hypot(t[0].clientX - g.sx, t[0].clientY - g.sy) < 8) return;   // chvění prstu při klepnutí
+                    g.pohnul = true;
+                    m.panBy([-dx, -dy], { animate: false });
+                    g.x = t[0].clientX; g.y = t[0].clientY;
+                    window._mapHold = true;
+                }
+            } catch (er) { swallow(er, 'gesto'); }
+            obnovNaMe();
+        }, { passive: false });
+        var konec = function (e) {
+            if (!g) return;
+            var m = leafletMapa();
+            if (g.pohnul) _posunT = Date.now();
+            if (e.touches && e.touches.length === 1 && m) { g.dva = false; zacni(e.touches, m); g.pohnul = true; return; }
+            if (!e.touches || !e.touches.length) g = null;
+        };
+        slot.addEventListener('touchend', konec);
+        slot.addEventListener('touchcancel', konec);
+        // myš (počítač, tablet s myší)
+        var mys = null;
+        slot.addEventListener('mousedown', function (e) {
+            if (e.button !== 0 || mimo(e) || !leafletMapa()) return;
+            mys = { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, pohnul: false };
+        });
+        window.addEventListener('mousemove', function (e) {
+            if (!mys) return;
+            var m = leafletMapa(); if (!m) { mys = null; return; }
+            if (!mys.pohnul && Math.hypot(e.clientX - mys.sx, e.clientY - mys.sy) < 5) return;
+            mys.pohnul = true;
+            try { m.panBy([mys.x - e.clientX, mys.y - e.clientY], { animate: false }); } catch (er) { swallow(er, 'mys'); }
+            mys.x = e.clientX; mys.y = e.clientY;
+            window._mapHold = true; obnovNaMe();
+        });
+        window.addEventListener('mouseup', function () { if (mys && mys.pohnul) _posunT = Date.now(); mys = null; });
+        slot.addEventListener('wheel', function (e) {
+            if (mimo(e)) return;
+            var m = leafletMapa(); if (!m) return;
+            e.preventDefault();
+            try {
+                var z = Math.max(m.getMinZoom(), Math.min(m.getMaxZoom(), m.getZoom() - Math.sign(e.deltaY) * 0.5));
+                m.setZoomAround(bodVOkne(m, e.clientX, e.clientY), z, { animate: false });
+            } catch (er) { swallow(er, 'kolecko'); }
+            window._mapHold = true; obnovNaMe();
+        }, { passive: false });
+    }
+
+    // Klepnutí do okna: CAPTURE zastaví událost dřív, než dojde do Leafletu nebo na
+    // značku v kameře (jejich vlastní okna by se otevřela POD přebalem, neviditelně).
+    // Místo toho se najde bod a ukáže se jeho KARTA. V mapě nejbližší bod do 36 px,
+    // v kameře značka, na kterou prst padl.
     function hlidejKlepnutiDoMapy(slot) {
         ['click', 'dblclick', 'contextmenu'].forEach(function (typ) {
             slot.addEventListener(typ, function (e) {
-                if (e.target && e.target.closest && e.target.closest('[data-jr-ja]')) return;
+                if (e.target && e.target.closest && e.target.closest('button, [data-jr-ovl]')) return;
                 e.stopPropagation(); e.preventDefault();
                 if (typ !== 'click' || aktivni !== 'home') return;
-                var m = leafletMapa(); if (!m) return;
+                if (Date.now() - _posunT < 350) return;          // konec tažení, ne klepnutí
                 try {
-                    var bodKlik = m.mouseEventToContainerPoint(e), nej = null, nejD = 36;
-                    body().concat(uredni()).forEach(function (p) {
-                        if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
-                        var q = m.latLngToContainerPoint([p.lat, p.lng]);
-                        var d = Math.hypot(q.x - bodKlik.x, q.y - bodKlik.y);
-                        if (d < nejD) { nejD = d; nej = p; }
-                    });
-                    if (nej) naviguj(nej.id);
+                    var nej = null;
+                    if (_kamera) {
+                        var mk = e.target && e.target.closest && e.target.closest('.ar-marker');
+                        if (mk && typeof arPoints !== 'undefined') arPoints.forEach(function (p) { if (!nej && p && p.element === mk) nej = p; });
+                    } else {
+                        var m = leafletMapa(); if (!m) return;
+                        var bodKlik = m.mouseEventToContainerPoint(e), nejD = 36;
+                        body().concat(uredni()).forEach(function (p) {
+                            if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
+                            var q = m.latLngToContainerPoint([p.lat, p.lng]);
+                            var d = Math.hypot(q.x - bodKlik.x, q.y - bodKlik.y);
+                            if (d < nejD) { nejD = d; nej = p; }
+                        });
+                    }
+                    if (nej) otevriKartu(nej); else zavriKartu();
                 } catch (er) { swallow(er, 'klikMapa'); }
             }, true);
         });
     }
+
+    // ---- KARTA BODU (14. 11. 2026) ----------------------------------------------------
+    function najdiBod(id) {
+        var p = null;
+        body().concat(uredni()).forEach(function (q) { if (!p && q.id === id) p = q; });
+        if (!p) try { if (typeof arPoints !== 'undefined') arPoints.forEach(function (q) { if (!p && q && q.id === id) p = q; }); } catch (e) { swallow(e, 'najdiBod'); }
+        return p;
+    }
+    function otevriKartu(p) {
+        var el = root.querySelector('#ag-jr-karta'); if (!el || !p) return;
+        karta = p;
+        var moje = body().indexOf(p) >= 0 || p.cat === 'CUSTOM';
+        var osy = { osaA: 'Y', osaB: 'X', vyska: 'Bpv' }, sys = 'S-JTSK', mi = null;
+        try { if (typeof agOsy === 'function') osy = agOsy(); if (typeof agSys === 'function') sys = agSys(); } catch (e) { swallow(e, 'kartaOsy'); }
+        try { if (typeof agMistni === 'function') mi = agMistni(p.lat, p.lng); } catch (e) { swallow(e, 'kartaMistni'); }
+        var fm = function (v) { try { if (typeof agFmtM === 'function') return agFmtM(v).replace('.', ','); } catch (e) { swallow(e, 'fm'); } return cislo(v, 2); };
+        var vyska = (p.vyska != null && isFinite(p.vyska)) ? Number(p.vyska) : null;
+        var cluster = (p._arCluster && p._arCluster.length) ? p._arCluster.length : 0;
+        var html = '<div class="jr-karta-hl"><b>' + esc(p.name || T('Bod')) + '</b>'
+            + '<span class="jr-radek-kat">' + esc(moje ? T('můj bod') : katLabel(p.cat)) + '</span>'
+            + '<button type="button" class="jr-karta-x" id="ag-jr-karta-x" aria-label="Zavřít">×</button></div>'
+            + '<div class="jr-karta-vzd" id="ag-jr-karta-vzd">' + kartaVzd(p) + '</div>';
+        if (mi && isFinite(mi.y) && isFinite(mi.x)) html += '<div class="jr-karta-r">' + esc(sys) + ' <span>' + esc(osy.osaA) + '</span> <b>' + fm(mi.y) + '</b> · <span>' + esc(osy.osaB) + '</span> <b>' + fm(mi.x) + '</b></div>';
+        if (vyska != null) html += '<div class="jr-karta-r">' + T('Výška') + ' <span>' + esc(osy.vyska || 'Bpv') + '</span> <b>' + cislo(vyska, 2) + ' m</b></div>';
+        if (p.kod) html += '<div class="jr-karta-r">' + T('Kód') + ' <b>' + esc(p.kod) + '</b></div>';
+        if (cluster) html += '<div class="jr-karta-r jr-karta-pozn">' + T('Za ním je v záběru ještě {n} dalších bodů — přibliž se nebo je najdi v Navigovat.', { n: cluster }) + '</div>';
+        html += '<button type="button" class="jr-karta-jit" id="ag-jr-karta-jit">' + ikona('i-navigation') + T('Navigovat sem') + '</button>';
+        el.innerHTML = html;
+        el.hidden = false;
+        el.querySelector('#ag-jr-karta-x').addEventListener('click', function (e) { e.stopPropagation(); zavriKartu(); });
+        el.querySelector('#ag-jr-karta-jit').addEventListener('click', function (e) { e.stopPropagation(); var id = p.id; zavriKartu(); naviguj(id); });
+        vibruj(12);
+    }
+    function kartaVzd(p) {
+        if (!maFix()) return T('Čekám na GPS.');
+        var d = vzdal(userLat, userLng, p.lat, p.lng), az = azimut(userLat, userLng, p.lat, p.lng);
+        return T('{d} od tebe · azimut {a}°', { d: '<b>' + popisD(d) + '</b>', a: cislo(az, 0) });
+    }
+    function zavriKartu() {
+        karta = null;
+        var el = root && root.querySelector('#ag-jr-karta');
+        if (el) { el.hidden = true; el.innerHTML = ''; }
+    }
+
+    // ---- MAPA / KAMERA (14. 11. 2026) -------------------------------------------------
+    // #camera-container (video + AR značky) se do okna PŘESUNE stejně jako mapa. Zobrazení
+    // appky se přepne na „ar" (applyViewMode spustí kameru i značky); zpátky „map" kameru
+    // zastaví — BATERIE: kamera jede jen na domovské stránce a jen v pohledu Kamera.
+    var _kamera = false, _kamDomov = null;
+    function pohled() { try { return localStorage.getItem(POHLED_KEY) === 'kamera' ? 'kamera' : 'mapa'; } catch (e) { return 'mapa'; } }
+    function nastavPohled(v) { try { localStorage.setItem(POHLED_KEY, v); } catch (e) { swallow(e, 'nastavPohled'); } }
+    function nastavView(v) {
+        try {
+            if (typeof viewMode === 'undefined' || viewMode === v) return;
+            viewMode = v;
+            if (typeof applyViewMode === 'function') applyViewMode();
+        } catch (e) { swallow(e, 'nastavView'); }
+    }
+    function kameraDo(zap) {
+        var cam = document.getElementById('camera-container');
+        var slot = root && root.querySelector('#ag-jr-mapa-home');
+        if (zap) {
+            if (!cam || !slot || typeof applyViewMode !== 'function') return false;
+            if (_kamera && cam.parentNode === slot) return true;
+            mapaDo(null);                                // mapa domů (v plné appce teď nebude vidět)
+            if (!_kamDomov || cam.parentNode === _kamDomov.parent) _kamDomov = { parent: cam.parentNode, next: cam.nextSibling };
+            _kamera = true;
+            slot.hidden = false;
+            slot.classList.add('jr-kamera');
+            slot.insertBefore(cam, slot.firstChild);
+            nastavView('ar');
+            return true;
+        }
+        if (!_kamera) return false;
+        _kamera = false;
+        nastavView('map');
+        if (slot) slot.classList.remove('jr-kamera');
+        if (cam && _kamDomov && cam.parentNode !== _kamDomov.parent) {
+            try { _kamDomov.parent.insertBefore(cam, _kamDomov.next && _kamDomov.next.parentNode === _kamDomov.parent ? _kamDomov.next : null); } catch (e) { swallow(e, 'kameraZpet'); }
+        }
+        return false;
+    }
+    function prepniPohled() {
+        var nove = pohled() === 'kamera' ? 'mapa' : 'kamera';
+        nastavPohled(nove);
+        zavriKartu();
+        if (nove === 'kamera') { if (!kameraDo(true)) { nastavPohled('mapa'); toast(T('Kamera tu není k dispozici.')); } }
+        else { kameraDo(false); mapaDo('#ag-jr-mapa-home'); window._mapHold = false; }
+        obnovPohledBtn();
+        vibruj(10);
+    }
+    function obnovPohledBtn() {
+        var b = root && root.querySelector('#ag-jr-pohled'); if (!b) return;
+        b.innerHTML = _kamera ? (ikona('i-map') + '<span>' + T('Mapa') + '</span>') : (ikona('i-camera') + '<span>' + T('Kamera') + '</span>');
+        b.setAttribute('aria-label', _kamera ? T('Přepnout na mapu') : T('Přepnout na kameru'));
+        var tip = root.querySelector('#ag-jr-tip');
+        if (tip) tip.textContent = _kamera ? T('klepni na značku bodu = informace') : T('klepni na bod = informace');
+        obnovNaMe();
+    }
+    // Kameru může appka sama vypnout (nepovolená kamera → handleCameraError přepne na
+    // „map" a ukáže návod; dialog je nad přebalem). Pak okno vrátíme na mapu.
+    function hlidejKameru() {
+        if (!_kamera) return;
+        try {
+            if (typeof viewMode !== 'undefined' && viewMode === 'map') {
+                _kamera = false;
+                var slot = root.querySelector('#ag-jr-mapa-home'); slot.classList.remove('jr-kamera');
+                var cam = document.getElementById('camera-container');
+                if (cam && _kamDomov && cam.parentNode !== _kamDomov.parent) _kamDomov.parent.insertBefore(cam, _kamDomov.next && _kamDomov.next.parentNode === _kamDomov.parent ? _kamDomov.next : null);
+                nastavPohled('mapa');
+                if (aktivni === 'home') mapaDo('#ag-jr-mapa-home');
+                obnovPohledBtn();
+            }
+        } catch (e) { swallow(e, 'hlidejKameru'); }
+    }
+
+    // ---- NÁSTROJE (14. 11. 2026) ------------------------------------------------------
+    // Seznam si NEVEDE vlastní nástroje: čte dlaždice z mřížky #tools-modal a spouští je
+    // klepnutím na dlaždici (stejně jako js/nastroje-ukony.js), takže platí práva rolí,
+    // zámky Pro i počítání použití. Uživatel si vybere nejvýš 10 — víc by z malého
+    // tlačítka udělalo zase celou appku.
+    var _nasRezim = 'seznam', _nasVyber = [], _nasFiltr = '';
+    function tileKey(t) {
+        var dt = t.getAttribute('data-tool'); if (dt) return dt;
+        var ms = (t.getAttribute('onclick') || '').match(/([A-Za-z_$][\w$]*)\s*\(/g);
+        return ms ? ms[ms.length - 1].replace(/\s*\($/, '') : null;
+    }
+    function tileLabel(t) {
+        var s = t.querySelector('span'), d = document.createElement('div');
+        d.innerHTML = ((s ? s.innerHTML : t.innerHTML) || '').replace(/<br\s*\/?>/gi, ' ');
+        return (d.textContent || '').replace(/\s+/g, ' ').trim();
+    }
+    function dlazdice() {
+        var out = [], viden = {};
+        var tiles = document.querySelectorAll('#tools-modal .tool-grid .tool-tile');
+        for (var i = 0; i < tiles.length; i++) {
+            var t = tiles[i], k = tileKey(t);
+            if (!k || viden[k]) continue;
+            if (t.hasAttribute('data-agucty') || t.hasAttribute('data-ag-hidden')) continue;   // role / schované uživatelem
+            try { if (window.AGProZamky && AGProZamky.zamceno(k)) continue; } catch (e) { swallow(e, 'pro'); }
+            var lab = tileLabel(t); if (!lab) continue;
+            viden[k] = 1;
+            var svg = t.querySelector('svg');
+            out.push({ k: k, label: lab, svg: svg ? svg.outerHTML : '', el: t });
+        }
+        return out;
+    }
+    function vybrane() {
+        try { var a = JSON.parse(localStorage.getItem(NAS_KEY)); return Array.isArray(a) ? a.slice(0, NAS_MAX) : null; } catch (e) { return null; }
+    }
+    function ulozVybrane(a) { try { localStorage.setItem(NAS_KEY, JSON.stringify(a.slice(0, NAS_MAX))); } catch (e) { swallow(e, 'ulozVybrane'); } }
+    function otevriNastroje() {
+        var v = vybrane();
+        if (!v || !v.length) {
+            // napoprvé: předvybraná základní sada (kolik se vejde), ať stačí potvrdit
+            var mam = {}; dlazdice().forEach(function (d) { mam[d.k] = 1; });
+            var base = []; try { base = (window.AGReg && AGReg.baseSet()) || []; } catch (e) { swallow(e, 'base'); }
+            _nasVyber = base.filter(function (k) { return mam[k]; }).slice(0, NAS_MAX);
+            _nasRezim = 'vyber';
+        } else _nasRezim = 'seznam';
+        _nasFiltr = '';
+        var h = root.querySelector('#ag-jr-nas-hledat'); h.value = '';
+        root.querySelector('#ag-jr-nas').hidden = false;
+        vykresliNastroje();
+    }
+    function zavriNastroje() {
+        var el = root && root.querySelector('#ag-jr-nas'); if (el) el.hidden = true;
+    }
+    function vykresliNastroje() {
+        var box = root.querySelector('#ag-jr-nas-seznam'), pata = root.querySelector('#ag-jr-nas-pata');
+        var info = root.querySelector('#ag-jr-nas-info'), h = root.querySelector('#ag-jr-nas-hledat');
+        var vse = dlazdice(), html = '';
+        if (_nasRezim === 'seznam') {
+            root.querySelector('#ag-jr-nas-nadpis').textContent = T('Moje nástroje');
+            info.hidden = true; h.hidden = true;
+            var podle = {}; vse.forEach(function (d) { podle[d.k] = d; });
+            var v = (vybrane() || []).filter(function (k) { return podle[k]; });
+            v.forEach(function (k) {
+                var d = podle[k];
+                html += '<button type="button" class="jr-radek jr-nas-radek" data-jr-nas="' + esc(k) + '">' + d.svg + '<span class="jr-radek-jm">' + esc(d.label) + '</span></button>';
+            });
+            if (!v.length) html = '<div class="jr-prazdno">' + T('Žádný z vybraných nástrojů tu teď není.') + '</div>';
+            box.innerHTML = html;
+            pata.innerHTML = '<button type="button" class="jr-maly jr-nas-upravit" id="ag-jr-nas-upravit">' + T('Upravit výběr') + '</button>';
+            pata.querySelector('#ag-jr-nas-upravit').addEventListener('click', function () { _nasVyber = (vybrane() || []).slice(); _nasRezim = 'vyber'; vykresliNastroje(); });
+            Array.prototype.forEach.call(box.querySelectorAll('[data-jr-nas]'), function (b) {
+                b.addEventListener('click', function () { spustNastroj(b.getAttribute('data-jr-nas')); });
+            });
+            return;
+        }
+        // výběr
+        root.querySelector('#ag-jr-nas-nadpis').textContent = T('Vyber si nástroje');
+        info.hidden = false;
+        info.innerHTML = T('Vyber nejvýš {max} nástrojů, které budeš používat. Ostatní zůstanou schované. Vybráno: {n}/{max}.', { max: NAS_MAX, n: '<b>' + _nasVyber.length + '</b>' });
+        h.hidden = vse.length <= 12;
+        var f = _nasFiltr;
+        // vybrané nahoře (v pořadí výběru), pak zbytek v pořadí mřížky
+        var poradi = _nasVyber.map(function (k) { for (var i = 0; i < vse.length; i++) if (vse[i].k === k) return vse[i]; return null; }).filter(Boolean);
+        vse.forEach(function (d) { if (_nasVyber.indexOf(d.k) < 0) poradi.push(d); });
+        poradi.forEach(function (d) {
+            if (f && d.label.toLowerCase().indexOf(f) < 0) return;
+            var on = _nasVyber.indexOf(d.k) >= 0, plno = !on && _nasVyber.length >= NAS_MAX;
+            html += '<button type="button" class="jr-radek jr-nas-radek' + (on ? ' jr-nas-on' : '') + (plno ? ' jr-nas-plno' : '') + '" aria-pressed="' + (on ? 'true' : 'false') + '" data-jr-vyb="' + esc(d.k) + '">'
+                + d.svg + '<span class="jr-radek-jm">' + esc(d.label) + '</span><span class="jr-nas-check" aria-hidden="true">' + (on ? '✓' : '') + '</span></button>';
+        });
+        if (!html) html = '<div class="jr-prazdno">' + (vse.length ? T('Žádný nástroj tomu hledání neodpovídá.') : T('Nástroje se ještě načítají — zkus to za chvíli.')) + '</div>';
+        box.innerHTML = html;
+        pata.innerHTML = '<button type="button" class="jr-ulozit" id="ag-jr-nas-hotovo"' + (_nasVyber.length ? '' : ' disabled') + '>' + (_nasVyber.length ? T('HOTOVO') : T('VYBER ASPOŇ JEDEN')) + '</button>';
+        pata.querySelector('#ag-jr-nas-hotovo').addEventListener('click', function () {
+            if (!_nasVyber.length) return;
+            ulozVybrane(_nasVyber);
+            _nasRezim = 'seznam'; _nasFiltr = ''; root.querySelector('#ag-jr-nas-hledat').value = '';
+            vykresliNastroje();
+        });
+        Array.prototype.forEach.call(box.querySelectorAll('[data-jr-vyb]'), function (b) {
+            b.addEventListener('click', function () {
+                var k = b.getAttribute('data-jr-vyb'), i = _nasVyber.indexOf(k);
+                if (i >= 0) _nasVyber.splice(i, 1);
+                else if (_nasVyber.length >= NAS_MAX) { toast(T('Nejvýš {n} nástrojů — nejdřív nějaký odeber.', { n: NAS_MAX })); return; }
+                else _nasVyber.push(k);
+                var sc = box.scrollTop;
+                vykresliNastroje();
+                box.scrollTop = sc;
+            });
+        });
+    }
+
+    // ---- PAUZA PŘEBALU PO DOBU NÁSTROJE ------------------------------------------------
+    // Okna nástrojů mají z-index do 99999, přebal 999995 — nástroj by se otevřel POD ním.
+    // Přebal se proto schová (mapa i kamera se vrátí do plné appky, kde s nimi nástroje
+    // počítají) a nahoře zůstane tlačítko „Jednoduchý režim". Když nástroj otevřel okno
+    // a to se zase zavřelo (uprostřed obrazovky je zase mapa), přebal se vrátí sám.
+    var _pauza = null, _pill = null;
+    function spustNastroj(k) {
+        var d = null; dlazdice().forEach(function (x) { if (x.k === k) d = x; });
+        if (!d) { toast(T('Nástroj teď není k dispozici.')); return; }
+        zavriNastroje();
+        pauza();
+        try { d.el.click(); } catch (e) { swallow(e, 'spustNastroj'); obnovZPauzy(); return; }
+        // okno nástroje se většinou otevře hned — zaznamenat to dřív než první tik hlídače
+        // (kdo okno rychle zavře, nesmí zůstat v plné appce)
+        if (_pauza && oknoUprostred()) _pauza.videl = true;
+    }
+    function oknoUprostred() {
+        try {
+            var el = document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 2);
+            if (!el || el === document.body || el === document.documentElement) return false;
+            if (el.closest('#map-container, #camera-container, #ag-jr-pill')) return false;
+            return true;
+        } catch (e) { return false; }
+    }
+    function pauza() {
+        kameraDo(false); mapaDo(null); caraPryc(); zavriKartu();
+        if (tick) { clearInterval(tick); tick = null; }
+        root.classList.add('jr-pauza');
+        document.body.classList.add('ag-jr-pauza');
+        if (!_pill) {
+            _pill = document.createElement('button');
+            _pill.type = 'button'; _pill.id = 'ag-jr-pill';
+            _pill.addEventListener('click', obnovZPauzy);
+            document.body.appendChild(_pill);
+        }
+        _pill.innerHTML = '‹ ' + esc(T('Jednoduchý režim'));
+        _pill.hidden = false;
+        _pauza = { videl: false, prazdno: 0, t: setInterval(function () {
+            if (!_pauza) return;
+            if (oknoUprostred()) { _pauza.videl = true; _pauza.prazdno = 0; return; }
+            if (_pauza.videl && ++_pauza.prazdno >= 2) obnovZPauzy();
+        }, 300) };
+    }
+    function obnovZPauzy() {
+        if (_pauza) { clearInterval(_pauza.t); _pauza = null; }
+        if (_pill) _pill.hidden = true;
+        document.body.classList.remove('ag-jr-pauza');
+        if (!root || !zapnuto()) return;
+        root.classList.remove('jr-pauza');
+        ukaz(aktivni);
+    }
+
     function caraPryc() {
         if (_cara) { try { _cara.remove(); } catch (e) { swallow(e, 'caraPryc'); } _cara = null; }
     }
@@ -327,6 +762,9 @@
 
     function tikni() {
         stavGps();
+        hlidejKameru();
+        if (aktivni === 'home' || aktivni === 'go') obnovNaMe();
+        if (karta) { var kv = root.querySelector('#ag-jr-karta-vzd'), kt = kartaVzd(karta); if (kv && kv.innerHTML !== kt) kv.innerHTML = kt; }
         if (aktivni === 'list') obnovVzdalenosti();
         if (aktivni === 'go') vykresliNavigaci();
     }
@@ -615,8 +1053,7 @@
 
     // ---- NAVIGACE ----------------------------------------------------------------
     function naviguj(id) {
-        var p = null;
-        body().concat(uredni()).forEach(function (q) { if (!p && q.id === id) p = q; });
+        var p = najdiBod(id);
         if (!p) return;
         caraPryc();
         cil = p; doma = false;
@@ -707,7 +1144,10 @@
         zrusMereni();
         if (tick) { clearInterval(tick); tick = null; }
         cil = null; novy = null;
-        if (root) { mapaDo(null); caraPryc(); root.classList.remove('jr-on'); }
+        if (_pauza) { clearInterval(_pauza.t); _pauza = null; }
+        if (_pill) _pill.hidden = true;
+        document.body.classList.remove('ag-jr-pauza');
+        if (root) { kameraDo(false); zavriKartu(); zavriNastroje(); mapaDo(null); caraPryc(); root.classList.remove('jr-on', 'jr-pauza'); }
         document.body.classList.remove('ag-jr-on');
         // vrať zobrazení, které měl uživatel před zapnutím
         try {
@@ -735,7 +1175,7 @@
         // data-ns-keep je oficiální výjimka toho modulu (stejně ji používá volba
         // jazyka, ze stejného důvodu).
         div.setAttribute('data-ns-keep', '');
-        div.innerHTML = '<span class="st-lab">Jednoduchý režim<small>schová mapu, kameru i nástroje — zůstane jen „Přidat bod" a „Navigovat k bodu". Zpátky odkazem „Celá appka" vpravo nahoře.</small></span>'
+        div.innerHTML = '<span class="st-lab">Jednoduchý režim<small>místo celé appky jen mapa (nebo kamera s body), „Přidat bod", „Navigovat k bodu" a tvých až 10 nástrojů pod malým tlačítkem. Zpátky odkazem „Celá appka" vpravo nahoře.</small></span>'
             + '<label class="st-sw"><input type="checkbox" id="ag-jr-switch"><span class="st-sw-face"></span></label>';
         radek.parentNode.insertBefore(div, radek.nextSibling);
         var cb = div.querySelector('#ag-jr-switch');
@@ -779,6 +1219,12 @@
         naviguj: function (id) { naviguj(id); },
         zapnuto: zapnuto,
         zapni: function () { zapni(false); },
-        vypni: vypni
+        vypni: vypni,
+        pohled: function () { return _kamera ? 'kamera' : 'mapa'; },
+        prepniPohled: prepniPohled,
+        karta: function () { return karta ? karta.id : null; },
+        nastroje: otevriNastroje,
+        pauza: function () { return !!_pauza; },
+        obnov: obnovZPauzy
     };
 })();

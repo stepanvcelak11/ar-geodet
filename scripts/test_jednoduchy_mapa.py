@@ -2,7 +2,7 @@
 u"""JEDNODUCHÝ REŽIM S MAPOU (4. 11. 2026, js/jednoduchy-rezim.js).
 
 Na domovské stránce okno s mapou appky (prvek #map se přesune, žádná druhá mapa),
-klepnutí na bod v mapě = navigace, v navigaci menší mapa s čarou k cíli a „Poslat bod",
+klepnutí na bod v mapě = karta bodu → navigace, v navigaci menší mapa s čarou k cíli a „Poslat bod",
 po odchodu z režimu je #map zpátky v #map-wrapper.
 
 python scripts/test_jednoduchy_mapa.py [port] [--snimek]
@@ -61,7 +61,10 @@ async def beh(url):
         await page.evaluate(ZAVRI)
         await page.wait_for_timeout(400)
         await page.mouse.click(pt['x'], pt['y'])
-        ok('B1 klepnutí na bod v mapě spustí navigaci k němu', await V.cekej(page, "AGJednoduchy.stranka() === 'go' && /501/.test(document.getElementById('ag-jr-cilnazev').textContent)", 5), pt)
+        # od 14. 11. 2026 klepnutí otevře KARTU BODU, navigace až tlačítkem v ní
+        ok('B0 klepnutí na bod v mapě otevře kartu bodu', await V.cekej(page, "!document.getElementById('ag-jr-karta').hidden && /501/.test(document.getElementById('ag-jr-karta').textContent) && AGJednoduchy.stranka() === 'home'", 5), pt)
+        await page.click('#ag-jr-karta-jit')
+        ok('B1 „Navigovat sem" na kartě spustí navigaci k bodu', await V.cekej(page, "AGJednoduchy.stranka() === 'go' && /501/.test(document.getElementById('ag-jr-cilnazev').textContent)", 5), pt)
         ok('B2 v navigaci je mapa s čarou k cíli', await V.cekej(page, "document.getElementById('map').parentNode.id === 'ag-jr-mapa-go' && !!document.querySelector('#map path.leaflet-interactive[stroke-dasharray], #map path[stroke-dasharray=\"8 8\"]')", 5))
         ok('B3 tlačítko Poslat bod', await page.evaluate("() => !!document.getElementById('ag-jr-poslat') && document.getElementById('ag-jr-poslat').getClientRects().length > 0"))
         if SNIMEK:

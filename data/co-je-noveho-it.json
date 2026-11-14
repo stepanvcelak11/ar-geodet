@@ -2,6 +2,17 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 426,
+      "datum": "2026-11-14",
+      "nadpis": "Modalità semplice: mappa trascinabile, fotocamera e strumenti tuoi",
+      "body": [
+        "Nella modalità semplice la mappa si trascina con un dito e si ingrandisce con due. Dopo lo spostamento compare il pulsante Centra.",
+        "Il pulsante Fotocamera mostra al posto della mappa l'immagine dal vivo con i punti in AR.",
+        "Toccando un punto (sulla mappa o nella fotocamera) vedi coordinate, quota e distanza. La navigazione parte dal pulsante sulla scheda.",
+        "Un piccolo pulsante in alto a destra nasconde gli strumenti. La prima volta ne scegli fino a 10, poi vedi solo quelli. Chiuso uno strumento, l'app torna da sola alla modalità semplice."
+      ]
+    },
+    {
       "v": 425,
       "datum": "2026-11-14",
       "nadpis": "Avvio più rapido e accesso più sicuro",
