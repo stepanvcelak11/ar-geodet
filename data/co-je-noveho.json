@@ -2,6 +2,18 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 426,
+   "datum": "2026-11-14",
+   "nadpis": "Jednoduchý režim: mapa prstem, kamera a vlastní nástroje",
+   "body": [
+    "Mapou v jednoduchém režimu jde hýbat prstem a přibližovat dvěma prsty. Po posunu se objeví tlačítko Vycentrovat.",
+    "Tlačítkem Kamera se místo mapy ukáže živý obraz s body v AR.",
+    "Klepnutí na bod (v mapě i v kameře) ukáže jeho souřadnice, výšku a vzdálenost. Navigace se spustí tlačítkem na kartě.",
+    "Malé tlačítko vpravo nahoře skrývá nástroje. Napoprvé si vybereš až 10, které používáš, a pak vidíš jen je. Po zavření nástroje se appka vrátí do jednoduchého režimu sama.",
+    "Měření vzdálenosti a Vytyčení mají v jednoduchém režimu postup krok za krokem s velkými tlačítky, Přesná GPS ukáže jen krátký návod. Počítají stejně jako plné nástroje (ty jsou dál po ruce pod „Plná verze nástroje“)."
+   ]
+  },
+  {
    "v": 425,
    "datum": "2026-11-14",
    "nadpis": "Rychlejší start a bezpečnější přihlášení",

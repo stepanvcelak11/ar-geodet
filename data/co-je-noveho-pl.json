@@ -2,6 +2,18 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 426,
+      "datum": "2026-11-14",
+      "nadpis": "Tryb prosty: przesuwanie mapy, kamera i własne narzędzia",
+      "body": [
+        "W trybie prostym mapę można przesuwać palcem i powiększać dwoma. Po przesunięciu pojawia się przycisk Wyśrodkuj.",
+        "Przycisk Kamera pokazuje zamiast mapy obraz na żywo z punktami w AR.",
+        "Dotknięcie punktu (na mapie lub w kamerze) pokazuje jego współrzędne, wysokość i odległość. Nawigację uruchamia przycisk na karcie.",
+        "Mały przycisk w prawym górnym rogu ukrywa narzędzia. Za pierwszym razem wybierasz do 10, potem widzisz tylko je. Po zamknięciu narzędzia aplikacja sama wraca do trybu prostego.",
+        "Pomiar odległości i Wytyczanie mają w trybie prostym przebieg krok po kroku z dużymi przyciskami, a Precyzyjny GPS pokazuje tylko krótką instrukcję. Liczą tak samo jak pełne narzędzia (dostępne pod „Pełna wersja narzędzia”)."
+      ]
+    },
+    {
       "v": 425,
       "datum": "2026-11-14",
       "nadpis": "Szybszy start i bezpieczniejsze logowanie",

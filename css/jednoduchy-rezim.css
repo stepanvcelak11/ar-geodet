@@ -393,9 +393,14 @@ body.light-mode .jr-velke-jit { background: #1a5688; }
     right: 10px;
     bottom: 10px;
     z-index: 1000;
-    width: 48px;
+    min-width: 48px;
     height: 48px;
-    border-radius: 50%;
+    gap: 6px;
+    padding: 0 14px 0 12px;
+    border-radius: var(--r-pill);
+    font-family: inherit;
+    font-size: var(--fs-md);
+    font-weight: 700;
     border: 1px solid var(--glass-border-strong);
     background: var(--surface-1);
     color: var(--text-color);
@@ -406,6 +411,7 @@ body.light-mode .jr-velke-jit { background: #1a5688; }
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
 }
 .jr-mapa-ja .icon { width: 24px; height: 24px; }
+.jr-mapa-ja[hidden] { display: none; }
 .jr-mapa-tip {
     position: absolute;
     left: 10px;
@@ -438,3 +444,244 @@ body.light-mode .jr-velke-jit { background: #1a5688; }
 #ag-jr-home .jr-mapa:not([hidden]) ~ .jr-hlavni .jr-velke .icon { width: 34px; height: 34px; }
 .jr-mapa-go { flex: 0 0 26vh; min-height: 140px; }
 .jr-poslat { align-self: center; margin-top: 10px; }
+
+/* ---- 14. 11. 2026: posun mapy prstem, kamera, karta bodu, nástroje -------------
+   Prst v okně mapy posouvá mapu (js/jednoduchy-rezim.js hlidejGesta) — prohlížeč
+   nesmí okno sám rolovat ani zoomovat stránku. */
+.jr-mapa { touch-action: none; }
+.jr-mapa > #camera-container { position: absolute; inset: 0; width: 100%; height: 100%; display: block !important; }
+/* šipka navigace plné appky v okně nepatří — navigace má vlastní stránku */
+.jr-mapa #ar-hud { display: none !important; }
+.jr-mapa.jr-kamera { background: #0b0f14; }
+
+/* přepínač Mapa / Kamera — vpravo nahoře v okně, s nápisem (ikona sama nestačí) */
+.jr-pohled {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 14px 0 12px;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--glass-border-strong);
+    background: var(--surface-1);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: var(--fs-md);
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+.jr-pohled .icon { width: 22px; height: 22px; }
+.jr-pohled:active, .jr-mapa-ja:active { background: var(--surface-3); }
+
+/* malé tlačítko Nástroje v horním řádku */
+.jr-ikonka { width: var(--tap-min, 44px); padding: 0; display: flex; align-items: center; justify-content: center; }
+.jr-ikonka .icon { width: 22px; height: 22px; }
+
+/* karta bodu — dole přes okno */
+.jr-karta {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    z-index: 1002;
+    padding: 12px 14px;
+    border-radius: var(--r-lg);
+    border: 1px solid var(--glass-border-strong);
+    background: var(--bg-color);
+    color: var(--text-color);
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.35);
+    font-size: var(--fs-md);
+    max-height: calc(100% - 70px);
+    overflow-y: auto;
+    touch-action: pan-y;
+}
+.jr-karta[hidden] { display: none; }
+.jr-karta-hl { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.jr-karta-hl b { font-size: calc(19px * var(--ag-font-scale, 1)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.jr-karta-hl .jr-radek-kat { margin-left: 2px; flex: 0 0 auto; }
+.jr-karta-x {
+    margin-left: auto;
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 50%;
+    background: var(--surface-2);
+    color: var(--text-color);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+.jr-karta-vzd, .jr-karta-r { margin: 3px 0; font-variant-numeric: tabular-nums; }
+.jr-karta-vzd b, .jr-karta-r b { color: var(--data); }
+.jr-karta-r span { color: var(--text-muted); }
+.jr-karta-pozn { color: var(--text-muted); font-size: var(--fs-sm); }
+.jr-karta-jit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 52px;
+    margin-top: 10px;
+    border: none;
+    border-radius: var(--r-lg);
+    background: #1f5f96;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: calc(18px * var(--ag-font-scale, 1));
+    font-weight: 800;
+    cursor: pointer;
+}
+.jr-karta-jit .icon { width: 24px; height: 24px; color: #fff; }
+
+/* panel nástrojů — celá plocha přebalu, nad domovskou stránkou */
+.jr-nas {
+    position: absolute;
+    inset: 0;
+    z-index: 3000;   /* nad mapou v okně (Leaflet má vrstvy do 1000) */
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-color);
+    padding: calc(env(safe-area-inset-top, 0px) + 12px) max(14px, env(safe-area-inset-right, 0px)) max(14px, env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px));
+}
+.jr-nas[hidden] { display: none; }
+.jr-nas-nadpis { flex: 1 1 auto; margin: 0; }
+.jr-nas-info { flex: 0 0 auto; margin: 8px 0 4px; color: var(--text-muted); font-size: var(--fs-md); }
+.jr-nas-info[hidden] { display: none; }
+.jr-nas-info b { color: var(--text-color); }
+#ag-jr-nas-hledat { flex: 0 0 auto; margin: 6px 0 2px; min-height: 46px; font-size: var(--fs-lg); }
+#ag-jr-nas-hledat[hidden] { display: none; }
+.jr-nas-radek svg { width: 26px; height: 26px; flex: 0 0 auto; color: var(--accent); }
+.jr-nas-radek .jr-radek-jm { white-space: normal; font-size: calc(17px * var(--ag-font-scale, 1)); }
+.jr-nas-check {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid var(--glass-border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: #fff;
+}
+.jr-nas-on { border-color: var(--accent); }
+.jr-nas-on .jr-nas-check { background: var(--accent-fill); border-color: transparent; }
+.jr-nas-plno { opacity: 0.5; }
+.jr-nas-upravit { width: 100%; }
+
+/* pauza: nástroj běží v plné appce, přebal je schovaný */
+#ag-jr.jr-pauza { display: none; }
+#ag-jr-pill {
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000001;
+    min-height: 36px;
+    padding: 4px 14px;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--glass-border-strong);
+    background: var(--accent-fill);
+    color: #fff;
+    font-family: var(--font-ui);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+}
+#ag-jr-pill[hidden] { display: none; }
+
+/* nástroj spuštěný z jednoduchého režimu: větší ovládání, stejné funkce (14. 11. 2026).
+   Písmo zvětšuje js/jednoduchy-rezim.js (zvetsi) přes --ag-font-scale. */
+body.ag-jr-pauza .modal-overlay .btn,
+body.ag-jr-pauza .modal-overlay button:not(.close-btn):not([class*="close"]):not(.ag-tp-help),
+body.ag-jr-pauza .ag-dlg-overlay button {
+    min-height: 52px;
+    border-radius: var(--r-lg, 14px);
+}
+body.ag-jr-pauza .modal-overlay input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+body.ag-jr-pauza .modal-overlay select,
+body.ag-jr-pauza .ag-dlg-overlay input:not([type="checkbox"]):not([type="radio"]) {
+    min-height: 52px;
+    font-size: calc(18px * var(--ag-font-scale, 1));
+}
+body.ag-jr-pauza .modal-overlay input[type="checkbox"],
+body.ag-jr-pauza .modal-overlay input[type="radio"] { width: 24px; height: 24px; }
+
+/* ---- průvodci (14. 11. 2026): změřit vzdálenost, vytyčit body ---------------- */
+.jr-krok {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 14px 0 6px;
+    font-size: calc(21px * var(--ag-font-scale, 1));
+    font-weight: 700;
+    line-height: 1.3;
+}
+.jr-krok-maly { display: block; font-size: var(--fs-md); font-weight: 500; color: var(--text-muted); margin: 6px 0 2px; }
+.jr-krok-maly b { color: var(--text-color); }
+.jr-krok-c {
+    flex: 0 0 auto;
+    min-width: 54px;
+    height: 54px;
+    padding: 0 8px;
+    border-radius: 27px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-fill);
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: calc(19px * var(--ag-font-scale, 1));
+    font-weight: 800;
+}
+.jr-mer-vysl { flex: 1 1 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 0; }
+.jr-mer-vysl[hidden] { display: flex; visibility: hidden; }
+.jr-mer-hlavni {
+    font-family: var(--font-display);
+    font-size: calc(64px * var(--ag-font-scale, 1));
+    font-weight: 800;
+    color: var(--data);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.05;
+}
+.jr-mer-pod { color: var(--text-muted); font-size: var(--fs-lg); margin-bottom: 14px; }
+.jr-mer-r { font-size: calc(20px * var(--ag-font-scale, 1)); margin: 4px 0; font-variant-numeric: tabular-nums; }
+.jr-mer-r b { color: var(--text-color); }
+.jr-plna { display: block; margin: 10px auto 0; background: transparent; border-color: transparent; color: var(--text-muted); font-weight: 500; }
+.jr-vyt-hotovo { opacity: 0.55; }
+.jr-vyt-btn { margin-top: 10px; flex: 0 0 auto; }
+.jr-vyt-btn[hidden] { display: none; }
+.jr-vyt-btn.jr-vyt-zrus { background: var(--surface-2); color: var(--text-color); box-shadow: none; }
+
+/* PŘESNÁ GPS spuštěná z jednoduchého režimu: stejné měření, méně textu.
+   Vysvětlivky, statistiky a opakovaná sezení se schovají, nahoře je krátký návod. */
+.bgps-jr-tip { display: none; }
+body.ag-jr-pauza .bgps-jr-tip {
+    display: block;
+    margin: 6px 0 10px;
+    padding: 12px 14px;
+    border-radius: var(--r-lg, 14px);
+    background: var(--surface-1, rgba(255,255,255,.06));
+    font-size: calc(17px * var(--ag-font-scale, 1));
+    line-height: 1.4;
+}
+body.ag-jr-pauza #ag-bgps-overlay .bgps-sub,
+body.ag-jr-pauza #ag-bgps-overlay .bgps-place-tx,
+body.ag-jr-pauza #ag-bgps-overlay .bgps-how,
+body.ag-jr-pauza #ag-bgps-overlay .bgps-stats,
+body.ag-jr-pauza #ag-bgps-overlay .bgps-rej,
+body.ag-jr-pauza #ag-bgps-overlay #bgps-reocc,
+body.ag-jr-pauza #ag-bgps-overlay #bgps-reocc-add,
+body.ag-jr-pauza #ag-bgps-overlay #bgps-when { display: none !important; }
+body.ag-jr-pauza #ag-bgps-overlay .bgps-btn { min-height: 60px; font-size: calc(19px * var(--ag-font-scale, 1)); }
+body.ag-jr-pauza #ag-bgps-overlay .bgps-chip { min-height: 48px; min-width: 64px; }
+body.ag-jr-pauza #ag-bgps-overlay .bgps-name { min-height: 52px; font-size: calc(18px * var(--ag-font-scale, 1)); }

@@ -2,6 +2,18 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 426,
+      "datum": "2026-11-14",
+      "nadpis": "Mode simple : carte déplaçable, caméra et vos outils",
+      "body": [
+        "En mode simple, la carte se déplace d'un doigt et se zoome à deux doigts. Après un déplacement, un bouton Recentrer apparaît.",
+        "Le bouton Caméra affiche à la place de la carte l'image en direct avec les points en RA.",
+        "Toucher un point (sur la carte ou dans la caméra) affiche ses coordonnées, son altitude et sa distance. La navigation démarre avec le bouton de la fiche.",
+        "Un petit bouton en haut à droite cache les outils. La première fois, vous en choisissez jusqu'à 10, ensuite seuls ceux-ci s'affichent. Après la fermeture d'un outil, l'app revient seule en mode simple.",
+        "Mesurer une distance et Implantation ont en mode simple un déroulé pas à pas avec de grands boutons, et GPS précis n'affiche qu'un court guide. Les calculs sont identiques aux outils complets (toujours sous « Version complète de l'outil »)."
+      ]
+    },
+    {
       "v": 425,
       "datum": "2026-11-14",
       "nadpis": "Démarrage plus rapide et connexion plus sûre",

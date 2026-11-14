@@ -2,6 +2,18 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 426,
+      "datum": "2026-11-14",
+      "nadpis": "Simple mode: drag the map, camera and your own tools",
+      "body": [
+        "In simple mode you can drag the map with a finger and zoom with two. After moving it, a Recenter button appears.",
+        "The Camera button shows the live view with points in AR instead of the map.",
+        "Tapping a point (on the map or in the camera) shows its coordinates, height and distance. Navigation starts from the button on the card.",
+        "A small button at the top right hides the tools. The first time, you pick up to 10 you use, and then only those are shown. After you close a tool, the app returns to simple mode by itself.",
+        "Measure distance and Stake out have a step-by-step flow with big buttons in simple mode, and Precise GPS shows just a short guide. They compute exactly like the full tools (still available under “Full version of the tool”)."
+      ]
+    },
+    {
       "v": 425,
       "datum": "2026-11-14",
       "nadpis": "Faster start and safer sign-in",
