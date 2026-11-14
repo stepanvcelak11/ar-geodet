@@ -2,6 +2,15 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 427,
+      "datum": "2026-11-14",
+      "nadpis": "Signal d'utilisation et correction du mode simple",
+      "body": [
+        "Une fois par jour, l'app envoie un bref signal d'utilisation (code d'appareil aléatoire, version, Base/Pro, langue, système — sans position, points ni nom) pour que l'auteur voie combien de personnes l'utilisent. Désactivable dans Réglages → Compte et app → Confidentialité, mais sans lui pas de Pro.",
+        "Corrigé : en mode simple, un bouton « Réduire » étranger pouvait apparaître sur « App complète »."
+      ]
+    },
+    {
       "v": 426,
       "datum": "2026-11-14",
       "nadpis": "Mode simple : carte déplaçable, caméra et vos outils",

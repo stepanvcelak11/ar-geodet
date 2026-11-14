@@ -465,9 +465,33 @@
         var go = function () { try { if (window.AGProKarta) AGProKarta.render(m, opts); } catch (e) { swallow(e, 'karta'); } };
         if (window.AGProKarta) go();
         else if (window.AGLazy && typeof AGLazy.need === 'function') AGLazy.need('js/pro-karta.js', go);
+        hlaseniPruh(m);
         // (když soubor teprve běží, dokreslí se sám — viz konec js/pro-karta.js)
     }
 
+    // Pro by měl, ale má vypnuté hlášení provozu (js/hlaseni-provozu.js, js/licence.js):
+    // místo „kup si Pro" mu říct proč a nabídnout zapnutí jedním klepnutím.
+    function hlaseniPruh(m) {
+        try {
+            var st = window.AGLic && AGLic.stav && AGLic.stav();
+            var stary = m.querySelector('.agp-hlaseni'); if (stary) stary.remove();
+            if (!st || st.duvod !== 'hlaseni') return;
+            var nz = m.querySelector('.agp-nazev'); if (!nz || !nz.parentNode) return;
+            var d = document.createElement('div');
+            d.className = 'agp-hlaseni';
+            d.style.cssText = 'margin:8px 0 10px;padding:10px 12px;border-radius:12px;border:1px solid rgba(230,189,118,.5);background:rgba(230,189,118,.12);font:500 14px/1.4 var(--font-ui,system-ui);';
+            d.innerHTML = '<b>Pro máš, ale je vypnuté hlášení provozu.</b> Pro platí jen se zapnutým hlášením (Nastavení → Účet a aplikace → Soukromí).'
+                + '<br><button type="button" class="btn btn-primary" style="margin-top:8px;width:auto;padding:10px 14px;">Zapnout hlášení provozu</button>';
+            d.querySelector('button').addEventListener('click', function () {
+                try { localStorage.removeItem('agHlaseni_v1'); } catch (e) { swallow(e, 'hlaseniZap'); }
+                var cb = document.getElementById('ag-hl-switch'); if (cb) cb.checked = true;
+                try { if (window.AGHlaseni) AGHlaseni.nahlas(true); } catch (e) { swallow(e, 'hlaseniNahlas'); }
+                try { window.dispatchEvent(new CustomEvent('aglic:zmena', { detail: AGLic.stav() })); } catch (e) { swallow(e, 'hlaseniZmena'); }
+                zavri();
+            });
+            nz.parentNode.insertBefore(d, nz.nextSibling);
+        } catch (e) { swallow(e, 'hlaseniPruh'); }
+    }
     function otevriKartu(k) { ukaz({ k: k }); }
 
     // ---- vstup do „Více" ----------------------------------------------------------

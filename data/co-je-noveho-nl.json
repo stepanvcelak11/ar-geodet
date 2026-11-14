@@ -2,6 +2,15 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 427,
+      "datum": "2026-11-14",
+      "nadpis": "Gebruiksmelding en reparatie eenvoudige modus",
+      "body": [
+        "Eén keer per dag stuurt de app een korte gebruiksmelding (willekeurige apparaatcode, versie, Basis/Pro, taal, systeem — zonder locatie, punten of naam) zodat de auteur ziet hoeveel mensen hem gebruiken. Uit te zetten in Instellingen → Account en app → Privacy, maar zonder melding geen Pro.",
+        "Opgelost: in de eenvoudige modus kon een vreemde knop „Inklappen” over „Volledige app” verschijnen."
+      ]
+    },
+    {
       "v": 426,
       "datum": "2026-11-14",
       "nadpis": "Eenvoudige modus: kaart verschuiven, camera en eigen gereedschap",

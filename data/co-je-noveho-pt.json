@@ -2,6 +2,15 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 427,
+      "datum": "2026-11-14",
+      "nadpis": "Aviso de utilização e correção do modo simples",
+      "body": [
+        "Uma vez por dia a app envia um breve aviso de utilização (código aleatório do dispositivo, versão, Básica/Pro, idioma, sistema — sem localização, pontos nem nome) para que o autor veja quantas pessoas a usam. Desativa-se em Definições → Conta e app → Privacidade, mas sem ele não há Pro.",
+        "Corrigido: no modo simples podia aparecer um botão «Recolher» alheio sobre «App completa»."
+      ]
+    },
+    {
       "v": 426,
       "datum": "2026-11-14",
       "nadpis": "Modo simples: mover o mapa, câmera e as suas ferramentas",

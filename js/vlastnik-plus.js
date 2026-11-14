@@ -726,6 +726,16 @@
         var h = [x.hlava('Grafy — posledních ' + D + ' dní', 'Jen počty ze serveru: kdo měřil, kolik akcí a bodů přišlo, kolik chyb spadlo. Srovnání je s předchozími ' + D + ' dny. <button type="button" class="agv-b" id="agvp-g-rf">Znovu</button> <button type="button" class="agv-b" id="agvp-g-csv">Stáhnout CSV</button> <button type="button" class="agv-b" id="agvp-g-tr">Trychtýř nováčků ›</button>')];
         h.push('<div class="agvp-min">' + [7, 30, 90].map(function (n) { return '<button type="button" class="agv-b' + (D === n ? ' on' : '') + '" data-dni="' + n + '">' + n + ' dní</button>'; }).join('') + '</div>');
         if (vyp) h.push('<div class="agvp-star">⚠ Server teď neodpověděl (' + esc(String(vyp.status || 0)) + ') — grafy jsou z minula, nenačteno.</div>');
+        // HLÁŠENÍ PROVOZU (worker v33, js/hlaseni-provozu.js): jediné číslo, které vidí i lidi
+        // BEZ firmy a bez účtu. Ostatní grafy níž stojí na záznamech užívání z firemního režimu.
+        if (g.zarizeni) {
+            var zT = mn.zarizeniTed != null ? mn.zarizeniTed : null;
+            h.push('<div class="agvp-g"><b>Aktivní zařízení za den</b><small>hlášení provozu — všichni, i bez účtu a bez firmy' + (zT != null ? ' · různých zařízení ' + zT + ' (minule ' + (mn.zarizeni || 0) + ', ' + pct(zT, mn.zarizeni) + ')' : '') + '</small>' + sloupce(dny, g.zarizeni, '#3eb487') + '</div>');
+            h.push('<div class="agvp-g"><b>Verze na zařízeních</b><small>podle hlášení provozu za ' + D + ' dní</small>' + pruhy(g.zarizeniVerze || [], 'ver', 'Zatím žádné hlášení — chodí od v427.')
+                + '<button type="button" class="agv-b" id="agvp-z-sez" style="margin-top:8px;">Seznam zařízení</button><div id="agvp-z-box"></div></div>');
+        } else {
+            h.push('<div class="agvp-star">Hlášení provozu (i lidé bez účtu) ukáže až worker v33 — zatím tu jsou jen lidé ve firemním režimu.</div>');
+        }
         var lideTed = mn.lideTed != null ? mn.lideTed : null;
         h.push('<div class="agvp-g"><b>Lidé, kteří appku ten den použili</b><small>' + sum(g.lide) + ' člověko-dnů' + (lideTed != null ? ' · různých lidí ' + lideTed + ' (minule ' + (mn.lide || 0) + ', ' + pct(lideTed, mn.lide) + ')' : '') + '</small>' + sloupce(dny, g.lide, '#e6bd76') + '</div>');
         h.push('<div class="agvp-g"><b>Akce v appce</b><small>otevřené nástroje, uložené body… ' + sum(g.akce) + ' · minule ' + (mn.akce || 0) + ' · ' + pct(sum(g.akce), mn.akce) + '</small>' + sloupce(dny, g.akce, '#e6bd76') + '</div>');
@@ -740,7 +750,26 @@
         var rf = b.querySelector('#agvp-g-rf'); if (rf) rf.addEventListener('click', function () { _grafy = null; viewGrafy(b); });
         var cs = b.querySelector('#agvp-g-csv'); if (cs) cs.addEventListener('click', function () { ulozSoubor('qtrig-grafy-' + D + 'dni-' + g.do + '.csv', grafyCsv(g), 'text/csv;charset=utf-8'); });
         var tr = b.querySelector('#agvp-g-tr'); if (tr) tr.addEventListener('click', function () { jdi('trychtyr'); });
+        var zs = b.querySelector('#agvp-z-sez'); if (zs) zs.addEventListener('click', function () { seznamZarizeni(b.querySelector('#agvp-z-box'), D); });
         Array.prototype.forEach.call(b.querySelectorAll('[data-dni]'), function (el) { el.addEventListener('click', function () { _grafyDni = parseInt(el.getAttribute('data-dni'), 10) || 30; viewGrafy(b); }); });
+    }
+
+    // Seznam zařízení z hlášení provozu: kód (ten člověk vidí v Nastavení → Soukromí),
+    // kdy naposledy, kolik dní, verze, Pro/Základ, systém, jazyk a účet (je-li přihlášený).
+    function seznamZarizeni(box, dni) {
+        if (!box) return;
+        box.innerHTML = '<div class="agv-p">Načítám…</div>';
+        api('/owner/zarizeni?dni=' + (dni || 30)).then(function (r) {
+            if (!r.ok || !r.data) { box.innerHTML = '<div class="agv-p">Seznam se nepodařilo načíst (' + esc(String(r.status || 0)) + ').</div>'; return; }
+            var z = r.data.zarizeni || [];
+            if (!z.length) { box.innerHTML = '<div class="agv-p">Zatím žádné hlášení.</div>'; return; }
+            box.innerHTML = '<div class="agv-p">' + z.length + ' zařízení · kód vidí člověk v Nastavení → Soukromí</div>' + z.map(function (d) {
+                var kod = String(d.dev || '').slice(1, 9).toUpperCase(); kod = kod.slice(0, 4) + '-' + kod.slice(4);
+                return '<div class="agv-p" style="border-top:1px solid rgba(255,255,255,.08);padding-top:6px;"><b>' + esc(kod) + '</b> · ' + esc(datum(d.ts))
+                    + ' · ' + (+d.dni || 0) + ' dní · ' + esc(d.ver || '?') + ' · ' + (d.tarif === 'pro' ? '<b>Pro</b>' : 'Základ')
+                    + ' · ' + esc(d.os || '') + ' · ' + esc(d.lang || '') + (d.ucet ? ' · účet <b>' + esc(d.ucet) + '</b>' : ' · bez účtu') + '</div>';
+            }).join('');
+        });
     }
 
     // ---- TRYCHTÝŘ NOVÁČKŮ (13. 9. 2026): registrace → první bod → 3. den → hodnocení ----

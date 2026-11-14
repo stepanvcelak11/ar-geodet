@@ -206,6 +206,22 @@ async function ensureStatsSchema(env) {
     } catch (e) {}
     _statsMig = true;
 }
+// HLÁŠENÍ PROVOZU (14. 11. 2026, v:33): appka 1× denně pošle „jsem naživu" — jen náhodný kód
+// zařízení, verzi appky, Základ/Pro, jazyk a systém. Bez jména, polohy a bodů. Důvod: konzole
+// vlastníka do té doby viděla JEN lidi ve firemním režimu (tabulka usage) — kdo appku používal
+// bez firmy a bez účtu, byl neviditelný, i když ji používal denně. Uživatel si hlášení může
+// vypnout v Nastavení (pak ale nemá Pro — rozhodnutí vlastníka, appka ho na to upozorní).
+// Jeden řádek na zařízení a den (PRIMARY KEY), takže opakované odeslání nic nenafoukne.
+let _aliveMig = false;
+async function ensureAliveSchema(env) {
+    if (_aliveMig) return;
+    try {
+        await env.DB.prepare('CREATE TABLE IF NOT EXISTS alive (day TEXT NOT NULL, dev TEXT NOT NULL, ts INTEGER NOT NULL, ver TEXT, tarif TEXT, lang TEXT, os TEXT, ucet TEXT, '
+            + 'PRIMARY KEY (day, dev))').run();
+        await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_alive_dev ON alive(dev)').run();
+    } catch (e) {}
+    _aliveMig = true;
+}
 function kvantil(a, q) { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y); const i = (s.length - 1) * q, lo = Math.floor(i), hi = Math.ceil(i); return Math.round((s[lo] + (s[hi] - s[lo]) * (i - lo)) * 10) / 10; }
 function cisloV(v, min, max) { const n = Number(v); return (isFinite(n) && n >= min && n <= max) ? Math.round(n * 100) / 100 : null; }
 // PŘIHLÁŠENÍ PŘÍSTUPOVÝM KLÍČEM — PASSKEY (25. 9. 2026, 7. hodnocení f1)
@@ -1655,6 +1671,9 @@ export default {
                     .bind(Date.now() - 370 * 864e5).run().catch(() => {}));
                 ctx.waitUntil(env.DB.prepare('DELETE FROM stats WHERE day<?')
                     .bind(new Date(Date.now() - 60 * 864e5).toISOString().slice(0, 10)).run().catch(() => {}));
+                // hlášení provozu: 12 měsíců (slíbeno v soukromi.html#hlaseni)
+                ctx.waitUntil(env.DB.prepare('DELETE FROM alive WHERE day<?')
+                    .bind(new Date(Date.now() - 370 * 864e5).toISOString().slice(0, 10)).run().catch(() => {}));
                 ctx.waitUntil(env.DB.prepare('DELETE FROM stats_firm WHERE day<?')
                     .bind(new Date(Date.now() - 60 * 864e5).toISOString().slice(0, 10)).run().catch(() => {}));
                 // chyby starsi nez 90 dni uz nikomu nic nereknou (a ta tabulka roste nejrychleji)
@@ -1693,7 +1712,24 @@ export default {
             // takze ani neexistujici endpoint se nepozna od nenasazeneho. Kdyz se
             // worker.js zmeni tak, ze na tom klientovi zalezi, BUMPNI `v` — a po
             // nasazeni to overi:  python scripts/check_worker_deployed.py
-            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 32, recovery: true, zaloha: true, stats: true, passkey: true, pkOwner: true, mapa: !!env.MAPA, mapaGithub: true, nacrt: true, dgps: true, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+            // v:33 = POST /alive (hlášení provozu bez přihlášení) + /owner/zarizeni + grafy.zarizeni.
+            if (req.method === 'GET' && path === '/health') return json({ ok: true, ts: Date.now(), v: 33, alive: true, recovery: true, zaloha: true, stats: true, passkey: true, pkOwner: true, mapa: !!env.MAPA, mapaGithub: true, nacrt: true, dgps: true, vydani: true, kontakt: true, wx: true, watch: true, fb: true, owner: true, ownerKey: ownerKeyStav(env), seen: true, flags: true, errors: true, acl: true, accepted: true, ucty: true, tarify: true, prodej: true, zadosti: true });
+
+            // ---------------- HLÁŠENÍ PROVOZU (v:33) — bez přihlášení ----------------
+            if (req.method === 'POST' && path === '/alive') {
+                const b = await req.json().catch(() => null) || {};
+                const dev = String(b.dev || '');
+                if (!/^[a-z0-9]{12,40}$/.test(dev)) return err(400, 'Neplatný kód zařízení.');
+                const ip = req.headers.get('CF-Connecting-IP') || '0';
+                if (!await guardHit(env, 'al:' + ip, 60, 24 * 3600e3)) return err(429, 'Příliš mnoho hlášení.');
+                await ensureAliveSchema(env);
+                const t = (s, n) => (s == null || s === '') ? null : String(s).replace(/[^\w.\-+ ]/g, '').slice(0, n);
+                const day = new Date().toISOString().slice(0, 10);
+                await env.DB.prepare('INSERT INTO alive(day,dev,ts,ver,tarif,lang,os,ucet) VALUES(?,?,?,?,?,?,?,?) '
+                    + 'ON CONFLICT(day,dev) DO UPDATE SET ts=excluded.ts, ver=excluded.ver, tarif=excluded.tarif, lang=excluded.lang, os=excluded.os, ucet=COALESCE(excluded.ucet, alive.ucet)')
+                    .bind(day, dev, Date.now(), t(b.ver, 12), b.tarif === 'pro' ? 'pro' : 'zaklad', t(b.lang, 5), t(b.os, 20), t(b.ucet, 20)).run();
+                return json({ ok: true });
+            }
 
             // ---------------- PŘESNOST PODLE MODELU TELEFONU (a1, 25. 9. 2026) — bez přihlášení ----------------
             if (path === '/stats/phone' || path === '/stats/phones') {
@@ -2502,7 +2538,28 @@ export default {
                     const verze = await rada('SELECT ver, COUNT(*) AS n FROM accounts GROUP BY ver ORDER BY n DESC LIMIT 12');
                     const nastroje = await rada('SELECT k, COUNT(*) AS n FROM usage WHERE ts>=? AND k IS NOT NULL GROUP BY k ORDER BY n DESC LIMIT 12', ts30);
                     const uctyCelkem = (await dbFirst(env, 'SELECT COUNT(*) AS n FROM accounts').catch(() => null)) || { n: 0 };
-                    return json({ od: d30, do: new Date(ted).toISOString().slice(0, 10), dni: dniG, minule, dotazy, lide, akce, ucty, body, chyby, verze, nastroje, uctyCelkem: uctyCelkem.n || 0 });
+                    // hlášení provozu (v:33): aktivní zařízení po dnech — i lidé bez účtu a bez firmy
+                    await ensureAliveSchema(env);
+                    const zarizeni = await rada('SELECT day, COUNT(*) AS n FROM alive WHERE day>=? GROUP BY day ORDER BY day', d30);
+                    minule.zarizeni = await cnt1('SELECT COUNT(DISTINCT dev) AS n FROM alive WHERE day>=? AND day<?', new Date(tsMin).toISOString().slice(0, 10), d30);
+                    minule.zarizeniTed = await cnt1('SELECT COUNT(DISTINCT dev) AS n FROM alive WHERE day>=?', d30);
+                    const zarizeniVerze = await rada('SELECT ver, COUNT(DISTINCT dev) AS n FROM alive WHERE day>=? GROUP BY ver ORDER BY n DESC LIMIT 12', d30);
+                    return json({ od: d30, do: new Date(ted).toISOString().slice(0, 10), dni: dniG, minule, dotazy, lide, akce, ucty, body, chyby, verze, nastroje, uctyCelkem: uctyCelkem.n || 0, zarizeni, zarizeniVerze });
+                }
+
+                // SEZNAM ZAŘÍZENÍ z hlášení provozu (v:33): poslední hlášení každého zařízení za ?dni (1–90)
+                if (req.method === 'GET' && path === '/owner/zarizeni') {
+                    await ensureAliveSchema(env);
+                    const dniZ = Math.max(1, Math.min(90, parseInt(url.searchParams.get('dni'), 10) || 30));
+                    const odZ = new Date(Date.now() - dniZ * 864e5).toISOString().slice(0, 10);
+                    let rows = [];
+                    try {
+                        rows = (await dbAll(env, 'SELECT dev, MAX(ts) AS ts, COUNT(*) AS dni, MIN(day) AS prvni FROM alive WHERE day>=? GROUP BY dev ORDER BY ts DESC LIMIT 500', odZ)) || [];
+                        const posl = (await dbAll(env, 'SELECT a.dev, a.ver, a.tarif, a.lang, a.os, a.ucet FROM alive a JOIN (SELECT dev, MAX(ts) AS ts FROM alive WHERE day>=? GROUP BY dev) m ON m.dev=a.dev AND m.ts=a.ts', odZ)) || [];
+                        const pm = {}; posl.forEach(r => { pm[r.dev] = r; });
+                        rows = rows.map(r => Object.assign({}, pm[r.dev] || {}, r));
+                    } catch (e) { rows = []; }
+                    return json({ dni: dniZ, n: rows.length, zarizeni: rows });
                 }
 
                 // TRYCHTÝŘ NOVÁČKŮ (13. 9. 2026): registrace → první bod → 3. den → hodnocení.
