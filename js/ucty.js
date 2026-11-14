@@ -347,7 +347,20 @@
     // ------------------------------------------------------------------
     // PIN: SHA-256(sůl + pin) přes WebCrypto; nouzový FNV fallback (http/file)
     // ------------------------------------------------------------------
+    // PIN 2 (14. 11. 2026): nové PINy se odvozují PBKDF2 (150 000 iterací) — sůl začíná „p2$".
+    //   Holé SHA-256 4místného PINu z exportu firmy (.argeofirma.json) nebo z localStorage
+    //   šlo uhádnout zlomkem vteřiny; PBKDF2 to zdraží o pět řádů. Staré záznamy fungují dál
+    //   a po prvním správném přihlášení se samy převedou (viz upgradePin).
+    var PIN_ITERS = 150000;
     function hashPin(pin, salt) {
+        if (String(salt || '').indexOf('p2$') === 0) {
+            return pbkdf2Hex(String(pin || ''), String(salt).slice(3), PIN_ITERS).then(function (h) {
+                return h ? 'p2$' + h : hashPinStary(pin, salt);   // bez WebCrypto (http/file) záloha
+            });
+        }
+        return hashPinStary(pin, salt);
+    }
+    function hashPinStary(pin, salt) {
         var msg = String(salt || '') + '|' + String(pin || '');
         try {
             if (window.crypto && crypto.subtle && window.TextEncoder) {
@@ -367,10 +380,25 @@
     }
     function makeSalt() {
         try {
-            var a = new Uint8Array(8); crypto.getRandomValues(a);
+            var a = new Uint8Array(16); crypto.getRandomValues(a);
             var s = ''; for (var i = 0; i < a.length; i++) s += ('0' + a[i].toString(16)).slice(-2);
-            return s;
+            return (crypto.subtle ? 'p2$' : '') + s;
         } catch (e) { return 's' + Math.random().toString(36).slice(2, 12); }
+    }
+    // starý (SHA-256) PIN po správném zadání převést na PBKDF2 — tiše, chyba nevadí
+    function upgradePin(userId, pin) {
+        try {
+            var f = getFirm(); if (!f || f.cloud || !window.crypto || !crypto.subtle) return;
+            var u = (f.users || []).filter(function (x) { return x.id === userId; })[0];
+            if (!u || !u.pinHash || String(u.salt || '').indexOf('p2$') === 0) return;
+            var salt = makeSalt(); if (salt.indexOf('p2$') !== 0) return;
+            hashPin(pin, salt).then(function (h) {
+                if (!h || h.indexOf('p2$') !== 0) return;
+                var f2 = getFirm(); if (!f2) return;
+                (f2.users || []).forEach(function (x) { if (x.id === userId && x.pinHash === u.pinHash) { x.salt = salt; x.pinHash = h; } });
+                saveFirm(f2);
+            });
+        } catch (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:upgradePin'); }
     }
 
     // ------------------------------------------------------------------
@@ -2433,7 +2461,7 @@
             }
             if (!_selUser) { errEl.textContent = 'Nejdřív vyber uživatele.'; return; }
             hashPin(pin, _selUser.salt).then(function (h) {
-                if (h === _selUser.pinHash) { finish(_selUser, pin); return; }
+                if (h === _selUser.pinHash) { upgradePin(_selUser.id, pin); finish(_selUser, pin); return; }
                 fail('Nesprávný PIN.');
             });
         }
@@ -3172,6 +3200,19 @@
         (window.AG && AG.uiInterval ? AG.uiInterval : setInterval)(function () {
             tick(); lockCheck();
             n++;
+            // ⚠ PŘIHLÁŠENÍ BEZ TOKENU (14. 11. 2026): v cloudové firmě rozhoduje server. Kdo je
+            //   v telefonu „přihlášený" (agFirmaSess_v1), ale nemá token ze serveru (ručně
+            //   přepsané úložiště, token zahozený po jiné firmě), dostane po startu — jakmile je
+            //   server opravdu dosažitelný — přihlašovací obrazovku. Bez signálu se nic neděje
+            //   (offline ověřovadlo v terénu platí dál); režim vlastníka má vlastní klíč.
+            if (n === 4 && isCloud() && getSess() && !getTok() && !isOwner() && navigator.onLine !== false) {
+                cloudFetch('/health').then(function (r) {
+                    if (!r || !r.ok || getTok() || !getSess()) return;
+                    setSess(null);
+                    showLogin(false);
+                    toast(T('Přihlas se prosím znovu — tenhle telefon nemá platné přihlášení u serveru.'));
+                }).catch(function (e) { window.AG && AG.swallow && AG.swallow(e, 'ucty:bezTokenu'); });
+            }
             if (n % 60 === 0 && isCloud() && currentUser() && navigator.onLine !== false) syncUsage();
             // ⚠⚠ ZABLOKOVANÝ ÚČET SE MUSÍ SÁM ODHLÁSIT (doplněno 3. 9. 2026).
             //   Admin při blokaci čte: „nebude se moct přihlásit — ani na mobilu, kde
