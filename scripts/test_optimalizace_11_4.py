@@ -63,16 +63,19 @@ async def beh(url):
             Document.prototype.querySelectorAll = function (s) { if (String(s).indexOf('.modal-overlay, .ag-dlg-overlay') === 0) k++; return qsa.call(this, s); };
             const guard0 = AGZpet._test.guard();
             const el = document.createElement('div'); document.body.appendChild(el);
+            const t0 = performance.now();
             for (let i = 0; i < 30; i++) { el.style.width = i + 'px'; await new Promise(r => requestAnimationFrame(r)); }
             const bezOken = k;
+            // js/android.js má navíc pojistný tik jednou za 2 s — ten smí do měření spadnout
+            const tiky = Math.ceil((performance.now() - t0) / 2000);
             const m = document.getElementById('settings-modal'); m.style.display = 'flex';
             await new Promise(r => setTimeout(r, 100));
             const sOknem = k;
             m.style.display = 'none';
             Document.prototype.querySelectorAll = qsa; AGZpet.otevrene = puv; el.remove();
-            return { bezOken, sOknem, guard0 };
+            return { bezOken, sOknem, guard0, tiky };
         }""")
-        ok('O2a 30 změn stylu mimo okna = žádné procházení oken', r['bezOken'] == 0, r)
+        ok('O2a 30 změn stylu mimo okna = žádné procházení oken (kromě pojistného tiku po 2 s)', r['bezOken'] <= r['tiky'], r)
         # se strážnou v historii (okno už otevřené) check() schválně nic neprochází — jako dřív
         ok('O2b otevření okna se pozná dál', r['sOknem'] >= 1 or r['guard0'], r)
 
