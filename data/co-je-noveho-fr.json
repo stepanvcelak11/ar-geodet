@@ -2,6 +2,18 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 428,
+      "datum": "2026-11-14",
+      "nadpis": "Retrouver les points : votre propre canevas et une meilleure carte",
+      "body": [
+        "Chaque point peut recevoir une fiche — matérialisation (clou, piquet, peinture…), une note sur le lieu et une photo avec sa direction. Lors de la recherche, l'app la superpose à la caméra et indique de quel côté tourner.",
+        "À moins de 10 m, le mode recherche démarre : cercle d'incertitude selon le GPS, la fiche, vibration en approchant et boutons Trouvé / Introuvable / Détruit. L'état apparaît sur la carte par une pastille colorée.",
+        "Mode simple : bouton Calques (Carte / Orthophoto, Cadastre, Où l'on peut mesurer), cercle de précision GPS, correction GPS dans la barre d'état, affinage en longeant une bordure et téléchargement des alentours du chantier. Laissez le doigt sur la carte pour voir distance et azimut.",
+        "La navigation évite les limites de parcelles (clôtures) et préfère les chemins. Les points officiels affichent le croquis ČÚZK.",
+        "Implantation : après « Implanté », photographiez le piquet ; ceux du jour sont vert vif, les plus anciens vert gris. Le procès-verbal est sur la page d'implantation."
+      ]
+    },
+    {
       "v": 427,
       "datum": "2026-11-14",
       "nadpis": "Signal d'utilisation et correction du mode simple",

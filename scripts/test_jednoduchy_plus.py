@@ -189,6 +189,8 @@ async def beh(url):
         ok('V2 klepnutí na bod = šipka a tlačítko VYTYČENO', await V.cekej(page, "AGJednoduchy.stranka() === 'go' && !document.getElementById('ag-jr-vyt-btn').hidden", 3))
         await page.click('#ag-jr-vyt-btn')
         ok('V3 „Vytyčeno" zapíše bod do vytyčovacího checklistu (toggleStaked)', await V.cekej(page, "isStaked(arPoints.find(p => p.name === '701').id)", 3))
+        ok('V3b po vytyčení: „✓ vytyčen", Vyfotit kolík a Hotovo', await V.cekej(page, "!document.getElementById('ag-jr-vyt-ok').hidden && !!document.getElementById('ag-jr-vyt-foto') && /HOTOVO/.test(document.getElementById('ag-jr-vyt-dalsi').textContent) && document.getElementById('ag-jr-vyt-btn').hidden", 3))
+        await page.click('#ag-jr-vyt-dalsi')
         ok('V4 poslední bod → zpět na seznam s ✓', await V.cekej(page, "AGJednoduchy.stranka() === 'vyt' && /✓/.test(document.getElementById('ag-jr-vyt-seznam').textContent)", 3))
         await page.click('#ag-jr-vyt [data-jr-zpet="home"]')
         ok('V5 obyčejná navigace z karty bodu tlačítko Vytyčeno nemá', await page.evaluate("() => { AGJednoduchy.naviguj(arPoints.find(p => p.name === '701').id); return document.getElementById('ag-jr-vyt-btn').hidden; }"))

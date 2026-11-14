@@ -2,6 +2,18 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 428,
+      "datum": "2026-11-14",
+      "nadpis": "Encontrar pontos: rede de pontos própria e mapa melhor",
+      "body": [
+        "Cada ponto pode ter uma ficha — como está marcado (prego, estaca, tinta…), uma nota do local e uma foto com a direção. Na procura, a app sobrepõe-na à câmera e diz para onde se virar.",
+        "A menos de 10 m inicia o modo de procura: círculo de incerteza pelo GPS, a ficha, vibração ao aproximar e botões Encontrado / Não encontrado / Destruído. O estado aparece no mapa como um ponto colorido.",
+        "Modo simples: botão Camadas (Mapa / Ortofoto, Cadastro, Onde se pode medir), círculo de precisão GPS, correção GPS na barra de estado, melhoria caminhando junto a uma borda e transferência da zona do trabalho. Mantenha o dedo no mapa para ver distância e azimute.",
+        "A navegação evita os limites das parcelas (vedações) e prefere caminhos. Os pontos oficiais mostram o croqui ČÚZK.",
+        "Implantação: depois de «Implantado» pode fotografar a estaca; as de hoje ficam verde vivo, as anteriores verde acinzentado. O relatório está na própria página."
+      ]
+    },
+    {
       "v": 427,
       "datum": "2026-11-14",
       "nadpis": "Aviso de utilização e correção do modo simples",

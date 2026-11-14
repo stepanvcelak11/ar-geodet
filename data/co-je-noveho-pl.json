@@ -2,6 +2,18 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 428,
+      "datum": "2026-11-14",
+      "nadpis": "Odnajdywanie punktów: własna osnowa i lepsza mapa",
+      "body": [
+        "Do każdego punktu można zapisać opis — czym jest oznaczony (gwóźdź, palik, farba…), krótką notatkę i zdjęcie z kierunkiem. Przy szukaniu aplikacja nałoży je na kamerę i powie, w którą stronę się obrócić.",
+        "W odległości do 10 m włącza się tryb szukania: okrąg niepewności wg GPS, opis, wibracje przy zbliżaniu i przyciski Znaleziony / Nieznaleziony / Zniszczony. Stan widać na mapie kolorową kropką.",
+        "Tryb prosty: Warstwy (Mapa / Ortofotomapa, Kataster, Gdzie można mierzyć), okrąg dokładności GPS, korekta GPS w pasku stanu, poprawa przez chodzenie wzdłuż krawędzi i pobranie okolicy zlecenia. Przytrzymanie palca pokazuje odległość i azymut.",
+        "Nawigacja omija granice działek (płoty) i woli drogi. Punkty urzędowe pokazują szkic lokalizacyjny ČÚZK.",
+        "Wytyczanie: po „Wytyczono” można sfotografować palik; dzisiejsze są intensywnie zielone, starsze szarozielone. Protokół wytyczenia jest na stronie wytyczania."
+      ]
+    },
+    {
       "v": 427,
       "datum": "2026-11-14",
       "nadpis": "Raport użycia i poprawka trybu prostego",
