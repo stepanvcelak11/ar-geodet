@@ -2,6 +2,18 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 428,
+      "datum": "2026-11-14",
+      "nadpis": "Trovare i punti: rete di punti propria e mappa migliore",
+      "body": [
+        "A ogni punto si può aggiungere una scheda — come è segnalato (chiodo, picchetto, vernice…), una nota sul luogo e una foto con la direzione. Durante la ricerca l'app la sovrappone alla fotocamera e ti dice dove girarti.",
+        "Entro 10 m parte la modalità ricerca: cerchio di incertezza dal GPS, la scheda, vibrazione avvicinandoti e i pulsanti Trovato / Non trovato / Distrutto. Lo stato appare sulla mappa come puntino colorato.",
+        "Modalità semplice: pulsante Livelli (Mappa / Ortofoto, Catasto, Dove si può misurare), cerchio di precisione GPS, correzione GPS nella barra di stato, affinamento lungo un bordo e download della zona del lavoro. Tieni il dito sulla mappa per distanza e azimut.",
+        "La navigazione evita i confini delle particelle (recinzioni) e preferisce i sentieri. I punti ufficiali mostrano lo schizzo ČÚZK.",
+        "Picchettamento: dopo «Picchettato» puoi fotografare il picchetto; quelli di oggi sono verde acceso, i precedenti verde grigio. Il verbale è nella pagina stessa."
+      ]
+    },
+    {
       "v": 427,
       "datum": "2026-11-14",
       "nadpis": "Segnale di utilizzo e correzione della modalità semplice",

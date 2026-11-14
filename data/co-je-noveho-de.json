@@ -2,6 +2,18 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 428,
+      "datum": "2026-11-14",
+      "nadpis": "Punkte finden: eigenes Festpunktfeld und bessere Karte",
+      "body": [
+        "Zu jedem Punkt lässt sich eine Ortsbeschreibung speichern — Vermarkung (Nagel, Pflock, Farbe…), kurze Notiz und ein Foto samt Blickrichtung. Bei der Suche legt die App es über die Kamera und sagt, wohin du dich drehen musst.",
+        "Innerhalb von 10 m startet der Suchmodus: Unsicherheitskreis nach GPS-Genauigkeit, Beschreibung, Vibration beim Näherkommen und Gefunden / Nicht gefunden / Zerstört. Der Status erscheint als farbiger Punkt in der Karte.",
+        "Einfacher Modus: Ebenen (Karte / Orthofoto, Kataster, Wo man messen kann), GPS-Genauigkeitskreis, GPS-Korrektur in der Statuszeile, Verbesserung entlang einer Kante und Download der Auftragsumgebung. Finger halten zeigt Entfernung und Azimut.",
+        "Die Navigation meidet Flurstücksgrenzen (Zäune) und nutzt lieber Wege. Amtliche Punkte zeigen die ČÚZK-Lageskizze.",
+        "Absteckung: nach „Abgesteckt“ lässt sich der Pflock fotografieren; heute abgesteckte Punkte sind sattgrün, ältere graugrün. Das Absteckprotokoll ist direkt auf der Absteckseite."
+      ]
+    },
+    {
       "v": 427,
       "datum": "2026-11-14",
       "nadpis": "Nutzungsmeldung und Korrektur im einfachen Modus",

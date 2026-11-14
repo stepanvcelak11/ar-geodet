@@ -851,7 +851,10 @@ function TT(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } 
             let col = agBarvaBodu(pt);
             const staked = !!(window.isStaked && isStaked(pt.id));
             const nalez = !staked && !!(window.AGLovci && pt.cat !== 'CUSTOM' && AGLovci.nalezen(pt));
-            return pt.cat + '|' + col + '|' + pt.name + '|' + (staked ? 'S' : '') + (nalez ? 'N' : '');
+            // VLASTNÍ BODOVÉ POLE (js/vlastni-pole.js): stav ověření bodu v terénu; S/D = vytyčen dnes / dřív
+            const pole = window.AGPole ? AGPole.znak(pt) : '';
+            const dnes = staked && window.agVytycenoDnes && agVytycenoDnes(pt.id) ? 'D' : '';
+            return pt.cat + '|' + col + '|' + pt.name + '|' + (staked ? 'S' : '') + dnes + (nalez ? 'N' : '') + pole;
         }
         function _mkChce(pt) {
                 if (_mapDrawnBounds && !_mapDrawnBounds.contains([pt.lat, pt.lng])) return false;
@@ -870,10 +873,12 @@ function TT(cs, o) { var v = cs; try { if (window.AGJazyk) v = AGJazyk.t(cs); } 
                 }
                 if (have) { try { markersGroup.removeLayer(have.m); } catch (e) { self.AG && AG.swallow(e, 'grafika:871'); } _mk.delete(key); }
                 let col = agBarvaBodu(pt);
-                const stakedBadge = (window.isStaked && isStaked(pt.id)) ? `<div style="position:absolute; top:-7px; right:-7px; width:13px; height:13px; border-radius:50%; background:#10b981; border:1.5px solid #fff; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>` : '';
+                // vytyčený DNES = sytě zelená, dřív = šedozelená (14. 11. 2026: na první pohled, co zbývá dnes)
+                const _vytBarva = (window.agVytycenoDnes && !agVytycenoDnes(pt.id)) ? '#6b8f80' : '#10b981';
+                const stakedBadge = (window.isStaked && isStaked(pt.id)) ? `<div style="position:absolute; top:-7px; right:-7px; width:13px; height:13px; border-radius:50%; background:${_vytBarva}; border:1.5px solid #fff; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>` : '';
                 // LOVCI BODŮ (js/lovci-bodu.js): objevený úřední bod má zlatou hvězdičku — na první pohled, co ještě nemáš
                 const nalezBadge = (!stakedBadge && window.AGLovci && pt.cat !== 'CUSTOM' && AGLovci.nalezen(pt)) ? `<div style="position:absolute; top:-7px; right:-7px; width:13px; height:13px; border-radius:50%; background:#f59e0b; border:1.5px solid #fff; display:flex; align-items:center; justify-content:center; font:700 9px/1 sans-serif; color:#fff;">★</div>` : '';
-                const svgIcon = getMapMarkerSVG(pt.cat, col); const htmlContent = `<div style="position: relative; width: 24px; height: 24px; pointer-events:none;${stakedBadge ? ' opacity:0.65;' : ''}">${svgIcon}${stakedBadge}${nalezBadge}<div class="map-label-text" style="transform: rotate(${mapRotation}deg);">${_escHtml(pt.name)}</div></div>`;
+                const svgIcon = getMapMarkerSVG(pt.cat, col); const htmlContent = `<div style="position: relative; width: 24px; height: 24px; pointer-events:none;${stakedBadge ? ' opacity:0.65;' : ''}">${svgIcon}${stakedBadge}${nalezBadge}${window.AGPole ? AGPole.badge(pt) : ''}<div class="map-label-text" style="transform: rotate(${mapRotation}deg);">${_escHtml(pt.name)}</div></div>`;
                 const icon = L.divIcon({ className: 'custom-map-marker', html: htmlContent, iconSize: [24, 24], iconAnchor: [12, 12] });
                 const m = L.marker([pt.lat, pt.lng], { icon: icon }).addTo(markersGroup);
                 _mk.set(key, { m: m, sig: sig, lat: pt.lat, lng: pt.lng });

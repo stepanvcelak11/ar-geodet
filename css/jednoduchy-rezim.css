@@ -685,3 +685,108 @@ body.ag-jr-pauza #ag-bgps-overlay #bgps-when { display: none !important; }
 body.ag-jr-pauza #ag-bgps-overlay .bgps-btn { min-height: 60px; font-size: calc(19px * var(--ag-font-scale, 1)); }
 body.ag-jr-pauza #ag-bgps-overlay .bgps-chip { min-height: 48px; min-width: 64px; }
 body.ag-jr-pauza #ag-bgps-overlay .bgps-name { min-height: 52px; font-size: calc(18px * var(--ag-font-scale, 1)); }
+
+/* ---- 14. 11. 2026 (2. kolo): mapa pro dohledávání ------------------------------ */
+/* Vrstvy: tlačítko vlevo dole v okně mapy + panel nad ním */
+.jr-vrstvy-btn {
+    position: absolute; left: 10px; bottom: 10px; z-index: 1001;
+    display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px 0 12px;
+    border-radius: var(--r-pill); border: 1px solid var(--glass-border-strong);
+    background: var(--surface-1); color: var(--text-color);
+    font-family: inherit; font-size: var(--fs-md); font-weight: 700; cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+.jr-vrstvy-btn .icon { width: 22px; height: 22px; }
+.jr-mapa.jr-kamera .jr-vrstvy-btn { display: none; }
+.jr-vrstvy {
+    position: absolute; left: 8px; right: 8px; bottom: 62px; z-index: 1003;
+    max-height: calc(100% - 120px); overflow-y: auto;
+    padding: 10px 12px; border-radius: var(--r-lg);
+    border: 1px solid var(--glass-border-strong); background: var(--bg-color);
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.35); touch-action: pan-y;
+}
+.jr-vrstvy[hidden] { display: none; }
+.jr-vr-h { margin: 4px 0 6px; color: var(--text-muted); font-size: var(--fs-sm); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.jr-vr-seg { display: flex; gap: 6px; margin-bottom: 8px; }
+.jr-vr-seg button, .jr-vr-r, .jr-vr-a {
+    font-family: inherit; color: var(--text-color); background: var(--surface-1);
+    border: 1px solid var(--glass-border); border-radius: var(--r-md); cursor: pointer;
+}
+.jr-vr-seg button { flex: 1 1 0; min-height: 48px; font-size: var(--fs-md); font-weight: 700; }
+.jr-vr-seg button.on { background: var(--accent-fill); color: #fff; border-color: transparent; }
+.jr-vr-r { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 54px; margin-bottom: 6px; padding: 6px 12px; text-align: left; font-size: var(--fs-md); font-weight: 700; }
+.jr-vr-r small { display: block; font-weight: 500; color: var(--text-muted); font-size: var(--fs-sm); }
+.jr-vr-r i { flex: 0 0 auto; width: 44px; height: 26px; border-radius: 13px; background: var(--surface-3); position: relative; }
+.jr-vr-r i::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left .15s; }
+.jr-vr-r.on i { background: var(--accent-fill); }
+.jr-vr-r.on i::after { left: 21px; }
+.jr-vr-a { display: block; width: 100%; min-height: 48px; margin-bottom: 6px; padding: 8px 12px; text-align: left; font-size: var(--fs-md); font-weight: 600; }
+.jr-zamek { margin-left: 6px; font-size: 13px; }
+
+/* měření podržením prstu */
+.jr-mereni {
+    position: absolute; left: 50%; top: 58px; transform: translateX(-50%); z-index: 1002;
+    padding: 6px 12px; border-radius: var(--r-pill); background: rgba(0, 0, 0, 0.72); color: #fff;
+    font-size: var(--fs-md); white-space: nowrap; pointer-events: none;
+}
+.jr-mereni[hidden] { display: none; }
+.jr-mereni b { color: #fbbf24; }
+.jr-korekce { color: var(--accent); font-weight: 600; }
+
+/* místopis bodu (nový bod, karta) */
+.jr-pole { margin-top: 12px; border: 1px solid var(--glass-border); border-radius: var(--r-md); padding: 0 12px; }
+.jr-pole > summary { min-height: 48px; display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 700; font-size: var(--fs-md); }
+.jr-pole > summary small { color: var(--text-muted); font-weight: 500; }
+.jr-pole[open] { padding-bottom: 12px; }
+.jr-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
+.jr-chips button { min-height: 44px; padding: 0 14px; border-radius: var(--r-pill); border: 1px solid var(--glass-border-strong); background: var(--surface-1); color: var(--text-color); font-family: inherit; font-size: var(--fs-md); font-weight: 600; cursor: pointer; }
+.jr-chips button.on { background: var(--accent-fill); color: #fff; border-color: transparent; }
+.jr-popis { display: block; width: 100%; box-sizing: border-box; margin-top: 4px; min-height: 64px; resize: vertical; font-size: var(--fs-md); }
+.jr-pole-foto { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.jr-pole-foto .jr-maly { display: flex; align-items: center; gap: 6px; }
+.jr-pole-foto .icon { width: 20px; height: 20px; }
+.jr-pole-foto img { width: 72px; height: 72px; object-fit: cover; border-radius: var(--r-md); }
+.jr-pole-foto img[hidden] { display: none; }
+.jr-pata-rada { display: flex; gap: 8px; margin-top: 10px; }
+.jr-pata-rada > * { flex: 1 1 0; }
+.jr-ulozit-maly { min-height: 52px; font-size: calc(17px * var(--ag-font-scale, 1)); }
+
+/* karta bodu: místopis, fotka, náčrt ČÚZK, stav */
+.jr-karta-mist { color: var(--text-color); }
+.jr-karta-foto, .jr-hl-foto { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+.jr-karta-foto img, .jr-hl-foto img { width: 96px; height: 72px; object-fit: cover; border-radius: var(--r-md); background: var(--surface-2); }
+.jr-karta-nacrt { margin: 6px 0; display: flex; align-items: center; gap: 10px; }
+.jr-karta-nacrt img { max-width: 120px; max-height: 110px; border-radius: var(--r-md); background: #fff; }
+.jr-karta-nacrt a, .jr-karta-nacrt a:visited { color: var(--accent); font-size: var(--fs-sm); }
+.jr-karta-stav { margin-top: 8px; font-size: var(--fs-sm); }
+.jr-st-ok { color: #3b82f6; font-weight: 700; }
+.jr-st-nenalezen { color: #f59e0b; font-weight: 700; }
+.jr-st-znicen { color: #ef4444; font-weight: 700; }
+.jr-hl-btn { display: flex; gap: 6px; margin-top: 6px; }
+.jr-hl-btn button { flex: 1 1 0; min-height: 44px; border-radius: var(--r-md); border: 1px solid var(--glass-border-strong); background: var(--surface-1); color: var(--text-color); font-family: inherit; font-size: var(--fs-sm); font-weight: 700; cursor: pointer; }
+.jr-hl-btn button.on { background: var(--accent-fill); color: #fff; border-color: transparent; }
+.jr-karta-akce { margin-top: 8px; }
+.jr-karta-akce .jr-maly { width: 100%; }
+
+/* hledací režim (posledních 10 m) */
+.jr-hledej { flex: 0 0 auto; margin-top: 8px; padding: 10px 12px; border-radius: var(--r-lg); border: 2px solid #f59e0b; background: var(--surface-1); font-size: var(--fs-md); }
+.jr-hledej[hidden] { display: none; }
+.jr-hl-t { font-weight: 700; }
+.jr-hl-r { margin-top: 4px; }
+.jr-hl-stav { color: var(--text-muted); font-size: var(--fs-sm); }
+#ag-jr-hl-smer { font-weight: 700; margin-bottom: 6px; }
+
+/* vytyčení: „✓ vytyčen" + fotka kolíku + další bod */
+.jr-vyt-ok { flex: 0 0 auto; margin-top: 10px; }
+.jr-vyt-ok[hidden] { display: none; }
+.jr-vyt-ok-t { font-size: calc(19px * var(--ag-font-scale, 1)); font-weight: 800; color: #10b981; text-align: center; }
+.jr-vyt-ok .jr-maly { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.jr-vyt-ok .icon { width: 20px; height: 20px; }
+
+/* navigace s hledacím panelem / vytyčením: šipka a mapa ustoupí, nic se nepřekrývá */
+.jr-sipka-box svg { max-height: 100%; max-width: 100%; }
+#ag-jr-go { overflow-y: auto; }
+#ag-jr-go.jr-plno .jr-sipka-box { flex: 0 0 auto; height: 17vh; }
+#ag-jr-go.jr-plno .jr-vzdalenost { font-size: calc(42px * var(--ag-font-scale, 1)); }
+#ag-jr-go.jr-plno .jr-mapa-go { flex: 0 0 20vh; min-height: 120px; }
+#ag-jr-go.jr-plno .jr-poslat { display: none; }

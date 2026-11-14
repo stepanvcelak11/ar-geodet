@@ -2,6 +2,18 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 428,
+      "datum": "2026-11-14",
+      "nadpis": "Finding points: your own control points and a better map",
+      "body": [
+        "Each point can get a description — how it is marked (nail, stake, paint…), a short note about the place and a photo with the direction it faced. When searching, the app overlays it on the camera and tells you which way to turn.",
+        "Within 10 m of a point a search mode starts: an uncertainty circle from GPS accuracy, the description, vibration as you get closer and Found / Not found / Destroyed buttons. The status shows on the map as a coloured dot.",
+        "Simple mode: Layers button (Map / Orthophoto, Cadastre, Where you can measure), GPS accuracy circle, GPS correction in the status line, edge-walk refinement and job-area download. Hold a finger on the map to see distance and bearing.",
+        "Navigation avoids parcel boundaries (fences) and prefers paths. Official points show the ČÚZK location sketch on their card.",
+        "Stake-out: after “Staked” you can photograph the stake; points staked today are bright green on the map, older ones grey-green. The stake-out report is right on the stake-out page."
+      ]
+    },
+    {
       "v": 427,
       "datum": "2026-11-14",
       "nadpis": "Usage ping and a simple mode fix",

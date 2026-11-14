@@ -13,6 +13,9 @@ function loadStakeout() {
 }
 function saveStakeout() { setStoredData('arStakeout12', JSON.stringify(stakeoutData)); }
 function isStaked(id) { return !!stakeoutData[id]; }
+// vytyčeno DNES? (barva puntíku v mapě, js/grafika.js) — 14. 11. 2026
+function agVytycenoDnes(id) { const r = stakeoutData[id]; if (!r || !r.t) return false; const d = new Date(r.t), n = new Date(); return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate(); }
+window.agVytycenoDnes = agVytycenoDnes;
 
 function toggleStaked(pt) {
     if (stakeoutData[pt.id]) { delete stakeoutData[pt.id]; }

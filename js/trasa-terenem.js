@@ -29,13 +29,14 @@
     try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && s.zap != null) st.zap = !!s.zap; } catch (e) { swallow(e, 'load'); }
     function uloz() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { swallow(e, 'save'); } }
 
-    var CENA = { open: 1.5, cesta: 1.0, stred: 0.7, louka: 1.3, pole: 1.6, krovi: 2.5, les: 3.0, areal: 4.0, koleje: 6.0, potok: 4.0 };
+    var CENA = { open: 1.5, cesta: 1.0, stred: 0.7, louka: 1.3, pole: 1.6, krovi: 2.5, les: 3.0, areal: 4.0, koleje: 6.0, potok: 4.0, hranice: 12.0 };
     // DALEKÝ CÍL (18. 9. 2026, hlášení: „k polohovému bodu se navigace láme podle cesty, k niveláku
     // a k trigonometrickému bodu vede pořád jen přímka"): PPBP jsou v obci každých pár set metrů,
     // ale nejbližší nivelační bod nebo TB bývá kilometry daleko — a nad 3 km se trasa nepočítala vůbec.
     // Teď: do 3 km jako dřív (z15, mřížka do ~6 m); 3–20 km hrubší mřížka (do 720² buněk, tj. ~15–28 m)
     // z dlaždic z14/z13 (js/mapa-data.js) — v ní jsou silnice, cesty, voda a plochy, takže trasa
     // drží komunikace; drobné budovy se v tak hrubé mřížce stejně neřeší. Nad 20 km přímka.
+    var _hranicVPosledni = 0;   // kolik hranic parcel šlo do posledního rastru (test, popisek)
     var NEPRUCHOD = 255, OKRAJ = 40, MAX_STRANA = 20000, BLIZKO = 3000, MAX_BUNEK = 480 * 480, MAX_BUNEK_DALKA = 720 * 720;
     var LES = ['forest', 'wood'], KROVI = ['scrub', 'heath'], LOUKA = ['grassland', 'grass', 'meadow', 'park', 'garden', 'village_green', 'recreation_ground', 'cemetery', 'golf_course', 'pitch', 'playground'], POLE = ['farmland', 'orchard', 'vineyard', 'allotments', 'farmyard'], AREAL = ['industrial', 'railway', 'quarry', 'military', 'aerodrome', 'landfill', 'naval_base'];
 
@@ -132,6 +133,28 @@
             try { AGHrany.budovyPolygony((s + n) / 2, (w + e) / 2, Math.max(sirka, vyska)).forEach(function (b) { budova(b.rings); }); } catch (e) { swallow(e, 'budovy'); }
             try { silnice = MV.cary('roads'); } catch (e) { swallow(e, 'silnice'); }
         }
+        // HRANICE PARCEL Z KATASTRU (14. 11. 2026, uživatel: „navigace mě občas táhne přes pozemky
+        // lidí, přes plot"). Hranice pozemku je v terénu často plot, zeď nebo živý plot — přejít ji
+        // jde (do cílové parcely se vejít musí), ale draze: pás 1,5 m za cenu 12 = objížďka do ~20 m
+        // po cestě nebo po veřejném pozemku vyjde levněji než skok přes plot. Silnice a cesty se
+        // kreslí AŽ PO hranicích, takže přechod hranice na cestě zůstává levný (vjezd, branka).
+        // Zdroj: parcely RÚIAN, jsou-li načtené (karta Katastr ve vlastní mapě) — jinak beze změny.
+        try {
+            var parc = (window.AGMapaParcely && AGMapaParcely.parcely && AGMapaParcely.parcely()) || (window.AGParcely && AGParcely.seznam && AGParcely.seznam()) || [];
+            var dl = (n - s) * 0.1, dg = (e - w) * 0.1, hranic = 0;
+            // 'lighten' = na každém políčku vyhraje VYŠŠÍ cena (červený kanál): hranice přes budovu
+            // nebo řeku ji nesmí zlevnit — jinak by po hranici parcely vedl průchod zdí nebo vodou
+            ctx.globalCompositeOperation = 'lighten';
+            parc.forEach(function (pc) {
+                (pc.rings || []).forEach(function (ring) {
+                    var tu = false;
+                    for (var i = 0; i < ring.length && !tu; i++) { var q = ring[i]; tu = q.lat >= s - dl && q.lat <= n + dl && q.lng >= w - dg && q.lng <= e + dg; }
+                    if (tu) { cara(ring, CENA.hranice, 1.5); hranic++; }
+                });
+            });
+            _hranicVPosledni = hranic;
+        } catch (e) { swallow(e, 'hranice'); }
+        ctx.globalCompositeOperation = 'source-over';
         // silnice a cesty: celá šířka za cenu cesty, OSA o třetinu levnější → A* drží střed, ne krajnici
         var osy = [];
         try {
@@ -454,5 +477,5 @@
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
-    window.AGTrasa = { aktivni: aktivni, smer: smer, zbyva: zbyva, popisek: popisek, body: function () { return trasa ? trasa.body : null; }, trasa: function () { return trasa; }, prepocitej: prepocitej, spocitej: spocitej, rastr: rastr, hledej: hledej, profil: profil, svgProfil: svgProfil, dalsiLom: dalsiLom, nastav: function (o) { if (o && o.zap != null) st.zap = !!o.zap; uloz(); }, zapnuto: function () { return st.zap; }, vyskaFn: null, CENA: CENA, diag: function () { return _duvod; } };
+    window.AGTrasa = { hranic: function () { return _hranicVPosledni; }, aktivni: aktivni, smer: smer, zbyva: zbyva, popisek: popisek, body: function () { return trasa ? trasa.body : null; }, trasa: function () { return trasa; }, prepocitej: prepocitej, spocitej: spocitej, rastr: rastr, hledej: hledej, profil: profil, svgProfil: svgProfil, dalsiLom: dalsiLom, nastav: function (o) { if (o && o.zap != null) st.zap = !!o.zap; uloz(); }, zapnuto: function () { return st.zap; }, vyskaFn: null, CENA: CENA, diag: function () { return _duvod; } };
 })();

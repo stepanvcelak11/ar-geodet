@@ -2,6 +2,18 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 428,
+   "datum": "2026-11-14",
+   "nadpis": "Dohledávání bodů: vlastní bodové pole a lepší mapa",
+   "body": [
+    "Ke každému bodu jde uložit místopis — čím je označený (hřeb, kolík, znak…), krátký popis místa a fotku i se směrem, kam se dívala. Při hledání ji appka ukáže průhledně přes kameru a řekne, kam se otočit.",
+    "Do 10 m od bodu se zapne hledací režim: kruh nejistoty podle přesnosti GPS, místopis, vibrace při přibližování a tlačítka Nalezen / Nenalezen / Zničen. Stav bodu je vidět v mapě barevným puntíkem.",
+    "Jednoduchý režim: tlačítko Vrstvy (Mapa / Ortofoto, Katastr, Kde se dá měřit), kruh přesnosti GPS, korekce GPS ve stavovém řádku, zpřesnění chůzí po hraně a stažení okolí zakázky. Podržením prstu v mapě se ukáže vzdálenost a azimut.",
+    "Navigace se vyhýbá hranicím pozemků (ploty) — vede raději po cestách. Úřední body ukážou v kartě místopisný náčrt ČÚZK.",
+    "Vytyčení: po „Vytyčeno“ jde vyfotit kolík; vytyčené dnes jsou v mapě sytě zelené, starší šedozelené. Protokol vytyčení je přímo na stránce vytyčení."
+   ]
+  },
+  {
    "v": 427,
    "datum": "2026-11-14",
    "nadpis": "Hlášení provozu a oprava jednoduchého režimu",

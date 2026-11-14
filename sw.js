@@ -9,7 +9,7 @@
 //                 se stare verze maze => uzivatel po updatu dostane cerstvy kod.
 //   TILE_CACHE  â€” mapove dlazdice ulozene tlacitkem "Ulozit pro Offline". STABILNI nazev,
 //                 NEMAZE se pri updatu => update kodu nesmaze uzivateli stazene mapy.
-const SHELL_CACHE = 'argeodet-shell-v427';   // 14. 11.: hlášení provozu (bez něj není Pro), oprava „Sbalit" přes jednoduchý režim
+const SHELL_CACHE = 'argeodet-shell-v428';   // 14. 11.: vlastní bodové pole (místopis, fotka, stav), vrstvy a hledací režim v jednoduchém režimu, trasa kolem plotů
 const TILE_CACHE = 'argeodet-offline-v12'; // shodne s caches.open(...) v logika.js — nemenit
 // FONT_CACHE — vlastni pisma (fonts/*.woff2, ~209 kB). Pisma se NIKDY nemeni,
 // takze by bylo plytvani stahovat je znovu pri kazdem bumpu verze. STABILNI nazev,
@@ -57,9 +57,9 @@ const ASSETS_TO_CACHE = [
     './icon-maskable-512.png',
     './css/fonts.css',
     './js/lib/leaflet-1.9.4.css',
-    './css/tokens.css?v=427',
-    './css/style.css?v=427',
-    './css/vylepseni.css?v=427',
+    './css/tokens.css?v=428',
+    './css/style.css?v=428',
+    './css/vylepseni.css?v=428',
     './css/pro-vzhled.css',
     './css/gps-warn.css',
     './css/compass-stability.css',
@@ -212,6 +212,7 @@ const ASSETS_TO_CACHE = [
     './js/tools-simple.js',
     './js/jednoduchy-rezim.js',
     './js/hlaseni-provozu.js',
+    './js/vlastni-pole.js',
     './js/profily.js',
     './js/pokracovat.js',
     './js/shortcuts.js',

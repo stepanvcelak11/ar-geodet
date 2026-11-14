@@ -125,8 +125,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=427">
-    <link rel="stylesheet" href="css/style.css?v=427">
+    <link rel="stylesheet" href="css/tokens.css?v=428">
+    <link rel="stylesheet" href="css/style.css?v=428">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -257,7 +257,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=427">
+    <link rel="stylesheet" href="css/vylepseni.css?v=428">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
@@ -1627,6 +1627,9 @@
     <!-- HLÁŠENÍ PROVOZU (odpojitelné: smaž tento řádek + js/hlaseni-provozu.js) — 1× denně
          „jsem naživu" pro grafy vlastníka; vypnutí v Nastavení → Soukromí = bez Pro -->
     <script type="ag/lazy" data-src="js/hlaseni-provozu.js"></script>
+    <!-- VLASTNÍ BODOVÉ POLE (odpojitelné: smaž tento řádek + js/vlastni-pole.js) — místopis,
+         fotka se směrem a stav bodu (nalezen / nenalezen / zničen) pro dohledání -->
+    <script type="ag/lazy" data-src="js/vlastni-pole.js"></script>
     <!-- PROFILY (odpojitelné) — Terén/Přesnost/Ukázka nad záložkami Nastavení
          + export/import profilu zařízení (kalibrace telefonu) v Údržbě -->
     <script type="ag/lazy" data-src="js/profily.js"></script>

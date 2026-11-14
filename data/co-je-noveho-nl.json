@@ -2,6 +2,18 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 428,
+      "datum": "2026-11-14",
+      "nadpis": "Punten terugvinden: eigen puntenveld en betere kaart",
+      "body": [
+        "Bij elk punt kun je een beschrijving opslaan — hoe het gemarkeerd is (spijker, piket, verf…), een korte notitie en een foto met kijkrichting. Bij het zoeken legt de app die over de camera en zegt welke kant je op moet draaien.",
+        "Binnen 10 m start de zoekmodus: onzekerheidscirkel volgens GPS, de beschrijving, trillen bij nadering en de knoppen Gevonden / Niet gevonden / Vernietigd. De status staat als gekleurde stip op de kaart.",
+        "Eenvoudige modus: knop Lagen (Kaart / Luchtfoto, Kadaster, Waar je kunt meten), GPS-nauwkeurigheidscirkel, GPS-correctie in de statusregel, verbeteren door langs een rand te lopen en de omgeving van de opdracht downloaden. Houd een vinger op de kaart voor afstand en azimut.",
+        "De navigatie vermijdt perceelgrenzen (hekken) en kiest liever paden. Officiële punten tonen de ČÚZK-situatieschets.",
+        "Uitzetten: na „Uitgezet” kun je de piket fotograferen; vandaag uitgezette punten zijn felgroen, oudere grijsgroen. Het uitzetrapport staat op de uitzetpagina."
+      ]
+    },
+    {
       "v": 427,
       "datum": "2026-11-14",
       "nadpis": "Gebruiksmelding en reparatie eenvoudige modus",
