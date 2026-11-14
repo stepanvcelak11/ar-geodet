@@ -2,6 +2,15 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 430,
+      "datum": "2026-11-14",
+      "nadpis": "No strip at the bottom and selectable measuring time",
+      "body": [
+        "Fixed: on an iPhone home-screen app an empty strip could remain at the bottom after returning to the app.",
+        "Simple mode: for “From GPS” you can choose how long to measure — 5 s, 10 s (default), 30 s or 1 min."
+      ]
+    },
+    {
       "v": 429,
       "datum": "2026-11-14",
       "nadpis": "Navigation: straight-line distance",

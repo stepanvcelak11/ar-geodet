@@ -65,7 +65,10 @@
     window.__agJrInit = true;
 
     var KEY = 'agJednoduchy_v1';       // '1' = režim zapnut (globální, ne per zakázka)
-    var AVG_MS = 6000;                 // délka průměrování GPS u „Z GPS"
+    // DÉLKA PRŮMĚROVÁNÍ „Z GPS" si volí uživatel (14. 11. 2026: „místo 5 vteřin ať je to 10, nebo
+    // ať si člověk vybere, jak dlouho tam chce stát"). Výchozí 10 s, pamatuje se poslední volba.
+    var DOBY = [5, 10, 30, 60], DOBA_KEY = 'agJrDoba_v1';
+    function doba() { try { var v = parseInt(localStorage.getItem(DOBA_KEY), 10); return DOBY.indexOf(v) >= 0 ? v : 10; } catch (e) { return 10; } }
     var TICK_MS = 200;                 // přepočet navigace i vzdáleností v seznamu
     var DOMA_M = 0.5;                  // pod tuhle vzdálenost hlásíme „JSI NA BODĚ"
 
@@ -182,6 +185,8 @@
             + '      <button type="button" id="ag-jr-zgps">' + ikona('i-locate') + 'Z GPS</button>'
             + '      <button type="button" id="ag-jr-zruky">' + ikona('i-edit') + 'Ručně</button>'
             + '    </div>'
+            + '    <div class="jr-doba" id="ag-jr-doba"><span>Jak dlouho měřit z GPS</span><div class="jr-doba-seg" role="group" aria-label="Jak dlouho měřit z GPS">'
+            + DOBY.map(function (d) { return '<button type="button" data-doba="' + d + '">' + (d < 60 ? d + ' s' : (d / 60) + ' min') + '</button>'; }).join('') + '</div></div>'
             + '    <div id="ag-jr-rucne" hidden>'
             + '      <div class="jr-dvojice">'
             + '        <div><label class="jr-label" for="ag-jr-y">' + agSys() + ' ' + agOsy().osaA + ' (m)</label><input type="text" id="ag-jr-y" class="jr-vstup" inputmode="decimal" autocomplete="off" placeholder="596956,46"></div>'
@@ -261,6 +266,14 @@
             b.addEventListener('click', function () { zpet(b.getAttribute('data-jr-zpet')); });
         });
         root.querySelector('#ag-jr-zgps').addEventListener('click', zmerGps);
+        Array.prototype.forEach.call(root.querySelectorAll('[data-doba]'), function (b) {
+            b.addEventListener('click', function () {
+                if (avgT) return;   // během měření se délka nemění
+                try { localStorage.setItem(DOBA_KEY, b.getAttribute('data-doba')); } catch (e) { swallow(e, 'doba'); }
+                obnovDobu(); vibruj(8);
+            });
+        });
+        obnovDobu();
         root.querySelector('#ag-jr-zruky').addEventListener('click', prepniRucne);
         root.querySelector('#ag-jr-ulozit').addEventListener('click', uloz);
         root.querySelector('#ag-jr-nazev').addEventListener('input', prepocitejUlozit);
@@ -1435,7 +1448,7 @@
         root.querySelector('#ag-jr-zgps').classList.add('jr-vybrano');
         root.querySelector('#ag-jr-rucne').hidden = true;
         avgVzorky = [];
-        avgDo = Date.now() + AVG_MS;
+        avgDo = Date.now() + doba() * 1000;
         prepocitejUlozit();
         avgT = setInterval(function () {
             if (maFix()) {
@@ -1450,9 +1463,13 @@
             if (Date.now() >= avgDo) dokonciMereni();
         }, 250);
         hlidejTik();
-        vysledek(T('Měřím… ještě {s} (0 vzorků). Stůj na místě.', { s: '<b>' + Math.ceil(AVG_MS / 1000) + ' s</b>' }), false);
+        vysledek(T('Měřím… ještě {s} (0 vzorků). Stůj na místě.', { s: '<b>' + doba() + ' s</b>' }), false);
     }
 
+    function obnovDobu() {
+        var d = doba();
+        Array.prototype.forEach.call(root.querySelectorAll('[data-doba]'), function (b) { var on = parseInt(b.getAttribute('data-doba'), 10) === d; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+    }
     function zrusMereni() {
         if (avgT) { clearInterval(avgT); avgT = null; }
         avgVzorky = [];

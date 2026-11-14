@@ -2,6 +2,15 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 430,
+      "datum": "2026-11-14",
+      "nadpis": "Bez paska na dole i wybór czasu pomiaru",
+      "body": [
+        "Poprawiono: na iPhonie (aplikacja z ekranu głównego) po powrocie mógł zostać pusty pasek na dole.",
+        "Tryb prosty: przy „Z GPS” wybierasz czas pomiaru — 5 s, 10 s (domyślnie), 30 s lub 1 min."
+      ]
+    },
+    {
       "v": 429,
       "datum": "2026-11-14",
       "nadpis": "Nawigacja: odległość w linii prostej",

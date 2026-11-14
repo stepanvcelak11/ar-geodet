@@ -2,6 +2,15 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 430,
+      "datum": "2026-11-14",
+      "nadpis": "Plus de bande en bas et durée de mesure au choix",
+      "body": [
+        "Corrigé : sur iPhone (app depuis l'écran d'accueil), une bande vide pouvait rester en bas au retour dans l'app.",
+        "Mode simple : pour « Par GPS », choisissez la durée — 5 s, 10 s (par défaut), 30 s ou 1 min."
+      ]
+    },
+    {
       "v": 429,
       "datum": "2026-11-14",
       "nadpis": "Navigation : distance à vol d'oiseau",

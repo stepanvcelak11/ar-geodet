@@ -25,7 +25,10 @@
                 //   displej, takže tam věříme výšce displeje (screen) a 100vh, ne zkrácené stránce.
                 //   Mimo iOS z plochy (Android, prohlížeč) se nic nemění.
                 var full = h, gap = 0, vh = 0, sc = 0;
-                if (window.navigator.standalone === true) {
+                // standalone = appka z plochy (iOS navigator.standalone; novější iOS a Android display-mode)
+                var sa = window.navigator.standalone === true;
+                try { sa = sa || (window.matchMedia && matchMedia('(display-mode: standalone)').matches && /iPhone|iPad/.test(navigator.userAgent)); } catch (e4) {}
+                if (sa) {
                     try {
                         var pr = document.createElement('div');
                         pr.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:100vh;visibility:hidden;pointer-events:none;';
@@ -33,6 +36,14 @@
                     } catch (e2) {}
                     try { sc = (window.innerWidth <= window.innerHeight ? screen.height : screen.width) || 0; } catch (e3) {}
                     full = Math.max(h, vh, sc);
+                    // ⚠ PRUH DOLE PO NÁVRATU (14. 11. 2026, „jako by se celá appka o centimetr posunula výš"):
+                    //   po návratu z kamery / jiné appky iOS chvíli hlásí i 100vh a screen menší. Appka z plochy
+                    //   ale v tomtéž natočení NIKDY doopravdy menší není → pamatujeme si největší výšku pro
+                    //   natočení a menší číslo nepřijmeme (klávesnice na iOS layout nezmenšuje).
+                    var orient = window.innerWidth <= window.innerHeight ? 'p' : 'l';
+                    setH.max = setH.max || {};
+                    if (setH.max[orient] && setH.max[orient] > full) full = setH.max[orient];
+                    setH.max[orient] = full;
                     gap = full - h > 8 ? full - h : 0;
                     if (!gap) full = h;
                 }
@@ -125,8 +136,8 @@
          (HTTP cache Safari i CDN edge je držely a mixovaly se s novým index.html →
          vracel se černý pruh dole). Při zásadní změně style.css zvednout ?v=. -->
     <!-- TOKENY: jediné místo s CSS proměnnými, motivy a light-mode tokeny — MUSÍ být před style.css -->
-    <link rel="stylesheet" href="css/tokens.css?v=429">
-    <link rel="stylesheet" href="css/style.css?v=429">
+    <link rel="stylesheet" href="css/tokens.css?v=430">
+    <link rel="stylesheet" href="css/style.css?v=430">
     <!-- FIREMNÍ ZÁMEK: příznak, že se bude hned po startu přihlašovat (js/ucty.js).
          Rozhodne se TADY, synchronně v <head>, ještě před prvním vykreslením;
          ucty.js třídu zase odebere (unprelock).
@@ -257,7 +268,7 @@
         })();
     </script>
     <!-- VYLEPŠENÍ (odpojitelné: smaž tento řádek + css/vylepseni.css + js/vylepseni.js) -->
-    <link rel="stylesheet" href="css/vylepseni.css?v=429">
+    <link rel="stylesheet" href="css/vylepseni.css?v=430">
     <!-- VZHLED PRO (odpojitelné: smaž tento řádek + css/pro-vzhled.css) — zlatá z kytičky Pro dál po appce, jen pod body.ag-pro (js/licence.js) -->
     <link rel="stylesheet" href="css/pro-vzhled.css">
     <!-- TADY UŽ NEJSOU STYLOPISY ODLOŽENÝCH NÁSTROJŮ. <link> v <head> je
