@@ -285,7 +285,10 @@ async def test_provoz(ctx):
     await page.wait_for_timeout(700)
     st = await page.evaluate("""() => {
         const p = persistentCustomPoints.find(q => q.name === 'JR2');
-        const az = getBearing(userLat, userLng, p.lat, p.lng);
+        // od 14. 11. 2026: je-li spočítaná TRASA TERÉNEM (v CI jsou data mapy), šipka míří na
+        // další lom trasy (AGTrasa.smer), ne přímo na bod — to je záměr (kolem plotů a budov)
+        let az = getBearing(userLat, userLng, p.lat, p.lng);
+        try { if (window.AGTrasa && AGTrasa.aktivni(p.id) && getDistance(userLat, userLng, p.lat, p.lng) > 12 && AGTrasa.smer() != null) az = AGTrasa.smer(); } catch (e) {}
         const tr = document.getElementById('ag-jr-sipka').style.transform;
         const m = /rotate\\(([-0-9.]+)deg\\)/.exec(tr);
         return { videt: document.getElementById('ag-jr-go').classList.contains('jr-vidno'),
@@ -297,7 +300,7 @@ async def test_provoz(ctx):
                  skutecnaVzd: getDistance(userLat, userLng, p.lat, p.lng) };
     }""")
     ok('navigacni obrazovka je videt a jmenuje cil', st['videt'] and st['nazev'] == 'JR2', st)
-    ok('sipka je otocena podle azimutu (do 1 stupne)',
+    ok('sipka je otocena podle azimutu (nebo smeru trasy terenem; do 1 stupne)',
        st['uhel'] is not None and abs(((st['uhel'] - st['ocekavany'] + 180) % 360) - 180) < 1.0, st)
     vzd_cislo = float(st['vzd'].replace(' ', ' ').replace('m', '').replace('k', '').strip().replace(',', '.'))
     if 'km' in st['vzd']:
