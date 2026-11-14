@@ -2,6 +2,14 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 429,
+      "datum": "2026-11-14",
+      "nadpis": "Navigazione: distanza in linea d'aria",
+      "body": [
+        "Il numero grande è di nuovo la distanza in linea d'aria. La lunghezza del percorso attorno a recinzioni ed edifici è sotto."
+      ]
+    },
+    {
       "v": 428,
       "datum": "2026-11-14",
       "nadpis": "Trovare i punti: rete di punti propria e mappa migliore",

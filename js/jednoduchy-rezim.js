@@ -1652,9 +1652,11 @@
             var az = azimut(userLat, userLng, cil.lat, cil.lng);
             var h = smer();
             // TRASA TERÉNEM (kolem budov, vody a plotů): šipka míří na další lom, vzdálenost je po trase
-            var poTrase = false;
+            // Velké číslo zůstává VZDUŠNOU ČAROU (to geodet čeká a s tím počítá kruh nejistoty);
+            // délka po trase jde do poznámky pod ním.
+            var poTrase = false, trasaM = null;
             if (trasaJede() && d > 12) {
-                try { var ts = AGTrasa.smer(), tz = AGTrasa.zbyva(); if (ts != null) { az = ts; poTrase = true; } if (tz != null && isFinite(tz)) d = Math.max(d, tz); } catch (e) { swallow(e, 'trasaNav'); }
+                try { var ts = AGTrasa.smer(), tz = AGTrasa.zbyva(); if (ts != null) { az = ts; poTrase = true; } if (tz != null && isFinite(tz)) trasaM = tz; } catch (e) { swallow(e, 'trasaNav'); }
             }
 
             // Desetiny mají smysl jen zblízka. „734,9 m" je jednak nesmysl (GPS má
@@ -1671,7 +1673,7 @@
                 var rel = ((az - h) % 360 + 360) % 360;
                 var delta = ((rel - _uhel) % 360 + 540) % 360 - 180;   // nejkratší cesta
                 _uhel += delta;
-                poznTxt = (d <= DOMA_M) ? 'Jsi na bodě.' : (poTrase ? T('Jdi za šipkou — vede po cestě kolem plotů a budov.') : 'Drž telefon před sebou a jdi za šipkou.');
+                poznTxt = (d <= DOMA_M) ? 'Jsi na bodě.' : (poTrase ? (trasaM != null ? T('Po trase {d} — šipka vede po cestě kolem plotů a budov.', { d: popisD(trasaM) }) : T('Jdi za šipkou — vede po cestě kolem plotů a budov.')) : 'Drž telefon před sebou a jdi za šipkou.');
             }
             sipka.style.transform = 'rotate(' + _uhel.toFixed(1) + 'deg)';
 

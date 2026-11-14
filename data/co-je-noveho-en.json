@@ -2,6 +2,14 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 429,
+      "datum": "2026-11-14",
+      "nadpis": "Navigation: straight-line distance",
+      "body": [
+        "The big number in navigation is the straight-line distance again. The length along the route around fences and buildings is shown below it."
+      ]
+    },
+    {
       "v": 428,
       "datum": "2026-11-14",
       "nadpis": "Finding points: your own control points and a better map",
