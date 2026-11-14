@@ -41,7 +41,7 @@
     <p><b>QTRIG nemá žádnou reklamu ani sledování třetích stran.</b> Měření — body, zakázky, fotky, nastavení —
     zůstává uložené ve vašem zařízení (localStorage / IndexedDB prohlížeče) a samo od sebe nikam neodchází.</p>
     <p>K používání appky je potřeba <b>účet</b> (jméno + heslo, appka vám přidělí osmiznakový kód účtu).
-    Přes server aplikace pak procházejí jen údaje popsané níže: údaje účtu, anonymní záznamy užívání,
+    Přes server aplikace pak procházejí jen údaje popsané níže: údaje účtu, anonymní záznamy užívání, denní hlášení provozu,
     hlášení chyb, automatická záloha vašich bodů (lze vypnout) a to, co si sami pošlete (zpráva autorovi, synchronizace bodů ve firmě). Účet můžete
     kdykoli <a href="smazani-uctu.html">smazat</a>.</p>
 
@@ -83,6 +83,11 @@
             údajů) do vašeho účtu. Server drží dvě poslední zálohy. Vypíná se v Nastavení → Záloha a údržba; se smazáním účtu zmizí;</li>
         <li><b>statistika přesnosti telefonů</b> (nepovinné) — po Terénní zkoušce může appka poslat <b>jen model telefonu a naměřené
             přesnosti</b>, bez polohy a bez účtu, aby ukázala, jak měří ostatní se stejným telefonem. Vypíná se v nástroji Moje přesnost;</li>
+        <li id="hlaseni"><b>hlášení provozu</b> — jednou denně pošle appka <b>jen náhodný kód zařízení</b> (vytvořený appkou, ne
+            odvozený z telefonu), verzi appky, tarif (Základ / Pro), jazyk appky a druh systému (např. „Android 15"), a je-li
+            přihlášený účet, i jeho kód. <b>Bez polohy, bodů a jména.</b> Slouží k tomu, aby autor viděl, kolik lidí appku
+            používá a na které verzi, a mohl ověřit a přidělit verzi Pro. Vypíná se v Nastavení → Účet a aplikace → Soukromí; <b>bez hlášení
+            nelze mít verzi Pro</b> (appka na to před vypnutím upozorní). Mažou se po 12 měsících;</li>
         <li><b>objednávky verze Pro</b> — číslo objednávky (variabilní symbol), částka a stav platby; jde o účetní doklady.</li>
     </ul>
     <p>Tyto údaje vidí jen provozovatel, kvůli provozu, údržbě a odpovědím na vaše zprávy. Nikomu se neprodávají

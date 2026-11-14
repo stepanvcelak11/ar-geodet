@@ -70,7 +70,15 @@ async def beh(url):
         ctx = await br.new_context(locale='cs-CZ', viewport={'width': 390, 'height': 844}, has_touch=True, is_mobile=True,
                                    geolocation={'latitude': LAT, 'longitude': LNG, 'accuracy': 3}, permissions=['geolocation'], service_workers='block')
         page = await ctx.new_page()
-        page.on('pageerror', lambda e: chyby.append('pageerror: ' + str(e)))
+        # Chyba ze skriptu CIZÍHO webu (v CI 14. 11. 2026 „SMap is not defined" — Mapy.cz API,
+        # které appka vůbec nemá; přišlo z vnějšího rámu katastru) není chyba appky.
+        # Počítá se jen chyba, jejíž zásobník vede do našeho serveru (nebo nemá zásobník).
+        def _pe(e):
+            st = getattr(e, 'stack', '') or ''
+            if st and '127.0.0.1' not in st and 'localhost' not in st and 'http' in st:
+                return
+            chyby.append('pageerror: ' + str(e))
+        page.on('pageerror', _pe)
         page.on('console', lambda m: chyby.append('console: ' + m.text[:300]) if m.type == 'error' and 'ERR_FAILED' not in m.text else None)
         await page.route('**/*', T.route_vse)
         # init skript běží i v izolovaném (sandbox) rámu bez localStorage — tam ho tiše přeskočit,

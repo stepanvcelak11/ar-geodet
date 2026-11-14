@@ -145,6 +145,9 @@
         root = document.createElement('div');
         root.id = 'ag-jr';
         root.setAttribute('data-no-swipe', '');   // gesta appky sem nepatří, jsou to jiné obrazovky
+        // js/mini-panel.js bere každé velké okno nad z-index 1000 za nástroj a přidá mu
+        // „Sbalit" vpravo nahoře — přesně přes „Celá appka". Přebal nástroj není.
+        root.setAttribute('data-ag-mini-off', '');
         root.innerHTML = ''
             // ---------- domů ----------
             + '<section class="jr-page" id="ag-jr-home">'

@@ -2,6 +2,15 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 427,
+      "datum": "2026-11-14",
+      "nadpis": "Nutzungsmeldung und Korrektur im einfachen Modus",
+      "body": [
+        "Einmal täglich sendet die App eine kurze Nutzungsmeldung (zufälliger Gerätecode, Version, Basis/Pro, Sprache, System — ohne Standort, Punkte oder Namen), damit der Autor sieht, wie viele sie nutzen. Abschaltbar unter Einstellungen → Konto und App → Datenschutz, ohne sie gibt es aber kein Pro.",
+        "Behoben: Im einfachen Modus konnte über „Ganze App“ eine fremde Schaltfläche „Einklappen“ erscheinen."
+      ]
+    },
+    {
       "v": 426,
       "datum": "2026-11-14",
       "nadpis": "Einfacher Modus: Karte verschieben, Kamera und eigene Werkzeuge",

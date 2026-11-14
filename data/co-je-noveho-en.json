@@ -2,6 +2,15 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 427,
+      "datum": "2026-11-14",
+      "nadpis": "Usage ping and a simple mode fix",
+      "body": [
+        "Once a day the app sends a short usage ping (random device code, version, Basic/Pro, language, system — no location, points or name) so the author can see how many people use it. It can be turned off in Settings → Account and app → Privacy, but Pro is not available without it.",
+        "Fixed: in simple mode a stray “Collapse” button could appear over “Full app”."
+      ]
+    },
+    {
       "v": 426,
       "datum": "2026-11-14",
       "nadpis": "Simple mode: drag the map, camera and your own tools",

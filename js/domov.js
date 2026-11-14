@@ -728,7 +728,7 @@
                 var r = document.createElement('div');
                 r.className = 'st-row'; r.id = 'agd-set-row'; r.setAttribute('data-ns-keep', '');
                 r.innerHTML = '<span class="st-lab">' + esc(T('Úvodní obrazovka Domů')) + '<small>' + esc(T('výběr zakázky, počasí a sdílení po spuštění appky')) + '<br><span id="agd-set-diag"></span></small>'
-                    + '<select id="agd-set-rezim" style="margin-top:6px;min-height:36px;"><option value="vzdy">' + esc(T('při každém spuštění')) + '</option><option value="chytre">' + esc(T('jen ráno a po pauze')) + '</option></select></span>'
+                    + '<select id="agd-set-rezim" aria-label="' + esc(T('Kdy ukázat Domů')) + '" style="margin-top:6px;min-height:36px;"><option value="vzdy">' + esc(T('při každém spuštění')) + '</option><option value="chytre">' + esc(T('jen ráno a po pauze')) + '</option></select></span>'
                     + '<span style="display:flex;align-items:center;gap:10px;"><button type="button" class="st-seg-b" id="agd-set-open">' + esc(T('Otevřít')) + '</button>'
                     + '<label class="st-sw"><input type="checkbox" id="agd-set-auto"><span class="st-sw-face"></span></label></span>';
                 caste.insertBefore(r, caste.firstChild);

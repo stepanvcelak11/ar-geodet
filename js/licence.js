@@ -259,10 +259,20 @@
         }
         return _zakladDo > t ? _zakladDo : 0;
     }
-    function jePro() { if (zakladDo()) return false; return !!_stav.ok || proZTarifu() || proZVlastnika(); }
+    // HLÁŠENÍ PROVOZU VYPNUTÉ = BEZ PRO (14. 11. 2026, rozhodnutí vlastníka: „když si ho
+    // vypne, neuvidím ho a nebudu mu moct dát Pro"). Klíč agHlaseni_v1 píše
+    // js/hlaseni-provozu.js a před vypnutím na tohle upozorní. Vlastník appky Pro
+    // neztrácí nikdy (jinak by si konzoli zamkl sám).
+    function hlaseniVypnuto() { try { return localStorage.getItem('agHlaseni_v1') === '0'; } catch (e) { return false; } }
+    function jePro() {
+        if (zakladDo()) return false;
+        if (proZVlastnika()) return true;
+        if (hlaseniVypnuto()) return false;
+        return !!_stav.ok || proZTarifu();
+    }
 
     function stav() {
-        if (!jePro()) return { pro: false, duvod: _stav.duvod || 'nemá' };
+        if (!jePro()) return { pro: false, duvod: (hlaseniVypnuto() && !zakladDo() && (_stav.ok || proZTarifu())) ? 'hlaseni' : (_stav.duvod || 'nemá') };
         // Pořadí odpovědí je pořadí, v jakém dávají smysl uživateli: klíč, který
         // opsal, je konkrétnější odpověď než „máš to v účtu", a ta zas
         // konkrétnější než „jsi vlastník appky".

@@ -2,6 +2,15 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 427,
+      "datum": "2026-11-14",
+      "nadpis": "Segnale di utilizzo e correzione della modalità semplice",
+      "body": [
+        "Una volta al giorno l'app invia un breve segnale di utilizzo (codice casuale del dispositivo, versione, Base/Pro, lingua, sistema — senza posizione, punti o nome) perché l'autore veda quante persone la usano. Si disattiva in Impostazioni → Account e app → Privacy, ma senza di esso niente Pro.",
+        "Corretto: nella modalità semplice poteva comparire un pulsante «Riduci» estraneo sopra «App completa»."
+      ]
+    },
+    {
       "v": 426,
       "datum": "2026-11-14",
       "nadpis": "Modalità semplice: mappa trascinabile, fotocamera e strumenti tuoi",

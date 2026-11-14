@@ -2,6 +2,15 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 427,
+      "datum": "2026-11-14",
+      "nadpis": "Raport użycia i poprawka trybu prostego",
+      "body": [
+        "Raz dziennie aplikacja wysyła krótki raport użycia (losowy kod urządzenia, wersja, Podstawa/Pro, język, system — bez lokalizacji, punktów i nazwiska), żeby autor widział, ile osób jej używa. Można go wyłączyć w Ustawienia → Konto i aplikacja → Prywatność, ale bez niego nie ma Pro.",
+        "Poprawiono: w trybie prostym nad „Cała aplikacja” mógł pojawić się obcy przycisk „Zwiń”."
+      ]
+    },
+    {
       "v": 426,
       "datum": "2026-11-14",
       "nadpis": "Tryb prosty: przesuwanie mapy, kamera i własne narzędzia",

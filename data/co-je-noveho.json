@@ -2,6 +2,15 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 427,
+   "datum": "2026-11-14",
+   "nadpis": "Hlášení provozu a oprava jednoduchého režimu",
+   "body": [
+    "Appka jednou denně pošle krátké hlášení provozu (náhodný kód zařízení, verze, Základ/Pro, jazyk, systém — bez polohy, bodů a jména), aby autor viděl, kolik lidí ji používá. Vypíná se v Nastavení → Účet a aplikace → Soukromí; bez hlášení ale nejde mít Pro.",
+    "Opraveno: v jednoduchém režimu se přes tlačítko „Celá appka“ mohlo objevit cizí tlačítko „Sbalit“."
+   ]
+  },
+  {
    "v": 426,
    "datum": "2026-11-14",
    "nadpis": "Jednoduchý režim: mapa prstem, kamera a vlastní nástroje",

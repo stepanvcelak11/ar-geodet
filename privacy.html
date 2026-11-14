@@ -36,7 +36,7 @@
     is stored on your device (the browser's localStorage / IndexedDB). It leaves the device only in the cases
     described below.</p>
     <p>You need an <b>account</b> to use the app (a name and a password; the app gives you an eight-character
-    account code). The app's server receives only: account data, anonymous usage records, error reports, the
+    account code). The app's server receives only: account data, anonymous usage records, a daily usage ping, error reports, the
     automatic backup of your points (which you can turn off) and whatever you send yourself (messages to the
     author, point sync within a company). You can <a href="account-deletion.html">delete your account</a> at any time.</p>
 
@@ -76,6 +76,11 @@
             (point and job identifiers, <b>without coordinates and without point contents</b>) and an anonymous device
             identifier derived from the browser. Used to see what is used in the app and to find bugs; deleted after 12 months;</li>
         <li><b>error reports</b> — error text, file and line, app version, type of phone and your name in the app; deleted after 90 days;</li>
+        <li id="hlaseni"><b>daily usage ping</b> — once a day the app sends <b>only a random device code</b> (created by the app, not
+            derived from the phone), the app version, plan (Basic / Pro), app language and system type (e.g. "Android 15"), and the
+            account code if signed in. <b>No location, points or name.</b> It lets the author see how many people use the app and on
+            which version, and verify and grant Pro. It can be turned off in Settings → Account and app → Privacy; <b>Pro is not available without it</b>
+            (the app warns about this before turning it off). Deleted after 12 months;</li>
         <li><b>messages to the author</b> (bug reports, ratings, Pro requests) that you send yourself, including the text
             and contact if you give one;</li>
         <li id="backup"><b>account backup</b> — so you do not lose your work when the phone deletes app data, the app
