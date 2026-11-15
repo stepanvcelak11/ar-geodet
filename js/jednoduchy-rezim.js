@@ -620,8 +620,8 @@
         for (var i = 0; i < c.length; i++) { o = o ? o[c[i]] : null; }
         return typeof o === 'function' ? o : null;
     }
-    function spustFn(cesta, src) {
-        pauza();
+    function spustFn(cesta, src, bezNavratu) {
+        pauza(bezNavratu);
         var jdi = function () {
             var f = najdiFn(cesta);
             if (!f) { obnovZPauzy(); toast(T('Nástroj teď není k dispozici.')); return; }
@@ -669,7 +669,7 @@
                 if (window.AGKvalitaGpsMapa && AGKvalitaGpsMapa.posledni && AGKvalitaGpsMapa.posledni()) _kvalitaVid = !!AGKvalitaGpsMapa.prepni();
                 else if (typeof window.agOpenKvalitaGpsMapa === 'function') { window.agOpenKvalitaGpsMapa(); _kvalitaVid = true; }
             }
-            else if (a === 'hrana') { zavriVrstvy(); proNebo('kalibrace-hranou', function () { spustFn('AGHrana.open', 'js/kalibrace-hranou.js'); }); return; }
+            else if (a === 'hrana') { zavriVrstvy(); proNebo('kalibrace-hranou', function () { spustFn('AGHrana.open', 'js/kalibrace-hranou.js', true); }); return; }
             else if (a === 'balicek') { zavriVrstvy(); proNebo('balicek-zakazky', function () { spustFn('openBalicekZakazky', 'js/balicek-zakazky.js'); }); return; }
         } catch (e) { swallow(e, 'vrstva:' + a); }
         vibruj(10);
@@ -1036,7 +1036,7 @@
         if (!d) { toast(T('Nástroj teď není k dispozici.')); return; }
         zavriNastroje();
         if (!plna && PRUVODCE[k]) { PRUVODCE[k](); return; }
-        pauza();
+        pauza(k === 'kalibrace-hranou' || k === 'startAreaMode');
         if (k === 'brutal-gps') presnaGps();
         try { d.el.click(); } catch (e) { swallow(e, 'spustNastroj'); obnovZPauzy(); return; }
         // okno nástroje se většinou otevře hned — zaznamenat to dřív než první tik hlídače
@@ -1051,7 +1051,10 @@
             return true;
         } catch (e) { return false; }
     }
-    function pauza() {
+    // bezNavratu: nástroj pracuje S MAPOU (kalibrace po hraně: čára se klepe do mapy, okno se
+    // při tom schová) — hlídač by „prázdný střed = nástroj skončil" vrátil přebal přes mapu
+    // uprostřed práce (15. 11. 2026: „kalibrace po hraně blbne"). Zpátky jen tlačítkem nahoře.
+    function pauza(bezNavratu) {
         kameraDo(false); mapaDo(null); caraPryc(); zavriKartu();
         if (tick) { clearInterval(tick); tick = null; }
         root.classList.add('jr-pauza');
@@ -1065,8 +1068,8 @@
         }
         _pill.innerHTML = '‹ ' + esc(T('Jednoduchý režim'));
         _pill.hidden = false;
-        _pauza = { videl: false, prazdno: 0, t: setInterval(function () {
-            if (!_pauza) return;
+        _pauza = { videl: false, prazdno: 0, bez: !!bezNavratu, t: setInterval(function () {
+            if (!_pauza || _pauza.bez) return;
             if (oknoUprostred()) { _pauza.videl = true; _pauza.prazdno = 0; return; }
             if (_pauza.videl && ++_pauza.prazdno >= 2) obnovZPauzy();
         }, 300) };
@@ -1799,6 +1802,19 @@
         vlozPrepinac();
         if (zapnuto()) zapni(true);
         sundejPlachtu();
+        // POJISTKA (15. 11. 2026, „občas se mi zapne klasicky, i když mám jednoduchý režim"):
+        // když je režim zapnutý, ale přebal není vidět a nic ho nepozastavilo (nástroj, Domů),
+        // vrátit ho. Po startu, po zavření Domů i po návratu z pozadí.
+        var hlidej = function () {
+            try {
+                if (!zapnuto() || _pauza) return;
+                if (document.body.classList.contains('ag-domov-on')) return;   // Domů je nahoře, zavřením se ukáže režim
+                if (!root || !root.classList.contains('jr-on')) zapni(true);
+            } catch (e) { swallow(e, 'hlidej'); }
+        };
+        document.addEventListener('ag:domov-zavreno', function () { setTimeout(hlidej, 50); });
+        document.addEventListener('visibilitychange', function () { if (!document.hidden) setTimeout(hlidej, 300); });
+        setInterval(hlidej, 3000);
     }
 
     // POJISTKA: kdyby se appka nikdy nerozjela (nedokončené přihlášení, chyba
@@ -1821,6 +1837,8 @@
         otevriKartu: function (id) { var p = najdiBod(id); if (p) otevriKartu(p); },
         nastroje: otevriNastroje,
         pauza: function () { return !!_pauza; },
+        // Domů (js/domov.js) otevírá věci plné appky — přebal na tu dobu ustoupí (vrátí se sám)
+        pozastav: function () { if (zapnuto() && root && root.classList.contains('jr-on') && !_pauza) pauza(); },
         obnov: obnovZPauzy
     };
 })();

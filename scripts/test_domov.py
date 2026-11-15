@@ -181,10 +181,11 @@ async def beh(url):
         ok('S5 výchozí „při každém spuštění": ukáže se i hned po předchozím', await V.cekej(page, "document.body.classList.contains('app-started') && AGDomov.otevreno()", 60))
         await page.evaluate("() => AGDomov.zavri()")
 
-        # jednoduchý režim: Domů se neukazuje
+        # jednoduchý režim: od 15. 11. 2026 se Domů UKAZUJE i v něm („úvodní obrazovku chci pokaždé"),
+        # jen bez tlačítka „Jednoduchý režim" (už je zapnutý) — podrobně test_jednoduchy_opravy
         await page.evaluate("() => { localStorage.setItem('agJednoduchy_v1','1'); }")
-        ok('F1 v jednoduchém režimu se Domů neotevře', await page.evaluate("() => AGDomov.otevri() === false && !AGDomov.otevreno()"))
-        await page.evaluate("() => localStorage.setItem('agJednoduchy_v1','0')")
+        ok('F1 v jednoduchém režimu se Domů otevře, bez tlačítka „Jednoduchý režim"', await page.evaluate("() => { const r = AGDomov.otevri(); const b = document.querySelector('#ag-domov [data-agd=\"jednoduchy\"]'); return r !== false && AGDomov.otevreno() && (!b || b.hidden); }"))
+        await page.evaluate("() => { AGDomov.zavri(); localStorage.setItem('agJednoduchy_v1','0'); }")
         # zkratka z ikony appky (Nový bod): Domů ji nesmí zakrýt (5. 11. 2026)
         p2 = await ctx.new_page()
         await p2.route('**/*', route)

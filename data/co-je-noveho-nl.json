@@ -2,6 +2,17 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 431,
+      "datum": "2026-11-15",
+      "nadpis": "Reparaties eenvoudige modus en „Waar je kunt meten”",
+      "body": [
+        "Het startscherm verschijnt bij elke start ook in de eenvoudige modus (erboven). Acties vanaf het startscherm pauzeren de modus maar even.",
+        "De eenvoudige modus valt na het starten of terugkeren naar de app niet meer terug naar de klassieke weergave.",
+        "Randkalibratie vanuit de eenvoudige modus: tijdens het aantikken van de lijn op de kaart komt de modus niet meer vanzelf terug — terug met de knop „Eenvoudige modus” bovenaan.",
+        "Waar je kunt meten: tunnels, onderdoorgangen en doorgangen onder gebouwen zijn rood, onder een brug hooguit oranje."
+      ]
+    },
+    {
       "v": 430,
       "datum": "2026-11-14",
       "nadpis": "Geen balk onderaan en instelbare meetduur",

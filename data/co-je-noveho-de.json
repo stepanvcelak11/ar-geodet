@@ -2,6 +2,17 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 431,
+      "datum": "2026-11-15",
+      "nadpis": "Korrekturen im einfachen Modus und bei „Wo man messen kann“",
+      "body": [
+        "Der Startbildschirm erscheint bei jedem Start auch im einfachen Modus (darüber). Aktionen vom Startbildschirm pausieren den Modus nur kurz.",
+        "Der einfache Modus fällt nach dem Start oder der Rückkehr in die App nicht mehr in die klassische Ansicht zurück.",
+        "Kantenkalibrierung aus dem einfachen Modus: Beim Antippen der Linie in der Karte kehrt der Modus nicht mehr von selbst zurück — zurück mit „Einfacher Modus“ oben.",
+        "Wo man messen kann: Tunnel, Unterführungen und Durchgänge sind rot, unter einer Brücke höchstens orange."
+      ]
+    },
+    {
       "v": 430,
       "datum": "2026-11-14",
       "nadpis": "Kein Streifen unten und wählbare Messdauer",

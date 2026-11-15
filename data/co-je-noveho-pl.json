@@ -2,6 +2,17 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 431,
+      "datum": "2026-11-15",
+      "nadpis": "Poprawki trybu prostego i „Gdzie można mierzyć”",
+      "body": [
+        "Ekran startowy pojawia się przy każdym uruchomieniu także w trybie prostym (nad nim). Akcje z ekranu startowego tylko na chwilę wstrzymują tryb.",
+        "Tryb prosty po uruchomieniu lub powrocie do aplikacji nie przełącza się już na widok klasyczny.",
+        "Kalibracja wzdłuż krawędzi z trybu prostego: podczas wskazywania linii na mapie tryb nie wraca sam — powrót przyciskiem „Tryb prosty” u góry.",
+        "Gdzie można mierzyć: tunele, przejścia podziemne i przejścia przez budynek są czerwone, pod mostem najwyżej pomarańczowe."
+      ]
+    },
+    {
       "v": 430,
       "datum": "2026-11-14",
       "nadpis": "Bez paska na dole i wybór czasu pomiaru",
