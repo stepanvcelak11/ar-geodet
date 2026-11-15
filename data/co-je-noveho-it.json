@@ -2,6 +2,17 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 431,
+      "datum": "2026-11-15",
+      "nadpis": "Correzioni della modalità semplice e di «Dove si può misurare»",
+      "body": [
+        "La schermata Home appare a ogni avvio anche in modalità semplice (sopra di essa). Le azioni dalla Home mettono la modalità in pausa solo per un attimo.",
+        "La modalità semplice non torna più alla vista classica dopo l'avvio o il ritorno nell'app.",
+        "Calibrazione lungo un bordo dalla modalità semplice: mentre tocchi la linea sulla mappa la modalità non ritorna da sola — torna con il pulsante «Modalità semplice» in alto.",
+        "Dove si può misurare: tunnel, sottopassi e passaggi sotto edifici sono rossi, sotto un ponte al massimo arancioni."
+      ]
+    },
+    {
       "v": 430,
       "datum": "2026-11-14",
       "nadpis": "Niente striscia in basso e durata della misura a scelta",

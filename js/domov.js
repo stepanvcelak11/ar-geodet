@@ -80,8 +80,10 @@
     }
     function bodu(n) { return n === 1 ? T('1 bod') : (n >= 2 && n <= 4) ? T('{n} body', { n: n }) : T('{n} bodů', { n: n }); }
     // nástroj z odloženého modulu: když ještě není načtený, načíst a pak spustit
+    // v jednoduchém režimu přebal ustoupí, než se otevře věc z plné appky (jinak by ležela pod ním)
+    function jrUstup() { try { if (jednoduchy() && window.AGJednoduchy && AGJednoduchy.pozastav) AGJednoduchy.pozastav(); } catch (e) { swallow(e, 'jrUstup'); } }
     function spust(fnName, src, args) {
-        zavri();
+        zavri(); jrUstup();
         var f = window[fnName];
         if (typeof f === 'function') { try { f.apply(null, args || []); } catch (e) { swallow(e, fnName); } return; }
         if (src && window.AGLazy && AGLazy.need) {
@@ -476,7 +478,12 @@
             case 'slunce': nastavVzhled({ outdoor: !vis('outdoorMode') }); break;
             case 'jednoduchy':
                 zavri();
-                try { if (window.AGJednoduchy) AGJednoduchy.zapni(); } catch (e) { swallow(e, 'jednoduchy'); }
+                // modul se může teprve načítat (ag/lazy) — zapnout klíč a načíst ho, ne tiše nic
+                try { localStorage.setItem('agJednoduchy_v1', '1'); } catch (e) { swallow(e, 'jednoduchyKlic'); }
+                try {
+                    if (window.AGJednoduchy) AGJednoduchy.zapni();
+                    else if (window.AGLazy && AGLazy.need) AGLazy.need('js/jednoduchy-rezim.js', function () { if (window.AGJednoduchy) AGJednoduchy.zapni(); });
+                } catch (e) { swallow(e, 'jednoduchy'); }
                 break;
             case 'offline':
                 try {
@@ -492,7 +499,7 @@
                     } else if (typeof saveForOffline === 'function') { zavri(); saveForOffline(); }
                 } catch (e) { swallow(e, 'offline'); }
                 break;
-            case 'nastaveni': zavri(); otevriNastaveni(); break;
+            case 'nastaveni': zavri(); jrUstup(); otevriNastaveni(); break;
         }
     }
 
@@ -642,13 +649,14 @@
         var d = new Date().toLocaleDateString(loc(), { weekday: 'long', day: 'numeric', month: 'long' });
         root.querySelector('#agd-datum').textContent = d;
         _dotek = false; _vse = false;
-        try { var jb = root.querySelector('[data-agd="jednoduchy"]'); if (jb) jb.hidden = !window.AGJednoduchy; } catch (e) { swallow(e, 'jb'); }
+        try { var jb = root.querySelector('[data-agd="jednoduchy"]'); if (jb) jb.hidden = jednoduchy(); } catch (e) { swallow(e, 'jb'); }
         vykresliZakazky(); vykresliNastaveni(); vykresliStav(); vykresliPrubeh();
         indexuj().then(function () { if (otevreno() && !_dotek) vykresliZakazky(); });
         nactiWx();
     }
     function otevri() {
-        if (jednoduchy()) return false;
+        // od 15. 11. 2026 i v jednoduchém režimu („úvodní obrazovku chci pokaždé") — Domů leží
+        // nad přebalem režimu (css/domov.css body.ag-jr-on), zavřením se ukáže jednoduchý režim
         postav();
         skryjTip();
         root.classList.add('on');
@@ -791,7 +799,6 @@
         //   (povolení kompasu, „Odemykat telefonem?", Co je nového) a Domů se tím pádem
         //   neukázal nikdy. Domů teď leží POD okny (z-index pod --z-modal), takže dialog
         //   zůstane nahoře a Domů je vidět po jeho zavření.
-        if (ukaz && jednoduchy()) { ukaz = false; duvod = 'jednoduchý režim'; }
         try { localStorage.setItem('agDomovDuvod_v1', JSON.stringify({ ts: Date.now(), ukazano: !!ukaz, duvod: duvod })); } catch (e) { swallow(e, 'duvod'); }
         if (ukaz && otevri()) return;
         zapisAkt(false);

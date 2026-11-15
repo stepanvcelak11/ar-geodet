@@ -102,3 +102,8 @@
 body.ag-domov-on #info,body.ag-domov-on #ag-cstab,body.ag-domov-on #ag-sp{visibility:hidden !important;}
 body.light-mode #ag-domov .agd-panel{box-shadow:0 -10px 30px rgba(0,0,0,.18);}
 @media (prefers-reduced-motion:reduce){#ag-domov,#ag-domov .agd-panel,#agd-tip{transition:none;animation:none !important;}}
+
+/* v jednoduchém režimu leží Domů NAD jeho přebalem (999995), ale pod dialogy (2000000) — 15. 11. 2026 */
+body.ag-jr-on #ag-domov{z-index:999996;}
+/* iPhone z plochy: výška z --app-vh, ne inset:0 (zkrácený viewport → pruh dole) */
+#ag-domov{bottom:auto;height:var(--app-vh,100dvh);}

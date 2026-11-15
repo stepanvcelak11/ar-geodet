@@ -47,7 +47,32 @@
         try { if (window.AGOkoli) AGOkoli.prekazky().forEach(function (p) { kresli(AGOkoli.prekazkaRings(p), 3); }); } catch (e) { swallow(e, 'prekazky'); }
         var data = ctx.getImageData(0, 0, n, n).data, v = new Float32Array(n * n);
         for (var i = 0; i < n * n; i++) v[i] = data[i * 4];
-        return { v: v, n: n, budov: nB, lesu: nL };
+        // ZASTŘEŠENO (15. 11. 2026, uživatel: „v podchodu mi to ukazuje, že měřit mohu"). Stínění
+        // se počítalo jen OD OKOLNÍCH budov a lesa — co je NAD hlavou, appka nevěděla. Z cest ve
+        // vektorové mapě: tunel, podchod, průchod domem (is_tunnel) = obloha žádná (červená);
+        // most (is_bridge) = nejvýš oranžová — ve 2D nejde poznat, jestli stojíš pod mostem,
+        // nebo na něm, a obojí je pro GPS horší (zákryt, odrazy od konstrukce).
+        var kryto = null, nK = 0;
+        try {
+            var silnice = window.AGMapaVektor && AGMapaVektor.cary ? AGMapaVektor.cary('roads') : [];
+            if (silnice.length) {
+                var cv2 = document.createElement('canvas'); cv2.width = n; cv2.height = n;
+                var c2 = cv2.getContext('2d', { willReadFrequently: true });
+                c2.lineCap = 'round'; c2.lineJoin = 'round';
+                silnice.forEach(function (l) {
+                    var vl = l.vlastnosti || {}, tun = !!vl.is_tunnel, most = !!vl.is_bridge;
+                    if (!tun && !most) return;
+                    var k = vl.kind, sir = k === 'path' ? 4 : (k === 'highway' || k === 'major_road' ? 12 : (k === 'rail' ? 6 : 8));
+                    c2.strokeStyle = tun ? 'rgb(2,0,0)' : 'rgb(1,0,0)';
+                    c2.lineWidth = Math.max(1, sir / PX);
+                    c2.globalCompositeOperation = 'lighten';   // tunel (2) vyhraje nad mostem (1)
+                    c2.beginPath(); l.forEach(function (q, i) { var p = px(q); if (i) c2.lineTo(p.x, p.y); else c2.moveTo(p.x, p.y); }); c2.stroke();
+                    nK++;
+                });
+                if (nK) { var d2 = c2.getImageData(0, 0, n, n).data; kryto = new Uint8Array(n * n); for (var i2 = 0; i2 < n * n; i2++) kryto[i2] = d2[i2 * 4]; }
+            }
+        } catch (e) { swallow(e, 'kryto'); }
+        return { v: v, n: n, budov: nB, lesu: nL, kryto: kryto, kryti: nK };
     }
     // ---- viditelnost oblohy v bodě (px souřadnice) -------------------------------------------
     function obloha(r, x, y) {
@@ -104,6 +129,14 @@
         return _worker;
     }
     function dokonci(stred, r, cells, mrizka, t0) {
+        if (r.kryto) {
+            for (var jj = 0; jj < cells; jj++) for (var ii = 0; ii < cells; ii++) {
+                var kx = Math.round((ii + 0.5) * BUNKA / PX), ky = Math.round((jj + 0.5) * BUNKA / PX);
+                var kv = r.kryto[Math.min(r.n - 1, ky) * r.n + Math.min(r.n - 1, kx)];
+                if (kv >= 2) mrizka[jj * cells + ii] = 0;
+                else if (kv === 1) mrizka[jj * cells + ii] = Math.min(mrizka[jj * cells + ii], 0.7);
+            }
+        }
         var cv = document.createElement('canvas'); cv.width = cells; cv.height = cells;
         var ctx = cv.getContext('2d'), stat = { z: 0, o: 0, c: 0 };
         for (var j = 0; j < cells; j++) for (var i = 0; i < cells; i++) {
@@ -199,7 +232,7 @@
         var msg = T('Okolí {a} × {a} m, {b} budov', { a: (2 * R), b: v.budov }) + (v.lesu ? ', ' + T('les') : '') + ' (' + v.ms + ' ms).<br>'
             + '<span style="white-space:nowrap;"><span style="color:#22c55e">■</span> ' + T('volné nebe {p} % ·', { p: Math.round(100 * v.stat.z / celkem) }) + '</span> <span style="white-space:nowrap;"><span style="color:#f59e0b">■</span> ' + T('půl nebe {p} % ·', { p: Math.round(100 * v.stat.o / celkem) }) + '</span> <span style="white-space:nowrap;"><span style="color:#ef4444">■</span> ' + T('stíněno {p} %', { p: Math.round(100 * v.stat.c / celkem) }) + '</span>'
             + (tady != null ? '<br><b>' + T('Tady, kde stojíš: {x}', { x: (tady >= 0.85 ? T('volné nebe — dobré') : tady >= 0.6 ? T('půl nebe — měř déle (průměrování)') : T('stíněno — posuň se nebo použij offset')) }) + '</b> ' + T('({p} % oblohy)', { p: Math.round(tady * 100) }) : '')
-            + '<br><small>Odhad ze stínění budov a lesa, ne měření: stromy mimo les, auta a odrazy nevidí. Schovat jde pilulkou „Skrýt" dole v mapě, nebo v panelu Vrstvy.</small>';
+            + '<br><small>Odhad ze stínění budov a lesa a z tunelů, podchodů a mostů v mapě, ne měření: stromy mimo les, auta a odrazy nevidí. Schovat jde pilulkou „Skrýt" dole v mapě, nebo v panelu Vrstvy.</small>';
         if (typeof window.agConfirm === 'function') window.agConfirm({ title: 'Kde se dá měřit', message: msg, okText: 'Nechat v mapě', cancelText: 'Skrýt' }).then(function (nechat) { if (nechat === false) prepni(false); });
         else agAlert({ title: 'Kde se dá měřit', message: msg });
     }

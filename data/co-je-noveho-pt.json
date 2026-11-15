@@ -2,6 +2,17 @@
   "_": "Notas de versão em português do QTRIG — carregadas automaticamente em vez de co-je-noveho.json quando a aplicação corre em português. Mesma estrutura (v, datum, nadpis, body); v tem de corresponder a SHELL_CACHE.",
   "verze": [
     {
+      "v": 431,
+      "datum": "2026-11-15",
+      "nadpis": "Correções do modo simples e de «Onde se pode medir»",
+      "body": [
+        "O ecrã inicial aparece em cada arranque também no modo simples (por cima). As ações a partir do Início só pausam o modo por um momento.",
+        "O modo simples já não volta à vista clássica depois de arrancar ou voltar à app.",
+        "Calibração por borda a partir do modo simples: ao tocar na linha no mapa o modo já não volta sozinho — volte com o botão «Modo simples» em cima.",
+        "Onde se pode medir: túneis, passagens subterrâneas e passagens sob edifícios a vermelho, debaixo de uma ponte no máximo laranja."
+      ]
+    },
+    {
       "v": 430,
       "datum": "2026-11-14",
       "nadpis": "Sem faixa em baixo e duração de medição à escolha",

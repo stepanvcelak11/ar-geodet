@@ -2,6 +2,17 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 431,
+      "datum": "2026-11-15",
+      "nadpis": "Simple mode and “Where you can measure” fixes",
+      "body": [
+        "The Home screen shows on every start even in simple mode (on top of it). Actions from Home only pause simple mode for a moment.",
+        "Simple mode no longer falls back to the classic view after starting or returning to the app.",
+        "Edge-walk calibration from simple mode: while tapping the line on the map, simple mode no longer comes back by itself — return with the “Simple mode” button at the top.",
+        "Where you can measure: tunnels, underpasses and building passages show red, under a bridge at most orange."
+      ]
+    },
+    {
       "v": 430,
       "datum": "2026-11-14",
       "nadpis": "No strip at the bottom and selectable measuring time",
