@@ -2,6 +2,16 @@
   "_": "Nederlandse release-notes van QTRIG — worden automatisch geladen in plaats van co-je-noveho.json wanneer de app in het Nederlands draait. Zelfde structuur (v, datum, nadpis, body); v moet overeenkomen met SHELL_CACHE.",
   "verze": [
     {
+      "v": 432,
+      "datum": "2026-11-16",
+      "nadpis": "GPS verfijnen direct in de eenvoudige modus",
+      "body": [
+        "Nieuwe wizard „GPS verfijnen” in de eenvoudige modus (Lagen → GPS verfijnen door langs een rand te lopen): tik de rand op de kaart, tik GA en loop hem af, dan VERFIJNING AANZETTEN. Alles in grote letters, zonder naar de volledige app te gaan. De ondergrond schakelt vanzelf naar de luchtfoto.",
+        "Tijdens het lopen zie je hoeveel GPS ernaast zit en hoeveel je nog moet lopen.",
+        "Randkalibratie in de volledige versie: als je halverwege het tikken van de lijn terugkeert met de knop „Eenvoudige modus”, wordt de onafgemaakte lijn geannuleerd."
+      ]
+    },
+    {
       "v": 431,
       "datum": "2026-11-15",
       "nadpis": "Reparaties eenvoudige modus en „Waar je kunt meten”",

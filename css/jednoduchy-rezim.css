@@ -803,3 +803,20 @@ body.ag-jr-pauza #ag-bgps-overlay .bgps-name { min-height: 52px; font-size: calc
 .jr-doba-seg { display: flex; gap: 6px; }
 .jr-doba-seg button { flex: 1 1 0; min-height: 48px; border-radius: var(--r-md); border: 1px solid var(--glass-border-strong); background: var(--surface-1); color: var(--text-color); font-family: inherit; font-size: var(--fs-md); font-weight: 700; cursor: pointer; }
 .jr-doba-seg button.on { background: var(--accent-fill); color: #fff; border-color: transparent; }
+
+/* průvodce „Zpřesnit GPS" chůzí po hraně (16. 11. 2026) */
+#ag-jr-hr { overflow-y: auto; }
+#ag-jr-hr .jr-krok { margin-top: 8px; }
+.jr-mapa-hr { flex: 1 1 auto; min-height: 30vh; }
+#ag-jr-hr.jr-hr-bezmapy .jr-mapa-hr { display: none; }
+.jr-hr-info { flex: 0 0 auto; margin-top: 10px; font-size: var(--fs-md); line-height: 1.4; text-align: center; }
+#ag-jr-hr.jr-hr-bezmapy .jr-hr-info { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; }
+.jr-hr-txt { margin-top: 6px; color: var(--text-muted); }
+.jr-hr-txt b { color: var(--text-color); }
+.jr-hr-pozor { color: var(--warning); font-weight: 600; }
+.jr-hr-zap { margin-top: 8px; padding: 8px 10px; border-radius: var(--r-md); border: 1px solid #10b981; color: #10b981; font-weight: 700; }
+.jr-hr-prubeh { height: 12px; margin: 10px 0 2px; border-radius: 6px; background: var(--surface-2); overflow: hidden; }
+.jr-hr-prubeh i { display: block; height: 100%; background: var(--accent-fill); transition: width .4s; }
+#ag-jr-hr .jr-mer-hlavni { font-size: calc(54px * var(--ag-font-scale, 1)); }
+#ag-jr-hr-mala[hidden] { display: none; }
+#ag-jr-hr-mala { margin: 0 0 8px; }

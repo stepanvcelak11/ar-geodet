@@ -2,6 +2,16 @@
   "_": "Polskie informacje o wydaniach QTRIG — ładowane zamiast co-je-noveho.json, gdy aplikacja działa po polsku. Ta sama struktura (v, datum, nadpis, body); v musi odpowiadać SHELL_CACHE.",
   "verze": [
     {
+      "v": 432,
+      "datum": "2026-11-16",
+      "nadpis": "Doprecyzuj GPS bezpośrednio w trybie prostym",
+      "body": [
+        "Nowy kreator „Doprecyzuj GPS” w trybie prostym (Warstwy → Doprecyzuj GPS, idąc wzdłuż krawędzi): stuknij krawędź na mapie, stuknij IDĘ i przejdź ją, potem WŁĄCZ DOPRECYZOWANIE. Wszystko dużą czcionką, bez przechodzenia do pełnej aplikacji. Podkład sam przełącza się na ortofotomapę.",
+        "Podczas marszu widzisz, o ile myli się GPS i ile jeszcze trzeba przejść.",
+        "Kalibracja po krawędzi w pełnej wersji: gdy w trakcie stukania linii wrócisz przyciskiem „Tryb prosty”, niedokończona linia zostanie anulowana."
+      ]
+    },
+    {
       "v": 431,
       "datum": "2026-11-15",
       "nadpis": "Poprawki trybu prostego i „Gdzie można mierzyć”",

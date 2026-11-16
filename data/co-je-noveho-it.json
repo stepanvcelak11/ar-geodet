@@ -2,6 +2,16 @@
   "_": "Note di versione di QTRIG in italiano — caricate al posto di co-je-noveho.json quando l'app gira in italiano. Stessa struttura (v, datum, nadpis, body); v deve corrispondere a SHELL_CACHE.",
   "verze": [
     {
+      "v": 432,
+      "datum": "2026-11-16",
+      "nadpis": "Affina il GPS direttamente nella modalità semplice",
+      "body": [
+        "Nuova procedura guidata «Affina GPS» nella modalità semplice (Livelli → Affina il GPS camminando lungo un bordo): tocca il bordo sulla mappa, tocca VIA e percorrilo, poi ATTIVA AFFINAMENTO. Tutto a caratteri grandi, senza passare all'app completa. La base passa da sola all'ortofoto.",
+        "Mentre cammini vedi di quanto sbaglia il GPS e quanto manca da percorrere.",
+        "Calibrazione lungo un bordo nella versione completa: se torni con il pulsante «Modalità semplice» mentre tocchi la linea, la linea incompleta viene annullata."
+      ]
+    },
+    {
       "v": 431,
       "datum": "2026-11-15",
       "nadpis": "Correzioni della modalità semplice e di «Dove si può misurare»",

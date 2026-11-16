@@ -2,6 +2,16 @@
   "_": "Notas de versión de QTRIG en español — se cargan en lugar de co-je-noveho.json cuando la app va en español. Misma estructura (v, datum, nadpis, body); v debe coincidir con SHELL_CACHE.",
   "verze": [
     {
+      "v": 432,
+      "datum": "2026-11-16",
+      "nadpis": "Afinar el GPS directamente en el modo sencillo",
+      "body": [
+        "Nuevo asistente «Afinar GPS» en el modo sencillo (Capas → Afinar GPS caminando por un borde): toca el borde en el mapa, toca VAMOS y recórrelo, luego ACTIVAR AFINADO. Todo con letra grande, sin salir a la app completa. El mapa base cambia solo a la ortofoto.",
+        "Mientras caminas ves cuánto se equivoca el GPS y cuánto te falta por recorrer.",
+        "Calibración por borde en la versión completa: si vuelves con el botón «Modo sencillo» a mitad de marcar la línea, la línea sin terminar se cancela."
+      ]
+    },
+    {
       "v": 431,
       "datum": "2026-11-15",
       "nadpis": "Correcciones del modo simple y de «Dónde se puede medir»",

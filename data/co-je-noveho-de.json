@@ -2,6 +2,16 @@
   "_": "Deutsche Versionshinweise von QTRIG — werden statt co-je-noveho.json geladen, wenn die App auf Deutsch läuft. Gleiche Struktur (v, datum, nadpis, body); v muss SHELL_CACHE entsprechen.",
   "verze": [
     {
+      "v": 432,
+      "datum": "2026-11-16",
+      "nadpis": "GPS direkt im einfachen Modus verfeinern",
+      "body": [
+        "Neuer Assistent „GPS verfeinern“ im einfachen Modus (Ebenen → GPS durch Gehen an einer Kante verfeinern): Kante auf der Karte antippen, LOS tippen und sie abgehen, dann VERFEINERUNG EINSCHALTEN. Alles in großer Schrift, ohne in die volle App zu wechseln. Die Grundkarte wechselt von selbst aufs Orthofoto.",
+        "Beim Gehen siehst du, wie weit das GPS daneben liegt und wie viel du noch gehen musst.",
+        "Kantenkalibrierung in der Vollversion: Kehrst du mitten im Antippen der Linie über „Einfacher Modus“ zurück, wird die angefangene Linie verworfen."
+      ]
+    },
+    {
       "v": 431,
       "datum": "2026-11-15",
       "nadpis": "Korrekturen im einfachen Modus und bei „Wo man messen kann“",

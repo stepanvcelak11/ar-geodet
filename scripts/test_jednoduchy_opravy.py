@@ -8,7 +8,8 @@ ukazuje, že měřit mohu".
   D  Domů se ukáže i v jednoduchém režimu, leží NAD ním; zavřením je vidět režim;
      Nastavení z Domů režim jen pozastaví a po zavření se vrátí
   W  pojistka: zapnutý režim, který není vidět (a nic ho nepozastavilo), se sám vrátí
-  K  kalibrace po hraně: přebal se NEVRACÍ sám, když okno kalibrace zmizí (klepe se do mapy)
+  K  kalibrace po hraně: přebal se NEVRACÍ sám, když okno kalibrace zmizí (klepe se do mapy);
+     návrat tlačítkem nahoře rozklepanou čáru zruší
   Q  Kde se dá měřit: v tunelu/podchodu červená (0), pod mostem nejvýš oranžová
   Z  bez chyb stránky
 """
@@ -69,14 +70,21 @@ async def beh(url):
         # ---- K kalibrace po hraně bez automatického návratu
         await page.click('#ag-jr-vrstvy-btn')
         await page.click('#ag-jr-vrstvy [data-vr="hrana"]')
+        await V.cekej(page, "AGJednoduchy.stranka() === 'hr'", 8)   # od v432 nejdřív průvodce v režimu
+        await page.click('#ag-jr-hr-plna')
         ok('K1 kalibrace po hraně se otevře v plné appce', await V.cekej(page, "AGJednoduchy.pauza() && !!window.AGHrana", 8))
         await page.wait_for_timeout(800)
         # okno kalibrace se schová (výběr čáry klepáním do mapy) → uprostřed je mapa
         await page.evaluate("() => { document.querySelectorAll('.modal-overlay, [id*=hrana], [id*=hr-]').forEach(m => { if (m.id !== 'map' && getComputedStyle(m).position === 'fixed') m.style.display = 'none'; }); }")
         await page.wait_for_timeout(2000)
         ok('K2 přebal se nevrátí přes mapu sám (zpátky jen tlačítkem nahoře)', await page.evaluate("() => AGJednoduchy.pauza() && !document.getElementById('ag-jr-pill').hidden"))
+        await page.evaluate("() => { const m = document.getElementById('ag-hr-modal'); if (m) m.style.display = 'flex'; }")
+        await page.evaluate(ZAVRI)
+        await page.evaluate("() => document.getElementById('ag-hr-pick').click()")
+        await page.wait_for_timeout(300)
         await page.click('#ag-jr-pill')
         ok('K3 tlačítko „Jednoduchý režim" vrátí přebal', await V.cekej(page, "!AGJednoduchy.pauza()", 3))
+        ok('K4 rozklepaná čára (lišta nad mapou) se přitom zruší', await page.evaluate("() => !document.getElementById('ag-hr-bar')"))
 
         # ---- Q kvalita GPS: tunel a most z vektorové mapy (podstrčená data)
         await page.evaluate("() => new Promise(r => { if (window.AGKvalitaGpsMapa) return r(); const sc = document.createElement('script'); sc.src = 'js/mapa-kvality-gps.js'; sc.onload = r; sc.onerror = r; document.head.appendChild(sc); })")

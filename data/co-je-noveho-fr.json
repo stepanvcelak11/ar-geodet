@@ -2,6 +2,16 @@
   "_": "Notes de version françaises de QTRIG — chargées automatiquement à la place de co-je-noveho.json quand l’application tourne en français. Même structure (v, datum, nadpis, body) ; v doit correspondre à SHELL_CACHE.",
   "verze": [
     {
+      "v": 432,
+      "datum": "2026-11-16",
+      "nadpis": "Affiner le GPS directement en mode simple",
+      "body": [
+        "Nouvel assistant « Affiner le GPS » en mode simple (Calques → Affiner le GPS en marchant le long d'une arête) : touche l'arête sur la carte, touche C'EST PARTI et parcours-la, puis ACTIVER L'AFFINAGE. Tout en gros caractères, sans passer à l'application complète. Le fond bascule tout seul sur l'orthophoto.",
+        "En marchant, tu vois de combien le GPS se trompe et combien il reste à parcourir.",
+        "Calibration par arête dans la version complète : si tu reviens avec le bouton « Mode simple » au milieu du tracé, la ligne inachevée est annulée."
+      ]
+    },
+    {
       "v": 431,
       "datum": "2026-11-15",
       "nadpis": "Corrections du mode simple et de « Où l'on peut mesurer »",
