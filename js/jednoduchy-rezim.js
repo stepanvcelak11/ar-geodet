@@ -246,6 +246,18 @@
             + '  <div class="jr-pata"><div class="jr-pata-rada"><button type="button" class="jr-maly" id="ag-jr-vyt-protokol">Protokol vytyčení</button></div>'
             + '    <button type="button" class="jr-maly jr-plna" data-jr-plna="openStakeoutModal">Plná verze nástroje</button></div>'
             + '</section>'
+            // ---------- průvodce: zpřesnit GPS chůzí po hraně ----------
+            + '<section class="jr-page" id="ag-jr-hr">'
+            + '  <div class="jr-top"><div class="jr-stav" id="ag-jr-stav7">&nbsp;</div>'
+            + '    <button type="button" class="jr-maly" data-jr-zpet="home">Zpět</button></div>'
+            + '  <div class="jr-nadpis">Zpřesnit GPS</div>'
+            + '  <div class="jr-krok" id="ag-jr-hr-krok"></div>'
+            + '  <div class="jr-mapa jr-mapa-hr" id="ag-jr-mapa-hr" hidden><button type="button" class="jr-mapa-ja" data-jr-ja aria-label="Vycentrovat" hidden>' + ikona('i-locate') + '<span>Vycentrovat</span></button></div>'
+            + '  <div class="jr-hr-info" id="ag-jr-hr-info"></div>'
+            + '  <div class="jr-pata"><div class="jr-pata-rada" id="ag-jr-hr-mala"></div>'
+            + '    <button type="button" class="jr-ulozit" id="ag-jr-hr-btn"></button>'
+            + '    <button type="button" class="jr-maly jr-plna" id="ag-jr-hr-plna">Plná verze nástroje</button></div>'
+            + '</section>'
             // ---------- nástroje (vrstva nad domovskou stránkou) ----------
             + '<section class="jr-nas" id="ag-jr-nas" hidden>'
             + '  <div class="jr-top"><div class="jr-nadpis jr-nas-nadpis" id="ag-jr-nas-nadpis">Nástroje</div>'
@@ -257,7 +269,7 @@
             + '</section>';
         document.body.appendChild(root);
 
-        ['home', 'new', 'list', 'go', 'mer', 'vyt'].forEach(function (k) { stranky[k] = root.querySelector('#ag-jr-' + k); });
+        ['home', 'new', 'list', 'go', 'mer', 'vyt', 'hr'].forEach(function (k) { stranky[k] = root.querySelector('#ag-jr-' + k); });
 
         root.querySelector('#ag-jr-konec').addEventListener('click', function () { vypni(); });
         root.querySelector('#ag-jr-pridat').addEventListener('click', otevriNovy);
@@ -290,6 +302,8 @@
         root.querySelector('#ag-jr-vrstvy-btn').addEventListener('click', function (e) { e.stopPropagation(); prepniVrstvy(); });
         root.querySelector('#ag-jr-vyt-protokol').addEventListener('click', function () { proNebo('protokol-vytyceni', function () { spustFn('AGProtVyt.open', 'js/protokol-vytyceni.js'); }); });
         root.querySelector('#ag-jr-vyt-btn').addEventListener('click', vytKlik);
+        root.querySelector('#ag-jr-hr-btn').addEventListener('click', hrKlik);
+        root.querySelector('#ag-jr-hr-plna').addEventListener('click', function () { hrKonec(); ukaz('home'); spustFn('AGHrana.open', 'js/kalibrace-hranou.js', true); });
         Array.prototype.forEach.call(root.querySelectorAll('[data-jr-plna]'), function (b) {
             b.addEventListener('click', function () { spustNastroj(b.getAttribute('data-jr-plna'), true); });
         });
@@ -312,15 +326,16 @@
         if (kam !== 'go') { hledejPryc(); cilAppkyPryc(); }
         if (kam === 'home' || kam === 'list') _vytycuji = false;
         if (kam !== 'go') { var vb = root.querySelector('#ag-jr-vyt-btn'); if (vb) vb.hidden = true; vytOkPryc(); }
+        if (bylo === 'hr' && kam !== 'hr') hrKonec();
         if (kam === 'home') {
             if (pohled() === 'kamera' && kameraDo(true)) { /* okno drží kamera */ }
             else { kameraDo(false); mapaDo('#ag-jr-mapa-home'); }
             souhrn();
         } else {
             kameraDo(false);
-            if (kam === 'go') mapaDo('#ag-jr-mapa-go'); else mapaDo(null);
+            if (kam === 'go') mapaDo('#ag-jr-mapa-go'); else if (kam === 'hr') mapaDo('#ag-jr-mapa-hr'); else mapaDo(null);
         }
-        if (kam !== bylo && (kam === 'home' || kam === 'go')) window._mapHold = false;   // nová stránka = zase sledovat polohu
+        if (kam !== bylo && (kam === 'home' || kam === 'go' || kam === 'hr')) window._mapHold = false;   // nová stránka = zase sledovat polohu
         if (kam !== 'go') caraPryc();
         obnovPohledBtn();
         hlidejTik();
@@ -480,6 +495,7 @@
             slot.addEventListener(typ, function (e) {
                 if (e.target && e.target.closest && e.target.closest('button, [data-jr-ovl]')) return;
                 e.stopPropagation(); e.preventDefault();
+                if (typ === 'click' && aktivni === 'hr') { if (Date.now() - _posunT >= 350) hrKlepnuti(e); return; }
                 if (typ !== 'click' || aktivni !== 'home') return;
                 if (Date.now() - _posunT < 350) return;          // konec tažení, ne klepnutí
                 try {
@@ -669,7 +685,7 @@
                 if (window.AGKvalitaGpsMapa && AGKvalitaGpsMapa.posledni && AGKvalitaGpsMapa.posledni()) _kvalitaVid = !!AGKvalitaGpsMapa.prepni();
                 else if (typeof window.agOpenKvalitaGpsMapa === 'function') { window.agOpenKvalitaGpsMapa(); _kvalitaVid = true; }
             }
-            else if (a === 'hrana') { zavriVrstvy(); proNebo('kalibrace-hranou', function () { spustFn('AGHrana.open', 'js/kalibrace-hranou.js', true); }); return; }
+            else if (a === 'hrana') { zavriVrstvy(); otevriHr(); return; }
             else if (a === 'balicek') { zavriVrstvy(); proNebo('balicek-zakazky', function () { spustFn('openBalicekZakazky', 'js/balicek-zakazky.js'); }); return; }
         } catch (e) { swallow(e, 'vrstva:' + a); }
         vibruj(10);
@@ -683,7 +699,7 @@
     function presnost() { try { return (typeof currentGpsAccuracy === 'number' && isFinite(currentGpsAccuracy)) ? currentGpsAccuracy : null; } catch (e) { return null; } }
     function kruhGps() {
         var m = leafletMapa(), a = presnost();
-        var chce = m && maFix() && a != null && !_kamera && (aktivni === 'home' || aktivni === 'go') && !_pauza && typeof L !== 'undefined';
+        var chce = m && maFix() && a != null && !_kamera && (aktivni === 'home' || aktivni === 'go' || aktivni === 'hr') && !_pauza && typeof L !== 'undefined';
         if (!chce) { if (_kruh) { try { _kruh.remove(); } catch (e) { swallow(e, 'kruhPryc'); } _kruh = null; } return; }
         var c = barvaPresnosti(a);
         try {
@@ -1030,7 +1046,7 @@
     // appky vlastní obrazovka krok za krokem. Počítá ale VŽDY původní nástroj (stejné funkce
     // appky), takže výsledek je stejný jako v plné verzi. „Plná verze nástroje" je na každé
     // obrazovce průvodce.
-    var PRUVODCE = { openMeasureModal: otevriMer, openStakeoutModal: otevriVyt };
+    var PRUVODCE = { openMeasureModal: otevriMer, openStakeoutModal: otevriVyt, 'kalibrace-hranou': otevriHr };
     function spustNastroj(k, plna) {
         var d = null; dlazdice().forEach(function (x) { if (x.k === k) d = x; });
         if (!d) { toast(T('Nástroj teď není k dispozici.')); return; }
@@ -1073,6 +1089,173 @@
             if (oknoUprostred()) { _pauza.videl = true; _pauza.prazdno = 0; return; }
             if (_pauza.videl && ++_pauza.prazdno >= 2) obnovZPauzy();
         }, 300) };
+    }
+    // ---- PRŮVODCE: ZPŘESNIT GPS CHŮZÍ PO HRANĚ (16. 11. 2026) ---------------------------
+    // Okno „Kalibrace chůzí po hraně" je na terénní práci složité a v jednoduchém režimu musel
+    // přebal ustoupit plné appce (15. 11. 2026: „kalibraci nejde naklikat v jednoduchém režimu").
+    // Tady jsou tři kroky na vlastní obrazovce: 1) klepni hranu do mapy (podklad se sám přepne
+    // na ortofoto), 2) JDU a projdi ji, 3) ZAPNOUT ZPŘESNĚNÍ. Počítá VŽDY js/kalibrace-hranou.js
+    // (AGHrana.pruvodce) — stejné přichytávání ke katastru, stejný výpočet i hlídání platnosti.
+    var _hr = null;   // { krok: 'cara'|'jit'|'chuze'|'vysl', prepnul: bool, info: '' }
+    function hrApi() { return (window.AGHrana && AGHrana.pruvodce) ? AGHrana.pruvodce : null; }
+    function otevriHr() {
+        proNebo('kalibrace-hranou', function () {
+            var dal = function () {
+                if (!hrApi()) { toast(T('Nástroj teď není k dispozici.')); return; }
+                _hr = { krok: 'cara', prepnul: false, info: null };
+                ukaz('hr');
+                if (podklad() !== 'ortofoto' && navigator.onLine !== false) {
+                    try {
+                        if (typeof agMapSetBase === 'function') {
+                            _hr.vektor = !!(window.AGMapaVektor && AGMapaVektor.stav && AGMapaVektor.stav() === 'zapnuto');
+                            agMapSetBase('ortofoto'); _hr.prepnul = true;
+                        }
+                    } catch (e) { swallow(e, 'hrOrto'); }
+                }
+                hrApi().zacni(hrVykresli);
+                setTimeout(function () { naMe(false); }, 60);
+                hrVykresli();
+            };
+            if (hrApi()) { dal(); return; }
+            try {
+                if (window.AGLazyTools && AGLazyTools.nacti) { AGLazyTools.nacti('kalibrace-hranou').then(dal, function () { dal(); }); return; }
+            } catch (e) { swallow(e, 'hrNacti'); }
+            dal();
+        });
+    }
+    function hrKonec() {
+        if (!_hr) return;
+        var h = _hr; _hr = null;
+        try { if (hrApi()) hrApi().konec(); } catch (e) { swallow(e, 'hrKonec'); }
+        // podklad zpátky TIŠE: přes panel Mapa by bez signálu vyskočilo „vektorová mapa se nezapnula"
+        if (h.prepnul && podklad() === 'ortofoto') {
+            try {
+                if (typeof agMapSetBase === 'function') agMapSetBase('osm');
+                if (h.vektor && window.AGMapaVektor && AGMapaVektor.stav() !== 'zapnuto' && window.AGMapaPanel && AGMapaPanel.vektor) AGMapaPanel.vektor();
+            } catch (e) { swallow(e, 'hrPodklad'); }
+        }
+    }
+    function hrKlepnuti(e) {
+        if (!_hr || _hr.krok !== 'cara' || !hrApi()) return;
+        var m = leafletMapa(); if (!m) return;
+        try { if (hrApi().pridej(m.mouseEventToLatLng(e))) vibruj(10); } catch (er) { swallow(er, 'hrKlep'); }
+    }
+    function korekceZapnuta() {
+        try {
+            var sh = window.agRefShift; if (!sh || !sh.on) return null;
+            var st = window.agRefShiftStav ? window.agRefShiftStav() : null;
+            if (st && st.zbyva != null && st.zbyva <= 0) return null;
+            var d = Math.hypot((sh.dlat || 0) * 111320, (sh.dlng || 0) * 111320 * Math.cos((sh.lat || userLat || 50) * Math.PI / 180));
+            return { d: d, zbyva: st ? st.zbyva : null };
+        } catch (e) { return null; }
+    }
+    function hrVykresli() {
+        if (!_hr || !root) return;
+        var api = hrApi(); if (!api) return;
+        var krok = root.querySelector('#ag-jr-hr-krok'), info = root.querySelector('#ag-jr-hr-info');
+        var btn = root.querySelector('#ag-jr-hr-btn'), mala = root.querySelector('#ag-jr-hr-mala');
+        var k = function (c, t) { return '<span class="jr-krok-c">' + c + '</span><span>' + t + '</span>'; };
+        var tl = function (id, t) { return '<button type="button" class="jr-maly" data-hr="' + id + '">' + t + '</button>'; };
+        var h = '', m = '';
+        btn.disabled = false;
+        root.querySelector('#ag-jr-hr').classList.toggle('jr-hr-bezmapy', _hr.krok === 'vysl');
+        if (_hr.krok === 'cara') {
+            var c = api.cara();
+            krok.innerHTML = k('1/3', c.n === 0 ? T('Klepni do mapy na začátek ostré hrany — obrubník, hrana asfaltu, pata zdi.') : (c.n === 1 ? T('Teď klepni na konec hrany (nebo na roh, kde se lomí).') : T('Další roh, nebo DALŠÍ.')));
+            if (c.n >= 2) {
+                h = '<b>' + T('{n} body', { n: c.n }) + ' · ' + cislo(c.delka, 0) + ' m</b> · '
+                    + (c.uzavrena || c.lomena ? T('roh nebo tvar → zpřesní se všemi směry') : T('rovná hrana → zpřesní se jen napříč hranou'))
+                    + (c.kat ? ' · ' + T('přichyceno ke katastru') : '');
+                if (c.delka < c.min) { h += '<br><span class="jr-hr-pozor">' + T('Hrana je krátká — potřebuji aspoň {m} m.', { m: c.min }) + '</span>'; btn.disabled = true; }
+            } else {
+                h = T('Nejlepší je roh nebo celý obvod pozemku. Hrana musí mít aspoň {m} m.', { m: c.min });
+                var kz = korekceZapnuta();
+                if (kz) { h += '<div class="jr-hr-zap">' + T('Zpřesnění je zapnuté: {d} m', { d: cislo(kz.d, 1) }) + (kz.zbyva != null ? ' · ' + T('platí ještě {n} min', { n: kz.zbyva }) : '') + '</div>'; m += tl('vypnout', T('Vypnout zpřesnění')); }
+                btn.disabled = true;
+            }
+            if (c.n > 0) m = tl('zpet', T('Vrátit bod'));
+            if (c.n >= 3 && !c.uzavrena) m += tl('uzavri', T('Uzavřít tvar'));
+            btn.textContent = T('DALŠÍ');
+        } else if (_hr.krok === 'jit') {
+            krok.innerHTML = k('2/3', T('Postav se na zelený začátek, klepni JDU a jdi po hraně až na červený konec.'));
+            h = T('Telefon drž volně v ruce, jdi normálním krokem. Když to jde, vrať se i zpátky — vyjde to přesněji.');
+            m = tl('cara', T('Změnit hranu'));
+            btn.textContent = T('JDU');
+        } else if (_hr.krok === 'chuze') {
+            krok.innerHTML = k('2/3', T('Jdi po hraně…'));
+            h = hrChuzeHtml();
+            m = tl('zrusit', T('Zrušit'));
+            btn.textContent = T('HOTOVO, SPOČÍTAT');
+        } else {
+            var r = api.vysledek();
+            if (!r || r.err) {
+                krok.innerHTML = k('!', T('Nevyšlo to'));
+                h = '<div class="jr-hr-pozor">' + esc(r && r.err ? r.err : T('Žádná data z chůze.')) + '</div>';
+                btn.textContent = T('ZKUSIT ZNOVU');
+                m = tl('cara', T('Změnit hranu'));
+            } else {
+                var chyba = Math.hypot(r.vE, r.vN), pr = (r.total != null && isFinite(r.total)) ? r.total : r.sterr;
+                krok.innerHTML = k('3/3', T('Hotovo'));
+                h = '<div class="jr-mer-hlavni">' + cislo(chyba, 1) + ' m</div><div class="jr-mer-pod">' + T('o tolik se tu teď GPS plete') + '</div>'
+                    + '<div class="jr-hr-txt">' + (r.mode === '1d' ? T('Po zapnutí budou nové body přesné asi na ±{m} m napříč hranou (podél hrany zůstane chyba GPS).', { m: cislo(pr, 1) }) : T('Po zapnutí budou nové body přesné asi na ±{m} m.', { m: cislo(pr, 1) }))
+                    + ' ' + T('Platí asi 20 minut a 300 m odsud.') + '</div>';
+                btn.textContent = T('ZAPNOUT ZPŘESNĚNÍ');
+                m = tl('znovu', T('Jít znovu'));
+            }
+        }
+        _hr.info = null;
+        info.innerHTML = h;
+        mala.innerHTML = m; mala.hidden = !m;
+        Array.prototype.forEach.call(mala.querySelectorAll('[data-hr]'), function (b) {
+            b.addEventListener('click', function () { hrMaly(b.getAttribute('data-hr')); });
+        });
+    }
+    function hrChuzeHtml() {
+        var st = hrApi() && hrApi().chuze();
+        if (!st) return '';
+        var pod = Math.max(0, Math.min(1, Math.min(st.prosel / st.potreba.m, st.n / st.potreba.fixu)));
+        var h = '';
+        if (st.chyba != null) h += '<div class="jr-mer-hlavni">' + cislo(st.chyba, 1) + ' m</div><div class="jr-mer-pod">' + T('zatím se tu GPS plete o') + '</div>';
+        else if (!st.n) h += '<div class="jr-hr-txt">' + (st.bad ? T('Jsi daleko od hrany, nebo je GPS teď nepřesná — dojdi k hraně.') : T('Čekám na první měření — vyraz.')) + '</div>';
+        else h += '<div class="jr-hr-txt">' + T('Měřím…') + '</div>';
+        h += '<div class="jr-hr-prubeh"><i style="width:' + Math.round(pod * 100) + '%"></i></div>'
+            + '<div class="jr-hr-txt">' + T('prošel jsi {a} z {b} m · {n} měření', { a: cislo(st.prosel, 0), b: cislo(st.delka, 0), n: st.n })
+            + (pod >= 1 ? ' · <b>' + T('už stačí, klidně můžeš skončit') + '</b>' : '') + '</div>';
+        return h;
+    }
+    function hrTik() {
+        if (!_hr || _hr.krok !== 'chuze') return;
+        var h = hrChuzeHtml();
+        if (h === _hr.info) return;
+        _hr.info = h;
+        var el = root.querySelector('#ag-jr-hr-info'); if (el) el.innerHTML = h;
+    }
+    function hrMaly(a) {
+        var api = hrApi(); if (!_hr || !api) return;
+        if (a === 'zpet') api.vratBod();
+        else if (a === 'uzavri') api.uzavri();
+        else if (a === 'vypnout') { api.vypni(); }
+        else if (a === 'cara') { api.zacni(hrVykresli); _hr.krok = 'cara'; }
+        else if (a === 'zrusit') { api.spocitej(); _hr.krok = 'jit'; }
+        else if (a === 'znovu') { _hr.krok = 'jit'; }
+        vibruj(8);
+        hrVykresli();
+    }
+    function hrKlik() {
+        var api = hrApi(); if (!_hr || !api) return;
+        if (_hr.krok === 'cara') { api.hotovaCara(); _hr.krok = 'jit'; }
+        else if (_hr.krok === 'jit') {
+            if (!maFix()) { toast(T('Čekám na GPS.')); return; }
+            if (!api.jdi()) return;
+            _hr.krok = 'chuze'; window._mapHold = false; naMe(true);
+        } else if (_hr.krok === 'chuze') { api.spocitej(); _hr.krok = 'vysl'; }
+        else {
+            var r = api.vysledek();
+            if (!r || r.err) { _hr.krok = 'jit'; }
+            else { api.zapni(); vibruj([20, 40, 20]); zpet('home'); return; }
+        }
+        vibruj(12);
+        hrVykresli();
     }
     // ---- PRŮVODCE: ZMĚŘIT VZDÁLENOST ----------------------------------------------------
     // Body A a B ukládá setMeasurePoint() plné appky a výsledek čte z jejího okna (#meas-*):
@@ -1255,6 +1438,10 @@
     // a vyskočilo by při příštím nástroji (a hlídač návratu by ho bral za nový nástroj).
     function zavriOknaNastroju() {
         try {
+            // kalibrace po hraně: rozklepaná čára (lišta „Zrušit" nad mapou) by zůstala viset
+            // pod přebalem a dál chytala klepnutí do mapy
+            var hx = document.getElementById('ag-hr-bar-x'); if (hx) hx.click();
+            var hm = document.getElementById('ag-hr-modal'); if (hm && hm.style.display !== 'none' && !document.getElementById('ag-hr-bar')) hm.style.display = 'none';
             Array.prototype.forEach.call(document.querySelectorAll('.modal-overlay'), function (m) {
                 if (m.style.display && m.style.display !== 'none') m.style.display = 'none';
                 m.classList.remove('open');
@@ -1317,7 +1504,7 @@
 
     // Interval běží jen tam, kde se čísla opravdu mění (seznam, navigace, měření).
     function hlidejTik() {
-        var chce = (aktivni === 'list' || aktivni === 'go' || avgT != null || aktivni === 'home' || aktivni === 'mer' || aktivni === 'vyt');
+        var chce = (aktivni === 'list' || aktivni === 'go' || avgT != null || aktivni === 'home' || aktivni === 'mer' || aktivni === 'vyt' || aktivni === 'hr');
         if (chce && !tick) tick = setInterval(tikni, TICK_MS);
         if (!chce && tick) { clearInterval(tick); tick = null; }
     }
@@ -1326,12 +1513,13 @@
         stavGps();
         hlidejKameru();
         kruhGps();
-        if (aktivni === 'home' || aktivni === 'go') obnovNaMe();
+        if (aktivni === 'home' || aktivni === 'go' || aktivni === 'hr') obnovNaMe();
         if (karta) { var kv = root.querySelector('#ag-jr-karta-vzd'), kt = kartaVzd(karta); if (kv && kv.innerHTML !== kt) kv.innerHTML = kt; }
         if (aktivni === 'list') obnovVzdalenosti();
         if (aktivni === 'go') vykresliNavigaci();
         if (aktivni === 'mer') merTik();
         if (aktivni === 'vyt') vytTik();
+        if (aktivni === 'hr') hrTik();
     }
 
     // Přepisuje se JEN při změně textu. Tik jede 5x/s, ale ± se mění nejvýš
@@ -1348,7 +1536,7 @@
         }
         if (txt === _stavText) return;
         _stavText = txt;
-        ['#ag-jr-stav', '#ag-jr-stav2', '#ag-jr-stav3', '#ag-jr-stav4', '#ag-jr-stav5', '#ag-jr-stav6'].forEach(function (sel) {
+        ['#ag-jr-stav', '#ag-jr-stav2', '#ag-jr-stav3', '#ag-jr-stav4', '#ag-jr-stav5', '#ag-jr-stav6', '#ag-jr-stav7'].forEach(function (sel) {
             var el = root.querySelector(sel); if (!el) return;
             el.innerHTML = txt;
             el.classList.toggle('jr-bez', bez);
@@ -1739,6 +1927,7 @@
     function vypni() {
         nastav(false);
         zrusMereni();
+        hrKonec();
         if (tick) { clearInterval(tick); tick = null; }
         cil = null; novy = null;
         if (_pauza) { clearInterval(_pauza.t); _pauza = null; }

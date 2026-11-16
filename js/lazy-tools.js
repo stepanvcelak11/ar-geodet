@@ -470,6 +470,20 @@
         load: load,
         open: function (id) {
             for (var i = 0; i < MANIFEST.length; i++) if (MANIFEST[i].id === id) return openTool(MANIFEST[i]);
+        },
+        // jen NAČÍST modul (bez otevření okna) — pro toho, kdo volá jeho API sám
+        // (průvodce „Zpřesnit GPS" v jednoduchém režimu → AGHrana.pruvodce). Zástupce
+        // se odklidí stejně jako u openTool, jinak by se modul hned ukončil (viz dropStub).
+        nacti: function (id) {
+            for (var i = 0; i < MANIFEST.length; i++) {
+                var t = MANIFEST[i];
+                if (t.id !== id) continue;
+                if (vypnuty(t)) return Promise.reject(new Error('vypnuto'));
+                if (resolve(t.open) && !isStub(resolve(t.open))) return Promise.resolve();
+                loadCss(t.css); dropStub(t);
+                return load(t.src);
+            }
+            return Promise.reject(new Error('neznámý nástroj ' + id));
         }
     };
 })();

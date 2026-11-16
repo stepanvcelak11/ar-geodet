@@ -2,6 +2,16 @@
  "_": "Co je nového — text pro roletku u lišty „Nová verze“ (js/co-je-noveho.js). Ručně psané, NE generované z commitů: uživatele zajímá, co se v appce změnilo, ne jak se jmenovala větev. Nejnovější nahoře. `v` musí odpovídat číslu SHELL_CACHE v sw.js (viz scripts/gen_sw_assets.py).",
  "verze": [
   {
+   "v": 432,
+   "datum": "2026-11-16",
+   "nadpis": "Zpřesnit GPS přímo v jednoduchém režimu",
+   "body": [
+    "Nový průvodce „Zpřesnit GPS“ v jednoduchém režimu (Vrstvy → Zpřesnit GPS chůzí po hraně): klepni hranu do mapy, klepni JDU a projdi ji, pak ZAPNOUT ZPŘESNĚNÍ. Všechno velkým písmem, bez odchodu do plné appky. Podklad se sám přepne na ortofoto.",
+    "Během chůze vidíš, o kolik se GPS plete a kolik už stačí ujít.",
+    "Kalibrace po hraně v plné verzi: když se vrátíš tlačítkem „Jednoduchý režim“ uprostřed klepání čáry, rozklepaná čára se zruší."
+   ]
+  },
+  {
    "v": 431,
    "datum": "2026-11-15",
    "nadpis": "Opravy jednoduchého režimu a „Kde se dá měřit“",

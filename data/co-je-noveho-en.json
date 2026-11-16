@@ -2,6 +2,16 @@
   "_": "English release notes of QTRIG — automatically loaded instead of co-je-noveho.json when the app runs in English. Same structure (v, datum, nadpis, body); v must match SHELL_CACHE.",
   "verze": [
     {
+      "v": 432,
+      "datum": "2026-11-16",
+      "nadpis": "Refine GPS right in simple mode",
+      "body": [
+        "New “Refine GPS” wizard in simple mode (Layers → Refine GPS by walking an edge): tap the edge on the map, tap GO and walk it, then TURN REFINEMENT ON. Big text throughout, without leaving for the full app. The base map switches to the orthophoto by itself.",
+        "While walking you see how far off GPS is and how much more you need to walk.",
+        "Edge calibration in the full version: if you return with the “Simple mode” button in the middle of tapping a line, the unfinished line is cancelled."
+      ]
+    },
+    {
       "v": 431,
       "datum": "2026-11-15",
       "nadpis": "Simple mode and “Where you can measure” fixes",

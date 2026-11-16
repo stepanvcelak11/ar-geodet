@@ -319,6 +319,9 @@
     var _pickOn = false;
     var _src = null;            // odkud je čára: {kind:'orto'|'osm'|'katastr'|'body', acc}
     var _katCache = null;       // lomové body parcel z katastru (jen po dobu klepání)
+    var _pk = { kat: 0, ukm: 0, chod: 0 };   // kolik klepnutí se přichytilo (katastr, z toho UKM, chodník)
+    var _poZmene = null;        // co překreslit, když se vrchol posune (lišta okna / průvodce jednoduchého režimu)
+    var _bezOkna = false;       // průvodce jednoduchého režimu: okno kalibrace se neukazuje
 
     // ---- zdroj čáry a jeho přesnost ------------------------------------------------------
     function baseLayerKind() {
@@ -445,18 +448,72 @@
     }
     function clearLine() { try { if (_layer) { _layer.remove(); _layer = null; } } catch (e) { swallow(e, 'clearLine'); } }
 
+    // ---- výběr čáry: společné pro okno (lišta nad mapou) i průvodce jednoduchého režimu ----
+    function isClosed() { return _verts.length >= 4 && new Line(_verts).closed; }
+    function zmena() { drawLine(); try { if (_poZmene) _poZmene(); } catch (e) { swallow(e, 'poZmene'); } }
+    function zacniCaru() {
+        _verts = []; drawLine();
+        _katCache = null; _katLive = [];
+        _pk = { kat: 0, ukm: 0, chod: 0 };
+        var base = baseLayerKind();
+        _src = { kind: base, acc: LINE_ACC[base] };
+        _result = null;
+        _pickOn = true;
+    }
+    // konec klepání: zdroj čáry podle toho, co se přichytilo (katastr > chodník > podklad)
+    function dokonciCaru(cancel) {
+        _pickOn = false; _poZmene = null;
+        if (cancel) { _verts = []; clearLine(); _src = null; }
+        else if (_pk.kat) _src = _pk.ukm ? { kind: 'ukm', acc: LINE_ACC.ukm } : { kind: 'katastr', acc: LINE_ACC.katastr };
+        else if (_pk.chod) _src = { kind: 'osm', acc: LINE_ACC.osm };
+        _katCache = null; _katLive = [];
+    }
+    function closeShape(tise) {
+        if (_verts.length < 3 || isClosed()) return false;
+        _verts.push({ lat: _verts[0].lat, lng: _verts[0].lng });
+        zmena();
+        if (!tise) toast(T('Tvar uzavřen — {m} m obvodu. Řeší se celý vektor chyby.', { m: fmt(new Line(_verts).len, 0) }));
+        return true;
+    }
+    // klepnutí do mapy → vrchol (s přichycením ke katastru / chodníku jako dřív)
+    function pridejVrchol(ll) {
+        if (!ll || !isFinite(ll.lat) || !isFinite(ll.lng)) return false;
+        if (isClosed()) return false;                     // uzavřený tvar už další body nebere
+        if (nearFirst(ll)) return closeShape();           // klepnutí k prvnímu vrcholu = uzavřít
+        var sn = snapKatastr(ll);
+        // parcely už načtené vlastní mapou (karta Katastr + vektor): přichytit hned, bez sítě
+        if (!sn && katastrOn()) { var sp = snapParcelyMapy(ll); if (sp) { sn = sp; if (sp.zdroj === 2) _pk.ukm++; } }
+        if (sn) { ll = { lat: sn.lat, lng: sn.lng }; _pk.kat++; }
+        // chodník / přechod z vlastní mapy (±2 m) — jen když katastr nechytil
+        var sc = null;
+        if (!sn) { sc = snapChodnik(ll); if (sc) { ll = { lat: sc.lat, lng: sc.lng }; _pk.chod++; } }
+        var v = { lat: ll.lat, lng: ll.lng };
+        _verts.push(v);
+        zmena();
+        // bez stažených parcel, ale s katastrem na mapě: hranici dotáhnout živě a
+        // vrchol na ni posunout, jakmile odpověď dorazí (vrchol už v čáře je, jen se posune)
+        if (!sn && !sc && katastrOn() && navigator.onLine !== false) {
+            var hotovo = function (parc) {
+                if (!parc || !_pickOn || _verts.indexOf(v) < 0) return;
+                var s2 = snapNaHranici(ll, parc); if (!s2) return;
+                v.lat = s2.lat; v.lng = s2.lng; _pk.kat++; if (s2.zdroj === 2) _pk.ukm++;
+                zmena();
+            };
+            var cached = null;
+            for (var i = 0; i < _katLive.length && !cached; i++) { if (snapNaHranici(ll, _katLive[i])) cached = _katLive[i]; }
+            if (cached) hotovo(cached); else fetchParcela(ll).then(hotovo);
+        }
+        return true;
+    }
+
     // ---- výběr čáry klepnutím do mapy (vzor js/pocasi.js pickOnMap) -----------------------
     function pickOnMap() {
         var m = theMap();
         var vm = null; try { vm = viewMode; } catch (e) { swallow(e, 'vm'); }
         if (!m) { agAlert('Mapa', 'Mapa zatím neběží — přepni na mapu.'); return; }
         if (vm === 'ar') { agAlert('Mapa', 'Přepni na mapu nebo dělené zobrazení, pak klepni do mapy.'); return; }
-        _verts = []; drawLine();
-        _katCache = null; _katLive = [];
-        var kat = 0, ukm = 0, chod = 0, base = baseLayerKind();
-        _src = { kind: base, acc: LINE_ACC[base] };
+        zacniCaru();
         var dlg = byId(DLG_ID); if (dlg) dlg.style.display = 'none';
-        _pickOn = true;
         var bar = document.createElement('div');
         bar.id = BAR_ID;
         bar.innerHTML = '<span id="ag-hr-bar-txt">' + T('Klepni na <b>začátek</b> čáry, po které půjdeš') + '</span>'
@@ -464,66 +521,32 @@
             + '<button type="button" id="ag-hr-bar-ok" style="display:none">Hotovo</button>'
             + '<button type="button" id="ag-hr-bar-x">Zrušit</button>';
         document.body.appendChild(bar);
-        function isClosed() { return _verts.length >= 4 && new Line(_verts).closed; }
         function txt() {
             var t = byId('ag-hr-bar-txt'), ok = byId('ag-hr-bar-ok'), cl = byId('ag-hr-bar-close'); if (!t) return;
             var vek = false; try { vek = document.getElementById('map').classList.contains('base-vektor'); } catch (e) { self.AG && AG.swallow(e, 'kalibrace-hranou:470'); }
-            if (_verts.length === 0) t.innerHTML = T('Klepni na <b>začátek</b> čáry, po které půjdeš') + (katastrOn() ? '<br><small>' + (vek ? T('Katastr je zapnutý — klepnutí do 4 m od hranice parcely se na ni přichytí; chodník z mapy chytí taky (jen ±2 m)') : T('Katastr je zapnutý — klepnutí do 4 m od hranice parcely se na ni přichytí')) + '</small>' : (vek ? '<br><small>Chodník z mapy se přichytí (±2 m) — přesnější je zapnout Katastr (hranice ±0,3 m) nebo ortofoto</small>' : (base === 'osm' ? '<br><small style="color:var(--warning,#fbbf24)">Máš uliční mapu — přepni na ortofoto, tam hranu vidíš (±0,3 m místo metrů)</small>' : '')));
+            if (_verts.length === 0) t.innerHTML = T('Klepni na <b>začátek</b> čáry, po které půjdeš') + (katastrOn() ? '<br><small>' + (vek ? T('Katastr je zapnutý — klepnutí do 4 m od hranice parcely se na ni přichytí; chodník z mapy chytí taky (jen ±2 m)') : T('Katastr je zapnutý — klepnutí do 4 m od hranice parcely se na ni přichytí')) + '</small>' : (vek ? '<br><small>Chodník z mapy se přichytí (±2 m) — přesnější je zapnout Katastr (hranice ±0,3 m) nebo ortofoto</small>' : (baseLayerKind() === 'osm' ? '<br><small style="color:var(--warning,#fbbf24)">Máš uliční mapu — přepni na ortofoto, tam hranu vidíš (±0,3 m místo metrů)</small>' : '')));
             else if (_verts.length === 1) t.innerHTML = T('Teď <b>konec</b> (nebo další lomový bod)');
-            else { var ln = new Line(_verts); t.innerHTML = '<b>' + T('{n} body', { n: _verts.length }) + '</b> · ' + fmt(ln.len, 0) + ' m · ' + (ln.closed ? T('uzavřený tvar → celý vektor') : (ln.spread() >= ANGLE_2D ? T('lomená → celý vektor') : T('rovná → jen kolmá složka'))) + (kat ? ' · ' + T('{n}× hranice katastru', { n: kat }) : '') + (chod ? ' · ' + T('{n}× chodník z mapy (±2 m)', { n: chod }) : '') + '<br><small>' + T('další lom, Uzavřít tvar (obvod, plusko), nebo Hotovo') + '</small>'; }
+            else { var ln = new Line(_verts); t.innerHTML = '<b>' + T('{n} body', { n: _verts.length }) + '</b> · ' + fmt(ln.len, 0) + ' m · ' + (ln.closed ? T('uzavřený tvar → celý vektor') : (ln.spread() >= ANGLE_2D ? T('lomená → celý vektor') : T('rovná → jen kolmá složka'))) + (_pk.kat ? ' · ' + T('{n}× hranice katastru', { n: _pk.kat }) : '') + (_pk.chod ? ' · ' + T('{n}× chodník z mapy (±2 m)', { n: _pk.chod }) : '') + '<br><small>' + T('další lom, Uzavřít tvar (obvod, plusko), nebo Hotovo') + '</small>'; }
             if (ok) ok.style.display = _verts.length >= 2 ? '' : 'none';
             if (cl) cl.style.display = (_verts.length >= 3 && !isClosed()) ? '' : 'none';
         }
+        _poZmene = txt;
         function end(cancel) {
             try { m.off('click', onClick); } catch (e) { swallow(e, 'off'); }
-            bar.remove(); _pickOn = false;
-            if (cancel) { _verts = []; clearLine(); _src = null; }
-            else if (kat) _src = ukm ? { kind: 'ukm', acc: LINE_ACC.ukm } : { kind: 'katastr', acc: LINE_ACC.katastr };
-            else if (chod) _src = { kind: 'osm', acc: LINE_ACC.osm };
-            _katCache = null; _katLive = [];
+            bar.remove();
+            dokonciCaru(cancel);
             if (dlg) dlg.style.display = 'flex';
             render();
-        }
-        function closeShape() {
-            if (_verts.length < 3 || isClosed()) return;
-            _verts.push({ lat: _verts[0].lat, lng: _verts[0].lng });
-            drawLine(); txt();
-            toast(T('Tvar uzavřen — {m} m obvodu. Řeší se celý vektor chyby.', { m: fmt(new Line(_verts).len, 0) }));
         }
         function onClick(e) {
             var ll = null;
             try { if (e.originalEvent && typeof window.agScreenToLatLng === 'function') ll = window.agScreenToLatLng(e.originalEvent.clientX, e.originalEvent.clientY); } catch (err) { swallow(err, 'onClick'); }
             if (!ll && e.latlng) ll = e.latlng;
-            if (!ll || !isFinite(ll.lat) || !isFinite(ll.lng)) return;
-            if (isClosed()) return;                       // uzavřený tvar už další body nebere
-            if (nearFirst(ll)) { closeShape(); return; }  // klepnutí k prvnímu vrcholu = uzavřít
-            var sn = snapKatastr(ll);
-            // parcely už načtené vlastní mapou (karta Katastr + vektor): přichytit hned, bez sítě
-            if (!sn && katastrOn()) { var sp = snapParcelyMapy(ll); if (sp) { sn = sp; if (sp.zdroj === 2) ukm++; } }
-            if (sn) { ll = { lat: sn.lat, lng: sn.lng }; kat++; }
-            // chodník / přechod z vlastní mapy (±2 m) — jen když katastr nechytil
-            var sc = null;
-            if (!sn) { sc = snapChodnik(ll); if (sc) { ll = { lat: sc.lat, lng: sc.lng }; chod++; } }
-            var v = { lat: ll.lat, lng: ll.lng };
-            _verts.push(v);
-            drawLine(); txt();
-            // bez stažených parcel, ale s katastrem na mapě: hranici dotáhnout živě a
-            // vrchol na ni posunout, jakmile odpověď dorazí (vrchol už v čáře je, jen se posune)
-            if (!sn && !sc && katastrOn() && navigator.onLine !== false) {
-                var hotovo = function (parc) {
-                    if (!parc || !_pickOn || _verts.indexOf(v) < 0) return;
-                    var s2 = snapNaHranici(ll, parc); if (!s2) return;
-                    v.lat = s2.lat; v.lng = s2.lng; kat++; if (s2.zdroj === 2) ukm++;
-                    drawLine(); txt();
-                };
-                var cached = null;
-                for (var i = 0; i < _katLive.length && !cached; i++) { if (snapNaHranici(ll, _katLive[i])) cached = _katLive[i]; }
-                if (cached) hotovo(cached); else fetchParcela(ll).then(hotovo);
-            }
+            pridejVrchol(ll);
         }
         bar.querySelector('#ag-hr-bar-x').addEventListener('click', function () { end(true); });
         bar.querySelector('#ag-hr-bar-ok').addEventListener('click', function () { end(false); });
-        bar.querySelector('#ag-hr-bar-close').addEventListener('click', closeShape);
+        bar.querySelector('#ag-hr-bar-close').addEventListener('click', function () { closeShape(); });
         m.on('click', onClick);
         txt();
     }
@@ -538,8 +561,9 @@
         _result = null;
         try { _walk.watch = navigator.geolocation.watchPosition(onFix, function () {}, { enableHighAccuracy: true, maximumAge: 0, timeout: 27000 }); } catch (e) { swallow(e, 'watch'); }
         try { if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function (w) { _walk.wake = w; }).catch(function () {}); } catch (e) { swallow(e, 'wake'); }
-        var dlg = byId(DLG_ID); if (dlg) dlg.style.display = 'none';
         drawLine();
+        if (_bezOkna) return;            // průvodce jednoduchého režimu má vlastní obrazovku
+        var dlg = byId(DLG_ID); if (dlg) dlg.style.display = 'none';
         var bar = document.createElement('div');
         bar.id = BAR_ID; bar.className = 'walk';
         bar.innerHTML = '<div id="ag-hr-live"><span class="ag-hr-pulse"></span>Jdi podél čáry od zeleného k červenému…</div>'
@@ -582,7 +606,16 @@
         try { if (w.watch != null) navigator.geolocation.clearWatch(w.watch); } catch (e) { swallow(e, 'clearWatch'); }
         try { if (w.wake) w.wake.release(); } catch (e) { swallow(e, 'unwake'); }
         var bar = byId(BAR_ID); if (bar) bar.remove();
-        var dlg = byId(DLG_ID); if (dlg) dlg.style.display = 'flex';
+        var dlg = byId(DLG_ID); if (dlg && !_bezOkna) dlg.style.display = 'flex';
+    }
+    // průběh chůze (čísla, ne HTML) — pro průvodce jednoduchého režimu
+    function stavChuze() {
+        var w = _walk; if (!w || !_line) return null;
+        var n = w.fixes.length, smin = Infinity, smax = -Infinity;
+        w.fixes.forEach(function (f) { if (f.s < smin) smin = f.s; if (f.s > smax) smax = f.s; });
+        var o = { n: n, raw: w.raw, bad: w.bad, prosel: n ? Math.max(0, smax - smin) : 0, delka: _line.len, potreba: { fixu: MIN_FIX, m: MIN_LEN }, chyba: null, acc: n ? w.fixes[n - 1].acc : null, odstup: n ? w.fixes[n - 1].e : null };
+        if (n >= 5) { var q = solve(w.fixes, _line.spread() >= ANGLE_2D); if (q) o.chyba = Math.hypot(q.vE, q.vN); }
+        return o;
     }
     function finish() {
         var w = _walk; _walk = null;
@@ -692,7 +725,7 @@
         el.addEventListener('mousedown', function (e) { if (e.target === el) close(); });
         window.addEventListener('pagehide', function () { if (_walk) stopWalk(); _walk = null; });
     }
-    function open() { ensureModal(); byId(DLG_ID).style.display = 'flex'; if (_verts.length) drawLine(); render(); }
+    function open() { _bezOkna = false; ensureModal(); byId(DLG_ID).style.display = 'flex'; if (_verts.length) drawLine(); render(); }
 
     function howTo() {
         return '<details class="hr-how"><summary>Jak to funguje, jaká je přesnost a jak dlouho to platí</summary>'
@@ -794,7 +827,36 @@
     }
 
     // ---- registrace ----------------------------------------------------------------------
-    window.AGHrana = { open: open, _test: { Line: Line, solve: solve, ANGLE_2D: ANGLE_2D, interpShift: interpShift, betweenCandidates: betweenCandidates, reapply: reapply, prevShiftFor: prevShiftFor, pointTime: pointTime, LINE_ACC: LINE_ACC, snapNaHranici: snapNaHranici, fetchParcela: fetchParcela, snapParcelyMapy: snapParcelyMapy, snapChodnik: snapChodnik } };
+    // PRŮVODCE JEDNODUCHÉHO REŽIMU (16. 11. 2026): stejné výpočty, jen bez okna — čáru klepe
+    // do mapy jednoduchý režim, chůzi a výsledek ukazuje na vlastní obrazovce velkým písmem.
+    var pruvodce = {
+        zacni: function (poZmene) {
+            if (_walk) { stopWalk(); _walk = null; }
+            _bezOkna = true; _offset = 0;
+            zacniCaru(); _poZmene = poZmene || null;
+        },
+        pridej: pridejVrchol,
+        vratBod: function () { if (!_verts.length) return; _verts.pop(); zmena(); },
+        uzavri: function () { return closeShape(true); },
+        cara: function () {
+            var o = { n: _verts.length, delka: 0, uzavrena: false, lomena: false, kat: _pk.kat, chod: _pk.chod, ortofoto: baseLayerKind() === 'orto', min: MIN_LEN };
+            if (_verts.length >= 2) { var ln = new Line(_verts); o.delka = ln.len; o.uzavrena = !!ln.closed; o.lomena = ln.spread() >= ANGLE_2D; }
+            return o;
+        },
+        hotovaCara: function () { dokonciCaru(false); drawLine(); },
+        jdi: function () { _bezOkna = true; startWalk(); return !!_walk; },
+        chuze: stavChuze,
+        spocitej: function () { if (!_walk) return _result; stopWalk(); finish(); return _result; },
+        vysledek: function () { return _result; },
+        zapni: function () { if (!_result || _result.err) return false; applyShift(_result); _result = null; return true; },
+        vypni: shiftOff,
+        konec: function () {
+            if (_walk) { stopWalk(); _walk = null; }
+            if (_pickOn) dokonciCaru(true);
+            _verts = []; _result = null; clearLine(); _bezOkna = false; _poZmene = null;
+        }
+    };
+    window.AGHrana = { open: open, pruvodce: pruvodce, _test: { Line: Line, solve: solve, ANGLE_2D: ANGLE_2D, interpShift: interpShift, betweenCandidates: betweenCandidates, reapply: reapply, prevShiftFor: prevShiftFor, pointTime: pointTime, LINE_ACC: LINE_ACC, snapNaHranici: snapNaHranici, fetchParcela: fetchParcela, snapParcelyMapy: snapParcelyMapy, snapChodnik: snapChodnik } };
     function register() {
         if (typeof window.agRegisterFieldTool === 'function') {
             window.agRegisterFieldTool({ id: 'kalibrace-hranou', label: 'Kalibrace chůzí po hraně', icon: ICON, cat: 'AR a kalibrace', onClick: open, order: 71 });
