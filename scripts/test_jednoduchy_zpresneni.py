@@ -57,13 +57,15 @@ async def beh(url):
         await V.cekej(page, "document.body.classList.contains('ag-jr-on')", 60)
         await page.wait_for_timeout(800)
         await page.evaluate(ZAVRI)
+        # Pro se ověřuje až po startu — dřív by klepnutí ukázalo kartu Pro (v CI se to stalo)
+        await V.cekej(page, "!!window.AGProZamky && !AGProZamky.zamceno('kalibrace-hranou')", 30)
         podklad0 = await page.evaluate("() => visSettings.baseLayer")
 
         # ---- O otevření
         await page.click('#ag-jr-vrstvy-btn')
         await page.click('#ag-jr-vrstvy [data-vr="hrana"]')
         ok('O1 průvodce se otevře v jednoduchém režimu', await V.cekej(page, "AGJednoduchy.stranka() === 'hr' && !AGJednoduchy.pauza()", 10),
-           await page.evaluate("() => [AGJednoduchy.stranka(), AGJednoduchy.pauza()]"))
+           await page.evaluate("() => [AGJednoduchy.stranka(), AGJednoduchy.pauza(), typeof window.AGHrana, window.AGHrana && Object.keys(AGHrana), !!window.AGProZamky && AGProZamky.zamceno('kalibrace-hranou'), [...document.querySelectorAll('.ag-dlg-overlay.open, .modal-overlay')].filter(e => getComputedStyle(e).display !== 'none').map(e => (e.id || '') + ':' + e.innerText.slice(0, 60))]"))
         ok('O2 mapa je v okně průvodce', await V.cekej(page, "!!document.querySelector('#ag-jr-mapa-hr #map')", 5))
         ok('O3 podklad se přepnul na ortofoto', await V.cekej(page, "visSettings.baseLayer === 'ortofoto'", 5), podklad0)
         ok('O4 DALŠÍ je bez hrany zamčené', await page.evaluate("() => document.getElementById('ag-jr-hr-btn').disabled"))
