@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-11-19",
-  "uvodnik": "Vydání 19. 11. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-11-20",
+  "uvodnik": "Vydání 20. 11. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,18 +13,6 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
-    },
-    {
-      "rubrika": "Akce",
-      "top": false,
-      "nadpis": "Webinar – Beyond the Trajectory: From Mission Data to Trusted Geospatial Intelligence",
-      "perex": "How Waypoint software from NovAtel, part of Hexagon, and Inertial Labs RESEPI advanced post-processing and automated workflows enable accurate, reliable geospatial data at scale.",
-      "telo": "How Waypoint software from NovAtel, part of Hexagon, and Inertial Labs RESEPI advanced post-processing and automated workflows enable accurate, reliable geospatial data at scale. Thursday, November 19, 2026, 1:00 – 2:30 PM ET REGISTER HERE For OEMs and system integrators, the challenge extends beyond collecting positioning and navigation data. It’s turning complex sensor inputs into dependable, application-ready solutions without adding unnecessary development time, processing complexity or operational burden. Join experts from Hexagon’s NovAtel Positioning Division and Inertial Labs, a VIAVI Solutions company, for a technical discussion exploring how proven navigation processing technologie",
-      "body": [],
-      "proc": "",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/aerialuas/webinar-beyond-the-trajectory-from-mission-data-to-trusted-geospatial-intelligence/",
-      "datum": "2026-11-13"
     },
     {
       "rubrika": "Z praxe",
@@ -97,6 +85,18 @@
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/11/09/trimble-launches-new-trimble-connect-platform-ai-capabilities-aimed-at-de-risking-construction/?utm_source=rss&utm_medium=rss&utm_campaign=trimble-launches-new-trimble-connect-platform-ai-capabilities-aimed-at-de-risking-construction",
       "datum": "2026-11-09"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "Bridging PPP and a Legacy National Datum: A Velocity-Driven Transformation to HGRS1987",
+      "perex": "D. Ampatzidis, A. Tsimerikas, G. Moschopoulos, K.",
+      "telo": "D. Ampatzidis, A. Tsimerikas, G. Moschopoulos, K. Balidakis and A. Mouratidis EDITORIAL DISCLOSURE — The article is an editorial adaptation and professional-magazine presentation of research already published by the authors in the peer-reviewed Bulletin of Geophysics and Oceanography: Ampatzidis, D., Tsimerikas, A., Moschopoulos, G., Balidakis, K. and Mouratidis, A. (2025), “The alignment of PPP-derived coordinates to a local geodetic reference system through a reliable velocity field: case study in Greece,” Vol. 66, No. 1, pp. 43–56, doi: 10.4430/bgo00486. The present article does not claim new experimental results; it reframes and explains the previously published methodology and results f",
+      "body": [],
+      "proc": "",
+      "zdroj": "xyHt",
+      "odkaz": "https://www.xyht.com/magazine/magazine-magazine/bridging-ppp-and-a-legacy-national-datum-a-velocity-driven-transformation-to-hgrs1987/",
+      "datum": "2026-11-06"
     }
   ]
 }
