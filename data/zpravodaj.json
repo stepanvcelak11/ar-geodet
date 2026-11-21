@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-11-20",
-  "uvodnik": "Vydání 20. 11. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-11-21",
+  "uvodnik": "Vydání 21. 11. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,18 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Technologie",
+      "top": false,
+      "nadpis": "Mapping in 2027: What’s Next?",
+      "perex": "As mapping technology continues to evolve, new opportunities are emerging through advanced sensors, innovative 3D technologies, and increasingly automated workflows.",
+      "telo": "As mapping technology continues to evolve, new opportunities are emerging through advanced sensors, innovative 3D technologies, and increasingly automated workflows. But which trends will have the greatest impact in 2027? Join our guest Miriam McNabb, Editor-in-Chief of DRONELIFE, as she shares her insights into four key trends shaping the mapping industry in 2027. Each topic will be followed by a practical demonstration in Correlator3D , showing how these developments are already transforming photogrammetric workflows. Register here: https://hubs.ly/Q04FNFY80 Key topics covered include: • Combining lidar and imagery for richer mapping deliverables • Exploring emerging 3D technologies and vi",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/11/20/mapping-in-2027-whats-next/?utm_source=rss&utm_medium=rss&utm_campaign=mapping-in-2027-whats-next",
+      "datum": "2026-11-20"
     },
     {
       "rubrika": "Z praxe",
@@ -85,18 +97,6 @@
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/11/09/trimble-launches-new-trimble-connect-platform-ai-capabilities-aimed-at-de-risking-construction/?utm_source=rss&utm_medium=rss&utm_campaign=trimble-launches-new-trimble-connect-platform-ai-capabilities-aimed-at-de-risking-construction",
       "datum": "2026-11-09"
-    },
-    {
-      "rubrika": "Z praxe",
-      "top": false,
-      "nadpis": "Bridging PPP and a Legacy National Datum: A Velocity-Driven Transformation to HGRS1987",
-      "perex": "D. Ampatzidis, A. Tsimerikas, G. Moschopoulos, K.",
-      "telo": "D. Ampatzidis, A. Tsimerikas, G. Moschopoulos, K. Balidakis and A. Mouratidis EDITORIAL DISCLOSURE — The article is an editorial adaptation and professional-magazine presentation of research already published by the authors in the peer-reviewed Bulletin of Geophysics and Oceanography: Ampatzidis, D., Tsimerikas, A., Moschopoulos, G., Balidakis, K. and Mouratidis, A. (2025), “The alignment of PPP-derived coordinates to a local geodetic reference system through a reliable velocity field: case study in Greece,” Vol. 66, No. 1, pp. 43–56, doi: 10.4430/bgo00486. The present article does not claim new experimental results; it reframes and explains the previously published methodology and results f",
-      "body": [],
-      "proc": "",
-      "zdroj": "xyHt",
-      "odkaz": "https://www.xyht.com/magazine/magazine-magazine/bridging-ppp-and-a-legacy-national-datum-a-velocity-driven-transformation-to-hgrs1987/",
-      "datum": "2026-11-06"
     }
   ]
 }
