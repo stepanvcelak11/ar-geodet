@@ -1,6 +1,6 @@
 {
-  "vydani": "2026-11-23",
-  "uvodnik": "Vydání 23. 11. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
+  "vydani": "2026-11-24",
+  "uvodnik": "Vydání 24. 11. 2026 — 8 zpráv z geodézie (zahraniční zdroje v původním znění).",
   "polozky": [
     {
       "rubrika": "Z domova",
@@ -13,6 +13,30 @@
       "zdroj": "ČÚZK",
       "odkaz": "https://cuzk.gov.cz/Zememerictvi/Zememericke-cinnosti/Aktuality-pro-zememerice/2026/WSGP-ukonceni-provozu-sluzeb-verze-2-10-(1).aspx?feed=b02d6eea-7d16-47a4-9816-21dea74247ce",
       "datum": "2026-08-25"
+    },
+    {
+      "rubrika": "Přístroje",
+      "top": false,
+      "nadpis": "Success from the Blue Line",
+      "perex": "While much of Montreal was supporting the Montreal Canadiens, its storied NHL team, as it navigated the post-season, a mammoth undertaking was kicking off beneath their very feet.",
+      "telo": "While much of Montreal was supporting the Montreal Canadiens, its storied NHL team, as it navigated the post-season, a mammoth undertaking was kicking off beneath their very feet. In the city’s east end, a group of civic and provincial dignitaries, along with representatives from Société de transport de Montréal (STM), the city’s transit organization and Mobilité Bleu Horizon (MBH), a consortium of global construction firms, celebrated the inaugural launch of a tunnel boring machine (TBM) . The unit will be the key component in the expansion of the Metro’s Blue Line, most of which will run directly under many sensitive structures and utilities. To alleviate the risk of damage to those assets",
+      "body": [],
+      "proc": "",
+      "zdroj": "LiDAR Magazine",
+      "odkaz": "https://lidarmag.com/2026/11/23/success-from-the-blue-line/?utm_source=rss&utm_medium=rss&utm_campaign=success-from-the-blue-line",
+      "datum": "2026-11-23"
+    },
+    {
+      "rubrika": "Z praxe",
+      "top": false,
+      "nadpis": "Trimble Recognizes Startups Advancing Innovation in Construction Technology",
+      "perex": "Winners of the 2026 Trimble 0-60 Challenge demonstrated how integrations with Trimble technology can improve connectivity across data, design and field operations Westminster, Colo., Nov. 23, 2026 — T…",
+      "telo": "Winners of the 2026 Trimble 0-60 Challenge demonstrated how integrations with Trimble technology can improve connectivity across data, design and field operations Westminster, Colo., Nov. 23, 2026 — Trimble announced the winners of its annual 0-60 Challenge, an initiative developed in collaboration with the Trimble Ventures corporate venture fund to foster innovation across the built environment. The Trimble 0-60 Challenge is an accelerator program that helps startups, entrepreneurs and developers refine and showcase technology solutions addressing challenges in architecture, engineering, construction, asset lifecycle management and field systems. Ten finalists were selected from a competiti",
+      "body": [],
+      "proc": "",
+      "zdroj": "The American Surveyor",
+      "odkaz": "https://amerisurv.com/2026/11/23/trimble-recognizes-startups-advancing-innovation-in-construction-technology/?utm_source=rss&utm_medium=rss&utm_campaign=trimble-recognizes-startups-advancing-innovation-in-construction-technology",
+      "datum": "2026-11-23"
     },
     {
       "rubrika": "Technologie",
@@ -72,30 +96,6 @@
       "proc": "",
       "zdroj": "The American Surveyor",
       "odkaz": "https://amerisurv.com/2026/11/09/trimble-introduces-next-generation-trimble-earthworks-machine-control-hardware/?utm_source=rss&utm_medium=rss&utm_campaign=trimble-introduces-next-generation-trimble-earthworks-machine-control-hardware",
-      "datum": "2026-11-09"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Trimble Launches New AI-Accelerated Scheduling Solution to Help Contractors Protect Project Milestones",
-      "perex": "Trimble Connect Scheduling autonomously reviews multiple data sources to help teams detect risk and optimize a centralized schedule in real time Las Vegas, Nov. 9, 2026 — Trimble today introduced Trim…",
-      "telo": "Trimble Connect Scheduling autonomously reviews multiple data sources to help teams detect risk and optimize a centralized schedule in real time Las Vegas, Nov. 9, 2026 — Trimble today introduced Trimble Connect Scheduling TM , an integrated and AI-assisted solution for real-time visibility and optimization of construction scheduling and planning. Unveiled as a new capability of the Trimble Connect Ⓡ platform during the Trimble Dimensions User Conference, Trimble Connect Scheduling transforms how teams in the field and office can plan activities, identify scheduling risks and respond to dynamic changes to meet the critical industry challenge of completing projects on time and within budget.",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/11/09/trimble-launches-new-ai-accelerated-scheduling-solution-to-help-contractors-protect-project-milestones/?utm_source=rss&utm_medium=rss&utm_campaign=trimble-launches-new-ai-accelerated-scheduling-solution-to-help-contractors-protect-project-milestones",
-      "datum": "2026-11-09"
-    },
-    {
-      "rubrika": "Technologie",
-      "top": false,
-      "nadpis": "Trimble Launches New Trimble Connect Platform AI Capabilities Aimed at De-Risking Construction",
-      "perex": "Expanded platform closes operational gaps to turn industry risk into confidence, while preserving the deep specialization project teams rely on every day Anchored in ground truth, new AI capabilities…",
-      "telo": "Expanded platform closes operational gaps to turn industry risk into confidence, while preserving the deep specialization project teams rely on every day Anchored in ground truth, new AI capabilities accelerate the connections between jobsite information, design, cost and operational workflows Las Vegas , Nov. 9, 2026 — Today at Trimble Dimensions, Trimble (Nasdaq: TRMB) announced new Trimble Connect ® AI capabilities across the design, build and operate lifecycle of construction that increase the breadth and functionality of the industry platform. From generative design using Trimble Assist, to customer designed agents in Trimble Agent Studio, to advanced AI governance and transparency, Tri",
-      "body": [],
-      "proc": "",
-      "zdroj": "The American Surveyor",
-      "odkaz": "https://amerisurv.com/2026/11/09/trimble-launches-new-trimble-connect-platform-ai-capabilities-aimed-at-de-risking-construction/?utm_source=rss&utm_medium=rss&utm_campaign=trimble-launches-new-trimble-connect-platform-ai-capabilities-aimed-at-de-risking-construction",
       "datum": "2026-11-09"
     }
   ]
